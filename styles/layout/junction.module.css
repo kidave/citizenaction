@@ -1,0 +1,117 @@
+.junctionContainer {
+  background: white;
+  border-radius: 12px;
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.mainContent {
+  display: flex;
+  gap: 20px;
+}
+
+.tableSection {
+  flex: 1;
+  min-width: 300px;
+}
+
+.mapSection {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.mapContainer {
+  height: 350px;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.mapLoading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.junctionTable {
+  max-height: 450px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.junctionTable table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.junctionTable th, .junctionTable td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.junctionTable th {
+  background-color: #f8fafc;
+  position: sticky;
+  top: 0;
+}
+
+.junctionTable tr:hover {
+  background-color: #f8fafc;
+}
+
+.selectedRow {
+  background-color: #e6f7ff !important;
+}
+
+.viewButton {
+  background-color: #1890ff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.viewButton:hover {
+  background-color: #40a9ff;
+}
+
+.detailSection {
+  background-color: #f8fafc;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.detailRow {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.detailLabel {
+  font-weight: 600;
+  min-width: 100px;
+}
+
+.noData {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+}
+
+.loading {
+  padding: 20px;
+  text-align: center;
+}

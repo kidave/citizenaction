@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import styles from '../../styles/layout/sidebar.module.css';
 import { useRouter } from 'next/router';
 import { supabase } from '../../utils/supabaseClient';
-import { IoFootsteps } from "react-icons/io5";
 import { FiUsers, FiMap, FiMapPin, FiCheckSquare, FiGitBranch } from "react-icons/fi";
 import { FaRoad } from "react-icons/fa";
 import { TbTimelineEvent } from "react-icons/tb";
@@ -219,6 +218,14 @@ export default function WardSidebar({
           {isHovered && <span className={styles.tabText}>Road</span>}
         </button>
         <button
+          className={`${styles.tab} ${activeTab === 'junction' ? styles.active : ''}`}
+          onClick={() => setActiveTab('junction')}
+          title="Junction"
+        >
+          <FiGitBranch className={styles.tabIcon} />
+          {isHovered && <span className={styles.tabText}>Junction</span>}
+        </button>
+        <button
           className={`${styles.tab} ${activeTab === 'action' ? styles.active : ''}`}
           onClick={() => setActiveTab('action')}
           disabled={isTabDisabled('action')}
@@ -226,15 +233,6 @@ export default function WardSidebar({
         >
           <FiCheckSquare className={styles.tabIcon} />
           {isHovered && <span className={styles.tabText}>Action</span>}
-        </button>
-        <button
-          className={`${styles.tab} ${activeTab === 'junction' ? styles.active : ''}`}
-          onClick={() => setActiveTab('junction')}
-          disabled={isTabDisabled('junction')}
-          title="Junction"
-        >
-          <FiGitBranch className={styles.tabIcon} />
-          {isHovered && <span className={styles.tabText}>Junction</span>}
         </button>
       </div>
     </div>

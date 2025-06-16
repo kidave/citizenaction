@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../utils/supabaseClient';
 import styles from '../styles/components/card.module.css';
 import { FaChartBar, FaMapMarkedAlt, FaRoute, FaUsers, FaHandsHelping, FaRoad } from 'react-icons/fa';
+import { BsFillSignIntersectionSideFill } from "react-icons/bs";
 
 function Metrics() {
   const [metrics, setMetrics] = useState([]);
@@ -11,6 +12,7 @@ function Metrics() {
     "active ward committees": FaMapMarkedAlt,
     "members": FaUsers,
     "routes identified": FaRoute,
+    "junctions identified": BsFillSignIntersectionSideFill,
     "tasks completed": FaHandsHelping,
     "road length (km)": FaRoad,
   };

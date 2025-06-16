@@ -150,7 +150,7 @@
 }
 
 .meetingCard .timelineCardIcon {
-  border-color: blue;
+  border-color: skyblue;
 }
 .updateCard .timelineCardIcon {
   border-color: lightseagreen;
@@ -162,14 +162,14 @@
 }
 
 .meetingCard .timelineIconFa {
-  color: blue;
+  color: skyblue;
 }
 .updateCard .timelineIconFa {
   color: lightseagreen;
 }
 
 .meetingCard {
-  border-top: 5px solid blue;
+  border-top: 5px solid skyblue;
 }
 
 .updateCard {
@@ -192,7 +192,7 @@
 }
 
 .meetingCard .cardTypeBadge {
-  background: blue;
+  background: skyblue;
   color: lightcyan;
 }
 

@@ -12,6 +12,7 @@ import {
   useWardRoads,
   useWardActions,
   useWardTimeline,
+  useWardJunctions,
 } from '../../src/hooks';
 
 import { WardProvider } from '../../src/context/WardContext';
@@ -27,11 +28,12 @@ export default function WardDetail() {
   const { metrics, error: metricsError, loading: metricsLoading } = useWardMetrics(wardId);
   const { members, error: membersError, loading: membersLoading } = useWardMembers(wardId, activeTab === 'member');
   const { roads, error: roadsError, loading: roadsLoading } = useWardRoads(wardId, activeTab === 'road');
+  const { junctions, error: junctionsError, loading: junctionsLoading } = useWardJunctions(wardId, activeTab === 'junction');
   const { actions, error: actionsError, loading: actionsLoading } = useWardActions(wardId, activeTab === 'action');
   const { timeline, wardInfo, error: timelineError, loading: timelineLoading } = useWardTimeline(wardId, activeTab === 'timeline');
 
-  const error = metricsError || membersError || roadsError || actionsError || timelineError;
-  const loading = metricsLoading || membersLoading || roadsLoading || actionsLoading || timelineLoading;
+  const error = metricsError || membersError || roadsError || junctionsError || actionsError || timelineError;
+  const loading = metricsLoading || membersLoading || roadsLoading || junctionsLoading ||actionsLoading || timelineLoading;
 
   return (
     <WardProvider wardId={wardId}> {/* ✅ */}
@@ -41,7 +43,7 @@ export default function WardDetail() {
             wardId={wardId} // ✅
             activeTab={activeTab}
             setActiveTab={setActiveTab}
-            disabledTabs={['action', 'junction']}
+            disabledTabs={['action']}
           />
           <WardContent
             activeTab={activeTab}
@@ -54,6 +56,7 @@ export default function WardDetail() {
             loading={loading}
             error={error}
             selectedRoad={selectedRoad}
+            junction={junctions}
           />
         </div>
       </div>

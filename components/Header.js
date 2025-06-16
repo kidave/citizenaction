@@ -58,7 +58,7 @@ export default function Header() {
           >
             <img src="/wp_icon_sm.png" alt="Logo" className={styles.logo} />
           </button>
-          <span className={styles.bottomBarText}>Walking Project</span>
+          <span className={styles.bottomBarText}>Walking Project | Ward Committee Dashboard</span>
         </div>
 
         <nav className={styles.nav}>

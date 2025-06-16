@@ -19,7 +19,7 @@ export default function About({ show = true, onClose }) {
       <h2 className={styles.title}>Improving our Footpaths, One Ward at a Time</h2>
       <p className={styles.text}>
         <strong>Walking Project</strong> is a citizen-driven initiative to make our neighborhoods more walkable, inclusive, and vibrant. 
-        Through <span className={styles.highlight}>ward committees</span>, we bring together residents, local leaders, and volunteers and civic officials to identify walkability issues issues, propose changes, foster collaboration and track progress, for walkable streets and public spaces. 
+        Through <span className={styles.highlight}>ward committees</span>, we bring together residents, local leaders, and volunteers and civic officials to identify walkability issues, propose changes, foster collaboration and track progress, for walkable streets and public spaces. 
         <span className={styles.emphasis}>Join us in building a connected, safe, and healthy city, starting from your own ward!</span>
       </p>
       <div className={styles.infoRow}>

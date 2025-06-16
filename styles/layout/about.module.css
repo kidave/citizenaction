@@ -28,11 +28,8 @@
 }
 
 .showAboutBtn {
-  position: fixed;
-  top: 180px;
-  left: 5px;
-  z-index: 3000;
-  background: white;
+  position: absolute;
+  background: none;
   color: #fcc700;
   border: none;
   border-radius: 50%;
@@ -44,10 +41,6 @@
   cursor: pointer;
 }
 
-.showAboutBtn:hover,
-.showAboutBtn:focus {
-  filter: brightness(0.95);
-}
 
 @media (max-width: 700px) {
   .showAboutBtn {

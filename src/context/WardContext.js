@@ -4,7 +4,8 @@ import {
   useWardTimeline, 
   useWardActions, 
   useWardMembers, 
-  useWardRoads 
+  useWardRoads,
+  useWardJunctions
 } from '../hooks';
 
 const WardContext = createContext();
@@ -15,6 +16,7 @@ export function WardProvider({ children, wardId }) {
   const members = useWardMembers(wardId);
   const roads = useWardRoads(wardId);
   const actions = useWardActions(wardId);
+  const junctions = useWardJunctions(wardId);
 
   const contextValue = useMemo(() => ({
     wardId,
@@ -23,7 +25,8 @@ export function WardProvider({ children, wardId }) {
     members,
     roads,
     actions,
-  }), [wardId, metrics, timeline, members, roads, actions]);
+    junctions,
+  }), [wardId, metrics, timeline, members, roads, actions, junctions]);
 
   return (
     <WardContext.Provider value={contextValue}>

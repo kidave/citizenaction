@@ -3,7 +3,7 @@ import styles from '../../styles/layout/container.module.css';
 
 export default function WardContent({ 
   activeTab,
-  action, 
+  action,
   member, 
   road,
   junction,
@@ -17,7 +17,7 @@ export default function WardContent({
       {activeTab === 'action' && <ActionTab actions={action} />}
       {activeTab === 'member' && <MemberTab members={member} />}
       {activeTab === 'road' && <RoadTab roads={road} onRoadClick={onRoadClick} />}
-      {activeTab === 'junction' && <JunctionTab />}
+      {activeTab === 'junction' && <JunctionTab junctions={junction}  />}
     </div>
   );
 }
