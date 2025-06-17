@@ -1,5 +1,3 @@
-import styles from '../../styles/components/cell.module.css';
-
 
 export default function TableCell({ children, isHidden }) {
   return (
