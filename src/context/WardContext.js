@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo } from 'react';
+import { createContext, useContext, useMemo } from 'react';
 import { 
   useWardMetrics, 
   useWardTimeline, 
@@ -18,6 +18,12 @@ export function WardProvider({ children, wardId }) {
   const actions = useWardActions(wardId);
   const junctions = useWardJunctions(wardId);
 
+  const wardInfo = timeline.wardInfo || junctions.wardInfo || {
+    wardName: 'Unknown',
+    convenor: 'Not assigned',
+    coConvenor: 'Not assigned'
+  };
+
   const contextValue = useMemo(() => ({
     wardId,
     metrics,
@@ -26,6 +32,7 @@ export function WardProvider({ children, wardId }) {
     roads,
     actions,
     junctions,
+    wardInfo 
   }), [wardId, metrics, timeline, members, roads, actions, junctions]);
 
   return (

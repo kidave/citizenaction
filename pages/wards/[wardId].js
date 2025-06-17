@@ -36,11 +36,11 @@ export default function WardDetail() {
   const loading = metricsLoading || membersLoading || roadsLoading || junctionsLoading ||actionsLoading || timelineLoading;
 
   return (
-    <WardProvider wardId={wardId}> {/* ✅ */}
+    <WardProvider wardId={wardId}>
       <div className={styles.page}>
         <div className={styles.wardMain}>
           <WardSidebar
-            wardId={wardId} // ✅
+            wardId={wardId}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             disabledTabs={['action']}

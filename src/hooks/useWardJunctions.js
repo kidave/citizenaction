@@ -15,7 +15,6 @@ export default function useWardJunctions(wardId, enabled = true) {
     supabase
       .rpc('get_ward_junctions', { ward_id: parseInt(wardId) })
       .then(({ data, error }) => {
-        console.log("Fetched junction data:", data);
         if (error) throw error;
         setJunctions(data || []);
         setLoading(false);

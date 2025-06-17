@@ -5,6 +5,8 @@ import dynamic from 'next/dynamic';
 import styles from '../../../styles/layout/junction.module.css';
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { useWard } from '../../../src/context/WardContext';
+
 
 const JunctionMap = dynamic(
   () => import('./JunctionMap'),
@@ -14,7 +16,8 @@ const JunctionMap = dynamic(
   }
 );
 
-export default function JunctionTab({ wardInfo, junctions }) {
+export default function JunctionTab({ junctions }) {
+  const { wardInfo } = useWard();
   const [selectedJunction, setSelectedJunction] = useState(null);
   const [beforeIndex, setBeforeIndex] = useState(0);
   const [afterIndex, setAfterIndex] = useState(0);
