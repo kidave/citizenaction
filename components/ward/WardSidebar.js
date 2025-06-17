@@ -2,9 +2,12 @@ import { useState, useEffect } from 'react';
 import styles from '../../styles/layout/sidebar.module.css';
 import { useRouter } from 'next/router';
 import { supabase } from '../../utils/supabaseClient';
-import { FiUsers, FiMap, FiMapPin, FiCheckSquare, FiGitBranch } from "react-icons/fi";
-import { FaRoad } from "react-icons/fa";
-import { TbTimelineEvent } from "react-icons/tb";
+import { FaMap } from "react-icons/fa6";
+import { FaUsers, FaRoad, FaCheckSquare   } from "react-icons/fa";
+import { BsFillSignIntersectionSideFill } from "react-icons/bs";
+import { TbTimelineEventFilled } from "react-icons/tb";
+import { PiMapPinAreaFill } from "react-icons/pi";
+
 
 
 
@@ -139,7 +142,7 @@ export default function WardSidebar({
       <div className={styles.selector}>
         {/* Division Dropdown */}
         <div className={styles.dropdownWrapper}>
-          <FiMap className={styles.dropdownIcon} title="Division" />
+          <FaMap className={styles.dropdownIcon} title="Division" />
           {isHovered && (
             <>
               {loadingDivisions ? (
@@ -164,7 +167,7 @@ export default function WardSidebar({
 
         {/* Ward Dropdown */}
         <div className={styles.dropdownWrapper}>
-          <FiMapPin className={styles.dropdownIcon} title="Ward" />
+          <PiMapPinAreaFill  className={styles.dropdownIcon} title="Ward" />
           {isHovered && (
             <>
               {loadingWards ? (
@@ -198,7 +201,7 @@ export default function WardSidebar({
           onClick={() => setActiveTab('timeline')}
           title="Timeline"
         >
-          <TbTimelineEvent className={styles.tabIcon} />
+          <TbTimelineEventFilled className={styles.tabIcon} />
           {isHovered && <span className={styles.tabText}>Timeline</span>}
         </button>
         <button
@@ -206,7 +209,7 @@ export default function WardSidebar({
           onClick={() => setActiveTab('member')}
           title="Member"
         >
-          <FiUsers className={styles.tabIcon} />
+          <FaUsers className={styles.tabIcon} />
           {isHovered && <span className={styles.tabText}>Member</span>}
         </button>
         <button
@@ -222,7 +225,7 @@ export default function WardSidebar({
           onClick={() => setActiveTab('junction')}
           title="Junction"
         >
-          <FiGitBranch className={styles.tabIcon} />
+          <BsFillSignIntersectionSideFill className={styles.tabIcon} />
           {isHovered && <span className={styles.tabText}>Junction</span>}
         </button>
         <button
@@ -231,7 +234,7 @@ export default function WardSidebar({
           disabled={isTabDisabled('action')}
           title="Action"
         >
-          <FiCheckSquare className={styles.tabIcon} />
+          <FaCheckSquare className={styles.tabIcon} />
           {isHovered && <span className={styles.tabText}>Action</span>}
         </button>
       </div>

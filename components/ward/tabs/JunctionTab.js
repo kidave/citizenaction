@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import styles from '../../../styles/layout/junction.module.css';
 import { FaMapMarkerAlt } from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 const JunctionMap = dynamic(
   () => import('./JunctionMap'),
@@ -29,30 +30,22 @@ export default function JunctionTab({ wardInfo, junctions }) {
 
   const beforeImages = selectedJunction ? [
     { 
-      url: `https://your-supabase-url.com/storage/v1/object/public/junction-images/${selectedJunction.fid}/before1.jpg`,
+      url: `https://gostxgfnoilfmybaohhx.supabase.co/storage/v1/object/public/junction/Mumbai/${wardInfo?.wardName}/${selectedJunction.fid}/before1.jpg`,
       date: '2023-01-15'
     },
     { 
-      url: `https://your-supabase-url.com/storage/v1/object/public/junction-images/${selectedJunction.fid}/before2.jpg`,
+      url: `https://gostxgfnoilfmybaohhx.supabase.co/storage/v1/object/public/junction/Mumbai/${wardInfo?.wardName}/${selectedJunction.fid}/before2.jpg`,
       date: '2023-01-20'
-    },
-    { 
-      url: `https://your-supabase-url.com/storage/v1/object/public/junction-images/${selectedJunction.fid}/after2.jpg`,
-      date: '2023-07-15'
     }
   ] : [];
 
   const afterImages = selectedJunction ? [
     { 
-      url: `https://your-supabase-url.com/storage/v1/object/public/junction-images/${selectedJunction.fid}/after1.jpg`,
+      url: `https://gostxgfnoilfmybaohhx.supabase.co/storage/v1/object/public/junction/Mumbai/${wardInfo?.wardName}/${selectedJunction.fid}/after1.jpg`,
       date: '2023-06-20'
     },
     { 
-      url: `https://your-supabase-url.com/storage/v1/object/public/junction-images/${selectedJunction.fid}/after2.jpg`,
-      date: '2023-07-15'
-    },
-    { 
-      url: `https://your-supabase-url.com/storage/v1/object/public/junction-images/${selectedJunction.fid}/after2.jpg`,
+      url: `https://gostxgfnoilfmybaohhx.supabase.co/storage/v1/object/public/junction/Mumbai/${wardInfo?.wardName}/${selectedJunction.fid}/after2.jpg`,
       date: '2023-07-15'
     }
   ] : [];
@@ -249,27 +242,51 @@ function ImageComparison({ beforeImages, afterImages, beforeIndex, afterIndex, o
 }
 
 function ImagePanel({ title, images, currentIndex, onNavigate }) {
+  const [errorCount, setErrorCount] = useState(0);
+  const maxRetries = 1; // Only try once
+
+  const handleError = (e) => {
+    if (errorCount < maxRetries) {
+      setErrorCount(errorCount + 1);
+      e.target.src = `/placeholder-${title.toLowerCase().includes('before') ? 'before' : 'after'}.jpg`;
+    } else {
+      e.target.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; // 1x1 transparent pixel
+      e.target.onerror = null;
+    }
+  };
+
   return (
     <div className={styles.imageGrid}>
       <h5>{title}</h5>
       <div className={styles.imageSlider}>
-        <button 
+        <button
           onClick={() => onNavigate(prev => Math.max(0, prev - 1))}
           className={styles.navButton}
           disabled={images.length <= 1}
+          aria-label="Previous image"
+          type="button"
         >
-          &lt;
+          <FaChevronLeft />
         </button>
-        <img 
-          src={images[currentIndex]?.url || `/placeholder-${title.toLowerCase().includes('before') ? 'before' : 'after'}.jpg`} 
-          alt={`${title} ${currentIndex + 1}`}
-        />
-        <button 
+        {images[currentIndex]?.url ? (
+          <img 
+            src={images[currentIndex]?.url || `/placeholder-${title.toLowerCase().includes('before') ? 'before' : 'after'}.jpg`}
+            alt={`${title} ${currentIndex + 1}`}
+            onError={handleError}
+          />
+        ) : (
+          <div className={styles.imagePlaceholder}>
+            No image available
+          </div>
+        )}
+        <button
           onClick={() => onNavigate(prev => (prev + 1) % images.length)}
           className={styles.navButton}
           disabled={images.length <= 1}
+          aria-label="Next image"
+          type="button"
         >
-          &gt;
+          <FaChevronRight />
         </button>
         {images.length > 1 && (
           <div className={styles.imageCounter}>
