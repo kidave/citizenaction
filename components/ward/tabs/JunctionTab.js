@@ -22,9 +22,6 @@ export default function JunctionTab({ junctions }) {
   const [beforeIndex, setBeforeIndex] = useState(0);
   const [afterIndex, setAfterIndex] = useState(0);
 
-  const MUMBAI_CENTER = [19.0760, 72.8777];
-  const DEFAULT_ZOOM = 12;
-
   useEffect(() => {
     setSelectedJunction(null);
     setBeforeIndex(0);

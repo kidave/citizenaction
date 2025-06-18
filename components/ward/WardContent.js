@@ -9,14 +9,15 @@ export default function WardContent({
   junction,
   timeline,
   onRoadClick,
-  wardInfo
+  wardInfo,
+  selectedRoad
 }) {
   return (
     <div className={styles.wardContent}>
       {activeTab === 'timeline' && <TimelineTab timelines={timeline} wardInfo={wardInfo} />}
       {activeTab === 'action' && <ActionTab actions={action} />}
       {activeTab === 'member' && <MemberTab members={member} />}
-      {activeTab === 'road' && <RoadTab roads={road} onRoadClick={onRoadClick} />}
+      {activeTab === 'road' && <RoadTab roads={road} onRoadClick={onRoadClick} selectedRoad={selectedRoad} wardInfo={wardInfo} />}
       {activeTab === 'junction' && <JunctionTab junctions={junction} wardInfo={wardInfo}  />}
     </div>
   );

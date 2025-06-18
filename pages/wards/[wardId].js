@@ -27,7 +27,7 @@ export default function WardDetail() {
   // Data hooks
   const { metrics, error: metricsError, loading: metricsLoading } = useWardMetrics(wardId);
   const { members, error: membersError, loading: membersLoading } = useWardMembers(wardId, activeTab === 'member');
-  const { roads, error: roadsError, loading: roadsLoading } = useWardRoads(wardId, activeTab === 'road');
+  const { roads, error: roadsError, loading: roadsLoading } = useWardRoads(wardId, true);
   const { junctions, error: junctionsError, loading: junctionsLoading } = useWardJunctions(wardId, activeTab === 'junction');
   const { actions, error: actionsError, loading: actionsLoading } = useWardActions(wardId, activeTab === 'action');
   const { timeline, wardInfo, error: timelineError, loading: timelineLoading } = useWardTimeline(wardId, activeTab === 'timeline');

@@ -12,11 +12,11 @@ const WardContext = createContext();
 
 export function WardProvider({ children, wardId }) {
   const metrics = useWardMetrics(wardId);
-  const timeline = useWardTimeline(wardId);
-  const members = useWardMembers(wardId);
-  const roads = useWardRoads(wardId);
-  const actions = useWardActions(wardId);
-  const junctions = useWardJunctions(wardId);
+  const timeline = useWardTimeline(wardId, true);
+  const members = useWardMembers(wardId, true);
+  const { roads } = useWardRoads(wardId);
+  const actions = useWardActions(wardId, true);
+  const junctions = useWardJunctions(wardId, true);
 
   const wardInfo = timeline.wardInfo || junctions.wardInfo || {
     wardName: 'Unknown',

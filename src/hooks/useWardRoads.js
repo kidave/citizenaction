@@ -8,15 +8,19 @@ export default function useWardRoads(wardId, enabled = true) {
 
   useEffect(() => {
     if (!wardId || !enabled) return;
+    
     setLoading(true);
     setError(null);
+
     supabase
-      .from('roads')
-      .select('*')
-      .eq('ward_id', wardId)
+      .rpc('get_ward_roads', { gr_ward_id: wardId })
       .then(({ data, error }) => {
+        if (error) throw error;
         setRoads(data || []);
-        setError(error ? error.message : null);
+        setLoading(false);
+      })
+      .catch(err => {
+        setError(err.message);
         setLoading(false);
       });
   }, [wardId, enabled]);

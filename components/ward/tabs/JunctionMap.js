@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import styles from '../../../styles/layout/junction.module.css';
@@ -8,6 +8,30 @@ import styles from '../../../styles/layout/junction.module.css';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+// Tile layer configuration
+const tileLayers = {
+  osm: {
+    name: 'OpenStreetMap',
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  },
+  cyclosm: {
+    name: 'CyclOSM',
+    url: 'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',
+    attribution: '<a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases" title="CyclOSM - Open Bicycle render">CyclOSM</a> | Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  },
+  transport: {
+    name: 'Transport Map',
+    url: 'https://{s}.tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=6170aad10dfd42a38d4d8c709a536f38',
+    attribution: '&copy; <a href="https://www.thunderforest.com/">Thunderforest</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  },
+  cycle: {
+    name: 'Cycle Map',
+    url: 'https://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=6170aad10dfd42a38d4d8c709a536f38',
+    attribution: '&copy; <a href="https://www.thunderforest.com/">Thunderforest</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }
+};
 
 // Fix Leaflet marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -33,6 +57,8 @@ export default function JunctionMap({
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
   const initializedRef = useRef(false);
+  const [currentLayer, setCurrentLayer] = useState('osm');
+  const tileLayerRef = useRef(null);
 
   // Initialize map only once
   useEffect(() => {
@@ -44,8 +70,19 @@ export default function JunctionMap({
       zoomControl: false
     }).setView(center, zoom);
     
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    // Add the initial tile layer
+    tileLayerRef.current = L.tileLayer(tileLayers[currentLayer].url, {
+      attribution: tileLayers[currentLayer].attribution
+    }).addTo(mapInstance.current);
+
+    // Add layer control
+    const baseLayers = Object.entries(tileLayers).reduce((acc, [key, layer]) => {
+      acc[layer.name] = L.tileLayer(layer.url, { attribution: layer.attribution });
+      return acc;
+    }, {});
+
+    L.control.layers(baseLayers, null, {
+      position: 'topright'
     }).addTo(mapInstance.current);
 
     L.control.zoom({
@@ -61,6 +98,16 @@ export default function JunctionMap({
       initializedRef.current = false;
     };
   }, []);
+
+  // Update tile layer when currentLayer changes
+  useEffect(() => {
+    if (!mapInstance.current || !tileLayerRef.current) return;
+    
+    mapInstance.current.removeLayer(tileLayerRef.current);
+    tileLayerRef.current = L.tileLayer(tileLayers[currentLayer].url, {
+      attribution: tileLayers[currentLayer].attribution
+    }).addTo(mapInstance.current);
+  }, [currentLayer]);
 
   // Update markers
   useEffect(() => {
@@ -140,5 +187,20 @@ export default function JunctionMap({
     }
   }, [selectedJunction]);
 
-  return <div ref={mapRef} className={styles.mapContainer} />;
+  return (
+    <div className={styles.mapContainer}>
+      <div ref={mapRef} className={styles.map} />
+      <div className={styles.layerControls}>
+        {Object.entries(tileLayers).map(([key, layer]) => (
+          <button
+            key={key}
+            className={`${styles.layerButton} ${currentLayer === key ? styles.active : ''}`}
+            onClick={() => setCurrentLayer(key)}
+          >
+            {layer.name}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }
