@@ -23,22 +23,22 @@ export default function useWardTimeline(wardId, enabled = true) {
         const { data: committeeData } = await supabase
           .from('committee')
           .select('*')
-          .eq('ward_id', wardId)
+          .eq('ward_code', wardId)
           .eq('is_convenor', true)
           .single();
 
         const { data: coConvenorData } = await supabase
           .from('committee')
           .select('*')
-          .eq('ward_id', wardId)
+          .eq('ward_code', wardId)
           .eq('is_co_convenor', true)
           .single();
 
         // ✅ Fetch ward name
         const { data: wardData, error: wardError } = await supabase
           .from('ward')
-          .select('ward_name')
-          .eq('ward_id', wardId)
+          .select('name')
+          .eq('code', wardId)
           .single();
 
         if (wardError) throw wardError;
@@ -47,13 +47,13 @@ export default function useWardTimeline(wardId, enabled = true) {
         const { data: meeting, error: meetingError } = await supabase
           .from('meeting')
           .select('*')
-          .eq('ward_id', wardId)
+          .eq('ward_code', wardId)
           .order('meeting_date', { ascending: false });
 
         const { data: update, error: updateError } = await supabase
           .from('update')
           .select('*')
-          .eq('ward_id', wardId)
+          .eq('ward_code', wardId)
           .order('update_date', { ascending: false });
 
         if (meetingError || updateError) throw meetingError || updateError;

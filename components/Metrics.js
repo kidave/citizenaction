@@ -20,7 +20,7 @@ function Metrics() {
   useEffect(() => {
     const fetchMetrics = async () => {
       const { data, error } = await supabase
-        .from('landing_dashboard_metrics')
+        .from('metrics')
         .select('*');
       if (!error) setMetrics(data);
     };

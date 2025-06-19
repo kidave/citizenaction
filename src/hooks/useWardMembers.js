@@ -13,7 +13,7 @@ export default function useWardMembers(wardId, enabled = true) {
     supabase
       .from('committee')
       .select('*')
-      .eq('ward_id', wardId)
+      .eq('ward_code', wardId)
       .then(({ data, error }) => {
         setMembers(data || []);
         setError(error ? error.message : null);

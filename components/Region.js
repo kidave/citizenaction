@@ -20,8 +20,8 @@ function Region() {
     const fetchCities = async () => {
       const { data, error } = await supabase
         .from('city')
-        .select('city_id, city_name')
-        .order('city_id', { ascending: true });
+        .select('code, name')
+        .order('code', { ascending: true });
 
       if (error) {
         console.error('Error fetching cities:', error.message);
@@ -41,9 +41,9 @@ function Region() {
 
     const { data, error } = await supabase
       .from('division')
-      .select('division_id, division_name')
-      .eq('city_id', cityId)
-      .order('division_id', { ascending: true });
+      .select('code, name')
+      .eq('city_code', cityId)
+      .order('code', { ascending: true });
 
     if (error) {
       console.error('Error fetching divisions:', error.message);
@@ -59,9 +59,9 @@ function Region() {
 
     const { data, error } = await supabase
       .from('ward')
-      .select('ward_id, ward_name')
-      .eq('division_id', divisionId)
-      .order('ward_name', { ascending: true });
+      .select('code, name')
+      .eq('division_code', divisionId)
+      .order('name', { ascending: true });
 
     if (error) {
       console.error('Error fetching wards:', error.message);
@@ -86,14 +86,14 @@ function Region() {
       <div className={containerStyles.cityContainer}>
         {cities.map((city) => (
           <button
-            key={city.city_id}
+            key={city.code}
             className={`${buttonStyles.btnBig} ${
-              selectedCity === city.city_id ? buttonStyles.active : ''
+              selectedCity === city.code ? buttonStyles.active : ''
             }`}
-            onClick={() => handleCityClick(city.city_id)}
+            onClick={() => handleCityClick(city.code)}
           >
             
-            {city.city_name}
+            {city.name}
           </button>
         ))}
       </div>
@@ -107,14 +107,14 @@ function Region() {
           <div className={containerStyles.divisionContainer}>
             {divisions.map((division) => (
               <button
-                key={division.division_id}
+                key={division.code}
                 className={`${buttonStyles.btnMedium} ${
-                  selectedDivision === division.division_id ? buttonStyles.active : ''
+                  selectedDivision === division.code ? buttonStyles.active : ''
                 }`}
-                onClick={() => handleDivisionClick(division.division_id)}
+                onClick={() => handleDivisionClick(division.code)}
               >
                 
-                {division.division_name}
+                {division.name}
               </button>
             ))}
           </div>
@@ -130,12 +130,12 @@ function Region() {
           <div className={containerStyles.wardContainer}>
             {wards.map((ward) => (
               <button
-                key={ward.ward_id}
+                key={ward.code}
                 className={buttonStyles.btnSmall}
-                onClick={() => goToWardDetail(ward.ward_id)}
+                onClick={() => goToWardDetail(ward.code)}
               >
                 
-                {ward.ward_name}
+                {ward.name}
               </button>
             ))}
           </div>

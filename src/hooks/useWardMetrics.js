@@ -12,9 +12,9 @@ export default function useWardMetrics(wardId) {
     setError(null);
 
     supabase
-      .from('ward_dashboard_metrics')
+      .from('metrics')
       .select('*')
-      .eq('ward_id', wardId)
+      .eq('ward_code', wardId)
       .single()
       .then(({ data, error }) => {
         setMetrics(data);

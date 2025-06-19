@@ -6,25 +6,20 @@ import 'leaflet/dist/leaflet.css';
 import styles from '../../../styles/layout/road.module.css';
 
 const tileLayers = {
-  osm: {
-    name: 'OpenStreetMap',
-    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  },
-  cyclosm: {
-    name: 'CyclOSM',
-    url: 'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',
-    attribution: '<a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases" title="CyclOSM - Open Bicycle render">CyclOSM</a> | Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  },
   transport: {
     name: 'Transport Map',
     url: 'https://{s}.tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=6170aad10dfd42a38d4d8c709a536f38',
     attribution: '&copy; <a href="https://www.thunderforest.com/">Thunderforest</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   },
+  osm: {
+    name: 'OpenStreetMap',
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  },
   cycle: {
     name: 'Cycle Map',
     url: 'https://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=6170aad10dfd42a38d4d8c709a536f38',
-    attribution: '&copy; <a href="https://www.thunderforest.com/">Thunderforest</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">CycleMap</a> contributors'
   }
 };
 
@@ -121,7 +116,7 @@ export default function RoadMap({
     };
   };
 
-  // Update road layers
+    // Update road layers with proper styling based on fclass
   useEffect(() => {
     if (!mapInstance.current || !roads) return;
 
@@ -133,6 +128,9 @@ export default function RoadMap({
     });
     roadLayersRef.current = [];
 
+    
+
+    
     if (roads.length === 0) {
       console.log('No roads data available');
       return;
@@ -148,8 +146,6 @@ export default function RoadMap({
           return;
         }
         
-        console.log('Processing road:', road.name, 'with geometry:', road.geometry);
-        
         let geoJSON;
         try {
           geoJSON = typeof road.geometry === 'string' ? 
@@ -160,33 +156,59 @@ export default function RoadMap({
           return;
         }
 
-        // Validate and process GeoJSON
         if (!geoJSON.type || !geoJSON.coordinates) {
           console.error('Invalid GeoJSON structure:', geoJSON);
           return;
         }
 
-        const processedGeoJSON = processGeoJSON(geoJSON);
-        if (!processedGeoJSON) return;
-
-        const layer = L.geoJSON(processedGeoJSON, {
-          style: (feature) => {
-            const colorMap = {
-                'highway': '#e74c3c',
-                'primary': '#2980b9',
-                'residential': '#2ecc71',
-                'service': '#f39c12',
-                'footpath': '#9b59b6',
-                'default': '#95a5a6'
+        const layer = L.geoJSON(geoJSON, {
+          style: () => {
+            // Define styles based on fclass
+            const styleMap = {
+              // Major Roads (5110)
+              motorway: { color: '#e74c3c', weight: 4 },
+              trunk: { color: '#e67e22', weight: 4 },
+              primary: { color: '#f1c40f', weight: 4 },
+              
+              // Minor Roads (5120)
+              secondary: { color: '#2ecc71', weight: 3 },
+              tertiary: { color: '#1abc9c', weight: 3 },
+              unclassified: { color: '#95a5a6', weight: 2 },
+              residential: { color: '#3498db', weight: 2 },
+              living_street: { color: '#9b59b6', weight: 2 },
+              pedestrian: { color: '#34495e', weight: 2 },
+              busway: { color: '#d35400', weight: 2 },
+              
+              // Highway Links (5130)
+              motorway_link: { color: '#e74c3c', weight: 3, dashArray: '5,5' },
+              trunk_link: { color: '#e67e22', weight: 3, dashArray: '5,5' },
+              primary_link: { color: '#f1c40f', weight: 3, dashArray: '5,5' },
+              secondary_link: { color: '#2ecc71', weight: 3, dashArray: '5,5' },
+              tertiary_link: { color: '#1abc9c', weight: 3, dashArray: '5,5' },
+              
+              // Small Roads (5140)
+              service: { color: '#7f8c8d', weight: 1 },
+              track: { color: '#8e44ad', weight: 1 },
+              
+              // No Cars (5150)
+              bridleway: { color: '#16a085', weight: 1, dashArray: '3,3' },
+              cycleway: { color: '#27ae60', weight: 1, dashArray: '3,3' },
+              footway: { color: '#2980b9', weight: 1, dashArray: '3,3' },
+              path: { color: '#8e44ad', weight: 1, dashArray: '3,3' },
+              steps: { color: '#c0392b', weight: 1, dashArray: '1,1' },
+              
+              // Default
+              default: { color: '#95a5a6', weight: 2 }
             };
 
-            const type = road.fclass?.toLowerCase() || 'default';
-            const color = colorMap[type] || colorMap['default'];
+            const isSelected = selectedRoad?.name === road.name;
+            const baseStyle = styleMap[road.fclass] || styleMap.default;
 
             return {
-                color: selectedRoad?.name === road.name ? '#ff0000' : color,
-                weight: selectedRoad?.name === road.name ? 5 : 2,
-                opacity: 0.8
+              ...baseStyle,
+              color: isSelected ? '#9A4EAE' : baseStyle.color,
+              weight: isSelected ? 8 : baseStyle.weight,
+              opacity: isSelected ? 0.7 : 0.3
             };
           }
         })
@@ -194,6 +216,7 @@ export default function RoadMap({
           <div class="popup-content">
             <strong>Name:</strong> ${road.name || 'Unnamed'}<br>
             <strong>Type:</strong> ${road.fclass}<br>
+            <strong>Category:</strong> ${road.layer_name}<br>
             <strong>Length:</strong> ${road.total_length_kilometers?.toFixed(2) || '0'} km<br>
             <strong>Segments:</strong> ${road.segments_count}
           </div>
@@ -254,7 +277,7 @@ export default function RoadMap({
       const layer = L.geoJSON(processedGeoJSON);
       mapInstance.current.flyTo(layer.getBounds().getCenter(), 15, {
         animate: true,
-        duration: 1
+        duration: 2
       });
     } catch (e) {
       console.error('Error flying to road:', e);

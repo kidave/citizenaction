@@ -14,7 +14,7 @@ export default function useWardCommittee(wardId) {
     supabase
       .from('committee')
       .select('*')
-      .eq('ward_id', wardId)
+      .eq('ward_code', wardId)
       .then(({ data, error }) => {
         setCommittee(data || []);
         setError(error ? error.message : null);

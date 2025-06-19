@@ -38,8 +38,8 @@ export default function WardSidebar({
       try {
         const { data, error } = await supabase
           .from('division')
-          .select('division_id, division_name')
-          .order('division_id', { ascending: true });
+          .select('code, name')
+          .order('code', { ascending: true });
         if (error) throw error;
         setDivisions(data);
       } catch (err) {
@@ -59,12 +59,12 @@ export default function WardSidebar({
       try {
         const { data, error } = await supabase
           .from('ward')
-          .select('division_id')
-          .eq('ward_id', wardId)
+          .select('division_code')
+          .eq('code', wardId)
           .single();
 
         if (error) throw error;
-        setCurrentDivision(data.division_id);
+        setCurrentDivision(data.division_code);
         setSelectedWardId(wardId);
       } catch (err) {
         console.error('Error getting ward info:', err);
@@ -82,15 +82,15 @@ export default function WardSidebar({
       try {
         const { data, error } = await supabase
           .from('ward')
-          .select('ward_id, ward_name')
-          .eq('division_id', currentDivision)
-          .order('ward_name', { ascending: true });
+          .select('code, name')
+          .eq('division_code', currentDivision)
+          .order('name', { ascending: true });
         if (error) throw error;
         setWards(data);
         if (data && data.length > 0) {
           if (!wardId) {
-            setSelectedWardId(data[0].ward_id);
-            router.push(`/wards/${data[0].ward_id}`);
+            setSelectedWardId(data[0].code);
+            router.push(`/wards/${data[0].code}`);
           } else {
             setSelectedWardId(wardId);
           }
@@ -155,8 +155,8 @@ export default function WardSidebar({
                   className={styles.dropdown}
                 >
                   {divisions.map((division) => (
-                    <option key={division.division_id} value={division.division_id}>
-                      {division.division_name}
+                    <option key={division.code} value={division.code}>
+                      {division.name}
                     </option>
                   ))}
                 </select>
@@ -183,8 +183,8 @@ export default function WardSidebar({
                 >
                   <option value="">Select Ward</option>
                   {wards.map((ward) => (
-                    <option key={ward.ward_id} value={ward.ward_id}>
-                      {ward.ward_name}
+                    <option key={ward.code} value={ward.code}>
+                      {ward.name}
                     </option>
                   ))}
                 </select>

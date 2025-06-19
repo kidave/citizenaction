@@ -14,7 +14,7 @@ export default function MemberTab({ members }) {
         <p>Be a Member. Email us at info@walkingproject.org </p>
       ) : (
         members.map((member) => (
-          <div key={member.member_id} className={styles.memberCard}>
+          <div key={member.id} className={styles.memberCard}>
             <div className={styles.memberImageContainer}>
               <Image
                 src={getImageUrl(member.avatar_url) || '/user.png'}

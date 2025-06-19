@@ -13,7 +13,7 @@ export default function useWardActions(wardId, enabled = true) {
     supabase
       .from('action')
       .select('*')
-      .eq('ward_id', wardId)
+      .eq('ward_code', wardId)
       .then(({ data, error }) => {
         setActions(data || []);
         setError(error ? error.message : null);
