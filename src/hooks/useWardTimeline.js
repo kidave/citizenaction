@@ -48,33 +48,33 @@ export default function useWardTimeline(wardId, enabled = true) {
           .from('meeting')
           .select('*')
           .eq('ward_code', wardId)
-          .order('meeting_date', { ascending: false });
+          .order('date', { ascending: false });
 
         const { data: update, error: updateError } = await supabase
           .from('update')
           .select('*')
           .eq('ward_code', wardId)
-          .order('update_date', { ascending: false });
+          .order('date', { ascending: false });
 
         if (meetingError || updateError) throw meetingError || updateError;
 
         // ✅ Combine timeline data
         const combinedData = [
           ...(meeting?.map(meeting => ({
-            id: `meeting-${meeting.meeting_id}`,
+            id: `meeting-${meeting.id}`,
             type: 'meeting',
-            date: new Date(meeting.meeting_date),
-            title: meeting.meeting_title || 'Committee Meeting',
-            location: meeting.meeting_location,
+            date: new Date(meeting.date),
+            title: meeting.title || 'Committee Meeting',
+            location: meeting.location,
             attendees: meeting.notable_attendees,
             discussion: formatDiscussionPoints(meeting.discussion),
             mood: meeting.mood_rating,
             icon: '👥'
           })) || []),
           ...(update?.map(update => ({
-            id: `update-${update.update_id}`,
+            id: `update-${update.id}`,
             type: 'update',
-            date: new Date(update.update_date),
+            date: new Date(update.date),
             title: update.ward_name ? `${update.ward_name.trim()} Update` : 'Monthly Update',
             description: update.description,
             operation: update.operation,
@@ -87,7 +87,7 @@ export default function useWardTimeline(wardId, enabled = true) {
 
         // ✅ Set wardInfo
         setWardInfo({
-          wardName: wardData?.ward_name || 'Unknown',
+          wardName: wardData?.name || 'Unknown',
           convenor: committeeData?.member_name || 'Not assigned',
           coConvenor: coConvenorData?.member_name || 'Not assigned'
         });
