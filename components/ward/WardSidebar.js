@@ -3,10 +3,12 @@ import styles from '../../styles/layout/sidebar.module.css';
 import { useRouter } from 'next/router';
 import { supabase } from '../../utils/supabaseClient';
 import { FaMap } from "react-icons/fa6";
-import { FaUsers, FaRoad, FaCheckSquare   } from "react-icons/fa";
+import { FaUsers, FaRoad } from "react-icons/fa";
 import { BsFillSignIntersectionSideFill } from "react-icons/bs";
 import { TbTimelineEventFilled } from "react-icons/tb";
 import { PiMapPinAreaFill } from "react-icons/pi";
+import { MdAssignment } from "react-icons/md";
+
 
 
 
@@ -230,11 +232,10 @@ export default function WardSidebar({
         </button>
         <button
           className={`${styles.tab} ${activeTab === 'action' ? styles.active : ''}`}
-          onClick={() => setActiveTab('action')}
-          disabled={isTabDisabled('action')}
+          onClick={() => setActiveTab('action')}         
           title="Action"
         >
-          <FaCheckSquare className={styles.tabIcon} />
+          <MdAssignment className={styles.tabIcon} />
           {isHovered && <span className={styles.tabText}>Action</span>}
         </button>
       </div>

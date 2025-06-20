@@ -287,17 +287,6 @@ export default function RoadMap({
   return (
     <div className={styles.mapContainer}>
       <div ref={mapRef} className={styles.map} />
-      <div className={styles.layerControls}>
-        {Object.entries(tileLayers).map(([key, layer]) => (
-          <button
-            key={key}
-            className={`${styles.layerButton} ${currentLayer === key ? styles.active : ''}`}
-            onClick={() => setCurrentLayer(key)}
-          >
-            {layer.name}
-          </button>
-        ))}
-      </div>
     </div>
   );
 }

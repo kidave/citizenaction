@@ -13,7 +13,7 @@ export default function useWardJunctions(wardId, enabled = true) {
     setError(null);
     
     supabase
-      .rpc('get_ward_junctions', { ward_id: parseInt(wardId) })
+      .rpc('get_ward_junctions', { ward_code: wardId })
       .then(({ data, error }) => {
         if (error) throw error;
         setJunctions(data || []);
