@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
-import BaseMap from '../../shared/maps/BaseMap';
+import BaseMap from '../../shared/maps/Basemap';
 import MapControls from '../../shared/maps/MapControls';
 import styles from '../../../styles/layout/junction.module.css';
 import { transformCoordinates } from '../../shared/maps/utils/coordinateUtils';
