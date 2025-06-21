@@ -24,15 +24,15 @@ export default function useWardTimeline(wardId, enabled = true) {
           .from('committee')
           .select('*')
           .eq('ward_code', wardId)
-          .eq('is_convenor', true)
-          .single();
+          .is('is_convenor', true)
+          .maybeSingle();
 
         const { data: coConvenorData } = await supabase
           .from('committee')
           .select('*')
           .eq('ward_code', wardId)
-          .eq('is_co_convenor', true)
-          .single();
+          .is('is_co_convenor', true)
+          .maybeSingle();
 
         // ✅ Fetch ward name
         const { data: wardData, error: wardError } = await supabase

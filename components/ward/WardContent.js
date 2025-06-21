@@ -18,7 +18,7 @@ export default function WardContent({
       {activeTab === 'action' && <ActionTab actions={action} />}
       {activeTab === 'member' && <MemberTab members={member} />}
       {activeTab === 'road' && <RoadTab roads={road} onRoadClick={onRoadClick} selectedRoad={selectedRoad} wardInfo={wardInfo} />}
-      {activeTab === 'junction' && <JunctionTab junctions={junction} wardInfo={wardInfo}  />}
+      {activeTab === 'junction' && <JunctionTab junctions={junction} />}
     </div>
   );
 }

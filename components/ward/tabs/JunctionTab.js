@@ -17,7 +17,7 @@ const JunctionMap = dynamic(
 );
 
 export default function JunctionTab({ junctions }) {
-  const { wardInfo } = useWard();
+  const { wardInfo, boundary } = useWard();
   const [selectedJunction, setSelectedJunction] = useState(null);
   const [beforeIndex, setBeforeIndex] = useState(0);
   const [afterIndex, setAfterIndex] = useState(0);
@@ -61,6 +61,7 @@ export default function JunctionTab({ junctions }) {
           junctions={junctions} 
           selectedJunction={selectedJunction}
           onSelectJunction={setSelectedJunction}
+          boundary={boundary}
         />
         
         {selectedJunction && (

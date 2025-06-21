@@ -179,7 +179,7 @@ export default function ActionTable({ actions = [] }) {
         <tbody>
           {paginatedItems.map((action) => (
             <ActionTableRow
-              key={action.action_id}
+              key={action.id}
               action={action}
               setSelectedImage={setSelectedImage}
               setIsImageModalOpen={setIsImageModalOpen}

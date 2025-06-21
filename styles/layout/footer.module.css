@@ -44,8 +44,12 @@
   color: #0077b5;
 }
 
-.socialIcons :global a.bluesky {
+.socialIcons :global(a.bluesky) {
   color: #0085ff;
+}
+
+.socialIcons :global(a.github) {
+  color: black;
 }
 
 .socialIcons a:hover {

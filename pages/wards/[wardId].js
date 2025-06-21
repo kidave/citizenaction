@@ -7,7 +7,6 @@ import styles from '../../styles/layout/container.module.css';
 import { useState } from 'react';
 
 import {
-  useWardMetrics,
   useWardMembers,
   useWardRoads,
   useWardActions,
@@ -25,15 +24,14 @@ export default function WardDetail() {
   const [selectedRoad, setSelectedRoad] = useState(null);
 
   // Data hooks
-  const { metrics, error: metricsError, loading: metricsLoading } = useWardMetrics(wardId);
   const { members, error: membersError, loading: membersLoading } = useWardMembers(wardId, activeTab === 'member');
   const { roads, error: roadsError, loading: roadsLoading } = useWardRoads(wardId, true);
   const { junctions, error: junctionsError, loading: junctionsLoading } = useWardJunctions(wardId, activeTab === 'junction');
   const { actions, error: actionsError, loading: actionsLoading } = useWardActions(wardId, activeTab === 'action');
   const { timeline, wardInfo, error: timelineError, loading: timelineLoading } = useWardTimeline(wardId, activeTab === 'timeline');
 
-  const error = metricsError || membersError || roadsError || junctionsError || actionsError || timelineError;
-  const loading = metricsLoading || membersLoading || roadsLoading || junctionsLoading ||actionsLoading || timelineLoading;
+  const error =  roadsError || junctionsError || actionsError || timelineError;
+  const loading = roadsLoading || junctionsLoading ||actionsLoading || timelineLoading;
 
   return (
     <WardProvider wardId={wardId}>

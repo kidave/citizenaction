@@ -45,7 +45,6 @@ export default function WardSidebar({
         if (error) throw error;
         setDivisions(data);
       } catch (err) {
-        console.error('Error fetching divisions:', err);
       } finally {
         setLoadingDivisions(false);
       }

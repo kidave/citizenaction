@@ -1,5 +1,5 @@
 import styles from "../styles/layout/footer.module.css";
-import { FaFacebook, FaYoutube, FaInstagram, FaLinkedin } from "react-icons/fa";
+import { FaFacebook, FaYoutube, FaInstagram, FaLinkedin, FaGithub } from "react-icons/fa";
 import { FaBluesky, FaXTwitter } from "react-icons/fa6";
 
 
@@ -60,6 +60,15 @@ export default function Footer() {
           className="bluesky"
         >
           <FaBluesky />
+        </a>
+        <a  
+          href="https://github.com/walkingproject" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          aria-label="Github" 
+          className="github"
+        >
+          <FaGithub />
         </a>
       </div>
       <div className={styles.copyright}>

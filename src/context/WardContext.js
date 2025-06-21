@@ -1,22 +1,22 @@
 import { createContext, useContext, useMemo } from 'react';
 import { 
-  useWardMetrics, 
   useWardTimeline, 
   useWardActions, 
   useWardMembers, 
   useWardRoads,
-  useWardJunctions
+  useWardJunctions,
+  useWardBoundary
 } from '../hooks';
 
 const WardContext = createContext();
 
 export function WardProvider({ children, wardId }) {
-  const metrics = useWardMetrics(wardId);
   const timeline = useWardTimeline(wardId, true);
   const members = useWardMembers(wardId, true);
   const { roads } = useWardRoads(wardId);
   const actions = useWardActions(wardId, true);
   const junctions = useWardJunctions(wardId, true);
+  const boundary = useWardBoundary(wardId, true);
 
   const wardInfo = timeline.wardInfo || junctions.wardInfo || {
     wardName: 'Unknown',
@@ -26,14 +26,14 @@ export function WardProvider({ children, wardId }) {
 
   const contextValue = useMemo(() => ({
     wardId,
-    metrics,
     timeline,
     members,
     roads,
     actions,
     junctions,
+    boundary,
     wardInfo 
-  }), [wardId, metrics, timeline, members, roads, actions, junctions]);
+  }), [wardId, timeline, members, roads, actions, junctions, boundary]);
 
   return (
     <WardContext.Provider value={contextValue}>

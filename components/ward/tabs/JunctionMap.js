@@ -6,6 +6,7 @@ import BaseMap from '../../shared/maps/Basemap';
 import MapControls from '../../shared/maps/MapControls';
 import styles from '../../../styles/layout/junction.module.css';
 import { transformCoordinates } from '../../shared/maps/utils/coordinateUtils';
+import { useWard } from '../../../src/context/WardContext';
 
 export default function JunctionMap({ 
   junctions, 
@@ -17,6 +18,7 @@ export default function JunctionMap({
   const [currentLayer, setCurrentLayer] = useState('osm');
   const mapRef = useRef(null);
   const markersRef = useRef([]);
+  const { boundary } = useWard();
 
   // Handle selected junction change
   useEffect(() => {
@@ -118,13 +120,13 @@ export default function JunctionMap({
     <BaseMap 
       center={center} 
       zoom={zoom}
+      boundary={boundary}
       onMapInit={(map) => { 
         mapRef.current = map;
-        // Ensure proper initialization
+        
         setTimeout(() => mapRef.current?.invalidateSize(), 100);
       }}
     >
-      <div className={styles.map} />
       <MapControls 
         currentLayer={currentLayer}
         onLayerChange={setCurrentLayer}
