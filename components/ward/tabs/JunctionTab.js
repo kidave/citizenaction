@@ -243,55 +243,53 @@ function ImageComparison({ beforeImages, afterImages, beforeIndex, afterIndex, o
 }
 
 function ImagePanel({ title, images, currentIndex, onNavigate }) {
-  const [errorCount, setErrorCount] = useState(0);
-  const maxRetries = 1; // Only try once
-
-  const handleError = (e) => {
-    if (errorCount < maxRetries) {
-      setErrorCount(errorCount + 1);
-      e.target.src = `/placeholder-${title.toLowerCase().includes('before') ? 'before' : 'after'}.jpg`;
-    } else {
-      e.target.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; // 1x1 transparent pixel
-      e.target.onerror = null;
-    }
-  };
+  const hasImages = images.length > 0;
 
   return (
     <div className={styles.imageGrid}>
       <h5>{title}</h5>
       <div className={styles.imageSlider}>
-        <button
-          onClick={() => onNavigate(prev => Math.max(0, prev - 1))}
-          className={styles.navButton}
-          disabled={images.length <= 1}
-          aria-label="Previous image"
-          type="button"
-        >
-          <FaChevronLeft />
-        </button>
-        {images[currentIndex]?.url ? (
-          <img 
-            src={images[currentIndex]?.url || `/placeholder-${title.toLowerCase().includes('before') ? 'before' : 'after'}.jpg`}
-            alt={`${title} ${currentIndex + 1}`}
-            onError={handleError}
-          />
+        {hasImages ? (
+          <>
+            <button
+              onClick={() => onNavigate(prev => Math.max(0, prev - 1))}
+              className={styles.navButton}
+              disabled={images.length <= 1}
+              aria-label="Previous image"
+              type="button"
+            >
+              <FaChevronLeft />
+            </button>
+            <img 
+              src={images[currentIndex]?.url}
+              alt={`${title} ${currentIndex + 1}`}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+              }}
+            />
+            <button
+              onClick={() => onNavigate(prev => (prev + 1) % images.length)}
+              className={styles.navButton}
+              disabled={images.length <= 1}
+              aria-label="Next image"
+              type="button"
+            >
+              <FaChevronRight />
+            </button>
+            {images.length > 1 && (
+              <div className={styles.imageCounter}>
+                {currentIndex + 1} / {images.length}
+              </div>
+            )}
+          </>
         ) : (
           <div className={styles.imagePlaceholder}>
-            No image available
-          </div>
-        )}
-        <button
-          onClick={() => onNavigate(prev => (prev + 1) % images.length)}
-          className={styles.navButton}
-          disabled={images.length <= 1}
-          aria-label="Next image"
-          type="button"
-        >
-          <FaChevronRight />
-        </button>
-        {images.length > 1 && (
-          <div className={styles.imageCounter}>
-            {currentIndex + 1} / {images.length}
+            <img
+              src="https://via.placeholder.com/300x200?text=No+Image+Yet"
+              alt="No image available"
+              className={styles.noImage}
+            />
           </div>
         )}
       </div>

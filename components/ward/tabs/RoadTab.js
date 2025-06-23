@@ -112,7 +112,7 @@ export default function RoadTab({ roads, onRoadClick, selectedRoad, wardInfo }) 
                 </thead>
                 <tbody>
                   {paginatedRoads.map((road) => (
-                    <tr key={road.name} className={selectedRoad?.name === road.name ? styles.selectedRow : ''}>
+                    <tr key={road.fid} className={selectedRoad?.fid === road.fid ? styles.selectedRow : ''}>
                       <TableCell>{road.name || 'Unnamed'}</TableCell>
                       <TableCell>
                         <span className={styles.typeTag}>
