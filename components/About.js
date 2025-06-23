@@ -1,5 +1,6 @@
 import styles from '../styles/layout/about.module.css';
 import { FaUsers, FaMapMarkedAlt, FaHandsHelping, FaMapSigns, FaMousePointer, FaTimes } from 'react-icons/fa';
+import Link from 'next/link';
 
 export default function About({ show = true, onClose }) {
   if (!show) return null;
@@ -26,7 +27,8 @@ export default function About({ show = true, onClose }) {
         <FaMapSigns className={styles.infoIcon} />
         <FaMousePointer className={styles.infoIcon} />
         <span className={styles.infoText}>
-          <strong>Tip:</strong> Click on your <span className={styles.highlight}>city</span> and then your <span className={styles.highlight}>ward</span> to check progress, view updates, and get involved!
+          <strong>Tip:</strong> Click on your <span className={styles.highlight}>city</span> and then your <span className={styles.highlight}>ward</span> to check progress, view updates, and get involved!{' '}
+          <Link href="https://drive.google.com/file/d/1IXXgyc-Y2GNQvqsr5gwZQDx8PqTRP1y7/view" className={styles.learnMore}>Learn more!</Link>
         </span>
       </div>
     </section>

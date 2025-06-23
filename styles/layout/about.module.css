@@ -41,6 +41,17 @@
   cursor: pointer;
 }
 
+.learnMore {
+  color: #0070f3;
+  text-decoration: underline;
+  margin-left: 4px;
+  font-weight: 500;
+}
+
+.learnMore:hover {
+  color: #0051a3;
+}
+
 
 @media (max-width: 700px) {
   .showAboutBtn {

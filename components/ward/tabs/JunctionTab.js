@@ -265,7 +265,7 @@ function ImagePanel({ title, images, currentIndex, onNavigate }) {
               alt={`${title} ${currentIndex + 1}`}
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+                e.target.src = '/no-image.svg';
               }}
             />
             <button
@@ -286,7 +286,7 @@ function ImagePanel({ title, images, currentIndex, onNavigate }) {
         ) : (
           <div className={styles.imagePlaceholder}>
             <img
-              src="https://via.placeholder.com/300x200?text=No+Image+Yet"
+              src='/no-image.svg'
               alt="No image available"
               className={styles.noImage}
             />
