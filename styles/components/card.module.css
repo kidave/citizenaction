@@ -113,13 +113,14 @@
   padding: 20px;
   border-radius: 20px;
   border: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
   width: 170px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+  height: 250px;
 }
 
 .memberCard:hover {
@@ -140,11 +141,15 @@
   object-fit: cover;
 }
 
+.memberDetail {
+  font-weight: 600;
+}
 
-
-
-
-
+.memberInformation {
+  margin: 0;
+  color: grey;
+  font-weight: 600;
+}
 
 .hoverCard {
   position: fixed;
@@ -187,4 +192,44 @@
 
 .closeButton:hover {
   color: black;
+}
+
+
+.memberCard .socialIcons {
+  display: flex;
+  justify-content: center;
+  gap: 0.7rem;
+  margin-top: 0.7rem;
+}
+
+.memberCard .socialIcons a {
+  color: black;
+  font-size: 1.2rem;
+  transition: color 0.2s;
+}
+
+.memberCard .socialIcons :global(a.xtwitter) {
+  color: black;
+}
+.memberCard .socialIcons :global(a.facebook) {
+  color: #1877f3;
+}
+
+.memberCard .socialIcons :global(a.youtube) {
+  color: #ff0000;
+}
+
+.memberCard .socialIcons :global(a.instagram) {
+  color: #e4405f;
+}
+.memberCard .socialIcons :global(a.linkedin) {
+  color: #0077b5;
+}
+
+.memberCard .socialIcons :global(a.github) {
+  color: black;
+}
+
+.memberCard .socialIcons a:hover {
+  filter: brightness(0.85);
 }

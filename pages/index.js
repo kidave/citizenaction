@@ -7,9 +7,11 @@ import Footer from "../components/Footer";
 import { useState } from "react";
 import { FaInfoCircle } from "react-icons/fa";
 import styles from "../styles/layout/about.module.css";
+import Form from "../components/Form";
 
 function HomePage() {
   const [showAbout, setShowAbout] = useState(true);
+  const [showForm, setShowForm] = useState(false);
 
   return (
     <>
@@ -17,6 +19,7 @@ function HomePage() {
         <title>Walking Project</title>
       </Head>
       <Metrics />
+      <Form />
       <About show={showAbout} onClose={() => setShowAbout(false)} />
       {!showAbout && (
         <button

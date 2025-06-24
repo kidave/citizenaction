@@ -1,0 +1,236 @@
+/* Overlay with blur */
+.formOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(8px);
+  z-index: 2200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Modal container for the form */
+.formModal {
+  background: none;
+  border-radius: 18px;
+  padding: 0;
+  min-width: 320px;
+  max-width: 95vw;
+  min-height: 30vh;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Floating Apply Button */
+.applyFloatingBtn {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  z-index: 2100;
+  background: #fcc700;
+  color: #222;
+  border: none;
+  border-radius: 50%;
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  box-shadow: 0 2px 8px rgba(252,199,0,0.18);
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.applyFloatingBtn:hover,
+.applyFloatingBtn:focus {
+  background: #e6b800;
+  box-shadow: 0 4px 16px rgba(252,199,0,0.23);
+}
+
+@media (max-width: 600px) {
+  .applyFloatingBtn {
+    bottom: 16px;
+    right: 16px;
+    width: 46px;
+    height: 46px;
+    font-size: 1.5rem;
+  }
+}
+
+
+/* Modal overlay */
+.modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Form container */
+.form {
+  background: #fff;
+  padding: 2rem 2.5rem;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  min-width: 320px;
+  max-width: 95vw;
+  width: 400px;
+  position: relative;
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(30px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+
+.form h3 {
+  margin-bottom: 1.2rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #222;
+  letter-spacing: 0.01em;
+}
+
+.form label {
+  display: block;
+  margin-bottom: 1.1rem;
+  font-weight: 500;
+  color: #222;
+}
+
+.form input,
+.form select,
+.form textarea {
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  margin-top: 0.3rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: #f9f9f9;
+  transition: border 0.2s;
+  box-sizing: border-box;
+}
+
+.form input:focus,
+.form select:focus,
+.form textarea:focus {
+  border-color: #fcc700;
+  outline: none;
+}
+
+.form textarea {
+  resize: vertical;
+  min-height: 60px;
+  font-family: inherit;
+}
+
+.form button[type="submit"] {
+  background: #fcc700;
+  color: #222;
+  border: none;
+  padding: 0.6rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 1rem;
+}
+
+.form button[type="submit"]:hover,
+.form button[type="submit"]:focus {
+  background: #e6b800;
+}
+
+.form button[type="button"] {
+  background: #eee;
+  color: #222;
+  border: none;
+  padding: 0.6rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 1rem;
+}
+
+.form button[type="button"]:hover,
+.form button[type="button"]:focus {
+  background: #ddd;
+}
+
+.form span {
+  color: #d32f2f;
+  font-size: 0.97em;
+  margin-top: 0.2rem;
+  display: block;
+}
+
+.form .react-tel-input .form-control {
+  width: 100% !important;
+  border-radius: 6px !important;
+  border: 1px solid #ccc !important;
+  font-size: 1rem !important;
+  padding-left: 48px !important;
+  background: #f9f9f9 !important;
+}
+
+.form .react-tel-input .form-control:focus {
+  border-color: #fcc700 !important;
+}
+
+.form .react-tel-input .flag-dropdown {
+  border-radius: 6px 0 0 6px !important;
+  border: 1px solid #ccc !important;
+  background: #f9f9f9 !important;
+}
+
+.form .react-tel-input .selected-flag:focus {
+  outline: 2px solid #fcc700 !important;
+}
+
+@media (max-width: 600px) {
+  .form {
+    padding: 1.2rem 0.7rem;
+    min-width: 0;
+    width: 98vw;
+  }
+}
+
+/* CTA Section */
+.ctaSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 2.5rem 0 1.5rem 0;
+  gap: 0.7rem;
+}
+
+.primaryCta {
+  background: #fcc700;
+  color: #222;
+  border: none;
+  padding: 0.7rem 2.2rem;
+  border-radius: 7px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(252,199,0,0.08);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.primaryCta:hover,
+.primaryCta:focus {
+  background: #e6b800;
+  box-shadow: 0 4px 16px rgba(252,199,0,0.13);
+}

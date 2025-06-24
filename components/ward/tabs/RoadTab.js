@@ -21,7 +21,7 @@ export default function RoadTab({ roads, onRoadClick, selectedRoad }) {
   const DEFAULT_ZOOM = 12;
   const [wardBoundary, setWardBoundary] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 8;
 
   const handleRoadSelect = (road) => {
     onRoadClick(road);
@@ -61,7 +61,7 @@ export default function RoadTab({ roads, onRoadClick, selectedRoad }) {
   };
 
   return (
-    <div className={headerStyles.junctionContainer}>
+    <div className={styles.roadContainer}>
       <Header 
         roadCount={roads?.length || 0} 
         wardName={wardInfo?.wardName} 

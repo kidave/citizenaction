@@ -1,7 +1,16 @@
 import styles from "../../../styles/components/card.module.css";
 import Image from "next/image";
-import { useState } from 'react';
+import { FaFacebook, FaInstagram, FaLinkedin, FaGithub, FaWhatsapp } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
 
+const SOCIAL_ICONS = {
+  facebook: FaFacebook,
+  instagram: FaInstagram,
+  linkedin: FaLinkedin,
+  github: FaGithub,
+  xtwitter: FaXTwitter,
+  whatsapp: FaWhatsapp,
+};
 
 function getImageUrl(filename) {
   if (!filename) return null;
@@ -29,8 +38,18 @@ export default function MemberTab({ members }) {
                 }}
               />
             </div>
-            <h4>{member.member_name}</h4>
-            <p>{member.designation}</p>
+              <h4 className={styles.memberDetail}>{member.member_name}</h4>
+              <p className={styles.memberInformation}>{member.designation}</p>
+            <div className={styles.socialIcons}>
+              {member.social && Object.entries(member.social).map(([platform, url]) => {
+                const Icon = SOCIAL_ICONS[platform];
+                return Icon && url ? (
+                  <a key={platform} href={url} target="_blank" rel="noopener noreferrer" aria-label={platform} className={platform}>
+                    <Icon />
+                  </a>
+                ) : null;
+              })}
+            </div>
           </div>
         ))
       )}

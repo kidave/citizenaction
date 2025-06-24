@@ -13,7 +13,7 @@ export default function useWardRoads(wardId, enabled = true) {
     setError(null);
 
     supabase
-      .rpc('get_roads_duplicate', { gr_ward_code: wardId })
+      .rpc('get_roads', { gr_ward_code: wardId })
       .then(({ data, error }) => {
         if (error) throw error;
         setRoads(data || []);

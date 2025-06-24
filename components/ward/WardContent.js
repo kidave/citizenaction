@@ -14,7 +14,7 @@ export default function WardContent({
   selectedRoad
 }) {
 
-  const showHeader = ['timeline', 'member'].includes(activeTab);
+  const showHeader = ['timeline'].includes(activeTab);
 
   return (
     <div className={styles.wardContent}>
