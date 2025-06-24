@@ -40,20 +40,16 @@
 
 .roadContent {
   display: flex;
-  height: calc(100vh - 90px);
   gap: 10px;
 }
 
 .roadListSection {
   flex: 1;
   overflow-y: auto;
-  padding-right: 1rem;
 }
 
 .roadMapSection {
   flex: 1;
-  margin: 10px;
-  height: 100%;
   position: relative;
 }
 
@@ -70,12 +66,9 @@
 
 .layerControls {
   position: absolute;
-  bottom: 10px;
-  left: 10px;
   z-index: 1000;
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
 }
 
 .layerButton {
@@ -217,4 +210,64 @@
 .selectedRoad {
   background-color: #e6f7ff;
   border-left: 3px solid #1890ff;
+}
+
+.pagination {
+  display: flex;
+  padding: 5px;
+  background-color: whitesmoke;
+}
+
+.arrow {
+  color: black;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s;
+  gap: 2px;
+  padding: 2px 5px;
+}
+
+.arrow:hover:not(.disabled) {
+  transform: translateY(-1px);
+  opacity: 1;
+}
+
+
+.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.pageInput {
+  border: 1px solid grey;
+  border-radius: 5px;
+  padding: 3px;
+  width: 40px;
+  text-align: center;
+}
+
+.pageInputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 10px;
+  font-size: 12px;
+  color: grey;
+}
+
+.pageInputLabel {
+  color: grey;
+  font-weight: 500;
+  margin-right: 2px;
+}
+
+.pageInputNumber {
+  font-weight: bold;
+  color: grey;
+}
+
+.pageInputTotal {
+  color: grey;
+  margin-left: 2px;
 }

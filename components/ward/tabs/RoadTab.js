@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import buttonStyles from '../../../styles/components/button.module.css';
+import headerStyles from '../../../styles/layout/junction.module.css';
 import styles from '../../../styles/layout/road.module.css';
 import dynamic from 'next/dynamic';
 import { Table, TableHeader, TableCell } from '../../shared';
 import { FiChevronsLeft, FiChevronLeft, FiChevronRight, FiChevronsRight } from 'react-icons/fi';
+import { FaRoad } from "react-icons/fa";
+import { useWard } from '../../../src/context/WardContext';
 
 const RoadMap = dynamic(
   () => import('./RoadMap'),
@@ -13,20 +15,10 @@ const RoadMap = dynamic(
   }
 );
 
-// Updated road filters based on your layer structure
-const ROAD_FILTERS = [
-  { id: 'all', label: 'All Roads' },
-  { id: 'major_roads', label: 'Major Roads' },       // layer_id 5110
-  { id: 'minor_roads', label: 'Minor Roads' },       // layer_id 5120
-  { id: 'highway_links', label: 'Highway Links' },   // layer_id 5130
-  { id: 'small_roads', label: 'Small Roads' },       // layer_id 5140
-  { id: 'no_cars', label: 'No Cars' }                // layer_id 5150
-];
-
-export default function RoadTab({ roads, onRoadClick, selectedRoad, wardInfo }) {
+export default function RoadTab({ roads, onRoadClick, selectedRoad }) {
+  const { wardInfo } = useWard();
   const MUMBAI_CENTER = [19.0760, 72.8777];
   const DEFAULT_ZOOM = 12;
-  const [activeFilter, setActiveFilter] = useState('major_roads');
   const [wardBoundary, setWardBoundary] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -35,23 +27,12 @@ export default function RoadTab({ roads, onRoadClick, selectedRoad, wardInfo }) 
     onRoadClick(road);
   };
 
-  // Filter roads based on active filter
-  const filteredRoads = roads.filter(road => {
-    if (activeFilter === 'all') return true;
-    return road.layer_name === activeFilter;
-  });
-
   // Pagination logic
-  const totalPages = Math.max(1, Math.ceil(filteredRoads.length / itemsPerPage));
-  const paginatedRoads = filteredRoads.slice(
+  const totalPages = Math.max(1, Math.ceil(roads.length / itemsPerPage));
+  const paginatedRoads = roads.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
-  // Reset to page 1 if filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [activeFilter]);
 
   // Fetch ward boundary
   useEffect(() => {
@@ -80,22 +61,16 @@ export default function RoadTab({ roads, onRoadClick, selectedRoad, wardInfo }) 
   };
 
   return (
-    <div className={styles.roadTabContainer}>
-      <div className={styles.filterButtons}>
-        {ROAD_FILTERS.map(filter => (
-          <button
-            key={filter.id}
-            className={`${styles.filterButton} ${activeFilter === filter.id ? styles.activeFilter : ''}`}
-            onClick={() => setActiveFilter(filter.id)}
-          >
-            {filter.label}
-          </button>
-        ))}
-      </div>
+    <div className={headerStyles.junctionContainer}>
+      <Header 
+        roadCount={roads?.length || 0} 
+        wardName={wardInfo?.wardName} 
+      />
+      <Description />
       
       <div className={styles.roadContent}>
         <div className={styles.roadListSection}>
-          {filteredRoads.length === 0 ? (
+          {roads.length === 0 ? (
             <p className={styles.empty}>No roads found.</p>
           ) : (
             <div className={styles.tableWrapper}>
@@ -104,7 +79,6 @@ export default function RoadTab({ roads, onRoadClick, selectedRoad, wardInfo }) 
                   <tr>
                     <TableHeader width={200}>Road Name</TableHeader>
                     <TableHeader width={150}>Type</TableHeader>
-                    <TableHeader width={150}>Category</TableHeader>
                     <TableHeader width={120}>Length (km)</TableHeader>
                     <TableHeader width={100}>Segments</TableHeader>
                     <TableHeader width={100}>Actions</TableHeader>
@@ -140,21 +114,14 @@ export default function RoadTab({ roads, onRoadClick, selectedRoad, wardInfo }) 
                            road.fclass === 'steps' ? 'Steps' : road.fclass}
                         </span>
                       </TableCell>
-                      <TableCell>
-                        {road.layer_name === 'major_roads' ? 'Major Roads' :
-                         road.layer_name === 'minor_roads' ? 'Minor Roads' :
-                         road.layer_name === 'highway_links' ? 'Highway Links' :
-                         road.layer_name === 'small_roads' ? 'Small Roads' :
-                         road.layer_name === 'no_cars' ? 'No Cars' : road.layer_name}
-                      </TableCell>
                       <TableCell>{road.total_length_kilometers?.toFixed(2) || '0.00'}</TableCell>
                       <TableCell>{road.segments_count}</TableCell>
                       <TableCell>
-                        <button
-                          className={buttonStyles.wide}
+                        <button 
                           onClick={() => handleRoadSelect(road)}
+                          className={headerStyles.viewButton}
                         >
-                          View
+                          {selectedRoad?.fid === road.fid ? 'Viewing' : 'View'}
                         </button>
                       </TableCell>
                     </tr>
@@ -214,7 +181,7 @@ export default function RoadTab({ roads, onRoadClick, selectedRoad, wardInfo }) 
         
         <div className={styles.roadMapSection}>
           <RoadMap 
-            roads={filteredRoads} 
+            roads={roads} 
             selectedRoad={selectedRoad}
             onRoadSelect={handleRoadSelect}
             center={MUMBAI_CENTER}
@@ -223,6 +190,33 @@ export default function RoadTab({ roads, onRoadClick, selectedRoad, wardInfo }) 
           />
         </div>
       </div>
+    </div>
+  );
+}
+
+// Header Component
+function Header({ roadCount, wardName }) {
+  return (
+    <div className={headerStyles.junctionHeader}>
+      <FaRoad className={headerStyles.junctionHeaderIcon} />
+      <div>
+        <h3 className={headerStyles.junctionTitle}>
+          {roadCount} Roads in {wardName} Ward
+        </h3>
+        <p className={headerStyles.junctionSubtitle}>
+          The committees first step in this phase is to identify a specific stretch of road that requires walkability improvement.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// Description Component
+function Description() {
+  return (
+    <div className={headerStyles.junctionDescription}>
+      Explore the map and table below to see routes identified to improve walkability and safety in your ward. 
+      Click on a road to view on the map.
     </div>
   );
 }

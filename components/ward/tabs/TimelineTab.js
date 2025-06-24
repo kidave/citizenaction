@@ -1,18 +1,14 @@
+// TimelineTab.js
 import { useState } from 'react';
-import TimelineHeader from './Timeline/TimelineHeader';
 import TimelineItem from './Timeline/TimelineItem';
 import styles from '../../../styles/layout/timeline.module.css';
 
-export default function TimelineTab({ timelines, wardInfo }) {
+export default function TimelineTab({ timelines }) {
   const [filter, setFilter] = useState('all');
+  
   if (!timelines || timelines.length === 0) {
     return (
       <div className={styles.timelineContainer}>
-        <TimelineHeader 
-          wardName={wardInfo?.wardName} 
-          convenor={wardInfo?.convenor} 
-          coConvenor={wardInfo?.coConvenor} 
-        />
         <div className={styles.emptyTimeline}>
           <p>No timeline entries found.</p>
           <p>Start adding meetings and updates to track your ward's progress!</p>
@@ -30,12 +26,6 @@ export default function TimelineTab({ timelines, wardInfo }) {
 
   return (
     <div className={styles.timelineContainer}>
-      <TimelineHeader 
-        wardName={wardInfo?.wardName} 
-        convenor={wardInfo?.convenor} 
-        coConvenor={wardInfo?.coConvenor} 
-      />
-      
       <div className={styles.filterButtons}>
         <button 
           className={`${styles.filterButton} ${filter === 'all' ? styles.activeFilter : ''}`}

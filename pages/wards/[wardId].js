@@ -14,6 +14,7 @@ import {
   useWardJunctions,
 } from '../../src/hooks';
 
+import { useRouter } from 'next/router';
 import { WardProvider } from '../../src/context/WardContext';
 
 export default function WardDetail() {

@@ -89,7 +89,9 @@ export default function useWardTimeline(wardId, enabled = true) {
         setWardInfo({
           wardName: wardData?.name || 'Unknown',
           convenor: committeeData?.member_name || 'Not assigned',
-          coConvenor: coConvenorData?.member_name || 'Not assigned'
+          convenorEmail: committeeData?.email || null,
+          coConvenor: coConvenorData?.member_name || 'Not assigned',
+          coConvenorEmail: coConvenorData?.email || null
         });
 
         setLoading(false);

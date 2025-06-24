@@ -3,8 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import BaseMap from '../../shared/maps/Basemap';
-import MapControls from '../../shared/maps/MapControls';
-import styles from '../../../styles/layout/junction.module.css';
 import { transformCoordinates } from '../../shared/maps/utils/coordinateUtils';
 import { useWard } from '../../../src/context/WardContext';
 
@@ -127,10 +125,7 @@ export default function JunctionMap({
         setTimeout(() => mapRef.current?.invalidateSize(), 100);
       }}
     >
-      <MapControls 
-        currentLayer={currentLayer}
-        onLayerChange={setCurrentLayer}
-      />
+      
     </BaseMap>
   );
 }

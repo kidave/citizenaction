@@ -1,5 +1,6 @@
 import { MemberTab, ActionTab, RoadTab, TimelineTab, JunctionTab } from './tabs';
 import styles from '../../styles/layout/container.module.css';
+import WardHeader from './WardHeader';
 
 export default function WardContent({ 
   activeTab,
@@ -12,11 +13,22 @@ export default function WardContent({
   wardInfo,
   selectedRoad
 }) {
+
+  const showHeader = ['timeline', 'member'].includes(activeTab);
+
   return (
     <div className={styles.wardContent}>
+      <WardHeader 
+        wardName={wardInfo?.wardName}
+        convenor={wardInfo?.convenor}
+        convenorEmail={wardInfo?.convenorEmail}
+        coConvenor={wardInfo?.coConvenor}
+        coConvenorEmail={wardInfo?.coConvenorEmail}
+        showHeader={showHeader}
+      />
       {activeTab === 'timeline' && <TimelineTab timelines={timeline} wardInfo={wardInfo} />}
       {activeTab === 'action' && <ActionTab actions={action} />}
-      {activeTab === 'member' && <MemberTab members={member} />}
+      {activeTab === 'member' && <MemberTab members={member} wardInfo={wardInfo} />}
       {activeTab === 'road' && <RoadTab roads={road} onRoadClick={onRoadClick} selectedRoad={selectedRoad} wardInfo={wardInfo} />}
       {activeTab === 'junction' && <JunctionTab junctions={junction} />}
     </div>

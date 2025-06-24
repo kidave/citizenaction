@@ -1,5 +1,6 @@
 import styles from "../../../styles/components/card.module.css";
 import Image from "next/image";
+import { useState } from 'react';
 
 
 function getImageUrl(filename) {

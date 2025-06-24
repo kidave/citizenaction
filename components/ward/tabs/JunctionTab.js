@@ -6,6 +6,7 @@ import styles from '../../../styles/layout/junction.module.css';
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useWard } from '../../../src/context/WardContext';
+import { Table, TableHeader, TableCell } from '../../shared';
 
 
 const JunctionMap = dynamic(
@@ -101,7 +102,7 @@ function Header({ junctionCount, wardName }) {
           Identified {junctionCount} Junctions in {wardName} Ward
         </h3>
         <p className={styles.junctionSubtitle}>
-          Mapping key intersections to improve walkability and safety in your ward.
+          Each intersection represents a critical point for pedestrian movement and traffic flow in your ward.
         </p>
       </div>
     </div>
@@ -110,8 +111,7 @@ function Header({ junctionCount, wardName }) {
 
 function Description() {
   return (
-    <div className={styles.junctionDescription}>
-      Each junction represents a critical point for pedestrian movement and traffic flow. 
+    <div className={styles.junctionDescription}> 
       Explore the map and table below to see identified junctions, their suggested design, and images. 
       Click on a junction to view more information.
     </div>
@@ -127,25 +127,21 @@ function TopSection({ junctions, selectedJunction, onSelectJunction }) {
       <div className={styles.tableSection}>
         {junctions?.length > 0 ? (
           <div className={styles.junctionTable}>
-            <table>
+            <Table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Coordinates</th>
-                  <th>Actions</th>
+                  <TableHeader width={200}>Junction Name</TableHeader>
+                  <TableHeader width={150}>Action</TableHeader>
                 </tr>
               </thead>
               <tbody>
                 {junctions.map(junction => {
-                  const lat = junction.latitude || 0;
-                  const lng = junction.longitude || 0;
                   return (
                     <tr 
                       key={junction.fid}
                       className={selectedJunction?.fid === junction.fid ? styles.selectedRow : ''}
                     >
-                      <td>
-                        {lat.toFixed(6)}, {lng.toFixed(6)}
-                      </td>
+                      <TableCell>{junction.name || 'Unnamed'}</TableCell>
                       <td>
                         <button 
                           onClick={() => onSelectJunction(junction)}
@@ -158,7 +154,7 @@ function TopSection({ junctions, selectedJunction, onSelectJunction }) {
                   );
                 })}
               </tbody>
-            </table>
+            </Table>
           </div>
         ) : (
           <div className={styles.noData}>No junction data available</div>
@@ -200,22 +196,17 @@ function DetailsCard({ junction }) {
       <h4>Suggested Improvement</h4>
       <div className={styles.detailCard}>
         <div className={styles.detailItem}>
-          <span className={styles.detailLabel}>FID:</span>
+          <span className={styles.detailLabel}>FID</span>
           <span>{junction.fid}</span>
         </div>
         <div className={styles.detailItem}>
-          <span className={styles.detailLabel}>Junction Name:</span>
-          <span>{junction.junction_name}</span>
+          <span className={styles.detailLabel}>Junction Name</span>
+          <span>{junction.name}</span>
         </div>
         <div className={styles.detailItem}>
-          <span className={styles.detailLabel}>Coordinates:</span>
-          <span>
-            {junction.latitude?.toFixed(6) || '0.000000'}, 
-            {junction.longitude?.toFixed(6) || '0.000000'}
-          </span>
         </div>
         <div className={styles.detailItem}>
-          <span className={styles.detailLabel}>Design Suggestion:</span>
+          <span className={styles.detailLabel}>Design Suggestion</span>
           <span>{junction.suggested_design}</span>
         </div>
       </div>
