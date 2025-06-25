@@ -5,13 +5,15 @@ import Layout from "../components/Layout";
 import About from "../components/About";
 import Footer from "../components/Footer";
 import { useState } from "react";
-import { FaInfoCircle } from "react-icons/fa";
+import { FaInfoCircle, FaUserPlus } from "react-icons/fa";
 import styles from "../styles/layout/about.module.css";
 import Form from "../components/Form";
+import formStyles from '../styles/components/form.module.css'
 
 function HomePage() {
   const [showAbout, setShowAbout] = useState(true);
   const [showForm, setShowForm] = useState(false);
+
 
   return (
     <>
@@ -19,7 +21,23 @@ function HomePage() {
         <title>Walking Project</title>
       </Head>
       <Metrics />
-      <Form />
+      {/* The Form component only shows the modal now */}
+      <Form
+        show={showForm}
+        onClose={() => setShowForm(false)}
+        // defaultWard and defaultRole can be omitted here if not needed for the homepage form
+      />
+      {/* The floating button for the homepage is now directly in index.js */}
+      {!showForm && (
+        <button
+          className={formStyles.applyFloatingBtn}
+          onClick={() => setShowForm(true)}
+          aria-label="Apply"
+        >
+          <FaUserPlus />
+        </button>
+      )}
+
       <About show={showAbout} onClose={() => setShowAbout(false)} />
       {!showAbout && (
         <button

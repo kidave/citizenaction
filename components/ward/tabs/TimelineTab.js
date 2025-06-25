@@ -28,12 +28,6 @@ export default function TimelineTab({ timelines }) {
     <div className={styles.timelineContainer}>
       <div className={styles.filterButtons}>
         <button 
-          className={`${styles.filterButton} ${filter === 'all' ? styles.activeFilter : ''}`}
-          onClick={() => setFilter('all')}
-        >
-          All Entries
-        </button>
-        <button 
           className={`${styles.filterButton} ${filter === 'meetings' ? styles.activeFilter : ''}`}
           onClick={() => setFilter('meetings')}
         >
