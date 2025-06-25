@@ -211,7 +211,7 @@ export default function WardSidebar({
           title="Member"
         >
           <FaUsers className={styles.tabIcon} />
-          {isHovered && <span className={styles.tabText}>Member</span>}
+          {isHovered && <span className={styles.tabText}>Committee</span>}
         </button>
         <button
           className={`${styles.tab} ${activeTab === 'road' ? styles.active : ''}`}
@@ -219,7 +219,7 @@ export default function WardSidebar({
           title="Road"
         >
           <FaRoad className={styles.tabIcon} />
-          {isHovered && <span className={styles.tabText}>Road</span>}
+          {isHovered && <span className={styles.tabText}>Routes Identified</span>}
         </button>
         <button
           className={`${styles.tab} ${activeTab === 'junction' ? styles.active : ''}`}
@@ -227,7 +227,7 @@ export default function WardSidebar({
           title="Junction"
         >
           <BsFillSignIntersectionSideFill className={styles.tabIcon} />
-          {isHovered && <span className={styles.tabText}>Junction</span>}
+          {isHovered && <span className={styles.tabText}>Junction Design</span>}
         </button>
         <button
           className={`${styles.tab} ${activeTab === 'action' ? styles.active : ''}`}
@@ -235,7 +235,7 @@ export default function WardSidebar({
           title="Action"
         >
           <MdAssignment className={styles.tabIcon} />
-          {isHovered && <span className={styles.tabText}>Action</span>}
+          {isHovered && <span className={styles.tabText}>Actions Taken</span>}
         </button>
       </div>
     </div>

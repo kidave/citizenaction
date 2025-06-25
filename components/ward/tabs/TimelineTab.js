@@ -4,7 +4,7 @@ import TimelineItem from './Timeline/TimelineItem';
 import styles from '../../../styles/layout/timeline.module.css';
 
 export default function TimelineTab({ timelines }) {
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState('meetings');
   
   if (!timelines || timelines.length === 0) {
     return (
@@ -18,7 +18,6 @@ export default function TimelineTab({ timelines }) {
   }
 
   const filteredTimeline = timelines.filter(item => {
-    if (filter === 'all') return true;
     if (filter === 'meetings') return item.type === 'meeting';
     if (filter === 'updates') return item.type === 'update';
     return true;

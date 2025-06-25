@@ -7,9 +7,10 @@ import PhoneInput from 'react-phone-input-2';
 
 export default function Form({ show, onClose, defaultWard, defaultRole }) {
   const [wards, setWards] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false); // New state for success message
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   const { register, handleSubmit, reset, formState: { errors }, control } = useForm({
     defaultValues: {
@@ -32,6 +33,26 @@ export default function Form({ show, onClose, defaultWard, defaultRole }) {
     fetchWards();
   }, []); // Empty dependency array means this runs once on mount
 
+
+  useEffect(() => {
+      async function fetchCategories() {
+        const { data, error } = await supabase
+          .from('stakeholder_category')
+          .select('id, name')
+          .order('name', { ascending: true });
+
+        if (!error) {
+          setCategories(data || []);
+        } else {
+          console.error("Error fetching stakeholder categories:", error);
+        }
+      }
+
+      fetchCategories();
+    }, []);
+
+
+
   useEffect(() => {
     // Reset form fields when the form is shown OR when wards data becomes available
     // Adding 'wards' to dependencies ensures the dropdown can correctly pick the defaultWard
@@ -43,8 +64,8 @@ export default function Form({ show, onClose, defaultWard, defaultRole }) {
         last_name: '',
         email: '',
         phone: '',
-        experience: '',
-        help: ''
+        category: '',
+        designation: ''
       });
       setShowSuccessMessage(false); // Ensure success message is hidden when opening the form
     } else {
@@ -56,8 +77,8 @@ export default function Form({ show, onClose, defaultWard, defaultRole }) {
         last_name: '',
         email: '',
         phone: '',
-        experience: '',
-        help: ''
+        category: '',
+        designation: ''
       });
       setShowSuccessMessage(false); // Ensure success message is hidden when closing the form
     }
@@ -87,6 +108,11 @@ export default function Form({ show, onClose, defaultWard, defaultRole }) {
 
     const { error } = await supabase.from('committee_form').insert([submitData]);
     setLoading(false);
+
+    
+
+    
+
 
     if (!error) {
       setShowSuccessMessage(true); // Show success message
@@ -184,21 +210,23 @@ export default function Form({ show, onClose, defaultWard, defaultRole }) {
                 {errors.role && <span style={{ color: "red" }}>Role is required</span>}
               </label>
               <label>
-                Experience / Motivation
-                <textarea
-                  {...register("experience")}
-                  rows={3}
-                  placeholder="Tell us about your experience or motivation (optional)"
-                />
+                Category*
+                <select {...register("category", { required: true })}>
+                  <option value="">Select a category</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.name}>{cat.name}</option>
+                  ))}
+                </select>
+                {errors.category && <span style={{ color: "red" }}>Category is required</span>}
               </label>
               <label>
                 Your Designation
                 <textarea
-                  {...register("help")}
+                  {...register("designation")}
                   rows={3}
                   placeholder="Designation (optional)"
                 />
-                {errors.help && <span style={{ color: "red" }}>{errors.help.message}</span>}
+                {errors.designation && <span style={{ color: "red" }}>{errors.designation.message}</span>}
               </label>
               <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
                 <button type="submit" disabled={loading}>

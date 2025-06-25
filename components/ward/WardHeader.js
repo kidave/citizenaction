@@ -57,7 +57,7 @@ export default function WardHeader({
 
       <div className={styles.wardTitle}>
         <h3>Walking Project</h3>
-        <p>Community-led improvements in {wardName} Ward</p>
+        <p>Community led improvements in {wardName} Ward</p>
       </div>
     </div>
   );

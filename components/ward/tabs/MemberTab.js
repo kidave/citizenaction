@@ -28,7 +28,10 @@ export default function MemberTab({ members, wardId, onApply }) {
     <div className={styles.memberList}>
       {/* Conditionally render message if no members, otherwise render member cards */}
       {members.length === 0 ? (
-        <p>Be a Member. Email us at info@walkingproject.org or Click Apply.</p>
+        <p>
+          Want to join the committee? Tap the <strong>Apply</strong> button at the bottom right, or email us at{' '} 
+           <a href="mailto:info@walkingproject.org">info@walkingproject.org</a>.
+        </p>
       ) : (
         members.map((member) => (
           <div key={member.member_id} className={styles.memberCard}>
