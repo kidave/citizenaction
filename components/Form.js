@@ -22,7 +22,10 @@ export default function Form({ show, onClose, defaultWard, defaultRole }) {
   useEffect(() => {
     // Fetch wards data from Supabase once on component mount
     async function fetchWards() {
-      const { data, error } = await supabase.from('ward').select('code, name');
+      const { data, error } = await supabase
+      .from('ward')
+      .select('code')
+      .order('name', { ascending: true });
       if (!error) {
         setWards(data || []);
       } else {
@@ -194,7 +197,7 @@ export default function Form({ show, onClose, defaultWard, defaultRole }) {
                 <select {...register("ward", { required: true })} disabled={!!defaultWard}>
                   <option value="">Select Ward</option>
                   {wards.map(w => (
-                    <option key={w.code} value={w.code}>{w.name}</option>
+                    <option key={w.code} value={w.code}>{w.code}</option>
                   ))}
                 </select>
                 {errors.ward && <span style={{ color: "red" }}>Ward is required</span>}

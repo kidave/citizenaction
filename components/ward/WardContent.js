@@ -1,4 +1,4 @@
-import { MemberTab, ActionTab, RoadTab, TimelineTab, JunctionTab } from './tabs';
+import { MemberTab, ActionTab, RoadTab, TimelineTab, JunctionTab, ProjectTab } from './tabs';
 import styles from '../../styles/layout/container.module.css';
 import WardHeader from './WardHeader';
 
@@ -11,7 +11,8 @@ export default function WardContent({
   timeline,
   onRoadClick,
   wardInfo,
-  selectedRoad
+  selectedRoad,
+  project,
 }) {
 
   const showHeader = ['timeline'].includes(activeTab);
@@ -31,6 +32,7 @@ export default function WardContent({
       {activeTab === 'member' && <MemberTab members={member} wardInfo={wardInfo} />}
       {activeTab === 'road' && <RoadTab roads={road} onRoadClick={onRoadClick} selectedRoad={selectedRoad} wardInfo={wardInfo} />}
       {activeTab === 'junction' && <JunctionTab junctions={junction} />}
+      {activeTab === 'project' && <ProjectTab projects={project} />}
     </div>
   );
 }

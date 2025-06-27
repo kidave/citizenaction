@@ -214,6 +214,14 @@ export default function WardSidebar({
           {isHovered && <span className={styles.tabText}>Committee</span>}
         </button>
         <button
+          className={`${styles.tab} ${activeTab === 'project' ? styles.active : ''}`}
+          onClick={() => setActiveTab('project')}         
+          title="Project"
+        >
+          <MdAssignment className={styles.tabIcon} />
+          {isHovered && <span className={styles.tabText}>Project</span>}
+        </button>
+        <button
           className={`${styles.tab} ${activeTab === 'road' ? styles.active : ''}`}
           onClick={() => setActiveTab('road')}
           title="Road"

@@ -80,7 +80,6 @@ export default function RoadTab({ roads, onRoadClick, selectedRoad }) {
                     <TableHeader width={200}>Road Name</TableHeader>
                     <TableHeader width={150}>Type</TableHeader>
                     <TableHeader width={120}>Length (km)</TableHeader>
-                    <TableHeader width={100}>Segments</TableHeader>
                     <TableHeader width={100}>Actions</TableHeader>
                   </tr>
                 </thead>
@@ -115,7 +114,6 @@ export default function RoadTab({ roads, onRoadClick, selectedRoad }) {
                         </span>
                       </TableCell>
                       <TableCell>{road.total_length_kilometers?.toFixed(2) || '0.00'}</TableCell>
-                      <TableCell>{road.segments_count}</TableCell>
                       <TableCell>
                         <button 
                           onClick={() => handleRoadSelect(road)}

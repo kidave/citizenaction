@@ -29,11 +29,11 @@
 /* Floating Apply Button */
 .applyFloatingBtn {
   position: fixed;
-  bottom: 32px;
+  bottom: 20px;
   right: 32px;
   z-index: 2100;
-  background: #fcc700;
-  color: #222;
+  background: #fdc700;
+  color: white;
   border: none;
   border-radius: 50%;
   width: 54px;

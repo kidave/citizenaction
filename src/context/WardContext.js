@@ -5,7 +5,8 @@ import {
   useWardMembers, 
   useWardRoads,
   useWardJunctions,
-  useWardBoundary
+  useWardBoundary,
+  useWardProject
 } from '../hooks';
 
 const WardContext = createContext();
@@ -17,6 +18,7 @@ export function WardProvider({ children, wardId }) {
   const actions = useWardActions(wardId, true);
   const junctions = useWardJunctions(wardId, true);
   const boundary = useWardBoundary(wardId, true);
+  const projects = useWardProject(wardId, true);
 
   const wardInfo = timeline.wardInfo || junctions.wardInfo || {
     wardName: 'Unknown',
@@ -32,8 +34,9 @@ export function WardProvider({ children, wardId }) {
     actions,
     junctions,
     boundary,
-    wardInfo 
-  }), [wardId, timeline, members, roads, actions, junctions, boundary]);
+    wardInfo,
+    projects,
+  }), [wardId, timeline, members, roads, actions, junctions, boundary, projects]);
 
   return (
     <WardContext.Provider value={contextValue}>

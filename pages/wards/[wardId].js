@@ -12,9 +12,9 @@ import {
   useWardActions,
   useWardTimeline,
   useWardJunctions,
+  useWardProject
 } from '../../src/hooks';
 
-import { useRouter } from 'next/router';
 import { WardProvider } from '../../src/context/WardContext';
 
 export default function WardDetail() {
@@ -30,9 +30,10 @@ export default function WardDetail() {
   const { junctions, error: junctionsError, loading: junctionsLoading } = useWardJunctions(wardId, activeTab === 'junction');
   const { actions, error: actionsError, loading: actionsLoading } = useWardActions(wardId, activeTab === 'action');
   const { timeline, wardInfo, error: timelineError, loading: timelineLoading } = useWardTimeline(wardId, activeTab === 'timeline');
+  const { projects, error: projectsError, loading: projectsLoading } = useWardProject(wardId, activeTab === 'project');
 
-  const error =  roadsError || junctionsError || actionsError || timelineError;
-  const loading = roadsLoading || junctionsLoading ||actionsLoading || timelineLoading;
+  const error =  membersError || roadsError || junctionsError || actionsError || timelineError || projectsError;
+  const loading = membersLoading || roadsLoading || junctionsLoading ||actionsLoading || timelineLoading || projectsLoading;
 
   return (
     <WardProvider wardId={wardId}>
@@ -56,6 +57,7 @@ export default function WardDetail() {
             error={error}
             selectedRoad={selectedRoad}
             junction={junctions}
+            project={projects}
           />
         </div>
       </div>
