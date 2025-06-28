@@ -1,4 +1,3 @@
-/* Timeline Styles */
 .timelineContainer {
   display: flex;
   flex-direction: column;
@@ -6,11 +5,12 @@
   background: white;
 }
 
+/* Filter Buttons */ 
+
 .filterButtons {
   display: flex;
   gap: 10px;
   margin-top: 10px;
-
   justify-content: center;
 }
 
@@ -31,6 +31,11 @@
   opacity: 1;
 }
 
+
+.activeFilter:hover {
+  transform: translateY(-1px);
+}
+
 .activeFilter {
   background-color: whitesmoke;
   color: grey;
@@ -39,85 +44,141 @@
   opacity: 1;
 }
 
-
-.snakeTimelineWrapper {
+/* Center Line */
+.timelineWrapper {
   position: relative;
 }
-
-.snakeTimelineWrapper::before {
+.timelineWrapper::before {
   content: '';
   position: absolute;
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
   width: 3px;
   height: 100%;
   background: linear-gradient(to bottom, #fcc700, gold, whitesmoke);
+  z-index: 1;
 }
 
-.snakeTimelineItem {
+/* Meeting Item */
+.timelineItemMeeting {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  margin: 2rem ;
+  gap: 20px;
   position: relative;
-  width: 100%;
-  margin-bottom: 1rem;
+}
+
+.timelineSide {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Center icon */
+.timelineIconWrapper {
+  position: relative;
+  z-index: 10;
+  background: white;
+  border-radius: 50%;
+  border: 3px solid skyblue;
+  padding: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.timelineIconWrapper:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Date  */
+.timelineDateWrapper {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: whitesmoke;
+  color: black;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.timelineIconWrapper:hover .timelineDateWrapper {
+  background: skyblue;
+  color: white;
+}
+
+
+.leftDate {
+  left: calc(-300%);
+}
+.rightDate {
+  right: calc(-300%);
+}
+
+/* Update Item */
+.timelineItemUpdate {
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-bottom: 3rem;
+  position: relative;
+  z-index: 2; /* Add this to bring above the timeline line */
 }
 
 
+.centeredDate {
+  background: whitesmoke;
+  color: black;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.centeredDate:hover {
+  background: lightseagreen;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.fullWidthCard {
+  width: 90%;
+  position: relative;
+  z-index: 2; /* Add this to bring above the timeline line */
+}
+
+/* Empty message */
 .emptyTimeline {
   text-align: center;
   margin-top: 2rem;
 }
-
 .emptyTimeline p:first-child {
   font-size: 1.3rem;
   color: grey;
   font-weight: 500;
   margin-bottom: 0.8rem;
 }
-
 .emptyTimeline p:last-child {
   color: grey;
   font-size: 1rem;
 }
 
-/* Responsive Styles */
-@media (max-width: 768px) {
-  .snakeTimelineWrapper::before {
-    left: 30px;
-  }
-  
-  .snakeTimelineItem {
-    align-items: flex-start;
-    padding-left: 80px;
-  }
-  
-  .timelineConnector {
-    left: 30px;
-  }
-  
-  .timelineCard {
-    width: 100%;
-  }
-}
 
 
-
-.timelineDate {
-  margin: 1rem;
-  padding: 0.5rem 1rem;
-  background: whitesmoke;
-  color: black;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  border: none;
-  border-radius: 10px;
-}
-
-.timelineDate:hover {
-  background: gainsboro;
-}
-
-
+/* Card */
 .timelineCard {
   background: white;
   border-radius: 10px;
@@ -128,16 +189,52 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+.timelineCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
 
 .cardHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-left: 4rem;
   margin-bottom: 1rem;
   padding-bottom: 0.8rem;
+  border-bottom: 1px solid #eee;
+}
+.timelineCardTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: black;
+  margin: 0;
+}
+.cardTypeBadge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: bold;
 }
 
+/* Meeting/update theme */
+.meetingCard {
+  border-top: 5px solid skyblue;
+}
+.updateCard {
+  border-top: 5px solid lightseagreen;
+  margin: 1rem 0; /* Add margin to prevent overlap */
+}
+.meetingCard .cardTypeBadge {
+  background: skyblue;
+  color: white;
+}
+.updateCard .cardTypeBadge {
+  background: lightseagreen;
+  color: white;
+}
+
+/* Icons in card */
 .timelineCardIcon {
   position: absolute;
   left: 1.2rem;
@@ -149,19 +246,10 @@
   justify-content: center;
   border: 3px solid #fcc700;
 }
-
-.meetingCard .timelineCardIcon {
-  border-color: skyblue;
-}
-.updateCard .timelineCardIcon {
-  border-color: lightseagreen;
-}
-
 .timelineIconFa {
-  color: #fcc700;
+  color: skyblue;
   font-size: 1.5rem;
 }
-
 .meetingCard .timelineIconFa {
   color: skyblue;
 }
@@ -169,41 +257,7 @@
   color: lightseagreen;
 }
 
-.meetingCard {
-  border-top: 5px solid skyblue;
-}
-
-.updateCard {
-  border-top: 5px solid lightseagreen;
-}
-
-
-
-.timelineCardTitle {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: black;
-  margin: 0;
-}
-
-.cardTypeBadge {
-  padding: 0.3rem 0.8rem;
-  border-radius: 20px;
-  text-transform: uppercase;
-}
-
-.meetingCard .cardTypeBadge {
-  background: skyblue;
-  color: lightcyan;
-}
-
-.updateCard .cardTypeBadge {
-  background: lightseagreen;
-  color: greenyellow;
-}
-
-
-
+/* Details + points */
 .sectionTitle {
   margin: 1.2rem 0 0.8rem;
   color: black;
@@ -214,20 +268,16 @@
   display: flex;
   align-items: center;
 }
-
 .operationSection,
 .descriptionSection,
 .supportSection {
   margin-bottom: 1.5rem;
 }
-
-
 .discussionList {
   list-style: none;
   padding-left: 0;
   margin: 0;
 }
-
 .discussionPoint {
   margin-bottom: 0.6rem;
   display: flex;
@@ -235,7 +285,6 @@
   line-height: 1.6;
   color: grey;
 }
-
 .bullet {
   color: black;
   margin-right: 12px;
@@ -244,12 +293,12 @@
   flex-shrink: 0;
 }
 
+/* Meeting detail blocks */
 .detailItem {
   display: flex;
   align-items: flex-start;
   margin-bottom: 0.8rem;
 }
-
 .detailIcon {
   margin-right: 12px;
   font-size: 1.25rem;
@@ -259,14 +308,47 @@
   align-items: center;
   justify-content: center;
 }
-
-
 .detailText {
   flex: 1;
   color: black;
   line-height: 1.6;
 }
 
+/* Responsive fallback */
+@media (max-width: 768px) {
+  .timelineWrapper::before {
+    left: 2rem; /* Instead of display: none, move it to the side */
+  }
+  
+  .timelineItem {
+    flex-direction: column !important;
+    align-items: flex-start;
+    padding-left: 4rem; /* Make space for the line */
+  }
+  
+  .timelineIconWrapper {
+    position: absolute;
+    left: 1.5rem;
+    transform: translateX(-50%);
+  }
+  
+  .timelineDateWrapper {
+    position: static;
+    margin-left: 1rem;
+    display: inline-block;
+  }
+  
+  .timelineSide {
+    width: 100%;
+    margin-top: 1rem;
+  }
 
-
-
+  .timelineDateWrapper {
+    position: static;
+    transform: none;
+    margin-top: 0.5rem;
+  }
+  .timelineCard {
+    width: 100%;
+  }
+}

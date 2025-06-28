@@ -23,12 +23,13 @@ function SingleProject({ project }) {
 
   const steps = [
     {
-      label: '1. Identification & Survey',
+      label: 'Setting the Stage',
       content: (
         <div>
-          <h4>Rationale</h4>
+          <h4>Community Talk & Committee Formation</h4>
+          <p>{project.setting || 'No rationale provided.'}</p>
+          <h4>Kickoff</h4>
           <p>{project.rationale || 'No rationale provided.'}</p>
-          <h4>Initial Findings</h4>
         </div>
       ),
     },

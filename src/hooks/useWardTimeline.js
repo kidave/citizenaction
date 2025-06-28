@@ -20,7 +20,7 @@ export default function useWardTimeline(wardId, enabled = true) {
     (async () => {
       try {
         // ✅ Fetch convenor and co-convenor
-        const { data: committeeData } = await supabase
+        const { data: convenorData } = await supabase
           .from('committee')
           .select('*')
           .eq('ward_code', wardId)
@@ -85,12 +85,17 @@ export default function useWardTimeline(wardId, enabled = true) {
 
         setTimeline(combinedData);
 
+        const formatName = (user) => {
+          if (!user) return 'Not assigned';
+          return [user.first_name, user.last_name].filter(Boolean).join(' ') || 'Not assigned';
+        };
+
         // ✅ Set wardInfo
         setWardInfo({
           wardName: wardData?.name || 'Unknown',
-          convenor: committeeData?.member_name || 'Not assigned',
-          convenorEmail: committeeData?.email || null,
-          coConvenor: coConvenorData?.member_name || 'Not assigned',
+          convenor: formatName(convenorData),
+          convenorEmail: convenorData?.email || null,
+          coConvenor: formatName(coConvenorData),
           coConvenorEmail: coConvenorData?.email || null
         });
 
