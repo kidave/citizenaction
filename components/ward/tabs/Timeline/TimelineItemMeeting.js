@@ -6,7 +6,7 @@ import { FaUsers } from 'react-icons/fa';
 
 function formatDate(date) {
   if (!(date instanceof Date)) date = new Date(date);
-  return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  return date.toLocaleDateString('en-US', { day:'numeric', month: 'long', year: 'numeric' });
 }
 
 export default function TimelineItemMeeting({ item, autoExpand, index }) {

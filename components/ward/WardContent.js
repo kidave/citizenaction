@@ -17,6 +17,15 @@ export default function WardContent({
 
   const showHeader = ['timeline'].includes(activeTab);
 
+  const tabComponents = {
+    timeline: <TimelineTab timelines={timeline} wardInfo={wardInfo} />,
+    member: <MemberTab members={member} wardInfo={wardInfo} />,
+    action: <ActionTab actions={action} />,
+    road: <RoadTab roads={road} onRoadClick={onRoadClick} selectedRoad={selectedRoad} wardInfo={wardInfo} />,
+    junction: <JunctionTab junctions={junction} />,
+    project: <ProjectTab projects={project} />,
+  };
+
   return (
     <div className={styles.wardContent}>
       <WardHeader 
@@ -27,12 +36,7 @@ export default function WardContent({
         coConvenorEmail={wardInfo?.coConvenorEmail}
         showHeader={showHeader}
       />
-      {activeTab === 'timeline' && <TimelineTab timelines={timeline} wardInfo={wardInfo} />}
-      {activeTab === 'action' && <ActionTab actions={action} />}
-      {activeTab === 'member' && <MemberTab members={member} wardInfo={wardInfo} />}
-      {activeTab === 'road' && <RoadTab roads={road} onRoadClick={onRoadClick} selectedRoad={selectedRoad} wardInfo={wardInfo} />}
-      {activeTab === 'junction' && <JunctionTab junctions={junction} />}
-      {activeTab === 'project' && <ProjectTab projects={project} />}
+      {tabComponents[activeTab] || tabComponents['timeline']}
     </div>
   );
 }

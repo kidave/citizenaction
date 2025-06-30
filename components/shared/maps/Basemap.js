@@ -123,9 +123,16 @@ export default function BaseMap({
 
     // Set up resize observer
     resizeObserverRef.current = new ResizeObserver(() => {
-      if (mapInstance.current) {
+      if (mapInstance.current && mapRef.current) {
         setTimeout(() => {
-          mapInstance.current.invalidateSize();
+          try {
+            mapInstance.current.invalidateSize({ 
+              pan: false, 
+              debounceMoveend: true 
+            });
+          } catch (error) {
+            console.error('Error invalidating map size:', error);
+          }
         }, 100);
       }
     });
@@ -133,16 +140,21 @@ export default function BaseMap({
     resizeObserverRef.current.observe(mapRef.current);
 
     return () => {
-      if (mapInstance.current) {
-        mapInstance.current.off();
-        mapInstance.current.remove();
-      }
       if (resizeObserverRef.current) {
         resizeObserverRef.current.disconnect();
       }
+      if (mapInstance.current) {
+        try {
+          mapInstance.current.off();
+          mapInstance.current.remove();
+        } catch (e) {
+          console.error('Error cleaning up map:', e);
+        }
+        mapInstance.current = null;
+      }
       initializedRef.current = false;
-    };
-  }, []);
+      };
+    }, []);
 
   // Update boundary when it changes
   useEffect(() => {

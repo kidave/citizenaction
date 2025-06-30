@@ -1,3 +1,5 @@
+// In WardContext.js
+
 import { createContext, useContext, useMemo } from 'react';
 import { 
   useWardTimeline, 
@@ -12,15 +14,17 @@ import {
 const WardContext = createContext();
 
 export function WardProvider({ children, wardId }) {
-  const timeline = useWardTimeline(wardId, true);
-  const members = useWardMembers(wardId, true);
-  const { roads } = useWardRoads(wardId);
-  const actions = useWardActions(wardId, true);
-  const junctions = useWardJunctions(wardId, true);
-  const boundary = useWardBoundary(wardId, true);
-  const projects = useWardProject(wardId, true);
+  // Destructure EVERY hook's result object
+  const { timeline, wardInfo: timelineWardInfo } = useWardTimeline(wardId, true);
+  const { members } = useWardMembers(wardId, true); // This returns { members: [...] }
+  const { roads } = useWardRoads(wardId); // This returns { roads: [...] }
+  const { actions } = useWardActions(wardId, true); // This returns { actions: [...] }
+  const { junctions, wardInfo: junctionsWardInfo } = useWardJunctions(wardId, true); // This returns { junctions: [...], wardInfo: {...} }
+  const { boundary } = useWardBoundary(wardId, true); // This returns { boundary: {...} }
+  const { projects } = useWardProject(wardId, true); // This returns { projects: [...] }
 
-  const wardInfo = timeline.wardInfo || junctions.wardInfo || {
+  // Consolidate wardInfo from the most reliable source
+  const wardInfo = timelineWardInfo || junctionsWardInfo || {
     wardName: 'Unknown',
     convenor: 'Not assigned',
     coConvenor: 'Not assigned'
@@ -28,15 +32,16 @@ export function WardProvider({ children, wardId }) {
 
   const contextValue = useMemo(() => ({
     wardId,
-    timeline,
-    members,
-    roads,
-    actions,
-    junctions,
-    boundary,
+    // Provide the actual data ARRAYS to the context, with fallbacks
+    timeline: timeline || [],
+    members: members || [],
+    roads: roads || [],
+    actions: actions || [],
+    junctions: junctions || [],
+    boundary: boundary || null,
+    projects: projects || [],
     wardInfo,
-    projects,
-  }), [wardId, timeline, members, roads, actions, junctions, boundary, projects]);
+  }), [wardId, timeline, members, roads, actions, junctions, boundary, projects, wardInfo]);
 
   return (
     <WardContext.Provider value={contextValue}>

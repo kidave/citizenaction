@@ -3,7 +3,6 @@ import { useForm, Controller } from "react-hook-form";
 import { supabase } from '../utils/supabaseClient';
 import styles from "../styles/components/form.module.css";
 import PhoneInput from 'react-phone-input-2';
-// FaUserPlus remains removed from here, as the floating button is managed in index.js
 
 export default function Form({ show, onClose, defaultWard, defaultRole }) {
   const [wards, setWards] = useState([]);
@@ -70,9 +69,9 @@ export default function Form({ show, onClose, defaultWard, defaultRole }) {
         category: '',
         designation: ''
       });
-      setShowSuccessMessage(false); // Ensure success message is hidden when opening the form
+      setShowSuccessMessage(false);
     } else {
-      // If the form is closed, reset it completely for the next opening
+      
       reset({
         ward: defaultWard || '',
         role: defaultRole || '',
@@ -83,7 +82,7 @@ export default function Form({ show, onClose, defaultWard, defaultRole }) {
         category: '',
         designation: ''
       });
-      setShowSuccessMessage(false); // Ensure success message is hidden when closing the form
+      setShowSuccessMessage(false); 
     }
   }, [show, defaultWard, defaultRole, reset]); // Removed 'wards' from dependency array for reset on show, as wards state update might trigger reset unnecessarily. Default values will be set on first render via useForm, and then on 'show' prop changes.
 
@@ -112,10 +111,6 @@ export default function Form({ show, onClose, defaultWard, defaultRole }) {
     const { error } = await supabase.from('committee_form').insert([submitData]);
     setLoading(false);
 
-    
-
-    
-
 
     if (!error) {
       setShowSuccessMessage(true); // Show success message
@@ -133,7 +128,6 @@ export default function Form({ show, onClose, defaultWard, defaultRole }) {
 
   return (
     <>
-      {/* Modal Overlay with Blur for the Form */}
       {show && (
         <div className={styles.formOverlay} onClick={onClose}>
           <div className={styles.formModal} onClick={e => e.stopPropagation()}>

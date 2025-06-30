@@ -1,3 +1,5 @@
+// components/ward/WardSidebar.js
+
 import { useState, useEffect } from 'react';
 import styles from '../../styles/layout/sidebar.module.css';
 import { useRouter } from 'next/router';
@@ -10,23 +12,17 @@ import { PiMapPinAreaFill } from "react-icons/pi";
 import { MdAssignment } from "react-icons/md";
 
 
-
-
-
 export default function WardSidebar({ 
-  wardId, 
-  activeTab, 
-  setActiveTab,
   disabledTabs = []
 }) {
   const router = useRouter();
+  const { wardId, tab: activeTab } = router.query;
   const [isHovered, setIsHovered] = useState(false);
 
   // State for ward selection
   const [divisions, setDivisions] = useState([]);
   const [wards, setWards] = useState([]);
   const [currentDivision, setCurrentDivision] = useState(null);
-  const [selectedWardId, setSelectedWardId] = useState(null);
   const [loadingDivisions, setLoadingDivisions] = useState(false);
   const [loadingWards, setLoadingWards] = useState(false);
   const [wardsError, setWardsError] = useState(null);
@@ -52,7 +48,7 @@ export default function WardSidebar({
     fetchDivisions();
   }, []);
 
-  // Fetch division and set selected ward on first mount or URL change
+  // Fetch division for the current wardId from the URL
   useEffect(() => {
     if (!wardId) return;
 
@@ -66,7 +62,6 @@ export default function WardSidebar({
 
         if (error) throw error;
         setCurrentDivision(data.division_code);
-        setSelectedWardId(wardId);
       } catch (err) {
         console.error('Error getting ward info:', err);
       }
@@ -75,6 +70,7 @@ export default function WardSidebar({
     fetchDivisionForWard();
   }, [wardId]);
 
+  // Fetch all wards within the current division
   useEffect(() => {
     if (!currentDivision) return;
     const fetchWards = async () => {
@@ -88,16 +84,6 @@ export default function WardSidebar({
           .order('name', { ascending: true });
         if (error) throw error;
         setWards(data);
-        if (data && data.length > 0) {
-          if (!wardId) {
-            setSelectedWardId(data[0].code);
-            router.push(`/wards/${data[0].code}`);
-          } else {
-            setSelectedWardId(wardId);
-          }
-        } else {
-          setSelectedWardId(null);
-        }
       } catch (err) {
         setWardsError(err.message);
       } finally {
@@ -105,17 +91,24 @@ export default function WardSidebar({
       }
     };
     fetchWards();
-  }, [currentDivision, wardId]);
+  }, [currentDivision]);
 
-  const handleDivisionChange = (divisionId) => {
-    setCurrentDivision(divisionId);
-    setWards([]);
-    setSelectedWardId(null);
+  const handleDivisionChange = (divisionCode) => {
+    setCurrentDivision(divisionCode);
+    setWards([]); 
+  };
+  
+  const handleWardChange = (newWardId) => {
+    if (newWardId) {
+        const currentTab = activeTab || 'timeline';
+        router.push(`/ward/${newWardId}/${currentTab}`);
+    }
   };
 
-  const handleWardChange = (wardId) => {
-    setSelectedWardId(wardId);
-    router.push(`/wards/${wardId}`);
+  const handleTabClick = (tabName) => {
+    if (wardId) {
+      router.push(`/ward/${wardId}/${tabName}`);
+    }
   };
 
   return (
@@ -134,53 +127,43 @@ export default function WardSidebar({
         title="Home"
       >
         <div className={styles.logoContent}>
-          <img src="/wp_icon_sm.png" className={styles.logoIcon} />
-          {isHovered && <img src="/wp_text_logo.png" className={styles.logoText} />}
+          <img src="/wp_icon_sm.png" alt="Walking Project Logo" className={styles.logoIcon} />
+          {isHovered && <img src="/wp_text_logo.png" alt="Walking Project" className={styles.logoText} />}
         </div>
       </div>
 
-      {/* Dropdowns - always show icons */}
+      {/* Dropdowns */}
       <div className={styles.selector}>
-        {/* Division Dropdown */}
         <div className={styles.dropdownWrapper}>
           <FaMap className={styles.dropdownIcon} title="Division" />
           {isHovered && (
-            <>
-              {loadingDivisions ? (
-                <p>Loading...</p>
-              ) : (
-                <select
-                  id="division-select"
-                  value={currentDivision || ''}
-                  onChange={e => handleDivisionChange(e.target.value)}
-                  className={styles.dropdown}
-                >
-                  {divisions.map((division) => (
-                    <option key={division.code} value={division.code}>
-                      {division.name}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </>
+            <select
+              id="division-select"
+              value={currentDivision || ''}
+              onChange={e => handleDivisionChange(e.target.value)}
+              className={styles.dropdown}
+              aria-label="Select Division"
+            >
+              <option value="">Select Division</option>
+              {divisions.map((division) => (
+                <option key={division.code} value={division.code}>
+                  {division.name}
+                </option>
+              ))}
+            </select>
           )}
         </div>
 
-        {/* Ward Dropdown */}
         <div className={styles.dropdownWrapper}>
           <PiMapPinAreaFill  className={styles.dropdownIcon} title="Ward" />
           {isHovered && (
-            <>
-              {loadingWards ? (
-                <p>Loading...</p>
-              ) : wardsError ? (
-                <p>Error</p>
-              ) : (
-                <select
+             <select
                   id="ward-select"
-                  value={selectedWardId || ''}
+                  value={wardId || ''}
                   onChange={e => handleWardChange(e.target.value)}
                   className={styles.dropdown}
+                  aria-label="Select Ward"
+                  disabled={!currentDivision || loadingWards}
                 >
                   <option value="">Select Ward</option>
                   {wards.map((ward) => (
@@ -189,8 +172,6 @@ export default function WardSidebar({
                     </option>
                   ))}
                 </select>
-              )}
-            </>
           )}
         </div>
       </div>
@@ -199,7 +180,7 @@ export default function WardSidebar({
       <div className={styles.tabContainer}>
         <button
           className={`${styles.tab} ${activeTab === 'timeline' ? styles.active : ''}`}
-          onClick={() => setActiveTab('timeline')}
+          onClick={() => handleTabClick('timeline')}
           title="Timeline"
         >
           <TbTimelineEventFilled className={styles.tabIcon} />
@@ -207,7 +188,7 @@ export default function WardSidebar({
         </button>
         <button
           className={`${styles.tab} ${activeTab === 'member' ? styles.active : ''}`}
-          onClick={() => setActiveTab('member')}
+          onClick={() => handleTabClick('member')}
           title="Member"
         >
           <FaUsers className={styles.tabIcon} />
@@ -215,7 +196,7 @@ export default function WardSidebar({
         </button>
         <button
           className={`${styles.tab} ${activeTab === 'project' ? styles.active : ''}`}
-          onClick={() => setActiveTab('project')}         
+          onClick={() => handleTabClick('project')}         
           title="Project"
         >
           <MdAssignment className={styles.tabIcon} />
@@ -223,7 +204,7 @@ export default function WardSidebar({
         </button>
         <button
           className={`${styles.tab} ${activeTab === 'road' ? styles.active : ''}`}
-          onClick={() => setActiveTab('road')}
+          onClick={() => handleTabClick('road')}
           title="Road"
         >
           <FaRoad className={styles.tabIcon} />
@@ -231,16 +212,17 @@ export default function WardSidebar({
         </button>
         <button
           className={`${styles.tab} ${activeTab === 'junction' ? styles.active : ''}`}
-          onClick={() => setActiveTab('junction')}
+          onClick={() => handleTabClick('junction')}
           title="Junction"
         >
           <BsFillSignIntersectionSideFill className={styles.tabIcon} />
           {isHovered && <span className={styles.tabText}>Junction Design</span>}
         </button>
         <button
-          className={`${styles.tab} ${activeTab === 'action' ? styles.active : ''}`}
-          onClick={() => setActiveTab('action')}         
+          className={`${styles.tab} ${activeTab === 'action' ? styles.active : ''} ${isTabDisabled('action') ? styles.disabled : ''}`}
+          onClick={() => handleTabClick('action')}         
           title="Action"
+          disabled={isTabDisabled('action')}
         >
           <MdAssignment className={styles.tabIcon} />
           {isHovered && <span className={styles.tabText}>Actions Taken</span>}

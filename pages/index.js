@@ -21,13 +21,10 @@ function HomePage() {
         <title>Walking Project</title>
       </Head>
       <Metrics />
-      {/* The Form component only shows the modal now */}
       <Form
         show={showForm}
         onClose={() => setShowForm(false)}
-        // defaultWard and defaultRole can be omitted here if not needed for the homepage form
       />
-      {/* The floating button for the homepage is now directly in index.js */}
       {!showForm && (
         <button
           className={formStyles.applyFloatingBtn}
