@@ -63,11 +63,11 @@ export default function BaseMap({
       try {
         boundaryLayerRef.current = L.geoJSON(processedBoundary, {
           style: {
-            color: '#9A4EAE',
+            color: '#FDC700',
             weight: 3,
-            opacity: 0.8,
+            opacity: 1,
             fillOpacity: 0.1,
-            fillColor: '#9A4EAE'
+            fillColor: '#FDC700'
           }
         }).addTo(mapInstance.current);
 

@@ -6,6 +6,8 @@ import Form from '../../Form';
 import { useState } from 'react';
 import formStyles from '../../../styles/components/form.module.css'; // Ensure this is imported for primaryCta
 import { FaUserPlus } from "react-icons/fa";
+import { useWard } from '../../../src/context/WardContext';
+
 
 const SOCIAL_ICONS = {
   facebook: FaFacebook,
@@ -21,8 +23,9 @@ function getImageUrl(filename) {
   return `https://gostxgfnoilfmybaohhx.supabase.co/storage/v1/object/public/profile/avatar/${filename}`;
 }
 
-export default function MemberTab({ members, wardId, onApply }) {
+export default function MemberTab({ members }) {
   const [showForm, setShowForm] = useState(false);
+  const { wardId } = useWard();
 
   return (
     <div className={styles.memberList}>

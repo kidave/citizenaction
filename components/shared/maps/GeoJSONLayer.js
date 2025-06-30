@@ -12,7 +12,8 @@ export default function GeoJSONLayer({
   styleOptions = {},
   popupContent,
   onClick,
-  selected = false
+  selected = false,
+  onLayerCreated
 }) {
   const layerRef = useRef(null);
 
@@ -37,6 +38,11 @@ export default function GeoJSONLayer({
         }
       }).addTo(map);
 
+      // Call the callback if provided
+      if (onLayerCreated) {
+        onLayerCreated(layerRef.current);
+      }
+
       return () => {
         if (layerRef.current) {
           layerRef.current.remove();
@@ -45,7 +51,7 @@ export default function GeoJSONLayer({
     } catch (e) {
       console.error('Error creating GeoJSON layer:', e);
     }
-  }, [map, geojson, styleOptions, popupContent, onClick, selected]);
+  }, [map, geojson, styleOptions, popupContent, onClick, selected, onLayerCreated]);
 
   return null;
 }

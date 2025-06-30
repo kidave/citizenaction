@@ -18,6 +18,8 @@ export default function Form({ show, onClose, defaultWard, defaultRole }) {
     }
   });
 
+  const isMemberForm = defaultRole === 'member';
+
   useEffect(() => {
     // Fetch wards data from Supabase once on component mount
     async function fetchWards() {
@@ -132,7 +134,12 @@ export default function Form({ show, onClose, defaultWard, defaultRole }) {
         <div className={styles.formOverlay} onClick={onClose}>
           <div className={styles.formModal} onClick={e => e.stopPropagation()}>
             <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
-              <h3>Apply as Member / Convener / Co-Convener</h3>
+              <h3>
+                {isMemberForm 
+                  ? "Apply as Member"
+                  : "Apply as Member / Convener / Co-Convener"
+                }
+              </h3>
               {errorMsg && <div style={{ color: "red", marginBottom: 8 }}>{errorMsg}</div>}
               <label>
                 First Name*

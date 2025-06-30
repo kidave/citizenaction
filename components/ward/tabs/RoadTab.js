@@ -184,7 +184,6 @@ export default function RoadTab({ roads, onRoadClick, selectedRoad }) {
             onRoadSelect={handleRoadSelect}
             center={MUMBAI_CENTER}
             zoom={DEFAULT_ZOOM}
-            wardBoundary={wardBoundary}
           />
         </div>
       </div>

@@ -20,25 +20,25 @@ export const tileLayers = {
 export const getRoadStyle = (styleOptions, isSelected = false) => {
     const styleMap = {
               // Major Roads (5110)
-              motorway: { color: '#e74c3c', weight: 4 },
-              trunk: { color: '#e67e22', weight: 4 },
-              primary: { color: '#f1c40f', weight: 4 },
+              motorway: { color: '#e74c3c', weight: 2 },
+              trunk: { color: '#e67e22', weight: 2 },
+              primary: { color: '#f1c40f', weight: 2 },
               
               // Minor Roads (5120)
-              secondary: { color: '#2ecc71', weight: 3 },
-              tertiary: { color: '#1abc9c', weight: 3 },
-              unclassified: { color: '#95a5a6', weight: 2 },
-              residential: { color: '#3498db', weight: 2 },
-              living_street: { color: '#9b59b6', weight: 2 },
-              pedestrian: { color: '#34495e', weight: 2 },
-              busway: { color: '#d35400', weight: 2 },
+              secondary: { color: '#2ecc71', weight: 2 },
+              tertiary: { color: '#1abc9c', weight: 2 },
+              unclassified: { color: '#95a5a6', weight: 1 },
+              residential: { color: '#3498db', weight: 1 },
+              living_street: { color: '#9b59b6', weight: 1 },
+              pedestrian: { color: '#34495e', weight: 1 },
+              busway: { color: '#d35400', weight: 1 },
               
               // Highway Links (5130)
-              motorway_link: { color: '#e74c3c', weight: 3, dashArray: '5,5' },
-              trunk_link: { color: '#e67e22', weight: 3, dashArray: '5,5' },
-              primary_link: { color: '#f1c40f', weight: 3, dashArray: '5,5' },
-              secondary_link: { color: '#2ecc71', weight: 3, dashArray: '5,5' },
-              tertiary_link: { color: '#1abc9c', weight: 3, dashArray: '5,5' },
+              motorway_link: { color: '#e74c3c', weight: 2, dashArray: '5,5' },
+              trunk_link: { color: '#e67e22', weight: 2, dashArray: '5,5' },
+              primary_link: { color: '#f1c40f', weight: 2, dashArray: '5,5' },
+              secondary_link: { color: '#2ecc71', weight: 2, dashArray: '5,5' },
+              tertiary_link: { color: '#1abc9c', weight: 2, dashArray: '5,5' },
               
               // Small Roads (5140)
               service: { color: '#7f8c8d', weight: 1 },
@@ -60,8 +60,8 @@ export const getRoadStyle = (styleOptions, isSelected = false) => {
   return {
     ...baseStyle,
     ...styleOptions,
-    color: isSelected ? '#9A4EAE' : baseStyle.color,
-    weight: isSelected ? 8 : baseStyle.weight,
-    opacity: isSelected ? 0.7 : 0.3
+    color: isSelected ? '#F5F5F5' : baseStyle.color,
+    weight: isSelected ? 1 : baseStyle.weight,
+    opacity: isSelected ? 0.1 : 0
   };
 };
