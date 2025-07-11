@@ -135,13 +135,16 @@
   border-radius: 20px;
   border: none;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  width: 170px;
+  width: 170px; /* Fixed width */
+  min-height: 250px; /* Changed from height to min-height */
+  max-height: 250px; /* Added max-height */
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  height: 250px;
+  position: relative; /* For absolute positioning if needed */
+  overflow: hidden; /* Prevent content from breaking out */
 }
 
 .memberCard:hover {
@@ -152,8 +155,12 @@
 .memberImageContainer {
   width: 80px;
   height: 80px;
+  min-width: 80px; /* Ensure it never shrinks */
+  min-height: 80px; /* Ensure it never shrinks */
   border-radius: 50%;
   overflow: hidden;
+  margin-bottom: 12px; /* Consistent spacing */
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 .memberImage {
@@ -164,12 +171,33 @@
 
 .memberDetail {
   font-weight: 600;
+  margin: 0 0 8px 0;
+  max-width: 100%; /* Constrain to container */
+  padding: 0 5px; /* Add some padding */
+}
+
+.memberInfoContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+  width: 100%;
+  flex-grow: 1;
+  justify-content: center;
+}
+
+.memberRole {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin: 0;
 }
 
 .memberInformation {
-  margin: 0;
+  font-size: 0.85rem;
   color: grey;
-  font-weight: 600;
+  margin: 0;
+  text-align: center;
 }
 
 .hoverCard {
@@ -191,7 +219,7 @@
 }
 
 .cardContent {
-  color: #333;
+  color: black;
   line-height: 1.5;
 }
 
@@ -254,3 +282,21 @@
 .memberCard .socialIcons a:hover {
   filter: brightness(0.85);
 }
+
+.memberCategory {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #555;
+  background-color: #f0f0f0;
+  padding: 4px 10px;
+  border-radius: 12px;
+  margin: 4px 0;
+}
+
+.stakeholderIcon {
+  font-size: 0.9rem;
+  color: #555;
+}
+

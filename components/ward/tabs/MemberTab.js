@@ -1,13 +1,27 @@
 import styles from "../../../styles/components/card.module.css";
 import Image from "next/image";
-import { FaFacebook, FaInstagram, FaLinkedin, FaGithub, FaWhatsapp } from "react-icons/fa";
-import { FaXTwitter } from "react-icons/fa6";
+import { MdVolunteerActivism  } from "react-icons/md";
+import { 
+  FaFacebook, 
+  FaInstagram, 
+  FaLinkedin, 
+  FaGithub, 
+  FaWhatsapp,
+  FaUserPlus,
+  FaUserAlt,
+  FaUserTie,
+  FaUserGraduate,
+  FaWheelchair,
+  FaStore,
+  FaHome,
+  FaChalkboardTeacher,
+  FaUserSecret
+} from "react-icons/fa";
+import { FaXTwitter, FaUserDoctor } from "react-icons/fa6";
 import Form from '../../Form';
 import { useState } from 'react';
-import formStyles from '../../../styles/components/form.module.css'; // Ensure this is imported for primaryCta
-import { FaUserPlus } from "react-icons/fa";
+import formStyles from '../../../styles/components/form.module.css';
 import { useWard } from '../../../src/context/WardContext';
-
 
 const SOCIAL_ICONS = {
   facebook: FaFacebook,
@@ -16,6 +30,20 @@ const SOCIAL_ICONS = {
   github: FaGithub,
   xtwitter: FaXTwitter,
   whatsapp: FaWhatsapp,
+};
+
+// Stakeholder category icons mapping with React Icons
+const STAKEHOLDER_ICONS = {
+  'Senior Citizen': <FaUserAlt className={styles.stakeholderIcon} />,
+  'Business Owner': <FaUserTie className={styles.stakeholderIcon} />,
+  'Civic Official': <FaUserSecret className={styles.stakeholderIcon} />,
+  'Student': <FaUserGraduate className={styles.stakeholderIcon} />,
+  'Person with Disability': <FaWheelchair className={styles.stakeholderIcon} />,
+  'Resident': <FaHome className={styles.stakeholderIcon} />,
+  'Street Vendor': <FaStore className={styles.stakeholderIcon} />,
+  'Volunteer': <MdVolunteerActivism  className={styles.stakeholderIcon} />,
+  'Educator': <FaChalkboardTeacher className={styles.stakeholderIcon} />,
+  'Healthcare Worker': <FaUserDoctor className={styles.stakeholderIcon} />
 };
 
 function getImageUrl(filename) {
@@ -27,13 +55,18 @@ export default function MemberTab({ members }) {
   const [showForm, setShowForm] = useState(false);
   const { wardId } = useWard();
 
+  const getRoleDisplay = (member) => {
+    if (member.is_convenor) return 'Convenor';
+    if (member.is_co_convenor) return 'Co-Convenor';
+    return 'Member';
+  };
+
   return (
     <div className={styles.memberList}>
-      {/* Conditionally render message if no members, otherwise render member cards */}
       {members.length === 0 ? (
         <p>
           Want to join the committee? Tap the <strong>Apply</strong> button at the bottom right, or email us at{' '} 
-           <a href="mailto:info@walkingproject.org">info@walkingproject.org</a>.
+          <a href="mailto:info@walkingproject.org">info@walkingproject.org</a>.
         </p>
       ) : (
         members.map((member) => (
@@ -51,8 +84,21 @@ export default function MemberTab({ members }) {
                 }}
               />
             </div>
-            <h4 className={styles.memberDetail}>{member.first_name}{member.last_name ? ` ${member.last_name}` : ''}</h4>
-            <p className={styles.memberInformation}>{member.designation}</p>
+            <h4 className={styles.memberDetail}>
+              {member.first_name}{member.last_name ? ` ${member.last_name}` : ''}
+            </h4>
+            <div className={styles.memberInfoContainer}>
+              <p className={styles.memberRole}>{getRoleDisplay(member)}</p>
+              {member.stakeholder_category && (
+                <div className={styles.memberCategory}>
+                  {STAKEHOLDER_ICONS[member.stakeholder_category] || <FaUserAlt className={styles.stakeholderIcon} />}
+                  <span>{member.stakeholder_category}</span>
+                </div>
+              )}
+              {member.designation && (
+                <p className={styles.memberInformation}>{member.designation}</p>
+              )}
+            </div>
             <div className={styles.socialIcons}>
               {member.social && Object.entries(member.social).map(([platform, url]) => {
                 const Icon = SOCIAL_ICONS[platform];
@@ -67,14 +113,10 @@ export default function MemberTab({ members }) {
         ))
       )}
 
-      {/* This button is now always rendered at the end of the memberList div,
-          making it consistently visible regardless of member count. */}
       <button onClick={() => setShowForm(true)} className={formStyles.applyFloatingBtn}>
         <FaUserPlus/>
       </button>
 
-      {/* The Form component is correctly placed here and its show prop
-          is controlled by the local showForm state */}
       <Form
         show={showForm}
         onClose={() => setShowForm(false)}

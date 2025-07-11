@@ -15,12 +15,17 @@ function Region() {
   const [wards, setWards] = useState([]);
   const router = useRouter();
 
+  const statusConfig = {
+    'Pending': { color: '#ff9800', label: 'Planned', disabled: true },
+    'Approved': { color: '#4caf50', label: 'Available', disabled: false },
+  };
+
   // Fetch cities on component mount
   useEffect(() => {
     const fetchCities = async () => {
       const { data, error } = await supabase
         .from('city')
-        .select('code, name')
+        .select('code, name, status')
         .order('code', { ascending: true });
 
       if (error) {
@@ -35,6 +40,9 @@ function Region() {
 
   // Fetch divisions when a city is selected
   const handleCityClick = async (cityId) => {
+    const selectedCity = cities.find(city => city.code === cityId);
+    if (statusConfig[selectedCity?.status]?.disabled) return;
+    
     setSelectedCity(cityId);
     setSelectedDivision(null);
     setWards([]);
@@ -84,18 +92,40 @@ function Region() {
         <span>Select Your City</span>
       </div>
       <div className={containerStyles.cityContainer}>
-        {cities.map((city) => (
-          <button
-            key={city.code}
-            className={`${buttonStyles.btnBig} ${
-              selectedCity === city.code ? buttonStyles.active : ''
-            }`}
-            onClick={() => handleCityClick(city.code)}
-          >
-            
-            {city.name}
-          </button>
-        ))}
+        {cities.map((city) => {
+          const config = statusConfig[city.status] || statusConfig['Pending'];
+          return (
+            <button
+              key={city.code}
+              className={`${buttonStyles.btnBig} ${
+                selectedCity === city.code ? buttonStyles.active : ''
+              }`}
+              onClick={() => handleCityClick(city.code)}
+              disabled={config.disabled}
+              style={{
+                opacity: config.disabled ? 0.2 : 1,
+                cursor: config.disabled ? 'not-allowed' : 'pointer',
+                position: 'relative',
+              }}
+            >
+              {city.name}
+              {config.disabled && (
+                <span style={{
+                  position: 'absolute',
+                  bottom: '5px',
+                  right: '5px',
+                  fontSize: '0.7rem',
+                  backgroundColor: config.color,
+                  color: 'white',
+                  padding: '2px 5px',
+                  borderRadius: '3px'
+                }}>
+                  {config.label}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {selectedCity && (

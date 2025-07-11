@@ -136,8 +136,8 @@ export default function Form({ show, onClose, defaultWard, defaultRole }) {
             <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
               <h3>
                 {isMemberForm 
-                  ? "Apply as Member"
-                  : "Apply as Member / Convener / Co-Convener"
+                  ? "Apply to be a Member"
+                  : "Apply to be a Member / Convener / Co-Convener"
                 }
               </h3>
               {errorMsg && <div style={{ color: "red", marginBottom: 8 }}>{errorMsg}</div>}

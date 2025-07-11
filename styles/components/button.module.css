@@ -89,3 +89,21 @@
 .btnWide:hover {
   background-color: white; 
 }
+
+.status-badge {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  font-size: 0.7rem;
+  color: white;
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+
+/* Tooltip styles */
+.react-tooltip {
+  z-index: 1000;
+  font-size: 0.8rem;
+  padding: 5px 10px;
+  border-radius: 4px;
+}
