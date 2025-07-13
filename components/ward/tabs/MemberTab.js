@@ -1,11 +1,11 @@
 import styles from "../../../styles/components/card.module.css";
 import Image from "next/image";
-import { MdVolunteerActivism  } from "react-icons/md";
-import { 
-  FaFacebook, 
-  FaInstagram, 
-  FaLinkedin, 
-  FaGithub, 
+import { MdVolunteerActivism } from "react-icons/md";
+import {
+  FaFacebook,
+  FaInstagram,
+  FaLinkedin,
+  FaGithub,
   FaWhatsapp,
   FaUserPlus,
   FaUserAlt,
@@ -32,7 +32,6 @@ const SOCIAL_ICONS = {
   whatsapp: FaWhatsapp,
 };
 
-// Stakeholder category icons mapping with React Icons
 const STAKEHOLDER_ICONS = {
   'Senior Citizen': <FaUserAlt className={styles.stakeholderIcon} />,
   'Business Owner': <FaUserTie className={styles.stakeholderIcon} />,
@@ -41,19 +40,27 @@ const STAKEHOLDER_ICONS = {
   'Person with Disability': <FaWheelchair className={styles.stakeholderIcon} />,
   'Resident': <FaHome className={styles.stakeholderIcon} />,
   'Street Vendor': <FaStore className={styles.stakeholderIcon} />,
-  'Volunteer': <MdVolunteerActivism  className={styles.stakeholderIcon} />,
+  'Volunteer': <MdVolunteerActivism className={styles.stakeholderIcon} />,
   'Educator': <FaChalkboardTeacher className={styles.stakeholderIcon} />,
   'Healthcare Worker': <FaUserDoctor className={styles.stakeholderIcon} />
 };
 
-function getImageUrl(filename) {
-  if (!filename) return null;
-  return `https://gostxgfnoilfmybaohhx.supabase.co/storage/v1/object/public/profile/avatar/${filename}`;
-}
-
 export default function MemberTab({ members }) {
   const [showForm, setShowForm] = useState(false);
   const { wardId } = useWard();
+
+  const getAvatarUrl = (avatarUrl) => {
+    // Return default if no avatar URL
+    if (!avatarUrl) return '/user.png';
+    
+    // If it's already a full URL (Google OAuth or other external source)
+    if (avatarUrl.startsWith('http')) {
+      return avatarUrl;
+    }
+    
+    // For Supabase Storage paths
+    return `https://gostxgfnoilfmybaohhx.supabase.co/storage/v1/object/public/profile/avatar/${avatarUrl}`;
+  };
 
   const getRoleDisplay = (member) => {
     if (member.is_convenor) return 'Convenor';
@@ -73,14 +80,15 @@ export default function MemberTab({ members }) {
           <div key={member.member_id} className={styles.memberCard}>
             <div className={styles.memberImageContainer}>
               <Image
-                src={getImageUrl(member.avatar_url) || '/user.png'}
-                alt={member.first_name}
+                src={getAvatarUrl(member.avatar_url)}
+                alt={`${member.first_name} ${member.last_name || ''}`}
                 width={80}
                 height={80}
                 className={styles.memberImage}
                 priority
                 onError={(e) => {
                   e.target.src = '/user.png';
+                  console.error('Failed to load avatar for member:', member.member_id);
                 }}
               />
             </div>
@@ -103,7 +111,14 @@ export default function MemberTab({ members }) {
               {member.social && Object.entries(member.social).map(([platform, url]) => {
                 const Icon = SOCIAL_ICONS[platform];
                 return Icon && url ? (
-                  <a key={platform} href={url} target="_blank" rel="noopener noreferrer" aria-label={platform} className={platform}>
+                  <a 
+                    key={platform} 
+                    href={url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    aria-label={platform} 
+                    className={platform}
+                  >
                     <Icon />
                   </a>
                 ) : null;
@@ -113,7 +128,11 @@ export default function MemberTab({ members }) {
         ))
       )}
 
-      <button onClick={() => setShowForm(true)} className={formStyles.applyFloatingBtn}>
+      <button 
+        onClick={() => setShowForm(true)} 
+        className={formStyles.applyFloatingBtn}
+        aria-label="Apply to join committee"
+      >
         <FaUserPlus/>
       </button>
 

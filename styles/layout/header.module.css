@@ -284,3 +284,38 @@
     margin-left: 1.5rem;
   }
 }
+
+
+.profileWrapper {
+  position: relative;
+  cursor: pointer;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #ccc;
+}
+
+.profileDropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  min-width: 120px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  z-index: 10;
+}
+
+.profileDropdown .dropdownItem {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.profileDropdown .dropdownItem:hover {
+  background: #f4f4f4;
+}

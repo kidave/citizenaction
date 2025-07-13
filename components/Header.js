@@ -1,21 +1,62 @@
 import styles from '../styles/layout/header.module.css';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiChevronDown } from 'react-icons/fi';
+import { supabase } from '../utils/supabaseClient';
 
 export default function Header() {
   const router = useRouter();
 
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [user, setUser] = useState(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        const { data: { user } } = await supabase.auth.getUser()
+        setUser(user)
+      }
+    }
+
+    getSession()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        supabase.auth.getUser().then(({ data: { user } }) => setUser(user))
+      } else {
+        setUser(null)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   const handleDropdownToggle = (label) => {
     setOpenDropdown(openDropdown === label ? null : label);
+  };
+
+  const toggleProfileDropdown = () => {
+    setProfileOpen(!profileOpen);
+  };
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error(error.message);
+    } else {
+      setUser(null);
+      setProfileOpen(false);
+      router.push('/');
+    }
   };
 
   const dropdownItems = {
     'Activities + Projects': [
       { label: 'Annual SV Road Walk', path: 'https://www.walkingproject.org/activities-projects/annual-sv-road-walk' },
       { label: 'Manifesto', path: 'https://www.walkingproject.org/activities-projects/manifesto' },
+      { label: 'Community Forum', path: '/forum/home' },
       { label: 'Community Walks', path: 'https://www.walkingproject.org/activities-projects/community-walks' },
       { label: 'Community Talks', path: 'https://www.walkingproject.org/activities-projects/community-talks' },
       { label: 'AQ Mapping', path: 'https://www.walkingproject.org/activities-projects/aq-mapping' },
@@ -24,9 +65,8 @@ export default function Header() {
       { label: 'Temperature Mapping', path: 'https://www.walkingproject.org/activities-projects/temperature-mapping' },
       { label: 'Footpath Mapping', path: 'https://www.walkingproject.org/activities-projects/footpath-mapping' },
       { label: 'In The News', path: 'https://www.walkingproject.org/activities-projects/in-the-news' },
-
     ],
-    'More': [
+    More: [
       { label: 'Participate', path: 'https://www.walkingproject.org/participate' },
       { label: 'Resources', path: 'https://www.walkingproject.org/resources' },
     ],
@@ -36,6 +76,18 @@ export default function Header() {
     { label: 'Home', path: 'https://www.walkingproject.org/home' },
     { label: 'About us', path: 'https://www.walkingproject.org/about-us' },
   ];
+
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest(`.${styles.profileWrapper}`)) {
+        setProfileOpen(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   return (
     <header className={styles.header}>
@@ -48,7 +100,6 @@ export default function Header() {
           Donate Now!
         </button>
       </div>
-
 
       <div className={styles.bottomBar}>
         <div className={styles.logo}>
@@ -76,24 +127,62 @@ export default function Header() {
             <div key={label} className={styles.dropdown}>
               <button
                 className={styles.navButton}
-                tabIndex={0}
+                onClick={() => handleDropdownToggle(label)}
               >
                 {label}
                 <FiChevronDown size={14} style={{ marginLeft: '5px' }} />
               </button>
-              <div className={styles.dropdownContent}>
-                {dropdownItems[label].map((subItem) => (
-                  <div
-                    key={subItem.label}
-                    className={styles.dropdownItem}
-                    onClick={() => router.push(subItem.path)}
-                  >
-                    {subItem.label}
-                  </div>
-                ))}
-              </div>
+              {openDropdown === label && (
+                <div className={styles.dropdownContent}>
+                  {dropdownItems[label].map((subItem) => (
+                    <div
+                      key={subItem.label}
+                      className={styles.dropdownItem}
+                      onClick={() => router.push(subItem.path)}
+                    >
+                      {subItem.label}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
+
+          {!user ? (
+            <button
+              className={styles.navButton}
+              onClick={() => router.push('/login')}
+            >
+              Login
+            </button>
+          ) : (
+            <div
+              className={styles.profileWrapper}
+              onClick={toggleProfileDropdown}
+            >
+              <img
+                src={user.user_metadata?.avatar_url || '/default-avatar.png'}
+                alt="avatar"
+                className={styles.avatar}
+              />
+              {profileOpen && (
+                <div className={styles.profileDropdown}>
+                  <div
+                    className={styles.dropdownItem}
+                    onClick={() => router.push('/profile')}
+                  >
+                    My Profile
+                  </div>
+                  <div
+                    className={styles.dropdownItem}
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </nav>
       </div>
     </header>
