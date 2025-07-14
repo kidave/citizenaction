@@ -152,3 +152,38 @@
   color: #666;
   font-size: 0.9rem;
 }
+
+/* styles/forum/landing.module.css */
+.loginButton {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 20px;
+}
+
+.loginButton:hover {
+  background-color: #45a049;
+}
+
+.postContent {
+  color: #666;
+  margin-top: 8px;
+}
+
+.newPostButton {
+  display: inline-block;
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 4px;
+  text-decoration: none;
+  margin-top: 20px;
+}
+
+.newPostButton:hover {
+  background-color: #45a049;
+}

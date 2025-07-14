@@ -1,3 +1,4 @@
+// pages/auth/callback.js
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../../utils/supabaseClient";
@@ -39,10 +40,10 @@ export default function Callback() {
           country_code: null,
           social: null,
         }], { onConflict: 'user_id' });
-
       }
 
-      router.push("/");
+      const returnTo = router.query.next || '/';
+      router.push(returnTo);
     };
 
     completeLogin();

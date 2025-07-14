@@ -1,3 +1,4 @@
+// pages/login.js
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../utils/supabaseClient';
@@ -14,10 +15,13 @@ export default function Login() {
     setLoading(true);
     setError('');
     try {
+      const returnTo = localStorage.getItem('returnTo') || '/';
+      localStorage.removeItem('returnTo');
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(returnTo)}`
         }
       });
       if (error) throw error;

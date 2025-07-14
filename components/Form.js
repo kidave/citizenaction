@@ -219,7 +219,15 @@ export default function Form({ show, onClose, defaultWard, defaultRole }) {
               <p style={{ color: "#065f46", fontSize: "1.1rem" }}>
                 We will contact you soon.
               </p>
-              <button onClick={handleClose} className={styles.closeButton}>
+              <button onClick={handleClose} style={{
+                marginTop: "1.5rem",
+                padding: "0.7rem 1.5rem",
+                backgroundColor: "#10b981",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer"
+              }}>
                 Close
               </button>
             </div>

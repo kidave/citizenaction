@@ -48,7 +48,12 @@ export default function Header() {
     } else {
       setUser(null);
       setProfileOpen(false);
-      router.push('/');
+      // If on a forum page, redirect to /forum, otherwise redirect to home
+      if (router.pathname.startsWith('/forum')) {
+        router.push('/forum');
+      } else {
+        router.push('/');
+      }
     }
   };
 
@@ -56,7 +61,7 @@ export default function Header() {
     'Activities + Projects': [
       { label: 'Annual SV Road Walk', path: 'https://www.walkingproject.org/activities-projects/annual-sv-road-walk' },
       { label: 'Manifesto', path: 'https://www.walkingproject.org/activities-projects/manifesto' },
-      { label: 'Community Forum', path: '/forum/home' },
+      { label: 'Community Forum', path: '/forum' },
       { label: 'Community Walks', path: 'https://www.walkingproject.org/activities-projects/community-walks' },
       { label: 'Community Talks', path: 'https://www.walkingproject.org/activities-projects/community-talks' },
       { label: 'AQ Mapping', path: 'https://www.walkingproject.org/activities-projects/aq-mapping' },
