@@ -1,0 +1,27 @@
+.container {
+  padding: 2rem;
+}
+
+.postRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.status {
+  font-weight: bold;
+  text-transform: capitalize;
+}
+
+.approved {
+  color: green;
+}
+
+.pending {
+  color: orange;
+}
+
+.rejected {
+  color: red;
+}

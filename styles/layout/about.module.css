@@ -1,3 +1,21 @@
+/* styles/layout/about.module.css */
+.backgroundContainer {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+.contentWrapper {
+  position: relative;
+  z-index: 1;
+  background-color: rgba(255, 255, 255, 0.9); 
+}
+
 .about {
   background: linear-gradient(90deg, #fffbe6 60%, #fcc70010 100%);
   border-radius: 18px;

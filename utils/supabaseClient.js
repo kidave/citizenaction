@@ -5,6 +5,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
+    flowType: 'pkce', // Add this line for Next.js compatibility
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,

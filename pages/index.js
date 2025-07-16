@@ -14,39 +14,42 @@ function HomePage() {
   const [showAbout, setShowAbout] = useState(true);
   const [showForm, setShowForm] = useState(false);
 
-
   return (
     <>
       <Head>
         <title>Walking Project</title>
       </Head>
-      <Metrics />
-      <Form
-        show={showForm}
-        onClose={() => setShowForm(false)}
-      />
-      {!showForm && (
-        <button
-          className={formStyles.applyFloatingBtn}
-          onClick={() => setShowForm(true)}
-          aria-label="Apply"
-        >
-          <FaUserPlus />
-        </button>
-      )}
+      <div className={styles.backgroundContainer}>
+        <div className={styles.contentWrapper}>
+          <Metrics />
+          <Form
+            show={showForm}
+            onClose={() => setShowForm(false)}
+          />
+          {!showForm && (
+            <button
+              className={formStyles.applyFloatingBtn}
+              onClick={() => setShowForm(true)}
+              aria-label="Apply"
+            >
+              <FaUserPlus />
+            </button>
+          )}
 
-      <About show={showAbout} onClose={() => setShowAbout(false)} />
-      {!showAbout && (
-        <button
-          className={styles.showAboutBtn}
-          onClick={() => setShowAbout(true)}
-          aria-label="Show About"
-        >
-          <FaInfoCircle size={22} />
-        </button>
-      )}
-      <Region />
-      <Footer />
+          <About show={showAbout} onClose={() => setShowAbout(false)} />
+          {!showAbout && (
+            <button
+              className={styles.showAboutBtn}
+              onClick={() => setShowAbout(true)}
+              aria-label="Show About"
+            >
+              <FaInfoCircle size={22} />
+            </button>
+          )}
+          <Region />
+          <Footer />
+        </div>
+      </div>
     </>
   );
 }

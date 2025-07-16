@@ -8,7 +8,6 @@ import { useForum } from '../../src/context/ForumContext';
 import Link from 'next/link';
 import { supabase } from '../../utils/supabaseClient';
 
-
 export default function ForumLanding() {
   const { user, loading, login } = useForum();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -41,7 +40,25 @@ export default function ForumLanding() {
       setRecentPosts(posts || []);
 
       // Get forum stats
+      const { count: postCount } = await supabase
+        .from('forum_topics')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'approved');
 
+      const { count: userCount } = await supabase
+        .from('profile')
+        .select('*', { count: 'exact', head: true });
+
+      const { count: issueCount } = await supabase
+        .from('forum_topics')
+        .select('*', { count: 'exact', head: true })
+        .eq('category_id', 1); // Assuming category 1 is "Issues"
+
+      setStats({
+        posts: postCount || 0,
+        users: userCount || 0,
+        issues: issueCount || 0
+      });
     };
 
     fetchData();
@@ -59,6 +76,21 @@ export default function ForumLanding() {
         <div className={styles.heroContent}>
           <h1>Walkability Forum</h1>
           <p>Join the conversation around making our streets safer and more pedestrian-friendly</p>
+          
+          <div className={styles.stats}>
+            <div className={styles.statItem}>
+              <span className={styles.statNumber}>{stats.posts}</span>
+              <span className={styles.statLabel}>Discussions</span>
+            </div>
+            <div className={styles.statItem}>
+              <span className={styles.statNumber}>{stats.users}</span>
+              <span className={styles.statLabel}>Community Members</span>
+            </div>
+            <div className={styles.statItem}>
+              <span className={styles.statNumber}>{stats.issues}</span>
+              <span className={styles.statLabel}>Issues Reported</span>
+            </div>
+          </div>
           
           {!loading && (
             user ? (
@@ -153,6 +185,7 @@ export default function ForumLanding() {
           </div>
         </section>
       )}
+
       <Footer />
     </div>
   );

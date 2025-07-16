@@ -1,0 +1,223 @@
+/* view-post.module.css - Enhanced with proper spacing */
+
+.container {
+  width: 100%;
+}
+
+.mainContent {
+  margin: 20px;
+}
+
+/* Header Section */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  background: #ffffff;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  font-size: 2rem;
+  color: #2d3748;
+  margin: 0;
+  padding: 0.5rem 0;
+}
+
+/* Controls Section */
+.controls {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.searchInput {
+  padding: 0.75rem 1.25rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  min-width: 250px;
+  margin: 0.5rem 0;
+}
+
+.filterSelect {
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  background-color: white;
+  margin: 0.5rem 0;
+}
+
+/* Grid Layout */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+/* Card Styles */
+.card {
+  background: white;
+  padding: 1.75rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  color: #2d3748;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f0f4f8;
+}
+
+.cardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1rem 0;
+  padding: 0.5rem 0;
+}
+
+.metaItem {
+  padding: 0.25rem 0;
+}
+
+.cardContent {
+  padding: 0.75rem 0;
+  margin: 1rem 0;
+}
+
+.cardFooter {
+  padding: 1rem 0 0;
+  margin-top: 1.5rem;
+  border-top: 1px solid #f0f4f8;
+}
+
+/* Post Detail View */
+.postDetail {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin: 2rem 0;
+}
+
+.postHeader {
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.postTitle {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem 0;
+}
+
+.postMeta {
+  padding: 0.5rem 0;
+}
+
+.postContent {
+  padding: 1rem 0;
+  margin: 2rem 0;
+}
+
+/* Action Buttons */
+.postActions {
+  padding: 1.5rem 0 0;
+  margin-top: 2rem;
+}
+
+.actionButton {
+  padding: 0.75rem 1.5rem;
+  margin-right: 1rem;
+}
+
+/* Back Button */
+.backButton {
+  margin: 0 0 1.5rem;
+  padding: 0.75rem 1.25rem;
+}
+
+/* Status Badges */
+.statusBadge {
+  padding: 0.5rem 1rem;
+  margin: 0.25rem;
+}
+
+/* Empty States */
+.emptyState {
+  padding: 3rem 2rem;
+  margin: 2rem 0;
+}
+
+/* Editor Content */
+.editorContent {
+  padding: 1rem 0;
+}
+
+.editorContent h2 {
+  margin: 2rem 0 1rem;
+  padding: 0.5rem 0;
+}
+
+.editorContent h3 {
+  margin: 1.5rem 0 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.editorContent p {
+  margin-bottom: 1.25rem;
+  padding: 0.25rem 0;
+}
+
+.imageWrapper {
+  margin: 2rem 0;
+  padding: 0.5rem 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding: 1.5rem;
+  }
+  
+  .header {
+    padding: 1.25rem;
+    margin-bottom: 2rem;
+  }
+  
+  .postDetail {
+    padding: 1.75rem;
+  }
+  
+  .searchInput {
+    min-width: 100%;
+    margin: 0.75rem 0;
+  }
+}
+
+/* Spacing Utilities */
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+.mb-4 { margin-bottom: 2rem; }
+
+.p-1 { padding: 0.5rem; }
+.p-2 { padding: 1rem; }
+.p-3 { padding: 1.5rem; }
+.p-4 { padding: 2rem; }
