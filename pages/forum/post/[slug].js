@@ -5,21 +5,14 @@ import Head from 'next/head';
 import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
 import { useForum } from '../../../src/context/ForumContext';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import styles from '../../../styles/forum/post.module.css';
-
-// Dynamically import EditorJS renderer
-const EditorJSRenderer = dynamic(() => import("editorjs-react-renderer"), {
-  ssr: false,
-  loading: () => <p>Loading content...</p>
-});
 
 export default function ForumPost() {
   const router = useRouter();
   const { slug } = router.query;
   const { user } = useForum();
-  
+
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,46 +21,59 @@ export default function ForumPost() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!slug) return;
+    if (!router.isReady || !slug) return;
 
     const fetchPostData = async () => {
       setLoading(true);
+      setError(null);
+
       try {
-        // Fetch the post with author and category info
+        const { data: postExists, error: existsError } = await supabase
+          .from('forum_topics')
+          .select('id,status')
+          .eq('slug', slug)
+          .maybeSingle();
+
+        if (existsError) throw existsError;
+        if (!postExists) throw new Error('No post found with this URL');
+
         const { data: postData, error: postError } = await supabase
           .from('forum_topics')
           .select(`
             *,
             forum_categories(name),
-            author:profile(
-              id,
+            profile:author_id(
+              user_id,
               first_name,
               last_name,
               avatar_url
             )
           `)
           .eq('slug', slug)
-          .eq('status', 'approved')
           .single();
 
         if (postError) throw postError;
-        if (!postData) {
-          throw new Error('Post not found or not approved');
+        if (!postData) throw new Error('Post data could not be loaded');
+
+        if (postData.status !== 'Approved') {
+          throw new Error(`Post status: ${postData.status}`);
         }
 
-        // Increment view count
+        postData.content = typeof postData.content === 'string'
+          ? JSON.parse(postData.content)
+          : postData.content;
+
         await supabase
           .from('forum_topics')
           .update({ view_count: (postData.view_count || 0) + 1 })
           .eq('id', postData.id);
 
-        // Fetch comments
         const { data: commentsData, error: commentsError } = await supabase
           .from('forum_posts')
           .select(`
             *,
-            author:profile(
-              id,
+            profile:author_id(
+              user_id,
               first_name,
               last_name,
               avatar_url
@@ -81,6 +87,7 @@ export default function ForumPost() {
         setPost(postData);
         setComments(commentsData || []);
       } catch (err) {
+        console.error('Fetch error:', { error: err, slug });
         setError(err.message);
       } finally {
         setLoading(false);
@@ -88,12 +95,14 @@ export default function ForumPost() {
     };
 
     fetchPostData();
-  }, [slug]);
+  }, [router.isReady, slug]);
 
   const handleCommentSubmit = async () => {
     if (!commentContent.trim() || !user || !post) return;
-    
+
     setIsSubmitting(true);
+    setError(null);
+
     try {
       const { data, error } = await supabase
         .from('forum_posts')
@@ -106,14 +115,15 @@ export default function ForumPost() {
 
       if (error) throw error;
 
-      // Update the comments list
       setComments([...comments, ...data]);
       setCommentContent('');
 
-      // Update the post's comment count
       await supabase
         .from('forum_topics')
-        .update({ post_count: (post.post_count || 0) + 1 })
+        .update({ 
+          post_count: (post.post_count || 0) + 1,
+          last_post_at: new Date().toISOString()
+        })
         .eq('id', post.id);
 
     } catch (err) {
@@ -127,7 +137,7 @@ export default function ForumPost() {
     return (
       <div className={styles.container}>
         <Header />
-        <div className={styles.loading}>Loading post...</div>
+        <div className={styles.loading}>Loading…</div>
         <Footer />
       </div>
     );
@@ -138,12 +148,9 @@ export default function ForumPost() {
       <div className={styles.container}>
         <Header />
         <div className={styles.errorContainer}>
-          <h2>Error loading post</h2>
+          <h2>{error.includes('not found') ? 'Post Not Found' : 'Post Not Available'}</h2>
           <p>{error}</p>
-          <button 
-            onClick={() => router.push('/forum')}
-            className={styles.primaryButton}
-          >
+          <button onClick={() => router.push('/forum')} className={styles.primaryButton}>
             Back to Forum
           </button>
         </div>
@@ -153,40 +160,26 @@ export default function ForumPost() {
   }
 
   if (!post) {
-    return (
-      <div className={styles.container}>
-        <Header />
-        <div className={styles.notFound}>
-          <h2>Post Not Found</h2>
-          <p>The post you're looking for doesn't exist or isn't approved yet.</p>
-          <button 
-            onClick={() => router.push('/forum')}
-            className={styles.primaryButton}
-          >
-            Back to Forum
-          </button>
-        </div>
-        <Footer />
-      </div>
-    );
+    return null;
   }
 
   return (
     <div className={styles.container}>
       <Head>
         <title>{post.title} | Community Forum</title>
-        <meta name="description" content={post.title} />
+        <meta name="description" content={post.description || post.title} />
       </Head>
+
       <Header />
 
       <main className={styles.postContainer}>
         <div className={styles.breadcrumbs}>
-          <Link href="/forum">Forum</Link> &gt; 
+          <Link href="/forum">Forum</Link> &gt;
           {post.forum_categories && (
             <Link href={`/forum/category/${post.category_id}`}>
               {post.forum_categories.name}
             </Link>
-          )} &gt; 
+          )} &gt;
           <span>{post.title}</span>
         </div>
 
@@ -194,76 +187,82 @@ export default function ForumPost() {
           <header className={styles.postHeader}>
             <h1>{post.title}</h1>
             <div className={styles.postMeta}>
-              {post.author && (
+              {post.profile && (
                 <div className={styles.authorInfo}>
-                  <img 
-                    src={post.author.avatar_url || '/default-avatar.png'} 
-                    alt={`${post.author.first_name} ${post.author.last_name}`}
+                  <img
+                    src={post.profile.avatar_url || '/user1.png'}
+                    alt={`${post.profile.first_name} ${post.profile.last_name}`}
                     className={styles.authorAvatar}
+                    onError={(e) => { e.target.src = '/user1.png'; }}
                   />
-                  <span>{post.author.first_name} {post.author.last_name}</span>
+                  <span>by {post.profile.first_name} {post.profile.last_name}</span>
                 </div>
               )}
+              <span>{post.forum_categories.name}</span>
               <span>{new Date(post.created_at).toLocaleDateString()}</span>
-              <span>{post.view_count} views</span>
+              <span>{post.view_count || 0} views</span>
             </div>
           </header>
 
+          {post.description && <p>{post.description}</p>}
+
           <div className={styles.postBody}>
-            <EditorJSRenderer 
-              data={post.content} 
-              renderers={{
-                image: ({ data }) => (
-                  <div className={styles.imageWrapper}>
-                    <img src={data.file.url} alt={data.caption || ''} />
-                    {data.caption && (
-                      <p className={styles.imageCaption}>{data.caption}</p>
-                    )}
-                  </div>
-                ),
-                header: ({ data, level }) => {
-                  const Tag = `h${level}`;
-                  return <Tag className={styles[`header${level}`]}>{data.text}</Tag>;
+            {post.content.blocks.map((block, i) => {
+              switch (block.type) {
+                case 'paragraph':
+                  return <p key={i}>{block.data.text}</p>;
+                case 'header': {
+                  const Tag = `h${block.data.level}`;
+                  return <Tag key={i}>{block.data.text}</Tag>;
                 }
-              }}
-            />
+                case 'image':
+                  return (
+                    <div key={i} className={styles.imageWrapper}>
+                      <img
+                        src={block.data.file?.url || '/image-placeholder.png'}
+                        alt={block.data.caption || ''}
+                        onError={(e) => { e.target.src = '/image-placeholder.png'; }}
+                      />
+                      {block.data.caption && <p>{block.data.caption}</p>}
+                    </div>
+                  );
+                default:
+                  return null;
+              }
+            })}
           </div>
 
           <div className={styles.postActions}>
-            <button className={styles.actionButton}>
-              👍 Upvote ({post.upvote_count || 0})
-            </button>
-            <button className={styles.actionButton}>
-              💬 Comment ({post.post_count || 0})
-            </button>
-            <button className={styles.actionButton}>
-              🔗 Share
-            </button>
+            <button className={styles.actionButton}>👍 Upvote ({post.upvote_count || 0})</button>
+            <button className={styles.actionButton}>💬 Comment ({post.post_count || 0})</button>
+            <button className={styles.actionButton}>🔗 Share</button>
           </div>
         </article>
 
         <section className={styles.commentsSection}>
           <h2>Comments ({comments.length})</h2>
-          
+
           {comments.length > 0 ? (
             <div className={styles.commentsList}>
               {comments.map(comment => (
                 <div key={comment.id} className={styles.comment}>
                   <div className={styles.commentHeader}>
-                    {comment.author && (
+                    {comment.profile && (
                       <div className={styles.commentAuthor}>
                         <img 
-                          src={comment.author.avatar_url || '/default-avatar.png'} 
-                          alt={`${comment.author.first_name} ${comment.author.last_name}`}
+                          src={comment.profile.avatar_url || '/user1.png'} 
+                          alt={`${comment.profile.first_name} ${comment.profile.last_name}`}
                           className={styles.commentAvatar}
+                          onError={(e) => { e.target.src = '/user1.png'; }}
                         />
-                        <span>{comment.author.first_name} {comment.author.last_name}</span>
+                        <span>{comment.profile.first_name} {comment.profile.last_name}</span>
                       </div>
                     )}
                     <span className={styles.commentDate}>
-                      {new Date(comment.created_at).toLocaleDateString()}
+                      {new Date(comment.created_at).toLocaleString()}
                     </span>
                   </div>
+
                   <div className={styles.commentContent}>
                     {comment.content}
                   </div>
@@ -289,18 +288,23 @@ export default function ForumPost() {
                 disabled={isSubmitting || !commentContent.trim()}
                 className={styles.commentSubmit}
               >
-                {isSubmitting ? 'Posting...' : 'Post Comment'}
+                {isSubmitting ? 'Posting…' : 'Post Comment'}
               </button>
               {error && <div className={styles.formError}>{error}</div>}
             </div>
           ) : (
             <div className={styles.loginPrompt}>
-              <p>Please <button onClick={() => router.push('/login')} className={styles.loginLink}>sign in</button> to post a comment.</p>
+              <p>
+                Please{' '}
+                <button onClick={() => router.push('/login')} className={styles.loginLink}>
+                  sign in
+                </button>{' '}
+                to post a comment.
+              </p>
             </div>
           )}
         </section>
       </main>
-
       <Footer />
     </div>
   );

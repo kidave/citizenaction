@@ -1,4 +1,4 @@
-// create-post.js - Updated with modern features
+// create-post.js - Updated with all requested features
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
@@ -7,13 +7,14 @@ import Header from '../../../components/Header';
 import Footer from '../../../components/Footer';
 import { useForum } from '../../../src/context/ForumContext';
 import styles from '../../../styles/forum/create-post.module.css';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 
 export default function NewPost() {
   const router = useRouter();
   const { user } = useForum();
   const editorRef = useRef(null);
+  const [editorData, setEditorData] = useState(null); // Store editor content in state
+  const [isEditorReady, setIsEditorReady] = useState(false);
 
   const [categories, setCategories] = useState([]);
   const [regions, setRegions] = useState([]);
@@ -22,6 +23,7 @@ export default function NewPost() {
   const [wards, setWards] = useState([]);
 
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState(''); // New description field
   const [categoryId, setCategoryId] = useState('');
   const [regionCode, setRegionCode] = useState('');
   const [cityCode, setCityCode] = useState('');
@@ -33,6 +35,49 @@ export default function NewPost() {
   const [success, setSuccess] = useState(false);
   const [preview, setPreview] = useState(false);
   const [previewContent, setPreviewContent] = useState(null);
+  const [isDraftSaved, setIsDraftSaved] = useState(false);
+
+  // Load draft from localStorage on component mount
+  useEffect(() => {
+    const loadDraft = async () => {
+      const draft = localStorage.getItem('forumPostDraft');
+      if (draft) {
+        const parsedDraft = JSON.parse(draft);
+        setTitle(parsedDraft.title || '');
+        setDescription(parsedDraft.description || '');
+        setCategoryId(parsedDraft.categoryId || '');
+        setRegionCode(parsedDraft.regionCode || '');
+        setCityCode(parsedDraft.cityCode || '');
+        setDivisionCode(parsedDraft.divisionCode || '');
+        setWardCode(parsedDraft.wardCode || '');
+        setEditorData(parsedDraft.editorData || null);
+      }
+    };
+
+    loadDraft();
+  }, []);
+
+  // Save draft to localStorage when any field changes
+  useEffect(() => {
+    const saveDraft = () => {
+      const draft = {
+        title,
+        description,
+        categoryId,
+        regionCode,
+        cityCode,
+        divisionCode,
+        wardCode,
+        editorData
+      };
+      localStorage.setItem('forumPostDraft', JSON.stringify(draft));
+    };
+
+    // Only save draft if user is logged in
+    if (user) {
+      saveDraft();
+    }
+  }, [title, description, categoryId, regionCode, cityCode, divisionCode, wardCode, editorData, user]);
 
   useEffect(() => {
     if (!user) return;
@@ -44,10 +89,16 @@ export default function NewPost() {
       const ImageTool = (await import('@editorjs/image')).default;
       const EmbedTool = (await import('@editorjs/embed')).default;
       const TableTool = (await import('@editorjs/table')).default;
+      const Paragraph = (await import('@editorjs/paragraph')).default;
 
       editorRef.current = new EditorJS({
         holder: 'editorjs',
+        data: editorData || undefined, // Load saved data if exists
         tools: {
+          paragraph: {
+            class: Paragraph,
+            inlineToolbar: true,
+          },
           header: {
             class: HeaderTool,
             config: {
@@ -97,8 +148,14 @@ export default function NewPost() {
           }
         },
         placeholder: 'Write your post here...',
-        onReady: () => console.log('Editor.js is ready to work!'),
-        onChange: () => console.log('Content changed!')
+        onReady: () => {
+          console.log('Editor.js is ready to work!');
+          setIsEditorReady(true);
+        },
+        onChange: async (api) => {
+          const content = await api.saver.save();
+          setEditorData(content);
+        }
       });
     };
 
@@ -111,7 +168,7 @@ export default function NewPost() {
     };
   }, [user]);
 
-    // Fetch cities when regionCode changes
+  // Fetch cities when regionCode changes
   useEffect(() => {
     if (!regionCode) return;
 
@@ -122,7 +179,7 @@ export default function NewPost() {
         .eq('region_code', regionCode)
         .order('name');
       setCities(data || []);
-      setCityCode(''); // reset city when region changes
+      setCityCode('');
       setDivisions([]);
       setWards([]);
     };
@@ -165,7 +222,6 @@ export default function NewPost() {
     fetchWards();
   }, [divisionCode]);
 
-
   useEffect(() => {
     const fetchInitialData = async () => {
       const { data: catData } = await supabase
@@ -185,8 +241,6 @@ export default function NewPost() {
     fetchInitialData();
   }, []);
 
-  // ... (keep the existing useEffect hooks for location hierarchy)
-
   const handlePreview = async () => {
     try {
       const content = await editorRef.current.save();
@@ -194,6 +248,35 @@ export default function NewPost() {
       setPreview(true);
     } catch (err) {
       console.error('Failed to save editor content:', err);
+    }
+  };
+
+  const saveAsDraft = async () => {
+    try {
+      const content = await editorRef.current.save();
+      setEditorData(content);
+      setIsDraftSaved(true);
+      
+      // Hide the success message after 3 seconds
+      setTimeout(() => setIsDraftSaved(false), 3000);
+    } catch (err) {
+      setError('Failed to save draft');
+    }
+  };
+
+  const clearDraft = () => {
+    localStorage.removeItem('forumPostDraft');
+    setTitle('');
+    setDescription('');
+    setCategoryId(categories[0]?.id || '');
+    setRegionCode(regions[0]?.code || '');
+    setCityCode('');
+    setDivisionCode('');
+    setWardCode('');
+    setEditorData(null);
+    
+    if (editorRef.current) {
+      editorRef.current.clear();
     }
   };
 
@@ -215,10 +298,11 @@ export default function NewPost() {
         .replace(/\s+/g, '-')
         .substring(0, 50);
 
-      const { error: submissionError } = await supabase
+      const { data, error: submissionError } = await supabase
         .from('forum_topics')
         .insert([{
           title,
+          description, // Include description in submission
           content: editorData,
           category_id: categoryId,
           author_id: user.id,
@@ -227,12 +311,19 @@ export default function NewPost() {
           city_code: cityCode || null,
           division_code: divisionCode || null,
           ward_code: wardCode || null,
-          status: 'pending',
+          status: 'Pending',
           view_count: 0,
           post_count: 0
-        }]);
+        }])
+        .select();
 
       if (submissionError) throw submissionError;
+
+      // Clear draft after successful submission
+      clearDraft();
+      
+      // redirect to the newly created post page
+      router.push(`/forum/post/${slug}`);
 
       setSuccess(true);
     } catch (err) {
@@ -299,9 +390,9 @@ export default function NewPost() {
           
           <div className={styles.previewContent}>
             <h2>{title}</h2>
+            {description && <p className={styles.previewDescription}>{description}</p>}
             {previewContent && (
               <div className={styles.editorContent}>
-                {/* Render preview content */}
                 {previewContent.blocks.map((block, index) => {
                   switch (block.type) {
                     case 'header':
@@ -377,6 +468,7 @@ export default function NewPost() {
 
         <form onSubmit={handleSubmit} className={styles.postForm}>
           {error && <div className={styles.error}>{error}</div>}
+          {isDraftSaved && <div className={styles.success}>Draft saved successfully!</div>}
 
           <div className={styles.formSection}>
             <h2 className={styles.sectionTitle}>Post Details</h2>
@@ -393,6 +485,20 @@ export default function NewPost() {
                 placeholder="Briefly describe the issue or topic"
               />
               <div className={styles.characterCount}>{title.length}/100</div>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="description">Short Description*</label>
+              <textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+                maxLength={200}
+                placeholder="A brief summary of your post (max 200 characters)"
+                rows={3}
+              />
+              <div className={styles.characterCount}>{description.length}/200</div>
             </div>
 
             <div className={styles.formGroup}>
@@ -491,20 +597,41 @@ export default function NewPost() {
           </div>
 
           <div className={styles.formActions}>
-            <button 
-              type="button"
-              onClick={handlePreview}
-              className={styles.secondaryButton}
-            >
-              Preview Post
-            </button>
-            <button 
-              type="submit" 
-              disabled={loading} 
-              className={styles.primaryButton}
-            >
-              {loading ? 'Submitting...' : 'Submit for Review'}
-            </button>
+            <div className={styles.draftActions}>
+              <button 
+                type="button"
+                onClick={saveAsDraft}
+                className={styles.draftButton}
+                disabled={loading}
+              >
+                Save Draft
+              </button>
+              <button 
+                type="button"
+                onClick={clearDraft}
+                className={styles.clearDraftButton}
+                disabled={loading}
+              >
+                Clear Draft
+              </button>
+            </div>
+            <div className={styles.submitActions}>
+              <button 
+                type="button"
+                onClick={handlePreview}
+                className={styles.secondaryButton}
+                disabled={loading || !isEditorReady}
+              >
+                Preview Post
+              </button>
+              <button 
+                type="submit" 
+                disabled={loading || !isEditorReady} 
+                className={styles.primaryButton}
+              >
+                {loading ? 'Submitting...' : 'Submit for Review'}
+              </button>
+            </div>
           </div>
         </form>
       </main>

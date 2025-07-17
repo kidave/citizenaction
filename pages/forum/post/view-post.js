@@ -1,334 +1,197 @@
-// view-post.js - Updated with modern features
 import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
 import { supabase } from "../../../utils/supabaseClient";
-import dynamic from 'next/dynamic';
-import Head from 'next/head';
+import Head from "next/head";
 import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
-import styles from "../../../styles/forum/view-post.module.css";
 import Link from "next/link";
-
-// Dynamically import EditorJS renderer to avoid SSR issues
-const EditorJSRenderer = dynamic(() => import("editorjs-react-renderer"), { 
-  ssr: false,
-  loading: () => <p>Loading content...</p>
-});
+import styles from "../../../styles/forum/view-post.module.css";
 
 export default function ViewPosts() {
-  const router = useRouter();
   const [posts, setPosts] = useState([]);
-  const [selectedPost, setSelectedPost] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [categories, setCategories] = useState([]);
-  const [selectedRegion, setSelectedRegion] = useState('');
+  const [selectedRegion, setSelectedRegion] = useState("");
   const [regions, setRegions] = useState([]);
+  const [sortOrder, setSortOrder] = useState("newest");
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch categories and regions for filters
-        const { data: catData } = await supabase
-          .from('forum_categories')
-          .select('id,name');
-        
-        const { data: regData } = await supabase
-          .from('region')
-          .select('code,name');
-        
-        setCategories(catData || []);
-        setRegions(regData || []);
-
-        // Build the initial query
-        let query = supabase
-          .from('forum_topics')
-          .select(`
-            id, 
-            title, 
-            content,
-            created_at,
-            view_count,
-            post_count,
-            status,
-            forum_categories(name),
-            region(name),
-            city(name),
-            division(name),
-            ward(name)
-          `)
-          .eq('status', 'approved')
-          .order('created_at', { ascending: false });
-
-        const { data, error } = await query;
-
-        if (error) throw error;
-
-        setPosts(data || []);
-      } catch (err) {
-        console.error('Error fetching posts:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, []);
 
-  const handleSearch = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
-      let query = supabase
-        .from('forum_topics')
-        .select(`
-          id, 
-          title, 
-          content,
-          created_at,
-          view_count,
-          post_count,
-          status,
-          forum_categories(name),
-          region(name),
-          city(name),
-          division(name),
-          ward(name)
-        `)
-        .eq('status', 'approved')
-        .order('created_at', { ascending: false });
-
-      if (searchTerm) {
-        query = query.ilike('title', `%${searchTerm}%`);
-      }
-
-      if (selectedCategory) {
-        query = query.eq('category_id', selectedCategory);
-      }
-
-      if (selectedRegion) {
-        query = query.eq('region_code', selectedRegion);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      setPosts(data || []);
+      const [{ data: catData }, { data: regData }] = await Promise.all([
+        supabase.from("forum_categories").select("id,name"),
+        supabase.from("region").select("code,name"),
+      ]);
+      setCategories(catData || []);
+      setRegions(regData || []);
+      await fetchPosts();
     } catch (err) {
-      console.error('Error searching posts:', err);
+      console.error("Error:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+  const fetchPosts = async () => {
+    setLoading(true);
+    try {
+      let query = supabase
+        .from("forum_topics")
+        .select(`
+          id, slug, title, description, created_at, view_count, post_count,
+          forum_categories(name),
+          author:author_id(first_name, last_name),
+          region(name), city(name), division(name), ward(name)
+        `)
+        .eq("status", "Approved");
+
+      if (searchTerm) query = query.ilike("title", `%${searchTerm}%`);
+      if (selectedCategory) query = query.eq("category_id", selectedCategory);
+      if (selectedRegion) query = query.eq("region_code", selectedRegion);
+
+      if (sortOrder === "newest") {
+        query = query.order("created_at", { ascending: false });
+      } else if (sortOrder === "oldest") {
+        query = query.order("created_at", { ascending: true });
+      } else if (sortOrder === "most_viewed") {
+        query = query.order("view_count", { ascending: false });
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      setPosts(data || []);
+    } catch (err) {
+      console.error("Error fetching posts:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (loading && !posts.length) {
-    return (
-      <div className={styles.container}>
-        <Header />
-        <div className={styles.loading}>Loading posts...</div>
-        <Footer />
-      </div>
-    );
-  }
+  const formatDate = (date) =>
+    new Date(date).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
 
   return (
-    <div className={styles.container}>
+    <>
       <Head>
         <title>Forum Posts | Walkability Discussions</title>
       </Head>
       <Header />
 
-      <main className={styles.mainContent}>
-        {selectedPost ? (
-          <div className={styles.postDetail}>
-            <button 
-              onClick={() => setSelectedPost(null)}
-              className={styles.backButton}
-            >
-              ← Back to All Posts
-            </button>
-            
-            <div className={styles.postHeader}>
-              <h1>{selectedPost.title}</h1>
-              
-              <div className={styles.postMeta}>
-                <span className={styles.metaItem}>
-                  Posted on {formatDate(selectedPost.created_at)}
-                </span>
-                <span className={styles.metaItem}>
-                  {selectedPost.view_count} views
-                </span>
-                <span className={styles.metaItem}>
-                  {selectedPost.post_count} comments
-                </span>
-                {selectedPost.region && (
-                  <span className={styles.metaItem}>
-                    Location: {[
-                      selectedPost.ward?.name,
-                      selectedPost.division?.name,
-                      selectedPost.city?.name,
-                      selectedPost.region?.name
-                    ].filter(Boolean).join(', ')}
-                  </span>
-                )}
-              </div>
-            </div>
+      <main className={styles.container}>
+        <h1 className={styles.title}>Forum Discussions</h1>
 
-            <div className={styles.postBody}>
-              <EditorJSRenderer 
-                data={selectedPost.content} 
-                renderers={{
-                  image: ({ data }) => (
-                    <div className={styles.imageWrapper}>
-                      <img src={data.file.url} alt={data.caption || ''} />
-                      {data.caption && (
-                        <p className={styles.imageCaption}>{data.caption}</p>
-                      )}
-                    </div>
-                  ),
-                  header: ({ data, level }) => {
-                    const Tag = `h${level}`;
-                    return <Tag className={styles[`header${level}`]}>{data.text}</Tag>;
-                  }
-                }}
-              />
-            </div>
+        <section className={styles.filters}>
+          <input
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search posts…"
+            className={styles.input}
+          />
 
-            <div className={styles.postActions}>
-              <button className={styles.actionButton}>
-                👍 Upvote
-              </button>
-              <button className={styles.actionButton}>
-                💬 Comment
-              </button>
-              <button className={styles.actionButton}>
-                🔗 Share
-              </button>
-            </div>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className={styles.select}
+          >
+            <option value="">All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
 
-            <div className={styles.commentsSection}>
-              <h2>Comments</h2>
-              <div className={styles.commentForm}>
-                <textarea 
-                  placeholder="Add your comment..."
-                  className={styles.commentInput}
-                />
-                <button className={styles.commentSubmit}>
-                  Post Comment
-                </button>
-              </div>
-              
-              {/* Comment list would go here */}
-              <div className={styles.commentList}>
-                <p>No comments yet. Be the first to comment!</p>
-              </div>
-            </div>
-          </div>
+          <select
+            value={selectedRegion}
+            onChange={(e) => setSelectedRegion(e.target.value)}
+            className={styles.select}
+          >
+            <option value="">All Regions</option>
+            {regions.map((r) => (
+              <option key={r.code} value={r.code}>
+                {r.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            className={styles.select}
+          >
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="most_viewed">Most Viewed</option>
+          </select>
+
+          <button onClick={fetchPosts} className={styles.button}>
+            Apply Filters
+          </button>
+
+          <button
+            onClick={() => {
+              setSearchTerm("");
+              setSelectedCategory("");
+              setSelectedRegion("");
+              setSortOrder("newest");
+              fetchPosts();
+            }}
+            className={styles.buttonSecondary}
+          >
+            Clear Filters
+          </button>
+        </section>
+
+        {loading ? (
+          <p>Loading posts…</p>
+        ) : posts.length === 0 ? (
+          <p>No posts found. Try adjusting your search or filters.</p>
         ) : (
-          <>
-            <div className={styles.filterSection}>
-              <h1>Forum Discussions</h1>
-              
-              <div className={styles.searchBar}>
-                <input
-                  type="text"
-                  placeholder="Search posts..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                />
-                <button 
-                  onClick={handleSearch}
-                  className={styles.searchButton}
-                >
-                  Search
-                </button>
-              </div>
-              
-              <div className={styles.filters}>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                >
-                  <option value="">All Categories</option>
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
-                </select>
-                
-                <select
-                  value={selectedRegion}
-                  onChange={(e) => setSelectedRegion(e.target.value)}
-                >
-                  <option value="">All Regions</option>
-                  {regions.map(region => (
-                    <option key={region.code} value={region.code}>{region.name}</option>
-                  ))}
-                </select>
-                
-                <button 
-                  onClick={() => {
-                    setSearchTerm('');
-                    setSelectedCategory('');
-                    setSelectedRegion('');
-                    handleSearch();
-                  }}
-                  className={styles.clearFilters}
-                >
-                  Clear Filters
-                </button>
-              </div>
-            </div>
-
-            {posts.length === 0 ? (
-              <div className={styles.noResults}>
-                <h2>No posts found</h2>
-                <p>Try adjusting your search or filters</p>
-              </div>
-            ) : (
-              <div className={styles.postsGrid}>
-                {posts.map((post) => (
-                  <Link href={`/forum/post/${post.slug}`} key={post.id} passHref>
-                    <div className={styles.postCard}>
-                      <h2>{post.title}</h2>
-                        <div className={styles.cardMeta}>
-                          <span className={styles.category}>
-                            {post.forum_categories?.name}
-                          </span>
-                          <span>
-                            {formatDate(post.created_at)}
-                          </span>
-                        </div>
-                        <div className={styles.cardFooter}>
-                        <span>👁 {post.view_count} views</span>
-                        <span>💬 {post.post_count} comments</span>
-                        </div>
-                        {post.region && (
-                          <div className={styles.location}>
-                            📍 {[
-                              post.ward?.name,
-                              post.division?.name,
-                              post.city?.name,
-                              post.region?.name
-                            ].filter(Boolean).join(', ')}
-                          </div>
-                        )}
-                      </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </>
+          <div className={styles.grid}>
+            {posts.map((post) => (
+              <Link
+                key={post.id}
+                href={`/forum/post/${post.slug}`}
+                className={styles.card}
+              >
+                <h3 className={styles.cardTitle}>{post.title}</h3>
+                <p className={styles.cardDesc}>
+                  {post.description?.slice(0, 100) || "No description."}
+                </p>
+                <div className={styles.cardMeta}>
+                  <span>
+                    By {post.author?.first_name} {post.author?.last_name}
+                  </span>
+                  <span>{formatDate(post.created_at)}</span>
+                </div>
+                <div className={styles.cardFooter}>
+                  👁 {post.view_count} | 💬 {post.post_count}
+                </div>
+                {post.region && (
+                  <div className={styles.cardLocation}>
+                    📍{" "}
+                    {[post.ward?.name, post.division?.name, post.city?.name, post.region?.name]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </div>
+                )}
+              </Link>
+            ))}
+          </div>
         )}
       </main>
 
       <Footer />
-    </div>
+    </>
   );
 }

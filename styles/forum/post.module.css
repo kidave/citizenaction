@@ -1,16 +1,20 @@
-/* post.module.css */
+/* post.module.css - Enhanced version */
 .container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 20px;
 }
 
 .postContainer {
-  padding: 2rem 0;
+  flex: 1;
+  padding: 30px 0;
 }
 
 .breadcrumbs {
-  margin-bottom: 1.5rem;
+  margin-bottom: 20px;
   font-size: 0.9rem;
   color: #666;
 }
@@ -18,42 +22,47 @@
 .breadcrumbs a {
   color: #0066cc;
   text-decoration: none;
+  transition: color 0.2s;
 }
 
 .breadcrumbs a:hover {
+  color: #0052a3;
   text-decoration: underline;
 }
 
 .postContent {
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
-  margin-bottom: 2rem;
+  background: #fff;
+  border-radius: 8px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .postHeader {
-  margin-bottom: 2rem;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
 }
 
 .postHeader h1 {
   font-size: 2rem;
-  margin-bottom: 1rem;
-  color: #2d3748;
+  margin: 0 0 15px 0;
+  color: #333;
 }
 
 .postMeta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 1.5rem;
-  color: #718096;
+  gap: 15px;
   font-size: 0.9rem;
+  color: #666;
 }
 
 .authorInfo {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .authorAvatar {
@@ -63,56 +72,74 @@
   object-fit: cover;
 }
 
-.postBody {
-  margin: 2rem 0;
+.location {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.postDescription {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 6px;
+  margin: 20px 0;
+  font-size: 1rem;
   line-height: 1.6;
-  color: #4a5568;
+  color: #555;
+}
+
+.postBody {
+  margin: 30px 0;
+  line-height: 1.7;
+  color: #444;
 }
 
 .postActions {
   display: flex;
-  gap: 1rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e2e8f0;
+  gap: 15px;
+  padding-top: 20px;
+  margin-top: 30px;
+  border-top: 1px solid #eee;
 }
 
 .actionButton {
-  padding: 0.5rem 1rem;
-  background-color: #f7fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.375rem;
-  color: #4a5568;
+  padding: 10px 20px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 6px;
+  color: #333;
   cursor: pointer;
+  font-size: 0.95rem;
   transition: all 0.2s;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .actionButton:hover {
-  background-color: #edf2f7;
+  background: #e0e0e0;
 }
 
 .commentsSection {
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
+  background: #fff;
+  border-radius: 8px;
+  padding: 30px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .commentsSection h2 {
   font-size: 1.5rem;
-  margin-bottom: 1.5rem;
-  color: #2d3748;
+  margin: 0 0 25px 0;
+  color: #333;
 }
 
 .commentsList {
-  margin-bottom: 2rem;
+  margin-bottom: 30px;
 }
 
 .comment {
-  padding: 1.5rem 0;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 20px 0;
+  border-bottom: 1px solid #eee;
 }
 
 .comment:last-child {
@@ -123,90 +150,169 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 10px;
 }
 
 .commentAuthor {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 10px;
 }
 
 .commentAvatar {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   object-fit: cover;
 }
 
 .commentDate {
   font-size: 0.8rem;
-  color: #a0aec0;
+  color: #999;
 }
 
 .commentContent {
   line-height: 1.6;
-  color: #4a5568;
+  color: #444;
+  margin: 10px 0;
+}
+
+.replyButton {
+  background: none;
+  border: none;
+  color: #0066cc;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 5px 0;
+  margin: 5px 0;
+}
+
+.replyButton:hover {
+  text-decoration: underline;
+}
+
+.replyForm {
+  margin: 15px 0 0 30px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.replyActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.repliesList {
+  margin: 15px 0 0 30px;
+  border-left: 2px solid #eee;
+  padding-left: 15px;
+}
+
+.reply {
+  padding: 15px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.reply:last-child {
+  border-bottom: none;
+}
+
+.replyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.replyAuthor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.replyAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.replyDate {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+.replyContent {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #555;
+  margin-left: 32px;
 }
 
 .noComments {
-  color: #718096;
   text-align: center;
-  padding: 2rem 0;
+  padding: 30px 0;
+  color: #666;
+  font-style: italic;
 }
 
 .commentForm {
-  margin-top: 2rem;
+  margin-top: 30px;
 }
 
 .commentForm h3 {
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
+  margin: 0 0 15px 0;
+  font-size: 1.2rem;
+  color: #333;
 }
 
 .commentInput {
   width: 100%;
-  padding: 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.375rem;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
   font-family: inherit;
   font-size: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 15px;
   resize: vertical;
+  min-height: 100px;
 }
 
 .commentSubmit {
-  padding: 0.75rem 1.5rem;
-  background-color: #0066cc;
+  padding: 12px 24px;
+  background: #0066cc;
   color: white;
   border: none;
-  border-radius: 0.375rem;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 1rem;
-  transition: background-color 0.2s;
+  transition: background 0.2s;
 }
 
 .commentSubmit:hover {
-  background-color: #005bb5;
+  background: #0052a3;
 }
 
 .commentSubmit:disabled {
-  background-color: #cbd5e0;
+  background: #ccc;
   cursor: not-allowed;
 }
 
 .formError {
-  color: #e53e3e;
-  margin-top: 1rem;
-  padding: 0.5rem;
-  background-color: #fff5f5;
-  border-radius: 0.375rem;
+  color: #d32f2f;
+  padding: 10px;
+  background: #ffebee;
+  border-radius: 6px;
+  margin-top: 15px;
 }
 
 .loginPrompt {
   text-align: center;
-  padding: 1.5rem;
-  color: #718096;
+  padding: 20px;
+  color: #666;
 }
 
 .loginLink {
@@ -222,71 +328,88 @@
 .errorContainer,
 .notFound {
   text-align: center;
-  padding: 3rem;
+  padding: 40px;
 }
 
 .errorContainer h2,
 .notFound h2 {
-  color: #e53e3e;
-  margin-bottom: 1rem;
+  color: #d32f2f;
+  margin-bottom: 15px;
 }
 
 .primaryButton {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  background-color: #0066cc;
+  padding: 12px 24px;
+  background: #0066cc;
   color: white;
   border: none;
-  border-radius: 0.375rem;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 1rem;
-  margin-top: 1rem;
-  text-decoration: none;
+  transition: background 0.2s;
 }
 
 .primaryButton:hover {
-  background-color: #005bb5;
+  background: #0052a3;
+}
+
+.secondaryButton {
+  padding: 12px 24px;
+  background: #f0f0f0;
+  color: #333;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.secondaryButton:hover {
+  background: #e0e0e0;
 }
 
 /* Editor content styling */
 .imageWrapper {
-  margin: 1.5rem 0;
+  margin: 25px 0;
 }
 
 .imageWrapper img {
   max-width: 100%;
   height: auto;
-  border-radius: 0.375rem;
+  border-radius: 6px;
 }
 
 .imageCaption {
   text-align: center;
-  font-size: 0.875rem;
-  color: #718096;
-  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 8px;
 }
 
 .header2 {
   font-size: 1.5rem;
   margin: 1.5rem 0 1rem;
-  color: #2d3748;
+  color: #333;
 }
 
 .header3 {
   font-size: 1.25rem;
   margin: 1.25rem 0 0.75rem;
-  color: #2d3748;
+  color: #333;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
+  .container {
+    padding: 0 15px;
+  }
+  
   .postContainer {
-    padding: 1rem 0;
+    padding: 20px 0;
   }
   
   .postContent,
   .commentsSection {
-    padding: 1.5rem;
+    padding: 20px;
   }
   
   .postHeader h1 {
@@ -296,11 +419,15 @@
   .postMeta {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
+    gap: 10px;
   }
   
   .postActions {
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 10px;
+  }
+  
+  .repliesList {
+    margin-left: 15px;
   }
 }

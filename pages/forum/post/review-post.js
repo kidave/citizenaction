@@ -16,11 +16,10 @@ export default function PostReview() {
   }, []);
 
   const handleAction = async (id, action) => {
-    if (!confirm(`Are you sure you want to ${action} this post?`)) return;
     await supabase
-      .from("forum_topics")
+      .from('forum_topics')
       .update({ status: action })
-      .eq("id", id);
+      .eq('id', id);
     setPosts(posts.filter((p) => p.id !== id));
   };
 
