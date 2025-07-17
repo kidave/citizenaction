@@ -1,32 +1,231 @@
 .container {
-  padding: 2rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-.postRow {
+.main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  width: 100%;
+  flex: 1;
+}
+
+.subtitle {
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.noPosts {
+  text-align: center;
+  padding: 40px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.postsList {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.postCard {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.postHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
-  border-bottom: 1px solid #ddd;
+  margin-bottom: 10px;
 }
 
-.actions {
+.postHeader h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.postDate {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.postMeta {
   display: flex;
-  gap: 0.5rem;
+  flex-wrap: wrap;
+  gap: 15px;
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 15px;
 }
 
-.btn {
-  padding: 0.25rem 0.75rem;
-  border: none;
-  cursor: pointer;
+.postDescription {
+  margin-bottom: 15px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.postActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.viewButton {
+  padding: 8px 16px;
+  background: #0066cc;
   color: white;
-  border-radius: 0.25rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
 }
 
-.approve {
-  background: green;
+.viewButton:hover {
+  background: #0052a3;
 }
 
-.reject {
-  background: red;
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: white;
+  border-radius: 8px;
+  padding: 30px;
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.closeButton {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+}
+
+.postContent {
+  margin: 20px 0;
+  line-height: 1.6;
+}
+
+.postContent p {
+  margin-bottom: 15px;
+}
+
+.postContent h3 {
+  margin: 20px 0 10px;
+}
+
+.imageWrapper {
+  margin: 20px 0;
+}
+
+.imageWrapper img {
+  max-width: 100%;
+  border-radius: 4px;
+}
+
+.modalActions {
+  margin-top: 30px;
+}
+
+.notesSection {
+  margin-bottom: 20px;
+}
+
+.notesSection label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.notesInput {
+  width: 100%;
+  min-height: 100px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+.actionButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+}
+
+.approveButton {
+  padding: 10px 20px;
+  background: #2e7d32;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.approveButton:hover {
+  background: #1b5e20;
+}
+
+.rejectButton {
+  padding: 10px 20px;
+  background: #c62828;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.rejectButton:hover:not(:disabled) {
+  background: #b71c1c;
+}
+
+.rejectButton:disabled {
+  background: #e0e0e0;
+  cursor: not-allowed;
+}
+
+.accessDenied {
+  text-align: center;
+  padding: 40px;
+  flex: 1;
+}
+
+.accessDenied h2 {
+  color: #d32f2f;
+  margin-bottom: 15px;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  flex: 1;
+}
+
+.error {
+  text-align: center;
+  padding: 40px;
+  color: #d32f2f;
+  flex: 1;
 }

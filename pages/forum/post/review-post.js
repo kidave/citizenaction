@@ -1,50 +1,272 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../../utils/supabaseClient";
+import Head from "next/head";
+import Header from "../../../components/Header";
+import Footer from "../../../components/Footer";
 import styles from "../../../styles/forum/review-post.module.css";
+import { useForum } from "../../../src/context/ForumContext";
 
 export default function PostReview() {
+  const { user } = useForum();
   const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [moderatorNotes, setModeratorNotes] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase
+    const checkAdminStatus = async () => {
+      if (!user) return;
+      
+      const { data: profile } = await supabase
+        .from('profile')
+        .select('is_convenor, is_co_convenor')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profile && (profile.is_convenor || profile.is_co_convenor)) {
+        setIsAdmin(true);
+        fetchPendingPosts();
+      } else {
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user]);
+
+  const fetchPendingPosts = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
         .from("forum_topics")
-        .select("id, title")
-        .eq("status", "pending");
-      setPosts(data);
-    })();
-  }, []);
+        .select(`
+          id, 
+          title, 
+          description,
+          content,
+          created_at,
+          author:author_id(first_name, last_name),
+          forum_categories(name),
+          region(name),
+          city(name),
+          division(name),
+          ward(name)
+        `)
+        .eq("status", "Pending")
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      setPosts(data || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAction = async (id, action) => {
-    await supabase
-      .from('forum_topics')
-      .update({ status: action })
-      .eq('id', id);
-    setPosts(posts.filter((p) => p.id !== id));
+    try {
+      if (action === 'Rejected' && !moderatorNotes.trim()) {
+        throw new Error('Please provide moderator notes when rejecting a post');
+      }
+
+      const { error } = await supabase
+        .from('forum_topics')
+        .update({ 
+          status: action,
+          moderator_notes: action === 'Rejected' ? moderatorNotes : null
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setPosts(posts.filter((p) => p.id !== id));
+      setSelectedPost(null);
+      setModeratorNotes("");
+    } catch (err) {
+      setError(err.message);
+    }
   };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  if (!user || !isAdmin) {
+    return (
+      <div className={styles.container}>
+        <Header />
+        <div className={styles.accessDenied}>
+          <h2>Access Denied</h2>
+          <p>You must be a convenor or co-convenor to access this page.</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <Header />
+        <div className={styles.loading}>Loading pending posts...</div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <Header />
+        <div className={styles.error}>{error}</div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
-      <h1>Review Pending Posts</h1>
-      {posts.map((post) => (
-        <div key={post.id} className={styles.postRow}>
-          <span>{post.title}</span>
-          <div className={styles.actions}>
-            <button
-              onClick={() => handleAction(post.id, "approved")}
-              className={`${styles.btn} ${styles.approve}`}
-            >
-              Approve
-            </button>
-            <button
-              onClick={() => handleAction(post.id, "rejected")}
-              className={`${styles.btn} ${styles.reject}`}
-            >
-              Reject
-            </button>
+      <Head>
+        <title>Review Posts | Community Forum</title>
+      </Head>
+      <Header />
+      
+      <main className={styles.main}>
+        <h1>Review Pending Posts</h1>
+        <p className={styles.subtitle}>
+          {posts.length} post{posts.length !== 1 ? 's' : ''} awaiting approval
+        </p>
+
+        {posts.length === 0 ? (
+          <div className={styles.noPosts}>
+            <p>No posts pending review at this time.</p>
           </div>
-        </div>
-      ))}
+        ) : (
+          <div className={styles.postsList}>
+            {posts.map((post) => (
+              <div key={post.id} className={styles.postCard}>
+                <div className={styles.postHeader}>
+                  <h3>{post.title}</h3>
+                  <span className={styles.postDate}>
+                    Submitted on {formatDate(post.created_at)}
+                  </span>
+                </div>
+                
+                <div className={styles.postMeta}>
+                  <span>Category: {post.forum_categories?.name}</span>
+                  <span>Author: {post.author?.first_name} {post.author?.last_name}</span>
+                  {post.region && (
+                    <span>
+                      Location: {[
+                        post.ward?.name,
+                        post.division?.name,
+                        post.city?.name,
+                        post.region?.name
+                      ].filter(Boolean).join(', ')}
+                    </span>
+                  )}
+                </div>
+                
+                {post.description && (
+                  <div className={styles.postDescription}>
+                    <p>{post.description}</p>
+                  </div>
+                )}
+                
+                <div className={styles.postActions}>
+                  <button 
+                    onClick={() => setSelectedPost(post)}
+                    className={styles.viewButton}
+                  >
+                    Review Post
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {selectedPost && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modalContent}>
+              <button 
+                onClick={() => {
+                  setSelectedPost(null);
+                  setModeratorNotes("");
+                }}
+                className={styles.closeButton}
+              >
+                &times;
+              </button>
+              
+              <h2>{selectedPost.title}</h2>
+              
+              <div className={styles.postContent}>
+                {selectedPost.content?.blocks?.map((block, i) => {
+                  switch (block.type) {
+                    case 'paragraph':
+                      return <p key={i}>{block.data.text}</p>;
+                    case 'header':
+                      return <h3 key={i}>{block.data.text}</h3>;
+                    case 'image':
+                      return (
+                        <div key={i} className={styles.imageWrapper}>
+                          <img 
+                            src={block.data.file?.url} 
+                            alt={block.data.caption || ''}
+                          />
+                          {block.data.caption && <p>{block.data.caption}</p>}
+                        </div>
+                      );
+                    default:
+                      return null;
+                  }
+                })}
+              </div>
+              
+              <div className={styles.modalActions}>
+                <div className={styles.notesSection}>
+                  <label htmlFor="moderatorNotes">Moderator Notes (required for rejection):</label>
+                  <textarea
+                    id="moderatorNotes"
+                    value={moderatorNotes}
+                    onChange={(e) => setModeratorNotes(e.target.value)}
+                    placeholder="Provide feedback if rejecting..."
+                    className={styles.notesInput}
+                  />
+                </div>
+                
+                <div className={styles.actionButtons}>
+                  <button
+                    onClick={() => handleAction(selectedPost.id, "Approved")}
+                    className={styles.approveButton}
+                  >
+                    Approve Post
+                  </button>
+                  <button
+                    onClick={() => handleAction(selectedPost.id, "Rejected")}
+                    className={styles.rejectButton}
+                    disabled={!moderatorNotes.trim()}
+                  >
+                    Reject Post
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+      
+      <Footer />
     </div>
   );
 }

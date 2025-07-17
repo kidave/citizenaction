@@ -31,14 +31,14 @@ export default function ForumLanding() {
       }
 
       // Get recent approved posts
-      const { data: posts } = await supabase
-        .from('forum_topics')
-        .select('id, title, content, created_at, view_count, post_count')
-        .eq('status', 'approved')
-        .order('created_at', { ascending: false })
-        .limit(4);
+      //const { data: posts } = await supabase
+        //.from('forum_topics')
+        //.select('id, title, content, created_at, view_count, post_count')
+        //.eq('status', 'approved')
+        //.order('created_at', { ascending: false })
+        //.limit(4);
 
-      setRecentPosts(posts || []);
+      //setRecentPosts(posts || []);
 
       // Get forum stats
 
