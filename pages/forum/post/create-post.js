@@ -5,7 +5,7 @@ import { supabase } from '../../../utils/supabaseClient';
 import Header from '../../../components/Header';
 import Footer from '../../../components/Footer';
 import PostForm from '../../../components/forum/PostForm';
-import PostPreviewModal from '../../../components/forum/PostPreview';
+import PostPreviewModal from '../../../components/forum/PostPreviewModal';
 import useAuthCheck from '../../../src/hooks/useAuthCheck';
 import styles from '../../../styles/forum/create-post.module.css';
 import Link from 'next/link';
