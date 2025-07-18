@@ -1,0 +1,258 @@
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/router';
+import { supabase } from '../../utils/supabaseClient';
+
+export default function usePostForm(postId = null) {
+  const router = useRouter();
+  
+  // Overall status: 'loading', 'ready', 'error', 'success'
+  const [status, setStatus] = useState('loading');
+  const [error, setError] = useState(null);
+
+  // Form fields
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [editorData, setEditorData] = useState(null);
+
+  // Location fields
+  const [regionCode, setRegionCode] = useState('');
+  const [cityCode, setCityCode] = useState('');
+  const [divisionCode, setDivisionCode] = useState('');
+  const [wardCode, setWardCode] = useState('');
+
+  // Dropdown options
+  const [categories, setCategories] = useState([]);
+  const [regions, setRegions] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [divisions, setDivisions] = useState([]);
+  const [wards, setWards] = useState([]);
+
+  const isEditMode = !!postId;
+
+  // ==== DATA FETCHING AND INITIALIZATION ====
+
+  const loadFormData = useCallback(async (user) => {
+    setStatus('loading');
+    try {
+      // Fetch base dropdowns first
+      const [catRes, regRes] = await Promise.all([
+        supabase.from('forum_categories').select('id,name').order('name'),
+        supabase.from('region').select('code,name').order('name')
+      ]);
+      setCategories(catRes.data || []);
+      setRegions(regRes.data || []);
+
+      if (isEditMode) {
+        // In EDIT mode, fetch the post and its related location data
+        const { data: post, error: postError } = await supabase
+          .from('forum_topics')
+          .select('*')
+          .eq('id', postId)
+          .single();
+
+        if (postError) throw postError;
+        if (!post) throw new Error('Post not found.');
+        if (post.author_id !== user.id) throw new Error('You are not authorized to edit this post.');
+        if (post.status !== 'Pending') throw new Error('Only posts with "Pending" status can be edited.');
+
+        // Populate form state from fetched post
+        setTitle(post.title);
+        setDescription(post.description || '');
+        setCategoryId(post.category_id || '');
+        setRegionCode(post.region_code || '');
+        setCityCode(post.city_code || '');
+        setDivisionCode(post.division_code || '');
+        setWardCode(post.ward_code || '');
+        setEditorData(post.content || { blocks: [] });
+
+        // Fetch dependent location dropdowns
+        if (post.region_code) {
+          const { data } = await supabase
+            .from('city')
+            .select('code,name')
+            .eq('region_code', post.region_code)
+            .order('name');
+          setCities(data || []);
+        }
+        if (post.city_code) {
+          const { data } = await supabase
+            .from('division')
+            .select('code,name')
+            .eq('city_code', post.city_code)
+            .order('name');
+          setDivisions(data || []);
+        }
+        if (post.division_code) {
+          const { data } = await supabase
+            .from('ward')
+            .select('code,name')
+            .eq('division_code', post.division_code)
+            .order('name');
+          setWards(data || []);
+        }
+      } else {
+        // In CREATE mode, load from draft
+        const draft = localStorage.getItem('forumPostDraft');
+        if (draft) {
+          const parsed = JSON.parse(draft);
+          setTitle(parsed.title || '');
+          setDescription(parsed.description || '');
+          setCategoryId(parsed.categoryId || '');
+          setRegionCode(parsed.regionCode || '');
+          setCityCode(parsed.cityCode || '');
+          setDivisionCode(parsed.divisionCode || '');
+          setWardCode(parsed.wardCode || '');
+          setEditorData(parsed.editorData || { blocks: [] });
+        } else {
+          setEditorData({ blocks: [] });
+        }
+      }
+      setStatus('ready');
+    } catch (err) {
+      setError(err.message);
+      setStatus('error');
+    }
+  }, [postId, isEditMode]);
+
+  // ==== LOCATION DROPDOWN LOGIC ====
+  
+  const handleRegionChange = async (newRegionCode) => {
+    setRegionCode(newRegionCode);
+    setCityCode('');
+    setDivisionCode('');
+    setWardCode('');
+    setCities([]);
+    setDivisions([]);
+    setWards([]);
+    if (newRegionCode) {
+      const { data } = await supabase
+        .from('city')
+        .select('code,name')
+        .eq('region_code', newRegionCode)
+        .order('name');
+      setCities(data || []);
+    }
+  };
+
+  const handleCityChange = async (newCityCode) => {
+    setCityCode(newCityCode);
+    setDivisionCode('');
+    setWardCode('');
+    setDivisions([]);
+    setWards([]);
+    if (newCityCode) {
+      const { data } = await supabase
+        .from('division')
+        .select('code,name')
+        .eq('city_code', newCityCode)
+        .order('name');
+      setDivisions(data || []);
+    }
+  };
+
+  const handleDivisionChange = async (newDivisionCode) => {
+    setDivisionCode(newDivisionCode);
+    setWardCode('');
+    setWards([]);
+    if (newDivisionCode) {
+      const { data } = await supabase
+        .from('ward')
+        .select('code,name')
+        .eq('division_code', newDivisionCode)
+        .order('name');
+      setWards(data || []);
+    }
+  };
+  
+  // ==== FORM SUBMISSION ====
+  
+  const handleSubmit = async (user, editorContent, showConfirmation = true) => {
+    if (!title || !description || !categoryId) {
+      setError('Please fill all required fields: Title, Description, and Category.');
+      return false;
+    }
+    
+    if (showConfirmation) {
+      const confirmed = window.confirm(
+        isEditMode 
+          ? 'Are you sure you want to update this post?' 
+          : 'Are you sure you want to submit this post for review?'
+      );
+      if (!confirmed) return false;
+    }
+
+    setStatus('loading');
+    setError(null);
+
+    try {
+      const postData = {
+        title,
+        description,
+        content: editorContent,
+        category_id: categoryId,
+        region_code: regionCode || null,
+        city_code: cityCode || null,
+        division_code: divisionCode || null,
+        ward_code: wardCode || null,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (isEditMode) {
+        const { error: updateError } = await supabase
+          .from('forum_topics')
+          .update(postData)
+          .eq('id', postId);
+        if (updateError) throw updateError;
+        return true;
+      } else {
+        postData.author_id = user.id;
+        postData.status = 'Pending';
+        postData.slug = `${title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '')}-${Date.now().toString(36)}`;
+        
+        const { error: insertError } = await supabase
+          .from('forum_topics')
+          .insert([postData]);
+        if (insertError) throw insertError;
+        
+        setStatus('success');
+        return true;
+      }
+    } catch (err) {
+      setError(err.message || 'An unexpected error occurred.');
+      setStatus('error');
+      setTimeout(() => setStatus('ready'), 3000);
+      return false;
+    }
+  };
+
+  return {
+    // Status
+    status,
+    error,
+    isEditMode,
+
+    // Form State & Setters
+    title, setTitle,
+    description, setDescription,
+    categoryId, setCategoryId,
+    editorData, setEditorData,
+    
+    // Location State & Handlers
+    regionCode, handleRegionChange,
+    cityCode, handleCityChange,
+    divisionCode, handleDivisionChange,
+    wardCode, setWardCode,
+
+    // Dropdown Options
+    categories,
+    regions,
+    cities,
+    divisions,
+    wards,
+    
+    // Actions
+    loadFormData,
+    handleSubmit
+  };
+}

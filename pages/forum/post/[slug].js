@@ -7,6 +7,10 @@ import Footer from "../../../components/Footer";
 import { useForum } from '../../../src/context/ForumContext';
 import Link from 'next/link';
 import styles from '../../../styles/forum/post.module.css';
+import RenderEditorBlock from '../../../components/shared/RenderEditorBlock';
+
+import { FaThumbsUp, FaThumbsDown, FaShareAlt } from 'react-icons/fa';
+import { BiComment } from 'react-icons/bi';
 
 export default function ForumPost() {
   const router = useRouter();
@@ -18,50 +22,42 @@ export default function ForumPost() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [commentContent, setCommentContent] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [votes, setVotes] = useState(0);
 
   useEffect(() => {
     if (!router.isReady || !slug) return;
 
-    const fetchPostData = async () => {
+    const fetchPost = async () => {
       setLoading(true);
       setError(null);
-
       try {
-        const { data: postExists, error: existsError } = await supabase
-          .from('forum_topics')
-          .select('id,status')
-          .eq('slug', slug)
-          .maybeSingle();
-
-        if (existsError) throw existsError;
-        if (!postExists) throw new Error('No post found with this URL');
-
         const { data: postData, error: postError } = await supabase
           .from('forum_topics')
           .select(`
             *,
             forum_categories(name),
-            profile:author_id(
-              user_id,
-              first_name,
-              last_name,
-              avatar_url
-            )
+            profile:author_id(user_id,first_name,last_name,avatar_url)
           `)
           .eq('slug', slug)
-          .single();
+          .maybeSingle();
 
         if (postError) throw postError;
-        if (!postData) throw new Error('Post data could not be loaded');
+        if (!postData) throw new Error('Post not found.');
 
-        if (postData.status !== 'Approved') {
-          throw new Error(`Post status: ${postData.status}`);
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (postData.status !== 'Approved' && postData.author_id !== user?.id) {
+          throw new Error(`Post not available.`);
         }
+
 
         postData.content = typeof postData.content === 'string'
           ? JSON.parse(postData.content)
           : postData.content;
+
+        setPost(postData);
+        setVotes(postData.upvote_count || 0);
 
         await supabase
           .from('forum_topics')
@@ -72,64 +68,74 @@ export default function ForumPost() {
           .from('forum_posts')
           .select(`
             *,
-            profile:author_id(
-              user_id,
-              first_name,
-              last_name,
-              avatar_url
-            )
+            profile:author_id(user_id,first_name,last_name,avatar_url)
           `)
           .eq('topic_id', postData.id)
           .order('created_at', { ascending: true });
 
         if (commentsError) throw commentsError;
 
-        setPost(postData);
         setComments(commentsData || []);
       } catch (err) {
-        console.error('Fetch error:', { error: err, slug });
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPostData();
+    fetchPost();
   }, [router.isReady, slug]);
+
+  const handleUpvote = async () => {
+    const newVotes = votes + 1;
+    setVotes(newVotes);
+    await supabase.from('forum_topics').update({ upvote_count: newVotes }).eq('id', post.id);
+  };
+
+  const handleDownvote = async () => {
+    const newVotes = votes > 0 ? votes - 1 : 0;
+    setVotes(newVotes);
+    await supabase.from('forum_topics').update({ upvote_count: newVotes }).eq('id', post.id);
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: post.title,
+        text: post.description || '',
+        url: window.location.href,
+      }).catch(console.error);
+    } else {
+      alert('Your browser does not support sharing.');
+    }
+  };
 
   const handleCommentSubmit = async () => {
     if (!commentContent.trim() || !user || !post) return;
 
-    setIsSubmitting(true);
-    setError(null);
-
+    setSubmitting(true);
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('forum_posts')
-        .insert([{
-          content: commentContent,
-          topic_id: post.id,
-          author_id: user.id
-        }])
-        .select();
+        .insert([{ content: commentContent, topic_id: post.id, author_id: user.id }]);
 
-      if (error) throw error;
+      if (!error) {
+        const { data: updatedComments } = await supabase
+          .from('forum_posts')
+          .select(`
+            *,
+            profile:author_id(user_id,first_name,last_name,avatar_url)
+          `)
+          .eq('topic_id', post.id)
+          .order('created_at', { ascending: true });
 
-      setComments([...comments, ...data]);
-      setCommentContent('');
-
-      await supabase
-        .from('forum_topics')
-        .update({ 
-          post_count: (post.post_count || 0) + 1,
-          last_post_at: new Date().toISOString()
-        })
-        .eq('id', post.id);
-
+        setComments(updatedComments || []);
+        setCommentContent('');
+      }
     } catch (err) {
-      setError(err.message);
+      console.error(err);
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
 
@@ -204,43 +210,34 @@ export default function ForumPost() {
             </div>
           </header>
 
-          {post.description && <p>{post.description}</p>}
+          {post.description && 
+            <div className={styles.postDescription}>
+            <p>{post.description}</p>
+            </div>
+          }
 
           <div className={styles.postBody}>
-            {post.content.blocks.map((block, i) => {
-              switch (block.type) {
-                case 'paragraph':
-                  return <p key={i}>{block.data.text}</p>;
-                case 'header': {
-                  const Tag = `h${block.data.level}`;
-                  return <Tag key={i}>{block.data.text}</Tag>;
-                }
-                case 'image':
-                  return (
-                    <div key={i} className={styles.imageWrapper}>
-                      <img
-                        src={block.data.file?.url || '/image-placeholder.png'}
-                        alt={block.data.caption || ''}
-                        onError={(e) => { e.target.src = '/image-placeholder.png'; }}
-                      />
-                      {block.data.caption && <p>{block.data.caption}</p>}
-                    </div>
-                  );
-                default:
-                  return null;
-              }
-            })}
+            {post.content.blocks.map((block, i) => (
+              <RenderEditorBlock block={block} index={i} key={i} />
+            ))}
           </div>
 
+
           <div className={styles.postActions}>
-            <button className={styles.actionButton}>👍 Upvote ({post.upvote_count || 0})</button>
-            <button className={styles.actionButton}>💬 Comment ({post.post_count || 0})</button>
-            <button className={styles.actionButton}>🔗 Share</button>
+            <button className={styles.actionButton} onClick={handleUpvote}>
+              <FaThumbsUp /> Upvote ({votes})
+            </button>
+            <button className={styles.actionButton} onClick={handleDownvote}>
+              <FaThumbsDown /> Downvote
+            </button>
+            <button className={styles.actionButton} onClick={handleShare}>
+              <FaShareAlt /> Share
+            </button>
           </div>
         </article>
 
         <section className={styles.commentsSection}>
-          <h2>Comments ({comments.length})</h2>
+          <h2><BiComment /> Comments ({comments.length})</h2>
 
           {comments.length > 0 ? (
             <div className={styles.commentsList}>
@@ -285,10 +282,10 @@ export default function ForumPost() {
               />
               <button
                 onClick={handleCommentSubmit}
-                disabled={isSubmitting || !commentContent.trim()}
+                disabled={submitting || !commentContent.trim()}
                 className={styles.commentSubmit}
               >
-                {isSubmitting ? 'Posting…' : 'Post Comment'}
+                {submitting ? 'Posting…' : 'Post Comment'}
               </button>
               {error && <div className={styles.formError}>{error}</div>}
             </div>

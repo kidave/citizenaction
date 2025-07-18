@@ -1,352 +1,347 @@
-// create-post.js - Updated with all requested features
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { supabase } from '../../../utils/supabaseClient';
 import Header from '../../../components/Header';
 import Footer from '../../../components/Footer';
-import { useForum } from '../../../src/context/ForumContext';
+import PostForm from '../../../components/forum/PostForm';
+import PostPreviewModal from '../../../components/forum/PostPreview';
+import useAuthCheck from '../../../src/hooks/useAuthCheck';
 import styles from '../../../styles/forum/create-post.module.css';
 import Link from 'next/link';
 
 export default function NewPost() {
   const router = useRouter();
-  const { user } = useForum();
+  const { user, loading: authLoading } = useAuthCheck();
   const editorRef = useRef(null);
-  const [editorData, setEditorData] = useState(null); // Store editor content in state
-  const [isEditorReady, setIsEditorReady] = useState(false);
+  
+  // Form state
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [regionCode, setRegionCode] = useState('');
+  const [cityCode, setCityCode] = useState('');
+  const [divisionCode, setDivisionCode] = useState('');
+  const [wardCode, setWardCode] = useState('');
+  const [editorData, setEditorData] = useState({ blocks: [] });
+  const [showPreview, setShowPreview] = useState(false);
 
+  // UI State
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
+  const [isDraftSaved, setIsDraftSaved] = useState(false);
+  const [isDraftSaving, setIsDraftSaving] = useState(false);
+
+  // Data for selects
   const [categories, setCategories] = useState([]);
   const [regions, setRegions] = useState([]);
   const [cities, setCities] = useState([]);
   const [divisions, setDivisions] = useState([]);
   const [wards, setWards] = useState([]);
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState(''); // New description field
-  const [categoryId, setCategoryId] = useState('');
-  const [regionCode, setRegionCode] = useState('');
-  const [cityCode, setCityCode] = useState('');
-  const [divisionCode, setDivisionCode] = useState('');
-  const [wardCode, setWardCode] = useState('');
+  // Check if form has any content
+  const hasContent = () => {
+    return (
+      title.trim() || 
+      description.trim() || 
+      categoryId || 
+      regionCode || 
+      cityCode || 
+      divisionCode || 
+      wardCode || 
+      (editorData.blocks && editorData.blocks.length > 0)
+    );
+  };
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
-  const [preview, setPreview] = useState(false);
-  const [previewContent, setPreviewContent] = useState(null);
-  const [isDraftSaved, setIsDraftSaved] = useState(false);
-
-  // Load draft from localStorage on component mount
-  useEffect(() => {
-    const loadDraft = async () => {
-      const draft = localStorage.getItem('forumPostDraft');
-      if (draft) {
-        const parsedDraft = JSON.parse(draft);
-        setTitle(parsedDraft.title || '');
-        setDescription(parsedDraft.description || '');
-        setCategoryId(parsedDraft.categoryId || '');
-        setRegionCode(parsedDraft.regionCode || '');
-        setCityCode(parsedDraft.cityCode || '');
-        setDivisionCode(parsedDraft.divisionCode || '');
-        setWardCode(parsedDraft.wardCode || '');
-        setEditorData(parsedDraft.editorData || null);
-      }
-    };
-
-    loadDraft();
-  }, []);
-
-  // Save draft to localStorage when any field changes
-  useEffect(() => {
-    const saveDraft = () => {
-      const draft = {
-        title,
-        description,
-        categoryId,
-        regionCode,
-        cityCode,
-        divisionCode,
-        wardCode,
-        editorData
-      };
-      localStorage.setItem('forumPostDraft', JSON.stringify(draft));
-    };
-
-    // Only save draft if user is logged in
-    if (user) {
-      saveDraft();
+  // Validate form fields
+  const validateForm = () => {
+    if (!title.trim()) {
+      setError('Title is required');
+      return false;
     }
-  }, [title, description, categoryId, regionCode, cityCode, divisionCode, wardCode, editorData, user]);
+    if (!description.trim()) {
+      setError('Description is required');
+      return false;
+    }
+    if (!categoryId) {
+      setError('Category is required');
+      return false;
+    }
+    if (!regionCode) {
+      setError('Region is required');
+      return false;
+    }
+    if (!editorData.blocks || editorData.blocks.length === 0) {
+      setError('Post content is required');
+      return false;
+    }
+    return true;
+  };
 
+  // Load draft from localStorage
   useEffect(() => {
     if (!user) return;
+    const draft = localStorage.getItem('forumPostDraft');
+    if (draft) {
+      try {
+        const parsed = JSON.parse(draft);
+        setTitle(parsed.title || '');
+        setDescription(parsed.description || '');
+        setCategoryId(parsed.categoryId || '');
+        setRegionCode(parsed.regionCode || '');
+        setCityCode(parsed.cityCode || '');
+        setDivisionCode(parsed.divisionCode || '');
+        setWardCode(parsed.wardCode || '');
+        setEditorData(parsed.editorData || { blocks: [] });
+      } catch (e) {
+        console.error('Failed to parse draft', e);
+      }
+    }
+  }, [user]);
+
+  // Initialize Editor.js
+  useEffect(() => {
+    if (!user || authLoading) return;
 
     const initEditor = async () => {
       const EditorJS = (await import('@editorjs/editorjs')).default;
       const HeaderTool = (await import('@editorjs/header')).default;
       const ListTool = (await import('@editorjs/list')).default;
       const ImageTool = (await import('@editorjs/image')).default;
-      const EmbedTool = (await import('@editorjs/embed')).default;
-      const TableTool = (await import('@editorjs/table')).default;
-      const Paragraph = (await import('@editorjs/paragraph')).default;
-
-      editorRef.current = new EditorJS({
-        holder: 'editorjs',
-        data: editorData || undefined, // Load saved data if exists
-        tools: {
-          paragraph: {
-            class: Paragraph,
-            inlineToolbar: true,
-          },
-          header: {
-            class: HeaderTool,
-            config: {
-              placeholder: 'Enter a header',
-              levels: [2, 3, 4],
-              defaultLevel: 2
-            }
-          },
-          list: {
-            class: ListTool,
-            inlineToolbar: true
-          },
-          image: {
-            class: ImageTool,
-            config: {
-              uploader: {
-                async uploadByFile(file) {
-                  const fileName = `posts/${Date.now()}-${file.name}`;
-                  const { data, error } = await supabase
-                    .storage
-                    .from('forum-images')
-                    .upload(fileName, file);
-
-                  if (error) {
-                    console.error(error);
-                    return { success: 0 };
+      
+      if (!editorRef.current) {
+        editorRef.current = new EditorJS({
+          holder: 'editorjs',
+          data: editorData,
+          tools: {
+            header: {
+              class: HeaderTool,
+              config: {
+                placeholder: 'Enter a header...',
+                levels: [2, 3, 4],
+                defaultLevel: 2
+              }
+            },
+            list: {
+              class: ListTool,
+              inlineToolbar: true
+            },
+            image: {
+              class: ImageTool,
+              config: {
+                uploader: {
+                  async uploadByFile(file) {
+                    const fileName = `posts/${Date.now()}-${file.name}`;
+                    const { data, error } = await supabase.storage
+                      .from('forum-images')
+                      .upload(fileName, file);
+                    if (error) return { success: 0 };
+                    const { data: { publicUrl } } = supabase.storage
+                      .from('forum-images')
+                      .getPublicUrl(data.path);
+                    return { success: 1, file: { url: publicUrl } };
                   }
-
-                  const { data: { publicUrl } } = supabase.storage
-                    .from('forum-images')
-                    .getPublicUrl(data.path);
-
-                  return {
-                    success: 1,
-                    file: {
-                      url: publicUrl,
-                    }
-                  };
                 }
               }
             }
           },
-          embed: EmbedTool,
-          table: {
-            class: TableTool,
-            inlineToolbar: true
+          placeholder: 'Write your post here...',
+          onChange: async (api) => {
+            const content = await api.saver.save();
+            setEditorData(content);
           }
-        },
-        placeholder: 'Write your post here...',
-        onReady: () => {
-          console.log('Editor.js is ready to work!');
-          setIsEditorReady(true);
-        },
-        onChange: async (api) => {
-          const content = await api.saver.save();
-          setEditorData(content);
-        }
-      });
+        });
+      }
     };
 
     initEditor();
 
     return () => {
-      if (editorRef.current?.destroy) {
+      if (editorRef.current && editorRef.current.destroy) {
         editorRef.current.destroy();
+        editorRef.current = null;
       }
     };
-  }, [user]);
+  }, [user, authLoading]);
 
-  // Fetch cities when regionCode changes
-  useEffect(() => {
-    if (!regionCode) return;
-
-    const fetchCities = async () => {
-      const { data } = await supabase
-        .from('city')
-        .select('code,name')
-        .eq('region_code', regionCode)
-        .order('name');
-      setCities(data || []);
-      setCityCode('');
-      setDivisions([]);
-      setWards([]);
-    };
-
-    fetchCities();
-  }, [regionCode]);
-
-  // Fetch divisions when cityCode changes
-  useEffect(() => {
-    if (!cityCode) return;
-
-    const fetchDivisions = async () => {
-      const { data } = await supabase
-        .from('division')
-        .select('code,name')
-        .eq('city_code', cityCode)
-        .order('name');
-      setDivisions(data || []);
-      setDivisionCode('');
-      setWards([]);
-    };
-
-    fetchDivisions();
-  }, [cityCode]);
-
-  // Fetch wards when divisionCode changes
-  useEffect(() => {
-    if (!divisionCode) return;
-
-    const fetchWards = async () => {
-      const { data } = await supabase
-        .from('ward')
-        .select('code,name')
-        .eq('division_code', divisionCode)
-        .order('name');
-      setWards(data || []);
-      setWardCode('');
-    };
-
-    fetchWards();
-  }, [divisionCode]);
-
+  // Fetch initial dropdown data
   useEffect(() => {
     const fetchInitialData = async () => {
-      const { data: catData } = await supabase
-        .from('forum_categories')
-        .select('id,name')
-        .order('name');
-      const { data: regData } = await supabase
-        .from('region')
-        .select('code,name');
-      
-      setCategories(catData || []);
-      setRegions(regData || []);
-      if (catData?.length) setCategoryId(catData[0].id);
-      if (regData?.length) setRegionCode(regData[0].code);
+      const [catRes, regRes] = await Promise.all([
+        supabase.from('forum_categories').select('id,name').order('name'),
+        supabase.from('region').select('code,name')
+      ]);
+      setCategories(catRes.data || []);
+      setRegions(regRes.data || []);
     };
-
     fetchInitialData();
   }, []);
 
-  const handlePreview = async () => {
-    try {
-      const content = await editorRef.current.save();
-      setPreviewContent(content);
-      setPreview(true);
-    } catch (err) {
-      console.error('Failed to save editor content:', err);
+  // Location dropdown logic
+  useEffect(() => {
+    if (!regionCode) return setCities([]);
+    supabase.from('city').select('code,name').eq('region_code', regionCode).order('name')
+      .then(res => setCities(res.data || []));
+  }, [regionCode]);
+
+  useEffect(() => {
+    if (!cityCode) return setDivisions([]);
+    supabase.from('division').select('code,name').eq('city_code', cityCode).order('name')
+      .then(res => setDivisions(res.data || []));
+  }, [cityCode]);
+
+  useEffect(() => {
+    if (!divisionCode) return setWards([]);
+    supabase.from('ward').select('code,name').eq('division_code', divisionCode).order('name')
+      .then(res => setWards(res.data || []));
+  }, [divisionCode]);
+
+  // Auto-save draft
+  useEffect(() => {
+    if (user && hasContent()) {
+      const draft = { 
+        title, 
+        description, 
+        categoryId, 
+        regionCode, 
+        cityCode, 
+        divisionCode, 
+        wardCode, 
+        editorData 
+      };
+      localStorage.setItem('forumPostDraft', JSON.stringify(draft));
     }
-  };
+  }, [title, description, categoryId, regionCode, cityCode, divisionCode, wardCode, editorData, user]);
 
   const saveAsDraft = async () => {
+    if (!hasContent()) {
+      setError('Nothing to save - your draft is empty');
+      return;
+    }
+
+    setIsDraftSaving(true);
+    setError(null);
     try {
-      const content = await editorRef.current.save();
-      setEditorData(content);
-      setIsDraftSaved(true);
+      const content = editorRef.current ? await editorRef.current.save() : editorData;
+      const draft = { 
+        title, 
+        description, 
+        categoryId, 
+        regionCode, 
+        cityCode, 
+        divisionCode, 
+        wardCode, 
+        editorData: content 
+      };
       
-      // Hide the success message after 3 seconds
+      localStorage.setItem('forumPostDraft', JSON.stringify(draft));
+      setIsDraftSaved(true);
       setTimeout(() => setIsDraftSaved(false), 3000);
     } catch (err) {
-      setError('Failed to save draft');
+      setError('Failed to save draft content.');
+    } finally {
+      setIsDraftSaving(false);
     }
   };
 
   const clearDraft = () => {
-    localStorage.removeItem('forumPostDraft');
-    setTitle('');
-    setDescription('');
-    setCategoryId(categories[0]?.id || '');
-    setRegionCode(regions[0]?.code || '');
-    setCityCode('');
-    setDivisionCode('');
-    setWardCode('');
-    setEditorData(null);
+    if (!hasContent()) {
+      setError('Nothing to clear - your form is already empty');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      'Are you sure you want to clear all fields? This cannot be undone.'
+    );
     
-    if (editorRef.current) {
-      editorRef.current.clear();
+    if (confirmed) {
+      localStorage.removeItem('forumPostDraft');
+      setTitle('');
+      setDescription('');
+      setCategoryId('');
+      setRegionCode('');
+      setCityCode('');
+      setDivisionCode('');
+      setWardCode('');
+      setEditorData({ blocks: [] });
+      if (editorRef.current) editorRef.current.clear();
+      setError(null);
+    }
+  };
+
+  const handlePreview = async () => {
+    setError(null);
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      const content = editorRef.current ? await editorRef.current.save() : editorData;
+      setEditorData(content);
+      setShowPreview(true);
+    } catch (err) {
+      setError("Failed to generate preview.");
     }
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!title || !categoryId || !regionCode) {
-      setError('Please fill all required fields');
+    e?.preventDefault();
+    setLoading(true);
+    setError(null);
+    
+    if (!validateForm()) {
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    const confirmed = window.confirm(
+      'Are you sure you want to submit this post for review?'
+    );
+    
+    if (!confirmed) {
+      setLoading(false);
+      return;
+    }
 
     try {
-      const editorData = await editorRef.current.save();
-
-      const slug = title.toLowerCase()
-        .replace(/[^\w\s]/g, '')
-        .replace(/\s+/g, '-')
-        .substring(0, 50);
-
-      const { data, error: submissionError } = await supabase
-        .from('forum_topics')
-        .insert([{
-          title,
-          description, // Include description in submission
-          content: editorData,
-          category_id: categoryId,
-          author_id: user.id,
-          slug,
-          region_code: regionCode || null,
-          city_code: cityCode || null,
-          division_code: divisionCode || null,
-          ward_code: wardCode || null,
-          status: 'Pending',
-          view_count: 0,
-          post_count: 0
-        }])
-        .select();
+      const content = editorRef.current ? await editorRef.current.save() : editorData;
+      const slug = `${title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '')}-${Date.now().toString(36)}`;
+      
+      const { error: submissionError } = await supabase.from('forum_topics').insert([{
+        title,
+        description,
+        content,
+        category_id: categoryId,
+        author_id: user.id,
+        slug,
+        region_code: regionCode || null,
+        city_code: cityCode || null,
+        division_code: divisionCode || null,
+        ward_code: wardCode || null,
+        status: 'Pending',
+      }]);
 
       if (submissionError) throw submissionError;
 
       // Clear draft after successful submission
-      clearDraft();
-      
-      // redirect to the newly created post page
-      router.push(`/forum/post/${slug}`);
-
+      localStorage.removeItem('forumPostDraft');
       setSuccess(true);
+      setShowPreview(false);
+
     } catch (err) {
-      setError(err.message || 'Failed to create post');
+      setError(err.message || 'An unexpected error occurred while creating the post.');
     } finally {
       setLoading(false);
     }
   };
-
-  if (!user) {
+  
+  if (authLoading) {
     return (
       <div className={styles.container}>
         <Header />
-        <div className={styles.notLoggedIn}>
-          <h2>Sign In Required</h2>
-          <p>Please sign in to submit a post to the forum.</p>
-          <button 
-            onClick={() => router.push('/login?returnTo=/forum/post/create-post')}
-            className={styles.primaryButton}
-          >
-            Sign In
-          </button>
-        </div>
+        <div className={styles.loading}>Loading...</div>
         <Footer />
       </div>
     );
@@ -358,92 +353,11 @@ export default function NewPost() {
         <Header />
         <main className={styles.successMessage}>
           <div className={styles.successIcon}>✓</div>
-          <h1>Submission Received</h1>
-          <p>Your post has been submitted and is pending review by our moderators.</p>
-          <p>You'll receive a notification once it's approved.</p>
+          <h1>Post Submitted for Review!</h1>
+          <p>Thank you for your contribution. Your post is now pending review by our moderators.</p>
           <div className={styles.successActions}>
-            <button 
-              onClick={() => router.push('/forum')} 
-              className={styles.primaryButton}
-            >
-              Return to Forum
-            </button>
-            <button 
-              onClick={() => router.push('/forum/post/my-post')}
-              className={styles.secondaryButton}
-            >
-              View My Posts
-            </button>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (preview) {
-    return (
-      <div className={styles.container}>
-        <Header />
-        <main className={styles.previewContainer}>
-          <h1>Preview Your Post</h1>
-          
-          <div className={styles.previewContent}>
-            <h2>{title}</h2>
-            {description && <p className={styles.previewDescription}>{description}</p>}
-            {previewContent && (
-              <div className={styles.editorContent}>
-                {previewContent.blocks.map((block, index) => {
-                  switch (block.type) {
-                    case 'header':
-                      return <h3 key={index}>{block.data.text}</h3>;
-                    case 'paragraph':
-                      return <p key={index}>{block.data.text}</p>;
-                    case 'list':
-                      return block.data.style === 'unordered' ? (
-                        <ul key={index}>
-                          {block.data.items.map((item, i) => (
-                            <li key={i}>{item}</li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <ol key={index}>
-                          {block.data.items.map((item, i) => (
-                            <li key={i}>{item}</li>
-                          ))}
-                        </ol>
-                      );
-                    case 'image':
-                      return (
-                        <div key={index} className={styles.imageContainer}>
-                          <img src={block.data.file.url} alt={block.data.caption || ''} />
-                          {block.data.caption && (
-                            <p className={styles.imageCaption}>{block.data.caption}</p>
-                          )}
-                        </div>
-                      );
-                    default:
-                      return null;
-                  }
-                })}
-              </div>
-            )}
-          </div>
-          
-          <div className={styles.previewActions}>
-            <button 
-              onClick={() => setPreview(false)}
-              className={styles.secondaryButton}
-            >
-              Back to Editing
-            </button>
-            <button 
-              onClick={handleSubmit}
-              className={styles.primaryButton}
-              disabled={loading}
-            >
-              {loading ? 'Submitting...' : 'Submit Post'}
-            </button>
+            <Link href="/forum" className={styles.primaryButton}>Return to Forum</Link>
+            <Link href="/forum/post/my-post" className={styles.secondaryButton}>View My Posts</Link>
           </div>
         </main>
         <Footer />
@@ -468,165 +382,74 @@ export default function NewPost() {
 
         <form onSubmit={handleSubmit} className={styles.postForm}>
           {error && <div className={styles.error}>{error}</div>}
-          {isDraftSaved && <div className={styles.success}>Draft saved successfully!</div>}
+          {isDraftSaved && <div className={styles.success}>Draft saved!</div>}
 
-          <div className={styles.formSection}>
-            <h2 className={styles.sectionTitle}>Post Details</h2>
-            
-            <div className={styles.formGroup}>
-              <label htmlFor="title">Post Title*</label>
-              <input
-                type="text"
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                maxLength={100}
-                placeholder="Briefly describe the issue or topic"
-              />
-              <div className={styles.characterCount}>{title.length}/100</div>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="description">Short Description*</label>
-              <textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-                maxLength={200}
-                placeholder="A brief summary of your post (max 200 characters)"
-                rows={3}
-              />
-              <div className={styles.characterCount}>{description.length}/200</div>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="category">Category*</label>
-              <select
-                id="category"
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                required
-              >
-                <option value="">Choose a category</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className={styles.formSection}>
-            <h2 className={styles.sectionTitle}>Post Content*</h2>
-            <div className={styles.editorContainer}>
-              <div id="editorjs"></div>
-            </div>
-            <div className={styles.editorTips}>
-              <p>Tips: Use headers to organize content, add images to show the issue, and be as specific as possible.</p>
-            </div>
-          </div>
-
-          <div className={styles.formSection}>
-            <h2 className={styles.sectionTitle}>Location Information</h2>
-            <p className={styles.sectionSubtitle}>Help others understand where this issue is located</p>
-            
-            <div className={styles.locationGrid}>
-              <div className={styles.formGroup}>
-                <label htmlFor="region">Region*</label>
-                <select
-                  id="region"
-                  value={regionCode}
-                  onChange={(e) => setRegionCode(e.target.value)}
-                  required
-                >
-                  {regions.map((region) => (
-                    <option key={region.code} value={region.code}>{region.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              {cities.length > 0 && (
-                <div className={styles.formGroup}>
-                  <label htmlFor="city">City</label>
-                  <select
-                    id="city"
-                    value={cityCode}
-                    onChange={(e) => setCityCode(e.target.value)}
-                  >
-                    <option value="">Select City</option>
-                    {cities.map((city) => (
-                      <option key={city.code} value={city.code}>{city.name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {divisions.length > 0 && (
-                <div className={styles.formGroup}>
-                  <label htmlFor="division">Division</label>
-                  <select
-                    id="division"
-                    value={divisionCode}
-                    onChange={(e) => setDivisionCode(e.target.value)}
-                  >
-                    <option value="">Select Division</option>
-                    {divisions.map((div) => (
-                      <option key={div.code} value={div.code}>{div.name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {wards.length > 0 && (
-                <div className={styles.formGroup}>
-                  <label htmlFor="ward">Ward</label>
-                  <select
-                    id="ward"
-                    value={wardCode}
-                    onChange={(e) => setWardCode(e.target.value)}
-                  >
-                    <option value="">Select Ward</option>
-                    {wards.map((ward) => (
-                      <option key={ward.code} value={ward.code}>{ward.name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
-          </div>
+          <PostForm 
+            isEditMode={false}
+            title={title}
+            setTitle={setTitle}
+            description={description}
+            setDescription={setDescription}
+            categoryId={categoryId}
+            setCategoryId={setCategoryId}
+            categories={categories}
+            regionCode={regionCode}
+            handleRegionChange={(value) => {
+              setRegionCode(value);
+              setCityCode('');
+              setDivisionCode('');
+              setWardCode('');
+            }}
+            regions={regions}
+            cityCode={cityCode}
+            handleCityChange={(value) => {
+              setCityCode(value);
+              setDivisionCode('');
+              setWardCode('');
+            }}
+            cities={cities}
+            divisionCode={divisionCode}
+            handleDivisionChange={(value) => {
+              setDivisionCode(value);
+              setWardCode('');
+            }}
+            divisions={divisions}
+            wardCode={wardCode}
+            setWardCode={setWardCode}
+            wards={wards}
+          />
 
           <div className={styles.formActions}>
             <div className={styles.draftActions}>
               <button 
-                type="button"
+                type="button" 
                 onClick={saveAsDraft}
-                className={styles.draftButton}
-                disabled={loading}
+                className={styles.draftButton} 
+                disabled={loading || isDraftSaving}
               >
-                Save Draft
+                {isDraftSaving ? 'Saving...' : 'Save Draft'}
               </button>
               <button 
-                type="button"
+                type="button" 
                 onClick={clearDraft}
-                className={styles.clearDraftButton}
-                disabled={loading}
+                className={styles.clearDraftButton} 
+                disabled={loading || !hasContent()}
               >
-                Clear Draft
+                Clear All
               </button>
             </div>
             <div className={styles.submitActions}>
               <button 
-                type="button"
+                type="button" 
                 onClick={handlePreview}
-                className={styles.secondaryButton}
-                disabled={loading || !isEditorReady}
+                className={styles.secondaryButton} 
+                disabled={loading}
               >
-                Preview Post
+                Preview
               </button>
               <button 
                 type="submit" 
-                disabled={loading || !isEditorReady} 
+                disabled={loading} 
                 className={styles.primaryButton}
               >
                 {loading ? 'Submitting...' : 'Submit for Review'}
@@ -634,6 +457,20 @@ export default function NewPost() {
             </div>
           </div>
         </form>
+
+        {showPreview && (
+          <PostPreviewModal
+            post={{
+              title,
+              description,
+              content: editorData
+            }}
+            onClose={() => setShowPreview(false)}
+            onSubmit={handleSubmit}
+            submitLabel="Submit for Review"
+            isSubmitting={loading}
+          />
+        )}
       </main>
 
       <Footer />

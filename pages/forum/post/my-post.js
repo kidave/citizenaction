@@ -34,6 +34,7 @@ export default function MyPosts() {
             created_at,
             view_count,
             post_count,
+            moderator_notes,
             forum_categories(name)
           `)
           .eq('author_id', user.id)
@@ -69,6 +70,25 @@ export default function MyPosts() {
       <span className={`${styles.statusBadge} ${statusClasses[status]}`}>
         {status}
       </span>
+    );
+  };
+
+  const getStatusFeedback = (status, moderatorNotes) => {
+    // Default feedback messages
+    const defaultFeedback = {
+      'Pending': 'Your post is currently under review by our moderators.',
+      'Approved': 'Your post has been approved and is now visible to the community.',
+      'Rejected': 'Your post did not meet our community guidelines.'
+    };
+
+    // If custom notes exist, use them, otherwise use default feedback
+    const feedback = moderatorNotes || defaultFeedback[status];
+    
+    return (
+      <div className={styles.moderatorNotes}>
+        <h4>Status Update:</h4>
+        <p>{feedback}</p>
+      </div>
     );
   };
 
@@ -131,6 +151,9 @@ export default function MyPosts() {
                   <span className={styles.views}>👁 {post.view_count || 0} views</span>
                   <span className={styles.comments}>💬 {post.post_count || 0} comments</span>
                 </div>
+                
+                {/* Display status feedback for all posts */}
+                {getStatusFeedback(post.status, post.moderator_notes)}
                 
                 <div className={styles.postActions}>
                   <Link 

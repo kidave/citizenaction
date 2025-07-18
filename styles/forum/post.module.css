@@ -367,6 +367,44 @@
   background: #e0e0e0;
 }
 
+
+.previewContainer {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 2rem;
+  margin-top: 2rem;
+  border: 1px solid #eee;
+}
+
+.previewHeader {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.previewHeader h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2rem;
+}
+
+.previewDescription {
+  color: #666;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.previewBody {
+  line-height: 1.6;
+}
+
+.previewActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  justify-content: flex-end;
+}
+
 /* Editor content styling */
 .imageWrapper {
   margin: 25px 0;

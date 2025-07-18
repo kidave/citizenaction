@@ -5,6 +5,8 @@ import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
 import styles from "../../../styles/forum/review-post.module.css";
 import { useForum } from "../../../src/context/ForumContext";
+import RenderEditorBlock from '../../../components/shared/RenderEditorBlock';
+import PostPreviewModal from '../../../components/forum/PostPreviewModal';
 
 export default function PostReview() {
   const { user } = useForum();
@@ -14,6 +16,7 @@ export default function PostReview() {
   const [selectedPost, setSelectedPost] = useState(null);
   const [moderatorNotes, setModeratorNotes] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -76,15 +79,19 @@ export default function PostReview() {
         .from('forum_topics')
         .update({ 
           status: action,
-          moderator_notes: action === 'Rejected' ? moderatorNotes : null
+          moderator_notes: action === 'Rejected' ? moderatorNotes : null,
+          moderator_id: user.id,
+          updated_at: new Date().toISOString()
         })
         .eq('id', id);
 
       if (error) throw error;
 
-      setPosts(posts.filter((p) => p.id !== id));
+      // Refresh the posts list
+      await fetchPendingPosts();
       setSelectedPost(null);
       setModeratorNotes("");
+      setConfirmAction(null);
     } catch (err) {
       setError(err.message);
     }
@@ -196,73 +203,76 @@ export default function PostReview() {
         )}
 
         {selectedPost && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.modalContent}>
-              <button 
-                onClick={() => {
-                  setSelectedPost(null);
-                  setModeratorNotes("");
-                }}
-                className={styles.closeButton}
-              >
-                &times;
-              </button>
-              
-              <h2>{selectedPost.title}</h2>
-              
-              <div className={styles.postContent}>
-                {selectedPost.content?.blocks?.map((block, i) => {
-                  switch (block.type) {
-                    case 'paragraph':
-                      return <p key={i}>{block.data.text}</p>;
-                    case 'header':
-                      return <h3 key={i}>{block.data.text}</h3>;
-                    case 'image':
-                      return (
-                        <div key={i} className={styles.imageWrapper}>
-                          <img 
-                            src={block.data.file?.url} 
-                            alt={block.data.caption || ''}
-                          />
-                          {block.data.caption && <p>{block.data.caption}</p>}
-                        </div>
-                      );
-                    default:
-                      return null;
-                  }
-                })}
+          <PostPreviewModal
+            post={selectedPost}
+            onClose={() => {
+              setSelectedPost(null);
+              setModeratorNotes("");
+              setConfirmAction(null);
+            }}
+            showActions={false}
+          >
+            <div className={styles.modalActions}>
+              <div className={styles.notesSection}>
+                <label htmlFor="moderatorNotes">
+                  {confirmAction === 'Rejected' 
+                    ? "Please confirm rejection with notes:" 
+                    : "Moderator Notes (required for rejection):"}
+                </label>
+                <textarea
+                  id="moderatorNotes"
+                  value={moderatorNotes}
+                  onChange={(e) => setModeratorNotes(e.target.value)}
+                  placeholder="Provide feedback if rejecting..."
+                  className={styles.notesInput}
+                  required={confirmAction === 'Rejected'}
+                />
               </div>
               
-              <div className={styles.modalActions}>
-                <div className={styles.notesSection}>
-                  <label htmlFor="moderatorNotes">Moderator Notes (required for rejection):</label>
-                  <textarea
-                    id="moderatorNotes"
-                    value={moderatorNotes}
-                    onChange={(e) => setModeratorNotes(e.target.value)}
-                    placeholder="Provide feedback if rejecting..."
-                    className={styles.notesInput}
-                  />
-                </div>
-                
-                <div className={styles.actionButtons}>
+              <div className={styles.actionButtons}>
+                {confirmAction !== 'Approved' && (
                   <button
-                    onClick={() => handleAction(selectedPost.id, "Approved")}
+                    onClick={() => {
+                      if (moderatorNotes.trim() || confirmAction !== 'Rejected') {
+                        setConfirmAction('Approved');
+                      }
+                    }}
                     className={styles.approveButton}
                   >
-                    Approve Post
+                    {confirmAction === 'Rejected' ? 'Cancel Rejection' : 'Approve Post'}
                   </button>
+                )}
+                
+                {confirmAction !== 'Rejected' && (
                   <button
-                    onClick={() => handleAction(selectedPost.id, "Rejected")}
+                    onClick={() => setConfirmAction('Rejected')}
                     className={styles.rejectButton}
-                    disabled={!moderatorNotes.trim()}
                   >
                     Reject Post
                   </button>
-                </div>
+                )}
+                
+                {confirmAction === 'Approved' && (
+                  <button
+                    onClick={() => handleAction(selectedPost.id, "Approved")}
+                    className={styles.confirmButton}
+                  >
+                    Confirm Approval
+                  </button>
+                )}
+                
+                {confirmAction === 'Rejected' && (
+                  <button
+                    onClick={() => handleAction(selectedPost.id, "Rejected")}
+                    className={styles.confirmButton}
+                    disabled={!moderatorNotes.trim()}
+                  >
+                    Confirm Rejection
+                  </button>
+                )}
               </div>
             </div>
-          </div>
+          </PostPreviewModal>
         )}
       </main>
       
