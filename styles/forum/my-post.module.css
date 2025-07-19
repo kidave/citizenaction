@@ -1,22 +1,18 @@
 .container {
-  min-height: 100vh;
+  width: auto;
   display: flex;
   flex-direction: column;
 }
 
 .main {
-  max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
-  width: 100%;
-  flex: 1;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
 }
 
 .newPostButton {

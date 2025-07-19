@@ -9,6 +9,7 @@ import Footer from '../../../components/Footer';
 import PostForm from '../../../components/forum/PostForm';
 import PostPreviewModal from '../../../components/forum/PostPreviewModal';
 import styles from '../../../styles/forum/create-post.module.css';
+import { supabase } from '../../../utils/supabaseClient'; // Added supabase import
 
 export default function EditPostPage() {
   const router = useRouter();
@@ -46,54 +47,80 @@ export default function EditPostPage() {
       const ListTool = (await import('@editorjs/list')).default;
       const ImageTool = (await import('@editorjs/image')).default;
       
-      if (!editorRef.current) {
-        editorRef.current = new EditorJS({
-          holder: 'editorjs',
-          data: editorData,
-          tools: {
-            header: {
-              class: HeaderTool,
-              config: {
-                placeholder: 'Enter a header...',
-                levels: [2, 3, 4],
-                defaultLevel: 2
-              }
-            },
-            list: {
-              class: ListTool,
-              inlineToolbar: true
-            },
-            image: {
-              class: ImageTool,
-              config: {
-                uploader: {
-                  async uploadByFile(file) {
-                    const fileName = `posts/${Date.now()}-${file.name}`;
-                    const { data, error } = await supabase.storage
-                      .from('forum-images')
-                      .upload(fileName, file);
-                    if (error) return { success: 0 };
-                    const { data: { publicUrl } } = supabase.storage
-                      .from('forum-images')
-                      .getPublicUrl(data.path);
-                    return { success: 1, file: { url: publicUrl } };
+      // Destroy existing editor instance if it exists
+      if (editorRef.current && editorRef.current.destroy) {
+        await editorRef.current.destroy();
+      }
+
+      editorRef.current = new EditorJS({
+        holder: 'editorjs',
+        data: editorData,
+        tools: {
+          header: {
+            class: HeaderTool,
+            config: {
+              placeholder: 'Enter a header...',
+              levels: [2, 3, 4],
+              defaultLevel: 2
+            }
+          },
+          list: {
+            class: ListTool,
+            inlineToolbar: true
+          },
+          image: {
+            class: ImageTool,
+            config: {
+              uploader: {
+                async uploadByFile(file) {
+                  // Generate unique filename
+                  const fileName = `posts/${Date.now()}-${file.name}`;
+                  
+                  // Upload to Supabase
+                  const { data, error } = await supabase.storage
+                    .from('forum-images')
+                    .upload(fileName, file);
+                  
+                  if (error) {
+                    console.error('Image upload error:', error);
+                    return { success: 0 };
                   }
+                  
+                  // Get public URL
+                  const { data: { publicUrl } } = supabase.storage
+                    .from('forum-images')
+                    .getPublicUrl(data.path);
+                  
+                  return { 
+                    success: 1, 
+                    file: { 
+                      url: publicUrl 
+                    } 
+                  };
                 }
               }
             }
-          },
-          placeholder: 'Write your post here...',
-          onReady: () => setIsEditorReady(true),
-          onChange: async (api) => {
+          }
+        },
+        placeholder: 'Write your post here...',
+        onReady: () => setIsEditorReady(true),
+        onChange: async (api) => {
+          try {
             const content = await api.saver.save();
             setEditorData(content);
+          } catch (err) {
+            console.error('Editor save error:', err);
           }
-        });
-      }
+        }
+      });
     };
+    
     initEditor();
+
     return () => {
-      if (editorRef.current?.destroy) editorRef.current.destroy();
+      if (editorRef.current?.destroy) {
+        editorRef.current.destroy();
+      }
       editorRef.current = null;
     };
   }, [status, editorData]);
@@ -110,20 +137,45 @@ export default function EditPostPage() {
       setShowPreview(true);
     } catch (err) {
       setError("Failed to generate preview.");
+      console.error("Preview error:", err);
     }
   };
 
+  const clearForm = () => {
+    const confirmed = window.confirm(
+      'Are you sure you want to clear all changes? This cannot be undone.'
+    );
+    
+    if (confirmed) {
+      // Reset form to initial state
+      loadFormData(user);
+    }
+  };
+
+
   const onSubmit = async (e) => {
     e?.preventDefault();
-    if (!editorRef.current) return;
-    const content = await editorRef.current.save();
     
-    const confirmed = window.confirm('Are you sure you want to update this post?');
-    if (!confirmed) return;
+    if (!editorRef.current) {
+      setError('Editor is not ready yet');
+      return;
+    }
     
-    const success = await handleSubmit(user, content, false);
-    if (success) {
-      router.push('/forum/post/my-post?status=updated');
+    try {
+      const content = await editorRef.current.save();
+      
+      const confirmed = window.confirm('Are you sure you want to update this post?');
+      if (!confirmed) return;
+      
+      const success = await handleSubmit(user, content, false);
+      if (success) {
+        // Remove draft after successful update
+        localStorage.removeItem('forumPostDraft');
+        router.push('/forum/post/my-post?status=updated');
+      }
+    } catch (err) {
+      setError('Failed to save post content.');
+      console.error('Submit error:', err);
     }
   };
   
@@ -143,6 +195,12 @@ export default function EditPostPage() {
         <Header />
         <main className={styles.newPostContainer}>
           <div className={styles.error}>{error}</div>
+          <button 
+            onClick={() => router.push('/forum/post/my-post')}
+            className={styles.primaryButton}
+          >
+            Back to My Posts
+          </button>
         </main>
         <Footer />
       </div>
@@ -187,12 +245,28 @@ export default function EditPostPage() {
             wards={wards}
           />
           <div className={styles.formActions}>
+            <div className={styles.draftActions}>
+              <button 
+                type="button" 
+                onClick={() => router.push('/forum/post/my-post')}
+                className={styles.secondaryButton}
+              >
+                Cancel
+              </button>
+              <button 
+                type="button" 
+                onClick={clearForm}
+                className={styles.clearDraftButton}
+              >
+                Reset Changes
+              </button>
+            </div>
             <div className={styles.submitActions}>
               <button 
                 type="button" 
                 onClick={handlePreview} 
                 className={styles.secondaryButton} 
-                disabled={status === 'loading' || !isEditorReady}
+                disabled={!isEditorReady}
               >
                 Preview
               </button>

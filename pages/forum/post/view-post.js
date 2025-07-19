@@ -73,12 +73,13 @@ export default function ViewPosts() {
     }
   };
 
-  const formatDate = (date) =>
-    new Date(date).toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
+  };
 
   return (
     <>
@@ -88,7 +89,6 @@ export default function ViewPosts() {
       <Header />
 
       <main className={styles.container}>
-        <h1 className={styles.title}>Forum Discussions</h1>
 
         <section className={styles.filters}>
           <input
@@ -172,17 +172,20 @@ export default function ViewPosts() {
                   <span>
                     By {post.author?.first_name} {post.author?.last_name}
                   </span>
+                  {", "}
                   <span>{formatDate(post.created_at)}</span>
-                </div>
-                <div className={styles.cardFooter}>
-                  👁 {post.view_count} | 💬 {post.post_count}
                 </div>
                 {post.region && (
                   <div className={styles.cardLocation}>
-                    📍{" "}
-                    {[post.ward?.name, post.division?.name, post.city?.name, post.region?.name]
-                      .filter(Boolean)
-                      .join(", ")}
+                    {post.ward?.name
+                      ? `Ward ${post.ward.name}${post.city?.name ? `, ${post.city.name}` : ''}`
+                      : post.division?.name
+                        ? `${post.division.name}${post.city?.name ? `, ${post.city.name}` : ''}`
+                        : post.city?.name 
+                          ? post.city.name
+                          : post.region?.name 
+                            ? post.region.name
+                            : 'Global'}
                   </div>
                 )}
               </Link>

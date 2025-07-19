@@ -66,9 +66,13 @@ export default function Profile() {
       <div className={styles.profileCard}>
         <div className={styles.avatarSection}>
           <img
-            src={user.user_metadata?.avatar_url || '/default-avatar.png'}
+            src={user.user_metadata?.avatar_url || '/user1.png'}
             alt="Profile"
             className={styles.avatar}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "/user1.png";
+            }}
           />
           <h2>{user.user_metadata?.full_name || 'User'}</h2>
         </div>

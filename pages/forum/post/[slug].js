@@ -8,9 +8,9 @@ import { useForum } from '../../../src/context/ForumContext';
 import Link from 'next/link';
 import styles from '../../../styles/forum/post.module.css';
 import RenderEditorBlock from '../../../components/shared/RenderEditorBlock';
+import { FaRegThumbsDown, FaRegThumbsUp, FaRegShareFromSquare } from "react-icons/fa6";
 
-import { FaThumbsUp, FaThumbsDown, FaShareAlt } from 'react-icons/fa';
-import { BiComment } from 'react-icons/bi';
+import { FaRegComment } from 'react-icons/fa';
 
 export default function ForumPost() {
   const router = useRouter();
@@ -85,6 +85,14 @@ export default function ForumPost() {
 
     fetchPost();
   }, [router.isReady, slug]);
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
 
   const handleUpvote = async () => {
     const newVotes = votes + 1;
@@ -205,8 +213,7 @@ export default function ForumPost() {
                 </div>
               )}
               <span>{post.forum_categories.name}</span>
-              <span>{new Date(post.created_at).toLocaleDateString()}</span>
-              <span>{post.view_count || 0} views</span>
+              <span>{formatDate(post.created_at)}</span>
             </div>
           </header>
 
@@ -225,19 +232,19 @@ export default function ForumPost() {
 
           <div className={styles.postActions}>
             <button className={styles.actionButton} onClick={handleUpvote}>
-              <FaThumbsUp /> Upvote ({votes})
+              <FaRegThumbsUp /> Upvote ({votes})
             </button>
             <button className={styles.actionButton} onClick={handleDownvote}>
-              <FaThumbsDown /> Downvote
+              <FaRegThumbsDown /> Downvote
             </button>
             <button className={styles.actionButton} onClick={handleShare}>
-              <FaShareAlt /> Share
+              <FaRegShareFromSquare /> Share
             </button>
           </div>
         </article>
 
         <section className={styles.commentsSection}>
-          <h2><BiComment /> Comments ({comments.length})</h2>
+          <h2><FaRegComment /> Comments ({comments.length})</h2>
 
           {comments.length > 0 ? (
             <div className={styles.commentsList}>
@@ -256,7 +263,7 @@ export default function ForumPost() {
                       </div>
                     )}
                     <span className={styles.commentDate}>
-                      {new Date(comment.created_at).toLocaleString()}
+                      {formatDate(comment.created_at)}
                     </span>
                   </div>
 

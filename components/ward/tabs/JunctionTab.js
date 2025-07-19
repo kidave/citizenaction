@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import styles from '../../../styles/layout/junction.module.css';
-import { FaMapMarkerAlt } from "react-icons/fa";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaMapMarkerAlt, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useWard } from '../../../src/context/WardContext';
 import { Table, TableHeader, TableCell } from '../../shared';
 

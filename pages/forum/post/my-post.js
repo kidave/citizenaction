@@ -148,8 +148,8 @@ export default function MyPosts() {
                 <div className={styles.postMeta}>
                   <span className={styles.category}>{post.forum_categories?.name}</span>
                   <span className={styles.date}>{formatDate(post.created_at)}</span>
-                  <span className={styles.views}>👁 {post.view_count || 0} views</span>
-                  <span className={styles.comments}>💬 {post.post_count || 0} comments</span>
+                  <span className={styles.views}> {post.view_count || 0} views</span>
+                  <span className={styles.comments}> {post.post_count || 0} comments</span>
                 </div>
                 
                 {/* Display status feedback for all posts */}

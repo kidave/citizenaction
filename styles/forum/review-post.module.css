@@ -1,20 +1,17 @@
 .container {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  width: auto;
 }
 
 .main {
-  max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
-  width: 100%;
-  flex: 1;
+  padding: 16px;
 }
 
 .subtitle {
-  color: #666;
-  margin-bottom: 30px;
+  color: grey;
+  margin-bottom: 16px;
 }
 
 .noPosts {
@@ -27,21 +24,20 @@
 .postsList {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 16px;
 }
 
 .postCard {
   background: white;
   border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 16px;
 }
 
 .postHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
 }
 
 .postHeader h3 {
@@ -51,23 +47,23 @@
 
 .postDate {
   font-size: 0.85rem;
-  color: #666;
+  color: grey;
 }
 
 .postMeta {
   display: flex;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: 16px;
   font-size: 0.85rem;
-  color: #666;
-  margin-bottom: 15px;
+  color: grey;
+  margin-bottom: 16px;
 }
 
 .postDescription {
-  margin-bottom: 15px;
-  padding: 10px;
+  margin-bottom: 16px;
+  padding: 8px;
   background: #f8f9fa;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 .postActions {
@@ -80,7 +76,7 @@
   background: #0066cc;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 0.85rem;
   cursor: pointer;
 }
@@ -105,7 +101,7 @@
 .modalContent {
   background: white;
   border-radius: 8px;
-  padding: 30px;
+  padding: 32px;
   max-width: 800px;
   width: 90%;
   max-height: 90vh;
@@ -115,8 +111,8 @@
 
 .closeButton {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  top: 16px;
+  right: 16px;
   background: none;
   border: none;
   font-size: 1.5rem;
@@ -125,16 +121,16 @@
 }
 
 .postContent {
-  margin: 20px 0;
+  margin: 16px 0;
   line-height: 1.6;
 }
 
 .postContent p {
-  margin-bottom: 15px;
+  margin-bottom: 16px;
 }
 
 .postContent h3 {
-  margin: 20px 0 10px;
+  margin: 16px 0 8px;
 }
 
 .imageWrapper {

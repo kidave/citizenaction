@@ -131,16 +131,48 @@ export default function NewPost() {
               class: ImageTool,
               config: {
                 uploader: {
-                  async uploadByFile(file) {
-                    const fileName = `posts/${Date.now()}-${file.name}`;
-                    const { data, error } = await supabase.storage
-                      .from('forum-images')
-                      .upload(fileName, file);
-                    if (error) return { success: 0 };
-                    const { data: { publicUrl } } = supabase.storage
-                      .from('forum-images')
-                      .getPublicUrl(data.path);
-                    return { success: 1, file: { url: publicUrl } };
+                  uploadByFile: async (file) => {
+                    try {
+                      setLoading(true);
+                      // Generate unique filename
+                      const fileName = `posts/${user.id}/${Date.now()}-${file.name}`;
+                      
+                      // Upload the file
+                      const { data: uploadData, error: uploadError } = await supabase.storage
+                        .from('forum-images')
+                        .upload(fileName, file, {
+                          cacheControl: '3600',
+                          upsert: false
+                        });
+
+                      if (uploadError) {
+                        console.error('Upload error:', uploadError);
+                        throw uploadError;
+                      }
+
+                      // Get public URL
+                      const { data: { publicUrl } } = supabase.storage
+                        .from('forum-images')
+                        .getPublicUrl(uploadData.path);
+
+                      return {
+                        success: 1,
+                        file: {
+                          url: publicUrl
+                        }
+                      };
+                    } catch (error) {
+                      console.error('Image upload failed:', error);
+                      setError('Failed to upload image. Please try again.');
+                      return {
+                        success: 0,
+                        error: {
+                          message: error.message
+                        }
+                      };
+                    } finally {
+                      setLoading(false);
+                    }
                   }
                 }
               }
@@ -213,15 +245,12 @@ export default function NewPost() {
       localStorage.setItem('forumPostDraft', JSON.stringify(draft));
     }
   }, [title, description, categoryId, regionCode, cityCode, divisionCode, wardCode, editorData, user]);
-
+    
   const saveAsDraft = async () => {
     if (!hasContent()) {
       setError('Nothing to save - your draft is empty');
       return;
     }
-
-    setIsDraftSaving(true);
-    setError(null);
     try {
       const content = editorRef.current ? await editorRef.current.save() : editorData;
       const draft = { 
@@ -236,12 +265,11 @@ export default function NewPost() {
       };
       
       localStorage.setItem('forumPostDraft', JSON.stringify(draft));
-      setIsDraftSaved(true);
-      setTimeout(() => setIsDraftSaved(false), 3000);
+      
+      alert('Draft saved successfully!');
     } catch (err) {
-      setError('Failed to save draft content.');
-    } finally {
-      setIsDraftSaving(false);
+      setError('Failed to save draft.');
+      console.error('Draft save error:', err);
     }
   };
 
@@ -285,6 +313,8 @@ export default function NewPost() {
       setError("Failed to generate preview.");
     }
   };
+
+  
 
   const handleSubmit = async (e) => {
     e?.preventDefault();
@@ -424,8 +454,7 @@ export default function NewPost() {
               <button 
                 type="button" 
                 onClick={saveAsDraft}
-                className={styles.draftButton} 
-                disabled={loading || isDraftSaving}
+                className={styles.draftButton}
               >
                 {isDraftSaving ? 'Saving...' : 'Save Draft'}
               </button>

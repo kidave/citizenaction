@@ -69,17 +69,13 @@ export default function PostReview() {
     }
   };
 
-  const handleAction = async (id, action) => {
+  const handleAction = async (id, action, notes = null) => {
     try {
-      if (action === 'Rejected' && !moderatorNotes.trim()) {
-        throw new Error('Please provide moderator notes when rejecting a post');
-      }
-
       const { error } = await supabase
         .from('forum_topics')
         .update({ 
           status: action,
-          moderator_notes: action === 'Rejected' ? moderatorNotes : null,
+          moderator_notes: notes,
           moderator_id: user.id,
           updated_at: new Date().toISOString()
         })
@@ -87,7 +83,6 @@ export default function PostReview() {
 
       if (error) throw error;
 
-      // Refresh the posts list
       await fetchPendingPosts();
       setSelectedPost(null);
       setModeratorNotes("");
@@ -214,61 +209,59 @@ export default function PostReview() {
           >
             <div className={styles.modalActions}>
               <div className={styles.notesSection}>
-                <label htmlFor="moderatorNotes">
-                  {confirmAction === 'Rejected' 
-                    ? "Please confirm rejection with notes:" 
-                    : "Moderator Notes (required for rejection):"}
-                </label>
+                <label htmlFor="moderatorNotes">Moderator Notes (optional):</label>
                 <textarea
                   id="moderatorNotes"
                   value={moderatorNotes}
                   onChange={(e) => setModeratorNotes(e.target.value)}
-                  placeholder="Provide feedback if rejecting..."
+                  placeholder="Optional feedback for the author"
                   className={styles.notesInput}
-                  required={confirmAction === 'Rejected'}
                 />
               </div>
               
               <div className={styles.actionButtons}>
-                {confirmAction !== 'Approved' && (
-                  <button
-                    onClick={() => {
-                      if (moderatorNotes.trim() || confirmAction !== 'Rejected') {
-                        setConfirmAction('Approved');
-                      }
-                    }}
-                    className={styles.approveButton}
-                  >
-                    {confirmAction === 'Rejected' ? 'Cancel Rejection' : 'Approve Post'}
-                  </button>
+                {/* Initial action buttons */}
+                {!confirmAction && (
+                  <>
+                    <button
+                      onClick={() => setConfirmAction('Approved')}
+                      className={styles.approveButton}
+                    >
+                      Approve Post
+                    </button>
+                    <button
+                      onClick={() => setConfirmAction('Rejected')}
+                      className={styles.rejectButton}
+                    >
+                      Reject Post
+                    </button>
+                  </>
                 )}
-                
-                {confirmAction !== 'Rejected' && (
-                  <button
-                    onClick={() => setConfirmAction('Rejected')}
-                    className={styles.rejectButton}
-                  >
-                    Reject Post
-                  </button>
-                )}
-                
-                {confirmAction === 'Approved' && (
-                  <button
-                    onClick={() => handleAction(selectedPost.id, "Approved")}
-                    className={styles.confirmButton}
-                  >
-                    Confirm Approval
-                  </button>
-                )}
-                
-                {confirmAction === 'Rejected' && (
-                  <button
-                    onClick={() => handleAction(selectedPost.id, "Rejected")}
-                    className={styles.confirmButton}
-                    disabled={!moderatorNotes.trim()}
-                  >
-                    Confirm Rejection
-                  </button>
+
+                {/* Confirmation view */}
+                {confirmAction && (
+                    <div className={styles.actionButtons}>
+                      <button
+                        onClick={() => setConfirmAction(null)}
+                        className={styles.rejectButton}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => handleAction(
+                          selectedPost.id, 
+                          confirmAction, 
+                          moderatorNotes.trim() || null
+                        )}
+                        className={
+                          confirmAction === 'Approved' 
+                            ? styles.confirmButton 
+                            : styles.confirmButton
+                        }
+                      >
+                        Confirm {confirmAction}
+                      </button>
+                    </div>
                 )}
               </div>
             </div>

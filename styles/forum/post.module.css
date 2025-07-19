@@ -1,20 +1,15 @@
 /* post.module.css - Enhanced version */
 .container {
-  min-height: 100vh;
-  display: flex;
   flex-direction: column;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
+  width: 100%;
+  display: flex;
 }
 
 .postContainer {
-  flex: 1;
-  padding: 30px 0;
+  padding: 30px;
 }
 
 .breadcrumbs {
-  margin-bottom: 20px;
   font-size: 0.9rem;
   color: #666;
 }
