@@ -1,25 +1,41 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import UpdateDetails from './UpdateDetails';
 import styles from '../../../../styles/layout/timeline.module.css';
+import { supabase } from '../../../../utils/supabaseClient';
 
 function formatDate(date) {
   if (!(date instanceof Date)) date = new Date(date);
   return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
 
-export default function TimelineItemUpdate({ item, autoExpand }) {
-  const [active, setActive] = useState(!!autoExpand);
+export default function TimelineItemUpdate({ item, isConvenor }) {
+  const [active, setActive] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    setActive(!!autoExpand);
-  }, [autoExpand]);
+  const handleSave = async (updatedItem) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('update')
+        .update(updatedItem)
+        .eq('id', item.id);
+
+      if (error) throw error;
+      setIsEditing(false);
+    } catch (err) {
+      console.error('Error updating update:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className={styles.timelineItemUpdate}>
       <div className={styles.centeredDate}
         onClick={() => setActive(!active)}
-        style={{ cursor: 'pointer' }} 
+        style={{ cursor: 'pointer' }}
       >
         {formatDate(item.date)}
       </div>
@@ -38,7 +54,14 @@ export default function TimelineItemUpdate({ item, autoExpand }) {
                 <h4 className={styles.timelineCardTitle}>{item.title}</h4>
                 <span className={styles.cardTypeBadge}>Update</span>
               </div>
-              <UpdateDetails item={item} />
+              <UpdateDetails
+                item={item}
+                isEditing={isEditing}
+                onEdit={() => setIsEditing(true)}
+                onSave={handleSave}
+                onCancel={() => setIsEditing(false)}
+                showEdit={isConvenor}
+              />
             </motion.div>
           )}
         </AnimatePresence>

@@ -2,9 +2,11 @@ import { useState } from 'react';
 import TimelineMeeting from './Timeline/TimelineMeeting';
 import TimelineUpdate from './Timeline/TimelineUpdate';
 import styles from '../../../styles/layout/timeline.module.css';
+import useConvenorCheck from '../../../src/hooks/useConvenorCheck';
 
 export default function TimelineTab({ timelines }) {
   const [filter, setFilter] = useState('meetings');
+  const { isConvenor, loading: convenorLoading } = useConvenorCheck();
 
   const meetings = timelines.filter(t => t.type === 'meeting');
   const updates = timelines.filter(t => t.type === 'update');
@@ -27,9 +29,17 @@ export default function TimelineTab({ timelines }) {
       </div>
 
       {filter === 'meetings' ? (
-        <TimelineMeeting meetings={meetings} />
+        <TimelineMeeting 
+          meetings={meetings} 
+          isConvenor={isConvenor} 
+          convenorLoading={convenorLoading} 
+        />
       ) : (
-        <TimelineUpdate updates={updates} />
+        <TimelineUpdate 
+          updates={updates} 
+          isConvenor={isConvenor} 
+          convenorLoading={convenorLoading} 
+        />
       )}
     </div>
   );

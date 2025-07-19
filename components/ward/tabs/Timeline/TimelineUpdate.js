@@ -1,7 +1,7 @@
 import TimelineItemUpdate from './TimelineItemUpdate';
 import styles from '../../../../styles/layout/timeline.module.css';
 
-export default function TimelineUpdate({ updates }) {
+export default function TimelineUpdate({ updates, isConvenor }) {
   if (updates.length === 0) {
     return <p className={styles.emptyTimeline}>No updates yet.</p>;
   }
@@ -12,7 +12,7 @@ export default function TimelineUpdate({ updates }) {
         <TimelineItemUpdate
           key={item.id}
           item={item}
-          autoExpand={index === 0}
+          isConvenor={isConvenor}
         />
       ))}
     </div>

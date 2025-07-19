@@ -1,10 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../utils/supabaseClient';
 
-function formatDiscussionPoints(discussion) {
-  if (!discussion) return [];
-  return discussion.split(/\d+\./).filter(point => point.trim()).map(point => point.trim());
-}
 
 export default function useWardTimeline(wardId, enabled = true) {
   const [timeline, setTimeline] = useState([]);
@@ -14,12 +10,12 @@ export default function useWardTimeline(wardId, enabled = true) {
 
   useEffect(() => {
     if (!wardId || !enabled) return;
+
     setLoading(true);
     setError(null);
 
     (async () => {
       try {
-        // ✅ Fetch convenor and co-convenor
         const { data: convenorData } = await supabase
           .from('committee')
           .select('*')
@@ -34,7 +30,6 @@ export default function useWardTimeline(wardId, enabled = true) {
           .is('is_co_convenor', true)
           .maybeSingle();
 
-        // ✅ Fetch ward name
         const { data: wardData, error: wardError } = await supabase
           .from('ward')
           .select('name')
@@ -43,7 +38,6 @@ export default function useWardTimeline(wardId, enabled = true) {
 
         if (wardError) throw wardError;
 
-        // ✅ Fetch meetings and updates
         const { data: meeting, error: meetingError } = await supabase
           .from('meeting')
           .select('*')
@@ -58,28 +52,27 @@ export default function useWardTimeline(wardId, enabled = true) {
 
         if (meetingError || updateError) throw meetingError || updateError;
 
-        // ✅ Combine timeline data
         const combinedData = [
           ...(meeting?.map(meeting => ({
-            id: `meeting-${meeting.id}`,
+            id: meeting.id,                     // ✅ integer for DB
+            key: `meeting-${meeting.id}`,      // ✅ string for React key
             type: 'meeting',
             date: new Date(meeting.date),
             title: meeting.title || 'Committee Meeting',
             location: meeting.location,
-            attendees: meeting.notable_attendees,
-            discussion: formatDiscussionPoints(meeting.discussion),
-            mood: meeting.mood_rating,
-            icon: '👥'
+            notable_attendees: meeting.notable_attendees,
+            discussion: meeting.discussion,
+            mood_rating: meeting.mood_rating,
           })) || []),
           ...(update?.map(update => ({
-            id: `update-${update.id}`,
+            id: update.id,
+            key: `update-${update.id}`,
             type: 'update',
             date: new Date(update.date),
             title: update.ward_name ? `${update.ward_name.trim()} Update` : 'Monthly Update',
             description: update.description,
             operation: update.operation,
             support: update.support,
-            icon: '📅'
           })) || [])
         ].sort((a, b) => b.date - a.date);
 
@@ -90,7 +83,6 @@ export default function useWardTimeline(wardId, enabled = true) {
           return [user.first_name, user.last_name].filter(Boolean).join(' ') || 'Not assigned';
         };
 
-        // ✅ Set wardInfo
         setWardInfo({
           wardName: wardData?.name || 'Unknown',
           convenor: formatName(convenorData),
