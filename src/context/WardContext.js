@@ -1,47 +1,85 @@
-// In WardContext.js
-
+// components/context/WardContext.js
 import { createContext, useContext, useMemo } from 'react';
 import { 
-  useWardTimeline, 
+  useWardInfo,
+  useWardMeetings,
+  useWardUpdates,
   useWardActions, 
   useWardMembers, 
   useWardRoads,
   useWardJunctions,
   useWardBoundary,
-  useWardProject
-} from '../hooks';
+  useWardProjects
+} from '../hooks/ward';
 
 const WardContext = createContext();
 
 export function WardProvider({ children, wardId }) {
-  // Destructure EVERY hook's result object
-  const { timeline, wardInfo: timelineWardInfo } = useWardTimeline(wardId, true);
-  const { members } = useWardMembers(wardId, true); // This returns { members: [...] }
-  const { roads } = useWardRoads(wardId); // This returns { roads: [...] }
-  const { actions } = useWardActions(wardId, true); // This returns { actions: [...] }
-  const { junctions, wardInfo: junctionsWardInfo } = useWardJunctions(wardId, true); // This returns { junctions: [...], wardInfo: {...} }
-  const { boundary } = useWardBoundary(wardId, true); // This returns { boundary: {...} }
-  const { projects } = useWardProject(wardId, true); // This returns { projects: [...] }
+  // Primary ward information hook
+  const { 
+    wardInfo, 
+    loading: infoLoading, 
+    error: infoError 
+  } = useWardInfo(wardId);
+  
+  // Data collection hooks
+  const { 
+    meetings, 
+    loading: meetingsLoading, 
+    error: meetingsError 
+  } = useWardMeetings(wardId);
+  
+  const { 
+    updates, 
+    loading: updatesLoading, 
+    error: updatesError 
+  } = useWardUpdates(wardId);
 
-  // Consolidate wardInfo from the most reliable source
-  const wardInfo = timelineWardInfo || junctionsWardInfo || {
-    wardName: 'Unknown',
-    convenor: 'Not assigned',
-    coConvenor: 'Not assigned'
-  };
+  // Secondary data hooks (lazy load when needed)
+  const { members } = useWardMembers(wardId);
+  const { roads } = useWardRoads(wardId);
+  const { actions } = useWardActions(wardId);
+  const { junctions } = useWardJunctions(wardId);
+  const { boundary } = useWardBoundary(wardId);
+  const { projects } = useWardProjects(wardId);
+
+  // Aggregate loading and error states
+  const loading = infoLoading || meetingsLoading || updatesLoading;
+  const error = infoError || meetingsError || updatesError;
 
   const contextValue = useMemo(() => ({
     wardId,
-    // Provide the actual data ARRAYS to the context, with fallbacks
-    timeline: timeline || [],
+    wardInfo: wardInfo || {
+      wardName: 'Unknown',
+      convenor: 'Not assigned',
+      convenorEmail: '',
+      coConvenor: 'Not assigned',
+      coConvenorEmail: ''
+    },
+    meetings: meetings || [],
+    updates: updates || [],
     members: members || [],
     roads: roads || [],
     actions: actions || [],
     junctions: junctions || [],
     boundary: boundary || null,
     projects: projects || [],
+    loading,
+    error,
+  }), [
+    wardId,
     wardInfo,
-  }), [wardId, timeline, members, roads, actions, junctions, boundary, projects, wardInfo]);
+    meetings,
+    updates,
+    members,
+    roads,
+    actions,
+    junctions,
+    boundary,
+    projects,
+    loading,
+    error
+  ]);
 
   return (
     <WardContext.Provider value={contextValue}>

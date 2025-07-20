@@ -47,6 +47,7 @@
 /* Center Line */
 .timelineWrapper {
   position: relative;
+  margin-top: 30px;
 }
 .timelineWrapper::before {
   content: '';
@@ -398,7 +399,7 @@
   z-index: 10;
   background: white;
   border-radius: 50%;
-  border: 3px solid skyblue;
+  border: 3px solid lightcoral;
   padding: 0.6rem;
   display: flex;
   flex-direction: column;
@@ -406,7 +407,7 @@
   justify-content: center;
   cursor: pointer;
   margin: 0 auto 2rem auto; /* center & space it */
-  color: #4caf50;
+  color: lightcoral;
   font-weight: bold;
   width: 2rem;
   height: 2rem;
@@ -416,12 +417,12 @@
 
 .addMeetingIconWrapper:hover {
   transform: scale(1.1);
-  color: #388e3c;
+  color: lightcoral;
 }
 
 .addMeetingIcon {
   font-size: 2rem;
-  color: skyblue;
+  color: lightcoral;
 }
 
 /* Text below the icon (optional) */

@@ -1,22 +1,20 @@
 // components/ward/WardSidebar.js
-
 import { useState, useEffect } from 'react';
 import styles from '../../styles/layout/sidebar.module.css';
 import { useRouter } from 'next/router';
 import { supabase } from '../../utils/supabaseClient';
-import { FaMap } from "react-icons/fa6";
-import { FaUsers, FaRoad } from "react-icons/fa";
+import { FaMap, FaUsers, FaRoad } from "react-icons/fa";
+import { FaTimeline } from "react-icons/fa6";
 import { BsFillSignIntersectionSideFill } from "react-icons/bs";
 import { TbTimelineEventFilled } from "react-icons/tb";
 import { PiMapPinAreaFill } from "react-icons/pi";
 import { MdAssignment } from "react-icons/md";
+import { useWardTabs, WARD_TABS } from '../../src/hooks/useWardTabs';
 
-
-export default function WardSidebar({ 
-  disabledTabs = []
-}) {
+export default function WardSidebar({ disabledTabs = [] }) {
   const router = useRouter();
-  const { wardId, tab: activeTab } = router.query;
+  const { wardId } = router.query;
+  const { activeTab, navigateToTab } = useWardTabs();
   const [isHovered, setIsHovered] = useState(false);
 
   // State for ward selection
@@ -25,7 +23,6 @@ export default function WardSidebar({
   const [currentDivision, setCurrentDivision] = useState(null);
   const [loadingDivisions, setLoadingDivisions] = useState(false);
   const [loadingWards, setLoadingWards] = useState(false);
-  const [wardsError, setWardsError] = useState(null);
 
   const isTabDisabled = (tab) => disabledTabs.includes(tab);
 
@@ -39,8 +36,7 @@ export default function WardSidebar({
           .select('code, name')
           .order('code', { ascending: true });
         if (error) throw error;
-        setDivisions(data);
-      } catch (err) {
+        setDivisions(data || []);
       } finally {
         setLoadingDivisions(false);
       }
@@ -48,7 +44,7 @@ export default function WardSidebar({
     fetchDivisions();
   }, []);
 
-  // Fetch division for the current wardId from the URL
+  // Fetch division for current ward
   useEffect(() => {
     if (!wardId) return;
 
@@ -60,22 +56,23 @@ export default function WardSidebar({
           .eq('code', wardId)
           .single();
 
-        if (error) throw error;
-        setCurrentDivision(data.division_code);
+        if (!error && data) {
+          setCurrentDivision(data.division_code);
+        }
       } catch (err) {
-        console.error('Error getting ward info:', err);
+        console.error('Error getting ward division:', err);
       }
     };
 
     fetchDivisionForWard();
   }, [wardId]);
 
-  // Fetch all wards within the current division
+  // Fetch wards for current division
   useEffect(() => {
     if (!currentDivision) return;
+    
     const fetchWards = async () => {
       setLoadingWards(true);
-      setWardsError(null);
       try {
         const { data, error } = await supabase
           .from('ward')
@@ -83,9 +80,7 @@ export default function WardSidebar({
           .eq('division_code', currentDivision)
           .order('name', { ascending: true });
         if (error) throw error;
-        setWards(data);
-      } catch (err) {
-        setWardsError(err.message);
+        setWards(data || []);
       } finally {
         setLoadingWards(false);
       }
@@ -95,21 +90,26 @@ export default function WardSidebar({
 
   const handleDivisionChange = (divisionCode) => {
     setCurrentDivision(divisionCode);
-    setWards([]); 
+    setWards([]);
   };
   
   const handleWardChange = (newWardId) => {
     if (newWardId) {
-        const currentTab = activeTab || 'timeline';
-        router.push(`/ward/${newWardId}/${currentTab}`);
+      router.push(`/ward/${newWardId}/${activeTab}`);
     }
   };
 
-  const handleTabClick = (tabName) => {
-    if (wardId) {
-      router.push(`/ward/${wardId}/${tabName}`);
-    }
-  };
+  const renderTabButton = (tabKey, icon, label) => (
+    <button
+      className={`${styles.tab} ${activeTab === tabKey ? styles.active : ''} ${isTabDisabled(tabKey) ? styles.disabled : ''}`}
+      onClick={() => navigateToTab(tabKey)}
+      title={label}
+      disabled={isTabDisabled(tabKey)}
+    >
+      {icon}
+      {isHovered && <span className={styles.tabText}>{label}</span>}
+    </button>
+  );
 
   return (
     <div 
@@ -155,78 +155,36 @@ export default function WardSidebar({
         </div>
 
         <div className={styles.dropdownWrapper}>
-          <PiMapPinAreaFill  className={styles.dropdownIcon} title="Ward" />
+          <PiMapPinAreaFill className={styles.dropdownIcon} title="Ward" />
           {isHovered && (
-             <select
-                  id="ward-select"
-                  value={wardId || ''}
-                  onChange={e => handleWardChange(e.target.value)}
-                  className={styles.dropdown}
-                  aria-label="Select Ward"
-                  disabled={!currentDivision || loadingWards}
-                >
-                  <option value="">Select Ward</option>
-                  {wards.map((ward) => (
-                    <option key={ward.code} value={ward.code}>
-                      {ward.name}
-                    </option>
-                  ))}
-                </select>
+            <select
+              id="ward-select"
+              value={wardId || ''}
+              onChange={e => handleWardChange(e.target.value)}
+              className={styles.dropdown}
+              aria-label="Select Ward"
+              disabled={!currentDivision || loadingWards}
+            >
+              <option value="">Select Ward</option>
+              {wards.map((ward) => (
+                <option key={ward.code} value={ward.code}>
+                  {ward.name}
+                </option>
+              ))}
+            </select>
           )}
         </div>
       </div>
 
       {/* Tabs */}
       <div className={styles.tabContainer}>
-        <button
-          className={`${styles.tab} ${activeTab === 'timeline' ? styles.active : ''}`}
-          onClick={() => handleTabClick('timeline')}
-          title="Timeline"
-        >
-          <TbTimelineEventFilled className={styles.tabIcon} />
-          {isHovered && <span className={styles.tabText}>Timeline</span>}
-        </button>
-        <button
-          className={`${styles.tab} ${activeTab === 'member' ? styles.active : ''}`}
-          onClick={() => handleTabClick('member')}
-          title="Member"
-        >
-          <FaUsers className={styles.tabIcon} />
-          {isHovered && <span className={styles.tabText}>Committee</span>}
-        </button>
-        <button
-          className={`${styles.tab} ${activeTab === 'project' ? styles.active : ''}`}
-          onClick={() => handleTabClick('project')}         
-          title="Project"
-        >
-          <MdAssignment className={styles.tabIcon} />
-          {isHovered && <span className={styles.tabText}>Project</span>}
-        </button>
-        <button
-          className={`${styles.tab} ${activeTab === 'road' ? styles.active : ''}`}
-          onClick={() => handleTabClick('road')}
-          title="Road"
-        >
-          <FaRoad className={styles.tabIcon} />
-          {isHovered && <span className={styles.tabText}>Routes Identified</span>}
-        </button>
-        <button
-          className={`${styles.tab} ${activeTab === 'junction' ? styles.active : ''}`}
-          onClick={() => handleTabClick('junction')}
-          title="Junction"
-        >
-          <BsFillSignIntersectionSideFill className={styles.tabIcon} />
-          {isHovered && <span className={styles.tabText}>Junction Design</span>}
-        </button>
-        <button
-          className={`${styles.tab} ${activeTab === 'action' ? styles.active : ''} ${isTabDisabled('action') ? styles.disabled : ''}`}
-          onClick={() => handleTabClick('action')}         
-          title="Action"
-          disabled={isTabDisabled('action')}
-        >
-          <MdAssignment className={styles.tabIcon} />
-          {isHovered && <span className={styles.tabText}>Actions Taken</span>}
-        </button>
+        {renderTabButton(WARD_TABS.MEETING, <FaTimeline className={styles.tabIcon} />, 'Meetings')}
+        {renderTabButton(WARD_TABS.UPDATE, <TbTimelineEventFilled className={styles.tabIcon} />, 'Updates')}
+        {renderTabButton(WARD_TABS.MEMBER, <FaUsers className={styles.tabIcon} />, 'Committee')}
+        {renderTabButton(WARD_TABS.PROJECT, <MdAssignment className={styles.tabIcon} />, 'Project')}
+        {renderTabButton(WARD_TABS.ROAD, <FaRoad className={styles.tabIcon} />, 'Routes Identified')}
+        {renderTabButton(WARD_TABS.JUNCTION, <BsFillSignIntersectionSideFill className={styles.tabIcon} />, 'Junction Design')}
+        {renderTabButton(WARD_TABS.ACTION, <MdAssignment className={styles.tabIcon} />, 'Actions Taken')}
       </div>
     </div>
   );

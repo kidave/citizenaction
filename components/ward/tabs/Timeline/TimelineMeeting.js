@@ -66,7 +66,7 @@ export default function TimelineMeeting({ meetings: initialMeetings }) {
             notable_attendees: '',
             discussion: '',
             mood_rating: 5,
-            date: new Date().toISOString().split('T')[0],
+            date: '',
             ward_code: wardId
           }}
           index={-1}
@@ -82,7 +82,7 @@ export default function TimelineMeeting({ meetings: initialMeetings }) {
       ) : (
         meetings.map((item, index) => (
           <TimelineItemMeeting
-            key={item.key || item.id}
+            key={item.id}
             item={item}
             index={index}
             isConvenor={isConvenor}

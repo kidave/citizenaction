@@ -15,7 +15,8 @@ function WardLayoutContent() {
   // Use the context to get all data. The provider is managing the hooks.
   const {
     wardInfo,
-    timeline,
+    meetings,
+    updates,
     members,
     actions,
     roads,
@@ -31,7 +32,8 @@ function WardLayoutContent() {
         <WardSidebar disabledTabs={['action']} />
         <WardContent
           activeTab={activeTab}
-          timeline={timeline}
+          meeting={meetings}
+          update={updates}
           action={actions}
           member={members}
           road={roads}

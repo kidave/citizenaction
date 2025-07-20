@@ -9,23 +9,50 @@ function formatDate(date) {
   return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
 
-export default function TimelineItemUpdate({ item, isConvenor }) {
-  const [active, setActive] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+export default function TimelineItemUpdate({
+  item,
+  index,
+  isConvenor,
+  isNew,
+  onCloseNew,
+  onSaveComplete
+}) {
+  const [active, setActive] = useState(isNew || index === 0);
+  const [isEditing, setIsEditing] = useState(isNew || false);
   const [loading, setLoading] = useState(false);
 
   const handleSave = async (updatedItem) => {
     try {
       setLoading(true);
-      const { error } = await supabase
-        .from('update')
-        .update(updatedItem)
-        .eq('id', item.id);
+
+      const payload = {
+        operation: updatedItem.operation,
+        description: updatedItem.description,
+        support: updatedItem.support,
+        ward_code: updatedItem.ward_code,
+        date: updatedItem.date || new Date().toISOString().split('T')[0]
+      };
+
+      let error;
+
+      if (updatedItem.id) {
+        ({ error } = await supabase
+          .from('update')
+          .update(payload)
+          .eq('id', updatedItem.id));
+      } else {
+        ({ error } = await supabase
+          .from('update')
+          .insert([payload]));
+      }
 
       if (error) throw error;
+
       setIsEditing(false);
+      if (onSaveComplete) onSaveComplete();
+      if (isNew && onCloseNew) onCloseNew();
     } catch (err) {
-      console.error('Error updating update:', err);
+      console.error('Error saving update:', err);
     } finally {
       setLoading(false);
     }
@@ -33,7 +60,8 @@ export default function TimelineItemUpdate({ item, isConvenor }) {
 
   return (
     <div className={styles.timelineItemUpdate}>
-      <div className={styles.centeredDate}
+      <div
+        className={styles.centeredDate}
         onClick={() => setActive(!active)}
         style={{ cursor: 'pointer' }}
       >
@@ -51,7 +79,6 @@ export default function TimelineItemUpdate({ item, isConvenor }) {
               className={`${styles.timelineCard} ${styles.updateCard}`}
             >
               <div className={styles.cardHeader}>
-                <h4 className={styles.timelineCardTitle}>{item.title}</h4>
                 <span className={styles.cardTypeBadge}>Update</span>
               </div>
               <UpdateDetails
@@ -59,7 +86,10 @@ export default function TimelineItemUpdate({ item, isConvenor }) {
                 isEditing={isEditing}
                 onEdit={() => setIsEditing(true)}
                 onSave={handleSave}
-                onCancel={() => setIsEditing(false)}
+                onCancel={() => {
+                  if (isNew && onCloseNew) onCloseNew();
+                  else setIsEditing(false);
+                }}
                 showEdit={isConvenor}
               />
             </motion.div>

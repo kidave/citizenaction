@@ -80,7 +80,7 @@ function Region() {
   };
 
   const goToWardDetail = (wardId) => {
-    router.push(`/ward/${wardId}/timeline`);
+    router.push(`/ward/${wardId}/meeting`);
   };
 
   return (

@@ -2,9 +2,25 @@ import { useState } from 'react';
 import styles from '../../../../styles/layout/timeline.module.css';
 import { FaEdit, FaSave, FaTimes } from 'react-icons/fa';
 
-function formatPoints(str) {
-  if (!str) return [];
-  return str.split(/\d+\.|\n/).filter(s => s.trim());
+function renderDiscussion(label, str) {
+  if (!str) return null;
+
+  const points =
+    Array.isArray(str) ? str : str.split('\n').filter(s => s.trim());
+
+  return (
+    <div className={styles.operationSection}>
+      <h5 className={styles.sectionTitle}>{label}</h5>
+      <ul className={styles.discussionList}>
+        {points.map((pt, i) => (
+          <li key={i} className={styles.discussionPoint}>
+            <span className={styles.bullet}>•</span>
+            {pt}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 export default function UpdateDetails({
@@ -26,10 +42,20 @@ export default function UpdateDetails({
     return (
       <div className={styles.updateDetails}>
         <div className={styles.formGroup}>
+          <label>Date</label>
+          <input
+            type="date"
+            name="date"
+            value={editedItem.date || ''}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className={styles.formGroup}>
           <label>Key Operations</label>
           <textarea
             name="operation"
-            value={editedItem.operation}
+            value={editedItem.operation || ''}
             onChange={handleChange}
             rows={4}
             className={styles.textarea}
@@ -40,7 +66,7 @@ export default function UpdateDetails({
           <label>Description</label>
           <textarea
             name="description"
-            value={editedItem.description}
+            value={editedItem.description || ''}
             onChange={handleChange}
             rows={4}
             className={styles.textarea}
@@ -51,7 +77,7 @@ export default function UpdateDetails({
           <label>Support Needed</label>
           <textarea
             name="support"
-            value={editedItem.support}
+            value={editedItem.support || ''}
             onChange={handleChange}
             rows={4}
             className={styles.textarea}
@@ -72,45 +98,9 @@ export default function UpdateDetails({
 
   return (
     <div className={styles.updateDetails}>
-      {item.operation && (
-        <div className={styles.operationSection}>
-          <h5 className={styles.sectionTitle}>Key Operations</h5>
-          <ul className={styles.discussionList}>
-            {formatPoints(item.operation).map((op, i) => (
-              <li key={i} className={styles.discussionPoint}>
-                <span className={styles.bullet}>•</span>
-                {op}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {item.description && (
-        <div className={styles.descriptionSection}>
-          <h5 className={styles.sectionTitle}>Description</h5>
-          <ul className={styles.discussionList}>
-            {formatPoints(item.description).map((desc, i) => (
-              <li key={i} className={styles.discussionPoint}>
-                <span className={styles.bullet}>•</span>
-                {desc}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {item.support && (
-        <div className={styles.supportSection}>
-          <h5 className={styles.sectionTitle}>Support Needed</h5>
-          <ul className={styles.discussionList}>
-            {formatPoints(item.support).map((sup, i) => (
-              <li key={i} className={styles.discussionPoint}>
-                <span className={styles.bullet}>•</span>
-                {sup}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {renderDiscussion('Key Operations', item.operation)}
+      {renderDiscussion('Description', item.description)}
+      {renderDiscussion('Support Needed', item.support)}
 
       {showEdit && (
         <div className={styles.editActions}>

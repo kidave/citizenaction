@@ -1,20 +1,93 @@
+import { useState, useEffect } from 'react';
 import TimelineItemUpdate from './TimelineItemUpdate';
 import styles from '../../../../styles/layout/timeline.module.css';
+import { useWard } from '../../../../src/context/WardContext';
+import { useForum } from '../../../../src/context/ForumContext';
+import { supabase } from '../../../../utils/supabaseClient';
+import { FaUsers } from 'react-icons/fa';
 
-export default function TimelineUpdate({ updates, isConvenor }) {
-  if (updates.length === 0) {
-    return <p className={styles.emptyTimeline}>No updates yet.</p>;
-  }
+export default function TimelineUpdate({ updates: initialUpdates }) {
+  const { user } = useForum();
+  const { wardId } = useWard();
+
+  const [isConvenor, setIsConvenor] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [updates, setUpdates] = useState(initialUpdates);
+
+  useEffect(() => {
+    if (!user || !wardId) return;
+
+    const checkConvenor = async () => {
+      const { data } = await supabase
+        .from('profile')
+        .select('is_convenor, is_co_convenor, ward_code')
+        .eq('user_id', user.id)
+        .single();
+
+      setIsConvenor(
+        (data?.is_convenor || data?.is_co_convenor) &&
+        data?.ward_code === wardId
+      );
+    };
+
+    checkConvenor();
+  }, [user, wardId]);
+
+  const handleAddClick = () => {
+    setShowNew(true);
+  };
+
+  const refreshUpdates = async () => {
+    const { data, error } = await supabase
+      .from('update')
+      .select('*')
+      .eq('ward_code', wardId)
+      .order('date', { ascending: false });
+
+    if (!error) setUpdates(data || []);
+  };
 
   return (
     <div className={styles.timelineWrapper}>
-      {updates.map((item, index) => (
+      {isConvenor && (
+        <div className={styles.addMeetingIconWrapper} onClick={handleAddClick}>
+          <FaUsers className={styles.addMeetingIcon} />
+          <div className={styles.addMeetingText}>Add Update</div>
+        </div>
+      )}
+
+      {showNew && (
         <TimelineItemUpdate
-          key={item.id}
-          item={item}
+          key="new-update"
+          item={{
+            id: null,
+            operation: '',
+            description: '',
+            support: '',
+            date: '',
+            ward_code: wardId
+          }}
+          index={-1}
           isConvenor={isConvenor}
+          isNew
+          onCloseNew={() => setShowNew(false)}
+          onSaveComplete={refreshUpdates}
         />
-      ))}
+      )}
+
+      {updates.length === 0 && !showNew ? (
+        <p className={styles.emptyTimeline}>No updates yet.</p>
+      ) : (
+        updates.map((item, index) => (
+          <TimelineItemUpdate
+            key={item.id}
+            item={item}
+            index={index}
+            isConvenor={isConvenor}
+            onSaveComplete={refreshUpdates}
+          />
+        ))
+      )}
     </div>
   );
 }
