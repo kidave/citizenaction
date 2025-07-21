@@ -1,3 +1,7 @@
+/* =============================
+    HEADER (desktop & mobile)
+   ============================= */
+
 .header {
   position: sticky;
   top: 0;
@@ -5,7 +9,7 @@
   width: 100%;
 }
 
-
+/* Top black bar */
 .topBar {
   background-color: black;
   color: white;
@@ -27,15 +31,14 @@
   color: white;
   border: 0.05rem solid white;
   cursor: pointer;
-  align-items: center;
-  justify-content: center;
   font-size: 1rem;
   padding: 8px 28px;
   border-radius: 5px;
 }
 
+/* Yellow bar */
 .bottomBar {
-  background:#fcc700;
+  background: #fcc700;
   padding: 8px;
   display: flex;
   justify-content: space-between;
@@ -47,7 +50,24 @@
   font-size: 1.25rem;
 }
 
-.nav {
+/* Logo section */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  height: 40px;
+  margin-left: 10px;
+}
+
+.logoButton {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* Desktop Navigation */
+.desktopNav {
   display: flex;
   gap: 1rem;
   align-items: center;
@@ -64,25 +84,7 @@
   font-size: 1rem;
 }
 
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  width: fit-content;
-  height: 40px;
-  object-fit: contain;
-  margin-left: 10px;
-}
-
-
-.logoButton {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-}
-
+/* Dropdown */
 .dropdown {
   position: relative;
 }
@@ -92,7 +94,7 @@
   position: absolute;
   top: 100%;
   left: 0;
-  background-color: white;
+  background: white;
   border: 1px solid #ccc;
   z-index: 999;
   min-width: 180px;
@@ -114,6 +116,114 @@
   background-color: #f0f0f0;
 }
 
+/* Profile */
+.profileWrapper {
+  position: relative;
+  cursor: pointer;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #ccc;
+}
+
+.profileDropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  min-width: 120px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  z-index: 10;
+}
+
+.profileDropdown .dropdownItem {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.profileDropdown .dropdownItem:hover {
+  background: #f4f4f4;
+}
+
+/* Mobile Hamburger & Sidebar */
+.mobileMenuButton {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.mobileOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 1001;
+}
+
+.mobileSidebar {
+  background: white;
+  width: 200px;
+  max-width: 80%;
+  height: 100%;
+  padding: 1rem;
+  overflow-y: auto;
+  box-shadow: 2px 0 6px rgba(0,0,0,0.2);
+  animation: slideIn 0.3s ease forwards;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  margin-bottom: 1rem;
+  cursor: pointer;
+}
+
+.mobileNavContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mobileNavItem {
+  padding: 0.5rem 0;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.mobileNavItem:hover {
+  background: #f9f9f9;
+}
+
+.mobileNavSection {
+  margin-top: 1rem;
+}
+
+.mobileNavSubItem {
+  padding: 0.4rem 1rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.mobileNavSubItem:hover {
+  background: #f4f4f4;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+
+/* =============================
+     WARD HEADER 
+   ============================= */
 
 .wardHeader {
   background: linear-gradient(135deg, gold 0%, #fcc700 100%);
@@ -122,7 +232,6 @@
   justify-content: space-between;
   color: white;
 }
-
 
 .wardInfo h2 {
   margin: 0;
@@ -147,79 +256,7 @@
   color: black;
 }
 
-/* Responsive Styles */
-@media (max-width: 768px) {
-  .outcomeHeader {
-    flex-direction: column;
-    text-align: center;
-    gap: 1.5rem;
-  }
-  
-  .wardInfo h2::after {
-    left: 50%;
-    transform: translateX(-50%);
-  }
-  
-  .wardTitle {
-    text-align: center;
-  }
-  
-  .leadership {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  
-  .bottomBar {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 1rem;
-  }
-
-  .nav {
-    display: flex;
-    flex-direction: row;
-    overflow-x: auto;
-    white-space: nowrap;
-    gap: 0.75rem;
-    padding: 0.5rem 0;
-    width: 100%;
-  }
-
-  .navButton {
-    flex: 0 0 auto;
-  }
-
-  .dropdown {
-    position: relative;
-    display: inline-block;
-  }
-
-  .dropdownContent {
-    max-height: 300px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.3);
-  }
-
-
-  .dropdownItem {
-    padding: 0.4rem 0;
-  }
-
-  .logo {
-    margin-left: 0;
-    justify-content: center;
-  }
-
-  .bottomBarText {
-    font-size: 1rem;
-    text-align: center;
-    margin-top: 0.5rem;
-  }
-}
-
-
+/* Leadership Section */
 .leadership {
   display: flex;
   color: black;
@@ -269,53 +306,86 @@
   max-width: 200px;
 }
 
-/* Responsive Styles */
+
+/* =============================
+     Responsive
+   ============================= */
+
 @media (max-width: 768px) {
+  /* Header mobile */
+  .desktopNav {
+    display: none;
+  }
+  .mobileMenuButton {
+    display: block;
+  }
+
+  .bottomBar {
+    flex-direction: row;
+    align-items: center;
+    padding: 1rem;
+  }
+
+  .nav {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    white-space: nowrap;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    width: 100%;
+  }
+
+  .navButton {
+    flex: 0 0 auto;
+  }
+
+  .dropdown {
+    display: inline-block;
+  }
+
+  .dropdownContent {
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: 0px 2px 8px rgba(0,0,0,0.3);
+  }
+
+  .dropdownItem {
+    padding: 0.4rem 0;
+  }
+
+  .logo {
+    margin-left: 0;
+    justify-content: center;
+  }
+
+  .bottomBarText {
+    font-size: 1rem;
+    text-align: center;
+    margin-top: 0.5rem;
+  }
+
+  /* WardHeader mobile */
+  .wardHeader {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+  }
+
+  .wardTitle {
+    text-align: center;
+  }
+
   .leadership {
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .leaderItem {
     gap: 0;
   }
-  
+
   .emailContainer {
     margin-left: 1.5rem;
   }
-}
-
-
-.profileWrapper {
-  position: relative;
-  cursor: pointer;
-}
-
-.avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid #ccc;
-}
-
-.profileDropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  min-width: 120px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  z-index: 10;
-}
-
-.profileDropdown .dropdownItem {
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-}
-
-.profileDropdown .dropdownItem:hover {
-  background: #f4f4f4;
 }

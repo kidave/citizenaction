@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Stepper, Step, StepLabel, StepContent } from '@mui/material';
+import { motion } from 'framer-motion';
 import styles from '../../../styles/layout/project.module.css';
 import ImageComparison from '../../shared/image/ImageComparison';
-
+import ImageStackPopup from '../../shared/image/ImageStackPopup';
 
 export default function ProjectTab({ projects }) {
   if (!projects || !Array.isArray(projects) || projects.length === 0) {
@@ -19,7 +19,9 @@ export default function ProjectTab({ projects }) {
 }
 
 function SingleProject({ project }) {
-  const [activeStep, setActiveStep] = useState(0);
+  const [popupImages, setPopupImages] = useState([]);
+  const [beforeIndex, setBeforeIndex] = useState(0);
+  const [afterIndex, setAfterIndex] = useState(0);
 
   const steps = [
     {
@@ -27,27 +29,29 @@ function SingleProject({ project }) {
       content: (
         <div>
           <h4>Community Talk & Committee Formation</h4>
-          <p>{project.setting || 'No rationale provided.'}</p>
-          <h4>Kickoff</h4>
           <p>{project.rationale || 'No rationale provided.'}</p>
         </div>
       ),
     },
     {
-      label: '2. Design Proposal',
+      label: 'Design Proposal',
       content: (
         <div>
           <h4>Proposed Improvements</h4>
           <p>{project.design_summary || 'No design summary available.'}</p>
-          <ImageComparison 
-            beforeImages={project.before_images || []}
-            afterImages={project.proposed_design_images || []}
-          />
+          {project.after_images?.length > 0 && (
+            <button
+              onClick={() => setPopupImages(project.after_images)}
+              className={styles.viewStackButton}
+            >
+              View Design
+            </button>
+          )}
         </div>
       ),
     },
     {
-      label: '3. Implementation & Progress',
+      label: 'Implementation & Progress',
       content: (
         <div>
           <h4>Work in Progress</h4>
@@ -56,26 +60,31 @@ function SingleProject({ project }) {
       ),
     },
     {
-      label: '4. Final Outcome',
+      label: 'Final Outcome',
       content: (
         <div>
           <h4>Transformation Complete</h4>
           <p>{project.end_date ? `Completed on ${project.end_date}` : 'Completion date not available.'}</p>
-          <ImageComparison 
+          <ImageComparison
             beforeImages={project.before_images || []}
-            afterImages={project.completed_images || []}
+            afterImages={project.proposed_design_images || []}
+            beforeIndex={beforeIndex}
+            afterIndex={afterIndex}
+            onBeforeIndexChange={setBeforeIndex}
+            onAfterIndexChange={setAfterIndex}
           />
+          
         </div>
-      )
-    }
+      ),
+    },
   ];
 
   return (
     <div className={styles.projectDetailContainer}>
       <div className={styles.projectHeader}>
-        <h1>{project.title || 'Untitled Project'}</h1>
+        <h1>{project.title}</h1>
         <span className={`${styles.statusBadge} ${styles[project.status]}`}>
-          {project.status?.replace('_', ' ') || 'Unknown'}
+          {project.status.replace('_', ' ')}
         </span>
       </div>
 
@@ -85,17 +94,28 @@ function SingleProject({ project }) {
 
       <div className={styles.workflowStepper}>
         <h3>Project Workflow</h3>
-        <Stepper activeStep={activeStep} orientation="vertical">
-          {steps.map((step, index) => (
-            <Step key={index}>
-              <StepLabel onClick={() => setActiveStep(index)} style={{ cursor: 'pointer' }}>
-                {step.label}
-              </StepLabel>
-              <StepContent>{step.content}</StepContent>
-            </Step>
-          ))}
-        </Stepper>
+        {steps.map((step, i) => (
+          <motion.div
+            key={i}
+            className={styles.stepContainer}
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.6, delay: i * 0.1 }}
+          >
+            <div className={styles.stepHeader}>
+              <span className={styles.stepNumber}>{i + 1}</span>
+              <span className={styles.stepLabel}>{step.label}</span>
+            </div>
+            <div className={styles.stepContent}>{step.content}</div>
+          </motion.div>
+        ))}
       </div>
+
+      <ImageStackPopup
+        images={popupImages}
+        onClose={() => setPopupImages([])}
+      />
     </div>
   );
 }

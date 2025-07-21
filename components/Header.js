@@ -1,7 +1,7 @@
 import styles from '../styles/layout/header.module.css';
 import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
-import { FiChevronDown } from 'react-icons/fi';
+import { FiChevronDown, FiMenu, FiX } from 'react-icons/fi';
 import { supabase } from '../utils/supabaseClient';
 
 export default function Header() {
@@ -10,6 +10,7 @@ export default function Header() {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [user, setUser] = useState(null);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     const getSession = async () => {
@@ -114,10 +115,10 @@ export default function Header() {
           >
             <img src="/wp_icon_sm.png" alt="Logo" className={styles.logo} />
           </button>
-          <span className={styles.bottomBarText}>Walking Project | Ward Committee Dashboard</span>
+          <span className={styles.bottomBarText}>Walking Project</span>
         </div>
 
-        <nav className={styles.nav}>
+        <nav className={styles.desktopNav}>
           {staticMenu.map((item) => (
             <button
               key={item.label}
@@ -193,6 +194,93 @@ export default function Header() {
             </div>
           )}
         </nav>
+        <button
+          className={styles.mobileMenuButton}
+          onClick={() => setMobileOpen(true)}
+        >
+          <FiMenu size={24} />
+        </button>
+        {mobileOpen && (
+          <div className={styles.mobileOverlay} onClick={() => setMobileOpen(false)}>
+            <div
+              className={styles.mobileSidebar}
+              onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
+            >
+              <button
+                className={styles.closeButton}
+                onClick={() => setMobileOpen(false)}
+              >
+                <FiX size={24} />
+              </button>
+
+              <div className={styles.mobileNavContent}>
+                {staticMenu.map((item) => (
+                  <div
+                    key={item.label}
+                    className={styles.mobileNavItem}
+                    onClick={() => {
+                      router.push(item.path);
+                      setMobileOpen(false);
+                    }}
+                  >
+                    {item.label}
+                  </div>
+                ))}
+
+                {Object.keys(dropdownItems).map((label) => (
+                  <div key={label} className={styles.mobileNavSection}>
+                    <strong>{label}</strong>
+                    {dropdownItems[label].map((sub) => (
+                      <div
+                        key={sub.label}
+                        className={styles.mobileNavSubItem}
+                        onClick={() => {
+                          router.push(sub.path);
+                          setMobileOpen(false);
+                        }}
+                      >
+                        {sub.label}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+
+                {!user ? (
+                  <div
+                    className={styles.mobileNavItem}
+                    onClick={() => {
+                      router.push('/login');
+                      setMobileOpen(false);
+                    }}
+                  >
+                    Login
+                  </div>
+                ) : (
+                  <>
+                    <div
+                      className={styles.mobileNavItem}
+                      onClick={() => {
+                        router.push('/profile');
+                        setMobileOpen(false);
+                      }}
+                    >
+                      My Profile
+                    </div>
+                    <div
+                      className={styles.mobileNavItem}
+                      onClick={() => {
+                        handleLogout();
+                        setMobileOpen(false);
+                      }}
+                    >
+                      Logout
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );
