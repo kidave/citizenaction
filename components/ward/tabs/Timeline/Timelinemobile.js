@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react';
-import TimelineItemUpdate from './TimelineItemUpdate';
+import TimelineItemMeeting from './TimelineItemMeeting';
 import styles from '../../../../styles/layout/timeline.module.css';
-import { useWard } from '../../../../src/context/WardContext';
 import { useForum } from '../../../../src/context/ForumContext';
 import { supabase } from '../../../../utils/supabaseClient';
-import { FaUsers, FaPlus } from 'react-icons/fa';
+import { useWard } from '../../../../src/context/WardContext';
+import { FaUsers } from 'react-icons/fa';
 
-export default function TimelineUpdate({ updates: initialUpdates }) {
+export default function TimelineMeeting({ meetings: initialMeetings }) {
   const { user } = useForum();
   const { wardId } = useWard();
 
   const [isConvenor, setIsConvenor] = useState(false);
   const [showNew, setShowNew] = useState(false);
-  const [updates, setUpdates] = useState(initialUpdates);
+  const [meetings, setMeetings] = useState(initialMeetings);
 
   useEffect(() => {
     if (!user || !wardId) return;
@@ -37,33 +37,35 @@ export default function TimelineUpdate({ updates: initialUpdates }) {
     setShowNew(true);
   };
 
-  const refreshUpdates = async () => {
+  const refreshMeetings = async () => {
     const { data, error } = await supabase
-      .from('update')
+      .from('meeting')
       .select('*')
       .eq('ward_code', wardId)
       .order('date', { ascending: false });
 
-    if (!error) setUpdates(data || []);
+    if (!error) setMeetings(data || []);
   };
 
   return (
     <div className={styles.timelineWrapper}>
       {isConvenor && (
         <div className={styles.addMeetingIconWrapper} onClick={handleAddClick}>
-          <FaPlus className={styles.addMeetingIcon} />
-          <div className={styles.addMeetingText}>Add Update</div>
+          <FaUsers className={styles.addMeetingIcon} />
+          <div className={styles.addMeetingText}>Add Meeting</div>
         </div>
       )}
 
       {showNew && (
-        <TimelineItemUpdate
-          key="new-update"
+        <TimelineItemMeeting
+          key="new-meeting"
           item={{
             id: null,
-            operation: '',
-            description: '',
-            support: '',
+            title: '',
+            location: '',
+            notable_attendees: '',
+            discussion: '',
+            mood_rating: 5,
             date: '',
             ward_code: wardId
           }}
@@ -71,20 +73,20 @@ export default function TimelineUpdate({ updates: initialUpdates }) {
           isConvenor={isConvenor}
           isNew
           onCloseNew={() => setShowNew(false)}
-          onSaveComplete={refreshUpdates}
+          onSaveComplete={refreshMeetings}
         />
       )}
 
-      {updates.length === 0 && !showNew ? (
-        <p className={styles.emptyTimeline}>No updates yet.</p>
+      {meetings.length === 0 && !showNew ? (
+        <p className={styles.emptyTimeline}>No meetings yet.</p>
       ) : (
-        updates.map((item, index) => (
-          <TimelineItemUpdate
+        meetings.map((item, index) => (
+          <TimelineItemMeeting
             key={item.id}
             item={item}
             index={index}
             isConvenor={isConvenor}
-            onSaveComplete={refreshUpdates}
+            onSaveComplete={refreshMeetings}
           />
         ))
       )}

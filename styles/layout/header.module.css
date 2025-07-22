@@ -365,27 +365,40 @@
     margin-top: 0.5rem;
   }
 
-  /* WardHeader mobile */
-  .wardHeader {
-    flex-direction: column;
-    text-align: center;
-    gap: 1.5rem;
-  }
+/* Mobile-specific WardHeader styles */
+.wardHeaderMobile {
+  background: #fcc700;
+  height: 5vh; /* 5% of viewport height */
+  min-height: 30px; /* minimum height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+}
 
-  .wardTitle {
-    text-align: center;
-  }
+.wardNameMobile {
+  margin: 0;
+  font-size: 1rem;
+  color: black;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
 
-  .leadership {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
+.wardHeaderMobile h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60%;
+}
 
-  .leaderItem {
-    gap: 0;
-  }
-
-  .emailContainer {
-    margin-left: 1.5rem;
-  }
+.wardTitleMobile p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: black;
+  font-weight: bold;
+}
 }

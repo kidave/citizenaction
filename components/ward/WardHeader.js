@@ -1,6 +1,7 @@
 // WardHeader.js
 import styles from '../../styles/layout/header.module.css';
 import { FaEnvelope } from 'react-icons/fa';
+import { useMediaQuery } from 'react-responsive';
 
 export default function WardHeader({ 
   wardName, 
@@ -10,8 +11,19 @@ export default function WardHeader({
   coConvenorEmail,
   showHeader = true 
 }) {
+  const isMobile = useMediaQuery({ maxWidth: 768 });
+  
   if (!showHeader) return null;
 
+  if (isMobile) {
+    return (
+      <div className={styles.wardHeaderMobile}>
+        <h3 className={styles.wardNameMobile}>{wardName} Ward</h3>
+      </div>
+    );
+  }
+
+  // Original desktop version
   return (
     <div className={styles.wardHeader}>
       <div className={styles.wardInfo}>
