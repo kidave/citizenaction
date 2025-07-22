@@ -1,0 +1,111 @@
+/* ================================
+   BOTTOM BAR (Mobile)
+================================ */
+
+.bottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: whitesmoke;
+  display: none;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 200;
+}
+
+.bottomBarButton {
+  text-align: center;
+  color: grey;
+  font-size: 12px;
+}
+
+.hamburgerButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: grey;
+}
+
+.hamburgerButton.active {
+  color: #fcc700;
+}
+
+.hamburgerDropdown {
+  position: absolute;
+  bottom: 60px;
+  right: 10px;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  z-index: 210;
+}
+
+.hamburgerDropdown button {
+  display: block;
+  padding: 8px 12px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* ================================
+   WARD MODAL
+================================ */
+
+.wardModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 300;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.wardModalContent {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  max-width: 300px;
+  width: 90%;
+}
+
+.wardModalContent select {
+  width: 100%;
+  margin: 8px 0;
+}
+
+.wardModalContent button {
+  width: 100%;
+  padding: 10px;
+  background: #fcc700;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+
+
+/* ================================
+   RESPONSIVE
+================================ */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .leftSidebar {
+    display: none;
+  }
+  .bottomBar {
+    display: flex;
+  }
+}

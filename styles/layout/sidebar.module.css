@@ -1,22 +1,25 @@
+/* ================================
+   SIDEBAR (Desktop)
+================================ */
+
 .leftSidebar {
-  background-color: white;
+  background: white;
   width: 70px;
   height: 100vh;
   position: fixed;
   left: 0;
   top: 0;
   transition: width 0.3s cubic-bezier(.4,0,.2,1);
-  border-right: 1px solid whitesmoke;
-  overflow: hidden;
+  border-right: 1px solid #eee;
   z-index: 100;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .leftSidebar.hovered {
   width: 250px;
 }
-
 
 .logoContainer {
   padding: 16px 0;
@@ -45,8 +48,6 @@
 .leftSidebar.hovered .logoText {
   opacity: 1;
 }
-
-
 
 .selector {
   padding: 16px 10px;
@@ -87,9 +88,6 @@
 .dropdown option {
   padding: 0.5rem;
 }
-
-
-
 
 .tabContainer {
   padding: 16px 0;

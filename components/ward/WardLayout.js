@@ -1,35 +1,31 @@
 // components/ward/WardLayout.js
 import { useState } from 'react';
-import { WardProvider, useWard } from '../../src/context/WardContext';
-import WardSidebar from './WardSidebar';
-import WardContent from './WardContent';
+import { useMediaQuery } from 'react-responsive';
 import styles from '../../styles/layout/container.module.css';
+import WardSidebar from './WardSidebar';
+import WardBottomBar from './WardBottomBar';
+import WardContent from './WardContent';
 import { useRouter } from 'next/router';
+import { useWard, WardProvider } from '../../src/context/WardContext';
 
-// A sub-component to fetch and render content, so it can be wrapped by the provider
 function WardLayoutContent() {
   const router = useRouter();
-  const { tab: activeTab } = router.query;
+  const { wardId, tab: activeTab } = router.query;
   const [selectedRoad, setSelectedRoad] = useState(null);
+  const isMobile = useMediaQuery({ maxWidth: 768 });
 
-  // Use the context to get all data. The provider is managing the hooks.
-  const {
-    wardInfo,
-    meetings,
-    updates,
-    members,
-    actions,
-    roads,
-    junctions,
-    projects,
-    loading,
-    error,
-  } = useWard();
+  const { wardInfo, meetings, updates, members, actions, roads, junctions, projects } = useWard();
+
+  const handleTabChange = (tab) => {
+    router.push(`/ward/${wardId}/${tab}`);
+  };
 
   return (
     <div className={styles.page}>
+      {/* Show sidebar only on desktop */}
+      {!isMobile && <WardSidebar disabledTabs={['action']} />}
+      
       <div className={styles.wardMain}>
-        <WardSidebar disabledTabs={['action']} />
         <WardContent
           activeTab={activeTab}
           meeting={meetings}
@@ -39,27 +35,30 @@ function WardLayoutContent() {
           road={roads}
           wardInfo={wardInfo}
           onRoadClick={setSelectedRoad}
-          loading={loading}
-          error={error}
           selectedRoad={selectedRoad}
           junction={junctions}
           project={projects}
         />
       </div>
+
+      {/* Show bottom bar only on mobile */}
+      {isMobile && (
+        <WardBottomBar 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange}
+          wardInfo={wardInfo}
+        />
+      )}
     </div>
   );
 }
 
-
-// The main export wraps everything in the provider
 export default function WardLayout() {
   const router = useRouter();
   const { wardId } = router.query;
 
-  if (!wardId) {
-    return <div>Loading Ward...</div>;
-  }
-  
+  if (!wardId) return <div>Loading Ward...</div>;
+
   return (
     <WardProvider wardId={wardId}>
       <WardLayoutContent />
