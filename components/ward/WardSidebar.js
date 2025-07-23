@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import styles from '../../styles/layout/sidebar.module.css';
 import { useRouter } from 'next/router';
 import { supabase } from '../../utils/supabaseClient';
-import { FaMap, FaUsers, FaRoad } from "react-icons/fa";
+import { FaMap, FaUsers, FaRoad, FaUser } from "react-icons/fa";
 import { FaTimeline } from "react-icons/fa6";
 import { BsFillSignIntersectionSideFill } from "react-icons/bs";
 import { TbTimelineEventFilled } from "react-icons/tb";
@@ -185,6 +185,16 @@ export default function WardSidebar({ disabledTabs = [] }) {
         {renderTabButton(WARD_TABS.ROAD, <FaRoad className={styles.tabIcon} />, 'Routes Identified')}
         {renderTabButton(WARD_TABS.JUNCTION, <BsFillSignIntersectionSideFill className={styles.tabIcon} />, 'Junction Design')}
         {renderTabButton(WARD_TABS.ACTION, <MdAssignment className={styles.tabIcon} />, 'Actions Taken')}
+      </div>
+      <div className={styles.profileButton}>
+        <button
+          className={`${styles.tab} ${router.pathname === '/profile' ? styles.active : ''}`}
+          onClick={() => router.push('/profile')}
+          title="Profile"
+        >
+          <FaUser className={styles.tabIcon} />
+          {isHovered && <span className={styles.tabText}>Profile</span>}
+        </button>
       </div>
     </div>
   );

@@ -54,7 +54,7 @@ export default function Form({ show, onClose, defaultWard, defaultRole }) {
         const sessionRes = await supabase.auth.getSession();
         if (!sessionRes.data.session) {
           alert("Please login to apply.");
-          router.push("/login");
+          router.push("/auth");
           handleClose();
           return;
         }
@@ -62,7 +62,7 @@ export default function Form({ show, onClose, defaultWard, defaultRole }) {
         const { data: { user: userData }, error: userError } = await supabase.auth.getUser();
         if (userError || !userData) {
           alert("Could not fetch user. Please re-login.");
-          router.push("/login");
+          router.push("/auth");
           handleClose();
           return;
         }

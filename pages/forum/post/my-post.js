@@ -20,7 +20,7 @@ export default function MyPosts() {
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
-          router.push('/login?returnTo=/forum/post/my-post');
+          router.push('/auth?returnTo=/forum/post/my-post');
           return;
         }
 

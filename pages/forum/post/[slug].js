@@ -300,7 +300,7 @@ export default function ForumPost() {
             <div className={styles.loginPrompt}>
               <p>
                 Please{' '}
-                <button onClick={() => router.push('/login')} className={styles.loginLink}>
+                <button onClick={() => router.push('/auth')} className={styles.loginLink}>
                   sign in
                 </button>{' '}
                 to post a comment.

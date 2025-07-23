@@ -11,7 +11,7 @@ export default function Callback() {
       const { data: { user }, error } = await supabase.auth.getUser();
 
       if (!user) {
-        router.push("/login");
+        router.push("/auth");
         return;
       }
 

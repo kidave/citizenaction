@@ -80,6 +80,7 @@ export default function WardBottomBar({
           <button onClick={() => handleTabChange('road')}>Road</button>
           <button onClick={() => handleTabChange('junction')}>Junction</button>
           <button onClick={handleShowForm}>Join Committee</button>
+          <button onClick={() => router.push('/profile')}>Profile</button>
         </div>
       )}
     </>

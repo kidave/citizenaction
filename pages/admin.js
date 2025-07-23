@@ -18,13 +18,13 @@ export default function AdminPage() {
       if (data?.user) {
         setUser(data.user);
       } else {
-        router.push("/login"); // or show a message
+        router.push("/auth"); 
       }
     });
   }, []);
 
   if (!user) {
-    return <p>🔒 Please log in to access the admin page…</p>;
+    return <p>Please log in to access the admin page…</p>;
   }
 
   return (

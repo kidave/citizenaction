@@ -9,7 +9,7 @@ import { useForum } from '../context/ForumContext';
  * @param {string} redirectTo - The path to redirect to if not logged in.
  * @returns {{user: object, loading: boolean}} The user object and loading state.
  */
-export default function useAuthCheck(redirectTo = '/login') {
+export default function useAuthCheck(redirectTo = '/auth') {
   const { user, loading } = useForum();
   const router = useRouter();
 

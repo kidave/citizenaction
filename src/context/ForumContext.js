@@ -39,7 +39,7 @@ export function ForumProvider({ children }) {
     login: () => {
       const returnTo = window.location.pathname;
       localStorage.setItem('returnTo', returnTo);
-      router.push('/login');
+      router.push('/auth');
     },
     logout: async () => {
       await supabase.auth.signOut();

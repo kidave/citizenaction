@@ -3,8 +3,30 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8fafc;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   padding: 1rem;
+}
+
+.authCard {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.authCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, #fcc700 30%, #f59e42 100%);
 }
 
 .loginCard {
@@ -65,22 +87,26 @@
 
 .googleButton {
   width: 100%;
-  padding: 0.75rem;
+  padding: 1rem;
   background: white;
   color: #1e293b;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-weight: 500;
+  border-radius: 12px;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s;
+  font-size: 1rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .googleButton:hover {
-  background: #f1f5f9;
+  background: #f8fafc;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 .error {
@@ -92,4 +118,47 @@
   font-size: 0.9rem;
 }
 
+.infoText {
+  margin-top: 2rem;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
 
+.backButton {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.existingUserNote {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: #64748b;
+  padding: 0.5rem;
+  background: #f1f5f9;
+  border-radius: 8px;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .authCard {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+  
+  .h1 {
+    font-size: 1.8rem;
+  }
+  
+  .logo {
+    height: 60px;
+  }
+}

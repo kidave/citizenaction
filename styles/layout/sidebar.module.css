@@ -31,7 +31,7 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 0 10px;
+  padding: 0 8px;
 }
 
 .logoIcon {
@@ -50,17 +50,17 @@
 }
 
 .selector {
-  padding: 16px 10px;
+  padding: 4px 8px;
   align-items: center;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .dropdownWrapper {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .dropdownIcon {
@@ -136,11 +136,46 @@
 
 .tabText {
   margin-left: 12px;
-  font-size: 14px;
+  font-size: 12px;
   opacity: 0;
   transition: opacity 0.2s ease;
 }
 
 .leftSidebar.hovered .tabText {
   opacity: 1;
+}
+
+.tabContainer {
+  padding: 16px 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tabContainer:hover {
+  overflow-y: auto;
+}
+
+.profileButton {
+  /* Position at bottom */
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  z-index: 10;
+  border-top: 1px solid #f1f5f9;
+}
+
+.profileButton .tab {
+  /* Style the profile button */
+  background: #f8fafc;
+  color: #475569;
+  border-radius: 0;
+  margin: 0;
+  width: 100%;
+}
+
+.profileButton .tab:hover {
+  background: #e2e8f0;
 }
