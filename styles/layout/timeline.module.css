@@ -287,7 +287,7 @@
   color: grey;
 }
 .bullet {
-  color: black;
+  color: grey;
   margin-right: 12px;
   margin-left: 6px;
   font-weight: bold;
@@ -546,73 +546,6 @@
   border-top: 1px solid #eee;
 }
 
-/* Discussion section */
-.discussionSection {
-  margin-top: 15px;
-}
-
-.discussionSection h5 {
-  margin: 0 0 8px 0;
-  font-size: 0.95rem;
-  color: #555;
-}
-
-.discussionList {
-  list-style: none;
-  padding-left: 0;
-  margin: 0;
-}
-
-.discussionPoint {
-  margin-bottom: 8px;
-  display: flex;
-  align-items: flex-start;
-  line-height: 1.5;
-  color: #333;
-  font-size: 0.95rem;
-}
-
-.bullet {
-  color: #fcc700;
-  margin-right: 8px;
-  font-weight: bold;
-  flex-shrink: 0;
-}
-
-/* Detail items */
-.detailItem {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 10px;
-  font-size: 0.95rem;
-  gap: 8px;
-}
-
-.detailItem span:first-child {
-  flex-shrink: 0;
-  font-size: 1.1rem;
-}
-
-/* Empty state */
-.emptyTimeline {
-  text-align: center;
-  padding: 30px 20px;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-}
-
-.emptyTimeline p:first-child {
-  font-size: 1.2rem;
-  color: #777;
-  font-weight: 500;
-  margin-bottom: 10px;
-}
-
-.emptyTimeline p:last-child {
-  color: #999;
-  font-size: 1rem;
-}
 
 /* Mobile optimizations */
 @media (max-width: 480px) {

@@ -368,12 +368,61 @@
 /* Mobile-specific WardHeader styles */
 .wardHeaderMobile {
   background: #fcc700;
-  height: 5vh; /* 5% of viewport height */
-  min-height: 30px; /* minimum height */
+  padding: 10px;
   display: flex;
-  align-items: center;
   justify-content: center;
+  width: 100%;
+}
+
+.dropdownRow {
+  display: flex;
+  gap: 8px;
+  width: 90%;
   padding: 0 10px;
+}
+
+.dropdownWrapper {
+  flex: 1;
+  min-width: 0; /* Prevent flex items from overflowing */
+}
+
+.dropdownContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.dropdown {
+  width: 100%;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  background: white;
+  font-size: 0.9rem;
+  height: 38px; /* Fixed height for alignment */
+}
+
+@media (max-width: 480px) {
+  .dropdown {
+    font-size: 0.8rem;
+    padding: 6px;
+  }
+
+  .dropdownRow {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 350px) {
+  .dropdown {
+    font-size: 0.7rem;
+  }
+  
+  .dropdown option {
+    font-size: 0.7rem;
+  }
 }
 
 .wardNameMobile {
