@@ -1,3 +1,4 @@
+// components/ward/WardBottomBar.js
 import { useState } from 'react';
 import styles from '../../styles/layout/bottombar.module.css';
 import { useRouter } from 'next/router';
@@ -11,6 +12,8 @@ import { useMediaQuery } from 'react-responsive';
 export default function WardBottomBar({
   activeTab,
   onTabChange,
+  wardInfo,
+  onShowForm = () => {} // Add default empty function
 }) {
   const router = useRouter();
   const [isHamburgerOpen, setIsHamburgerOpen] = useState(false);
@@ -23,6 +26,11 @@ export default function WardBottomBar({
 
   const handleHamburgerClick = () => {
     setIsHamburgerOpen(!isHamburgerOpen);
+  };
+
+  const handleShowForm = () => {
+    onShowForm();
+    setIsHamburgerOpen(false);
   };
 
   if (!isMobile) return null;
@@ -71,6 +79,7 @@ export default function WardBottomBar({
         <div className={styles.hamburgerDropdown}>
           <button onClick={() => handleTabChange('road')}>Road</button>
           <button onClick={() => handleTabChange('junction')}>Junction</button>
+          <button onClick={handleShowForm}>Join Committee</button>
         </div>
       )}
     </>

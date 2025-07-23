@@ -7,12 +7,14 @@ import WardBottomBar from './WardBottomBar';
 import WardContent from './WardContent';
 import { useRouter } from 'next/router';
 import { useWard, WardProvider } from '../../src/context/WardContext';
+import Form from '../../components/Form';
 
 function WardLayoutContent() {
   const router = useRouter();
   const { wardId, tab: activeTab } = router.query;
   const [selectedRoad, setSelectedRoad] = useState(null);
   const isMobile = useMediaQuery({ maxWidth: 768 });
+  const [showForm, setShowForm] = useState(false);
 
   const { wardInfo, meetings, updates, members, actions, roads, junctions, projects } = useWard();
 
@@ -22,7 +24,6 @@ function WardLayoutContent() {
 
   return (
     <div className={styles.page}>
-      {/* Show sidebar only on desktop */}
       {!isMobile && <WardSidebar disabledTabs={['action']} />}
       
       <div className={styles.wardMain}>
@@ -41,14 +42,19 @@ function WardLayoutContent() {
         />
       </div>
 
-      {/* Show bottom bar only on mobile */}
       {isMobile && (
         <WardBottomBar 
           activeTab={activeTab} 
           onTabChange={handleTabChange}
           wardInfo={wardInfo}
+          onShowForm={() => setShowForm(true)}
         />
       )}
+
+      <Form
+        show={showForm}
+        onClose={() => setShowForm(false)}
+      />
     </div>
   );
 }

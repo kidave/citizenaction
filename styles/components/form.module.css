@@ -53,13 +53,14 @@
   box-shadow: 0 4px 16px rgba(252,199,0,0.23);
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .applyFloatingBtn {
     bottom: 16px;
     right: 16px;
     width: 46px;
     height: 46px;
     font-size: 1.5rem;
+    display: none;
   }
 }
 
@@ -199,7 +200,7 @@
   outline: 2px solid #fcc700 !important;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .form {
     padding: 1.2rem 0.7rem;
     min-width: 0;

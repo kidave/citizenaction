@@ -4,15 +4,30 @@ import Region from "../components/Region";
 import Layout from "../components/Layout";
 import About from "../components/About";
 import Footer from "../components/Footer";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaInfoCircle, FaUserPlus } from "react-icons/fa";
 import styles from "../styles/layout/about.module.css";
 import Form from "../components/Form";
-import formStyles from '../styles/components/form.module.css'
+import formStyles from '../styles/components/form.module.css';
 
 function HomePage() {
   const [showAbout, setShowAbout] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // Only run on client side
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    // Initial check
+    checkMobile();
+    
+    // Add event listener for resize
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   return (
     <>
@@ -21,12 +36,12 @@ function HomePage() {
       </Head>
       <div className={styles.backgroundContainer}>
         <div className={styles.contentWrapper}>
-          <Metrics />
+          {!isMobile && <Metrics />}
           <Form
             show={showForm}
             onClose={() => setShowForm(false)}
           />
-          {!showForm && (
+          {!isMobile && !showForm && (
             <button
               className={formStyles.applyFloatingBtn}
               onClick={() => setShowForm(true)}
@@ -54,7 +69,6 @@ function HomePage() {
   );
 }
 
-// Wrap this page with the Layout
 HomePage.getLayout = function getLayout(page) {
   return <Layout>{page}</Layout>;
 };

@@ -3,10 +3,15 @@ import { supabase } from '../utils/supabaseClient';
 import styles from '../styles/components/card.module.css';
 import { FaChartBar, FaMapMarkedAlt, FaRoute, FaUsers, FaHandsHelping, FaRoad } from 'react-icons/fa';
 import { BsFillSignIntersectionSideFill } from "react-icons/bs";
+import { useMediaQuery } from 'react-responsive';
 
 function Metrics() {
   const [metrics, setMetrics] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
+
+  const isMobile = useMediaQuery({ maxWidth: 768 });
+
+  if (isMobile) return null;
 
   const metricIcons = {
     "active ward committees": FaMapMarkedAlt,
@@ -33,6 +38,8 @@ function Metrics() {
       setShowPopup(false);
     }
   };
+
+
 
   return (
     <>
