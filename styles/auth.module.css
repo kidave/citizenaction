@@ -6,6 +6,38 @@
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   padding: 1rem;
 }
+.authModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.authModal {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 400px;
+  position: relative;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.closeButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #64748b;
+}
 
 .authCard {
   background: white;
@@ -162,3 +194,4 @@
     height: 60px;
   }
 }
+

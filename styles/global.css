@@ -1,6 +1,50 @@
-body {
+/* global.css */
+:root {
+  --bg-gradient: 
+    /* Diagonal grid pattern */
+    repeating-linear-gradient(
+      45deg,
+      rgba(0, 0, 0, 0.05) 0,
+      rgba(0, 0, 0, 0.05) 1px,
+      transparent 1px,
+      transparent 20px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(0, 0, 0, 0.05) 0,
+      rgba(0, 0, 0, 0.05) 1px,
+      transparent 1px,
+      transparent 20px
+    ),
+    /* Light grid lines (optional) */
+    linear-gradient(to right, rgba(229,231,235,0.6) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(229,231,235,0.6) 1px, transparent 1px),
+    /* Radial light glows */
+    radial-gradient(circle 500px at 20% 80%, rgba(139,92,246,0.25), transparent),
+    radial-gradient(circle 500px at 80% 20%, rgba(59,130,246,0.25), transparent);
+}
+
+html, body {
+  height: 100%;
   margin: 0;
   padding: 0;
-  font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
-  background-color: white;
+}
+
+body {
+  position: relative;
+  background-color: #fafafa; /* matches your div background */
+}
+
+/* Main page background overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background-image: var(--bg-gradient);
+  background-size: 40px 40px, 40px 40px, auto, auto, auto, auto;
+  pointer-events: none;
 }

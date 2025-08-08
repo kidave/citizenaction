@@ -13,7 +13,7 @@ export default function WardContent({
   selectedRoad,
   project,
 }) {
-  const showHeader = ['meeting', 'update', 'project'].includes(activeTab);
+  const showHeader = ['meeting', 'update', 'project', 'road', 'junction', 'member'].includes(activeTab);
 
   const tabComponents = {
     meeting: <MeetingTab />,

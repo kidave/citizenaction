@@ -16,15 +16,10 @@ function HomePage() {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    // Only run on client side
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
     };
-    
-    // Initial check
     checkMobile();
-    
-    // Add event listener for resize
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
@@ -34,6 +29,7 @@ function HomePage() {
       <Head>
         <title>Walking Project</title>
       </Head>
+      
       <div className={styles.backgroundContainer}>
         <div className={styles.contentWrapper}>
           {!isMobile && <Metrics />}

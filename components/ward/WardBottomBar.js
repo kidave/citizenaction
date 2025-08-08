@@ -8,6 +8,7 @@ import { BsCardList } from "react-icons/bs";
 import { TbTimelineEvent } from "react-icons/tb";
 import { MdOutlineAssignment } from "react-icons/md";
 import { useMediaQuery } from 'react-responsive';
+import AuthModal from '../AuthModal';
 
 export default function WardBottomBar({
   activeTab,
@@ -17,6 +18,8 @@ export default function WardBottomBar({
 }) {
   const router = useRouter();
   const [isHamburgerOpen, setIsHamburgerOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const isMobile = useMediaQuery({ maxWidth: 768 });
 
   const handleTabChange = (tab) => {

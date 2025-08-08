@@ -3,24 +3,17 @@
   position: relative;
   width: 100%;
   min-height: 100vh;
-
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  background-repeat: no-repeat;
 }
 
 .contentWrapper {
   position: relative;
   z-index: 1;
-  background-color: rgba(255, 255, 255, 0.9); 
+  background-color: transparent; 
 }
 
 .about {
-  background: linear-gradient(90deg, #fffbe6 60%, #fcc70010 100%);
+  background: transparent;
   border-radius: 18px;
-  box-shadow: 0 4px 24px rgba(252, 199, 0, 0.07);
-  padding: 1rem 1rem 1rem 1rem;
   margin: 32px auto 32px auto;
   max-width: 80%;
   text-align: center;
@@ -105,7 +98,7 @@
   justify-content: center;
   gap: 0.5rem;
   margin-top: 1rem;
-  background: lightgoldenrodyellow;
+  background: radial-gradient(circle 500px at 50% 50%, rgba(151, 130, 200, 0.25), transparent);
   border-radius: 10px;
   padding: 0.5rem 1rem;
 }
