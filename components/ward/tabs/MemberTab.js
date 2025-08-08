@@ -1,4 +1,6 @@
-import styles from "../../../styles/components/card.module.css";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
+import styles from "../../../styles/components/membercard.module.css";
 import Image from "next/image";
 import { MdVolunteerActivism } from "react-icons/md";
 import {
@@ -15,11 +17,12 @@ import {
   FaStore,
   FaHome,
   FaChalkboardTeacher,
-  FaUserSecret
+  FaUserSecret,
+  FaChevronLeft,
+  FaChevronRight
 } from "react-icons/fa";
 import { FaXTwitter, FaUserDoctor } from "react-icons/fa6";
 import Form from '../../Form';
-import { useState } from 'react';
 import formStyles from '../../../styles/components/form.module.css';
 import { useWard } from '../../../src/context/WardContext';
 
@@ -33,99 +36,233 @@ const SOCIAL_ICONS = {
 };
 
 const STAKEHOLDER_ICONS = {
-  'Senior Citizen': <FaUserAlt className={styles.stakeholderIcon} />,
-  'Business Owner': <FaUserTie className={styles.stakeholderIcon} />,
-  'Civic Official': <FaUserSecret className={styles.stakeholderIcon} />,
-  'Student': <FaUserGraduate className={styles.stakeholderIcon} />,
-  'Person with Disability': <FaWheelchair className={styles.stakeholderIcon} />,
-  'Resident': <FaHome className={styles.stakeholderIcon} />,
-  'Street Vendor': <FaStore className={styles.stakeholderIcon} />,
-  'Volunteer': <MdVolunteerActivism className={styles.stakeholderIcon} />,
-  'Educator': <FaChalkboardTeacher className={styles.stakeholderIcon} />,
-  'Healthcare Worker': <FaUserDoctor className={styles.stakeholderIcon} />
+  'Senior Citizen': FaUserAlt,
+  'Business Owner': FaUserTie,
+  'Civic Official': FaUserSecret,
+  'Student': FaUserGraduate,
+  'Person with Disability': FaWheelchair,
+  'Resident': FaHome,
+  'Street Vendor': FaStore,
+  'Volunteer': MdVolunteerActivism,
+  'Educator': FaChalkboardTeacher,
+  'Healthcare Worker': FaUserDoctor
 };
 
 export default function MemberTab({ members }) {
   const [showForm, setShowForm] = useState(false);
   const { wardId } = useWard();
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const [sortedMembers, setSortedMembers] = useState([]);
+
+  // Sort members: Convenor → Co-convenor → Members
+  useEffect(() => {
+    const convenor = members.find(m => m.is_convenor);
+    const coConvenor = members.find(m => m.is_co_convenor);
+    const regularMembers = members.filter(m => !m.is_convenor && !m.is_co_convenor);
+    setSortedMembers([convenor, coConvenor, ...regularMembers].filter(Boolean));
+  }, [members]);
+
+  // Auto-rotate every 5 seconds
+  useEffect(() => {
+    if (sortedMembers.length <= 1) return;
+    const interval = setInterval(() => {
+      setDirection(1);
+      setActiveIndex(prev => (prev + 1) % sortedMembers.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [sortedMembers.length]);
 
   const getAvatarUrl = (avatarUrl) => {
-    // Return default if no avatar URL
     if (!avatarUrl) return '/user.png';
-    
-    // If it's already a full URL (Google OAuth or other external source)
-    if (avatarUrl.startsWith('http')) {
-      return avatarUrl;
-    }
-    
-    // For Supabase Storage paths
+    if (avatarUrl.startsWith('http')) return avatarUrl;
     return `https://gostxgfnoilfmybaohhx.supabase.co/storage/v1/object/public/profile/avatar/${avatarUrl}`;
   };
 
   const getRoleDisplay = (member) => {
-    if (member.is_convenor) return 'Convenor';
-    if (member.is_co_convenor) return 'Co-Convenor';
+    if (member?.is_convenor) return 'Convenor';
+    if (member?.is_co_convenor) return 'Co-Convenor';
     return 'Member';
   };
 
+  const getVisibleMembers = () => {
+    const count = sortedMembers.length;
+    if (count === 0) return [];
+    
+    return [
+      sortedMembers[(activeIndex - 2 + count) % count],
+      sortedMembers[(activeIndex - 1 + count) % count], // Left member
+      sortedMembers[activeIndex],                      // Center member (main card)
+      sortedMembers[(activeIndex + 1) % count],         // Right member
+      sortedMembers[(activeIndex + 2) % count]
+    ];
+  };
+
+  const paginate = (newDirection) => {
+    setDirection(newDirection);
+    setActiveIndex(prev => (prev + newDirection + sortedMembers.length) % sortedMembers.length);
+  };
+
   return (
-    <div className={styles.memberList}>
-      {members.length === 0 ? (
-        <p>
+    <div className={styles.cinematicContainer}>
+      {sortedMembers.length === 0 ? (
+        <p className={styles.emptyMessage}>
           Want to join the committee? Tap the <strong>Apply</strong> button at the bottom right, or email us at{' '} 
           <a href="mailto:info@walkingproject.org">info@walkingproject.org</a>.
         </p>
       ) : (
-        members.map((member) => (
-          <div key={member.member_id} className={styles.memberCard}>
-            <div className={styles.memberImageContainer}>
-              <Image
-                src={getAvatarUrl(member.avatar_url)}
-                alt={`${member.first_name} ${member.last_name || ''}`}
-                width={80}
-                height={80}
-                className={styles.memberImage}
-                priority
-                onError={(e) => {
-                  e.target.src = '/user.png';
-                  console.error('Failed to load avatar for member:', member.member_id);
-                }}
-              />
-            </div>
-            <h4 className={styles.memberDetail}>
-              {member.first_name}{member.last_name ? ` ${member.last_name}` : ''}
-            </h4>
-            <div className={styles.memberInfoContainer}>
-              <p className={styles.memberRole}>{getRoleDisplay(member)}</p>
-              {member.stakeholder_category && (
-                <div className={styles.memberCategory}>
-                  {STAKEHOLDER_ICONS[member.stakeholder_category] || <FaUserAlt className={styles.stakeholderIcon} />}
-                  <span>{member.stakeholder_category}</span>
-                </div>
-              )}
-              {member.designation && (
-                <p className={styles.memberInformation}>{member.designation}</p>
-              )}
-            </div>
-            <div className={styles.socialIcons}>
-              {member.social && Object.entries(member.social).map(([platform, url]) => {
-                const Icon = SOCIAL_ICONS[platform];
-                return Icon && url ? (
-                  <a 
-                    key={platform} 
-                    href={url} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    aria-label={platform} 
-                    className={platform}
-                  >
-                    <Icon />
-                  </a>
-                ) : null;
-              })}
-            </div>
+        <>
+          <div className={styles.backgroundRow}>
+            {getVisibleMembers().map((member, i) => {
+              if (i === 2 || !member) return null;
+              
+              const isLeftSide = i < 2;
+              const distanceFromCenter = isLeftSide ? 2 - i : i - 2;
+              const position = isLeftSide 
+                ? `${40 + (distanceFromCenter * 24)}%`  // Increased spacing for left side
+                : `${40 + (distanceFromCenter * 24)}%`; // Increased spacing for right side
+              
+              return (
+                <motion.div
+                  key={`bg-${member.member_id}-${i}`}
+                  className={styles.backgroundMember}
+                  style={{
+                    position: 'absolute',
+                    [isLeftSide ? 'left' : 'right']: position,
+                    zIndex: 4 - distanceFromCenter
+                  }}
+                  initial={{ 
+                    opacity: 0, 
+                    x: isLeftSide ? -100 : 100,
+                    scale: 0.9 - (distanceFromCenter * 0.1)
+                  }}
+                  animate={{ 
+                    opacity: 0.8 - (distanceFromCenter * 0.3),
+                    x: 0,
+                    scale: 0.9 - (distanceFromCenter * 0.1),
+                    filter: `blur(${distanceFromCenter}px)`
+                  }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <div className={styles.backgroundImageContainer}>
+                    <Image
+                      src={getAvatarUrl(member.avatar_url)}
+                      width={120 - (distanceFromCenter * 50)}
+                      height={120 - (distanceFromCenter * 50)}
+                      alt=""
+                      className={styles.backgroundImage}
+                    />
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
-        ))
+
+          {/* Main Card */}
+          <AnimatePresence mode="wait" custom={direction}>
+            {sortedMembers[activeIndex] && (
+              <motion.div
+                key={activeIndex}
+                className={styles.cinematicCard}
+                custom={direction}
+                variants={{
+                  enter: (direction) => ({
+                    x: direction > 0 ? 300 : -300,
+                    opacity: 0
+                  }),
+                  center: {
+                    x: 0,
+                    opacity: 1,
+                    transition: { duration: 0.5 }
+                  },
+                  exit: (direction) => ({
+                    x: direction < 0 ? 300 : -300,
+                    opacity: 0,
+                    transition: { duration: 0.5 }
+                  })
+                }}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={1}
+                onDragEnd={(e, { offset, velocity }) => {
+                  const swipe = Math.abs(offset.x) * velocity.x;
+                  if (swipe < -10000) {
+                    paginate(1);
+                  } else if (swipe > 10000) {
+                    paginate(-1);
+                  }
+                }}
+              >
+                <div className={styles.cinematicImageContainer}>
+                  <Image
+                    src={getAvatarUrl(sortedMembers[activeIndex].avatar_url)}
+                    alt={`${sortedMembers[activeIndex].first_name} ${sortedMembers[activeIndex].last_name || ''}`}
+                    width={180}
+                    height={180}
+                    className={styles.cinematicImage}
+                  />
+                </div>
+                <div className={styles.cinematicDetails}>
+                  <h3>{sortedMembers[activeIndex].first_name}{sortedMembers[activeIndex].last_name ? ` ${sortedMembers[activeIndex].last_name}` : ''}</h3>
+                  <div className={styles.cinematicRole}>
+                    <span>{getRoleDisplay(sortedMembers[activeIndex])}</span>
+                    {sortedMembers[activeIndex].stakeholder_category && (
+                      <div className={styles.cinematicCategory}>
+                        {(() => {
+                          const Icon = STAKEHOLDER_ICONS[sortedMembers[activeIndex].stakeholder_category];
+                          return Icon ? (
+                            <Icon className={styles.categoryIcon} />
+                          ) : (
+                            <FaUserAlt className={styles.categoryIcon} />
+                          );
+                        })()}
+                        <span>{sortedMembers[activeIndex].stakeholder_category}</span>
+                      </div>
+                    )}
+                  </div>
+                  {sortedMembers[activeIndex].designation && (
+                    <p className={styles.cinematicDesignation}>{sortedMembers[activeIndex].designation}</p>
+                  )}
+                  <div className={styles.cinematicSocial}>
+                    {sortedMembers[activeIndex].social && Object.entries(sortedMembers[activeIndex].social).map(([platform, url]) => {
+                      const Icon = SOCIAL_ICONS[platform];
+                      return Icon && url ? (
+                        <a 
+                          key={platform} 
+                          href={url} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          aria-label={platform}
+                          className={styles.socialLink}
+                        >
+                          <Icon />
+                        </a>
+                      ) : null;
+                    })}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Dots Indicator */}
+          <div className={styles.dotsContainer}>
+            {sortedMembers.map((_, i) => (
+              <button
+                key={i}
+                className={`${styles.dot} ${i === activeIndex ? styles.activeDot : ''}`}
+                onClick={() => {
+                  setDirection(i > activeIndex ? 1 : -1);
+                  setActiveIndex(i);
+                }}
+                aria-label={`Go to member ${i + 1}`}
+              />
+            ))}
+          </div>
+        </>
       )}
 
       <button 

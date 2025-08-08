@@ -224,13 +224,15 @@
 /* =============================
      WARD HEADER 
    ============================= */
-
+   
 .wardHeader {
-  background: linear-gradient(135deg, gold 0%, #fcc700 100%);
-  padding: 2rem;
+  background: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.08) 1px, transparent 0),
+              repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.02) 2px, rgba(0,0,0,0.02) 4px),
+              repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.02) 2px, rgba(0,0,0,0.02) 4px);
+  padding: 1rem;
   display: flex;
   justify-content: space-between;
-  color: white;
+  color: grey;
 }
 
 .wardInfo h2 {
@@ -287,12 +289,12 @@
 .emailIcon {
   font-size: 1rem;
   margin-right: 4px;
-  color: whitesmoke;
+  color: grey;
   transition: all 0.2s ease;
 }
 
 .emailLink:hover .emailIcon {
-  color: white;
+  color: black;
 }
 
 .emailText {
