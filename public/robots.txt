@@ -1,9 +1,4 @@
-# *
 User-agent: *
-Allow: /
+Disallow:
 
-# Host
-Host: https://walkingproject.vercel.app
-
-# Sitemaps
 Sitemap: https://walkingproject.vercel.app/sitemap.xml
