@@ -27,7 +27,13 @@ function HomePage() {
   return (
     <>
       <Head>
-        <title>Walking Project</title>
+        <title>Walking Project – Make Your City Walkable</title>
+        <meta name="description" content="Join the Walking Project to make your neighborhood more walkable, inclusive, and vibrant." />
+        <meta property="og:title" content="Walking Project" />
+        <meta property="og:description" content="Citizen-driven initiative for walkable neighborhoods." />
+        <meta property="og:image" content="/wp_text_logo.png" />
+        <meta property="og:type" content="website" />
+        <link rel="canonical" href="https://walkingproject.vercel.app/" />
       </Head>
       
       <div className={styles.backgroundContainer}>

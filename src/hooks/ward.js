@@ -7,5 +7,5 @@ export { default as useWardUpdates } from './useWardUpdates';
 export { default as useWardJunctions} from './useWardJunctions';
 export { default as useWardBoundary } from './useWardBoundary';
 export { default as useWardProjects } from './useWardProjects';
-export { default as useWardTabs } from './useWardTabs';
+export { useWardTabs, WARD_TABS } from './useWardTabs';
 export { default as useWardInfo } from './useWardInfo';

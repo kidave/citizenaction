@@ -1,3 +1,9 @@
-# https://www.robotstxt.org/robotstxt.html
+# *
 User-agent: *
-Disallow:
+Allow: /
+
+# Host
+Host: https://walkingproject.vercel.app
+
+# Sitemaps
+Sitemap: https://walkingproject.vercel.app/sitemap.xml
