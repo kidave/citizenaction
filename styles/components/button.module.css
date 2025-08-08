@@ -1,5 +1,5 @@
 .btnSmall {
-  background-color: white;
+  background-color: transparent;
   color: grey;
   border: none;
   border-radius: 8px;
@@ -10,13 +10,12 @@
 }
 
 .btnSmall:hover {
-  background-color: whitesmoke;
   transform: translateY(-5px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .btnSmall.active {
-  background-color: whitesmoke;
+  background-color: transparent;
   color: grey;
   font-weight: bold;
   transform: translateY(-1px);
@@ -26,7 +25,7 @@
 
 .btnMedium {
   border: none;
-  background-color: white;
+  background-color: transparent;
   border-radius: 10px;
   padding: 15px 30px;
   font-size: 1rem;
@@ -42,17 +41,17 @@
 }
 
 .btnMedium.active {
-  background-color: whitesmoke;
+  background-color: transparent;
   color: grey;
   font-weight: bold;
   transform: translateY(-1px);
   opacity: 1;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 
 .btnBig {
-  background-color: white;
+  background-color: transparent;
   border: none;
   color: grey;
   border-radius: 10px;
@@ -70,10 +69,10 @@
 }
 
 .btnBig.active {
-  background-color: whitesmoke;
+  background-color: transparent;
   transform: translateY(-1px);
   opacity: 1;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 

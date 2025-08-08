@@ -79,7 +79,7 @@ export default function Header() {
   };
 
   const staticMenu = [
-    { label: 'Home', path: 'https://www.walkingproject.org/home' },
+    { label: 'Home', path: 'https://www.walkingproject.org/walking-project' },
     { label: 'About us', path: 'https://www.walkingproject.org/about-us' },
   ];
 

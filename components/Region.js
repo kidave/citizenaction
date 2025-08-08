@@ -32,11 +32,31 @@ function Region() {
         console.error('Error fetching cities:', error.message);
       } else {
         setCities(data);
+
+        const activeCities = data.filter(city => !statusConfig[city.status]?.disabled);
+
+        if (activeCities.length === 1) {
+          const city = activeCities[0];
+          setSelectedCity(city.code);
+
+          const { data: divisionData, error: divisionError } = await supabase
+            .from('division')
+            .select('code, name')
+            .eq('city_code', city.code)
+            .order('code', { ascending: true });
+
+          if (divisionError) {
+            console.error('Error fetching divisions:', divisionError.message);
+            setDivisions([]);
+          } else {
+            setDivisions(divisionData);
+          }
+        }
       }
     };
 
-    fetchCities();
-  }, []);
+  fetchCities();
+}, []);
 
   // Fetch divisions when a city is selected
   const handleCityClick = async (cityId) => {
@@ -88,8 +108,6 @@ function Region() {
 
       {/* Section Titles with Icons */}
       <div className={containerStyles.sectionTitle}>
-        <FaCity className={containerStyles.sectionIcon} />
-        <span>Select Your City</span>
       </div>
       <div className={containerStyles.cityContainer}>
         {cities.map((city) => {

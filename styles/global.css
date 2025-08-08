@@ -20,8 +20,8 @@
     linear-gradient(to right, rgba(229,231,235,0.6) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(229,231,235,0.6) 1px, transparent 1px),
     /* Radial light glows */
-    radial-gradient(circle 500px at 20% 80%, rgba(139,92,246,0.25), transparent),
-    radial-gradient(circle 500px at 80% 20%, rgba(59,130,246,0.25), transparent);
+    radial-gradient(circle 500px at 20% 80%, rgba(220, 218, 111, 0.25), transparent),
+    radial-gradient(circle 500px at 80% 20%, rgba(239, 244, 173, 0.25), transparent);
 }
 
 html, body {
@@ -31,8 +31,9 @@ html, body {
 }
 
 body {
-  position: relative;
-  background-color: #fafafa; /* matches your div background */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 /* Main page background overlay */
@@ -47,4 +48,10 @@ body::before {
   background-image: var(--bg-gradient);
   background-size: 40px 40px, 40px 40px, auto, auto, auto, auto;
   pointer-events: none;
+}
+
+#__next {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
