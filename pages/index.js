@@ -34,6 +34,7 @@ function HomePage() {
         <meta property="og:image" content="/wp_text_logo.png" />
         <meta property="og:type" content="website" />
         <link rel="canonical" href="https://walkingproject.vercel.app/" />
+        <meta name="google-site-verification" content="xFeTRB7PfCuzivu7kWdkZldq7mkRsTcEvqSiKqYxfic" />
       </Head>
       
       <div className={styles.backgroundContainer}>
