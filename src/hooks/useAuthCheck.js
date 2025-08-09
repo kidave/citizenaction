@@ -1,6 +1,6 @@
 // context/AuthContext.js
 import { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '../utils/supabaseClient';
+import { supabase } from '../../utils/supabaseClient';
 import { useRouter } from 'next/router';
 
 const AuthContext = createContext();
