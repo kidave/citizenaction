@@ -6,7 +6,7 @@ import styles from '../styles/auth.module.css';
 import { FcGoogle } from 'react-icons/fc';
 import { FiArrowLeft } from 'react-icons/fi';
 
-export default function Auth() {
+export default function Auth({ onClose }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -15,8 +15,7 @@ export default function Auth() {
     setLoading(true);
     setError('');
     try {
-      // Save the current path so we can redirect back after login
-      const returnTo = window.location.pathname + window.location.search;
+      const returnTo = localStorage.getItem('returnTo') || '/';
       localStorage.setItem('returnTo', returnTo);
 
       const { error } = await supabase.auth.signInWithOAuth({
@@ -33,6 +32,11 @@ export default function Auth() {
     }
   };
 
+  const handleBack = () => {
+    const returnTo = localStorage.getItem('returnTo') || '/';
+    router.push(returnTo);
+  };
+
   return (
     <div className={styles.container}>
       <Head>
@@ -41,7 +45,7 @@ export default function Auth() {
 
       <div className={styles.authCard}>
         <button 
-          onClick={() => router.back()}
+          onClick={handleBack}
           className={styles.backButton}
         >
           <FiArrowLeft size={20} />

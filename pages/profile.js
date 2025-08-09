@@ -21,6 +21,8 @@ export default function Profile() {
     const fetchData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
+        // Store current path for redirect after login
+        localStorage.setItem('returnTo', router.asPath);
         router.push('/auth');
         return;
       }

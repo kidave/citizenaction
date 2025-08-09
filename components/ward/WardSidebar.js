@@ -10,8 +10,10 @@ import { TbTimelineEventFilled } from "react-icons/tb";
 import { PiMapPinAreaFill } from "react-icons/pi";
 import { MdAssignment } from "react-icons/md";
 import { useWardTabs, WARD_TABS } from '../../src/hooks/useWardTabs';
+import { useAuth } from '../../src/context/AuthContext';
 
 export default function WardSidebar({ disabledTabs = [] }) {
+  const { user } = useAuth();
   const router = useRouter();
   const { wardId } = router.query;
   const { activeTab, navigateToTab } = useWardTabs();
@@ -23,8 +25,9 @@ export default function WardSidebar({ disabledTabs = [] }) {
   const [currentDivision, setCurrentDivision] = useState(null);
   const [loadingDivisions, setLoadingDivisions] = useState(false);
   const [loadingWards, setLoadingWards] = useState(false);
-
+  
   const isTabDisabled = (tab) => disabledTabs.includes(tab);
+  
 
   // Fetch all divisions on mount
   useEffect(() => {
@@ -111,6 +114,15 @@ export default function WardSidebar({ disabledTabs = [] }) {
     </button>
   );
 
+  const handleProfileNavigation = () => {
+    if (!user) {
+      localStorage.setItem('returnTo', router.asPath);
+      router.push('/auth');
+      return;
+    }
+    router.push('/profile');
+  };
+
   return (
     <div 
       className={`${styles.leftSidebar} ${isHovered ? styles.hovered : ''}`}
@@ -189,7 +201,7 @@ export default function WardSidebar({ disabledTabs = [] }) {
       <div className={styles.profileButton}>
         <button
           className={`${styles.tab} ${router.pathname === '/profile' ? styles.active : ''}`}
-          onClick={() => router.push('/profile')}
+          onClick={handleProfileNavigation}
           title="Profile"
         >
           <FaUser className={styles.tabIcon} />

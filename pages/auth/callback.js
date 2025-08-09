@@ -1,7 +1,7 @@
-// pages/auth/callback.js
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../../utils/supabaseClient";
+import Spinner from '../../components/shared/Spinner';
 
 export default function Callback() {
   const router = useRouter();
@@ -15,7 +15,7 @@ export default function Callback() {
         return;
       }
 
-      // check if profile exists
+      // Check if profile exists
       const { data: existing } = await supabase
         .from("profile")
         .select("user_id")
@@ -23,7 +23,6 @@ export default function Callback() {
         .single();
 
       if (!existing) {
-        // create profile
         await supabase.from("profile").upsert([{
           user_id: user.id,
           first_name: user.user_metadata?.given_name || user.user_metadata?.full_name?.split(" ")[0] || '',
@@ -42,12 +41,16 @@ export default function Callback() {
         }], { onConflict: 'user_id' });
       }
 
-      const returnTo = router.query.next || '/';
+      // Redirect to original page or home
+      const returnTo = localStorage.getItem('returnTo') || '/';
+      localStorage.removeItem('returnTo');
       router.push(returnTo);
     };
 
     completeLogin();
   }, [router]);
 
-  return <div>Signing you in…</div>;
+  return <div className="loading-container">
+        <Spinner size="medium" />
+      </div>
 }

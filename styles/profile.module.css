@@ -1,6 +1,6 @@
 /* Updated profile styles */
 .container {
-  max-width: 800px;
+  width: 80%;
   margin: 0 auto;
   padding: 1rem;
   min-height: 100vh;
@@ -40,9 +40,14 @@
 }
 
 .profileCard {
-  background: white;
+  background-image:
+    linear-gradient(to right, rgba(229, 231, 235, 0.5) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(229, 231, 235, 0.5) 1px, transparent 1px);
+  background-size: 48px 48px, 48px 48px, 100% 100%, 100% 100%;
+  background-color: white;
+  
   border-radius: 16px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
   overflow: hidden;
 }
 
@@ -92,10 +97,10 @@
 }
 
 .detailCard {
-  background: #f8fafc;
+  background: white;
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .detailCard h3 {
