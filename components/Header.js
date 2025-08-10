@@ -2,37 +2,16 @@ import styles from '../styles/layout/header.module.css';
 import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import { FiChevronDown, FiMenu, FiX } from 'react-icons/fi';
-import { supabase } from '../utils/supabaseClient';
+import { useAuth } from '../src/context/AuthContext';
 
 export default function Header() {
   const router = useRouter();
+  // You already have the logout function from the context
+  const { user, profile, logout } = useAuth();
 
   const [openDropdown, setOpenDropdown] = useState(null);
-  const [user, setUser] = useState(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  useEffect(() => {
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        const { data: { user } } = await supabase.auth.getUser()
-        setUser(user)
-      }
-    }
-
-    getSession()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        supabase.auth.getUser().then(({ data: { user } }) => setUser(user))
-      } else {
-        setUser(null)
-      }
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
 
   const handleDropdownToggle = (label) => {
     setOpenDropdown(openDropdown === label ? null : label);
@@ -42,21 +21,14 @@ export default function Header() {
     setProfileOpen(!profileOpen);
   };
 
+  // --- THIS IS THE FIX ---
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error(error.message);
-    } else {
-      setUser(null);
-      setProfileOpen(false);
-      // If on a forum page, redirect to /forum, otherwise redirect to home
-      if (router.pathname.startsWith('/forum')) {
-        router.push('/forum');
-      } else {
-        router.push('/');
-      }
-    }
+    // Call the logout function from the context.
+    // It handles signing out, clearing state, and redirecting.
+    await logout();
+    setProfileOpen(false); // Close the dropdown after logout
   };
+  // -----------------------
 
   const dropdownItems = {
     'Activities + Projects': [
@@ -167,7 +139,7 @@ export default function Header() {
               onClick={toggleProfileDropdown}
             >
               <img
-                src={user.user_metadata?.avatar_url || "/user1.png"}
+                src={profile?.avatar_url || user.user_metadata?.avatar_url || "/user1.png"}
                 alt="avatar"
                 className={styles.avatar}
                 onError={(e) => {
@@ -204,7 +176,7 @@ export default function Header() {
           <div className={styles.mobileOverlay} onClick={() => setMobileOpen(false)}>
             <div
               className={styles.mobileSidebar}
-              onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
+              onClick={(e) => e.stopPropagation()}
             >
               <button
                 className={styles.closeButton}

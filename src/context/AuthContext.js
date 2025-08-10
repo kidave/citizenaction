@@ -7,58 +7,86 @@ const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  const fetchProfile = async (userId) => {
+    if (!userId) return null; // No user ID, no profile to fetch
+
+    const { data: profileData, error } = await supabase
+      .from('profile')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') { 
+      console.error('Error fetching profile:', error);
+      return null;
+    }
+    return profileData; // Will be null if no profile found (PGRST116)
+  };
+
   useEffect(() => {
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
+    const handleAuthStateChange = async (session) => {
+      setLoading(true);
+      const currentUser = session?.user || null;
+      setUser(currentUser);
+
+      if (currentUser) {
+        const userProfile = await fetchProfile(currentUser.id);
+        setProfile(userProfile);
+      } else {
+        setProfile(null);
+      }
       setLoading(false);
     };
 
-    getSession();
+    // Initial session check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      handleAuthStateChange(session);
+    });
 
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
+      console.log('Auth state changed:', event, session);
+      handleAuthStateChange(session);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
   const login = async () => {
-    try {
-      localStorage.setItem('returnTo', router.asPath);
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
-      });
-      if (error) throw error;
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
   };
 
   const logout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      router.reload(); // Let the auth flow handle the redirect
-    } catch (error) {
-      console.error('Logout error:', error);
-      throw error;
+    setUser(null);
+    setProfile(null);
+    router.push('/'); // Redirect to homepage on logout
+    await supabase.auth.signOut();
+  };
+
+  // Function to refresh the profile, useful after updates done by user
+  const refreshProfile = async () => {
+    if (user) {
+      const updatedProfile = await fetchProfile(user.id);
+      setProfile(updatedProfile);
     }
   };
 
   const value = {
     user,
+    profile,
     loading,
     login,
-    logout
+    logout,
+    refreshProfile,
   };
 
   return (

@@ -1,3 +1,4 @@
+// pages/auth/callback.js
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../../utils/supabaseClient";
@@ -8,49 +9,25 @@ export default function Callback() {
 
   useEffect(() => {
     const completeLogin = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
 
-      if (!user) {
-        router.push("/auth");
-        return;
+      if (session) {
+        // Retrieve the path from localStorage and redirect.
+        // It's important to remove the item to prevent future
+        // unintended redirects.
+        const returnTo = localStorage.getItem('returnTo') || '/';
+        localStorage.removeItem('returnTo');
+        router.replace(returnTo);
+      } else {
+        // If a session isn't established, send the user to the login page.
+        // Also, clear the returnTo item to avoid a redirect loop.
+        localStorage.removeItem('returnTo');
+        router.replace('/auth');
       }
-
-      // Check if profile exists
-      const { data: existing } = await supabase
-        .from("profile")
-        .select("user_id")
-        .eq("user_id", user.id)
-        .single();
-
-      if (!existing) {
-        await supabase.from("profile").upsert([{
-          user_id: user.id,
-          first_name: user.user_metadata?.given_name || user.user_metadata?.full_name?.split(" ")[0] || '',
-          last_name: user.user_metadata?.family_name || user.user_metadata?.full_name?.split(" ").slice(1).join(" ") || '',
-          avatar_url: user.user_metadata?.avatar_url || '',
-          email: user.email,
-          created_at: new Date(),
-          ward_code: null,
-          division_code: null,
-          is_member: false,
-          is_convenor: false,
-          is_co_convenor: false,
-          stakeholder: null,
-          country_code: null,
-          social: null,
-        }], { onConflict: 'user_id' });
-      }
-
-      // Redirect to original page or home
-      const returnTo = localStorage.getItem('returnTo') || '/';
-      localStorage.removeItem('returnTo');
-      router.push(returnTo);
     };
 
     completeLogin();
   }, [router]);
 
-  return <div className="loading-container">
-        <Spinner size="medium" />
-      </div>
+  return <Spinner />;
 }
