@@ -3,13 +3,13 @@ import { useState, useEffect } from "react";
 import styles from "../../../styles/components/membercard.module.css";
 import Image from "next/image";
 import { MdVolunteerActivism } from "react-icons/md";
+import CommitteeButton from "../../shared/ui/CommitteeButton";
 import {
   FaFacebook,
   FaInstagram,
   FaLinkedin,
   FaGithub,
   FaWhatsapp,
-  FaUserPlus,
   FaUserAlt,
   FaUserTie,
   FaUserGraduate,
@@ -18,12 +18,8 @@ import {
   FaHome,
   FaChalkboardTeacher,
   FaUserSecret,
-  FaChevronLeft,
-  FaChevronRight
 } from "react-icons/fa";
 import { FaXTwitter, FaUserDoctor } from "react-icons/fa6";
-import Form from '../../Form';
-import formStyles from '../../../styles/components/form.module.css';
 import { useWard } from '../../../src/context/WardContext';
 
 const SOCIAL_ICONS = {
@@ -48,30 +44,30 @@ const STAKEHOLDER_ICONS = {
   'Healthcare Worker': FaUserDoctor
 };
 
-export default function MemberTab({ members }) {
+export default function CommitteeTab({ committees }) {
   const [showForm, setShowForm] = useState(false);
   const { wardId } = useWard();
   const [activeIndex, setActiveIndex] = useState(0);
   const [direction, setDirection] = useState(1);
-  const [sortedMembers, setSortedMembers] = useState([]);
+  const [sortedCommittees, setSortedCommittees] = useState([]);
 
   // Sort members: Convenor → Co-convenor → Members
   useEffect(() => {
-    const convenor = members.find(m => m.is_convenor);
-    const coConvenor = members.find(m => m.is_co_convenor);
-    const regularMembers = members.filter(m => !m.is_convenor && !m.is_co_convenor);
-    setSortedMembers([convenor, coConvenor, ...regularMembers].filter(Boolean));
-  }, [members]);
+    const convenor = committees.find(c => c.is_convenor);
+    const coConvenor = committees.find(c => c.is_co_convenor);
+    const regularCommittees = committees.filter(c => !c.is_convenor && !c.is_co_convenor);
+    setSortedCommittees([convenor, coConvenor, ...regularCommittees].filter(Boolean));
+  }, [committees]);
 
   // Auto-rotate every 5 seconds
   useEffect(() => {
-    if (sortedMembers.length <= 1) return;
+    if (sortedCommittees.length <= 1) return;
     const interval = setInterval(() => {
       setDirection(1);
-      setActiveIndex(prev => (prev + 1) % sortedMembers.length);
+      setActiveIndex(prev => (prev + 1) % sortedCommittees.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, [sortedMembers.length]);
+  }, [sortedCommittees.length]);
 
   const getAvatarUrl = (avatarUrl) => {
     if (!avatarUrl) return '/user.png';
@@ -79,33 +75,33 @@ export default function MemberTab({ members }) {
     return `https://gostxgfnoilfmybaohhx.supabase.co/storage/v1/object/public/profile/avatar/${avatarUrl}`;
   };
 
-  const getRoleDisplay = (member) => {
-    if (member?.is_convenor) return 'Convenor';
-    if (member?.is_co_convenor) return 'Co-Convenor';
+  const getRoleDisplay = (committee) => {
+    if (committee?.is_convenor) return 'Convenor';
+    if (committee?.is_co_convenor) return 'Co-Convenor';
     return 'Member';
   };
 
-  const getVisibleMembers = () => {
-    const count = sortedMembers.length;
+  const getVisibleCommittees = () => {
+    const count = sortedCommittees.length;
     if (count === 0) return [];
     
     return [
-      sortedMembers[(activeIndex - 2 + count) % count],
-      sortedMembers[(activeIndex - 1 + count) % count], // Left member
-      sortedMembers[activeIndex],                      // Center member (main card)
-      sortedMembers[(activeIndex + 1) % count],         // Right member
-      sortedMembers[(activeIndex + 2) % count]
+      sortedCommittees[(activeIndex - 2 + count) % count],
+      sortedCommittees[(activeIndex - 1 + count) % count], // Left member
+      sortedCommittees[activeIndex],                      // Center member (main card)
+      sortedCommittees[(activeIndex + 1) % count],         // Right member
+      sortedCommittees[(activeIndex + 2) % count]
     ];
   };
 
   const paginate = (newDirection) => {
     setDirection(newDirection);
-    setActiveIndex(prev => (prev + newDirection + sortedMembers.length) % sortedMembers.length);
+    setActiveIndex(prev => (prev + newDirection + sortedCommittees.length) % sortedCommittees.length);
   };
 
   return (
     <div className={styles.cinematicContainer}>
-      {sortedMembers.length === 0 ? (
+      {sortedCommittees.length === 0 ? (
         <p className={styles.emptyMessage}>
           Want to join the committee? Tap the <strong>Apply</strong> button at the bottom right, or email us at{' '} 
           <a href="mailto:info@walkingproject.org">info@walkingproject.org</a>.
@@ -113,8 +109,8 @@ export default function MemberTab({ members }) {
       ) : (
         <>
           <div className={styles.backgroundRow}>
-            {getVisibleMembers().map((member, i) => {
-              if (i === 2 || !member) return null;
+            {getVisibleCommittees().map((committee, i) => {
+              if (i === 2 || !committee) return null;
               
               const isLeftSide = i < 2;
               const distanceFromCenter = isLeftSide ? 2 - i : i - 2;
@@ -124,7 +120,7 @@ export default function MemberTab({ members }) {
               
               return (
                 <motion.div
-                  key={`bg-${member.member_id}-${i}`}
+                  key={`bg-${committee.user_id}-${i}`}
                   className={styles.backgroundMember}
                   style={{
                     position: 'absolute',
@@ -146,7 +142,7 @@ export default function MemberTab({ members }) {
                 >
                   <div className={styles.backgroundImageContainer}>
                     <Image
-                      src={getAvatarUrl(member.avatar_url)}
+                      src={getAvatarUrl(committee.avatar_url)}
                       width={120 - (distanceFromCenter * 50)}
                       height={120 - (distanceFromCenter * 50)}
                       alt=""
@@ -160,7 +156,7 @@ export default function MemberTab({ members }) {
 
           {/* Main Card */}
           <AnimatePresence mode="wait" custom={direction}>
-            {sortedMembers[activeIndex] && (
+            {sortedCommittees[activeIndex] && (
               <motion.div
                 key={activeIndex}
                 className={styles.cinematicCard}
@@ -198,36 +194,36 @@ export default function MemberTab({ members }) {
               >
                 <div className={styles.cinematicImageContainer}>
                   <Image
-                    src={getAvatarUrl(sortedMembers[activeIndex].avatar_url)}
-                    alt={`${sortedMembers[activeIndex].first_name} ${sortedMembers[activeIndex].last_name || ''}`}
+                    src={getAvatarUrl(sortedCommittees[activeIndex].avatar_url)}
+                    alt={`${sortedCommittees[activeIndex].first_name} ${sortedCommittees[activeIndex].last_name || ''}`}
                     width={180}
                     height={180}
                     className={styles.cinematicImage}
                   />
                 </div>
                 <div className={styles.cinematicDetails}>
-                  <h3>{sortedMembers[activeIndex].first_name}{sortedMembers[activeIndex].last_name ? ` ${sortedMembers[activeIndex].last_name}` : ''}</h3>
+                  <h3>{sortedCommittees[activeIndex].first_name}{sortedCommittees[activeIndex].last_name ? ` ${sortedCommittees[activeIndex].last_name}` : ''}</h3>
                   <div className={styles.cinematicRole}>
-                    <span>{getRoleDisplay(sortedMembers[activeIndex])}</span>
-                    {sortedMembers[activeIndex].stakeholder_category && (
+                    <span>{getRoleDisplay(sortedCommittees[activeIndex])}</span>
+                    {sortedCommittees[activeIndex].stakeholder_category && (
                       <div className={styles.cinematicCategory}>
                         {(() => {
-                          const Icon = STAKEHOLDER_ICONS[sortedMembers[activeIndex].stakeholder_category];
+                          const Icon = STAKEHOLDER_ICONS[sortedCommittees[activeIndex].stakeholder_category];
                           return Icon ? (
                             <Icon className={styles.categoryIcon} />
                           ) : (
                             <FaUserAlt className={styles.categoryIcon} />
                           );
                         })()}
-                        <span>{sortedMembers[activeIndex].stakeholder_category}</span>
+                        <span>{sortedCommittees[activeIndex].stakeholder_category}</span>
                       </div>
                     )}
                   </div>
-                  {sortedMembers[activeIndex].designation && (
-                    <p className={styles.cinematicDesignation}>{sortedMembers[activeIndex].designation}</p>
+                  {sortedCommittees[activeIndex].designation && (
+                    <p className={styles.cinematicDesignation}>{sortedCommittees[activeIndex].designation}</p>
                   )}
                   <div className={styles.cinematicSocial}>
-                    {sortedMembers[activeIndex].social && Object.entries(sortedMembers[activeIndex].social).map(([platform, url]) => {
+                    {sortedCommittees[activeIndex].social && Object.entries(sortedCommittees[activeIndex].social).map(([platform, url]) => {
                       const Icon = SOCIAL_ICONS[platform];
                       return Icon && url ? (
                         <a 
@@ -250,7 +246,7 @@ export default function MemberTab({ members }) {
 
           {/* Dots Indicator */}
           <div className={styles.dotsContainer}>
-            {sortedMembers.map((_, i) => (
+            {sortedCommittees.map((_, i) => (
               <button
                 key={i}
                 className={`${styles.dot} ${i === activeIndex ? styles.activeDot : ''}`}
@@ -265,20 +261,7 @@ export default function MemberTab({ members }) {
         </>
       )}
 
-      <button 
-        onClick={() => setShowForm(true)} 
-        className={formStyles.applyFloatingBtn}
-        aria-label="Apply to join committee"
-      >
-        <FaUserPlus/>
-      </button>
-
-      <Form
-        show={showForm}
-        onClose={() => setShowForm(false)}
-        defaultWard={wardId}
-        defaultRole="member"
-      />
+      <CommitteeButton onClick={() => setShowForm(true)}/>
     </div>
   );
 }

@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../../utils/supabaseClient';
 
 export default function useWardJunctions(wardId, enabled = true) {
   const [junctions, setJunctions] = useState([]);
@@ -8,21 +7,17 @@ export default function useWardJunctions(wardId, enabled = true) {
 
   useEffect(() => {
     if (!wardId || !enabled) return;
-    
     setLoading(true);
     setError(null);
-    
-    supabase
-      .rpc('get_ward_junctions', { ward_code: wardId })
-      .then(({ data, error }) => {
-        if (error) throw error;
+
+    fetch(`/api/junction/${wardId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) throw new Error(data.error);
         setJunctions(data || []);
-        setLoading(false);
       })
-      .catch(err => {
-        setError(err.message);
-        setLoading(false);
-      });
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
   }, [wardId, enabled]);
 
   return { junctions, loading, error };

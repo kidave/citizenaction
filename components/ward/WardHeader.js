@@ -7,10 +7,8 @@ import { useRouter } from 'next/router';
 
 export default function WardHeader({ 
   wardName, 
-  convenor, 
-  convenorEmail, 
-  coConvenor, 
-  coConvenorEmail,
+  convenor,  // This is now an object with { name, email }
+  coConvenor, // This is now an object with { name, email }
   showHeader = true 
 }) {
   const isMobile = useMediaQuery({ maxWidth: 768 });
@@ -77,16 +75,16 @@ export default function WardHeader({
         <h2>{wardName} Ward</h2>
         <div className={styles.leadership}>
           <div className={styles.leaderItem}>
-            {convenor && (
+            {convenor?.name && (
               <>
                 <p className={styles.leaderName}>
-                  <strong>Convenor</strong> {convenor}
+                  <strong>Convenor</strong> {convenor.name}
                 </p>
-                {convenorEmail && (
+                {convenor.email && (
                   <div className={styles.emailContainer}>
-                    <a href={`mailto:${convenorEmail}`} className={styles.emailLink}>
+                    <a href={`mailto:${convenor.email}`} className={styles.emailLink}>
                       <FaEnvelope className={styles.emailIcon} />
-                      <span className={styles.emailText}>{convenorEmail}</span>
+                      <span className={styles.emailText}>{convenor.email}</span>
                     </a>
                   </div>
                 )}
@@ -95,16 +93,16 @@ export default function WardHeader({
           </div>
           
           <div className={styles.leaderItem}>
-            {coConvenor && (
+            {coConvenor?.name && (
               <>
                 <p className={styles.leaderName}>
-                  <strong>Co-Convenor</strong> {coConvenor}
+                  <strong>Co-Convenor</strong> {coConvenor.name}
                 </p>
-                {coConvenorEmail && (
+                {coConvenor.email && (
                   <div className={styles.emailContainer}>
-                    <a href={`mailto:${coConvenorEmail}`} className={styles.emailLink}>
+                    <a href={`mailto:${coConvenor.email}`} className={styles.emailLink}>
                       <FaEnvelope className={styles.emailIcon} />
-                      <span className={styles.emailText}>{coConvenorEmail}</span>
+                      <span className={styles.emailText}>{coConvenor.email}</span>
                     </a>
                   </div>
                 )}

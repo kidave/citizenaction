@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../../utils/supabaseClient";
-import Spinner from '../../components/shared/Spinner';
+import Spinner from '../../components/shared/ui/Spinner';
 
 export default function Callback() {
   const router = useRouter();

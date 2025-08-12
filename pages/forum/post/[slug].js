@@ -4,10 +4,10 @@ import { supabase } from '../../../utils/supabaseClient';
 import Head from 'next/head';
 import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
-import { useForum } from '../../../src/context/ForumContext';
+import { useAuth } from '../../../src/context/AuthContext';
 import Link from 'next/link';
 import styles from '../../../styles/forum/post.module.css';
-import RenderEditorBlock from '../../../components/shared/RenderEditorBlock';
+import RenderEditorBlock from '../../../components/shared/ui/RenderEditorBlock';
 import { FaRegThumbsDown, FaRegThumbsUp, FaRegShareFromSquare } from "react-icons/fa6";
 
 import { FaRegComment } from 'react-icons/fa';
@@ -15,7 +15,7 @@ import { FaRegComment } from 'react-icons/fa';
 export default function ForumPost() {
   const router = useRouter();
   const { slug } = router.query;
-  const { user } = useForum();
+  const { user } = useAuth();
 
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);

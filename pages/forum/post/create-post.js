@@ -6,13 +6,13 @@ import Header from '../../../components/Header';
 import Footer from '../../../components/Footer';
 import PostForm from '../../../components/forum/PostForm';
 import PostPreviewModal from '../../../components/forum/PostPreviewModal';
-import useAuthCheck from '../../../src/hooks/useAuthCheck';
+import { useAuth } from '../../../src/context/AuthContext';
 import styles from '../../../styles/forum/create-post.module.css';
 import Link from 'next/link';
 
 export default function NewPost() {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuthCheck();
+  const { user, loading: authLoading } = useAuth();
   const editorRef = useRef(null);
   
   // Form state

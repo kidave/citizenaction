@@ -1,5 +1,5 @@
 import React from 'react';
-import RenderEditorBlock from '../shared/RenderEditorBlock';
+import RenderEditorBlock from '../shared/ui/RenderEditorBlock';
 import styles from '../../styles/forum/review-post.module.css';
 
 const PostPreviewModal = ({ 

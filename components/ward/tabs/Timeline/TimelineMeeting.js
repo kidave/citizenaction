@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import TimelineItemMeeting from './TimelineItemMeeting';
 import styles from '../../../../styles/layout/timeline.module.css';
-import { useForum } from '../../../../src/context/ForumContext';
+import { useAuth } from '../../../../src/context/AuthContext';
 import { supabase } from '../../../../utils/supabaseClient';
 import { useWard } from '../../../../src/context/WardContext';
 import { FaUsers, FaMapMarkerAlt, FaUserFriends, FaStar } from 'react-icons/fa';
 import { useMediaQuery } from 'react-responsive';
 
 export default function TimelineMeeting({ meetings: initialMeetings }) {
-  const { user } = useForum();
+  const { user } = useAuth();
   const { wardId } = useWard();
   const isMobile = useMediaQuery({ maxWidth: 768 });
 
@@ -21,16 +21,14 @@ export default function TimelineMeeting({ meetings: initialMeetings }) {
     if (!user || !wardId) return;
 
     const checkConvenor = async () => {
-      const { data } = await supabase
-        .from('profile')
-        .select('is_convenor, is_co_convenor, ward_code')
+      const { data, error } = await supabase
+        .from('committee')
+        .select('role_id')
         .eq('user_id', user.id)
+        .eq('ward_code', wardId)
         .single();
 
-      setIsConvenor(
-        (data?.is_convenor || data?.is_co_convenor) &&
-        data?.ward_code === wardId
-      );
+      setIsConvenor(data?.role_id === 1 || data?.role_id === 2); // 1 = convenor, 2 = co-convenor
     };
 
     checkConvenor();

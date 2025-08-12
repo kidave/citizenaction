@@ -7,8 +7,6 @@ import Footer from "../components/Footer";
 import { useState, useEffect } from "react";
 import { FaInfoCircle, FaUserPlus } from "react-icons/fa";
 import styles from "../styles/layout/about.module.css";
-import Form from "../components/Form";
-import formStyles from '../styles/components/form.module.css';
 
 function HomePage() {
   const [showAbout, setShowAbout] = useState(true);
@@ -40,19 +38,6 @@ function HomePage() {
       <div className={styles.backgroundContainer}>
         <div className={styles.contentWrapper}>
           {!isMobile && <Metrics />}
-          <Form
-            show={showForm}
-            onClose={() => setShowForm(false)}
-          />
-          {!isMobile && !showForm && (
-            <button
-              className={formStyles.applyFloatingBtn}
-              onClick={() => setShowForm(true)}
-              aria-label="Apply"
-            >
-              <FaUserPlus />
-            </button>
-          )}
 
           <About show={showAbout} onClose={() => setShowAbout(false)} />
           {!showAbout && (

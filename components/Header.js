@@ -129,7 +129,7 @@ export default function Header() {
           {!user ? (
             <button
               className={styles.navButton}
-              onClick={() => router.push('/auth')}
+              onClick={() => router.push('/login')}
             >
               Login
             </button>
@@ -221,7 +221,7 @@ export default function Header() {
                   <div
                     className={styles.mobileNavItem}
                     onClick={() => {
-                      router.push('/auth');
+                      router.push('/login');
                       setMobileOpen(false);
                     }}
                   >

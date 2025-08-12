@@ -4,12 +4,11 @@ import Head from "next/head";
 import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
 import styles from "../../../styles/forum/review-post.module.css";
-import { useForum } from "../../../src/context/ForumContext";
-import RenderEditorBlock from '../../../components/shared/RenderEditorBlock';
+import { useAuth } from "../../../src/context/AuthContext";
 import PostPreviewModal from '../../../components/forum/PostPreviewModal';
 
 export default function PostReview() {
-  const { user } = useForum();
+  const { user } = useAuth();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

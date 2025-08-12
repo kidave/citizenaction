@@ -3,7 +3,6 @@ import { useRouter } from 'next/router';
 import { supabase } from '../utils/supabaseClient';
 import containerStyles from '../styles/layout/container.module.css';
 import buttonStyles from '../styles/components/button.module.css';
-import { FaCity } from 'react-icons/fa';
 import { FiMap, FiMapPin } from "react-icons/fi";
 
 

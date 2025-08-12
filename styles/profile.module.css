@@ -142,21 +142,66 @@
   margin-bottom: 1.5rem;
 }
 
+/* Add to profile.module.css */
+.committeeSection {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.applicationStatus {
+  text-align: center;
+}
+
+.applicationStatus h3 {
+  margin-bottom: 0.5rem;
+  color: #343a40;
+}
+
+.applicationStatus p {
+  font-size: 1.1rem;
+  padding: 0.75rem;
+  border-radius: 4px;
+}
+
+.pending {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+}
+
+.approved {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.rejected {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.notMember {
+  text-align: center;
+}
+
 .applyBtn {
-  background: linear-gradient(90deg, #fcc700 30%, #f59e42 100%);
+  background-color: #4e73df;
   color: white;
   border: none;
-  border-radius: 8px;
-  padding: 0.8rem 1.5rem;
-  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s;
-  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  transition: background-color 0.3s;
 }
 
 .applyBtn:hover {
-  opacity: 0.9;
-  transform: translateY(-2px);
+  background-color: #2e59d9;
 }
 
 .actions {
@@ -227,7 +272,29 @@
   }
 }
 
-/* Add to your profile.module.css */
+.statusBadge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  margin-top: 1rem;
+}
+
+.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.approved {
+  background: #d4edda;
+  color: #155724;
+}
+
+.rejected {
+  background: #f8d7da;
+  color: #721c24;
+}
+
 .roleBadge {
   display: inline-block;
   padding: 0.25rem 0.5rem;
@@ -433,3 +500,5 @@
     padding: 1.5rem;
   }
 }
+
+

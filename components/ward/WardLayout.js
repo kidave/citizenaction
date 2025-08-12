@@ -16,7 +16,7 @@ function WardLayoutContent() {
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const [showForm, setShowForm] = useState(false);
 
-  const { wardInfo, meetings, updates, members, actions, roads, junctions, projects } = useWard();
+  const { wardInfo, meetings, updates, committees, actions, roads, junctions, projects } = useWard();
 
   const handleTabChange = (tab) => {
     router.push(`/ward/${wardId}/${tab}`);
@@ -32,7 +32,7 @@ function WardLayoutContent() {
           meeting={meetings}
           update={updates}
           action={actions}
-          member={members}
+          committee={committees}
           road={roads}
           wardInfo={wardInfo}
           onRoadClick={setSelectedRoad}

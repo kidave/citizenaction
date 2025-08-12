@@ -4,13 +4,13 @@ import styles from '../../styles/forum/landing.module.css';
 import Head from 'next/head';
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
-import { useForum } from '../../src/context/ForumContext';
+import { useAuth } from '../../src/context/AuthContext';
 import Link from 'next/link';
 import { supabase } from '../../utils/supabaseClient';
 
 
 export default function ForumLanding() {
-  const { user, loading, login } = useForum();
+  const { user, loading, login } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [recentPosts, setRecentPosts] = useState([]);
   const [stats, setStats] = useState({ posts: 0, users: 0, issues: 0 });

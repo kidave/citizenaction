@@ -5,7 +5,7 @@ export const WARD_TABS = {
   PROJECT: 'project',
   MEETING: 'meeting',
   UPDATE: 'update',
-  MEMBER: 'member',
+  COMMITTEE: 'committee',
   ROAD: 'road',
   JUNCTION: 'junction',
   ACTION: 'action'

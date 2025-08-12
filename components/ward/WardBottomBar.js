@@ -103,8 +103,8 @@ export default function WardBottomBar({
           <MdOutlineAssignment />
         </button>
         <button
-          className={`${styles.hamburgerButton} ${activeTab === 'member' ? styles.active : ''}`}
-          onClick={() => handleTabChange('member')}
+          className={`${styles.hamburgerButton} ${activeTab === 'committee' ? styles.active : ''}`}
+          onClick={() => handleTabChange('committee')}
           aria-label="Committee"
         >
           <FaUsers />

@@ -1,4 +1,5 @@
-/* Overlay with blur */
+/* form.module.css */
+/* Overlay */
 .formOverlay {
   position: fixed;
   inset: 0;
@@ -10,228 +11,189 @@
   justify-content: center;
 }
 
-/* Modal container for the form */
+/* Modal container */
 .formModal {
-  background: none;
-  border-radius: 18px;
+  background: #fff;
+  border-radius: 16px;
   padding: 0;
-  min-width: 320px;
+  width: 400px;
   max-width: 95vw;
-  min-height: 30vh;
   max-height: 90vh;
   overflow-y: auto;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* Floating Apply Button */
-.applyFloatingBtn {
-  position: fixed;
-  bottom: 20px;
-  right: 32px;
-  z-index: 2100;
-  background: #fdc700;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 54px;
-  height: 54px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  box-shadow: 0 2px 8px rgba(252,199,0,0.18);
-  cursor: pointer;
-  transition: background 0.2s, box-shadow 0.2s;
-}
-
-.applyFloatingBtn:hover,
-.applyFloatingBtn:focus {
-  background: #e6b800;
-  box-shadow: 0 4px 16px rgba(252,199,0,0.23);
-}
-
-@media (max-width: 768px) {
-  .applyFloatingBtn {
-    bottom: 16px;
-    right: 16px;
-    width: 46px;
-    height: 46px;
-    font-size: 1.5rem;
-    display: none;
-  }
-}
-
-
-/* Modal overlay */
-.modal {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-/* Form container */
-.form {
-  background: #fff;
-  padding: 2rem 2.5rem;
-  border-radius: 14px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-  min-width: 320px;
-  max-width: 95vw;
-  width: 400px;
-  position: relative;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
   animation: fadeIn 0.3s;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(30px);}
-  to { opacity: 1; transform: translateY(0);}
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Form elements */
+.form {
+  padding: 2rem;
 }
 
 .form h3 {
-  margin-bottom: 1.2rem;
+  margin-bottom: 1.5rem;
   font-size: 1.35rem;
   font-weight: 700;
   color: #222;
-  letter-spacing: 0.01em;
+  text-align: center;
 }
 
 .form label {
   display: block;
-  margin-bottom: 1.1rem;
+  margin-bottom: 0.5rem;
   font-weight: 500;
   color: #222;
 }
 
 .form input,
-.form select,
-.form textarea {
+.form select {
   width: 100%;
-  padding: 0.5rem 0.7rem;
-  margin-top: 0.3rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
   font-size: 1rem;
-  background: #f9f9f9;
+  background: #fff;
   transition: border 0.2s;
-  box-sizing: border-box;
 }
 
 .form input:focus,
-.form select:focus,
-.form textarea:focus {
-  border-color: #fcc700;
+.form select:focus {
   outline: none;
+  border-color: #fcc700;
+  box-shadow: 0 0 0 3px rgba(252, 199, 0, 0.2);
 }
 
-.form textarea {
-  resize: vertical;
-  min-height: 60px;
-  font-family: inherit;
+/* Error states */
+.error {
+  color: #dc2626;
+  background: #fef2f2;
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.errorText {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: -0.75rem;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+/* Phone input customization */
+.react-tel-input {
+  margin-bottom: 1rem;
+}
+
+.react-tel-input .form-control {
+  width: 100% !important;
+  padding-left: 48px !important;
+  height: auto !important;
+  border-radius: 8px !important;
+  border: 1px solid #cbd5e1 !important;
+  font-size: 1rem !important;
+}
+
+.react-tel-input .form-control:focus {
+  border-color: #fcc700 !important;
+  box-shadow: 0 0 0 3px rgba(252, 199, 0, 0.2) !important;
+}
+
+.react-tel-input .flag-dropdown {
+  border-radius: 8px 0 0 8px !important;
+  border: 1px solid #cbd5e1 !important;
+  background: #fff !important;
+}
+
+/* Buttons */
+.buttonGroup {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
 }
 
 .form button[type="submit"] {
+  flex: 1;
   background: #fcc700;
   color: #222;
   border: none;
-  padding: 0.6rem 1.5rem;
-  border-radius: 6px;
+  padding: 0.75rem;
+  border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
-  font-size: 1rem;
+  transition: all 0.2s;
 }
 
-.form button[type="submit"]:hover,
-.form button[type="submit"]:focus {
+.form button[type="submit"]:hover {
   background: #e6b800;
 }
 
 .form button[type="button"] {
-  background: #eee;
-  color: #222;
+  flex: 1;
+  background: #f1f5f9;
+  color: #64748b;
   border: none;
-  padding: 0.6rem 1.5rem;
-  border-radius: 6px;
-  font-weight: 500;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
-  font-size: 1rem;
+  transition: all 0.2s;
 }
 
-.form button[type="button"]:hover,
-.form button[type="button"]:focus {
-  background: #ddd;
+.form button[type="button"]:hover {
+  background: #e2e8f0;
 }
 
-.form span {
-  color: #d32f2f;
-  font-size: 0.97em;
-  margin-top: 0.2rem;
-  display: block;
+/* Success message */
+.successMessage {
+  padding: 2rem;
+  text-align: center;
 }
 
-.form .react-tel-input .form-control {
-  width: 100% !important;
-  border-radius: 6px !important;
-  border: 1px solid #ccc !important;
-  font-size: 1rem !important;
-  padding-left: 48px !important;
-  background: #f9f9f9 !important;
+.successMessage h3 {
+  color: #065f46;
+  margin-bottom: 1rem;
 }
 
-.form .react-tel-input .form-control:focus {
-  border-color: #fcc700 !important;
+.successMessage p {
+  color: #475569;
+  margin-bottom: 1.5rem;
 }
 
-.form .react-tel-input .flag-dropdown {
-  border-radius: 6px 0 0 6px !important;
-  border: 1px solid #ccc !important;
-  background: #f9f9f9 !important;
-}
-
-.form .react-tel-input .selected-flag:focus {
-  outline: 2px solid #fcc700 !important;
-}
-
-@media (max-width: 768px) {
-  .form {
-    padding: 1.2rem 0.7rem;
-    min-width: 0;
-    width: 98vw;
-  }
-}
-
-/* CTA Section */
-.ctaSection {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 2.5rem 0 1.5rem 0;
-  gap: 0.7rem;
-}
-
-.primaryCta {
+.successMessage button {
   background: #fcc700;
   color: #222;
   border: none;
-  padding: 0.7rem 2.2rem;
-  border-radius: 7px;
-  font-weight: 700;
-  font-size: 1.1rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(252,199,0,0.08);
-  transition: background 0.2s, box-shadow 0.2s;
 }
 
-.primaryCta:hover,
-.primaryCta:focus {
-  background: #e6b800;
-  box-shadow: 0 4px 16px rgba(252,199,0,0.13);
+/* Loading state */
+.messageContainer {
+  padding: 2rem;
+  text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .formModal {
+    width: 95vw;
+  }
+  
+  .form {
+    padding: 1.5rem;
+  }
+  
+  .buttonGroup {
+    flex-direction: column;
+  }
 }

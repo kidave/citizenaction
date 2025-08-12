@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Table, TableHeader, ResizableColumn, Modal } from '../../../shared';
+import { Table, TableHeader, ResizableColumn, Modal } from '../../../shared/table';
 import ActionTableRow from './ActionTableRow';
 import ActionTableFilters from './ActionTableFilters';
 import tableStyles from '../../../../styles/components/table.module.css';

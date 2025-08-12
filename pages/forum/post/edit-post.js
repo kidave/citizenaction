@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import useAuthCheck from '../../../src/hooks/useAuthCheck';
+import { useAuth } from '../../../src/context/AuthContext';
 import usePostForm from '../../../src/hooks/usePostForm';
 import Header from '../../../components/Header';
 import Footer from '../../../components/Footer';
@@ -14,7 +14,7 @@ import { supabase } from '../../../utils/supabaseClient'; // Added supabase impo
 export default function EditPostPage() {
   const router = useRouter();
   const { id } = router.query;
-  const { user, loading: authLoading } = useAuthCheck();
+  const { user, loading: authLoading } = useAuth();
   const editorRef = useRef(null);
 
   const {
@@ -34,6 +34,21 @@ export default function EditPostPage() {
   useEffect(() => {
     if (user && id) {
       loadFormData(user);
+    }
+  }, [user, id, loadFormData]);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      localStorage.setItem('returnTo', router.asPath);
+      router.push('/auth');
+    }
+  }, [user, authLoading, router]);
+
+  // Load all form data when user and ID are available
+  useEffect(() => {
+    if (user && id) {
+      // CHANGED: No longer pass the user object
+      loadFormData();
     }
   }, [user, id, loadFormData]);
 
@@ -167,7 +182,7 @@ export default function EditPostPage() {
       const confirmed = window.confirm('Are you sure you want to update this post?');
       if (!confirmed) return;
       
-      const success = await handleSubmit(user, content, false);
+      const success = await handleSubmit(content, false);
       if (success) {
         // Remove draft after successful update
         localStorage.removeItem('forumPostDraft');
@@ -179,7 +194,7 @@ export default function EditPostPage() {
     }
   };
   
-  if (authLoading || (status === 'loading' && !error)) {
+  if (authLoading || !user || (status === 'loading' && !error)) {
     return (
       <div className={styles.container}>
         <Header />
@@ -188,6 +203,7 @@ export default function EditPostPage() {
       </div>
     );
   }
+  
   
   if (status === 'error') {
     return (

@@ -1,97 +1,73 @@
-// components/context/WardContext.js
 import { createContext, useContext, useMemo } from 'react';
-import { 
-  useWardInfo,
-  useWardMeetings,
-  useWardUpdates,
-  useWardActions, 
-  useWardMembers, 
-  useWardRoads,
-  useWardJunctions,
-  useWardBoundary,
-  useWardProjects
-} from '../hooks/ward';
+import useWardInfo from '../hooks/useWardInfo';
+import useWardMeetings from '../hooks/useWardMeetings';
+import useWardUpdates from '../hooks/useWardUpdates';
+import useWardCommittees from '../hooks/useWardCommittees';
+import useWardRoads from '../hooks/useWardRoads';
+import useWardJunctions from '../hooks/useWardJunctions';
+import useWardProjects from '../hooks/useWardProjects';
 
 const WardContext = createContext();
 
 export function WardProvider({ children, wardId }) {
-  // Primary ward information hook
-  const { 
-    wardInfo, 
-    loading: infoLoading, 
-    error: infoError 
-  } = useWardInfo(wardId);
-  
-  // Data collection hooks
-  const { 
-    meetings, 
-    loading: meetingsLoading, 
-    error: meetingsError 
-  } = useWardMeetings(wardId);
-  
-  const { 
-    updates, 
-    loading: updatesLoading, 
-    error: updatesError 
-  } = useWardUpdates(wardId);
+  const { wardInfo, loading: infoLoading, error: infoError } = useWardInfo(wardId);
+  const { meetings, loading: meetingsLoading, error: meetingsError } = useWardMeetings(wardId);
+  const { updates, loading: updatesLoading, error: updatesError } = useWardUpdates(wardId);
+  const { committees, loading: committeesLoading, error: committeesError } = useWardCommittees(wardId);
+  const { roads, loading: roadsLoading, error: roadsError } = useWardRoads(wardId);
+  const { junctions, loading: junctionsLoading, error: junctionsError } = useWardJunctions(wardId);
+  const { projects, loading: projectsLoading, error: projectsError } = useWardProjects(wardId);
 
-  // Secondary data hooks (lazy load when needed)
-  const { members } = useWardMembers(wardId);
-  const { roads } = useWardRoads(wardId);
-  const { actions } = useWardActions(wardId);
-  const { junctions } = useWardJunctions(wardId);
-  const { boundary } = useWardBoundary(wardId);
-  const { projects } = useWardProjects(wardId);
+  const loading =
+    infoLoading ||
+    meetingsLoading ||
+    updatesLoading ||
+    committeesLoading ||
+    roadsLoading ||
+    junctionsLoading ||
+    projectsLoading;
 
-  // Aggregate loading and error states
-  const loading = infoLoading || meetingsLoading || updatesLoading;
-  const error = infoError || meetingsError || updatesError;
+  const error =
+    infoError ||
+    meetingsError ||
+    updatesError ||
+    committeesError ||
+    roadsError ||
+    junctionsError ||
+    projectsError;
 
-  const contextValue = useMemo(() => ({
-    wardId,
-    wardInfo: wardInfo || {
-      wardName: 'Unknown',
-      convenor: 'Not assigned',
-      convenorEmail: '',
-      coConvenor: 'Not assigned',
-      coConvenorEmail: ''
-    },
-    meetings: meetings || [],
-    updates: updates || [],
-    members: members || [],
-    roads: roads || [],
-    actions: actions || [],
-    junctions: junctions || [],
-    boundary: boundary || null,
-    projects: projects || [],
-    loading,
-    error,
-  }), [
-    wardId,
-    wardInfo,
-    meetings,
-    updates,
-    members,
-    roads,
-    actions,
-    junctions,
-    boundary,
-    projects,
-    loading,
-    error
-  ]);
-
-  return (
-    <WardContext.Provider value={contextValue}>
-      {children}
-    </WardContext.Provider>
+  const contextValue = useMemo(
+    () => ({
+      wardId,
+      wardInfo,
+      meetings,
+      updates,
+      committees,
+      roads,
+      junctions,
+      projects,
+      loading,
+      error,
+    }),
+    [
+      wardId,
+      wardInfo,
+      meetings,
+      updates,
+      committees,
+      roads,
+      junctions,
+      projects,
+      loading,
+      error,
+    ]
   );
+
+  return <WardContext.Provider value={contextValue}>{children}</WardContext.Provider>;
 }
 
 export function useWard() {
   const context = useContext(WardContext);
-  if (!context) {
-    throw new Error('useWard must be used within a WardProvider');
-  }
+  if (!context) throw new Error('useWard must be used within a WardProvider');
   return context;
 }

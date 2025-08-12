@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../../utils/supabaseClient';
 
 export default function useWardUpdates(wardId, enabled = true) {
   const [updates, setUpdates] = useState([]);
@@ -8,26 +7,17 @@ export default function useWardUpdates(wardId, enabled = true) {
 
   useEffect(() => {
     if (!wardId || !enabled) return;
-
     setLoading(true);
     setError(null);
 
-    (async () => {
-      try {
-        const { data, error } = await supabase
-          .from('update')
-          .select('*')
-          .eq('ward_code', wardId)
-          .order('date', { ascending: false });
-
-        if (error) throw error;
+    fetch(`/api/update/${wardId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) throw new Error(data.error);
         setUpdates(data || []);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    })();
+      })
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
   }, [wardId, enabled]);
 
   return { updates, loading, error };

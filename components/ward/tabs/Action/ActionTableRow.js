@@ -1,4 +1,4 @@
-import TableCell from '../../../shared/TableCell';
+import TableCell from '../../../shared/table/TableCell';
 
 function getStatusClass(status, cellStyles) {
   switch (status?.toLowerCase()) {
