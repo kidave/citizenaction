@@ -1,8 +1,8 @@
 /* Floating Apply Button */
 .metricsHeader {
   position: fixed;
-  bottom: 85px;
-  right: 32px;
+  bottom: 32px;
+  left: 32px;
   z-index: 2100;
   background: #fdc700;
   color: white;
@@ -118,19 +118,16 @@
   }
 }
 
-
-
-
-
-
 .memberList {
   display: flex;
   gap: 20px;
   margin: 20px;
+  align-items: center;
+  justify-self: center;
 }
 
 .memberCard {
-  background-color: whitesmoke;
+  background-color: transparent;
   padding: 20px;
   border-radius: 20px;
   border: none;
@@ -138,7 +135,6 @@
   width: 170px; /* Fixed width */
   min-height: 250px; /* Changed from height to min-height */
   max-height: 250px; /* Added max-height */
-  cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -146,11 +142,6 @@
   position: relative; /* For absolute positioning if needed */
   overflow: hidden; /* Prevent content from breaking out */
 }
-
-.memberCard:hover {
-  background-color: gainsboro;
-}
-
 
 .memberImageContainer {
   width: 80px;
@@ -287,9 +278,9 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.8rem;
+  font-size: 1rem;
   color: #555;
-  background-color: #f0f0f0;
+  background-color: none;
   padding: 4px 10px;
   border-radius: 12px;
   margin: 4px 0;

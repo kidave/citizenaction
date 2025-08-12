@@ -4,6 +4,7 @@ import { FaEnvelope } from 'react-icons/fa';
 import { useMediaQuery } from 'react-responsive';
 import { useWardSelection } from '../../src/hooks/useWardSelection';
 import { useRouter } from 'next/router';
+import CommitteeButton from "../shared/ui/CommitteeButton";
 
 export default function WardHeader({ 
   wardName, 
