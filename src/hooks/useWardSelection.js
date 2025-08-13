@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import { supabase } from '../../utils/supabaseClient';
-import { useWardTabs } from './useWardTabs';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
+import { supabase } from "utils/supabaseClient";
+import { useWardTabs } from "./useWardTabs";
 
 export function useWardSelection() {
   const router = useRouter();
@@ -20,9 +20,9 @@ export function useWardSelection() {
       setLoadingDivisions(true);
       try {
         const { data, error } = await supabase
-          .from('division')
-          .select('code, name')
-          .order('code', { ascending: true });
+          .from("division")
+          .select("code, name")
+          .order("code", { ascending: true });
         if (error) throw error;
         setDivisions(data || []);
       } finally {
@@ -38,9 +38,9 @@ export function useWardSelection() {
 
     const fetchDivisionForWard = async () => {
       const { data, error } = await supabase
-        .from('ward')
-        .select('division_code')
-        .eq('code', wardId)
+        .from("ward")
+        .select("division_code")
+        .eq("code", wardId)
         .single();
 
       if (!error && data) {
@@ -59,10 +59,10 @@ export function useWardSelection() {
       setLoadingWards(true);
       try {
         const { data, error } = await supabase
-          .from('ward')
-          .select('code, name')
-          .eq('division_code', currentDivision)
-          .order('name', { ascending: true });
+          .from("ward")
+          .select("code, name")
+          .eq("division_code", currentDivision)
+          .order("name", { ascending: true });
         if (error) throw error;
         setWards(data || []);
       } finally {

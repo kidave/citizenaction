@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export default function useWardUpdates(wardId, enabled = true) {
   const [updates, setUpdates] = useState([]);
@@ -11,12 +11,12 @@ export default function useWardUpdates(wardId, enabled = true) {
     setError(null);
 
     fetch(`/api/update/${wardId}`)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.error) throw new Error(data.error);
         setUpdates(data || []);
       })
-      .catch(err => setError(err.message))
+      .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [wardId, enabled]);
 

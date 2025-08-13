@@ -1,0 +1,65 @@
+.footer {
+  background: transparent;
+  padding: 2.5rem 0;
+  text-align: center;
+  margin-top: auto;
+  width: 100%;
+}
+
+.socialIcons {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.socialIcons a {
+  color: #222;
+  font-size: 1.6rem;
+  transition: color 0.2s;
+}
+
+.socialIcons a:hover {
+  color: #fcc700;
+}
+
+.socialIcons a {
+  font-size: 1.6rem;
+  transition: color 0.2s;
+}
+
+.socialIcons :global(a.xtwitter) {
+  color: black;
+}
+.socialIcons :global(a.facebook) {
+  color: #1877f3;
+}
+
+.socialIcons :global(a.youtube) {
+  color: #ff0000;
+}
+
+.socialIcons :global(a.instagram) {
+  color: #e4405f;
+}
+.socialIcons :global(a.linkedin) {
+  color: #0077b5;
+}
+
+.socialIcons :global(a.bluesky) {
+  color: #0085ff;
+}
+
+.socialIcons :global(a.github) {
+  color: black;
+}
+
+.socialIcons a:hover {
+  filter: brightness(0.85);
+}
+
+.copyright {
+  color: black;
+  font-size: 0.9rem;
+  font-weight: 200;
+}

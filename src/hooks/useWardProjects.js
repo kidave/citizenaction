@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export default function useWardProjects(wardId, enabled = true) {
   const [projects, setProjects] = useState([]);
@@ -11,12 +11,12 @@ export default function useWardProjects(wardId, enabled = true) {
     setError(null);
 
     fetch(`/api/project/${wardId}`)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.error) throw new Error(data.error);
         setProjects(data || []);
       })
-      .catch(err => setError(err.message))
+      .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [wardId, enabled]);
 

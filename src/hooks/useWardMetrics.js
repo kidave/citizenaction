@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '../../utils/supabaseClient';
+import { useEffect, useState } from "react";
+import { supabase } from "utils/supabaseClient";
 
 export default function useWardMetrics(wardId) {
   const [metrics, setMetrics] = useState(null);
@@ -12,9 +12,9 @@ export default function useWardMetrics(wardId) {
     setError(null);
 
     supabase
-      .from('metrics')
-      .select('*')
-      .eq('ward_code', wardId)
+      .from("metrics")
+      .select("*")
+      .eq("ward_code", wardId)
       .single()
       .then(({ data, error }) => {
         setMetrics(data);

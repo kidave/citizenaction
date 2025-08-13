@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export default function useWardMeetings(wardId, enabled = true) {
   const [meetings, setMeetings] = useState([]);
@@ -11,12 +11,12 @@ export default function useWardMeetings(wardId, enabled = true) {
     setError(null);
 
     fetch(`/api/meeting/${wardId}`)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.error) throw new Error(data.error);
         setMeetings(data || []);
       })
-      .catch(err => setError(err.message))
+      .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [wardId, enabled]);
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export default function useWardJunctions(wardId, enabled = true) {
   const [junctions, setJunctions] = useState([]);
@@ -11,12 +11,12 @@ export default function useWardJunctions(wardId, enabled = true) {
     setError(null);
 
     fetch(`/api/junction/${wardId}`)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.error) throw new Error(data.error);
         setJunctions(data || []);
       })
-      .catch(err => setError(err.message))
+      .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [wardId, enabled]);
 

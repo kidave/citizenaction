@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '../../utils/supabaseClient';
+import { useEffect, useState } from "react";
+import { supabase } from "utils/supabaseClient";
 
 export default function useWardActions(wardId, enabled = true) {
   const [actions, setActions] = useState([]);
@@ -11,9 +11,9 @@ export default function useWardActions(wardId, enabled = true) {
     setLoading(true);
     setError(null);
     supabase
-      .from('action')
-      .select('*')
-      .eq('ward_code', wardId)
+      .from("action")
+      .select("*")
+      .eq("ward_code", wardId)
       .then(({ data, error }) => {
         setActions(data || []);
         setError(error ? error.message : null);

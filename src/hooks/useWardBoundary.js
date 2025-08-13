@@ -1,6 +1,6 @@
 // components/hooks/useWardBoundary.js
-import { useEffect, useState } from 'react';
-import { supabase } from '../../utils/supabaseClient';
+import { useEffect, useState } from "react";
+import { supabase } from "utils/supabaseClient";
 
 export default function useWardBoundary(wardId, enabled = true) {
   const [boundary, setBoundary] = useState(null);
@@ -14,16 +14,16 @@ export default function useWardBoundary(wardId, enabled = true) {
     setError(null);
 
     supabase
-      .from('ward')
-      .select('geom, name')
-      .eq('code', wardId)
+      .from("ward")
+      .select("geom, name")
+      .eq("code", wardId)
       .single()
       .then(({ data, error }) => {
         if (error) throw error;
         setBoundary(data);
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         setError(err.message);
         setLoading(false);
       });

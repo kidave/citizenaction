@@ -1,7 +1,7 @@
 // src/context/AuthContext.js
-import { createContext, useContext, useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import { supabase } from '../../utils/supabaseClient';
+import { createContext, useContext, useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { supabase } from "utils/supabaseClient";
 
 const AuthContext = createContext();
 
@@ -17,22 +17,24 @@ export function AuthProvider({ children }) {
       if (!userId) return null;
 
       const { data: profileData, error } = await supabase
-        .from('profile')
-        .select('*')
-        .eq('user_id', userId)
+        .from("profile")
+        .select("*")
+        .eq("user_id", userId)
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error && error.code !== "PGRST116") throw error;
       return profileData;
     } catch (err) {
-      console.error('Profile fetch error:', err);
-      setError('Failed to load profile');
+      console.error("Profile fetch error:", err);
+      setError("Failed to load profile");
       return null;
     }
   };
 
   const getAccessToken = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     return session?.access_token;
   };
 
@@ -53,15 +55,18 @@ export function AuthProvider({ children }) {
     };
 
     // Initial session check
-    supabase.auth.getSession()
+    supabase.auth
+      .getSession()
       .then(({ data: { session } }) => handleAuthStateChange(session))
       .catch((err) => {
-        console.error('Initial auth error:', err);
-        setError('Authentication error');
+        console.error("Initial auth error:", err);
+        setError("Authentication error");
       });
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       handleAuthStateChange(session);
     });
 
@@ -73,14 +78,14 @@ export function AuthProvider({ children }) {
     setError(null);
     try {
       await supabase.auth.signInWithOAuth({
-        provider: 'google',
+        provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
     } catch (err) {
-      console.error('Login error:', err);
-      setError('Login failed');
+      console.error("Login error:", err);
+      setError("Login failed");
     } finally {
       setLoading(false);
     }
@@ -92,10 +97,10 @@ export function AuthProvider({ children }) {
       await supabase.auth.signOut();
       setUser(null);
       setProfile(null);
-      router.push('/');
+      router.push("/");
     } catch (err) {
-      console.error('Logout error:', err);
-      setError('Logout failed');
+      console.error("Logout error:", err);
+      setError("Logout failed");
     } finally {
       setLoading(false);
     }
@@ -121,17 +126,13 @@ export function AuthProvider({ children }) {
     getAccessToken,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

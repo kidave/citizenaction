@@ -1,14 +1,14 @@
 // components/ward/useWardTabs.js
-import { useRouter } from 'next/router';
+import { useRouter } from "next/router";
 
 export const WARD_TABS = {
-  PROJECT: 'project',
-  MEETING: 'meeting',
-  UPDATE: 'update',
-  COMMITTEE: 'committee',
-  ROAD: 'road',
-  JUNCTION: 'junction',
-  ACTION: 'action'
+  PROJECT: "project",
+  MEETING: "meeting",
+  UPDATE: "update",
+  COMMITTEE: "committee",
+  ROAD: "road",
+  JUNCTION: "junction",
+  ACTION: "action",
 };
 
 export const useWardTabs = () => {
@@ -25,6 +25,6 @@ export const useWardTabs = () => {
   return {
     activeTab,
     navigateToTab,
-    WARD_TABS
+    WARD_TABS,
   };
 };

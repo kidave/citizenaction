@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export default function useWardRoads(wardId, enabled = true) {
   const [roads, setRoads] = useState([]);
@@ -11,12 +11,12 @@ export default function useWardRoads(wardId, enabled = true) {
     setError(null);
 
     fetch(`/api/road/${wardId}`)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.error) throw new Error(data.error);
         setRoads(data || []);
       })
-      .catch(err => setError(err.message))
+      .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [wardId, enabled]);
 
