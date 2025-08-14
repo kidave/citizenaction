@@ -1,8 +1,8 @@
 // pages/_app.js
 import Head from "next/head";
-import "../styles/main.css";
+import "styles/main.css";
 import "react-phone-input-2/lib/style.css";
-import "../styles/components/forum.module.css";
+import "styles/components/forum.module.css";
 import { AuthProvider } from "context/AuthContext";
 
 function MyApp({ Component, pageProps }) {

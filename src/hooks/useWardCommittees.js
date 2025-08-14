@@ -10,7 +10,7 @@ export default function useWardCommittees(wardId, enabled = true) {
     setLoading(true);
     setError(null);
 
-    fetch(`/api/committee/${wardId}`)
+    fetch(`/api/ward/${wardId}/committee`)
       .then((res) => res.json())
       .then((data) => {
         if (data.error) throw new Error(data.error);

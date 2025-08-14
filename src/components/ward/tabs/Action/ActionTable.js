@@ -36,7 +36,7 @@ export default function ActionTable({ actions = [] }) {
   });
 
   const [enumOptions, setEnumOptions] = useState({
-    action_type: ["pending", "resolved", "in progress", "blocked"],
+    action_type: ["Pending", "Resolved", "In Progress", "Blocked"],
   });
 
   useEffect(() => {

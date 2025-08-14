@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo } from "react";
-import useWardInfo from "hooks/useWardInfo";
+import useWardHeader from "hooks/useWardHeader";
 import useWardMeetings from "hooks/useWardMeetings";
 import useWardUpdates from "hooks/useWardUpdates";
 import useWardCommittees from "hooks/useWardCommittees";
@@ -14,7 +14,7 @@ export function WardProvider({ children, wardId }) {
     wardInfo,
     loading: infoLoading,
     error: infoError,
-  } = useWardInfo(wardId);
+  } = useWardHeader(wardId);
   const {
     meetings,
     loading: meetingsLoading,

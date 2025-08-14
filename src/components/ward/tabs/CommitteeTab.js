@@ -32,12 +32,12 @@ const STAKEHOLDER_ICONS = {
   "Senior Citizen": FaUserAlt,
   "Business Owner": FaUserTie,
   "Civic Official": FaUserSecret,
-  Student: FaUserGraduate,
+  "Student": FaUserGraduate,
   "Person with Disability": FaWheelchair,
-  Resident: FaHome,
+  "Resident": FaHome,
   "Street Vendor": FaStore,
-  Volunteer: MdVolunteerActivism,
-  Educator: FaChalkboardTeacher,
+  "Volunteer": MdVolunteerActivism,
+  "Educator": FaChalkboardTeacher,
   "Healthcare Worker": FaUserDoctor,
 };
 

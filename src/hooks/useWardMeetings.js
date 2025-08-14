@@ -10,7 +10,7 @@ export default function useWardMeetings(wardId, enabled = true) {
     setLoading(true);
     setError(null);
 
-    fetch(`/api/meeting/${wardId}`)
+    fetch(`/api/ward/${wardId}/meeting`)
       .then((res) => res.json())
       .then((data) => {
         if (data.error) throw new Error(data.error);

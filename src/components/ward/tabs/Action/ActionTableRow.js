@@ -2,13 +2,13 @@ import TableCell from "components/shared/table/TableCell";
 
 function getStatusClass(status, cellStyles) {
   switch (status?.toLowerCase()) {
-    case "pending":
+    case "Pending":
       return cellStyles.statusPending;
-    case "resolved":
+    case "Resolved":
       return cellStyles.statusResolved;
-    case "in progress":
+    case "In Progress":
       return cellStyles.statusInProgress;
-    case "blocked":
+    case "Blocked":
       return cellStyles.statusBlocked;
     default:
       return "";

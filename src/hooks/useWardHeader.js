@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export default function useWardInfo(wardId) {
+export default function useWardHeader(wardId) {
   const [wardInfo, setWardInfo] = useState({
     wardName: "",
     convenor: null,
@@ -14,7 +14,7 @@ export default function useWardInfo(wardId) {
     setLoading(true);
     setError(null);
 
-    fetch(`/api/ward/${wardId}`)
+    fetch(`/api/ward/${wardId}/header`)
       .then((res) => res.json())
       .then((data) => {
         if (data.error) throw new Error(data.error);

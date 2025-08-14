@@ -8,4 +8,4 @@ export { default as useWardJunctions } from "./useWardJunctions";
 export { default as useWardBoundary } from "./useWardBoundary";
 export { default as useWardProjects } from "./useWardProjects";
 export { useWardTabs, WARD_TABS } from "./useWardTabs";
-export { default as useWardInfo } from "./useWardInfo";
+export { default as useWardHeader } from "./useWardHeader";

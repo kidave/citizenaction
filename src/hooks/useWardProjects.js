@@ -10,7 +10,7 @@ export default function useWardProjects(wardId, enabled = true) {
     setLoading(true);
     setError(null);
 
-    fetch(`/api/project/${wardId}`)
+    fetch(`/api/ward/${wardId}/project`)
       .then((res) => res.json())
       .then((data) => {
         if (data.error) throw new Error(data.error);

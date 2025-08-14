@@ -10,7 +10,7 @@ export default function useWardUpdates(wardId, enabled = true) {
     setLoading(true);
     setError(null);
 
-    fetch(`/api/update/${wardId}`)
+    fetch(`/api/ward/${wardId}/update`)
       .then((res) => res.json())
       .then((data) => {
         if (data.error) throw new Error(data.error);
