@@ -6,6 +6,7 @@ import { useAuth } from "context/AuthContext";
 export default function CommitteeButton() {
   const [showForm, setShowForm] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
+  const [status, setStatus] = useState(null);
   const { user, getAccessToken } = useAuth();
 
   const handleButtonClick = async () => {
@@ -20,19 +21,13 @@ export default function CommitteeButton() {
 
       if (!response.ok) throw new Error("Failed to check status");
 
-      const { has_application, is_member } = await response.json();
+      const data = await response.json();
+      setStatus(data);
 
-      if (is_member) {
-        alert("You are already a committee member in another ward");
-        return;
+      // Only show form if no application and not a member
+      if (!data.is_member && !data.has_application) {
+        setShowForm(true);
       }
-
-      if (has_application) {
-        alert("You already have a pending application");
-        return;
-      }
-
-      setShowForm(true);
     } catch (err) {
       console.error("Error checking status:", err);
       alert("Error checking your application status. Please try again.");
@@ -52,6 +47,18 @@ export default function CommitteeButton() {
       >
         {isChecking ? "Checking..." : "Apply to Join Committee"}
       </button>
+
+      {/* Show status messages */}
+      {status && (
+        <div className={styles.statusMessage}>
+          {status.is_member ? (
+            <p>You are already a committee member in another ward.</p>
+          ) : status.has_application ? (
+            <p>You already have a pending application.</p>
+          ) : null}
+        </div>
+      )}
+
 
       <Form show={showForm} onClose={() => setShowForm(false)} />
     </div>
