@@ -83,9 +83,11 @@ export default function CommitteeTab({ committees }) {
             <div className={styles.memberInfoContainer}>
               {committee.stakeholder && (
                 <div className={styles.memberCategory}>
-                  {STAKEHOLDER_ICONS[committee.stakeholder] || (
-                    <FaUserAlt className={styles.stakeholderIcon} />
-                  )}
+                  {(() => {
+                    const Icon =
+                      STAKEHOLDER_ICONS[committee.stakeholder] || FaUserAlt;
+                    return <Icon className={styles.stakeholderIcon} />;
+                  })()}
                   <span>{committee.stakeholder}</span>
                 </div>
               )}

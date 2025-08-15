@@ -189,6 +189,7 @@ export default function RoadTab({ roads, onRoadClick, selectedRoad }) {
                 <span className={styles.pageInputWrapper}>
                   <span className={styles.pageInputLabel}>Page</span>
                   <input
+                    id="pageInput"
                     type="number"
                     min={1}
                     max={totalPages}
