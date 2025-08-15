@@ -20,12 +20,11 @@ export default function TimelineItemMeeting({
   index,
   isConvenor,
   isNew,
-  isActive,
-  onToggle,
   onCloseNew,
   onSaveComplete,
 }) {
   const { wardId } = useWard();
+  const [active, setActive] = useState(index === 0);
   const [isEditing, setIsEditing] = useState(isNew || false);
   const [loading, setLoading] = useState(false);
 
@@ -104,12 +103,12 @@ export default function TimelineItemMeeting({
       className={`${styles.timelineItemMeeting} ${isLeft ? styles.left : styles.right}`}
     >
       <div className={styles.timelineSide}>
-        <AnimatePresence>{isLeft && isActive && renderCard()}</AnimatePresence>
+        <AnimatePresence>{isLeft && active && renderCard()}</AnimatePresence>
       </div>
 
       <div
         className={styles.timelineIconWrapper}
-        onClick={onToggle}
+        onClick={() => setActive(!active)}
       >
         <FaUsers className={styles.timelineIconFa} />
         <div
@@ -120,7 +119,7 @@ export default function TimelineItemMeeting({
       </div>
 
       <div className={styles.timelineSide}>
-        <AnimatePresence>{!isLeft && isActive && renderCard()}</AnimatePresence>
+        <AnimatePresence>{!isLeft && active && renderCard()}</AnimatePresence>
       </div>
     </div>
   );
