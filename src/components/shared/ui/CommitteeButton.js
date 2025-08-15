@@ -15,16 +15,15 @@ export default function CommitteeButton() {
     setIsChecking(true);
     try {
       const token = await getAccessToken();
-      const response = await fetch("/api/committee/check", {
+      const res = await fetch("/api/committee/check", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!response.ok) throw new Error("Failed to check status");
+      if (!res.ok) throw new Error("Failed to check status");
 
-      const data = await response.json();
+      const data = await res.json();
       setStatus(data);
 
-      // Only show form if no application and not a member
       if (!data.is_member && !data.has_application) {
         setShowForm(true);
       }
@@ -40,25 +39,22 @@ export default function CommitteeButton() {
 
   return (
     <div className={styles.committeeButtonContainer}>
-      <button
-        onClick={handleButtonClick}
-        className={styles.applyBtn}
-        disabled={isChecking}
-      >
-        {isChecking ? "Checking..." : "Apply to Join Committee"}
-      </button>
-
-      {/* Show status messages */}
-      {status && (
-        <div className={styles.statusMessage}>
-          {status.is_member ? (
-            <p>You are already a committee member in another ward.</p>
-          ) : status.has_application ? (
-            <p>You already have a pending application.</p>
-          ) : null}
-        </div>
+      {status?.is_member && (
+        <p>You are already a committee member in another ward.</p>
+      )}
+      {!status?.is_member && status?.has_application && (
+        <p>You already have a pending application.</p>
       )}
 
+      {!status?.is_member && !status?.has_application && (
+        <button
+          onClick={handleButtonClick}
+          className={styles.applyBtn}
+          disabled={isChecking}
+        >
+          {isChecking ? "Checking..." : "Apply to Join Committee"}
+        </button>
+      )}
 
       <Form show={showForm} onClose={() => setShowForm(false)} />
     </div>
