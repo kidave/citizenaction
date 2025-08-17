@@ -108,11 +108,11 @@ export default function TimelineItemMeeting({
       transition={{ duration: 0.7, delay: index * 0.1 }}
     >
       <div className={styles.imageHeader}>
-        <FaImages /> <span>Meeting Images</span>
         {isConvenor && (
           <>
             <label htmlFor={`file-input-${item.id}`} className={styles.addImageBtn}>
-              <FaPlus /> Add
+              <FaImages className={styles.addImagesIcon} />
+              <div className={styles.addMeetingText}>Add Images</div>
             </label>
             <input
               id={`file-input-${item.id}`}
@@ -146,7 +146,7 @@ export default function TimelineItemMeeting({
       )}
 
       <div className={styles.imageThumbs}>
-        {thumbnailsToShow.length > 0 ? (
+
           <>
             {thumbnailsToShow.map((img, idx) => (
               <div key={idx} className={styles.imageWrapper}>
@@ -172,9 +172,6 @@ export default function TimelineItemMeeting({
               </div>
             )}
           </>
-        ) : (
-          <p>No images yet</p>
-        )}
       </div>
     </motion.div>
   );

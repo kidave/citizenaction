@@ -1,3 +1,4 @@
+// components\ward\tabs\UpdateTab.js
 import TimelineUpdate from "./Timeline/TimelineUpdate";
 import { useWard } from "context/WardContext";
 

@@ -8,6 +8,7 @@ import WardContent from "./WardContent";
 import { useRouter } from "next/router";
 import { useWard, WardProvider } from "context/WardContext";
 import Form from "components/Form";
+import Spinner from "components/shared/ui/Spinner";
 
 function WardLayoutContent() {
   const router = useRouter();
@@ -69,7 +70,7 @@ export default function WardLayout() {
   const router = useRouter();
   const { wardId } = router.query;
 
-  if (!wardId) return <div>Loading Ward...</div>;
+  if (!wardId) return <Spinner mode="fullscreen" />;
 
   return (
     <WardProvider wardId={wardId}>

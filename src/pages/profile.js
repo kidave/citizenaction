@@ -29,7 +29,7 @@ export default function Profile() {
   }, [user, authLoading, router]);
 
   if (authLoading || !user || !profile) {
-    return <Spinner fullPage />;
+    return <Spinner mode="fullscreen" />;
   }
 
   return (

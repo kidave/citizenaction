@@ -1,3 +1,4 @@
+// components\ward\tabs\Timeline\MeetingImages.js
 import { motion } from "framer-motion";
 import { FaImages, FaPlus } from "react-icons/fa";
 import styles from "styles/layout/timeline.module.css";

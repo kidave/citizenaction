@@ -1,6 +1,7 @@
 // pages/ward/[wardId]/index.js
 import { useRouter } from "next/router";
 import { useEffect } from "react";
+import Spinner from "components/shared/ui/Spinner";
 
 // This page's purpose is to redirect to the default tab.
 export default function WardIndexPage() {
@@ -14,5 +15,5 @@ export default function WardIndexPage() {
   }, [wardId, router]);
 
   // Render a loading state or null while redirecting
-  return <div>Loading...</div>;
+  return <Spinner mode="fullscreen" />;
 }

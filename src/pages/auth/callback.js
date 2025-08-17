@@ -31,5 +31,5 @@ export default function Callback() {
     completeLogin();
   }, [router]);
 
-  return <Spinner />;
+  return <Spinner mode="fullscreen" />;
 }

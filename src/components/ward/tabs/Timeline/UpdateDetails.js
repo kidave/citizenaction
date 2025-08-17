@@ -1,3 +1,4 @@
+// components\ward\tabs\Timeline\UpdateDetails.js
 import { useState } from "react";
 import styles from "styles/layout/timeline.module.css";
 import { FaEdit, FaSave, FaTimes } from "react-icons/fa";

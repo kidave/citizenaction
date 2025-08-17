@@ -6,6 +6,7 @@ import useWardCommittees from "hooks/useWardCommittees";
 import useWardRoads from "hooks/useWardRoads";
 import useWardJunctions from "hooks/useWardJunctions";
 import useWardProjects from "hooks/useWardProjects";
+import Spinner from "components/shared/ui/Spinner";
 
 const WardContext = createContext();
 
@@ -92,7 +93,9 @@ export function WardProvider({ children, wardId }) {
   );
 
   return (
-    <WardContext.Provider value={contextValue}>{children}</WardContext.Provider>
+    <WardContext.Provider value={contextValue}>
+      {loading ? <Spinner mode="fullscreen" /> : children}
+    </WardContext.Provider>
   );
 }
 

@@ -72,6 +72,7 @@
 
 .timelineSide {
   flex: 1;
+  margin-top: 40px;
   min-width: 0;
 }
 
@@ -581,7 +582,62 @@
   transform: translateY(0);
 }
 
+.imageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
 
+.addImageBtn {
+  position: relative;
+  z-index: 10;
+  background: white;
+  border-radius: 50%;
+  border: 3px solid skyblue;
+  padding: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.addImageBtn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.addImages {
+  position: relative;
+  z-index: 10;
+  background: white;
+  border-radius: 50%;
+  border: 3px solid lightcoral;
+  padding: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin: 0 auto 2rem auto; /* center & space it */
+  color: lightcoral;
+  font-weight: bold;
+  width: 2rem;
+  height: 2rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.addImages:hover {
+  transform: scale(1.1);
+  color: lightcoral;
+}
+
+.addImagesIcon {
+  font-size: 1rem;
+  color: lightcoral;
+}
 
 .imageThumbs {
   display: flex;
@@ -601,7 +657,6 @@
 .imageThumbs img:hover {
   transform: scale(1.05);
 }
-
 
 .moreImages {
   width: 100%;
@@ -634,7 +689,8 @@
 }
 .previewActions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 .previewActions button {
   padding: 6px 12px;
@@ -655,6 +711,7 @@
   position: relative;
   display: inline-block;
 }
+
 .deleteIcon {
   position: absolute;
   top: 6px;
@@ -667,6 +724,7 @@
   font-size: 14px;
   transition: background 0.2s ease;
 }
+
 .deleteIcon:hover {
   background: rgba(255, 0, 0, 0.1);
 }

@@ -1,3 +1,4 @@
+// components\ward\tabs\Timeline\MeetingDetails.js
 import styles from "styles/layout/timeline.module.css";
 import {
   FaMapMarkerAlt,
