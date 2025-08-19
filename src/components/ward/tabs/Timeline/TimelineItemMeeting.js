@@ -80,7 +80,7 @@ export default function TimelineItemMeeting({
         <h4 className={styles.timelineCardTitle}>
           {item.title || "New Meeting"}
         </h4>
-        <span className={styles.cardTypeBadge}>Meeting</span>
+        <span className={styles.cardTypeBadge}>{formatDate(item.date)}</span>
       </div>
       <MeetingDetails
         item={item}
@@ -184,11 +184,6 @@ export default function TimelineItemMeeting({
 
       <div className={styles.timelineIconWrapper}>
         <FaUsers className={styles.timelineIconFa} />
-        <div
-          className={`${styles.timelineDateWrapper} ${isLeft ? styles.rightDate : styles.leftDate}`}
-        >
-          {formatDate(item.date)}
-        </div>
       </div>
 
       <div className={styles.timelineSide}>

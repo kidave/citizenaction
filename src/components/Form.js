@@ -1,23 +1,27 @@
-// /components/Form.js
+// components/Form.js
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "utils/supabaseClient";
 import styles from "styles/components/form.module.css";
 import { useRouter } from "next/router";
-
+import { useRegionData } from "hooks/useRegionData";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
-export default function Form({ show, onClose }) {
+export default function Form({ show, onClose, onSuccess }) {
   const router = useRouter();
-  const [divisions, setDivisions] = useState([]);
-  const [wards, setWards] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [phone, setPhone] = useState("");
   const [countryCode, setCountryCode] = useState("");
+
+  const {
+    divisions,
+    wards,
+    handleDivisionChange
+  } = useRegionData();
 
   const {
     register,
@@ -27,44 +31,25 @@ export default function Form({ show, onClose }) {
     formState: { errors },
   } = useForm();
 
-  // Fetch initial data
+  // Fetch categories on form open
   useEffect(() => {
     if (!show) return;
 
-    const fetchData = async () => {
+    const fetchCategories = async () => {
       setLoading(true);
       try {
-        const [divisionsRes, categoriesRes] = await Promise.all([
-          fetch("/api/location/division"),
-          fetch("/api/committee/stakeholder"),
-        ]);
-
-        setDivisions(await divisionsRes.json());
-        setCategories(await categoriesRes.json());
+        const res = await fetch("/api/committee/stakeholder");
+        const data = await res.json();
+        setCategories(data);
       } catch (error) {
-        setErrorMsg("Failed to load form data");
+        setErrorMsg("Failed to load categories");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchCategories();
   }, [show]);
-
-  // Fetch wards on division change
-  const handleDivisionChange = async (divisionCode) => {
-    setValue("ward", "");
-    setWards([]);
-
-    if (!divisionCode) return;
-
-    try {
-      const res = await fetch(`/api/location/ward?division=${divisionCode}`);
-      setWards(await res.json());
-    } catch (error) {
-      setErrorMsg("Failed to load wards");
-    }
-  };
 
   // Submit form
   const onSubmit = async (data) => {
@@ -79,8 +64,7 @@ export default function Form({ show, onClose }) {
     }
 
     try {
-      const token = (await supabase.auth.getSession()).data.session
-        ?.access_token;
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
 
       const res = await fetch("/api/committee/form", {
         method: "POST",
@@ -103,7 +87,7 @@ export default function Form({ show, onClose }) {
       }
 
       setSuccessMsg("Application submitted successfully!");
-      if (onSuccess) onSuccess(); // Call the success callback
+      if (onSuccess) onSuccess();
     } catch (error) {
       setErrorMsg(error.message);
     } finally {

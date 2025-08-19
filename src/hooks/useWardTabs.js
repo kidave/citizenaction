@@ -1,4 +1,4 @@
-// components/ward/useWardTabs.js
+// hooks/useWardTabs.js
 import { useRouter } from "next/router";
 
 export const WARD_TABS = {
@@ -13,7 +13,7 @@ export const WARD_TABS = {
 
 export const useWardTabs = () => {
   const router = useRouter();
-  const { tab: activeTab = WARD_TABS.PROJECT } = router.query;
+  const { tab: activeTab = WARD_TABS.MEETING } = router.query;
 
   const navigateToTab = (tabName) => {
     const { wardId } = router.query;

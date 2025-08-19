@@ -174,7 +174,7 @@ export default function BaseMap({
     if (initializedRef.current) {
       updateBoundaryLayer();
     }
-  }, [boundary]);
+  }, [boundary, updateBoundaryLayer]);
 
   // Update tile layer when currentLayer changes
   useEffect(() => {

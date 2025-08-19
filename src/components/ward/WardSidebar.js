@@ -1,8 +1,7 @@
-// components/ward/WardSidebar.js
-import { useState, useEffect } from "react";
+// components\ward\WardSidebar.js
+import { useState } from "react";
 import styles from "../../styles/layout/sidebar.module.css";
 import { useRouter } from "next/router";
-import { supabase } from "../../utils/supabaseClient";
 import { FaMap, FaUsers, FaRoad, FaUser } from "react-icons/fa";
 import { FaTimeline } from "react-icons/fa6";
 import { BsFillSignIntersectionSideFill } from "react-icons/bs";
@@ -11,6 +10,7 @@ import { PiMapPinAreaFill } from "react-icons/pi";
 import { MdAssignment } from "react-icons/md";
 import { useWardTabs, WARD_TABS } from "hooks/useWardTabs";
 import { useAuth } from "context/AuthContext";
+import { useRegionData } from "hooks/useRegionData";
 
 export default function WardSidebar({ disabledTabs = [] }) {
   const { user } = useAuth();
@@ -19,87 +19,15 @@ export default function WardSidebar({ disabledTabs = [] }) {
   const { activeTab, navigateToTab } = useWardTabs();
   const [isHovered, setIsHovered] = useState(false);
 
-  // State for ward selection
-  const [divisions, setDivisions] = useState([]);
-  const [wards, setWards] = useState([]);
-  const [currentDivision, setCurrentDivision] = useState(null);
-  const [loadingDivisions, setLoadingDivisions] = useState(false);
-  const [loadingWards, setLoadingWards] = useState(false);
+  const {
+    divisions,
+    wards,
+    selectedDivision,
+    handleDivisionChange,
+    handleWardChange
+  } = useRegionData();
 
   const isTabDisabled = (tab) => disabledTabs.includes(tab);
-
-  // Fetch all divisions on mount
-  useEffect(() => {
-    const fetchDivisions = async () => {
-      setLoadingDivisions(true);
-      try {
-        const { data, error } = await supabase
-          .from("division")
-          .select("code, name")
-          .order("code", { ascending: true });
-        if (error) throw error;
-        setDivisions(data || []);
-      } finally {
-        setLoadingDivisions(false);
-      }
-    };
-    fetchDivisions();
-  }, []);
-
-  // Fetch division for current ward
-  useEffect(() => {
-    if (!wardId) return;
-
-    const fetchDivisionForWard = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("ward")
-          .select("division_code")
-          .eq("code", wardId)
-          .single();
-
-        if (!error && data) {
-          setCurrentDivision(data.division_code);
-        }
-      } catch (err) {
-        console.error("Error getting ward division:", err);
-      }
-    };
-
-    fetchDivisionForWard();
-  }, [wardId]);
-
-  // Fetch wards for current division
-  useEffect(() => {
-    if (!currentDivision) return;
-
-    const fetchWards = async () => {
-      setLoadingWards(true);
-      try {
-        const { data, error } = await supabase
-          .from("ward")
-          .select("code, name")
-          .eq("division_code", currentDivision)
-          .order("name", { ascending: true });
-        if (error) throw error;
-        setWards(data || []);
-      } finally {
-        setLoadingWards(false);
-      }
-    };
-    fetchWards();
-  }, [currentDivision]);
-
-  const handleDivisionChange = (divisionCode) => {
-    setCurrentDivision(divisionCode);
-    setWards([]);
-  };
-
-  const handleWardChange = (newWardId) => {
-    if (newWardId) {
-      router.push(`/ward/${newWardId}/${activeTab}`);
-    }
-  };
 
   const renderTabButton = (tabKey, icon, label) => (
     <button
@@ -160,7 +88,7 @@ export default function WardSidebar({ disabledTabs = [] }) {
           {isHovered && (
             <select
               id="division-select"
-              value={currentDivision || ""}
+              value={selectedDivision || ""}
               onChange={(e) => handleDivisionChange(e.target.value)}
               className={styles.dropdown}
               aria-label="Select Division"
@@ -184,7 +112,7 @@ export default function WardSidebar({ disabledTabs = [] }) {
               onChange={(e) => handleWardChange(e.target.value)}
               className={styles.dropdown}
               aria-label="Select Ward"
-              disabled={!currentDivision || loadingWards}
+              disabled={!selectedDivision}
             >
               <option value="">Select Ward</option>
               {wards.map((ward) => (

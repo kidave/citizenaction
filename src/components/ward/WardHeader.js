@@ -1,31 +1,27 @@
-// WardHeader.js
+// components/WardHeader.js
 import styles from "styles/layout/header.module.css";
 import { FaEnvelope } from "react-icons/fa";
 import { useMediaQuery } from "react-responsive";
-import { useWardSelection } from "hooks/useWardSelection";
+import { useRegionData } from "hooks/useRegionData";
 import { useRouter } from "next/router";
-import CommitteeButton from "components/shared/ui/CommitteeButton";
 
 export default function WardHeader({
   wardName,
-  convenor, // This is now an object with { name, email }
-  coConvenor, // This is now an object with { name, email }
+  convenor,
+  coConvenor,
   showHeader = true,
 }) {
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const router = useRouter();
   const { wardId } = router.query;
 
-  // Use ward selection hook
   const {
     divisions,
     wards,
     currentDivision,
-    loadingDivisions,
-    loadingWards,
     handleDivisionChange,
-    handleWardChange,
-  } = useWardSelection();
+    handleWardChange
+  } = useRegionData();
 
   if (!showHeader) return null;
 
@@ -59,7 +55,6 @@ export default function WardHeader({
               value={wardId || ""}
               onChange={(e) => handleWardChange(e.target.value)}
               className={styles.dropdown}
-              disabled={!currentDivision || loadingWards}
             >
               <option value="">Ward</option>
               {wards.map((w) => (
