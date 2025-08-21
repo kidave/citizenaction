@@ -1,94 +1,48 @@
 /* styles/layout/about.module.css */
-.backgroundContainer {
-  position: relative;
-  width: 100%;
-  min-height: 100vh;
-}
-
-.contentWrapper {
-  position: relative;
-  z-index: 1;
-  background-color: transparent;
-}
-
 .about {
   background: transparent;
-  border-radius: 18px;
-  margin: 32px auto 8px auto;
-  max-width: 80%;
+  width: 100%;
+  justify-content: center;
   text-align: center;
   position: relative;
 }
 
 .closeBtn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  position: relative;
   background: none;
-  border: none;
-  border-radius: 50%;
-  padding: 0.4em 0.6em;
+  margin-block: 16px;
   font-size: 1.5rem;
   color: gold;
   cursor: pointer;
   transition: background 0.2s;
   z-index: 2;
 }
+
 .closeBtn:hover {
   filter: brightness(0.95);
 }
 
-.showAboutBtn {
-  position: absolute;
-  background: none;
-  color: #fcc700;
-  border: none;
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  top: 0px;
-  right: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+/* Content animation */
+.content {
+  overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+}
+.expanded {
+  max-height: 1200px;
+  opacity: 1;
+}
+.collapsed {
+  max-height: 0;
+  opacity: 0;
 }
 
 .learnMore {
-  color: #0070f3;
+  color: blue;
   text-decoration: underline;
-  margin-left: 4px;
-  font-weight: 500;
 }
 
 .learnMore:hover {
-  color: #0051a3;
-}
-
-@media (max-width: 700px) {
-  .showAboutBtn {
-    top: 16px;
-    right: 8px;
-    width: 40px;
-    height: 40px;
-    font-size: 1.1rem;
-  }
-}
-
-.iconRow {
-  display: flex;
-  justify-content: center;
-  gap: 2.5rem;
-  margin-bottom: 1.2rem;
-}
-
-.icon {
-  font-size: 2.5rem;
-  color: #fcc700;
-  background: white;
-  border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(252, 199, 0, 0.13);
-  padding: 0.7rem;
+  color: darkblue;
 }
 
 .infoRow {
@@ -102,20 +56,19 @@
     rgba(224, 233, 61, 0.363),
     transparent
   );
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 0.5rem 1rem;
 }
 
 .infoIcon {
-  font-size: 1rem;
-  color: #fcc700;
+  color: gold;
 }
 
 .infoText {
-  font-size: 0.9rem;
   color: black;
 }
 
+/* Headings + text */
 .title {
   font-size: 1.5rem;
   font-weight: 600;
@@ -123,39 +76,19 @@
   margin-bottom: 1rem;
   letter-spacing: 0.02em;
 }
-
 .text {
   font-size: 1.1rem;
-  color: black;
+  color: grey;
   line-height: 1.7;
   margin: 0 auto;
-  max-width: 750px;
+  max-width: 60%;
 }
-
 .highlight {
-  color: #fcc700;
+  color: gold;
   font-weight: 600;
 }
-
 .emphasis {
-  color: #1e293b;
-  font-weight: 500;
-  font-style: italic;
+  color: black;
   display: block;
   margin-top: 1rem;
-}
-
-@media (max-width: 600px) {
-  .aboutSection {
-    padding: 1.2rem 0.5rem;
-  }
-  .iconRow {
-    gap: 1.2rem;
-  }
-  .title {
-    font-size: 1.3rem;
-  }
-  .text {
-    font-size: 1rem;
-  }
 }

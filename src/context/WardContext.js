@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo } from "react";
+import { createContext, useContext, useMemo, useEffect } from "react";
 import useWardHeader from "hooks/useWardHeader";
 import useWardMeetings from "hooks/useWardMeetings";
 import useWardUpdates from "hooks/useWardUpdates";
@@ -7,10 +7,12 @@ import useWardRoads from "hooks/useWardRoads";
 import useWardJunctions from "hooks/useWardJunctions";
 import useWardProjects from "hooks/useWardProjects";
 import Spinner from "components/shared/ui/Spinner";
+import { useRegionData } from "hooks/useRegionData";
 
 const WardContext = createContext();
 
 export function WardProvider({ children, wardId }) {
+  const { setNavigatingWard } = useRegionData();
   const {
     wardInfo,
     loading: infoLoading,
@@ -55,6 +57,12 @@ export function WardProvider({ children, wardId }) {
     roadsLoading ||
     junctionsLoading ||
     projectsLoading;
+
+    useEffect(() => {
+    if (!loading) {
+      setNavigatingWard(null); // clear the "Loading ward..." lock once finished
+    }
+  }, [loading, setNavigatingWard]);
 
   const error =
     infoError ||

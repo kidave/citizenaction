@@ -21,6 +21,7 @@ function Region() {
     handleDivisionChange,
     handleWardChange,
     setRegionPath,
+    navigatingWard,
   } = useRegionData();
 
   const [detecting, setDetecting] = useState(false);
@@ -105,19 +106,19 @@ function Region() {
       {/* Detect my ward */}
       <div className={styles.detectWardContainer}>
         <button
-          className={`${buttonStyles.btnMedium} ${styles.detectWardButton}`}
+          className={styles.detectWardButton}
           onClick={detectMyWard}
           disabled={detecting}
         >
           <FiCrosshair />
-          {detecting ? "Detecting..." : "Detect My Ward"}
+          {detecting ? "Locating..." : "Locate Ward"}
         </button>
 
         {detectedWard && (
           <div className={styles.detectedWardResult}>
             <FiCheck />
             <span>
-              Your ward: {wards.find((w) => w.code === detectedWard)?.name}
+              Your Ward: {wards.find((w) => w.code === detectedWard)?.name}
             </span>
           </div>
         )}
@@ -193,16 +194,6 @@ function Region() {
         </>
       )}
 
-      {hoverDivision && divisionAnchorRect && (
-        <WardTooltip
-          wardCode={hoverDivision}
-          anchorRect={divisionAnchorRect}
-          onClose={() => {
-            setHoverDivision(null);
-            setDivisionAnchorRect(null);
-          }}
-        />
-      )}
 
       {/* Wards */}
       {selectedDivision && (
@@ -234,8 +225,9 @@ function Region() {
                     detectedWard === ward.code ? "highlighted-ward" : ""
                   }`}
                   onClick={() => handleWardChange(ward.code)}
+                  disabled={!!navigatingWard} // disable all when navigating
                 >
-                  {ward.name}
+                  {navigatingWard === ward.code ? "Loading..." : ward.name}
                 </button>
 
                 {/* Tooltip inside same container */}

@@ -84,6 +84,10 @@
   font-size: 1rem;
 }
 
+.navButton:hover {
+  color: white;
+}
+
 /* Dropdown */
 .dropdown {
   position: relative;

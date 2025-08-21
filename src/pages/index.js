@@ -44,20 +44,22 @@ function HomePage() {
         />
       </Head>
 
-      <div className={styles.backgroundContainer}>
-        <div className={styles.contentWrapper}>
+      <div className={`${styles.backgroundContainer} min-h-screen bg-gray-50`}>
+        <div className={`${styles.contentWrapper} p-4`}>
           {!isMobile && <Metrics />}
 
           <About show={showAbout} onClose={() => setShowAbout(false)} />
+
           {!showAbout && (
             <button
-              className={styles.showAboutBtn}
+              className={`${styles.showAboutBtn} fixed bottom-4 right-4 flex items-center justify-center rounded-full bg-blue-600 text-white p-3 shadow-lg hover:bg-blue-700`}
               onClick={() => setShowAbout(true)}
               aria-label="Show About"
             >
               <FaInfoCircle size={22} />
             </button>
           )}
+
           <Region />
           <Footer />
         </div>

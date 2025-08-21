@@ -13,16 +13,19 @@ export const useRegionData = () => {
   const [selectedDivision, setSelectedDivision] = useState(null);
   const [wards, setWards] = useState([]);
 
+  const [navigatingWard, setNavigatingWard] = useState(null);
+
   // Initialize with current ward if in ward route
   useEffect(() => {
     if (!wardId) return;
-    
     const regionPath = RegionService.getFullRegionPath(wardId);
     if (!regionPath) return;
-    
+
     setSelectedCity(regionPath.city.code);
     setSelectedDivision(regionPath.division.code);
+    setWards(RegionService.getWardsByDivision(regionPath.division.code));
   }, [wardId]);
+
 
   const setRegionPath = (wardCode) => {
     const regionPath = RegionService.getFullRegionPath(wardCode);
@@ -32,7 +35,6 @@ export const useRegionData = () => {
     setSelectedDivision(regionPath.division.code);
     setWards(RegionService.getWardsByDivision(regionPath.division.code));
   };
-
 
   const handleCityChange = (cityCode) => {
     const city = RegionService.getCityByCode(cityCode);
@@ -49,6 +51,7 @@ export const useRegionData = () => {
   };
 
   const handleWardChange = (wardCode) => {
+    setNavigatingWard(wardCode);
     router.push(`/ward/${wardCode}/${activeTab || 'meeting'}`);
   };
 
@@ -63,6 +66,8 @@ export const useRegionData = () => {
     // State
     selectedCity,
     selectedDivision,
+    navigatingWard,
+    setNavigatingWard,
 
     // Config
     statusConfig: REGION_STATUS,

@@ -22,14 +22,14 @@
     /* Radial light glows */
       radial-gradient(
         circle 500px at 20% 80%,
-        rgba(220, 218, 111, 0.25),
+        rgba(240, 240, 210, 0.2),
         transparent
       ),
     radial-gradient(
       circle 500px at 80% 20%,
-      rgba(239, 244, 173, 0.25),
+      rgba(240, 240, 210, 0.2),
       transparent
-    );
+    )
 }
 
 html,

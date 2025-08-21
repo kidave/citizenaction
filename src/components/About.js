@@ -1,14 +1,9 @@
 import styles from "styles/layout/about.module.css";
 import {
-  FaUsers,
-  FaMapMarkedAlt,
-  FaHandsHelping,
   FaMapSigns,
   FaMousePointer,
-  FaTimes,
-  FaChevronDown,
-  FaChevronUp,
 } from "react-icons/fa";
+import { FaChevronDown, FaChevronUp } from "react-icons/fa6";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -16,11 +11,12 @@ export default function About() {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const toggleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
+    setIsCollapsed((prev) => !prev);
   };
 
   return (
     <section className={styles.about}>
+      {/* Collapse Button */}
       <button
         className={styles.closeBtn}
         onClick={toggleCollapse}
@@ -29,32 +25,33 @@ export default function About() {
         {isCollapsed ? <FaChevronDown /> : <FaChevronUp />}
       </button>
 
-      {!isCollapsed && (
-        <>
-          <div className={styles.iconRow}>
-            <FaUsers className={styles.icon} />
-            <FaMapMarkedAlt className={styles.icon} />
-            <FaHandsHelping className={styles.icon} />
-          </div>
-          <h2 className={styles.title}>
-            Improving our Footpaths, One Ward at a Time
-          </h2>
-          <p className={styles.text}>
-            <strong>Walking Project</strong> is a citizen-driven initiative to
-            make our neighborhoods more walkable, inclusive, and vibrant.
-            Through <span className={styles.highlight}>ward committees</span>,
-            we bring together residents, local leaders, and volunteers and civic
-            officials to identify walkability issues, propose changes, foster
-            collaboration and track progress, for walkable streets and public
-            spaces.
-            <span className={styles.emphasis}>
-              Join us in building a connected, safe, and healthy city, starting
-              from your own ward!
-            </span>
-          </p>
-        </>
-      )}
+      {/* Collapsible Content */}
+      <div
+        className={`${styles.content} ${
+          isCollapsed ? styles.collapsed : styles.expanded
+        }`}
+      >
 
+        <h2 className={styles.title}>
+          Improving our Footpaths,{" "}
+          <span className={styles.highlight}>One Ward at a Time</span>
+        </h2>
+
+        <p className={styles.text}>
+          <span className={styles.highlight}>Walking Project</span> is a citizen-driven initiative to
+          make our neighborhoods more walkable, inclusive, and vibrant. Through{" "}
+          <span className={styles.highlight}>ward committees</span>, we bring
+          together residents, local leaders, volunteers and civic officials to
+          identify walkability issues, propose changes, foster collaboration and
+          track progress, for walkable streets and public spaces.
+          <span className={styles.emphasis}>
+            Join us in building a connected, safe, and healthy city, starting
+            from your own ward!
+          </span>
+        </p>
+      </div>
+
+      {/* Always Visible Info Row */}
       <div className={styles.infoRow}>
         <FaMapSigns className={styles.infoIcon} />
         <FaMousePointer className={styles.infoIcon} />

@@ -1,55 +1,39 @@
 :root {
-  --primary-color: #fcc700;
-  --primary-hover: whitesmoke;
-  --secondary-color: lightgrey;
-  --text-light: white;
-  --text-dark: black;
-  --border-radius: 20px;
-  --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  --transition: all 0.3s ease;
-  --font-main: "Open Sans", system-ui, -apple-system, sans-serif;
-  --font-size-base: 14px;
+  --primary-color: #FFC700;
+  --primary-dark: #E6B300;
+  --secondary-color: #4A4A4A;
+  --accent-color: #6C63FF;
+  --light-bg: #F8F9FA;
+  --dark-bg: #1A1A1A;
+  --text-dark: #2D3748;
+  --text-light: #718096;
+  --white: #FFFFFF;
+  --border-radius: 12px;
+  --border-radius-lg: 16px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --font-main:'Nunito Sans', system-ui, -apple-system, sans-serif;
+  --font-alt: 'Open Sans', sans-serif;
+  --font-size-base: 16px;
 }
 
 body {
   font-family: var(--font-main);
   font-size: var(--font-size-base);
-  color: var(--text-primary);
-  line-height: 1.5;
+  color: var(--text-dark);
+  line-height: 1.6;
+  background-color: var(--white);
 }
 
-h1 {
-  font-size: 2rem;
-}
-h2 {
-  font-size: 1.75rem;
-}
-h3 {
-  font-size: 1.5rem;
-}
-h4 {
-  font-size: 1.25rem;
-}
-h5 {
-  font-size: 1.1rem;
-}
-h6 {
-  font-size: 1rem;
-}
+/* Improved typography scale */
+h1 { font-size: 2.5rem; font-weight: 700; }
+h2 { font-size: 2rem; font-weight: 600; }
+h3 { font-size: 1.5rem; font-weight: 600; }
+h4 { font-size: 1.25rem; font-weight: 500; }
+h5 { font-size: 1.125rem; font-weight: 500; }
+h6 { font-size: 1rem; font-weight: 500; }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-weight: 400;
-}
-
-.small-text {
-  font-size: 0.875rem;
-}
-.caption {
-  font-size: 0.75rem;
-  color: var(--text-light);
-}
+.small-text { font-size: 0.875rem; }
+.caption { font-size: 0.75rem; color: var(--text-light); }
