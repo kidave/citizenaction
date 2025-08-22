@@ -111,7 +111,7 @@ function Region() {
           disabled={detecting}
         >
           <FiCrosshair />
-          {detecting ? "Locating..." : "Locate Ward"}
+          {detecting ? "Locating..." : "Locate Your Ward"}
         </button>
 
         {detectedWard && (
@@ -209,13 +209,17 @@ function Region() {
                 style={{ position: "relative", display: "inline-block" }}
                 ref={(el) => (wardButtonsRef.current[ward.code] = el)}
                 onMouseEnter={(e) => {
+                  const buttonEl = e.currentTarget.querySelector("button"); // 👈 target the button
+                  if (!buttonEl) return;
+                  const rect = buttonEl.getBoundingClientRect();
                   setHoverWard(ward.code);
-                  const rect = e.currentTarget.getBoundingClientRect();
                   setAnchorRect({
                     left: rect.left,
-                    top: rect.bottom,
+                    top: rect.top,
                     right: rect.right,
                     bottom: rect.bottom,
+                    width: rect.width,
+                    height: rect.height,
                   });
                 }}
                 onMouseLeave={closeTooltip}
@@ -225,7 +229,7 @@ function Region() {
                     detectedWard === ward.code ? "highlighted-ward" : ""
                   }`}
                   onClick={() => handleWardChange(ward.code)}
-                  disabled={!!navigatingWard} // disable all when navigating
+                  disabled={!!navigatingWard}
                 >
                   {navigatingWard === ward.code ? "Loading..." : ward.name}
                 </button>

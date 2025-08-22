@@ -34,8 +34,8 @@ export default function TimelineItemMeeting({
   const isLeft = index % 2 === 0;
 
   const thumbnailsToShow = useMemo(() => {
-    if (images.length <= 4) return images;
-    return [...images].sort(() => 0.5 - Math.random()).slice(0, 4);
+    if (images.length <= 1) return images;
+    return [...images].sort(() => 0.5 - Math.random()).slice(0, 1);
   }, [images]);
 
   const handleSelectImage = (e) => {

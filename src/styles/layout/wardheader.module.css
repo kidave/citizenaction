@@ -1,0 +1,138 @@
+  /* =============================
+     WARD HEADER 
+   ============================= */
+
+.wardHeader {
+  background:
+    radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.08) 1px, transparent 0),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.02) 2px,
+      rgba(0, 0, 0, 0.02) 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.02) 2px,
+      rgba(0, 0, 0, 0.02) 4px
+    );
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  color: grey;
+}
+
+.wardInfo h2 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.wardTitle {
+  text-align: right;
+  position: relative;
+}
+
+.wardTitle h3 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.wardTitle p {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  font-style: italic;
+  color: black;
+}
+
+/* Leadership Section */
+.leadership {
+  display: flex;
+  color: black;
+  gap: 2rem;
+}
+
+.leaderItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.leaderName {
+  white-space: nowrap;
+}
+
+.emailContainer {
+  display: flex;
+  align-items: center;
+}
+
+.emailLink {
+  display: flex;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+}
+
+.emailIcon {
+  font-size: 1rem;
+  margin-right: 4px;
+  color: grey;
+  transition: all 0.2s ease;
+}
+
+.emailLink:hover .emailIcon {
+  color: black;
+}
+
+.emailText {
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition:
+    max-width 0.3s ease,
+    margin-left 0.3s ease;
+}
+
+.emailLink:hover .emailText {
+  max-width: 400px;
+}
+  
+  /* Mobile-specific WardHeader styles */
+@media (max-width: 768px) {
+  .wardHeaderMobile {
+    background: #fcc700;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .wardNameMobile {
+    margin: 0;
+    font-size: 1rem;
+    color: black;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .wardHeaderMobile h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 60%;
+  }
+
+  .wardTitleMobile p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: black;
+    font-weight: bold;
+  }
+}

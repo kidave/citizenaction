@@ -324,7 +324,6 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 14px;
 }
 
 .editButton:hover {
@@ -403,7 +402,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  margin: 0 auto 2rem auto; /* center & space it */
+  margin: 0 auto 2rem auto;
   color: lightcoral;
   font-weight: bold;
   width: 2rem;
@@ -581,6 +580,17 @@
   transform: translateY(0);
 }
 
+.imageContainer {
+  width: 90%;
+  max-height: auto;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  object-fit: cover;
+  cursor: pointer;
+  transition: transform 0.25s ease;
+}
+
 .imageHeader {
   display: flex;
   align-items: center;
@@ -639,21 +649,18 @@
 
 .imageThumbs {
   display: flex;
-  gap: 8px;
   flex-wrap: wrap;
 }
 
 .imageThumbs img {
   width: 100%; /* thumbnail size */
-  height: 160px;
+  height: 100%;
   object-fit: cover;
-  border-radius: 6px;
+  border-radius: 16px;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: transform 0.2s ease;
-}
-
-.imageThumbs img:hover {
-  transform: scale(1.05);
 }
 
 .moreImages {
@@ -665,7 +672,8 @@
   justify-content: center;
   font-weight: bold;
   color: grey;
-  border-radius: 6px;
+  margin-top: 8px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -719,7 +727,6 @@
   border-radius: 50%;
   cursor: pointer;
   color: red;
-  font-size: 14px;
   transition: background 0.2s ease;
 }
 

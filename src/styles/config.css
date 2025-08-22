@@ -15,7 +15,6 @@
   --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --font-main:'Open Sans', system-ui, -apple-system, sans-serif;
-  --font-alt: 'Nunito Sans', sans-serif;
   --font-size-base: 16px;
 }
 

@@ -1,5 +1,5 @@
 // components/WardHeader.js
-import styles from "styles/layout/header.module.css";
+import styles from "styles/layout/wardheader.module.css";
 import { FaEnvelope } from "react-icons/fa";
 import { useMediaQuery } from "react-responsive";
 import { useRegionData } from "hooks/useRegionData";

@@ -9,7 +9,11 @@ export default {
     "./src/data/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        open: ["'Open Sans'", "sans-serif"],
+      },
+    },
   },
   plugins: [],
 };

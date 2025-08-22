@@ -9,29 +9,35 @@ export default function WardTooltip({ wardCode, anchorRect, onClose }) {
   const [pos, setPos] = useState({ left: 0, top: 0 });
 
   useEffect(() => {
-    if (!anchorRect) return;
-    const tooltipWidth = 280;
-    const tooltipHeight = 200;
+    if (!anchorRect || !ref.current) return;
+
+    const tooltipWidth = ref.current.offsetWidth;
+    const tooltipHeight = ref.current.offsetHeight;
     const padding = 8;
 
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
-    let left = anchorRect.left;
-    let top = anchorRect.bottom + padding; // default below the button
+    // center horizontally relative to button
+    let left = anchorRect.left + (anchorRect.width / 2) - (tooltipWidth / 2);
+    let top = anchorRect.top - tooltipHeight - padding; // 👈 default ABOVE
+    let position = "above";
 
     // keep inside viewport horizontally
+    if (left < 12) left = 12;
     if (left + tooltipWidth > vw - 12) left = vw - tooltipWidth - 12;
 
-    // if no space at bottom, flip to top
-    if (top + tooltipHeight > vh - 12) {
-      top = anchorRect.top - tooltipHeight - padding;
+    // if not enough space above → flip below
+    if (top < 12) {
+      top = anchorRect.bottom + padding;
+      position = "below";
     }
 
-    setPos({ left, top });
+    setPos({ left, top, position });
   }, [anchorRect]);
 
 
+    
   useEffect(() => {
     const handler = (e) => {
       if (ref.current && !ref.current.contains(e.target)) onClose?.();
@@ -48,6 +54,7 @@ export default function WardTooltip({ wardCode, anchorRect, onClose }) {
       ref={ref}
       role="tooltip"
       className={styles.tooltipContainer}
+      data-position={pos.position}
       style={{ left: pos.left, top: pos.top }}
     >
       <div className={styles.tooltipTitle}>

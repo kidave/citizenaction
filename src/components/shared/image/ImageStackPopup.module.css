@@ -52,3 +52,28 @@
   cursor: pointer;
   transform-origin: center center;
 }
+
+.zoomActions {
+  position: absolute;
+  bottom: 20px;
+  display: flex;
+  gap: 12px;
+}
+
+.deleteButton {
+  background: #e53935;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+.deleteButton:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #ffdddd;
+  font-size: 0.85rem;
+}

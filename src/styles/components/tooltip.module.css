@@ -1,21 +1,43 @@
 .tooltipContainer {
   position: fixed;
   width: 280px;
-  max-width: 90vw;
+  max-width: 280px;
   background: black;
   color: white;
-  border-radius: 10px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
-  border: 1px solid rgba(0, 0, 0, 0.07);
-  padding: 8px;
+  border-radius: 16px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem;
   z-index: 9999;
   pointer-events: auto;
   animation: fadeIn 0.15s ease-out;
 }
 
+/* arrow */
+.tooltipContainer::after {
+  content: "";
+  position: absolute;
+  border-radius: 4px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 1.5rem;
+  height: 1.5rem;
+  background: black;
+}
+
+/* default: arrow on top edge (tooltip below button) */
+.tooltipContainer[data-position="below"]::after {
+  top: -5px;
+}
+
+/* flipped: arrow on bottom edge (tooltip above button) */
+.tooltipContainer[data-position="above"]::after {
+  bottom: -5px;
+}
+
+
 .tooltipTitle {
-  font-weight: 700;
-  font-size: 1rem;
+  font-weight: 400;
 }
 
 .tooltipBody {
@@ -24,13 +46,13 @@
 }
 
 .tooltipDescription {
-  font-size: 14px;
-  line-height: 1.4;
+  font-weight: 400;
 }
 
 .tooltipLabel {
-  font-size: 12px;
-  opacity: 0.6;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: grey;
 }
 
 .areaList {
@@ -40,17 +62,17 @@
 }
 
 .areaItem {
-  font-size: 12px;
-  background: grey;
-  border-radius: 999px;
-  padding: 2px 8px;
+  font-weight: 400;
+  padding-left: 16px;
+  line-height: 1.35;
+  font-size: 0.8rem;
 }
 
 .landmarkList {
-  margin: 0;
+  margin-top: 0;
   padding-left: 16px;
-  font-size: 13px;
   line-height: 1.35;
+  font-size: 0.8rem;
 }
 
 @keyframes fadeIn {
