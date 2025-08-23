@@ -59,10 +59,10 @@ export function WardProvider({ children, wardId }) {
     projectsLoading;
 
     useEffect(() => {
-    if (!loading) {
-      setNavigatingWard(null); // clear the "Loading ward..." lock once finished
-    }
-  }, [loading, setNavigatingWard]);
+      if (!loading) {
+        setNavigatingWard(null);
+      }
+    }, [loading, setNavigatingWard]);
 
   const error =
     infoError ||

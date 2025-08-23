@@ -1,11 +1,8 @@
 // components/Layout.js
 import Head from "next/head";
 import Header from "./Header";
-import { useState } from "react";
-import Form from "../home/Form";
 
 export default function Layout({ children }) {
-  const [showForm, setShowForm] = useState(false);
 
   return (
     <>
@@ -15,7 +12,6 @@ export default function Layout({ children }) {
       <Header />
       <main className="regionContainer">
         {children}
-        <Form show={showForm} onClose={() => setShowForm(false)} />
       </main>
     </>
   );

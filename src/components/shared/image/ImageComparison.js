@@ -1,4 +1,4 @@
-import styles from "styles/layout/junction.module.css";
+import styles from "./image.module.css";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 

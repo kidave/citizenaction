@@ -5,20 +5,19 @@ import Layout from "components/layout/Layout";
 import About from "components/home/About";
 import Footer from "components/layout/Footer";
 import { useState, useEffect } from "react";
-import { FaInfoCircle } from "react-icons/fa";
 import styles from "styles/layout/about.module.css";
 
 function HomePage() {
-  const [showAbout, setShowAbout] = useState(true);
-  const [showForm, setShowForm] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
     };
+
     checkMobile();
     window.addEventListener("resize", checkMobile);
+
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
@@ -44,22 +43,10 @@ function HomePage() {
         />
       </Head>
 
-      <div className={`${styles.backgroundContainer} min-h-screen bg-gray-50`}>
-        <div className={`${styles.contentWrapper} p-4`}>
+      <div className={styles.backgroundContainer}>
+        <div className={styles.contentWrapper}>
           {!isMobile && <Metrics />}
-
-          <About show={showAbout} onClose={() => setShowAbout(false)} />
-
-          {!showAbout && (
-            <button
-              className={`${styles.showAboutBtn} fixed bottom-4 right-4 flex items-center justify-center rounded-full bg-blue-600 text-white p-3 shadow-lg hover:bg-blue-700`}
-              onClick={() => setShowAbout(true)}
-              aria-label="Show About"
-            >
-              <FaInfoCircle size={22} />
-            </button>
-          )}
-
+          <About />
           <Region />
           <Footer />
         </div>

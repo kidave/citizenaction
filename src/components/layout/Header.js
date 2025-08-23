@@ -6,7 +6,6 @@ import { useAuth } from "context/AuthContext";
 
 export default function Header() {
   const router = useRouter();
-  // You already have the logout function from the context
   const { user, profile, logout } = useAuth();
 
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -21,14 +20,10 @@ export default function Header() {
     setProfileOpen(!profileOpen);
   };
 
-  // --- THIS IS THE FIX ---
   const handleLogout = async () => {
-    // Call the logout function from the context.
-    // It handles signing out, clearing state, and redirecting.
     await logout();
-    setProfileOpen(false); // Close the dropdown after logout
+    setProfileOpen(false);
   };
-  // -----------------------
 
   const dropdownItems = {
     "Activities + Projects": [

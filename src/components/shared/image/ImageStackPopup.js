@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import styles from "./ImageStackPopup.module.css";
+import styles from "./image.module.css";
 
 const BUCKET_URL =
   "https://<your-project-id>.supabase.co/storage/v1/object/public/project-images/";

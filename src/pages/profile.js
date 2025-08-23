@@ -2,19 +2,18 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import { useAuth } from "context/AuthContext";
-import styles from "../styles/profile.module.css";
-import ProfileHeader from "../components/profile/ProfileHeader";
-import ProfileView from "../components/profile/ProfileView";
-import Spinner from "../components/shared/ui/Spinner";
-import CommitteeButton from "../components/shared/ui/CommitteeButton";
-import ErrorMessage from "../components/shared/ui/ErrorMessage";
+import styles from "styles/profile.module.css";
+import ProfileHeader from "components/profile/ProfileHeader";
+import ProfileView from "components/profile/ProfileView";
+import Spinner from "components/shared/ui/Spinner";
+import CommitteeButton from "components/shared/ui/CommitteeButton";
+import ErrorMessage from "components/shared/ui/ErrorMessage";
 
 export default function Profile() {
   const {
     user,
     profile,
     loading: authLoading,
-    logout,
     error: authError,
   } = useAuth();
 
@@ -43,7 +42,7 @@ export default function Profile() {
           onClose={() => setError(null)}
         />
       )}
-      <ProfileHeader /> {/* Removed edit-related props */}
+      <ProfileHeader />
       <div className={styles.profileCard}>
         <div className={styles.avatarSection}>
           <div className={styles.avatarWrapper}>
@@ -65,7 +64,7 @@ export default function Profile() {
           <div className={styles.userEmail}>{user.email}</div>
         </div>
 
-        <ProfileView profile={profile} onLogout={logout} />
+        <ProfileView profile={profile}/>
 
         <div className={styles.committeeSection}>
           <CommitteeButton />

@@ -77,6 +77,11 @@ export function AuthProvider({ children }) {
     setLoading(true);
     setError(null);
     try {
+      // Store the current path for redirect after login
+      if (!localStorage.getItem("returnTo")) {
+        localStorage.setItem("returnTo", router.asPath);
+      }
+      
       await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -94,9 +99,12 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       setLoading(true);
+      // Store the current path for potential redirect after logout
+      localStorage.setItem("postLogoutRedirect", router.asPath);
       await supabase.auth.signOut();
       setUser(null);
       setProfile(null);
+      // Redirect to home after logout
       router.push("/");
     } catch (err) {
       console.error("Logout error:", err);

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "context/AuthContext";
 import Head from "next/head";
-import styles from "../styles/auth.module.css";
+import styles from "styles/auth.module.css";
 import { FcGoogle } from "react-icons/fc";
 import { FiArrowLeft } from "react-icons/fi";
 
@@ -17,12 +17,6 @@ export default function Auth() {
     setLoading(true);
     setError("");
     try {
-      // Do not overwrite the 'returnTo' value if it already exists.
-      // This ensures we return to the page before the user landed on /auth.
-      if (!localStorage.getItem("returnTo")) {
-        localStorage.setItem("returnTo", "/"); // Default to home if not set
-      }
-
       await login();
     } catch (err) {
       setError(err.message);
@@ -31,10 +25,9 @@ export default function Auth() {
   };
 
   const handleBack = () => {
-    // Get the returnTo value but do not default to '/', as the back button
-    // should ideally take the user back to where they came from.
-    // However, the current logic is to use 'returnTo' or a default of '/'.
+    // Check if there's a stored return path, otherwise go home
     const returnTo = localStorage.getItem("returnTo") || "/";
+    localStorage.removeItem("returnTo"); // Clean up
     router.push(returnTo);
   };
 

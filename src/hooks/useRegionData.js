@@ -1,5 +1,5 @@
 // hooks/useRegionData.js
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
 import { useWardTabs } from "./useWardTabs";
 import { RegionService, REGION_STATUS } from "data/regions";
@@ -26,16 +26,6 @@ export const useRegionData = () => {
     setWards(RegionService.getWardsByDivision(regionPath.division.code));
   }, [wardId]);
 
-
-  const setRegionPath = (wardCode) => {
-    const regionPath = RegionService.getFullRegionPath(wardCode);
-    if (!regionPath) return;
-
-    setSelectedCity(regionPath.city.code);
-    setSelectedDivision(regionPath.division.code);
-    setWards(RegionService.getWardsByDivision(regionPath.division.code));
-  };
-
   const handleCityChange = (cityCode) => {
     const city = RegionService.getCityByCode(cityCode);
     if (REGION_STATUS[city?.status]?.disabled) return;
@@ -50,10 +40,10 @@ export const useRegionData = () => {
     setWards(RegionService.getWardsByDivision(divisionCode));
   };
 
-  const handleWardChange = (wardCode) => {
+  const handleWardChange = useCallback((wardCode) => {
     setNavigatingWard(wardCode);
     router.push(`/ward/${wardCode}/${activeTab || 'meeting'}`);
-  };
+  }, [activeTab, router, setNavigatingWard]);
 
   return {
     // Data
@@ -76,6 +66,5 @@ export const useRegionData = () => {
     handleCityChange,
     handleDivisionChange,
     handleWardChange,
-    setRegionPath,
   };
 };

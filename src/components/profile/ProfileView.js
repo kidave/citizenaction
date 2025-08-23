@@ -1,6 +1,6 @@
 import styles from "styles/profile.module.css";
 
-export default function ProfileView({ profile, onLogout }) {
+export default function ProfileView({ profile }) {
   return (
     <>
       <div className={styles.detailsSection}>
@@ -30,12 +30,6 @@ export default function ProfileView({ profile, onLogout }) {
             </div>
           </div>
         </div>
-      </div>
-
-      <div className={styles.actions}>
-        <button onClick={onLogout} className={styles.logoutButton}>
-          Sign Out
-        </button>
       </div>
     </>
   );

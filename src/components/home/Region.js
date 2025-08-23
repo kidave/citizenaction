@@ -1,11 +1,12 @@
 // components/Region.js
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { supabase } from "utils/supabaseClient";
 import styles from "styles/layout/region.module.css";
-import buttonStyles from "styles/components/button.module.css";
 import { FiMap, FiMapPin, FiCrosshair, FiCheck } from "react-icons/fi";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRegionData } from "hooks/useRegionData";
 import WardTooltip from "components/shared/ui/WardTooltip";
 
@@ -20,26 +21,44 @@ function Region() {
     handleCityChange,
     handleDivisionChange,
     handleWardChange,
-    setRegionPath,
     navigatingWard,
   } = useRegionData();
 
   const [detecting, setDetecting] = useState(false);
   const [detectedWard, setDetectedWard] = useState(null);
   const wardButtonsRef = useRef({});
+  const divisionViewRef = useRef(null);
+  const [currentDivisionIdx, setCurrentDivisionIdx] = useState(0);
+  
 
   // Tooltip state
   const [hoverWard, setHoverWard] = useState(null);
   const [anchorRect, setAnchorRect] = useState(null);
-  const [hoverDivision, setHoverDivision] = useState(null);
-  const [divisionAnchorRect, setDivisionAnchorRect] = useState(null);
 
   const closeTooltip = useCallback(() => {
     setHoverWard(null);
     setAnchorRect(null);
-    setHoverDivision(null);
-    setDivisionAnchorRect(null);
   }, []);
+
+  // 🚀 Keyboard navigation
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === "ArrowLeft") {
+        setCurrentDivisionIdx((i) => Math.max(0, i - 1));
+      }
+      if (e.key === "ArrowRight") {
+        setCurrentDivisionIdx((i) => Math.min(divisions.length - 1, i + 1));
+      }
+      if (e.key === "Enter" && divisions[currentDivisionIdx]) {
+        handleDivisionChange(divisions[currentDivisionIdx].code);
+      }
+      if (e.key === "Escape") {
+        closeTooltip();
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [divisions, currentDivisionIdx, handleDivisionChange, closeTooltip]);
 
   const detectMyWard = useCallback(() => {
     if (!navigator.geolocation) {
@@ -79,6 +98,11 @@ function Region() {
           handleCityChange(cityId);
           handleDivisionChange(divisionId);
 
+          // sync carousel index so useEffect won’t override
+          setCurrentDivisionIdx(
+            divisions.findIndex((d) => d.code === divisionId) || 0
+          );
+
           // wait for wards to load then highlight
           setTimeout(() => {
             const button = wardButtonsRef.current[wardId];
@@ -100,6 +124,16 @@ function Region() {
       { enableHighAccuracy: true, timeout: 15000 }
     );
   }, [handleCityChange, handleDivisionChange]);
+
+  useEffect(() => {
+    if (divisions.length > 0 && currentDivisionIdx < divisions.length) {
+      const activeDivision = divisions[currentDivisionIdx];
+      if (activeDivision?.code !== selectedDivision) {
+        handleDivisionChange(activeDivision.code);
+      }
+    }
+  }, [divisions, currentDivisionIdx, handleDivisionChange, selectedDivision]);
+  
 
   return (
     <div className={styles.regionContainer}>
@@ -125,71 +159,88 @@ function Region() {
       </div>
 
       {/* Cities */}
-      <div className={styles.sectionTitle}></div>
-      <div className={styles.cityContainer}>
+      <div className={styles.scrollContainer}>
         {cities.map((city) => {
           const config = statusConfig[city.status] || statusConfig.Pending;
-          const isActive = selectedCity === city.code;
-
           return (
-            <button
+            <div
               key={city.code}
-              className={`${buttonStyles.btnBig} ${isActive ? buttonStyles.active : ""}`}
-              disabled={config.disabled}
-              onClick={() => handleCityChange(city.code)}
+              className={`${styles.scrollCard} ${selectedCity === city.code ? styles.active : ""}`}
               style={{
+                backgroundImage: `url(/images/cities/${city.code}.jpg)`, // add your city images
                 opacity: config.disabled ? 0.4 : 1,
                 cursor: config.disabled ? "not-allowed" : "pointer",
-                position: "relative",
               }}
+              onClick={() => !config.disabled && handleCityChange(city.code)}
             >
-              {city.name}
-              {config.disabled && (
-                <span
-                  className={styles.statusBadge}
-                  style={{ backgroundColor: config.color }}
-                >
-                  {config.label}
-                </span>
-              )}
-            </button>
+              <div className={styles.scrollOverlay}>
+                {city.name}
+                {config.disabled && (
+                  <span className={styles.statusBadge} style={{ backgroundColor: config.color }}>
+                    {config.label}
+                  </span>
+                )}
+              </div>
+            </div>
           );
         })}
       </div>
+
 
       {/* Divisions */}
       {selectedCity && (
         <>
           <div className={styles.sectionTitle}>
             <FiMap className={styles.sectionIcon} />
-            <span>Select Division</span>
+            <span>Navigate Division</span>
           </div>
-          <div className={styles.divisionContainer}>
-            {divisions.map((division) => (
+          <div className={styles.scrollContainer}>
+
+          <div className={styles.divisionCarousel}>
+            <div className={styles.divisionView} ref={divisionViewRef}>
               <button
-                key={division.code}
-                className={`${buttonStyles.btnMedium} ${
-                  selectedDivision === division.code ? buttonStyles.active : ""
-                }`}
-                onClick={() => handleDivisionChange(division.code)}
-                onMouseEnter={(e) => {
-                  setHoverDivision(division.code);
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  setDivisionAnchorRect({
-                    left: rect.left,
-                    top: rect.bottom,
-                    right: rect.right,
-                    bottom: rect.bottom,
-                  });
-                }}
-                onMouseLeave={() => {
-                  setHoverDivision(null);
-                  setDivisionAnchorRect(null);
-                }}
+                className={`${styles.divisionNavButton} ${styles.left}`}
+                onClick={() => setCurrentDivisionIdx(i => Math.max(0, i - 1))}
+                disabled={currentDivisionIdx === 0}
               >
-                {division.name}
+                <FaChevronLeft />
               </button>
-            ))}
+              <AnimatePresence mode="wait" initial={false}>
+                {divisions.length > 0 && (
+                  <motion.div
+                    key={divisions[currentDivisionIdx].code}
+                    initial={{ opacity: 0, x: 100 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -100 }}
+                    transition={{ duration: 0.3 }}
+                    style={{
+                      backgroundImage: `url(/images/division/${divisions[currentDivisionIdx].code}.jpg)`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      width: "100%",
+                      height: "100%",
+                      borderRadius: "16px",
+                      cursor: "default",
+                    }}
+                    onClick={() => handleDivisionChange(divisions[currentDivisionIdx].code)}
+                  >
+                    <div className={styles.scrollOverlay}>
+                      {divisions[currentDivisionIdx].name}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <button
+                className={`${styles.divisionNavButton} ${styles.right}`}
+                onClick={() =>
+                  setCurrentDivisionIdx(i => Math.min(divisions.length - 1, i + 1))
+                }
+                disabled={currentDivisionIdx === divisions.length - 1}
+              >
+                <FaChevronRight />
+              </button>
+            </div>
+          </div>
           </div>
         </>
       )}
@@ -209,7 +260,7 @@ function Region() {
                 style={{ position: "relative", display: "inline-block" }}
                 ref={(el) => (wardButtonsRef.current[ward.code] = el)}
                 onMouseEnter={(e) => {
-                  const buttonEl = e.currentTarget.querySelector("button"); // 👈 target the button
+                  const buttonEl = e.currentTarget.querySelector("button");
                   if (!buttonEl) return;
                   const rect = buttonEl.getBoundingClientRect();
                   setHoverWard(ward.code);
@@ -225,16 +276,18 @@ function Region() {
                 onMouseLeave={closeTooltip}
               >
                 <button
-                  className={`${buttonStyles.btnSmall} ${
-                    detectedWard === ward.code ? "highlighted-ward" : ""
-                  }`}
+                  className={styles.wardBtn}
                   onClick={() => handleWardChange(ward.code)}
                   disabled={!!navigatingWard}
                 >
-                  {navigatingWard === ward.code ? "Loading..." : ward.name}
+                  {navigatingWard === ward.code
+                    ? "Loading..."
+                    : ward.name}
+                  {detectedWard === ward.code && (
+                    <span className={styles.wardBadge}>You</span>
+                  )}
                 </button>
 
-                {/* Tooltip inside same container */}
                 {hoverWard === ward.code && anchorRect && (
                   <WardTooltip
                     wardCode={ward.code}
@@ -247,26 +300,6 @@ function Region() {
           </div>
         </>
       )}
-
-      {/* Highlight animation */}
-      <style jsx>{`
-        .highlighted-ward {
-          animation: pulse 2s infinite;
-          box-shadow: 0 0 0 2px rgba(250, 200, 50, 1);
-          position: relative;
-        }
-        @keyframes pulse {
-          0% {
-            box-shadow: 0 0 0 2px rgba(250, 200, 50, 1);
-          }
-          70% {
-            box-shadow: 0 0 0 10px rgba(250, 200, 50, 0);
-          }
-          100% {
-            box-shadow: 0 0 0 0 rgba(250, 200, 50, 0);
-          }
-        }
-      `}</style>
     </div>
   );
 }
