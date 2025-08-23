@@ -1,12 +1,12 @@
 import Head from "next/head";
-import Metrics from "../components/Metrics";
-import Region from "../components/Region";
-import Layout from "../components/Layout";
-import About from "../components/About";
-import Footer from "../components/Footer";
+import Metrics from "components/home/Metrics";
+import Region from "components/home/Region";
+import Layout from "components/layout/Layout";
+import About from "components/home/About";
+import Footer from "components/layout/Footer";
 import { useState, useEffect } from "react";
-import { FaInfoCircle, FaUserPlus } from "react-icons/fa";
-import styles from "../styles/layout/about.module.css";
+import { FaInfoCircle } from "react-icons/fa";
+import styles from "styles/layout/about.module.css";
 
 function HomePage() {
   const [showAbout, setShowAbout] = useState(true);

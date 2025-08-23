@@ -6,7 +6,7 @@ import {
   RoadTab,
   JunctionTab,
   ProjectTab,
-} from "./tabs";
+} from "components/ward/Tabs";
 import styles from "styles/layout/container.module.css";
 import WardHeader from "./WardHeader";
 

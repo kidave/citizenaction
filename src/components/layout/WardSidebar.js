@@ -1,6 +1,6 @@
 // components\ward\WardSidebar.js
 import { useState } from "react";
-import styles from "../../styles/layout/sidebar.module.css";
+import styles from "styles/layout/sidebar.module.css";
 import { useRouter } from "next/router";
 import { FaMap, FaUsers, FaRoad, FaUser } from "react-icons/fa";
 import { FaTimeline } from "react-icons/fa6";

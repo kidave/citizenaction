@@ -1,6 +1,6 @@
 import { useState } from "react";
 import styles from "styles/profile.module.css";
-import Form from "components/Form";
+import Form from "components/home/Form";
 import { useAuth } from "context/AuthContext";
 
 export default function CommitteeButton() {

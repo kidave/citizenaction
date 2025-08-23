@@ -2,7 +2,7 @@
 import Head from "next/head";
 import Header from "./Header";
 import { useState } from "react";
-import Form from "./Form";
+import Form from "../home/Form";
 
 export default function Layout({ children }) {
   const [showForm, setShowForm] = useState(false);

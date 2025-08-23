@@ -7,7 +7,7 @@ import WardBottomBar from "./WardBottomBar";
 import WardContent from "./WardContent";
 import { useRouter } from "next/router";
 import { useWard, WardProvider } from "context/WardContext";
-import Form from "components/Form";
+import Form from "components/home/Form";
 import Spinner from "components/shared/ui/Spinner";
 
 function WardLayoutContent() {

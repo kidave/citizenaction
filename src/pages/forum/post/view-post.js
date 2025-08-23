@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../../utils/supabaseClient";
 import Head from "next/head";
-import Header from "../../../components/Header";
-import Footer from "../../../components/Footer";
+import Header from "../../../components/layout/Header";
+import Footer from "../../../components/layout/Footer";
 import Link from "next/link";
 import styles from "../../../styles/forum/view-post.module.css";
 

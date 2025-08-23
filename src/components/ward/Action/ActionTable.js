@@ -4,12 +4,12 @@ import {
   TableHeader,
   ResizableColumn,
   Modal,
-} from "../../../shared/table";
+} from "components/shared/table";
 import ActionTableRow from "./ActionTableRow";
 import ActionTableFilters from "./ActionTableFilters";
-import tableStyles from "../../../../styles/components/table.module.css";
-import cellStyles from "../../../../styles/components/cell.module.css";
-import { supabase } from "../../../../utils/supabaseClient";
+import tableStyles from "styles/components/table.module.css";
+import cellStyles from "styles/components/cell.module.css";
+import { supabase } from "utils/supabaseClient";
 import {
   FiChevronsLeft,
   FiChevronLeft,
