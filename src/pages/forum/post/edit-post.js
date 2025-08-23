@@ -4,12 +4,12 @@ import Head from "next/head";
 import Link from "next/link";
 import { useAuth } from "context/AuthContext";
 import usePostForm from "hooks/usePostForm";
-import Header from "../../../components/layout/Header";
-import Footer from "../../../components/layout/Footer";
-import PostForm from "../../../components/forum/PostForm";
-import PostPreviewModal from "../../../components/forum/PostPreviewModal";
-import styles from "../../../styles/forum/create-post.module.css";
-import { supabase } from "../../../utils/supabaseClient"; // Added supabase import
+import Header from "components/layout/Header";
+import Footer from "components/layout/Footer";
+import PostForm from "components/forum/PostForm";
+import PostPreviewModal from "components/forum/PostPreviewModal";
+import styles from "styles/forum/create-post.module.css";
+import { supabase } from "utils/supabaseClient"; // Added supabase import
 
 export default function EditPostPage() {
   const router = useRouter();
