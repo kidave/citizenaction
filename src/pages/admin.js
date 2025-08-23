@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "context/AuthContext";
-import UploadProject from "../components/shared/image/UploadProject";
-import ProjectTab from "../components/ward/tabs/ProjectTab";
+import UploadProject from "components/shared/image/UploadProject";
+import ProjectTab from "components/ward/ProjectTab";
 import useWardProjects from "hooks/useWardProjects";
-import Spinner from "../components/shared/ui/Spinner";
+import Spinner from "components/shared/ui/Spinner";
 
 export default function AdminPage() {
   const router = useRouter();
