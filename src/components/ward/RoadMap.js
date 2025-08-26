@@ -81,7 +81,6 @@ export default function RoadMap({
         boundary={boundary}
         onMapInit={(map) => {
           mapRef.current = map;
-          setTimeout(() => mapRef.current?.invalidateSize(), 100);
         }}
       >
         {roads.map((road) => {

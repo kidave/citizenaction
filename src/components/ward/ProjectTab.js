@@ -1,14 +1,20 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useWard } from "context/WardContext";
+import useWardProjects from "hooks/useWardProjects";
+import Spinner from "components/shared/ui/Spinner";
 import styles from "styles/layout/project.module.css";
 import ImageComparison from "components/shared/image/ImageComparison";
 import ImageStackPopup from "components/shared/image/ImageStackPopup";
 
-export default function ProjectTab({ projects }) {
-  if (!projects || !Array.isArray(projects) || projects.length === 0) {
-    return (
-      <div className={styles.projectPlaceholder}>No projects available</div>
-    );
+export default function ProjectTab() {
+  const { wardId } = useWard();
+  const { projects, loading, error } = useWardProjects(wardId);
+
+  if (loading) return <Spinner />;
+  if (error) return <p>Error loading projects: {error.message}</p>;
+  if (!projects || projects.length === 0) {
+    return <div className={styles.projectPlaceholder}>No projects available</div>;
   }
 
   return (

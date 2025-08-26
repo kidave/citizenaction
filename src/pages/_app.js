@@ -1,13 +1,12 @@
 // pages/_app.js
-import { Nunito_Sans } from "next/font/google";
+import { Open_Sans } from "next/font/google";
 import Head from "next/head";
 import "styles/main.css";
 import "react-phone-input-2/lib/style.css";
 import "styles/components/forum.module.css";
 import { AuthProvider } from "context/AuthContext";
 
-
-const nunito = Nunito_Sans({
+const openSans = Open_Sans({
   subsets: ["latin"],
   weight: ["300", "400", "600", "700"],
   variable: "--font-main",
@@ -25,7 +24,7 @@ function MyApp({ Component, pageProps }) {
         />
       </Head>
       <AuthProvider>
-        <main className={nunito.variable}>
+        <main className={openSans.variable}>
           {getLayout(<Component {...pageProps} />)}
         </main>
       </AuthProvider>

@@ -10,7 +10,7 @@ export default function useWardJunctions(wardId, enabled = true) {
     setLoading(true);
     setError(null);
 
-    fetch(`/api/junction/${wardId}`)
+    fetch(`/api/ward/${wardId}/junction`)
       .then((res) => res.json())
       .then((data) => {
         if (data.error) throw new Error(data.error);

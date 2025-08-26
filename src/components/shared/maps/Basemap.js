@@ -137,16 +137,21 @@ export default function BaseMap({
     // Set up resize observer
     resizeObserverRef.current = new ResizeObserver(() => {
       if (mapInstance.current && mapRef.current) {
-        setTimeout(() => {
-          try {
-            mapInstance.current.invalidateSize({
-              pan: false,
-              debounceMoveend: true,
-            });
-          } catch (error) {
-            console.error("Error invalidating map size:", error);
+        const id = setTimeout(() => {
+          if (mapInstance.current) {
+            try {
+              mapInstance.current.invalidateSize({
+                pan: false,
+                debounceMoveend: true,
+              });
+            } catch (error) {
+              console.error("Error invalidating map size:", error);
+            }
           }
         }, 100);
+
+        // Cleanup timeout if unmounted
+        return () => clearTimeout(id);
       }
     });
 
@@ -155,6 +160,7 @@ export default function BaseMap({
     return () => {
       if (resizeObserverRef.current) {
         resizeObserverRef.current.disconnect();
+        resizeObserverRef.current = null;
       }
       if (mapInstance.current) {
         try {

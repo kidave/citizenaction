@@ -9,18 +9,11 @@ import {
 } from "components/ward/Tabs";
 import styles from "styles/layout/container.module.css";
 import WardHeader from "./WardHeader";
+import { useWard } from "context/WardContext";
 
-export default function WardContent({
-  activeTab,
-  action,
-  committee,
-  road,
-  junction,
-  onRoadClick,
-  wardInfo,
-  selectedRoad,
-  project,
-}) {
+export default function WardContent({ activeTab, onRoadClick, selectedRoad }) {
+  const { wardInfo } = useWard();
+
   const showHeader = [
     "meeting",
     "update",
@@ -33,18 +26,11 @@ export default function WardContent({
   const tabComponents = {
     meeting: <MeetingTab />,
     update: <UpdateTab />,
-    committee: <CommitteeTab committees={committee} wardInfo={wardInfo} />,
-    action: <ActionTab actions={action} />,
-    road: (
-      <RoadTab
-        roads={road}
-        onRoadClick={onRoadClick}
-        selectedRoad={selectedRoad}
-        wardInfo={wardInfo}
-      />
-    ),
-    junction: <JunctionTab junctions={junction} />,
-    project: <ProjectTab projects={project} />,
+    committee: <CommitteeTab />,
+    action: <ActionTab />,
+    road: <RoadTab onRoadClick={onRoadClick} selectedRoad={selectedRoad} />,
+    junction: <JunctionTab />,
+    project: <ProjectTab />,
   };
 
   return (
@@ -57,7 +43,7 @@ export default function WardContent({
         coConvenorEmail={wardInfo?.coConvenorEmail}
         showHeader={showHeader}
       />
-      {tabComponents[activeTab] || tabComponents["project"]}
+      {tabComponents[activeTab] || <ProjectTab />}
     </div>
   );
 }

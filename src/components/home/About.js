@@ -32,7 +32,7 @@ export default function About() {
         }`}
       >
 
-        <h2 className={styles.title}>
+        <h2>
           Improving our Footpaths,{" "}
           <span className={styles.highlight}>One Ward at a Time</span>
         </h2>

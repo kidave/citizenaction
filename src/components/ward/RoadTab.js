@@ -11,14 +11,21 @@ import {
 } from "react-icons/fi";
 import { FaRoad } from "react-icons/fa";
 import { useWard } from "context/WardContext";
+import useWardRoads from "hooks/useWardRoads";
 
 const RoadMap = dynamic(() => import("./RoadMap"), {
   ssr: false,
   loading: () => <div className={styles.mapLoading}>Loading map...</div>,
 });
 
-export default function RoadTab({ roads, onRoadClick, selectedRoad }) {
-  const { wardInfo } = useWard();
+export default function RoadTab({ onRoadClick, selectedRoad }) {
+  const { wardId, wardInfo } = useWard();
+  const {
+    roads,
+    loading: roadsLoading,
+    error: roadsError,
+  } = useWardRoads(wardId);
+
   const MUMBAI_CENTER = [19.076, 72.8777];
   const DEFAULT_ZOOM = 12;
   const [wardBoundary, setWardBoundary] = useState(null);
@@ -26,15 +33,15 @@ export default function RoadTab({ roads, onRoadClick, selectedRoad }) {
   const itemsPerPage = 8;
 
   const handleRoadSelect = (road) => {
-    onRoadClick(road);
+    onRoadClick?.(road);
   };
 
   // Pagination logic
-  const totalPages = Math.max(1, Math.ceil(roads.length / itemsPerPage));
-  const paginatedRoads = roads.slice(
+  const totalPages = Math.max(1, Math.ceil((roads?.length || 0) / itemsPerPage));
+  const paginatedRoads = roads?.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
-  );
+  ) || [];
 
   // Fetch ward boundary
   useEffect(() => {
@@ -42,9 +49,7 @@ export default function RoadTab({ roads, onRoadClick, selectedRoad }) {
 
     const fetchWardBoundary = async () => {
       try {
-        const response = await fetch(
-          `/api/ward-boundary?wardId=${wardInfo.wardId}`,
-        );
+        const response = await fetch(`/api/ward-boundary?wardId=${wardInfo.wardId}`);
         const data = await response.json();
         setWardBoundary(data.geometry);
       } catch (error) {
@@ -64,6 +69,9 @@ export default function RoadTab({ roads, onRoadClick, selectedRoad }) {
     setCurrentPage(val);
   };
 
+  if (roadsLoading) return <p>Loading roads...</p>;
+  if (roadsError) return <p>Error loading roads: {roadsError.message}</p>;
+
   return (
     <div className={styles.roadContainer}>
       <Header roadCount={roads?.length || 0} wardName={wardInfo?.wardName} />
@@ -71,10 +79,11 @@ export default function RoadTab({ roads, onRoadClick, selectedRoad }) {
 
       <div className={styles.roadContent}>
         <div className={styles.roadListSection}>
-          {roads.length === 0 ? (
+          {!roads || roads.length === 0 ? (
             <p className={styles.empty}>No roads found.</p>
           ) : (
             <div className={styles.tableWrapper}>
+              {/* --- Table --- */}
               <Table className={styles.table}>
                 <thead>
                   <tr>
@@ -88,69 +97,11 @@ export default function RoadTab({ roads, onRoadClick, selectedRoad }) {
                   {paginatedRoads.map((road) => (
                     <tr
                       key={road.fid}
-                      className={
-                        selectedRoad?.fid === road.fid ? styles.selectedRow : ""
-                      }
+                      className={selectedRoad?.fid === road.fid ? styles.selectedRow : ""}
                     >
                       <TableCell>{road.name || "Unnamed"}</TableCell>
                       <TableCell>
-                        <span className={styles.typeTag}>
-                          {road.fclass === "motorway"
-                            ? "Motorway"
-                            : road.fclass === "trunk"
-                              ? "Trunk"
-                              : road.fclass === "primary"
-                                ? "Primary"
-                                : road.fclass === "secondary"
-                                  ? "Secondary"
-                                  : road.fclass === "tertiary"
-                                    ? "Tertiary"
-                                    : road.fclass === "unclassified"
-                                      ? "Unclassified"
-                                      : road.fclass === "residential"
-                                        ? "Residential"
-                                        : road.fclass === "living_street"
-                                          ? "Living Street"
-                                          : road.fclass === "pedestrian"
-                                            ? "Pedestrian"
-                                            : road.fclass === "busway"
-                                              ? "Busway"
-                                              : road.fclass === "motorway_link"
-                                                ? "Motorway Link"
-                                                : road.fclass === "trunk_link"
-                                                  ? "Trunk Link"
-                                                  : road.fclass ===
-                                                      "primary_link"
-                                                    ? "Primary Link"
-                                                    : road.fclass ===
-                                                        "secondary_link"
-                                                      ? "Secondary Link"
-                                                      : road.fclass ===
-                                                          "tertiary_link"
-                                                        ? "Tertiary Link"
-                                                        : road.fclass ===
-                                                            "service"
-                                                          ? "Service"
-                                                          : road.fclass ===
-                                                              "track"
-                                                            ? "Track"
-                                                            : road.fclass ===
-                                                                "bridleway"
-                                                              ? "Bridleway"
-                                                              : road.fclass ===
-                                                                  "cycleway"
-                                                                ? "Cycleway"
-                                                                : road.fclass ===
-                                                                    "footway"
-                                                                  ? "Footway"
-                                                                  : road.fclass ===
-                                                                      "path"
-                                                                    ? "Path"
-                                                                    : road.fclass ===
-                                                                        "steps"
-                                                                      ? "Steps"
-                                                                      : road.fclass}
-                        </span>
+                        <span className={styles.typeTag}>{formatRoadType(road.fclass)}</span>
                       </TableCell>
                       <TableCell>
                         {road.total_length_kilometers?.toFixed(2) || "0.00"}
@@ -167,29 +118,26 @@ export default function RoadTab({ roads, onRoadClick, selectedRoad }) {
                   ))}
                 </tbody>
               </Table>
+
+              {/* --- Pagination --- */}
               <div className={styles.pagination}>
                 <span
                   className={`${styles.arrow} ${currentPage === 1 ? styles.disabled : ""}`}
                   onClick={() => currentPage > 1 && setCurrentPage(1)}
                   title="First Page"
-                  aria-disabled={currentPage === 1}
                 >
                   <FiChevronsLeft />
                 </span>
                 <span
                   className={`${styles.arrow} ${currentPage === 1 ? styles.disabled : ""}`}
-                  onClick={() =>
-                    currentPage > 1 && setCurrentPage((p) => Math.max(1, p - 1))
-                  }
+                  onClick={() => currentPage > 1 && setCurrentPage((p) => p - 1)}
                   title="Previous Page"
-                  aria-disabled={currentPage === 1}
                 >
                   <FiChevronLeft />
                 </span>
                 <span className={styles.pageInputWrapper}>
                   <span className={styles.pageInputLabel}>Page</span>
                   <input
-                    id="pageInput"
                     type="number"
                     min={1}
                     max={totalPages}
@@ -202,22 +150,15 @@ export default function RoadTab({ roads, onRoadClick, selectedRoad }) {
                 </span>
                 <span
                   className={`${styles.arrow} ${currentPage === totalPages ? styles.disabled : ""}`}
-                  onClick={() =>
-                    currentPage < totalPages &&
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
+                  onClick={() => currentPage < totalPages && setCurrentPage((p) => p + 1)}
                   title="Next Page"
-                  aria-disabled={currentPage === totalPages}
                 >
                   <FiChevronRight />
                 </span>
                 <span
                   className={`${styles.arrow} ${currentPage === totalPages ? styles.disabled : ""}`}
-                  onClick={() =>
-                    currentPage < totalPages && setCurrentPage(totalPages)
-                  }
+                  onClick={() => currentPage < totalPages && setCurrentPage(totalPages)}
                   title="Last Page"
-                  aria-disabled={currentPage === totalPages}
                 >
                   <FiChevronsRight />
                 </span>
@@ -238,6 +179,35 @@ export default function RoadTab({ roads, onRoadClick, selectedRoad }) {
       </div>
     </div>
   );
+}
+
+// 🛠️ Helper to clean up road type rendering
+function formatRoadType(type) {
+  const mapping = {
+    motorway: "Motorway",
+    trunk: "Trunk",
+    primary: "Primary",
+    secondary: "Secondary",
+    tertiary: "Tertiary",
+    unclassified: "Unclassified",
+    residential: "Residential",
+    living_street: "Living Street",
+    pedestrian: "Pedestrian",
+    busway: "Busway",
+    motorway_link: "Motorway Link",
+    trunk_link: "Trunk Link",
+    primary_link: "Primary Link",
+    secondary_link: "Secondary Link",
+    tertiary_link: "Tertiary Link",
+    service: "Service",
+    track: "Track",
+    bridleway: "Bridleway",
+    cycleway: "Cycleway",
+    footway: "Footway",
+    path: "Path",
+    steps: "Steps",
+  };
+  return mapping[type] || type;
 }
 
 // Header Component

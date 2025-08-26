@@ -130,22 +130,22 @@ export default function WardSidebar({ disabledTabs = [] }) {
         {renderTabButton(
           WARD_TABS.MEETING,
           <FaTimeline className={styles.tabIcon} />,
-          "Meetings",
+          "Minutes of Meeting",
         )}
         {renderTabButton(
           WARD_TABS.UPDATE,
           <TbTimelineEventFilled className={styles.tabIcon} />,
-          "Updates",
+          "Monthly Update",
         )}
         {renderTabButton(
           WARD_TABS.COMMITTEE,
           <FaUsers className={styles.tabIcon} />,
-          "Committee",
+          "Ward Committee",
         )}
         {renderTabButton(
           WARD_TABS.PROJECT,
           <MdAssignment className={styles.tabIcon} />,
-          "Project",
+          "Project Taken",
         )}
         {renderTabButton(
           WARD_TABS.ROAD,

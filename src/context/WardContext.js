@@ -1,11 +1,5 @@
 import { createContext, useContext, useMemo, useEffect } from "react";
 import useWardHeader from "hooks/useWardHeader";
-import useWardMeetings from "hooks/useWardMeetings";
-import useWardUpdates from "hooks/useWardUpdates";
-import useWardCommittees from "hooks/useWardCommittees";
-import useWardRoads from "hooks/useWardRoads";
-import useWardJunctions from "hooks/useWardJunctions";
-import useWardProjects from "hooks/useWardProjects";
 import Spinner from "components/shared/ui/Spinner";
 import { useRegionData } from "hooks/useRegionData";
 
@@ -18,45 +12,9 @@ export function WardProvider({ children, wardId }) {
     loading: infoLoading,
     error: infoError,
   } = useWardHeader(wardId);
-  const {
-    meetings,
-    loading: meetingsLoading,
-    error: meetingsError,
-  } = useWardMeetings(wardId);
-  const {
-    updates,
-    loading: updatesLoading,
-    error: updatesError,
-  } = useWardUpdates(wardId);
-  const {
-    committees,
-    loading: committeesLoading,
-    error: committeesError,
-  } = useWardCommittees(wardId);
-  const {
-    roads,
-    loading: roadsLoading,
-    error: roadsError,
-  } = useWardRoads(wardId);
-  const {
-    junctions,
-    loading: junctionsLoading,
-    error: junctionsError,
-  } = useWardJunctions(wardId);
-  const {
-    projects,
-    loading: projectsLoading,
-    error: projectsError,
-  } = useWardProjects(wardId);
-
+  
   const loading =
-    infoLoading ||
-    meetingsLoading ||
-    updatesLoading ||
-    committeesLoading ||
-    roadsLoading ||
-    junctionsLoading ||
-    projectsLoading;
+    infoLoading;
 
     useEffect(() => {
       if (!loading) {
@@ -65,36 +23,18 @@ export function WardProvider({ children, wardId }) {
     }, [loading, setNavigatingWard]);
 
   const error =
-    infoError ||
-    meetingsError ||
-    updatesError ||
-    committeesError ||
-    roadsError ||
-    junctionsError ||
-    projectsError;
+    infoError;
 
   const contextValue = useMemo(
     () => ({
       wardId,
       wardInfo,
-      meetings,
-      updates,
-      committees,
-      roads,
-      junctions,
-      projects,
       loading,
       error,
     }),
     [
       wardId,
       wardInfo,
-      meetings,
-      updates,
-      committees,
-      roads,
-      junctions,
-      projects,
       loading,
       error,
     ],

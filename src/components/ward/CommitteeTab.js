@@ -1,7 +1,8 @@
 import Image from "next/image";
 import styles from "styles/components/card.module.css";
+import { useWard } from "context/WardContext";
+import useWardCommittees from "hooks/useWardCommittees";
 import { MdVolunteerActivism } from "react-icons/md";
-import CommitteeButton from "components/shared/ui/CommitteeButton";
 import {
   FaFacebook,
   FaInstagram,
@@ -41,7 +42,13 @@ const STAKEHOLDER_ICONS = {
   "Healthcare Worker": FaUserDoctor,
 };
 
-export default function CommitteeTab({ committees }) {
+export default function CommitteeTab() {
+  const { wardId } = useWard();
+  const { committees, loading, error } = useWardCommittees(wardId);
+
+  if (loading) return <p>Loading committees...</p>;
+  if (error) return <p>Error loading committees: {error.message}</p>;
+  
   const getAvatarUrl = (avatarUrl) => {
     // Return default if no avatar URL
     if (!avatarUrl) return "/user.png";

@@ -1,12 +1,15 @@
 // components\ward\tabs\MeetingTab.js
 import TimelineMeeting from "./Timeline/TimelineMeeting";
 import { useWard } from "context/WardContext";
+import useWardMeetings from "hooks/useWardMeetings";
+import Spinner from "components/shared/ui/Spinner";
 
 export default function MeetingTab() {
-  const { meetings, loading, error } = useWard();
+  const { wardId } = useWard();
+  const { meetings, loading, error } = useWardMeetings(wardId);
 
-  if (loading) return <div>Loading meetings...</div>;
-  if (error) return <div>Error loading meetings: {error}</div>;
+  if (loading) return <Spinner />;
+  if (error) return <div>Error loading meetings: {error.message}</div>;
 
   return <TimelineMeeting meetings={meetings} />;
 }

@@ -69,14 +69,6 @@
   color: black;
 }
 
-/* Headings + text */
-.title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: black;
-  margin-bottom: 1rem;
-  letter-spacing: 0.02em;
-}
 .text {
   font-size: 1.1rem;
   color: grey;
@@ -86,7 +78,7 @@
 }
 .highlight {
   color: gold;
-  font-weight: 600;
+  font-weight: 700;
 }
 .emphasis {
   color: black;

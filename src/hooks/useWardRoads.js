@@ -10,7 +10,7 @@ export default function useWardRoads(wardId, enabled = true) {
     setLoading(true);
     setError(null);
 
-    fetch(`/api/road/${wardId}`)
+    fetch(`/api/ward/${wardId}/road`)
       .then((res) => res.json())
       .then((data) => {
         if (data.error) throw new Error(data.error);

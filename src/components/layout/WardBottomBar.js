@@ -143,7 +143,7 @@ export default function WardBottomBar({
             Junction
           </button>
           <button onClick={handleShowForm} aria-label="Join Committee">
-            {user ? "Join Committee" : "Login to Join"}
+            Join Committee
           </button>
           <button onClick={handleProfileNavigation} aria-label="Profile">
             {user ? "Profile" : "Login"}
