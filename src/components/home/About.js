@@ -1,3 +1,4 @@
+// components/About.js
 import styles from "styles/layout/about.module.css";
 import {
   FaMapSigns,
@@ -16,6 +17,11 @@ export default function About() {
 
   return (
     <section className={styles.about}>
+      {/* Floating elements - ACTUAL HTML ELEMENTS */}
+      <div className={styles.floatingElement}></div>
+      <div className={styles.floatingElement}></div>
+      <div className={styles.floatingElement}></div>
+      
       {/* Collapse Button */}
       <button
         className={styles.closeBtn}
@@ -31,10 +37,9 @@ export default function About() {
           isCollapsed ? styles.collapsed : styles.expanded
         }`}
       >
-
         <h2>
-          Improving our Footpaths,{" "}
-          <span className={styles.highlight}>One Ward at a Time</span>
+          Ward{" "}
+          <span className={styles.highlight}>Committee</span>
         </h2>
 
         <p className={styles.text}>
@@ -45,8 +50,7 @@ export default function About() {
           identify walkability issues, propose changes, foster collaboration and
           track progress, for walkable streets and public spaces.
           <span className={styles.emphasis}>
-            Join us in building a connected, safe, and healthy city, starting
-            from your own ward!
+            Join us in making cities walkable, starting from your own ward!
           </span>
         </p>
       </div>

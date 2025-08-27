@@ -13,8 +13,6 @@ export default async function handler(req, res) {
       .select(
         `
         user_id,
-        phone,
-        country_code,
         role:role (id, name),
         stakeholder:stakeholder (name),
         profile:profile (
@@ -26,7 +24,7 @@ export default async function handler(req, res) {
       `,
       )
       .eq("ward_code", wardId)
-      .order("role_id", { ascending: true }); // <-- changed from role.id to role_id
+      .order("role_id", { ascending: true });
 
     if (error) {
       console.error("Committee API error:", error);
@@ -42,8 +40,6 @@ export default async function handler(req, res) {
       designation: member.profile?.designation || "",
       role: member.role?.name || "Member",
       stakeholder: member.stakeholder?.name || "",
-      phone: member.phone || "",
-      country_code: member.country_code || "",
       social: member.profile?.social || {},
     }));
 

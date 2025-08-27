@@ -4,7 +4,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { supabase } from "utils/supabaseClient";
 import styles from "styles/layout/region.module.css";
-import { FiMap, FiMapPin, FiCrosshair, FiCheck } from "react-icons/fi";
+import { FiMap, FiMapPin, FiCrosshair, FiCheck, FiNavigation } from "react-icons/fi";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRegionData } from "hooks/useRegionData";
@@ -98,7 +98,7 @@ function Region() {
           handleCityChange(cityId);
           handleDivisionChange(divisionId);
 
-          // sync carousel index so useEffect won’t override
+          // sync carousel index so useEffect won't override
           setCurrentDivisionIdx(
             divisions.findIndex((d) => d.code === divisionId) || 0
           );
@@ -137,27 +137,57 @@ function Region() {
 
   return (
     <div className={styles.regionContainer}>
-      {/* Detect my ward */}
+      <div className={styles.floatingElement}></div>
+      <div className={styles.floatingElement}></div>
+      <div className={styles.floatingElement}></div>
+      
+      {/* Detect my ward - UPDATED STYLING */}
       <div className={styles.detectWardContainer}>
-        <button
-          className={styles.detectWardButton}
+        <motion.button
+          className={`${styles.detectWardButton} ${detecting ? styles.detecting : ''} ${detectedWard ? styles.detected : ''}`}
           onClick={detectMyWard}
           disabled={detecting}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
-          <FiCrosshair />
-          {detecting ? "Locating..." : "Locate Your Ward"}
-        </button>
+          <span className={styles.buttonContent}>
+            {detecting ? (
+              <motion.div 
+                className={styles.spinner}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              >
+                <FiNavigation />
+              </motion.div>
+            ) : detectedWard ? (
+              <FiCheck className={styles.successIcon} />
+            ) : (
+              <FiCrosshair className={styles.crosshairIcon} />
+            )}
+            <span className={styles.buttonText}>
+              {detecting ? "Locating..." : detectedWard ? "Location Found" : "Locate My Ward"}
+            </span>
+          </span>
+          {!detecting && !detectedWard && (
+            <span className={styles.pulseRing}></span>
+          )}
+        </motion.button>
 
         {detectedWard && (
-          <div className={styles.detectedWardResult}>
-            <FiCheck />
-            <span>
-              Your Ward: {wards.find((w) => w.code === detectedWard)?.name}
+          <motion.div 
+            className={styles.detectedWardResult}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <span className={styles.resultLabel}>Your Ward:</span>
+            <span className={styles.wardName}>
+              {wards.find((w) => w.code === detectedWard)?.name}
             </span>
-          </div>
+          </motion.div>
         )}
       </div>
 
+      {/* Rest of the component remains the same */}
       {/* Cities */}
       <div className={styles.scrollContainer}>
         {cities.map((city) => {
@@ -167,7 +197,7 @@ function Region() {
               key={city.code}
               className={`${styles.scrollCard} ${selectedCity === city.code ? styles.active : ""}`}
               style={{
-                backgroundImage: `url(/images/cities/${city.code}.jpg)`, // add your city images
+                backgroundImage: `url(/images/cities/${city.code}.jpg)`,
                 opacity: config.disabled ? 0.4 : 1,
                 cursor: config.disabled ? "not-allowed" : "pointer",
               }}
@@ -188,16 +218,14 @@ function Region() {
 
 
       {/* Divisions */}
-      {selectedCity && (
-        <>
-          <div className={styles.sectionTitle}>
-            <FiMap className={styles.sectionIcon} />
-            <span>Navigate Division</span>
-          </div>
-          <div className={styles.scrollContainer}>
-
-          <div className={styles.divisionCarousel}>
-            <div className={styles.divisionView} ref={divisionViewRef}>
+        {selectedCity && (
+          <>
+            <div className={styles.sectionTitle}>
+              <FiMap className={styles.sectionIcon} />
+              <span>Navigate Division</span>
+            </div>
+            
+            <div className={styles.divisionCarouselContainer}>
               <button
                 className={`${styles.divisionNavButton} ${styles.left}`}
                 onClick={() => setCurrentDivisionIdx(i => Math.max(0, i - 1))}
@@ -205,31 +233,37 @@ function Region() {
               >
                 <FaChevronLeft />
               </button>
-              <AnimatePresence mode="wait" initial={false}>
-                {divisions.length > 0 && (
-                  <motion.div
-                    key={divisions[currentDivisionIdx].code}
-                    initial={{ opacity: 0, x: 100 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -100 }}
-                    transition={{ duration: 0.3 }}
-                    style={{
-                      backgroundImage: `url(/images/division/${divisions[currentDivisionIdx].code}.jpg)`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                      width: "100%",
-                      height: "100%",
-                      borderRadius: "16px",
-                      cursor: "default",
-                    }}
-                    onClick={() => handleDivisionChange(divisions[currentDivisionIdx].code)}
-                  >
-                    <div className={styles.scrollOverlay}>
-                      {divisions[currentDivisionIdx].name}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              
+              <div className={styles.divisionCarousel}>
+                <div className={styles.divisionView} ref={divisionViewRef}>
+                  <AnimatePresence mode="wait" initial={false}>
+                    {divisions.length > 0 && (
+                      <motion.div
+                        key={divisions[currentDivisionIdx].code}
+                        initial={{ opacity: 0, x: 100 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -100 }}
+                        transition={{ duration: 0.3 }}
+                        style={{
+                          backgroundImage: `url(/images/division/${divisions[currentDivisionIdx].code}.jpg)`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                          width: "100%",
+                          height: "100%",
+                          borderRadius: "16px",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => handleDivisionChange(divisions[currentDivisionIdx].code)}
+                      >
+                        <div className={styles.scrollOverlay}>
+                          {divisions[currentDivisionIdx].name}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+              
               <button
                 className={`${styles.divisionNavButton} ${styles.right}`}
                 onClick={() =>
@@ -240,10 +274,8 @@ function Region() {
                 <FaChevronRight />
               </button>
             </div>
-          </div>
-          </div>
-        </>
-      )}
+          </>
+        )}
 
 
       {/* Wards */}

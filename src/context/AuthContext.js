@@ -5,29 +5,57 @@ import { supabase } from "utils/supabaseClient";
 
 const AuthContext = createContext();
 
+// Role constants for better maintainability
+export const USER_ROLES = {
+  CONVENOR: 1,
+  CO_CONVENOR: 2,
+  MEMBER: 3,
+  PUBLIC: 'public'
+};
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const router = useRouter();
 
-  const fetchProfile = async (userId) => {
+  const fetchProfileAndRole = async (userId) => {
     try {
-      if (!userId) return null;
+      if (!userId) return { profile: null, role: USER_ROLES.PUBLIC };
 
-      const { data: profileData, error } = await supabase
+      // Fetch profile
+      const { data: profileData, error: profileError } = await supabase
         .from("profile")
         .select("*")
         .eq("user_id", userId)
         .single();
 
-      if (error && error.code !== "PGRST116") throw error;
-      return profileData;
+      if (profileError && profileError.code !== "PGRST116") {
+        console.error("Profile fetch error:", profileError);
+        throw profileError;
+      }
+
+      // Fetch role from committee table
+      const { data: committeeData, error: committeeError } = await supabase
+        .from("committee")
+        .select("role_id")
+        .eq("user_id", userId)
+        .maybeSingle(); // Use maybeSingle to handle no rows
+
+      if (committeeError && committeeError.code !== "PGRST116") {
+        console.error("Committee fetch error:", committeeError);
+        throw committeeError;
+      }
+
+      return {
+        profile: profileData || null,
+        role: committeeData?.role_id || USER_ROLES.PUBLIC
+      };
     } catch (err) {
-      console.error("Profile fetch error:", err);
-      setError("Failed to load profile");
-      return null;
+      console.error("Fetch error:", err);
+      return { profile: null, role: USER_ROLES.PUBLIC };
     }
   };
 
@@ -46,10 +74,19 @@ export function AuthProvider({ children }) {
       setUser(currentUser);
 
       if (currentUser) {
-        const userProfile = await fetchProfile(currentUser.id);
-        setProfile(userProfile);
+        try {
+          const { profile, role } = await fetchProfileAndRole(currentUser.id);
+          setProfile(profile);
+          setUserRole(role);
+        } catch (err) {
+          console.error("Auth state change error:", err);
+          setError("Failed to load user data");
+          setProfile(null);
+          setUserRole(USER_ROLES.PUBLIC);
+        }
       } else {
         setProfile(null);
+        setUserRole(USER_ROLES.PUBLIC);
       }
       setLoading(false);
     };
@@ -61,6 +98,7 @@ export function AuthProvider({ children }) {
       .catch((err) => {
         console.error("Initial auth error:", err);
         setError("Authentication error");
+        setLoading(false);
       });
 
     // Listen for auth state changes
@@ -72,6 +110,25 @@ export function AuthProvider({ children }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Role checking methods
+  const hasRole = (requiredRole) => {
+    return userRole === requiredRole;
+  };
+
+  const isConvenor = () => hasRole(USER_ROLES.CONVENOR);
+  const isCoConvenor = () => hasRole(USER_ROLES.CO_CONVENOR);
+  const isMember = () => hasRole(USER_ROLES.MEMBER);
+  const isPublic = () => !userRole || userRole === USER_ROLES.PUBLIC;
+
+  const hasAnyRole = (...roles) => {
+    return roles.includes(userRole);
+  };
+
+  const hasAtLeastRole = (minRole) => {
+    if (isPublic()) return false;
+    return userRole <= minRole; // Lower number = higher privilege
+  };
 
   const login = async () => {
     setLoading(true);
@@ -91,7 +148,6 @@ export function AuthProvider({ children }) {
     } catch (err) {
       console.error("Login error:", err);
       setError("Login failed");
-    } finally {
       setLoading(false);
     }
   };
@@ -104,6 +160,7 @@ export function AuthProvider({ children }) {
       await supabase.auth.signOut();
       setUser(null);
       setProfile(null);
+      setUserRole(USER_ROLES.PUBLIC);
       // Redirect to home after logout
       router.push("/");
     } catch (err) {
@@ -114,11 +171,18 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const refreshProfile = async () => {
+  const refreshProfileAndRole = async () => {
     if (user) {
-      const updatedProfile = await fetchProfile(user.id);
-      setProfile(updatedProfile);
-      return updatedProfile;
+      try {
+        const { profile: newProfile, role: newRole } = await fetchProfileAndRole(user.id);
+        setProfile(newProfile);
+        setUserRole(newRole);
+        return { profile: newProfile, role: newRole };
+      } catch (err) {
+        console.error("Refresh error:", err);
+        setError("Failed to refresh user data");
+        return null;
+      }
     }
     return null;
   };
@@ -126,12 +190,23 @@ export function AuthProvider({ children }) {
   const value = {
     user,
     profile,
+    userRole,
     loading,
     error,
     login,
     logout,
-    refreshProfile,
+    refreshProfileAndRole, // Renamed for clarity
     getAccessToken,
+    // Role methods
+    hasRole,
+    hasAnyRole,
+    hasAtLeastRole,
+    isConvenor,
+    isCoConvenor,
+    isMember,
+    isPublic,
+    // Role constants for external use
+    USER_ROLES
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

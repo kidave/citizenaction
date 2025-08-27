@@ -49,8 +49,6 @@ export default async function handler(req, res) {
         user_id: user.id,
         ward_code,
         stakeholder_id,
-        phone,
-        country_code,
         application_status: "Pending",
       })
       .select()

@@ -1,16 +1,22 @@
+// components/shared/ui/CommitteeButton.js
 import { useState } from "react";
-import styles from "styles/profile.module.css";
+import { motion } from "framer-motion";
 import Form from "components/home/Form";
 import { useAuth } from "context/AuthContext";
+import styles from "styles/components/Button.module.css";
 
-export default function CommitteeButton() {
+export default function CommitteeButton({ inline = false, variant = "primary" }) {
   const [showForm, setShowForm] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [status, setStatus] = useState(null);
   const { user, getAccessToken } = useAuth();
 
   const handleButtonClick = async () => {
-    if (!user) return;
+    if (!user) {
+      // Redirect to login or show auth modal
+      alert("Please log in to join the committee");
+      return;
+    }
 
     setIsChecking(true);
     try {
@@ -26,6 +32,10 @@ export default function CommitteeButton() {
 
       if (!data.is_member && !data.has_application) {
         setShowForm(true);
+      } else if (data.is_member) {
+        alert("You are already a committee member!");
+      } else if (data.has_application) {
+        alert("You already have a pending application.");
       }
     } catch (err) {
       console.error("Error checking status:", err);
@@ -35,28 +45,26 @@ export default function CommitteeButton() {
     }
   };
 
-  if (!user) return null;
-
   return (
-    <div className={styles.committeeButtonContainer}>
-      {status?.is_member && (
-        <p>You are already a committee member in another ward.</p>
-      )}
-      {!status?.is_member && status?.has_application && (
-        <p>You already have a pending application.</p>
-      )}
-
-      {!status?.is_member && !status?.has_application && (
-        <button
-          onClick={handleButtonClick}
-          className={styles.applyBtn}
-          disabled={isChecking}
-        >
-          {isChecking ? "Checking..." : "Apply to Join Committee"}
-        </button>
-      )}
+    <>
+      <motion.button
+        onClick={handleButtonClick}
+        className={`${styles.committeeButton} ${variant === "secondary" ? styles.secondary : ""} ${inline ? styles.inline : ""}`}
+        disabled={isChecking}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        {isChecking ? (
+          <span className={styles.buttonContent}>
+            <span className={styles.spinner}></span>
+            Checking...
+          </span>
+        ) : (
+          "Join Committee"
+        )}
+      </motion.button>
 
       <Form show={showForm} onClose={() => setShowForm(false)} />
-    </div>
+    </>
   );
 }

@@ -1,5 +1,5 @@
 /* =============================
-    HEADER (desktop & mobile)
+    MODERN HEADER (desktop & mobile)
    ============================= */
 
 .header {
@@ -7,54 +7,120 @@
   top: 0;
   z-index: 1000;
   width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-/* Top black bar */
+/* Top gradient bar */
 .topBar {
-  background-color: black;
+  background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
   color: white;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 0 1.25rem;
+  padding: 0.5rem 1.25rem;
   gap: 1.5rem;
-  height: 64px;
-  min-height: 64px;
+  height: 48px;
+  min-height: 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+.topBar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
 }
 
 .topBarText {
-  font-size: 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  z-index: 1;
 }
 
 .donateNow {
-  background-color: black;
+  background: transparent;
   color: white;
-  border: 0.05rem solid white;
+  border: 2px solid rgba(255, 255, 255, 0.5);
   cursor: pointer;
-  font-size: 1rem;
-  padding: 8px 28px;
-  border-radius: 5px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 6px 20px;
+  border-radius: 30px;
+  transition: all 0.3s ease;
+  z-index: 1;
 }
 
-/* Yellow bar */
+.donateNow:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Main navigation bar */
 .bottomBar {
   background: #fcc700;
-  padding: 8px;
+  padding: 0.75rem 2rem;
   display: flex;
   justify-content: space-between;
   color: black;
   align-items: center;
+  position: relative;
+}
+
+.bottomBar::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    #667eea, #764ba2, #fcc700, #667eea);
+  background-size: 300% 100%;
+  animation: gradientFlow 5s ease infinite;
+}
+
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .bottomBarText {
-  font-size: 1.25rem;
+  font-size: 1.4rem;
+  font-weight: 800;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* Logo section */
 .logo {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
   height: 40px;
   margin-left: 10px;
 }
@@ -64,28 +130,55 @@
   border: none;
   padding: 0;
   cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.logoButton:hover {
+  transform: scale(1.05);
 }
 
 /* Desktop Navigation */
 .desktopNav {
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
   align-items: center;
-  margin-right: 50px;
+  margin-right: 30px;
 }
 
 .navButton {
   background: none;
   border: none;
-  color: black;
+  color: #2d3748;
   cursor: pointer;
   display: flex;
   align-items: center;
   font-size: 1rem;
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
 .navButton:hover {
-  color: white;
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.navButton::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.navButton:hover::after {
+  width: 70%;
 }
 
 /* Dropdown */
@@ -96,63 +189,94 @@
 .dropdownContent {
   display: none;
   position: absolute;
-  top: 100%;
+  top: calc(100% + 5px);
   left: 0;
   background: white;
-  border: 1px solid #ccc;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   z-index: 999;
-  min-width: 180px;
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+  min-width: 200px;
+  padding: 0.5rem 0;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .dropdown:hover .dropdownContent,
 .dropdown:focus-within .dropdownContent {
   display: block;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .dropdownItem {
-  padding: 0.5rem 1rem;
+  padding: 0.7rem 1.2rem;
   cursor: pointer;
   white-space: nowrap;
+  transition: all 0.2s ease;
+  color: #4a5568;
+  font-weight: 500;
 }
 
 .dropdownItem:hover {
-  background-color: #f0f0f0;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  color: #667eea;
+  padding-left: 1.5rem;
 }
 
 /* Profile */
 .profileWrapper {
   position: relative;
   cursor: pointer;
+  margin-left: 0.5rem;
 }
 
 .avatar {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid #ccc;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.avatar:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .profileDropdown {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 10px);
   right: 0;
   background: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  min-width: 120px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  min-width: 150px;
+  padding: 0.5rem 0;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
   z-index: 10;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.profileWrapper:hover .profileDropdown {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .profileDropdown .dropdownItem {
-  padding: 0.5rem 1rem;
-  cursor: pointer;
+  padding: 0.7rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .profileDropdown .dropdownItem:hover {
-  background: #f4f4f4;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
 }
 
 /* Mobile Hamburger & Sidebar */
@@ -162,61 +286,41 @@
   border: none;
   cursor: pointer;
   margin-left: auto;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.mobileMenuButton:hover {
+  background: rgba(102, 126, 234, 0.1);
 }
 
 .mobileOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.5);
   z-index: 1001;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .mobileSidebar {
   background: white;
-  width: 200px;
-  max-width: 80%;
+  width: 280px;
+  max-width: 85%;
   height: 100%;
-  padding: 1rem;
+  padding: 1.5rem;
   overflow-y: auto;
-  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 2px 0 20px rgba(0, 0, 0, 0.15);
   animation: slideIn 0.3s ease forwards;
-}
-
-.closeButton {
-  background: none;
-  border: none;
-  margin-bottom: 1rem;
-  cursor: pointer;
-}
-
-.mobileNavContent {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.mobileNavItem {
-  padding: 0.5rem 0;
-  cursor: pointer;
-  border-bottom: 1px solid #eee;
-}
-
-.mobileNavItem:hover {
-  background: #f9f9f9;
-}
-
-.mobileNavSection {
-  margin-top: 1rem;
-}
-
-.mobileNavSubItem {
-  padding: 0.4rem 1rem;
-  font-size: 0.95rem;
-  cursor: pointer;
-}
-
-.mobileNavSubItem:hover {
-  background: #f4f4f4;
 }
 
 @keyframes slideIn {
@@ -228,106 +332,66 @@
   }
 }
 
-/* =============================
-     WARD HEADER 
-   ============================= */
-
-.wardHeader {
-  background:
-    radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.08) 1px, transparent 0),
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 0, 0, 0.02) 2px,
-      rgba(0, 0, 0, 0.02) 4px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 0, 0, 0.02) 2px,
-      rgba(0, 0, 0, 0.02) 4px
-    );
-  padding: 1rem;
-  display: flex;
-  justify-content: space-between;
-  color: grey;
+.closeButton {
+  background: none;
+  border: none;
+  margin-bottom: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
 }
 
-.wardInfo h2 {
-  margin: 0;
-  font-size: 2rem;
+.closeButton:hover {
+  background: rgba(102, 126, 234, 0.1);
 }
 
-.wardTitle {
-  text-align: right;
-  position: relative;
-}
-
-.wardTitle h3 {
-  margin: 0;
-  font-size: 2rem;
-}
-
-.wardTitle p {
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
-  font-style: italic;
-  color: black;
-}
-
-/* Leadership Section */
-.leadership {
-  display: flex;
-  color: black;
-  gap: 2rem;
-}
-
-.leaderItem {
+.mobileNavContent {
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
 }
 
-.leaderName {
-  white-space: nowrap;
+.mobileNavItem {
+  padding: 1rem;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  color: #2d3748;
 }
 
-.emailContainer {
-  display: flex;
-  align-items: center;
+.mobileNavItem:hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  color: #667eea;
+  transform: translateX(5px);
 }
 
-.emailLink {
-  display: flex;
-  align-items: center;
-  color: inherit;
-  text-decoration: none;
+.mobileNavSection {
+  margin-top: 1.5rem;
+  padding: 0 1rem;
 }
 
-.emailIcon {
-  font-size: 1rem;
-  margin-right: 4px;
-  color: grey;
-  transition: all 0.2s ease;
+.mobileNavSection strong {
+  color: #667eea;
+  font-size: 1.1rem;
+  display: block;
+  margin-bottom: 0.5rem;
 }
 
-.emailLink:hover .emailIcon {
-  color: black;
+.mobileNavSubItem {
+  padding: 0.8rem 1.2rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  color: #4a5568;
 }
 
-.emailText {
-  max-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  transition:
-    max-width 0.3s ease,
-    margin-left 0.3s ease;
-}
-
-.emailLink:hover .emailText {
-  max-width: 200px;
+.mobileNavSubItem:hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  color: #667eea;
+  padding-left: 1.5rem;
 }
 
 /* =============================
@@ -344,133 +408,33 @@
   }
 
   .bottomBar {
-    flex-direction: row;
-    align-items: center;
-    padding: 1rem;
+    padding: 0.75rem 1rem;
   }
 
-  .nav {
-    display: flex;
-    flex-direction: row;
-    overflow-x: auto;
-    white-space: nowrap;
+  .topBar {
+    padding: 0.5rem 1rem;
+    flex-direction: column;
     gap: 0.75rem;
-    padding: 0.5rem 0;
-    width: 100%;
+    height: auto;
+    min-height: auto;
+    padding: 0.75rem;
+  }
+  
+  .topBarText {
+    text-align: center;
+    font-size: 0.85rem;
+  }
+  
+  .donateNow {
+    font-size: 0.85rem;
+    padding: 5px 16px;
   }
 
-  .navButton {
-    flex: 0 0 auto;
-  }
-
-  .dropdown {
-    display: inline-block;
-  }
-
-  .dropdownContent {
-    max-height: 300px;
-    overflow-y: auto;
-    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.3);
-  }
-
-  .dropdownItem {
-    padding: 0.4rem 0;
+  .bottomBarText {
+    font-size: 1.2rem;
   }
 
   .logo {
     margin-left: 0;
-    justify-content: center;
-  }
-
-  .bottomBarText {
-    font-size: 1rem;
-    text-align: center;
-    margin-top: 0.5rem;
-  }
-
-  /* Mobile-specific WardHeader styles */
-  .wardHeaderMobile {
-    background: #fcc700;
-    padding: 10px;
-    display: flex;
-    justify-content: center;
-    width: 100%;
-  }
-
-  .dropdownRow {
-    display: flex;
-    gap: 8px;
-    width: 90%;
-    padding: 0 10px;
-  }
-
-  .dropdownWrapper {
-    flex: 1;
-    min-width: 0; /* Prevent flex items from overflowing */
-  }
-
-  .dropdownContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
-    max-width: 400px;
-  }
-
-  .dropdown {
-    width: 100%;
-    padding: 8px;
-    border-radius: 4px;
-    border: 1px solid #ddd;
-    background: white;
-    font-size: 0.9rem;
-    height: 38px; /* Fixed height for alignment */
-  }
-
-  @media (max-width: 480px) {
-    .dropdown {
-      font-size: 0.8rem;
-      padding: 6px;
-    }
-
-    .dropdownRow {
-      gap: 16px;
-    }
-  }
-
-  @media (max-width: 350px) {
-    .dropdown {
-      font-size: 0.7rem;
-    }
-
-    .dropdown option {
-      font-size: 0.7rem;
-    }
-  }
-
-  .wardNameMobile {
-    margin: 0;
-    font-size: 1rem;
-    color: black;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-  }
-
-  .wardHeaderMobile h2 {
-    margin: 0;
-    font-size: 1.1rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 60%;
-  }
-
-  .wardTitleMobile p {
-    margin: 0;
-    font-size: 0.9rem;
-    color: black;
-    font-weight: bold;
   }
 }

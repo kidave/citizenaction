@@ -65,10 +65,6 @@ export default function Profile() {
         </div>
 
         <ProfileView profile={profile}/>
-
-        <div className={styles.committeeSection}>
-          <CommitteeButton />
-        </div>
       </div>
     </div>
   );

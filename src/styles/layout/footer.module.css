@@ -1,65 +1,106 @@
+/* styles/layout/footer.module.css */
 .footer {
-  background: transparent;
-  padding: 2.5rem 0;
-  text-align: center;
+  background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+  color: white;
+  padding: 3rem 0 1.5rem;
   margin-top: auto;
-  width: 100%;
+}
+
+.footerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.footerInfo {
+  flex: 1;
+  min-width: 300px;
+}
+
+.footerInfo h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #f8f9fa;
+}
+
+.footerInfo p {
+  color: #e2e8f0;
+  line-height: 1.6;
+  max-width: 400px;
 }
 
 .socialIcons {
   display: flex;
-  justify-content: center;
-  gap: 1.5rem;
-  margin-bottom: 1rem;
+  gap: 1.2rem;
+  flex-wrap: wrap;
 }
 
 .socialIcons a {
-  color: #222;
-  font-size: 1.6rem;
-  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: white;
+  transition: all 0.3s ease;
+  font-size: 1.4rem;
 }
 
 .socialIcons a:hover {
-  color: #fcc700;
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.6);
 }
 
-.socialIcons a {
-  font-size: 1.6rem;
-  transition: color 0.2s;
+.socialIcons .xtwitter {
+  color: #000000;
 }
-
-.socialIcons :global(a.xtwitter) {
-  color: black;
+.socialIcons .facebook {
+  color: #1877f2;
 }
-.socialIcons :global(a.facebook) {
-  color: #1877f3;
-}
-
-.socialIcons :global(a.youtube) {
+.socialIcons .youtube {
   color: #ff0000;
 }
-
-.socialIcons :global(a.instagram) {
+.socialIcons .instagram {
   color: #e4405f;
 }
-.socialIcons :global(a.linkedin) {
+.socialIcons .linkedin {
   color: #0077b5;
 }
-
-.socialIcons :global(a.bluesky) {
+.socialIcons .bluesky {
   color: #0085ff;
 }
-
-.socialIcons :global(a.github) {
+.socialIcons .github {
   color: black;
-}
-
-.socialIcons a:hover {
-  filter: brightness(0.85);
 }
 
 .copyright {
-  color: black;
+  text-align: center;
+  padding-top: 2rem;
+  margin-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: #a0aec0;
   font-size: 0.9rem;
-  font-weight: 200;
+  font-weight: 300;
+}
+
+@media (max-width: 768px) {
+  .footerContent {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .footerInfo {
+    min-width: auto;
+  }
+  
+  .socialIcons {
+    justify-content: center;
+  }
 }

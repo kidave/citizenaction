@@ -1,18 +1,23 @@
 // components/Layout.js
 import Head from "next/head";
 import Header from "./Header";
+import Footer from "./Footer";
+import styles from "styles/layout/layout.module.css";
 
 export default function Layout({ children }) {
-
   return (
     <>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Walking Project - Making Cities Walkable</title>
       </Head>
-      <Header />
-      <main className="regionContainer">
-        {children}
-      </main>
+      <div className={styles.layout}>
+        <Header />
+        <main className={styles.main}>
+          {children}
+        </main>
+        <Footer />
+      </div>
     </>
   );
 }

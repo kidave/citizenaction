@@ -84,32 +84,120 @@
   background-color: white;
 }
 
-.status-badge {
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-  font-size: 0.7rem;
+
+
+/* styles/components/CommitteeButton.module.css */
+.committeeButton {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 2px 5px;
-  border-radius: 3px;
-}
-
-
-.highlighted-ward {
-  animation: pulse 2s infinite;
-  box-shadow: 0 0 0 2px rgba(250, 200, 50, 1);
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   position: relative;
+  overflow: hidden;
 }
 
-.highlighted-ward::after {
+.committeeButton::before {
+  content: '';
   position: absolute;
-  right: -10px;
-  top: -10px;
-  font-size: 1.2rem;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
 }
 
-@keyframes pulse {
-  0% { box-shadow: 0 0 0 2px rgba(250, 200, 50, 1); }
-  70% { box-shadow: 0 0 0 10px rgba(250, 200, 50, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(250, 200, 50, 0); }
+.committeeButton:hover::before {
+  left: 100%;
+}
+
+.committeeButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.committeeButton:active {
+  transform: translateY(0);
+}
+
+.committeeButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Secondary variant */
+.committeeButton.secondary {
+  background: transparent;
+  color: #667eea;
+  border: 2px solid #667eea;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+}
+
+.committeeButton.secondary:hover {
+  background: #667eea;
+  color: white;
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+}
+
+/* Inline variant */
+.committeeButton.inline {
+  padding: 0.5rem 1.5rem;
+  font-size: 1rem;
+  margin-left: 0.5rem;
+}
+
+/* Button content */
+.buttonContent {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Spinner animation */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Status messages */
+.statusMessage {
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background: rgba(102, 126, 234, 0.1);
+  color: #4a5568;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .committeeButton {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .committeeButton.inline {
+    padding: 0.4rem 1.2rem;
+    font-size: 0.9rem;
+  }
 }
