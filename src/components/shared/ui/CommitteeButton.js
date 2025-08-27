@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Form from "components/home/Form";
 import { useAuth } from "context/AuthContext";
-import styles from "styles/components/Button.module.css";
+import styles from "styles/components/button.module.css";
 
 export default function CommitteeButton({ inline = false, variant = "primary" }) {
   const [showForm, setShowForm] = useState(false);
