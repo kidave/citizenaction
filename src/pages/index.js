@@ -60,7 +60,6 @@ export default function Home() {
         <section id="region-section" className={styles.section}>
           <div className={styles.sectionHeader}>
             <h2>Explore Your Ward</h2>
-            <p>Select your city and ward to see progress and get involved</p>
           </div>
           <Region />
         </section>
@@ -94,7 +93,7 @@ export default function Home() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Learn How to Participate
+                Learn More about Ward Committees
               </a>
             </button>
           </div>

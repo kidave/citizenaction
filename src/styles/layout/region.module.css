@@ -5,11 +5,11 @@
    ============================================ */
 .regionContainer {
   padding: 2rem;
-  width: 100%;
   height: auto;
   max-width: 1200px;
   margin: 0 auto;
   position: relative;
+  z-index: 10;
   overflow: hidden; /* Added for floating elements */
 }
 
@@ -50,16 +50,6 @@
   border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; /* Different shape */
 }
 
-/* Make sure all content has proper z-index */
-.detectWardContainer,
-.scrollContainer,
-.sectionTitle,
-.divisionCarouselContainer,
-.wardContainer {
-  position: relative;
-  z-index: 10;
-}
-
 /* ============================================
    SECTION HEADERS & TITLES
    ============================================ */
@@ -72,6 +62,8 @@
   font-weight: 600;
   color: black;
   text-align: center;
+  position: relative;
+  z-index: 10;
 }
 
 .sectionIcon {
@@ -84,10 +76,12 @@
    ============================================ */
 .detectWardContainer {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   gap: 1rem;
+  position: relative;
+  z-index: 10;
 }
 
 /* Main Button Styles */
@@ -117,7 +111,6 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
   height: 100%;
   background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
   opacity: 0;
@@ -199,7 +192,7 @@
 .detectedWardResult {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   padding: 12px 20px;
   background: linear-gradient(135deg, #f8f9ff 0%, #edf2f7 100%);
   border-radius: 12px;
@@ -227,6 +220,8 @@
   padding: 1.5rem;
   scrollbar-width: thin;
   scrollbar-color: #667eea #f1f5f9;
+  position: relative;
+  z-index: 10;
 }
 
 /* Custom Scrollbar */
@@ -309,6 +304,7 @@
   margin: 2rem 0;
   padding: 0 2rem;
   position: relative;
+  z-index: 10;
 }
 
 /* ============================================
@@ -428,20 +424,17 @@
 
 @media (max-width: 480px) {
   .divisionCarouselContainer {
-    flex-direction: column;
     gap: 1rem;
   }
   
   .divisionView {
     width: 200px;
     height: 120px;
-    order: 1;
   }
   
   .divisionNavButton {
     width: 40px;
     height: 40px;
-    order: 2;
   }
   
   .divisionNavButton.left,
@@ -517,6 +510,8 @@
   gap: 1rem;
   justify-content: center;
   margin: 2rem 0;
+  position: relative;
+  z-index: 10;
 }
 
 .wardBtn {
@@ -596,7 +591,6 @@
   
   .sectionTitle {
     font-size: 1.25rem;
-    flex-direction: column;
     gap: 0.5rem;
   }
   
@@ -606,7 +600,7 @@
   }
   
   .detectedWardResult {
-    flex-direction: column;
+    flex-direction: row;
     gap: 0.5rem;
     text-align: center;
     padding: 1rem;

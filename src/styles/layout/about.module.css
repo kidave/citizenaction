@@ -1,15 +1,12 @@
 /* styles/layout/about.module.css */
 .about {
   background: transparent;
-  width: 100%;
   justify-content: center;
   text-align: center;
   position: relative;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1rem;
   overflow: hidden;
-  min-height: 300px;
 }
 
 
