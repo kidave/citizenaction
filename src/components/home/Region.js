@@ -107,7 +107,7 @@ function Region() {
           setTimeout(() => {
             const button = wardButtonsRef.current[wardId];
             if (button) {
-              button.scrollIntoView({ behavior: "smooth", block: "center" });
+              button.scrollIntoView({ behavior: "smooth", block: "nearest" });
               button.classList.add("highlighted-ward");
               setTimeout(() => button.classList.remove("highlighted-ward"), 3000);
             }

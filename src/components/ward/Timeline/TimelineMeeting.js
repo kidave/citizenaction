@@ -1,52 +1,25 @@
 // components\ward\tabs\Timeline\TimelineMeeting.js
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import TimelineItemMeeting from "./TimelineItemMeeting";
 import styles from "styles/layout/timeline.module.css";
-import { useAuth } from "context/AuthContext";
-import { supabase } from "utils/supabaseClient";
 import { useWard } from "context/WardContext";
 import { FaUsers, FaMapMarkerAlt, FaUserFriends, FaStar } from "react-icons/fa";
 import { useMediaQuery } from "react-responsive";
+import { useAdmin } from "context/AdminContext";
 
 export default function TimelineMeeting({ meetings: initialMeetings }) {
-  const { user } = useAuth();
   const { wardId } = useWard();
   const isMobile = useMediaQuery({ maxWidth: 768 });
+  const { isAdmin } = useAdmin();
 
-  const [isConvenor, setIsConvenor] = useState(false);
+
   const [showNew, setShowNew] = useState(false);
-  const [meetings, setMeetings] = useState(initialMeetings);
+  const [meetings] = useState(initialMeetings);
   const [activeMeetingId, setActiveMeetingId] = useState(null);
 
-  useEffect(() => {
-    if (!user || !wardId) return;
-
-    const checkConvenor = async () => {
-      const { data, error } = await supabase
-        .from("committee")
-        .select("role_id")
-        .eq("user_id", user.id)
-        .eq("ward_code", wardId)
-        .single();
-
-      setIsConvenor(data?.role_id === 1 || data?.role_id === 2); // 1 = convenor, 2 = co-convenor
-    };
-
-    checkConvenor();
-  }, [user, wardId]);
 
   const handleAddClick = () => {
     setShowNew(true);
-  };
-
-  const refreshMeetings = async () => {
-    const { data, error } = await supabase
-      .from("meeting")
-      .select("*")
-      .eq("ward_code", wardId)
-      .order("date", { ascending: false });
-
-    if (!error) setMeetings(data || []);
   };
 
   const toggleMeeting = (id) => {
@@ -130,7 +103,7 @@ export default function TimelineMeeting({ meetings: initialMeetings }) {
         isMobile ? styles.mobileTimelineContainer : styles.timelineWrapper
       }
     >
-      {isConvenor && (
+      {isAdmin && (
         <div className={styles.addMeetingIconWrapper} onClick={handleAddClick}>
           <FaUsers className={styles.addMeetingIcon} />
           <div className={styles.addMeetingText}>Add Meeting</div>
@@ -151,7 +124,7 @@ export default function TimelineMeeting({ meetings: initialMeetings }) {
             ward_code: wardId,
           }}
           index={-1}
-          isConvenor={isConvenor}
+          isAdmin={isAdmin}
           isNew
           onCloseNew={() => setShowNew(false)}
           onSaveComplete={refreshMeetings}
@@ -173,8 +146,7 @@ export default function TimelineMeeting({ meetings: initialMeetings }) {
             key={item.id}
             item={item}
             index={index}
-            isConvenor={isConvenor}
-            onSaveComplete={refreshMeetings}
+            isAdmin={isAdmin}
           />
         ))
       )}

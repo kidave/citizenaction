@@ -13,7 +13,7 @@ function formatDate(date) {
 export default function TimelineItemUpdate({
   item,
   index,
-  isConvenor,
+  isAdmin,
   isNew,
   onCloseNew,
   onSaveComplete,
@@ -89,7 +89,7 @@ export default function TimelineItemUpdate({
                   if (isNew && onCloseNew) onCloseNew();
                   else setIsEditing(false);
                 }}
-                showEdit={isConvenor}
+                showEdit={isAdmin}
               />
             </motion.div>
           )}

@@ -1,36 +1,18 @@
 // components\ward\tabs\Timeline\TimelineUpdate.js
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import TimelineItemUpdate from "./TimelineItemUpdate";
 import styles from "styles/layout/timeline.module.css";
 import { useWard } from "context/WardContext";
-import { useAuth } from "context/AuthContext";
 import { supabase } from "utils/supabaseClient";
-import { FaUsers, FaPlus } from "react-icons/fa";
+import { FaPlus } from "react-icons/fa";
+import { useAdmin } from "context/AdminContext";
 
 export default function TimelineUpdate({ updates: initialUpdates }) {
-  const { user } = useAuth();
   const { wardId } = useWard();
+  const { isAdmin } = useAdmin();
 
-  const [isConvenor, setIsConvenor] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [updates, setUpdates] = useState(initialUpdates);
-
-  useEffect(() => {
-    if (!user || !wardId) return;
-
-    const checkConvenor = async () => {
-      const { data, error } = await supabase
-        .from("committee")
-        .select("role_id")
-        .eq("user_id", user.id)
-        .eq("ward_code", wardId)
-        .single();
-
-      setIsConvenor(data?.role_id === 1 || data?.role_id === 2); // 1 = convenor, 2 = co-convenor
-    };
-
-    checkConvenor();
-  }, [user, wardId]);
 
   const handleAddClick = () => {
     setShowNew(true);
@@ -48,7 +30,7 @@ export default function TimelineUpdate({ updates: initialUpdates }) {
 
   return (
     <div className={styles.timelineWrapper}>
-      {isConvenor && (
+      {isAdmin && (
         <div className={styles.addMeetingIconWrapper} onClick={handleAddClick}>
           <FaPlus className={styles.addMeetingIcon} />
           <div className={styles.addMeetingText}>Add Update</div>
@@ -67,7 +49,7 @@ export default function TimelineUpdate({ updates: initialUpdates }) {
             ward_code: wardId,
           }}
           index={-1}
-          isConvenor={isConvenor}
+          isAdmin={isAdmin}
           isNew
           onCloseNew={() => setShowNew(false)}
           onSaveComplete={refreshUpdates}
@@ -82,7 +64,7 @@ export default function TimelineUpdate({ updates: initialUpdates }) {
             key={item.id}
             item={item}
             index={index}
-            isConvenor={isConvenor}
+            isAdmin={isAdmin}
             onSaveComplete={refreshUpdates}
           />
         ))

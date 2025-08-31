@@ -97,7 +97,7 @@ export default function Header() {
 
   return (
     <header className={styles.header}>
-      <div className={styles.topBar}>
+      {/* <div className={styles.topBar}>
         <span className={styles.topBarText}>
           Donations help us carry out our work!
         </span>
@@ -107,7 +107,7 @@ export default function Header() {
         >
           Donate Now!
         </button>
-      </div>
+      </div> */}
 
       <div className={styles.bottomBar}>
         <div className={styles.logo}>
@@ -185,7 +185,7 @@ export default function Header() {
                 <div className={styles.profileDropdown}>
                   <div
                     className={styles.dropdownItem}
-                    onClick={() => router.push("/profile")}
+                    
                   >
                     My Profile
                   </div>
@@ -265,10 +265,7 @@ export default function Header() {
                   <>
                     <div
                       className={styles.mobileNavItem}
-                      onClick={() => {
-                        router.push("/profile");
-                        setMobileOpen(false);
-                      }}
+                      
                     >
                       My Profile
                     </div>

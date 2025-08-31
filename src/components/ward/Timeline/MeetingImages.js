@@ -6,7 +6,7 @@ import { getPublicImageUrl } from "utils/storage";
 
 export default function MeetingImages({
   images,
-  isConvenor,
+  isAdmin,
   onAddImage,
   setPendingImage,
   pendingImage,
@@ -25,7 +25,7 @@ export default function MeetingImages({
     >
       <div className={styles.imageHeader}>
         <FaImages /> <span>Meeting Images</span>
-        {isConvenor && (
+        {isAdmin && (
           <>
             <label htmlFor="file-input" className={styles.addImageBtn}>
               <FaPlus /> Add

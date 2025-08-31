@@ -66,6 +66,8 @@ export default function About() {
           updates, and get involved!{" "}
           <Link
             href="https://drive.google.com/file/d/1IXXgyc-Y2GNQvqsr5gwZQDx8PqTRP1y7/view"
+            target="_blank"
+            rel="noopener noreferrer"
             className={styles.learnMore}
           >
             Learn more!

@@ -2,49 +2,20 @@ import { supabase } from "utils/supabaseClient";
 
 export default async function handler(req, res) {
   const { wardId } = req.query;
-
-  if (!wardId) {
-    return res.status(400).json({ error: "Ward code is required" });
-  }
+  if (!wardId) return res.status(400).json({ error: "Ward code is required" });
 
   try {
     const { data, error } = await supabase
-      .from("committee")
-      .select(
-        `
-        user_id,
-        role:role (id, name),
-        stakeholder:stakeholder (name),
-        profile:profile (
-          name,
-          avatar_url,
-          designation,
-          social
-        )
-      `,
-      )
+      .from("committee_member_view")
+      .select("*")
       .eq("ward_code", wardId)
-      .order("role_id", { ascending: true });
+      .order("role_id");
 
-    if (error) {
-      console.error("Committee API error:", error);
-      return res
-        .status(500)
-        .json({ error: error.message || "Failed to fetch committee members" });
-    }
+    if (error) throw error;
 
-    const members = data.map((member) => ({
-      user_id: member.user_id,
-      name: member.profile?.name || "User",
-      avatar_url: member.profile?.avatar_url || null,
-      designation: member.profile?.designation || "",
-      role: member.role?.name || "Member",
-      stakeholder: member.stakeholder?.name || "",
-      social: member.profile?.social || {},
-    }));
-
-    res.status(200).json(members);
+    res.status(200).json(data || []);
   } catch (error) {
+    console.error("Committee API error:", error);
     res.status(500).json({ error: "Failed to fetch committee members" });
   }
 }

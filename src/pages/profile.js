@@ -6,7 +6,6 @@ import styles from "styles/profile.module.css";
 import ProfileHeader from "components/profile/ProfileHeader";
 import ProfileView from "components/profile/ProfileView";
 import Spinner from "components/shared/ui/Spinner";
-import CommitteeButton from "components/shared/ui/CommitteeButton";
 import ErrorMessage from "components/shared/ui/ErrorMessage";
 
 export default function Profile() {

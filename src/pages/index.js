@@ -1,17 +1,55 @@
 // pages/index.js
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
+import { useRef } from "react"; 
 import Layout from "components/layout/Layout";
 import About from "components/home/About";
 import Region from "components/home/Region";
 import styles from "styles/layout/landing.module.css";
 import CommitteeButton from "components/shared/ui/CommitteeButton";
 
+// Animation variants
+const sectionVariants = {
+  hidden: { opacity: 0, y: 50 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.6, ease: "easeOut" }
+  }
+};
+
+const SectionWrapper = ({ children, id }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  return (
+    <motion.section
+      ref={ref}
+      id={id}
+      variants={sectionVariants}
+      initial="hidden"
+      animate={isInView ? "visible" : "hidden"}
+      className={styles.section}
+    >
+      {children}
+    </motion.section>
+  );
+};
+
 export default function Home() {
+  const heroRef = useRef(null);
+  const isHeroInView = useInView(heroRef, { once: true });
+
   return (
     <Layout>
       <div className={styles.landing}>
         {/* Hero Section */}
-        <section className={styles.hero}>
+        <motion.section 
+          ref={heroRef}
+          className={styles.hero}
+          initial={{ opacity: 0 }}
+          animate={isHeroInView ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ duration: 0.8 }}
+        >
           <div className={styles.heroContent}>
             <motion.h1 
               className={styles.heroTitle}
@@ -19,7 +57,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              Making Cities <span className={styles.highlight}>Walkable</span>
+              Walking Project <span className={styles.highlight}>Ward Committees</span>
             </motion.h1>
             <motion.p 
               className={styles.heroSubtitle}
@@ -27,7 +65,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              A citizen-driven initiative to create more walkable, inclusive, and vibrant neighborhoods
+              The primary local unit for implementing the Walkability Improvement Initiative.
             </motion.p>
             <motion.div 
               className={styles.heroCta}
@@ -37,7 +75,7 @@ export default function Home() {
             >
               <button 
                 className={styles.ctaButton}
-                onClick={() => document.getElementById('region-section').scrollIntoView({ behavior: 'smooth' })}
+                onClick={() => document.getElementById('region-section').scrollIntoView({ behavior: 'smooth', block: 'nearest' })}
               >
                 Get Started
               </button>
@@ -49,55 +87,68 @@ export default function Home() {
             <div className={styles.floatingElement}></div>
             <div className={styles.floatingElement}></div>
           </div>
-        </section>
+        </motion.section>
 
         {/* About Section */}
-        <section className={styles.section}>
+        <SectionWrapper id="about-section">
           <About />
-        </section>
+        </SectionWrapper>
 
         {/* Region Selection Section */}
-        <section id="region-section" className={styles.section}>
+        <SectionWrapper id="region-section">
           <div className={styles.sectionHeader}>
             <h2>Explore Your Ward</h2>
           </div>
           <Region />
-        </section>
+        </SectionWrapper>
 
         {/* Stats Section */}
-        <section className={styles.statsSection}>
-          <div className={styles.statsContainer}>
-            <div className={styles.statItem}>
-              <h3>24</h3>
-              <p>Active Wards</p>
+        <SectionWrapper id="stats-section">
+          <div className={styles.ctaSection}>
+            <h2>Our Impact</h2>
+            <div className={styles.statsContainer}>
+              <motion.div 
+                className={styles.statItem}
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <h3>24</h3>
+                <p>Active Wards</p>
+              </motion.div>
+              <motion.div 
+                className={styles.statItem}
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300, delay: 0.1 }}
+              >
+                <h3>200+</h3>
+                <p>Community Members</p>
+              </motion.div>
+              <motion.div 
+                className={styles.statItem}
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300, delay: 0.2 }}
+              >
+                <h3>35</h3>
+                <p>Community Walks</p>
+              </motion.div>
             </div>
-            <div className={styles.statItem}>
-              <h3>200</h3>
-              <p>Community Members</p>
-            </div>
-            <div className={styles.statItem}>
-              <h3>35</h3>
-              <p>Community Walks</p>
+            <div className={styles.ctaContent}>
+              <h2>Want to learn more about Ward Committees?</h2>
+              <button className={styles.ctaButtonSecondary}>
+                <a
+                  href="https://drive.google.com/file/d/1IXXgyc-Y2GNQvqsr5gwZQDx8PqTRP1y7/view"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Learn More!
+                </a>
+              </button>
             </div>
           </div>
-        </section>
+          
+        </SectionWrapper>
 
         {/* Call to Action */}
-        <section className={styles.ctaSection}>
-          <div className={styles.ctaContent}>
-            <h2>Ready to make a difference?</h2>
-            <p>Join your ward committee and help transform your neighborhood</p>
-            <button className={styles.ctaButtonSecondary}>
-              <a
-                href="https://drive.google.com/file/d/1IXXgyc-Y2GNQvqsr5gwZQDx8PqTRP1y7/view"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Learn More about Ward Committees
-              </a>
-            </button>
-          </div>
-        </section>
       </div>
     </Layout>
   );

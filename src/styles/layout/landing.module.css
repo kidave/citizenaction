@@ -7,7 +7,7 @@ landin/* styles/pages/landing.module.css */
 .hero {
   display: flex;
   align-items: center;
-  padding: 2rem;
+  padding: 4rem;
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
   position: relative;
   max-width: 1200px;
@@ -184,13 +184,13 @@ landin/* styles/pages/landing.module.css */
 .statItem h3 {
   font-size: 3rem;
   font-weight: 800;
-  color: #667eea;
+  color: white;
   margin-bottom: 0.5rem;
 }
 
 .statItem p {
   font-size: 1.1rem;
-  color: #4a5568;
+  color: white;
   font-weight: 500;
 }
 

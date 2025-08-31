@@ -19,7 +19,7 @@ function formatDate(date) {
 export default function TimelineItemMeeting({
   item,
   index,
-  isConvenor,
+  isAdmin,
   isNew,
   onCloseNew,
   onSaveComplete,
@@ -94,7 +94,7 @@ export default function TimelineItemMeeting({
           if (isNew && onCloseNew) onCloseNew();
           else setIsEditing(false);
         }}
-        showEdit={isConvenor}
+        showEdit={isAdmin}
       />
     </motion.div>
   );
@@ -108,7 +108,7 @@ export default function TimelineItemMeeting({
       transition={{ duration: 0.7, delay: index * 0.1 }}
     >
       <div className={styles.imageHeader}>
-        {isConvenor && (
+        {isAdmin && (
           <>
             <label htmlFor={`file-input-${item.id}`} className={styles.addImageBtn}>
               <FaImages className={styles.addImagesIcon} />
@@ -155,7 +155,7 @@ export default function TimelineItemMeeting({
                   alt=""
                   onClick={() => setIsPopupOpen(true)}
                 />
-                {isConvenor && (
+                {isAdmin && (
                   <FaTrash
                     className={styles.deleteIcon}
                     onClick={() => setPendingDelete(img)}

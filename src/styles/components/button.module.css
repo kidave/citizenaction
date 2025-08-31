@@ -189,6 +189,21 @@
   color: #4a5568;
 }
 
+/* Add these to your existing button styles */
+.pendingStatus {
+  padding: 12px 24px;
+  border-radius: 8px;
+  background-color: #f0f0f0;
+  color: #666;
+  font-weight: 600;
+  cursor: not-allowed;
+}
+
+.pendingStatus.inline {
+  display: inline-block;
+  margin-left: 10px;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .committeeButton {

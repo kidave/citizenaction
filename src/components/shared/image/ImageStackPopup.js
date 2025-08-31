@@ -64,7 +64,7 @@ const zoomImageVariants = {
 export default function ImageStackPopup({
   images = [],
   onClose,
-  isConvenor = false,
+  isAdmin = false,
   onDeleteImage,
 }) {
   const [zoomedIndex, setZoomedIndex] = useState(null);
@@ -168,7 +168,7 @@ export default function ImageStackPopup({
                     if (info.offset.x > 50) prevImage();
                   }}
                 />
-                {isConvenor && (
+                {isAdmin && (
                   <div className={styles.zoomActions}>
                     <button
                       onClick={handleDelete}

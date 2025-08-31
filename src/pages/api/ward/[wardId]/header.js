@@ -1,3 +1,4 @@
+// pages/api/ward/[wardId]/header.js
 import { supabase } from "utils/supabaseClient";
 
 export default async function handler(req, res) {
@@ -12,10 +13,7 @@ export default async function handler(req, res) {
       .eq("code", wardId)
       .single();
 
-    // If error and not "no rows found", throw
-    if (wardError && wardError.code !== "PGRST116") throw wardError;
-
-    // If no ward found, return 404
+    if (wardError) throw wardError;
     if (!wardData) {
       return res.status(404).json({
         wardName: "",
@@ -24,21 +22,13 @@ export default async function handler(req, res) {
       });
     }
 
-    // Get convenor and co-convenor
+    // Get convenor and co-convenor from committee_member_view
     const { data: committeeData, error: committeeError } = await supabase
-      .from("committee")
-      .select(
-        `
-        user_id,
-        role_id,
-        profile:profile (
-          name,
-          email
-        )
-      `,
-      )
+      .from("committee_member_view")
+      .select("user_id, role_id, name, email, avatar_url, designation, social")
       .eq("ward_code", wardId)
       .in("role_id", [1, 2]);
+
     if (committeeError) throw committeeError;
 
     const convenor = committeeData.find((m) => m.role_id === 1) || null;
@@ -46,23 +36,11 @@ export default async function handler(req, res) {
 
     res.status(200).json({
       wardName: wardData.name,
-      convenor: convenor
-        ? {
-            name: convenor.profile?.name || "",
-            email: convenor.profile?.email || "",
-          }
-        : null,
-      coConvenor: coConvenor
-        ? {
-            name: coConvenor.profile?.name || "",
-            email: coConvenor.profile?.email || "",
-          }
-        : null,
+      convenor,
+      coConvenor,
     });
   } catch (error) {
-    console.error("Ward API error:", error);
-    res
-      .status(500)
-      .json({ error: error.message || "Failed to fetch ward info" });
+    console.error("Ward header API error:", error);
+    res.status(500).json({ error: error.message || "Failed to fetch ward header" });
   }
 }
