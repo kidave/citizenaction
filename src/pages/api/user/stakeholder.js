@@ -1,15 +1,16 @@
+// pages/api/user/stakeholder.js
 import { supabase } from "utils/supabaseClient";
 
 export default async function handler(req, res) {
   try {
     const { data, error } = await supabase
-      .from("division")
-      .select("code, name")
+      .from("stakeholder")
+      .select("id, name")
       .order("name");
 
     if (error) throw error;
     res.status(200).json(data || []);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch divisions" });
+    res.status(500).json({ error: "Failed to fetch stakeholders" });
   }
 }

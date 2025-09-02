@@ -1,4 +1,3 @@
-// components/ward/WardLayout.js
 import { useState } from "react";
 import { useMediaQuery } from "react-responsive";
 import styles from "styles/layout/container.module.css";
@@ -14,6 +13,7 @@ function WardLayoutContent() {
   const router = useRouter();
   const { wardId, tab: activeTab } = router.query;
   const [selectedRoad, setSelectedRoad] = useState(null);
+  const [selectedJunction, setSelectedJunction] = useState(null); // Add this state
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const [showForm, setShowForm] = useState(false);
 
@@ -47,6 +47,8 @@ function WardLayoutContent() {
           wardInfo={wardInfo}
           onRoadClick={setSelectedRoad}
           selectedRoad={selectedRoad}
+          onJunctionClick={setSelectedJunction} // Add this prop
+          selectedJunction={selectedJunction} // Add this prop
           junction={junctions}
           project={projects}
         />

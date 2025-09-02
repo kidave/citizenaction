@@ -7,7 +7,6 @@ import "styles/components/forum.module.css";
 
 import { AuthProvider } from "context/AuthContext";
 import { WardProvider } from "context/WardContext";
-import { AdminProvider } from "context/AdminContext";
 import { useRouter } from "next/router";
 
 const openSans = Open_Sans({
@@ -31,11 +30,9 @@ function MyApp({ Component, pageProps }) {
       </Head>
       <AuthProvider>
         <WardProvider wardId={wardId}>
-          <AdminProvider>
-            <main className={openSans.variable}>
-              {getLayout(<Component {...pageProps} />)}
-            </main>
-          </AdminProvider>
+          <main className={openSans.variable}>
+            {getLayout(<Component {...pageProps} />)}
+          </main>
         </WardProvider>
       </AuthProvider>
     </>

@@ -1,4 +1,4 @@
-// pages/api/committee/form.js
+// pages/api/user/form.js
 import { createServerSupabase } from "utils/supabaseServer";
 
 export default async function handler(req, res) {

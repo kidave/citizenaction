@@ -11,7 +11,13 @@ import styles from "styles/layout/container.module.css";
 import WardHeader from "./WardHeader";
 import { useWard } from "context/WardContext";
 
-export default function WardContent({ activeTab, onRoadClick, selectedRoad }) {
+export default function WardContent({ 
+  activeTab, 
+  onRoadClick, 
+  selectedRoad, 
+  onJunctionClick, 
+  selectedJunction 
+}) {
   const { wardInfo } = useWard();
 
   const showHeader = [
@@ -29,7 +35,7 @@ export default function WardContent({ activeTab, onRoadClick, selectedRoad }) {
     committee: <CommitteeTab />,
     action: <ActionTab />,
     road: <RoadTab onRoadClick={onRoadClick} selectedRoad={selectedRoad} />,
-    junction: <JunctionTab />,
+    junction: <JunctionTab onJunctionClick={onJunctionClick} selectedJunction={selectedJunction} />,
     project: <ProjectTab />,
   };
 

@@ -1,3 +1,4 @@
+/* ===== BASE STYLES ===== */
 .timelineContainer {
   display: flex;
   flex-direction: column;
@@ -5,49 +6,20 @@
   background: white;
 }
 
-/* Filter Buttons */
-
-.filterButtons {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-  justify-content: center;
-}
-
-.filterButton {
-  padding: 8px 16px;
-  border-radius: 10px;
-  border: none;
-  background: white;
-  color: grey;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  opacity: 0.7;
-}
-
-.filterButton:hover {
-  transform: translateY(-5px);
-  opacity: 1;
-}
-
-.activeFilter:hover {
-  transform: translateY(-1px);
-}
-
-.activeFilter {
-  background-color: whitesmoke;
-  color: grey;
-  font-weight: bold;
-  transform: translateY(-1px);
-  opacity: 1;
-}
-
-/* Center Line */
 .timelineWrapper {
   position: relative;
   margin-top: 30px;
 }
+
+.emptyTimeline {
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 1.3rem;
+  color: grey;
+  font-weight: 500;
+}
+
+/* ===== TIMELINE STRUCTURE ===== */
 .timelineWrapper::before {
   content: "";
   position: absolute;
@@ -60,7 +32,7 @@
   z-index: 1;
 }
 
-/* Meeting Item */
+/* ===== MEETING ITEMS ===== */
 .timelineItemMeeting {
   display: flex;
   justify-content: center;
@@ -88,7 +60,6 @@
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  cursor: pointer;
 }
 
 .timelineIconWrapper:hover {
@@ -96,41 +67,19 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Date  */
-.timelineDateWrapper {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: whitesmoke;
-  color: black;
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+.timelineIconFa {
+  color: skyblue;
+  font-size: 1.5rem;
 }
 
-.timelineIconWrapper:hover .timelineDateWrapper {
-  background: skyblue;
-  color: white;
-}
-
-.leftDate {
-  left: calc(-330%);
-}
-.rightDate {
-  right: calc(-330%);
-}
-
-/* Update Item */
+/* ===== UPDATE ITEMS ===== */
 .timelineItemUpdate {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-bottom: 3rem;
   position: relative;
-  z-index: 2; /* Add this to bring above the timeline line */
+  z-index: 2;
 }
 
 .centeredDate {
@@ -156,26 +105,10 @@
 .fullWidthCard {
   width: 90%;
   position: relative;
-  z-index: 2; /* Add this to bring above the timeline line */
+  z-index: 2;
 }
 
-/* Empty message */
-.emptyTimeline {
-  text-align: center;
-  margin-top: 2rem;
-}
-.emptyTimeline p:first-child {
-  font-size: 1.3rem;
-  color: grey;
-  font-weight: 500;
-  margin-bottom: 0.8rem;
-}
-.emptyTimeline p:last-child {
-  color: grey;
-  font-size: 1rem;
-}
-
-/* Card */
+/* ===== CARDS ===== */
 .timelineCard {
   background: white;
   border-radius: 10px;
@@ -183,9 +116,7 @@
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
   width: 90%;
   position: relative;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .timelineCard:hover {
@@ -201,12 +132,14 @@
   padding-bottom: 0.8rem;
   border-bottom: 1px solid #eee;
 }
+
 .timelineCardTitle {
   font-size: 1.1rem;
   font-weight: 600;
   color: black;
   margin: 0;
 }
+
 .cardTypeBadge {
   padding: 0.3rem 0.8rem;
   border-radius: 20px;
@@ -219,43 +152,23 @@
 .meetingCard {
   border-top: 5px solid skyblue;
 }
+
 .updateCard {
   border-top: 5px solid lightseagreen;
-  margin: 1rem 0; /* Add margin to prevent overlap */
+  margin: 1rem 0;
 }
+
 .meetingCard .cardTypeBadge {
   background: skyblue;
   color: white;
 }
+
 .updateCard .cardTypeBadge {
   background: lightseagreen;
   color: white;
 }
 
-/* Icons in card */
-.timelineCardIcon {
-  position: absolute;
-  left: 1.2rem;
-  width: 2.7rem;
-  height: 2.7rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 3px solid #fcc700;
-}
-.timelineIconFa {
-  color: skyblue;
-  font-size: 1.5rem;
-}
-.meetingCard .timelineIconFa {
-  color: skyblue;
-}
-.updateCard .timelineIconFa {
-  color: lightseagreen;
-}
-
-/* Details + points */
+/* ===== DETAILS & CONTENT ===== */
 .sectionTitle {
   margin: 1.2rem 0 0.8rem;
   color: black;
@@ -266,16 +179,18 @@
   display: flex;
   align-items: center;
 }
+
 .operationSection,
-.descriptionSection,
-.supportSection {
+.discussionSection {
   margin-bottom: 1.5rem;
 }
+
 .discussionList {
   list-style: none;
   padding-left: 0;
   margin: 0;
 }
+
 .discussionPoint {
   margin-bottom: 0.6rem;
   display: flex;
@@ -283,6 +198,7 @@
   line-height: 1.6;
   color: grey;
 }
+
 .bullet {
   color: grey;
   margin-right: 12px;
@@ -292,11 +208,17 @@
 }
 
 /* Meeting detail blocks */
+.meetingDetails,
+.updateDetails {
+  padding: 0.5rem 0;
+}
+
 .detailItem {
   display: flex;
   align-items: flex-start;
   margin-bottom: 0.8rem;
 }
+
 .detailIcon {
   margin-right: 12px;
   font-size: 1.25rem;
@@ -306,280 +228,14 @@
   align-items: center;
   justify-content: center;
 }
+
 .detailText {
   flex: 1;
   color: black;
   line-height: 1.6;
 }
 
-/* Add these to your existing timeline.module.css */
-.editButton {
-  margin-top: 15px;
-  padding: 8px 12px;
-  background: #e3f2fd;
-  color: #1976d2;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.editButton:hover {
-  background: #bbdefb;
-}
-
-.editActions {
-  display: flex;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-.saveButton {
-  padding: 8px 12px;
-  background: #4caf50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.saveButton:hover {
-  background: #388e3c;
-}
-
-.cancelButton {
-  padding: 8px 12px;
-  background: #f44336;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.cancelButton:hover {
-  background: #d32f2f;
-}
-
-.formGroup {
-  margin-bottom: 15px;
-}
-
-.formGroup label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 500;
-}
-
-.formGroup input,
-.formGroup textarea {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.formGroup textarea {
-  min-height: 100px;
-}
-
-.addMeetingIconWrapper {
-  position: relative;
-  z-index: 10;
-  background: white;
-  border-radius: 50%;
-  border: 3px solid lightcoral;
-  padding: 0.6rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  margin: 0 auto 2rem auto;
-  color: lightcoral;
-  font-weight: bold;
-  width: 2rem;
-  height: 2rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.addMeetingIconWrapper:hover {
-  transform: scale(1.1);
-  color: lightcoral;
-}
-
-.addMeetingIcon {
-  font-size: 2rem;
-  color: lightcoral;
-}
-
-/* Text below the icon (optional) */
-.addMeetingText {
-  position: absolute;
-  right: 120%;
-  text-align: center;
-  font-size: 0.85rem;
-  color: grey;
-}
-
-/* Responsive fallback */
-@media (max-width: 768px) {
-  .timelineWrapper::before {
-    left: 2rem; /* Instead of display: none, move it to the side */
-  }
-
-  .timelineItem {
-    flex-direction: column !important;
-    align-items: flex-start;
-    padding-left: 4rem; /* Make space for the line */
-  }
-
-  .timelineIconWrapper {
-    position: absolute;
-    left: 1.5rem;
-    transform: translateX(-50%);
-  }
-
-  .timelineDateWrapper {
-    position: static;
-    margin-left: 1rem;
-    display: inline-block;
-  }
-
-  .timelineSide {
-    width: 100%;
-  }
-
-  .timelineDateWrapper {
-    position: static;
-    transform: none;
-    margin-top: 0.5rem;
-  }
-  .timelineCard {
-    width: 100%;
-  }
-}
-
-/* Mobile timeline container */
-.mobileTimelineContainer {
-  padding: 10px;
-}
-
-/* Add meeting button (mobile) */
-.addMeetingButton {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 15px;
-  background: #fcc700;
-  color: black;
-  border: none;
-  border-radius: 8px;
-  margin-bottom: 15px;
-  width: 100%;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-/* Mobile timeline view */
-.mobileTimeline {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.mobileMeetingCard {
-  background: white;
-  border-radius: 10px;
-  padding: 15px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-  border-left: 4px solid skyblue;
-  transition: all 0.3s ease;
-}
-
-.mobileMeetingCard.active {
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-  transform: translateY(-3px);
-}
-
-.mobileCardHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.mobileCardHeader h3 {
-  margin: 0;
-  font-size: 1.1rem;
-  color: #333;
-}
-
-.mobileDateBadge {
-  background: skyblue;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: bold;
-}
-
-.mobileCardDetails {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #eee;
-}
-
-/* Mobile optimizations */
-@media (max-width: 480px) {
-  .mobileMeetingCard {
-    padding: 12px;
-  }
-
-  .mobileCardHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
-  }
-
-  .mobileDateBadge {
-    align-self: flex-start;
-  }
-}
-
-/* --- Scroll-to-top button (add at end of file) --- */
-.scrollTopBtn {
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  border: none;
-  background: whitesmoke;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  z-index: 50;
-}
-.scrollTopBtn svg { font-size: 18px; }
-.scrollTopBtn.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-
+/* ===== IMAGES ===== */
 .imageContainer {
   width: 90%;
   max-height: auto;
@@ -589,62 +245,6 @@
   object-fit: cover;
   cursor: pointer;
   transition: transform 0.25s ease;
-}
-
-.imageHeader {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.addImageBtn {
-  position: relative;
-  z-index: 10;
-  background: white;
-  border-radius: 50%;
-  border: 3px solid skyblue;
-  padding: 0.6rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.addImageBtn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.addImages {
-  position: relative;
-  z-index: 10;
-  background: white;
-  border-radius: 50%;
-  border: 3px solid lightcoral;
-  padding: 0.6rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  margin: 0 auto 2rem auto; /* center & space it */
-  color: lightcoral;
-  font-weight: bold;
-  width: 2rem;
-  height: 2rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.addImages:hover {
-  transform: scale(1.1);
-  color: lightcoral;
-}
-
-.addImagesIcon {
-  font-size: 1rem;
-  color: lightcoral;
 }
 
 .imageThumbs {
@@ -661,6 +261,15 @@
   justify-content: center;
   cursor: pointer;
   transition: transform 0.2s ease;
+}
+
+.imageThumbs img:hover {
+  transform: scale(1.05);
+}
+
+.imageWrapper {
+  position: relative;
+  display: inline-block;
 }
 
 .moreImages {
@@ -681,55 +290,112 @@
   background: rgba(0,0,0,0.1);
 }
 
-.previewContainer {
-  margin-top: 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-.previewContainer img {
-  max-width: 100%;
-  max-height: 200px;
-  border-radius: 6px;
-}
-.previewActions {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.previewActions button {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.previewActions button:first-child {
-  background: #4caf50;
-  color: white;
-}
-.previewActions button:last-child {
-  background: #f44336;
-  color: white;
-}
-
-.imageWrapper {
-  position: relative;
-  display: inline-block;
+/* ===== RESPONSIVE DESIGN ===== */
+/* Tablet and mobile styles */
+@media (max-width: 1024px) {
+  .timelineWrapper::before {
+    left: 2rem;
+  }
+  
+  .timelineItemMeeting {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-left: 4rem;
+    margin: 1rem 0;
+  }
+  
+  .timelineIconWrapper {
+    position: absolute;
+    left: 1.5rem;
+    transform: translateX(-50%);
+  }
+  
+  .timelineSide {
+    width: 100%;
+  }
+  
+  .timelineCard {
+    width: 100%;
+  }
+  
+  .imageContainer {
+    width: 100%;
+  }
 }
 
-.deleteIcon {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  background: rgba(255, 255, 255, 0.85);
-  padding: 4px;
-  border-radius: 50%;
-  cursor: pointer;
-  color: red;
-  transition: background 0.2s ease;
+/* Mobile styles */
+@media (max-width: 768px) {
+  .timelineWrapper::before {
+    display: none;
+  }
+  
+  .timelineItemMeeting {
+    flex-direction: column;
+    align-items: center;
+    padding-left: 0;
+    margin: 1rem 0;
+  }
+  
+  .timelineIconWrapper {
+    position: relative;
+    margin: 1rem 0;
+    left: auto;
+    transform: none;
+  }
+  
+  .timelineSide {
+    width: 100%;
+    margin-top: 0;
+  }
+  
+  .imageThumbs img,
+  .moreImages {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .centeredDate {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.6rem;
+  }
+  
+  .timelineCard {
+    padding: 1rem;
+  }
+  
+  .detailItem {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .detailIcon {
+    margin-right: 0;
+  }
 }
 
-.deleteIcon:hover {
-  background: rgba(255, 0, 0, 0.1);
+/* Small mobile optimization */
+@media (max-width: 480px) {
+  .timelineCard {
+    padding: 0.8rem;
+  }
+  
+  .timelineCardTitle {
+    font-size: 1rem;
+  }
+  
+  .cardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .cardTypeBadge {
+    align-self: flex-start;
+  }
+  
+  .imageThumbs img,
+  .moreImages {
+    width: 70px;
+    height: 70px;
+  }
 }

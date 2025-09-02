@@ -185,7 +185,7 @@ export default function Header() {
                 <div className={styles.profileDropdown}>
                   <div
                     className={styles.dropdownItem}
-                    
+                    onClick={() => router.push("/profile")}
                   >
                     My Profile
                   </div>
@@ -265,7 +265,7 @@ export default function Header() {
                   <>
                     <div
                       className={styles.mobileNavItem}
-                      
+                      onClick={() => router.push("/profile")}
                     >
                       My Profile
                     </div>

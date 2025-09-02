@@ -9,8 +9,8 @@
   max-width: 1200px;
   margin: 0 auto;
   position: relative;
-  z-index: 10;
-  overflow: hidden; /* Added for floating elements */
+  z-index: 0;
+  overflow: hidden;
 }
 
 
@@ -20,7 +20,7 @@
   border-radius: 50%;
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
   animation: float 7s ease-in-out infinite;
-  z-index: 0; /* Changed from -1 to 0 */
+  z-index: -1;
   pointer-events: none;
 }
 

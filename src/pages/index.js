@@ -75,7 +75,7 @@ export default function Home() {
             >
               <button 
                 className={styles.ctaButton}
-                onClick={() => document.getElementById('region-section').scrollIntoView({ behavior: 'smooth', block: 'nearest' })}
+                onClick={() => document.getElementById('about-section').scrollIntoView({ behavior: 'smooth', block: 'start' })}
               >
                 Get Started
               </button>
@@ -96,9 +96,6 @@ export default function Home() {
 
         {/* Region Selection Section */}
         <SectionWrapper id="region-section">
-          <div className={styles.sectionHeader}>
-            <h2>Explore Your Ward</h2>
-          </div>
           <Region />
         </SectionWrapper>
 

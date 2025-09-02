@@ -38,8 +38,8 @@ export default function About() {
         }`}
       >
         <h2>
-          Ward{" "}
-          <span className={styles.highlight}>Committee</span>
+          <span className={styles.highlight}>Purpose</span> &{" "}
+          <span className={styles.highlight}>Objective</span>
         </h2>
 
         <p className={styles.text}>

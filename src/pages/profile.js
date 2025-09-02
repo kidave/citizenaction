@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+// pages/profile.js
+import { useEffect } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import { useAuth } from "context/AuthContext";
@@ -7,26 +8,22 @@ import ProfileHeader from "components/profile/ProfileHeader";
 import ProfileView from "components/profile/ProfileView";
 import Spinner from "components/shared/ui/Spinner";
 import ErrorMessage from "components/shared/ui/ErrorMessage";
+import useProfile from "hooks/useProfile";
 
 export default function Profile() {
-  const {
-    user,
-    profile,
-    loading: authLoading,
-    error: authError,
-  } = useAuth();
-
+  const { user } = useAuth();
+  const { profile, loading, error } = useProfile();
   const router = useRouter();
-  const [error, setError] = useState(null);
 
   // Redirect if not logged in
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!loading && !user) {
       router.push("/auth");
     }
-  }, [user, authLoading, router]);
+  }, [user, loading, router]);
 
-  if (authLoading || !user || !profile) {
+  // Loading state
+  if (loading || !user || !profile) {
     return <Spinner mode="fullscreen" />;
   }
 
@@ -35,13 +32,11 @@ export default function Profile() {
       <Head>
         <title>Your Profile | Walking Project</title>
       </Head>
-      {(authError || error) && (
-        <ErrorMessage
-          message={authError || error}
-          onClose={() => setError(null)}
-        />
-      )}
+
+      {error && <ErrorMessage message={error} />}
+
       <ProfileHeader />
+
       <div className={styles.profileCard}>
         <div className={styles.avatarSection}>
           <div className={styles.avatarWrapper}>
@@ -63,7 +58,7 @@ export default function Profile() {
           <div className={styles.userEmail}>{user.email}</div>
         </div>
 
-        <ProfileView profile={profile}/>
+        <ProfileView profile={profile} />
       </div>
     </div>
   );

@@ -14,86 +14,15 @@ const resolveUrl = (img) => {
   return `${BUCKET_URL}${path}`;
 };
 
-const overlayVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.3 } },
-  exit: { opacity: 0, transition: { duration: 0.2 } },
-};
-
-const gridVariants = {
-  hidden: { scale: 0.95, opacity: 0 },
-  visible: {
-    scale: 1,
-    opacity: 1,
-    transition: { when: "beforeChildren", staggerChildren: 0.05 },
-  },
-  exit: { scale: 0.95, opacity: 0 },
-};
-
-const itemVariants = {
-  hidden: { scale: 0.8, opacity: 0 },
-  visible: {
-    scale: 1,
-    opacity: 1,
-    transition: { type: "spring", stiffness: 300 },
-  },
-  exit: { scale: 0.8, opacity: 0 },
-};
-
-const zoomOverlayVariants = {
-  hidden: { opacity: 0, backdropFilter: "blur(0px)" },
-  visible: {
-    opacity: 1,
-    backdropFilter: "blur(4px)",
-    transition: { duration: 0.3 },
-  },
-  exit: { opacity: 0, backdropFilter: "blur(0px)" },
-};
-
-const zoomImageVariants = {
-  hidden: { scale: 0.5, rotateX: 30, opacity: 0 },
-  visible: {
-    scale: 1,
-    rotateX: 0,
-    opacity: 1,
-    transition: { type: "spring", stiffness: 250, damping: 20 },
-  },
-  exit: { scale: 0.5, rotateX: 30, opacity: 0 },
-};
-
 export default function ImageStackPopup({
   images = [],
   onClose,
-  isAdmin = false,
-  onDeleteImage,
 }) {
   const [zoomedIndex, setZoomedIndex] = useState(null);
-  const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState(null);
-
   const closeZoom = useCallback(() => setZoomedIndex(null), []);
   const prevImage = () =>
     setZoomedIndex((i) => (i > 0 ? i - 1 : images.length - 1));
   const nextImage = () => setZoomedIndex((i) => (i + 1) % images.length);
-
-  const handleDelete = async () => {
-    if (!onDeleteImage || zoomedIndex === null) return;
-    try {
-      setDeleting(true);
-      setError(null);
-      const target = images[zoomedIndex];
-      await onDeleteImage(target);
-      // Optimistic remove from local view
-      images.splice(zoomedIndex, 1);
-      setZoomedIndex(null);
-    } catch (err) {
-      console.error("Failed to delete image:", err);
-      setError("Failed to delete image. Please try again.");
-    } finally {
-      setDeleting(false);
-    }
-  };
-
 
   // ESC key to close zoom view
   useEffect(() => {
@@ -168,18 +97,6 @@ export default function ImageStackPopup({
                     if (info.offset.x > 50) prevImage();
                   }}
                 />
-                {isAdmin && (
-                  <div className={styles.zoomActions}>
-                    <button
-                      onClick={handleDelete}
-                      disabled={deleting}
-                      className={styles.deleteButton}
-                    >
-                      {deleting ? "Deleting..." : "Delete"}
-                    </button>
-                    {error && <p className={styles.error}>{error}</p>}
-                  </div>
-                )}
               </motion.div>
             )}
           </AnimatePresence>

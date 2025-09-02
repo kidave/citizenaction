@@ -19,7 +19,7 @@ export default function CommitteeButton({ inline = false, variant = "primary" })
     setIsChecking(true);
     try {
       const token = await getAccessToken();
-      const res = await fetch("/api/committee/check", {
+      const res = await fetch("/api/user/check", {
         headers: { Authorization: `Bearer ${token}` },
       });
 

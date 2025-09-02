@@ -5,8 +5,6 @@ export default async function handler(req, res) {
   if (!wardId) return res.status(400).json({ error: "Ward code is required" });
 
   try {
-    // Use your RPC function for roads
-    // Make sure the argument name matches your function signature!
     const { data, error } = await supabase.rpc("get_roads", {
       gr_ward_code: wardId,
     });

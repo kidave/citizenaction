@@ -51,7 +51,7 @@ export default async function handler(req, res) {
       has_application: !!applicationData,
       application_status: applicationData?.application_status || null,
       ward_code: committeeData?.ward_code || null,
-      ward_name: committeeData?.ward?.name || null, // 👈 added ward_name
+      ward_name: committeeData?.ward?.name || null,
       role_id: committeeData?.role_id || null,
     });
   } catch (err) {
