@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export default function usePublicWardMeetings(wardId) {
+export default function useWardMeetings(wardId) {
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);

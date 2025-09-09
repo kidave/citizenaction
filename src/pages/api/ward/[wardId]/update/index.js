@@ -1,4 +1,4 @@
-// pages/api/ward/[wardId]/meeting/index.js
+// pages/api/ward/[wardId]/update/index.js
 import { createServerSupabase } from "utils/supabaseServer";
 
 export default async function handler(req, res) {
@@ -6,7 +6,6 @@ export default async function handler(req, res) {
   const token = req.headers.authorization?.replace("Bearer ", "");
   const supabase = createServerSupabase(token);
 
-  // Authenticated user
   const {
     data: { user },
     error: userError,
@@ -15,7 +14,7 @@ export default async function handler(req, res) {
 
   if (req.method === "GET") {
     const { data, error } = await supabase
-      .from("update")
+      .from("monthly_update")
       .select("*")
       .eq("ward_code", wardId)
       .order("date", { ascending: false });
@@ -24,7 +23,7 @@ export default async function handler(req, res) {
 
   if (req.method === "POST") {
     const { data, error } = await supabase
-      .from("update")
+      .from("monthly_update")
       .insert([{ ...req.body, ward_code: wardId, created_by: user.id }])
       .select()
       .single();

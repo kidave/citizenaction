@@ -114,49 +114,13 @@
 }
 
 .formActions button:first-of-type {
-  background: lightseagreen;
+  background: skyblue;
   color: white;
 }
 
 .formActions button:last-of-type {
-  background: red;
+  background: lightcoral;
   color: white;
-}
-
-.imagesAdmin {
-  margin-top: 1rem;
-}
-
-.imageThumbs {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-}
-
-.imageWrapper {
-  position: relative;
-}
-
-.imageWrapper img {
-  width: 120px;
-  height: 90px;
-  object-fit: cover;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-}
-
-.imageWrapper button {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  background: rgba(239, 68, 68, 0.85);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 2px 6px;
-  font-size: 0.7rem;
-  cursor: pointer;
 }
 
 .preview {
@@ -170,4 +134,158 @@
   max-width: 120px;
   border-radius: 6px;
   border: 1px solid #ddd;
+}
+
+
+.imagesAdmin {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.uploadSection {
+  margin-bottom: 1rem;
+}
+
+.fileInput {
+  margin-bottom: 0.5rem;
+}
+
+.imageThumbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.imageWrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+}
+
+.imageWrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.deleteImageButton {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: lightcoral;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.deleteImageButton:hover {
+  filter: brightness(0.9);
+}
+
+.noImages {
+  color: grey;
+  font-style: italic;
+  text-align: center;
+  grid-column: 1 / -1;
+}
+
+.error {
+  color: lightcoral;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.sectionHeader {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 0.5rem;
+}
+
+
+/* Add to admin.module.css */
+.inlineEditContainer {
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+
+.inlineInput {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border: 2px solid #0070f3;
+  border-radius: 4px;
+  font-size: inherit;
+  font-family: inherit;
+}
+
+.inlineTextarea {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border: 2px solid #0070f3;
+  border-radius: 4px;
+  font-size: inherit;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 60px;
+}
+
+.inlineEditButtons {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  display: flex;
+  gap: 2px;
+}
+
+.inlineSaveBtn, .inlineCancelBtn {
+  background: none;
+  border: none;
+  padding: 2px 5px;
+  cursor: pointer;
+  font-size: 12px;
+  border-radius: 3px;
+}
+
+.inlineSaveBtn {
+  background: #4CAF50;
+  color: white;
+}
+
+.inlineCancelBtn {
+  background: #f44336;
+  color: white;
+}
+
+.inlineDisplay {
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  position: relative;
+  min-height: 1.5em;
+}
+
+.inlineDisplay:hover {
+  background: #f5f5f5;
+  border-color: #ddd;
+}
+
+.editPencil {
+  opacity: 0;
+  margin-left: 0.5rem;
+  font-size: 0.8em;
+}
+
+.inlineDisplay:hover .editPencil {
+  opacity: 1;
 }

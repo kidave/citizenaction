@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useWard } from "context/WardContext";
 import useWardMeetings from "hooks/useWardMeetings";
 import useMeetingImages from "hooks/useMeetingImages";
+import MoodVisualization from "components/shared/MoodVisualization";
 import ImageStackPopup from "components/shared/image/ImageStackPopup";
 import Spinner from "components/shared/ui/Spinner";
 import styles from "styles/layout/timeline.module.css";
@@ -88,7 +89,7 @@ export default function MeetingTab() {
           </span>
           <span className={styles.detailText}>
             <strong>Mood: </strong>
-            {item.mood_rating}/10
+            <MoodVisualization rating={item.mood_rating} />
           </span>
         </div>
       )}

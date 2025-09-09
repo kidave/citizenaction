@@ -155,7 +155,6 @@
 
 .updateCard {
   border-top: 5px solid lightseagreen;
-  margin: 1rem 0;
 }
 
 .meetingCard .cardTypeBadge {
@@ -216,23 +215,25 @@
 .detailItem {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 0.8rem;
+  margin-bottom: 1rem;
 }
 
 .detailIcon {
-  margin-right: 12px;
-  font-size: 1.25rem;
-  flex-shrink: 0;
-  color: #fcc700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  margin-right: 10px;
+  margin-top: 2px;
+  color: gold;
 }
 
 .detailText {
   flex: 1;
-  color: black;
-  line-height: 1.6;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.detailText strong {
+  margin-right: 4px;
 }
 
 /* ===== IMAGES ===== */
@@ -398,4 +399,174 @@
     width: 70px;
     height: 70px;
   }
+}
+
+
+
+/* Admin Button*/
+.addButtonContainer {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+  z-index: 20;
+}
+
+.addButton {
+  position: relative;
+  z-index: 10;
+  background: white;
+  border-radius: 50%;
+  border: 3px solid lightseagreen;
+  padding: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.addButtonIconFa {
+  color: lightseagreen;
+  font-size: 1.5rem;
+}
+
+.addButton:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.addButtonText {
+  position: absolute;
+  right: 4rem;
+}
+
+.deleteButtonIconFa {
+  color: lightcoral;
+  font-size: 1.5rem;
+}
+
+.deleteButton:hover {
+  transform: scale(1.1);
+}
+
+
+
+.formContainer {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.editButton, .deleteButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 5px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.editButton:hover {
+  transform: scale(1.1);
+}
+
+.deleteButton:hover {
+  transform: scale(1.1);
+}
+
+.imageManagerToggle {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.toggleButton {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.toggleButton:hover {
+  background: #5a6268;
+}
+
+.noImagesPreview {
+  color: #6c757d;
+  font-style: italic;
+  text-align: center;
+}
+
+/* Mood Visualization Styles */
+.moodVisualization {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.moodBarContainer {
+  width: 100px;
+  height: 8px;
+  background-color: #eee;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.moodBar {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.moodLabel {
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 60px;
+}
+
+/* Card Editing State */
+.editingCard {
+  border: 2px solid #2196f3;
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.2);
+}
+
+/* Form Styles within Card */
+.timelineCard .form {
+  padding: 15px;
+}
+
+.timelineCard .form input,
+.timelineCard .form textarea {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.timelineCard .formActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.timelineCard .formActions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.timelineCard .formActions button[type="submit"] {
+  background-color: #4caf50;
+  color: white;
+}
+
+.timelineCard .formActions button[type="button"] {
+  background-color: #f44336;
+  color: white;
 }

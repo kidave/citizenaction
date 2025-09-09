@@ -64,7 +64,7 @@ export default async function handler(req, res) {
         return res.status(403).json({ error: "Not authorized to delete this meeting" });
       }
 
-      // First, get all images for this meeting to delete from storage later
+      // First, get all images for this meeting to delete from storage
       const { data: images, error: imagesError } = await supabase
         .from("meeting_images")
         .select("path")
@@ -74,7 +74,19 @@ export default async function handler(req, res) {
         console.error("Error fetching meeting images:", imagesError);
       }
 
-      // Delete the meeting (this should cascade delete meeting_images if foreign key is set up correctly)
+      // Delete images from storage
+      if (images && images.length > 0) {
+        const imagePaths = images.map(img => img.path);
+        const { error: storageError } = await supabase.storage
+          .from("ward")
+          .remove(imagePaths);
+          
+        if (storageError) {
+          console.error("Error deleting images from storage:", storageError);
+        }
+      }
+
+      // Delete the meeting (this should cascade delete meeting_images)
       const { error } = await supabase
         .from("meeting")
         .delete()
@@ -85,13 +97,6 @@ export default async function handler(req, res) {
         console.error("Error deleting meeting:", error);
         return res.status(400).json({ error: error.message });
       }
-      
-      // TODO: Add code here to delete actual image files from storage bucket
-      // if (images && images.length > 0) {
-      //   for (const image of images) {
-      //     await deleteImageFromStorage(image.path);
-      //   }
-      // }
       
       return res.json({ success: true });
     } catch (error) {

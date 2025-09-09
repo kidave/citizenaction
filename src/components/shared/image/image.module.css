@@ -196,3 +196,79 @@
   border-radius: 20px;
   font-size: 12px;
 }
+
+
+/* Add to image.module.css */
+.uploadControls {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+}
+
+.hiddenFileInput {
+  display: none;
+}
+
+.uploadButton {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.uploadButton:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.uploadButton:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.gridImageWrapper {
+  position: relative;
+}
+
+.deleteImageButton {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.deleteImageButton:hover {
+  background: rgba(220, 38, 38, 1);
+}
+
+.zoomDeleteButton {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.zoomDeleteButton:hover:not(:disabled) {
+  background: rgba(220, 38, 38, 1);
+}
+
+.zoomDeleteButton:disabled {
+  background: rgba(108, 117, 125, 0.9);
+  cursor: not-allowed;
+}

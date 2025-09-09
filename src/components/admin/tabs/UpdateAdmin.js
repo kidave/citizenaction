@@ -1,213 +1,138 @@
-// components/admin/tabs/UpdateAdmin.js
+// components/admin/UpdateAdmin.js
 import { useState } from "react";
-import useWardUpdates from "hooks/useWardUpdates";
+import { motion } from "framer-motion";
+import { useWard } from "context/WardContext";
+import { useAuth } from "context/AuthContext";
+import useAdminUpdates from "hooks/useAdminUpdates";
 import useWardCRUD from "hooks/useWardCRUD";
-import styles from "styles/layout/admin.module.css";
+import UpdateCard from "components/shared/UpdateCard";
+import UpdateForm from "components/shared/UpdateForm";
+import Spinner from "components/shared/ui/Spinner";
+import styles from "styles/layout/timeline.module.css";
+import { FaPlus } from "react-icons/fa";
 
-export default function UpdateAdmin({ wardId }) {
-  const { updates, loading, error, setUpdates } = useWardUpdates(wardId);
-  
-  function formatDateToMonthYear(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  }
-
-  const mutate = async () => {
-    const res = await fetch(`/api/ward/${wardId}/update/public`);
-    const data = await res.json();
-    setUpdates(data || []);
-  };
-
-  const { create, update, remove } = useWardCRUD("update", wardId, mutate);
-  
-  const [form, setForm] = useState({
-    date: "",
-    operation: "",
-    description: "",
-    support: ""
-  });
-
+export default function UpdateAdmin() {
+  const { wardId } = useWard();
+  const { getAccessToken } = useAuth();
+  const { updates, loading, error, setUpdates } = useAdminUpdates(wardId);
+  const { create, update, remove } = useWardCRUD("update", wardId);
+  const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!form.date || !form.operation) {
-      alert("Date and Operation are required");
-      return;
+  const refreshUpdates = async () => {
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`/api/ward/${wardId}/update/admin`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setUpdates(data || []);
+      }
+    } catch (err) {
+      console.error("Failed to refresh updates:", err);
     }
-
-    await create(form);
-    setForm({
-      date: "",
-      operation: "",
-      description: "",
-      support: ""
-    });
   };
 
-  const handleEditSave = async (id, updated) => {
-    await update(id, updated);
-    setEditingId(null);
+  const handleCreate = async (formData) => {
+    try {
+      await create(formData);
+      setShowAddForm(false);
+      refreshUpdates();
+    } catch (err) {
+      console.error("Failed to create update:", err);
+    }
+  };
+
+  const handleUpdate = async (id, formData) => {
+    try {
+      await update(id, formData);
+      setEditingId(null);
+      refreshUpdates();
+    } catch (err) {
+      console.error("Failed to update update:", err);
+    }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Delete this Monthly Update permanently?")) {
-      await remove(id);
+    if (window.confirm("Are you sure you want to delete this update?")) {
+      try {
+        await remove(id);
+        refreshUpdates();
+      } catch (err) {
+        console.error("Failed to delete update:", err);
+      }
     }
   };
 
-  if (loading) return <p>Loading monthly updates...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (loading) return <Spinner />;
+  if (error) return <div>Error loading updates: {error}</div>;
 
   return (
-    <div className={styles.adminPanel}>
-      <h2>Manage Monthly Updates</h2>
+    <>
+      {/* Add update button */}
+      <div className={styles.addButtonContainer}>
+        <motion.button 
+          className={styles.addButton}
+          onClick={() => setShowAddForm(!showAddForm)}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        > 
+          <FaPlus className={styles.addButtonIconFa} />
+          <div className={styles.addButtonText}>Add Update</div>
+        </motion.button>
+      </div>
 
-      {/* Create Form */}
-      <form onSubmit={handleSubmit} className={styles.form}>
-        <input
-          type="date"
-          value={form.date}
-          onChange={(e) => setForm({ ...form, date: e.target.value })}
-          required
-        />
-        <textarea
-          value={form.operation}
-          onChange={(e) => setForm({ ...form, operation: e.target.value })}
-          placeholder="List key operations (one per line)"
-          rows={3}
-        />
-        <textarea
-          value={form.description}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
-          placeholder="Detailed description"
-          rows={3}
-        />
-        <textarea
-          value={form.support}
-          onChange={(e) => setForm({ ...form, support: e.target.value })}
-          placeholder="Support required (one per line)"
-          rows={2}
-        />
-        <button type="submit">Add Monthly Update</button>
-      </form>
+      {/* Add update form */}
+      {showAddForm && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          className={styles.formContainer}
+        >
+          <UpdateForm
+            onSave={handleCreate}
+            onCancel={() => setShowAddForm(false)}
+          />
+        </motion.div>
+      )}
 
-      {/* Updates List */}
-      <div>
-        <h3>Existing Monthly Updates</h3>
-        
+      {/* Timeline View */}
+      <div className={styles.timelineWrapper}>
         {updates.length === 0 ? (
-          <p className={styles.emptyMessage}>No monthly updates yet.</p>
+          <p className={styles.emptyTimeline}>No updates yet.</p>
         ) : (
-          <ul className={styles.adminList}>
-            {updates.map((update) => (
-              <li key={update.id} className={styles.adminItem}>
-                {editingId === update.id ? (
-                  <UpdateEditForm
-                    update={update}
-                    onCancel={() => setEditingId(null)}
-                    onSave={(updated) => handleEditSave(update.id, updated)}
-                  />
-                ) : (
-                  <>
-                    <div className={styles.adminHeader}>
-                      <h4>{formatDateToMonthYear(update.date)}</h4>
-                      <div className={styles.adminActions}>
-                        <button onClick={() => setEditingId(update.id)}>Edit</button>
-                        <button onClick={() => handleDelete(update.id)}>Delete</button>
-                      </div>
-                    </div>
+          <div className={styles.desktopView}>
+            {updates.map((item, index) => (
+              <div key={item.id} className={styles.timelineItemUpdate}>
+                <div
+                  className={styles.centeredDate}
+                  style={{ cursor: "auto" }} // Remove pointer cursor since we're not toggling
+                >
+                  {new Date(item.date).toLocaleDateString("en-US", { 
+                    month: "long", 
+                    year: "numeric" 
+                  })}
+                </div>
 
-                    <div className={styles.adminContent}>
-                      {update.operation && (
-                        <div className={styles.adminSection}>
-                          <strong>Operations:</strong>
-                          <div className={styles.adminText}>
-                            {update.operation.split('\n').map((line, i) => (
-                              <div key={i}>{line}</div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {update.description && (
-                        <div className={styles.adminSection}>
-                          <strong>Description:</strong>
-                          <div className={styles.adminText}>{update.description}</div>
-                        </div>
-                      )}
-                      
-                      {update.support && (
-                        <div className={styles.adminSection}>
-                          <strong>Support Needed:</strong>
-                          <div className={styles.adminText}>
-                            {update.support.split('\n').map((line, i) => (
-                              <div key={i}>{line}</div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-              </li>
+                <div className={styles.fullWidthCard}>
+                  <UpdateCard
+                    item={item}
+                    index={index}
+                    isAdmin={true}
+                    onUpdate={handleUpdate}
+                    onDelete={handleDelete}
+                    onCancelEdit={() => setEditingId(null)}
+                  />
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
-    </div>
-  );
-}
-
-function UpdateEditForm({ update, onSave, onCancel }) {
-  const [edited, setEdited] = useState({ ...update });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setEdited(prev => ({ ...prev, [name]: value }));
-  };
-
-  return (
-    <div className={styles.editForm}>
-
-        <label>Date:</label>
-        <input
-          type="date"
-          name="date"
-          value={edited.date}
-          onChange={handleChange}
-          required
-        />
-
-        <label>Operations:</label>
-        <textarea
-          name="operation"
-          value={edited.operation}
-          onChange={handleChange}
-          rows={3}
-        />
-
-        <label>Description:</label>
-        <textarea
-          name="description"
-          value={edited.description}
-          onChange={handleChange}
-          rows={3}
-        />
-
-        <label>Support Needed:</label>
-        <textarea
-          name="support"
-          value={edited.support}
-          onChange={handleChange}
-          rows={2}
-        />
-
-
-      <div className={styles.formActions}>
-        <button type="submit">Save</button>
-        <button type="button" onClick={onCancel}>Cancel</button>
-      </div>
-    </div>
+    </>
   );
 }
