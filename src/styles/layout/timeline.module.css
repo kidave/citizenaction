@@ -114,7 +114,6 @@
   border-radius: 10px;
   padding: 1.5rem;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-  width: 90%;
   position: relative;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }

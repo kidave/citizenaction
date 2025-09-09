@@ -2,15 +2,15 @@
     MODERN HEADER (desktop & mobile)
    ============================= */
 
+/* Add to your existing header.module.css */
 .header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
+  position: relative;
   width: 100%;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  height: 64px; /* Fixed height for header */
 }
 
 /* Top gradient bar */
@@ -76,13 +76,15 @@
 
 /* Main navigation bar */
 .bottomBar {
-  background: #fcc700;
+  background: #cdcae7;
   padding: 0.75rem 2rem;
   display: flex;
   justify-content: space-between;
   color: black;
   align-items: center;
   position: relative;
+  height: 64px; /* Match header height */
+  box-sizing: border-box;
 }
 
 .bottomBar::after {
@@ -93,7 +95,7 @@
   width: 100%;
   height: 3px;
   background: linear-gradient(90deg, 
-    #667eea, #764ba2, #fcc700, #667eea);
+    #667eea, #764ba2, #667eea);
   background-size: 300% 100%;
   animation: gradientFlow 5s ease infinite;
 }
@@ -116,26 +118,24 @@
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* Logo section */
-.logo {
+.logoContainer {
   display: flex;
   align-items: center;
-  gap: 12px;
-  height: 40px;
-  margin-left: 10px;
-}
-
-.logoButton {
-  background: none;
-  border: none;
-  padding: 0;
   cursor: pointer;
   transition: transform 0.3s ease;
 }
 
-.logoButton:hover {
+.logoContainer:hover {
   transform: scale(1.05);
 }
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
 
 /* Desktop Navigation */
 .desktopNav {
@@ -161,7 +161,6 @@
 }
 
 .navButton:hover {
-  color: #667eea;
   background: rgba(102, 126, 234, 0.1);
 }
 
@@ -432,9 +431,5 @@
 
   .bottomBarText {
     font-size: 1.2rem;
-  }
-
-  .logo {
-    margin-left: 0;
   }
 }

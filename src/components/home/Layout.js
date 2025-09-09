@@ -4,7 +4,7 @@ import Header from "./Header";
 import Footer from "./Footer";
 import styles from "styles/layout/layout.module.css";
 
-export default function Layout({ children }) {
+export default function Layout({ children, showHeader = true, showFooter = true }) {
   return (
     <>
       <Head>
@@ -12,11 +12,11 @@ export default function Layout({ children }) {
         <title>Walking Project - Making Cities Walkable</title>
       </Head>
       <div className={styles.layout}>
-        <Header />
+        {showHeader && <Header />}
         <main className={styles.main}>
           {children}
         </main>
-        <Footer />
+        {showFooter && <Footer />}
       </div>
     </>
   );

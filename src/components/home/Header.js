@@ -110,15 +110,30 @@ export default function Header() {
       </div> */}
 
       <div className={styles.bottomBar}>
-        <div className={styles.logo}>
-          <button
-            className={styles.logoButton}
-            onClick={() => router.push("https://www.walkingproject.org")}
-          >
-            <img src="/wp_icon_sm.png" alt="Logo" className={styles.logo} />
-          </button>
-          <span className={styles.bottomBarText}>Walking Project</span>
+        <div
+          className={styles.logoContainer}
+          onClick={() => router.push("https://www.walkingproject.org")}
+          aria-label="Home"
+          role="button"
+          tabIndex={0}
+          title="Home"
+        >
+          <div className={styles.logo}>
+            <img 
+              src="/wp_icon_sm.png" 
+              alt="Logo" 
+              className={styles.logoIcon}
+              style={{ width: '32px', height: '40px' }}
+            />
+            <img
+              src="/wp_text_logo.png"
+              alt="Walking Project"
+              className={styles.logoText}
+              style={{ height: '40px' }}
+            />
+          </div>
         </div>
+        
 
         <nav className={styles.desktopNav}>
           {staticMenu.map((item) => (

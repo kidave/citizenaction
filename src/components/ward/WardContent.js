@@ -1,4 +1,4 @@
-// components/ward/WardContent.js (keep it simple)
+// components/ward/WardContent.js
 import styles from "styles/layout/container.module.css";
 import WardHeader from "./WardHeader";
 import { useWard } from "context/WardContext";

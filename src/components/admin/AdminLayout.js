@@ -1,4 +1,4 @@
-// components/admin/AdminLayout.js (Simplified)
+// components/admin/AdminLayout.js
 import { useMediaQuery } from "react-responsive";
 import styles from "styles/layout/container.module.css";
 import AdminSidebar from "./AdminSidebar";

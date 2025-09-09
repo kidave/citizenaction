@@ -1,5 +1,4 @@
 // components/admin/AdminSidebar.js
-import { useState } from "react";
 import styles from "styles/layout/sidebar.module.css";
 import { useRouter } from "next/router";
 import { FaUsers } from "react-icons/fa";
@@ -16,7 +15,6 @@ const ADMIN_TABS = {
 
 export default function AdminSidebar({ wardId, activeTab }) {
   const router = useRouter();
-  const [isHovered, setIsHovered] = useState(false);
 
   const navigateToTab = (tabName) => {
     router.push(`/admin/${wardId}/${tabName}`);
@@ -29,16 +27,12 @@ export default function AdminSidebar({ wardId, activeTab }) {
       title={label}
     >
       {icon}
-      {isHovered && <span className={styles.tabText}>{label}</span>}
+      <span className={styles.tabText}>{label}</span>
     </button>
   );
 
   return (
-    <div
-      className={`${styles.leftSidebar} ${isHovered ? styles.hovered : ""}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className={styles.topSidebar}>
       {/* Logo */}
       <div
         className={styles.logoContainer}
@@ -50,20 +44,12 @@ export default function AdminSidebar({ wardId, activeTab }) {
       >
         <div className={styles.logoContent}>
           <img
-            src="/wp_icon_sm.png"
-            alt="Walking Project Logo"
-            className={styles.logoIcon}
+            src="/wp_text_logo.png"
+            alt="Walking Project"
+            className={styles.logoText}
           />
-          {isHovered && (
-            <img
-              src="/wp_text_logo.png"
-              alt="Walking Project"
-              className={styles.logoText}
-            />
-          )}
         </div>
       </div>
-
       {/* Tabs */}
       <div className={styles.tabContainer}>
         {renderTabButton(

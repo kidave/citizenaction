@@ -24,7 +24,7 @@ export default async function handler(req, res) {
   if (req.method === "POST") {
     const { data, error } = await supabase
       .from("monthly_update")
-      .insert([{ ...req.body, ward_code: wardId, created_by: user.id }])
+      .insert([{ ...req.body, ward_code: wardId, user_id: user.id }])
       .select()
       .single();
     return error ? res.status(400).json({ error: error.message }) : res.json(data);
