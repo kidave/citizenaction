@@ -1,24 +1,26 @@
 import { useEffect, useState } from "react";
 
-export default function useWardMeetings(wardId, enabled = true) {
+export default function usePublicWardMeetings(wardId) {
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!wardId || !enabled) return;
+    if (!wardId) return;
     setLoading(true);
-    setError(null);
 
-    fetch(`/api/ward/${wardId}/meeting`)
+    fetch(`/api/ward/${wardId}/meeting/public`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.error) throw new Error(data.error);
         setMeetings(data || []);
       })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [wardId, enabled]);
+      .catch((err) => {
+        setError(err.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [wardId]);
 
-  return { meetings, loading, error };
+  return { meetings, loading, error, setMeetings };
 }

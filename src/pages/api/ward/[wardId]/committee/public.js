@@ -1,3 +1,4 @@
+// pages/api/ward/[wardId]/meeting/public.js
 import { supabase } from "utils/supabaseClient";
 
 export default async function handler(req, res) {
@@ -6,10 +7,10 @@ export default async function handler(req, res) {
 
   try {
     const { data, error } = await supabase
-      .from("meeting")
+      .from("committee_member_view")
       .select("*")
       .eq("ward_code", wardId)
-      .order("date", { ascending: false });
+      .order("role_id", { ascending: true });
 
     if (error) throw error;
     res.status(200).json(data || []);

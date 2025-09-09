@@ -3,12 +3,7 @@ import headerStyles from "styles/layout/junction.module.css";
 import styles from "styles/layout/road.module.css";
 import dynamic from "next/dynamic";
 import { Table, TableHeader, TableCell } from "components/shared/table";
-import {
-  FiChevronsLeft,
-  FiChevronLeft,
-  FiChevronRight,
-  FiChevronsRight,
-} from "react-icons/fi";
+import { FiChevronsLeft, FiChevronLeft, FiChevronRight, FiChevronsRight } from "react-icons/fi";
 import { FaRoad } from "react-icons/fa";
 import { useWard } from "context/WardContext";
 import useWardRoads from "hooks/useWardRoads";
@@ -18,23 +13,22 @@ const RoadMap = dynamic(() => import("./RoadMap"), {
   loading: () => <div className={styles.mapLoading}>Loading map...</div>,
 });
 
-export default function RoadTab({ onRoadClick, selectedRoad }) {
+export default function RoadTab() {
   const { wardId, wardInfo } = useWard();
-  const {
-    roads,
-    loading: roadsLoading,
-    error: roadsError,
-  } = useWardRoads(wardId);
-
+  const { roads, loading: roadsLoading, error: roadsError } = useWardRoads(wardId);
   const MUMBAI_CENTER = [19.076, 72.8777];
   const DEFAULT_ZOOM = 12;
+  const [selectedRoad, setSelectedRoad] = useState(null);
   const [wardBoundary, setWardBoundary] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
-  const handleRoadSelect = (road) => {
-    onRoadClick?.(road);
-  };
+  useEffect(() => {
+    return () => {
+      // This will clean up when user navigates away from this tab
+      setSelectedRoad(null);
+    };
+  }, []);
 
   // Pagination logic
   const totalPages = Math.max(1, Math.ceil((roads?.length || 0) / itemsPerPage));
@@ -108,7 +102,7 @@ export default function RoadTab({ onRoadClick, selectedRoad }) {
                       </TableCell>
                       <TableCell>
                         <button
-                          onClick={() => handleRoadSelect(road)}
+                          onClick={() => setSelectedRoad(road)}
                           className={headerStyles.viewButton}
                         >
                           {selectedRoad?.fid === road.fid ? "Viewing" : "View"}
@@ -171,7 +165,7 @@ export default function RoadTab({ onRoadClick, selectedRoad }) {
           <RoadMap
             roads={roads}
             selectedRoad={selectedRoad}
-            onRoadSelect={handleRoadSelect}
+            onRoadSelect={setSelectedRoad}
             center={MUMBAI_CENTER}
             zoom={DEFAULT_ZOOM}
           />

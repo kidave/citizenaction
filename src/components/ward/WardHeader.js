@@ -1,20 +1,16 @@
-// components/WardHeader.js
+// components/ward/WardHeader.js (optimized)
 import styles from "styles/layout/wardheader.module.css";
 import { FaEnvelope } from "react-icons/fa";
 import { useMediaQuery } from "react-responsive";
 import { useRegionData } from "hooks/useRegionData";
 import { useRouter } from "next/router";
+import { useWard } from "context/WardContext";
 
-export default function WardHeader({
-  wardName,
-  convenor,
-  coConvenor,
-  showHeader = true,
-}) {
+export default function WardHeader({ showHeader = true }) {
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const router = useRouter();
   const { wardId } = router.query;
-
+  const { wardInfo } = useWard();
   const {
     divisions,
     wards,
@@ -69,26 +65,26 @@ export default function WardHeader({
     );
   }
 
-  // Original desktop version
+  // Desktop version
   return (
     <div className={styles.wardHeader}>
       <div className={styles.wardInfo}>
-        <h2>{wardName} Ward</h2>
+        <h2>{wardInfo?.wardName} Ward</h2>
         <div className={styles.leadership}>
           <div className={styles.leaderItem}>
-            {convenor?.name && (
+            {wardInfo?.convenor?.name && (
               <>
                 <p className={styles.leaderName}>
-                  <strong>Convenor</strong> {convenor.name}
+                  <strong>Convenor</strong> {wardInfo.convenor.name}
                 </p>
-                {convenor.email && (
+                {wardInfo.convenor.email && (
                   <div className={styles.emailContainer}>
                     <a
-                      href={`mailto:${convenor.email}`}
+                      href={`mailto:${wardInfo.convenor.email}`}
                       className={styles.emailLink}
                     >
                       <FaEnvelope className={styles.emailIcon} />
-                      <span className={styles.emailText}>{convenor.email}</span>
+                      <span className={styles.emailText}>{wardInfo.convenor.email}</span>
                     </a>
                   </div>
                 )}
@@ -97,20 +93,20 @@ export default function WardHeader({
           </div>
 
           <div className={styles.leaderItem}>
-            {coConvenor?.name && (
+            {wardInfo?.coConvenor?.name && (
               <>
                 <p className={styles.leaderName}>
-                  <strong>Co-Convenor</strong> {coConvenor.name}
+                  <strong>Co-Convenor</strong> {wardInfo.coConvenor.name}
                 </p>
-                {coConvenor.email && (
+                {wardInfo.coConvenor.email && (
                   <div className={styles.emailContainer}>
                     <a
-                      href={`mailto:${coConvenor.email}`}
+                      href={`mailto:${wardInfo.coConvenor.email}`}
                       className={styles.emailLink}
                     >
                       <FaEnvelope className={styles.emailIcon} />
                       <span className={styles.emailText}>
-                        {coConvenor.email}
+                        {wardInfo.coConvenor.email}
                       </span>
                     </a>
                   </div>
@@ -123,7 +119,7 @@ export default function WardHeader({
 
       <div className={styles.wardTitle}>
         <h3>Walking Project</h3>
-        <p>Community led improvements in {wardName} Ward</p>
+        <p>Community led improvements in {wardInfo?.wardName} Ward</p>
       </div>
     </div>
   );

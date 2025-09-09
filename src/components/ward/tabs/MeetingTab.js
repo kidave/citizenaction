@@ -17,7 +17,6 @@ import {
 export default function MeetingTab() {
   const { wardId } = useWard();
   const { meetings, loading, error } = useWardMeetings(wardId);
-  const [activeMeetingId, setActiveMeetingId] = useState(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [popupImages, setPopupImages] = useState([]);
 

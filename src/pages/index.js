@@ -1,7 +1,7 @@
 // pages/index.js
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react"; 
-import Layout from "components/layout/Layout";
+import Layout from "components/home/Layout";
 import About from "components/home/About";
 import Region from "components/home/Region";
 import styles from "styles/layout/landing.module.css";
@@ -110,7 +110,7 @@ export default function Home() {
                 transition={{ type: "spring", stiffness: 300 }}
               >
                 <h3>24</h3>
-                <p>Active Wards</p>
+                <p>Active Ward Committees</p>
               </motion.div>
               <motion.div 
                 className={styles.statItem}
@@ -125,27 +125,25 @@ export default function Home() {
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 300, delay: 0.2 }}
               >
-                <h3>35</h3>
+                <h3>35+</h3>
                 <p>Community Walks</p>
               </motion.div>
             </div>
             <div className={styles.ctaContent}>
-              <h2>Want to learn more about Ward Committees?</h2>
+              <h2>Learn more about Ward Committees</h2>
               <button className={styles.ctaButtonSecondary}>
                 <a
                   href="https://drive.google.com/file/d/1IXXgyc-Y2GNQvqsr5gwZQDx8PqTRP1y7/view"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Learn More!
+                  Here
                 </a>
               </button>
             </div>
           </div>
           
         </SectionWrapper>
-
-        {/* Call to Action */}
       </div>
     </Layout>
   );

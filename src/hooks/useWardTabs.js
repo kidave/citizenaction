@@ -2,10 +2,10 @@
 import { useRouter } from "next/router";
 
 export const WARD_TABS = {
-  PROJECT: "project",
   MEETING: "meeting",
-  UPDATE: "update",
+  UPDATE: "update", 
   COMMITTEE: "committee",
+  PROJECT: "project",
   ROAD: "road",
   JUNCTION: "junction",
   ACTION: "action",

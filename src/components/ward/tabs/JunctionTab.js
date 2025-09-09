@@ -20,8 +20,14 @@ export default function JunctionTab() {
   const [beforeIndex, setBeforeIndex] = useState(0);
   const [afterIndex, setAfterIndex] = useState(0);
 
+  // Reset selection when component unmounts
   useEffect(() => {
-    setSelectedJunction(null);
+    return () => {
+      setSelectedJunction(null);
+    };
+  }, []);
+
+  useEffect(() => {
     setBeforeIndex(0);
     setAfterIndex(0);
   }, [junctions]);

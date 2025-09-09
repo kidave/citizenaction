@@ -13,8 +13,6 @@ import { supabase } from "utils/supabaseClient";
 export default function WardBottomBar({
   activeTab,
   onTabChange,
-  wardInfo,
-  onShowForm = () => {}, // Default empty function
 }) {
   const router = useRouter();
   const [isHamburgerOpen, setIsHamburgerOpen] = useState(false);
@@ -49,17 +47,6 @@ export default function WardBottomBar({
 
   const handleHamburgerClick = () => {
     setIsHamburgerOpen(!isHamburgerOpen);
-  };
-
-  const handleShowForm = () => {
-    if (!user) {
-      // Store current path for redirect after login
-      localStorage.setItem("returnTo", router.asPath);
-      router.push("/auth");
-      return;
-    }
-    onShowForm();
-    setIsHamburgerOpen(false);
   };
 
   const handleProfileNavigation = () => {
@@ -141,9 +128,6 @@ export default function WardBottomBar({
             aria-label="Junction"
           >
             Junction
-          </button>
-          <button onClick={handleShowForm} aria-label="Join Committee">
-            Join Committee
           </button>
           <button onClick={handleProfileNavigation} aria-label="Profile">
             {user ? "Profile" : "Login"}

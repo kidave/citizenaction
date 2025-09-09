@@ -83,8 +83,9 @@ export default function Form({ show, onClose, onSuccess }) {
         </div>
       ) : successMsg ? (
         <div className={styles.successMessage}>
-          <h3>Success!</h3>
+          <h3>Thank you for applying!</h3>
           <p>{successMsg}</p>
+          <p>Our team will review your details and get back to you shortly.</p>
           <button onClick={onClose}>Close</button>
         </div>
       ) : (

@@ -34,6 +34,7 @@
     "react-phone-input-2": "^2.15.1",
     "react-responsive": "^10.0.1",
     "react-router-dom": "^7.6.0",
+    "swr": "^2.3.6",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

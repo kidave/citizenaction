@@ -6,8 +6,6 @@ import "react-phone-input-2/lib/style.css";
 import "styles/components/forum.module.css";
 
 import { AuthProvider } from "context/AuthContext";
-import { WardProvider } from "context/WardContext";
-import { useRouter } from "next/router";
 
 const openSans = Open_Sans({
   subsets: ["latin"],
@@ -17,8 +15,6 @@ const openSans = Open_Sans({
 
 function MyApp({ Component, pageProps }) {
   const getLayout = Component.getLayout || ((page) => page);
-  const router = useRouter();
-  const { wardId } = router.query;
 
   return (
     <>
@@ -29,11 +25,9 @@ function MyApp({ Component, pageProps }) {
         />
       </Head>
       <AuthProvider>
-        <WardProvider wardId={wardId}>
-          <main className={openSans.variable}>
-            {getLayout(<Component {...pageProps} />)}
-          </main>
-        </WardProvider>
+        <main className={openSans.variable}>
+          {getLayout(<Component {...pageProps} />)}
+        </main>
       </AuthProvider>
     </>
   );

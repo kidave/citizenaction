@@ -1,4 +1,3 @@
-// hooks/useMeetingImages.js
 import { useState, useEffect } from "react";
 import { supabase } from "utils/supabaseClient";
 
@@ -8,35 +7,44 @@ export default function useMeetingImages(meetingId) {
 
   useEffect(() => {
     if (!meetingId) return;
-    
-    const fetchImages = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from("meeting_images")
-          .select("id, path")
-          .eq("meeting_id", meetingId);
+    setLoading(true);
 
-        if (!error && data) {
-          setImages(data);
-        }
-      } catch (error) {
-        console.error("Error fetching meeting images:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchImages();
+    supabase
+      .from("meeting_images")
+      .select("id, path")
+      .eq("meeting_id", meetingId)
+      .then(({ data, error }) => {
+        if (!error) setImages(data || []);
+      })
+      .finally(() => setLoading(false));
   }, [meetingId]);
 
-
   const resolveUrl = (path) =>
-    supabase.storage.from("project-images").getPublicUrl(path).data.publicUrl;
+    supabase.storage.from("ward").getPublicUrl(path).data.publicUrl;
 
-  return { 
-    images, 
-    loading, 
-    resolveUrl 
+  const upload = async (wardId, file) => {
+    const filePath = `${wardId}/meeting/${meetingId}/${Date.now()}-${file.name}`;
+    const { error: uploadError } = await supabase.storage
+      .from("ward")
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) throw uploadError;
+
+    const { data, error: dbError } = await supabase
+      .from("meeting_images")
+      .insert({ meeting_id: meetingId, path: filePath })
+      .select("id, path")
+      .single();
+
+    if (dbError) throw dbError;
+    setImages((prev) => [...prev, data]);
   };
+
+  const remove = async (img) => {
+    await supabase.storage.from("ward").remove([img.path]);
+    await supabase.from("meeting_images").delete().eq("id", img.id);
+    setImages((prev) => prev.filter((i) => i.id !== img.id));
+  };
+
+  return { images, setImages, loading, resolveUrl, upload, remove };
 }

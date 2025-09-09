@@ -1,44 +1,46 @@
 // components/shared/ui/CommitteeButton.js
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import useSWR from "swr";
 import { motion } from "framer-motion";
 import { useRouter } from "next/router";
 import Form from "components/home/Form";
 import { useAuth } from "context/AuthContext";
 import styles from "styles/components/button.module.css";
 
+const fetcher = async ([url, token]) => {
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) throw new Error("Failed to check status");
+  return res.json();
+};
+
 export default function CommitteeButton({ inline = false, variant = "primary" }) {
   const [showForm, setShowForm] = useState(false);
-  const [isChecking, setIsChecking] = useState(false);
-  const [status, setStatus] = useState(null);
+  const [token, setToken] = useState(null);
   const { user, getAccessToken } = useAuth();
   const router = useRouter();
 
-  const checkStatus = async () => {
-    if (!user) return;
-    
-    setIsChecking(true);
-    try {
-      const token = await getAccessToken();
-      const res = await fetch("/api/user/check", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) throw new Error("Failed to check status");
-
-      const data = await res.json();
-      setStatus(data);
-    } catch (err) {
-      console.error("Error checking status:", err);
-    } finally {
-      setIsChecking(false);
-    }
-  };
-
+  // Grab a token once per auth change
   useEffect(() => {
-    if (user) {
-      checkStatus();
-    }
-  }, [user]);
+    let mounted = true;
+    (async () => {
+      if (!user) { setToken(null); return; }
+      const t = await getAccessToken();
+      if (mounted) setToken(t || null);
+    })();
+    return () => { mounted = false; };
+  }, [user, getAccessToken]);
+
+  // SWR caches this globally, so it won't refetch on every mount/route change
+  const {
+    data: status,
+    error,
+    isValidating,
+    mutate,
+  } = useSWR(user && token ? ["/api/user/check", token] : null, fetcher, {
+    revalidateOnFocus: false,
+    shouldRetryOnError: false,
+    dedupingInterval: 60_000, // cache identical requests for 60s
+  });
 
   const handleButtonClick = async () => {
     if (!user) {
@@ -47,7 +49,6 @@ export default function CommitteeButton({ inline = false, variant = "primary" })
     }
 
     if (status?.is_member) {
-      // Redirect to user's ward
       router.push(`/ward/${status.ward_code}`);
       return;
     }
@@ -61,24 +62,30 @@ export default function CommitteeButton({ inline = false, variant = "primary" })
       return;
     }
 
-    // No existing application, show form
     setShowForm(true);
   };
 
-  const handleFormSuccess = () => {
-    setShowForm(false);
-    checkStatus(); // Refresh status after successful submission
+  // After form submit: refresh cached status, keep modal open so success UI shows
+  const handleFormSuccess = async () => {
+    await mutate();
   };
 
   if (status?.is_member) {
+    const isAdmin = [1, 2, 3].includes(status.role_id);
     return (
       <motion.button
-        onClick={() => router.push(`/ward/${status.ward_code}`)}
+        onClick={() =>
+          router.push(
+            isAdmin
+              ? `/admin/${status.ward_code}/meeting`
+              : `/ward/${status.ward_code}/meeting`
+          )
+        }
         className={`${styles.committeeButton} ${variant === "secondary" ? styles.secondary : ""} ${inline ? styles.inline : ""}`}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
-       My Committee: {status.ward_name}
+        My Committee: {status.ward_name}
       </motion.button>
     );
   }
@@ -96,11 +103,11 @@ export default function CommitteeButton({ inline = false, variant = "primary" })
       <motion.button
         onClick={handleButtonClick}
         className={`${styles.committeeButton} ${variant === "secondary" ? styles.secondary : ""} ${inline ? styles.inline : ""}`}
-        disabled={isChecking}
+        disabled={!!user && isValidating}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
-        {isChecking ? (
+        {!!user && isValidating ? (
           <span className={styles.buttonContent}>
             <span className={styles.spinner}></span>
             Checking...
@@ -110,7 +117,11 @@ export default function CommitteeButton({ inline = false, variant = "primary" })
         )}
       </motion.button>
 
-      <Form show={showForm} onClose={() => setShowForm(false)} onSuccess={handleFormSuccess} />
+      <Form
+        show={showForm}
+        onClose={() => setShowForm(false)}
+        onSuccess={handleFormSuccess}
+      />
     </>
   );
 }
