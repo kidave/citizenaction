@@ -193,10 +193,9 @@
 .pendingStatus {
   padding: 12px 24px;
   border-radius: 8px;
-  background-color: #f0f0f0;
+  background-color: transparent;
   color: #666;
   font-weight: 600;
-  cursor: not-allowed;
 }
 
 .pendingStatus.inline {

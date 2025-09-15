@@ -1,0 +1,90 @@
+/* styles/layout/driveembed.module.css */
+.driveEmbed {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background: white;
+  margin: 0 auto;
+  width: 50%;
+  align-items: center;
+
+}
+
+.driveHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 14px;
+  color: #5f6368;
+  font-weight: 500;
+}
+
+.toggleButton {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: #5f6368;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.toggleButton:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.embedContainer {
+  position: relative;
+  padding: 0;
+}
+
+.driveIframe {
+  width: 100%;
+  height: 500px;
+  border: none;
+  display: block;
+}
+
+.driveActions {
+  padding: 10px 15px;
+  text-align: right;
+  background: #f5f5f5;
+  border-top: 1px solid #e0e0e0;
+}
+
+.openDriveLink {
+  color: #1a73e8;
+  text-decoration: none;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.openDriveLink:hover {
+  text-decoration: underline;
+}
+
+.error {
+  padding: 15px;
+  color: #d93025;
+  text-align: center;
+  background-color: #fce8e6;
+  border-radius: 4px;
+  margin: 10px;
+}
+
+@media (max-width: 768px) {
+  .driveEmbed {
+    width: 90%;
+  }
+}

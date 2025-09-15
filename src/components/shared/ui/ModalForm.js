@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import styles from "styles/components/form.module.css";
 
-export default function Modal({ show, onClose, children }) {
+export default function Modal({ show, onClose, children, size = "md" }) {
   // Lock scroll + ESC close
   useEffect(() => {
     if (show) {
@@ -24,7 +24,7 @@ export default function Modal({ show, onClose, children }) {
   return (
     <div className={styles.formOverlay} onClick={onClose}>
       <div
-        className={styles.formModal}
+        className={`${styles.formModal} ${styles[size]}`}
         onClick={(e) => e.stopPropagation()}
       >
         {children}

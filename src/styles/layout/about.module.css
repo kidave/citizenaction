@@ -144,6 +144,7 @@
   position: relative;
   z-index: 1;
 }
+
 .highlight {
   color: #667eea;
   text-decoration: none;
@@ -158,4 +159,10 @@
   color: black;
   display: block;
   margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .text {
+    max-width: 90%;
+  }
 }

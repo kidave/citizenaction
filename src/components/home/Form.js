@@ -1,166 +1,190 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
-import { supabase } from "utils/supabaseClient";
 import styles from "styles/components/form.module.css";
-import { useRouter } from "next/router";
-import { useRegionData } from "hooks/useRegionData";
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/style.css";
 import { StakeholderService } from "data/stakeholder";
 import Modal from "components/shared/ui/ModalForm";
+import { useCommitteeForm } from "hooks/useCommitteeForm";
+import FormPhoneInput from "components/shared/ui/FormPhoneInput";
+import SuccessAlert from "components/shared/ui/SuccessAlert";
 
 export default function Form({ show, onClose, onSuccess }) {
-  const router = useRouter();
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
-  const [phone, setPhone] = useState("");
-  const [countryCode, setCountryCode] = useState("");
-
-  const { divisions, wards, handleDivisionChange } = useRegionData();
+  const { submitForm, loading, error, success, formId, reset } = useCommitteeForm();
 
   const {
     register,
     handleSubmit,
-    watch,
+    formState: { errors, isDirty, isValid },
+    reset: resetForm,
     setValue,
-    formState: { errors },
-  } = useForm();
-
-  // Load stakeholder categories
-  useEffect(() => {
-    if (show) {
-      setCategories(StakeholderService.getStakeholder());
+    watch,
+    trigger
+  } = useForm({
+    mode: "onChange",
+    defaultValues: {
+      stakeholder: "",
+      phone: "",
+      country_code: "91"
     }
+  });
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const categoriesData = StakeholderService.getStakeholder();
+        setCategories(categoriesData);
+      } catch (err) {
+        console.error("Failed to load categories:", err);
+      }
+    };
+
+    if (show) loadCategories();
   }, [show]);
 
-  const onSubmit = async (data) => {
-    setLoading(true);
-    setErrorMsg("");
-    setSuccessMsg("");
-
-    if (!phone) {
-      setErrorMsg("Phone number is required");
-      setLoading(false);
-      return;
+  useEffect(() => {
+    if (show) {
+      resetForm();
+      reset();
     }
+  }, [show, resetForm, reset]);
 
-    try {
-      const token = (await supabase.auth.getSession()).data.session?.access_token;
+  const handleClose = useCallback(() => {
+    reset();
+    onClose();
+  }, [reset, onClose]);
 
-      const res = await fetch("/api/user/form", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          ward_code: data.ward,
-          stakeholder_id: parseInt(data.stakeholder),
-          phone,
-          country_code: countryCode,
-        }),
-      });
+  const onSubmit = async (data) => {
+    const result = await submitForm({
+      stakeholder_id: parseInt(data.stakeholder),
+      phone: data.phone,
+      country_code: data.country_code
+    });
 
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error || "Submission failed");
-
-      setSuccessMsg("Application submitted successfully!");
-      if (onSuccess) onSuccess();
-    } catch (error) {
-      setErrorMsg(error.message);
-    } finally {
-      setLoading(false);
+    if (result.success && onSuccess) {
+      onSuccess(result.formId);
     }
   };
 
+  const handlePhoneChange = useCallback(
+    (phone, country) => {
+      setValue("phone", phone, { shouldValidate: true });
+      setValue("country_code", country.countryCode, { shouldValidate: true });
+      trigger("phone");
+    },
+    [setValue, trigger]
+  );
+
+  if (!show) return null;
+
   return (
-    <Modal show={show} onClose={onClose}>
+    <Modal show={show} onClose={handleClose} size="lg">
       {loading ? (
         <div className={styles.messageContainer}>
-          <h3>Loading...</h3>
-        </div>
-      ) : successMsg ? (
-        <div className={styles.successMessage}>
-          <h3>Thank you for applying!</h3>
-          <p>{successMsg}</p>
-          <p>Our team will review your details and get back to you shortly.</p>
-          <button onClick={onClose}>Close</button>
+          <div className={styles.spinner}></div>
+          <h3>Submitting your application...</h3>
+          <p>Please wait while we process your request.</p>
         </div>
       ) : (
-        <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
-          <h3>Apply to Join Committee</h3>
-          {errorMsg && <div className={styles.error}>{errorMsg}</div>}
-
-          {/* Division */}
-          <label>Division*</label>
-          <select
-            {...register("division", { required: "Required" })}
-            onChange={(e) => {
-              handleDivisionChange(e.target.value);
-              setValue("division", e.target.value);
-            }}
-          >
-            <option value="">Select Division</option>
-            {divisions.map((d) => (
-              <option key={d.code} value={d.code}>
-                {d.name}
-              </option>
-            ))}
-          </select>
-          {errors.division && <span className={styles.errorText}>{errors.division.message}</span>}
-
-          {/* Ward */}
-          <label>Ward*</label>
-          <select
-            {...register("ward", { required: "Required" })}
-            disabled={!watch("division") || wards.length === 0}
-          >
-            <option value="">Select Ward</option>
-            {wards.map((w) => (
-              <option key={w.code} value={w.code}>
-                {w.name}
-              </option>
-            ))}
-          </select>
-          {errors.ward && <span className={styles.errorText}>{errors.ward.message}</span>}
-
-          {/* Category */}
-          <label>Category*</label>
-          <select {...register("stakeholder", { required: "Required" })}>
-            <option value="">Select Category</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          {errors.stakeholder && (
-            <span className={styles.errorText}>{errors.stakeholder.message}</span>
-          )}
-
-          {/* Phone */}
-          <label>Phone Number*</label>
-          <PhoneInput
-            country={"in"}
-            value={phone}
-            onChange={(value, country) => {
-              setPhone(value);
-              setCountryCode(country?.countryCode || "");
-            }}
-            inputStyle={{ width: "100%" }}
+        <>
+          {/* ✅ Reusable Success Component */}
+          <SuccessAlert
+            isOpen={success}
+            onClose={handleClose}
+            title="Thank you for applying!"
+            message="Your application has been submitted successfully. Our team will review your details and get back to you shortly."
+            referenceId={formId}
+            buttonText="Close"
           />
 
-          <div className={styles.buttonGroup}>
-            <button type="submit" disabled={loading}>
-              {loading ? "Submitting..." : "Submit"}
-            </button>
-            <button type="button" onClick={onClose}>
-              Cancel
-            </button>
-          </div>
-        </form>
+          {!success && (
+            <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
+              <div className={styles.formHeader}>
+                <h2>Apply to Join Committee</h2>
+                <p>Fill out the form below to submit your application</p>
+              </div>
+
+              {error && (
+                <div className={styles.error}>
+                  <span className={styles.errorLabel}>Error:</span> {error}
+                </div>
+              )}
+
+              <div className={styles.formGrid}>
+                <div className={styles.formSection}>
+                  <label htmlFor="stakeholder" className={styles.label}>
+                    Category *
+                  </label>
+                  <select
+                    id="stakeholder"
+                    {...register("stakeholder", {
+                      required: "Please select a category"
+                    })}
+                    className={`${styles.select} ${
+                      errors.stakeholder ? styles.errorField : ""
+                    }`}
+                    aria-invalid={errors.stakeholder ? "true" : "false"}
+                  >
+                    <option value="">Select your category</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.stakeholder && (
+                    <span className={styles.errorText} role="alert">
+                      {errors.stakeholder.message}
+                    </span>
+                  )}
+                </div>
+
+                <div className={styles.formSection}>
+                  <label htmlFor="phone" className={styles.label}>
+                    Phone Number *
+                  </label>
+                  <FormPhoneInput
+                    id="phone"
+                    value={watch("phone")}
+                    countryCode={watch("country_code")}
+                    onChange={handlePhoneChange}
+                    error={errors.phone}
+                    className={errors.phone ? styles.errorField : ""}
+                  />
+                  {errors.phone && (
+                    <span className={styles.errorText} role="alert">
+                      {errors.phone.message}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.buttonGroup}>
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className={styles.cancelButton}
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading || !isDirty || !isValid}
+                  className={styles.submitButton}
+                >
+                  {loading ? (
+                    <>
+                      <span className={styles.buttonSpinner}></span>
+                      Submitting...
+                    </>
+                  ) : (
+                    "Submit Application"
+                  )}
+                </button>
+              </div>
+            </form>
+          )}
+        </>
       )}
     </Modal>
   );

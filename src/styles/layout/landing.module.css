@@ -1,7 +1,5 @@
-landin/* styles/pages/landing.module.css */
-.landing {
-  overflow-x: hidden;
-}
+/* styles/pages/landing.module.css */
+
 
 /* Hero Section */
 .hero {
@@ -139,44 +137,16 @@ landin/* styles/pages/landing.module.css */
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
-.ctaButtonSecondary {
-  background: #667eea;
-  color: white;
-  padding: 1rem 2rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-  border-radius: 50px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.ctaButtonSecondary:hover {
-  filter: brightness(0.95)
-}
-
-.ctaButtonSecondary a {
-  text-decoration: none;
-  color: white;
-}
 
 /* Stats Section */
-.statsSection {
-  background: linear-gradient(135deg, #f8f9ff 0%, #edf2f7 100%);
-  padding: 3rem 2rem;
-}
-
 .statsContainer {
   display: flex;
   justify-content: space-around;
   max-width: 1000px;
-  margin: 0 auto;
-  flex-wrap: wrap;
-  gap: 2rem;
+  margin: 0 auto 2rem;
 }
 
 .statItem {
-  text-align: center;
   flex: 1;
   min-width: 200px;
 }
@@ -197,7 +167,7 @@ landin/* styles/pages/landing.module.css */
 /* CTA Section */
 .ctaSection {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 4rem 2rem;
+  padding: 1rem;
   text-align: center;
   color: white;
 }
@@ -205,18 +175,6 @@ landin/* styles/pages/landing.module.css */
 .ctaContent {
   max-width: 1200px;
   margin: 0 auto;
-}
-
-.ctaContent h2 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-}
-
-.ctaContent p {
-  font-size: 1.2rem;
-  margin-bottom: 2rem;
-  opacity: 0.9;
 }
 
 /* Responsive Design */
@@ -241,11 +199,30 @@ landin/* styles/pages/landing.module.css */
     gap: 1rem;
   }
   
-  .section {
-    padding: 1rem;
-  }
-  
   .sectionHeader h2 {
     font-size: 2rem;
   }
+}
+
+
+/* Subtle Ongoing Improvement Banner */
+.improvementBanner {
+  background: #fff3cd;
+  color: #856404;
+  text-align: center;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-bottom: 1px solid #ffeaa7;
+}
+
+.bannerContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.bannerIcon {
+  font-size: 14px;
 }

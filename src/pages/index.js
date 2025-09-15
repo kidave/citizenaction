@@ -6,6 +6,9 @@ import About from "components/home/About";
 import Region from "components/home/Region";
 import styles from "styles/layout/landing.module.css";
 import CommitteeButton from "components/shared/ui/CommitteeButton";
+import DriveEmbed from "components/shared/ui/DriveEmbed";
+
+const driveLink = "https://drive.google.com/file/d/1IXXgyc-Y2GNQvqsr5gwZQDx8PqTRP1y7/preview";
 
 // Animation variants
 const sectionVariants = {
@@ -41,6 +44,13 @@ export default function Home() {
 
   return (
     <Layout>
+      {/* Ongoing Improvement Banner */}
+      <div className={styles.improvementBanner}>
+        <div className={styles.bannerContent}>
+          <span>This page is under ongoing improvement</span>
+        </div>
+      </div>
+
       <div className={styles.landing}>
         {/* Hero Section */}
         <motion.section 
@@ -102,7 +112,6 @@ export default function Home() {
         {/* Stats Section */}
         <SectionWrapper id="stats-section">
           <div className={styles.ctaSection}>
-            <h2>Our Impact</h2>
             <div className={styles.statsContainer}>
               <motion.div 
                 className={styles.statItem}
@@ -130,19 +139,12 @@ export default function Home() {
               </motion.div>
             </div>
             <div className={styles.ctaContent}>
-              <h2>Learn more about Ward Committees</h2>
-              <button className={styles.ctaButtonSecondary}>
-                <a
-                  href="https://drive.google.com/file/d/1IXXgyc-Y2GNQvqsr5gwZQDx8PqTRP1y7/view"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Here
-                </a>
-              </button>
+              <DriveEmbed 
+                driveLink={driveLink}
+                title="Walking Project Guide"
+              />
             </div>
           </div>
-          
         </SectionWrapper>
       </div>
     </Layout>

@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, useMemo, useCallback } from "react";
+// context/AuthContext.js
+import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "utils/supabaseClient";
 
 const AuthContext = createContext();
@@ -15,38 +16,68 @@ export function AuthProvider({ children }) {
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user || null);
-        setLoading(false);
-      }
-    );
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null);
+      setLoading(false);
+    });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const login = useCallback(() => supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo: `${window.location.origin}/auth/callback` },
-  }), []);
+  /**
+   * Normal login with Google OAuth redirect
+   */
+  const loginWithRedirect = () =>
+    supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
 
-  const logout = useCallback(() => supabase.auth.signOut(), []);
+  /**
+   * One Tap login (exchange Google ID token directly)
+   */
+  const loginWithIdToken = async (googleJwt) => {
+    if (!googleJwt) throw new Error("Missing Google ID token");
+    return supabase.auth.signInWithIdToken({
+      provider: "google",
+      token: googleJwt,
+    });
+  };
 
-  const getAccessToken = useCallback(async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+  /**
+   * Unified login function:
+   * - If called with token → One Tap flow
+   * - Else → Redirect flow
+   */
+  const login = (googleJwt) => {
+    if (googleJwt) {
+      return loginWithIdToken(googleJwt);
+    }
+    return loginWithRedirect();
+  };
+
+  const logout = () => supabase.auth.signOut();
+
+  const getAccessToken = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     return session?.access_token;
-  }, []);
+  };
 
-
-  const value = useMemo(() => ({
+  const value = {
     user,
     loading,
-    login,
+    login, // handles both redirect + One Tap
     logout,
-    getAccessToken
-  }), [user, loading, login, logout, getAccessToken]);
+    getAccessToken,
+  };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  );
 }
 
 export function useAuth() {

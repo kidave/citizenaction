@@ -28,7 +28,7 @@
   transform: translateX(-50%);
   width: 3px;
   height: 100%;
-  background: linear-gradient(to bottom, #fcc700, gold, whitesmoke);
+  background: linear-gradient(to bottom, #764ba2, #667eea, whitesmoke);
   z-index: 1;
 }
 

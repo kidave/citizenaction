@@ -9,9 +9,30 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "lh3.googleusercontent.com",
+        hostname: "lh3.googleusercontent.com", // Google avatars
       },
     ],
+  },
+
+  async headers() {
+    return [
+      {
+        source: "/(.*)", // apply to all routes
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: `
+              default-src 'self';
+              script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://apis.google.com;
+              frame-src 'self' https://accounts.google.com https://drive.google.com;
+              connect-src 'self' https://*.supabase.co https://accounts.google.com;
+              img-src 'self' data: https://lh3.googleusercontent.com https://*.supabase.co;
+              style-src 'self' 'unsafe-inline';
+            `.replace(/\s{2,}/g, " "), // collapse spaces into single
+          },
+        ],
+      },
+    ];
   },
 };
 

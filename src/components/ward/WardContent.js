@@ -7,7 +7,6 @@ import { useWard } from "context/WardContext";
 import MeetingTab from "./tabs/MeetingTab";
 import UpdateTab from "./tabs/UpdateTab";
 import CommitteeTab from "./tabs/CommitteeTab";
-import ActionTab from "./tabs/ActionTab";
 import RoadTab from "./tabs/RoadTab";
 import JunctionTab from "./tabs/JunctionTab";
 import ProjectTab from "./tabs/ProjectTab";
@@ -19,7 +18,6 @@ export default function WardContent({ activeTab }) {
     meeting: <MeetingTab />,
     update: <UpdateTab />,
     committee: <CommitteeTab />,
-    action: <ActionTab />,
     road: <RoadTab />,
     junction: <JunctionTab />,
     project: <ProjectTab />,

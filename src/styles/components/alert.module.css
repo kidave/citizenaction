@@ -1,0 +1,138 @@
+/* styles/components/alert.module.css */
+.alertContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.alert {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  padding: 0;
+  max-width: 400px;
+  width: 90%;
+  pointer-events: auto;
+  border: 1px solid #e1e5e9;
+  border-top: 4px solid #2563eb; /* Blue top border for auth alerts */
+}
+
+.alertContent {
+  padding: 24px;
+}
+
+.alertHeader {
+  margin-bottom: 16px;
+}
+
+.alertTitle {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  line-height: 1.4;
+}
+
+.alertMessage {
+  margin: 0 0 24px 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #555;
+}
+
+.alertButtons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+/* Cancel button */
+.cancelButton {
+  padding: 10px 20px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  background: white;
+  color: #374151;
+}
+
+.cancelButton:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+/* Login button */
+.loginButton {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  background: #2563eb;
+  color: white;
+}
+
+.loginButton:hover {
+  background: #1d4ed8;
+}
+
+.alertBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: 999;
+  pointer-events: auto;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .alertButtons {
+    flex-direction: column;
+  }
+  
+  .cancelButton,
+  .loginButton {
+    width: 100%;
+  }
+}
+
+/* Reuse .alert but with green accent */
+.successAlert {
+  border-top: 4px solid #10b981; /* Green top border */
+}
+
+.successButton {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  background: #10b981;
+  color: white;
+}
+
+.successButton:hover {
+  background: #059669;
+}

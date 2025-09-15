@@ -23,21 +23,35 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: "Invalid or expired token" });
     }
 
-    const { ward_code, stakeholder_id, phone, country_code } = req.body;
-    if (!ward_code || !stakeholder_id || !phone || !country_code) {
-      return res.status(400).json({ error: "Missing required fields" });
+    const { stakeholder_id, phone, country_code } = req.body;
+    
+    // Validate required fields with better error messages
+    if (!stakeholder_id) {
+      return res.status(400).json({ error: "Category selection is required" });
+    }
+    if (!phone) {
+      return res.status(400).json({ error: "Phone number is required" });
+    }
+    if (!country_code) {
+      return res.status(400).json({ error: "Country code is required" });
+    }
+
+    // Validate phone format
+    const phoneRegex = /^\+?[1-9]\d{1,14}$/; // E.164 format
+    if (!phoneRegex.test(phone)) {
+      return res.status(400).json({ error: "Invalid phone number format" });
     }
 
     // Call the stored procedure
     const { data, error: rpcError } = await supabase.rpc('submit_committee_form', {
       p_user_id: user.id,
-      p_ward_code: ward_code,
       p_stakeholder_id: stakeholder_id,
       p_phone: phone,
       p_country_code: country_code
     });
 
     if (rpcError) {
+      console.error("RPC Error:", rpcError);
       return res.status(400).json({ error: rpcError.message });
     }
 
@@ -46,7 +60,11 @@ export default async function handler(req, res) {
       if (!result.success) {
         return res.status(400).json({ error: result.message });
       }
-      return res.status(201).json({ success: true, form_id: result.form_id });
+      return res.status(201).json({ 
+        success: true, 
+        form_id: result.form_id,
+        message: "Application submitted successfully!" 
+      });
     } else {
       return res.status(500).json({ error: "No data returned from stored procedure" });
     }
