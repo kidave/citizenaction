@@ -193,7 +193,6 @@
 .pendingStatus {
   padding: 12px 24px;
   border-radius: 8px;
-  background-color: transparent;
   color: #666;
   font-weight: 600;
 }
@@ -206,7 +205,7 @@
 /* Responsive design */
 @media (max-width: 768px) {
   .committeeButton {
-    padding: 0.8rem 1.5rem;
+    padding: 0.8rem;
     font-size: 1rem;
   }
   

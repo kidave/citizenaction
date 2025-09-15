@@ -1,22 +1,26 @@
-/* global.css */
+/* styles/global.css */
 html,
 body {
   height: 100%;
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
 }
 
 body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  width: 100%;
+  position: relative;
 }
-
 
 #__next {
   flex: 1;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .spinner {
@@ -44,4 +48,10 @@ body {
   align-items: center;
   min-height: 200px;
   width: 100%;
+}
+
+.container-fill {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
