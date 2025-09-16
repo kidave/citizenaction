@@ -1,102 +1,441 @@
-.projectDetailContainer {
+/* ===== PROJECT ADMIN STYLES ===== */
+.adminPanel {
   padding: 2rem;
-  background: transparent;
+  background: white;
+}
+
+.adminItem {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-left: 4px solid #667eea;
+  transition: all 0.3s ease;
+}
+
+.adminItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.adminItem h3 {
+  margin: 0;
+  color: #2d3748;
+  font-size: 1.2rem;
+}
+
+.adminItem small {
+  color: #718096;
+  font-style: italic;
+}
+
+/* ===== PROJECT FORM STYLES ===== */
+.projectForm {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+  margin-top: 2rem;
+}
+
+.projectForm h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
+.projectForm h4 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #4a5568;
+  margin: 1.5rem 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.projectForm label {
+  display: block;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 0.5rem;
+}
+
+.projectForm input,
+.projectForm textarea {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.projectForm input:focus,
+.projectForm textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.projectForm textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.projectForm button {
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 8px;
+}
+
+.projectForm button:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.projectForm button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.projectForm button[type="button"] {
+  background: #e2e8f0;
+  color: #4a5568;
+  box-shadow: none;
+}
+
+.projectForm button[type="button"]:hover {
+  background: #cbd5e0;
+}
+
+/* ===== IMAGE PREVIEW STYLES ===== */
+.imagePreview {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.imagePreview > div {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.imagePreview > div:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.imagePreview img {
+  border-radius: 6px;
+  object-fit: cover;
+  margin-bottom: 0.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+.imagePreview a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.imagePreview a:hover {
+  color: #764ba2;
+  text-decoration: underline;
+}
+
+.imagePreview button {
+  background: #f56565;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.imagePreview button:hover {
+  background: #e53e3e;
+  transform: translateY(-1px);
+}
+
+/* ===== PROJECT TAB STYLES ===== */
+.projectList {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.projectPlaceholder {
+  text-align: center;
+  padding: 3rem;
+  color: #a0aec0;
+  font-style: italic;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 2px dashed #e2e8f0;
+}
+
+.projectDetailContainer {
+  background: white;
+  overflow: hidden;
 }
 
 .projectHeader {
+  background: #667eea;
+  color: white;
+  padding: 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.projectHeader h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
 }
 
 .statusBadge {
-  padding: 0.4rem 1rem;
-  border-radius: 16px;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
   font-weight: 600;
   font-size: 0.9rem;
   text-transform: capitalize;
 }
 
 .statusBadge.completed {
-  background-color: #e6ffed;
-  color: #027a48;
+  background-color: #48bb78;
+  color: white;
 }
 
 .statusBadge.in_progress {
-  background-color: #fff7ed;
-  color: #b54708;
+  background-color: #ed8936;
+  color: white;
 }
 
 .statusBadge.pending {
-  background-color: #fef2f2;
-  color: #b91c1c;
-}
-
-.projectMap {
-  margin-bottom: 2rem;
-  padding: 1rem;
-  background-color: transparent;
-  border-radius: 8px;
-  border: 1px dashed #d1d5db;
+  background-color: #e53e3e;
+  color: white;
 }
 
 .workflowStepper {
-  margin-top: 2rem;
+  padding: 2rem;
 }
 
 .workflowStepper h3 {
-  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 1.5rem;
+  text-align: center;
 }
 
 .stepContainer {
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
+  border-left: 3px solid #667eea;
+  padding-left: 1.5rem;
+  position: relative;
 }
+
+.stepContainer::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #667eea;
+  border: 3px solid white;
+  box-shadow: 0 0 0 2px #667eea;
+}
+
 .stepHeader {
   display: flex;
   align-items: center;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-left: 3px solid transparent;
-  transition: all 0.2s ease;
+  margin-bottom: 1rem;
 }
-.stepHeader:hover {
-  background: transparent;
-}
-.stepHeader.active {
-  border-left: 3px solid #3f51b5;
-  font-weight: bold;
-}
+
 .stepNumber {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #667eea;
   margin-right: 0.5rem;
-  font-weight: bold;
+}
+
+.stepLabel {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
 }
 
 .stepContent {
-  padding: 0.5rem 1rem;
-  background: transparent;
-  margin-left: 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.stepContent h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #4a5568;
+  margin: 1rem 0 0.5rem;
+}
+
+.stepContent p {
+  color: #718096;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.stepContent a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.stepContent a:hover {
+  color: #764ba2;
+  text-decoration: underline;
+}
+
+.stepMedia {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px dashed #e2e8f0;
 }
 
 .viewStackButton {
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
-  background-color: #3f51b5;
-  color: #fff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
   border: none;
-  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 6px;
   cursor: pointer;
-  font-weight: bold;
-  transition: background 0.3s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(102, 126, 234, 0.2);
+  margin-bottom: 1rem;
 }
 
 .viewStackButton:hover {
-  background-color: #303f9f;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
 }
 
-.bottomImageComparison {
-  margin-top: 2rem;
-  padding: 1rem;
-  background: #fafafa;
-  border-radius: 8px;
+/* ===== BUTTON STYLES ===== */
+.button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(102, 126, 234, 0.2);
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+}
+
+.button:active {
+  transform: translateY(0);
+}
+
+.button.delete {
+  background: #f56565;
+  box-shadow: 0 4px 6px rgba(245, 101, 101, 0.2);
+}
+
+.button.delete:hover {
+  box-shadow: 0 6px 12px rgba(245, 101, 101, 0.3);
+}
+
+.button.cancel {
+  background: #a0aec0;
+  box-shadow: 0 4px 6px rgba(160, 174, 192, 0.2);
+}
+
+.button.cancel:hover {
+  box-shadow: 0 6px 12px rgba(160, 174, 192, 0.3);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+  .adminPanel,
+  .projectForm,
+  .projectDetailContainer {
+    padding: 1rem;
+    border-radius: 8px;
+  }
+  
+  .projectHeader {
+    padding: 1.5rem;
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .projectHeader h1 {
+    font-size: 1.5rem;
+  }
+  
+  .workflowStepper {
+    padding: 1rem;
+  }
+  
+  .stepContainer {
+    padding-left: 1rem;
+    margin-left: 0.5rem;
+  }
+  
+  .stepContent {
+    padding: 1rem;
+  }
+  
+  .imagePreview {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}
+
+/* Animation for project items */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.projectDetailContainer {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.stepContainer {
+  animation: fadeInUp 0.5s ease-out;
 }

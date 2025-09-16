@@ -1,24 +1,32 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "utils/supabaseClient";
 
-export default function useWardProjects(wardId, enabled = true) {
+export default function useWardProjects(wardId) {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!wardId || !enabled) return;
+    if (!wardId) return;
     setLoading(true);
-    setError(null);
 
-    fetch(`/api/ward/${wardId}/project/public`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.error) throw new Error(data.error);
-        setProjects(data || []);
+    supabase
+      .from("project")
+      .select(`
+        *,
+        project_images (id, step, type, path)
+      `)
+      .eq("ward_code", wardId)
+      .order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (error) setError(error);
+        else setProjects(data || []);
       })
-      .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [wardId, enabled]);
+  }, [wardId]);
 
-  return { projects, loading, error };
+  const resolveUrl = (path) =>
+    supabase.storage.from("ward").getPublicUrl(path).data.publicUrl;
+
+  return { projects, loading, error, resolveUrl };
 }

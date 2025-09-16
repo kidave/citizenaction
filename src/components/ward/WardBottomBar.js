@@ -1,21 +1,17 @@
-// components/ward/WardBottomBar.js
+// components/ward/WardBottomBar.js (simplified version)
 import { useState, useEffect } from "react";
 import styles from "styles/layout/bottombar.module.css";
 import { useRouter } from "next/router";
-import { FaUsers } from "react-icons/fa";
-import { FiHome, FiMenu } from "react-icons/fi";
-import { BsCardList } from "react-icons/bs";
+import { FaRoad, FaUsers } from "react-icons/fa";
+import { BsCardList, BsFillSignIntersectionSideFill } from "react-icons/bs";
 import { TbTimelineEvent } from "react-icons/tb";
 import { MdOutlineAssignment } from "react-icons/md";
 import { useMediaQuery } from "react-responsive";
 import { supabase } from "utils/supabaseClient";
 
-export default function WardBottomBar({
-  activeTab,
-  onTabChange,
-}) {
+export default function WardBottomBar({ activeTab }) {
   const router = useRouter();
-  const [isHamburgerOpen, setIsHamburgerOpen] = useState(false);
+  const { wardId } = router.query;
   const [user, setUser] = useState(null);
   const isMobile = useMediaQuery({ maxWidth: 768 });
 
@@ -41,23 +37,9 @@ export default function WardBottomBar({
   }, []);
 
   const handleTabChange = (tab) => {
-    onTabChange(tab);
-    setIsHamburgerOpen(false);
-  };
-
-  const handleHamburgerClick = () => {
-    setIsHamburgerOpen(!isHamburgerOpen);
-  };
-
-  const handleProfileNavigation = () => {
-    if (!user) {
-      // Store current path for redirect after login
-      localStorage.setItem("returnTo", router.asPath);
-      router.push("/auth");
-      return;
+    if (wardId) {
+      router.push(`/ward/${wardId}/${tab}`);
     }
-    router.push("/profile");
-    setIsHamburgerOpen(false);
   };
 
   if (!isMobile) return null;
@@ -65,13 +47,6 @@ export default function WardBottomBar({
   return (
     <>
       <div className={styles.bottomBar}>
-        <button
-          className={styles.hamburgerButton}
-          onClick={() => router.push("/")}
-          aria-label="Home"
-        >
-          <FiHome />
-        </button>
         <button
           className={`${styles.hamburgerButton} ${activeTab === "meeting" ? styles.active : ""}`}
           onClick={() => handleTabChange("meeting")}
@@ -89,51 +64,32 @@ export default function WardBottomBar({
         <button
           className={`${styles.hamburgerButton} ${activeTab === "project" ? styles.active : ""}`}
           onClick={() => handleTabChange("project")}
-          aria-label="Projects"
+          aria-label="Projects Taken"
         >
           <MdOutlineAssignment />
         </button>
         <button
           className={`${styles.hamburgerButton} ${activeTab === "committee" ? styles.active : ""}`}
           onClick={() => handleTabChange("committee")}
-          aria-label="Committee"
+          aria-label="Committee Members"
         >
           <FaUsers />
         </button>
         <button
-          className={styles.hamburgerButton}
-          onClick={handleHamburgerClick}
-          aria-label="Menu"
+          className={`${styles.hamburgerButton} ${activeTab === "road" ? styles.active : ""}`}
+          onClick={() => handleTabChange("road")}
+          aria-label="Route Identified"
         >
-          <FiMenu />
+          <FaRoad />
+        </button>
+        <button
+          className={`${styles.hamburgerButton} ${activeTab === "junction" ? styles.active : ""}`}
+          onClick={() => handleTabChange("junction")}
+          aria-label="Junction Design"
+        >
+          <BsFillSignIntersectionSideFill />
         </button>
       </div>
-
-      {isHamburgerOpen && (
-        <div className={styles.hamburgerDropdown}>
-          <button
-            onClick={() => {
-              handleTabChange("road");
-              setIsHamburgerOpen(false);
-            }}
-            aria-label="Road"
-          >
-            Road
-          </button>
-          <button
-            onClick={() => {
-              handleTabChange("junction");
-              setIsHamburgerOpen(false);
-            }}
-            aria-label="Junction"
-          >
-            Junction
-          </button>
-          <button onClick={handleProfileNavigation} aria-label="Profile">
-            {user ? "Profile" : "Login"}
-          </button>
-        </div>
-      )}
     </>
   );
 }

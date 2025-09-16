@@ -272,3 +272,29 @@
   background: rgba(108, 117, 125, 0.9);
   cursor: not-allowed;
 }
+
+@media (max-width: 768px) {
+  .imageComparison {
+    flex-direction: column;
+    gap: 0;
+  }
+}
+
+.imageEmbed {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  background: #fafafa;
+  padding: 0.5rem;
+  max-width: 100%;
+}
+
+.imageEmbed img {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+}

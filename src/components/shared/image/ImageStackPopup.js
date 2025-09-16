@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import styles from "./image.module.css";
 
 const BUCKET_URL =
-  "https://<your-project-id>.supabase.co/storage/v1/object/public/project-images/";
+  "https://<your-project-id>.supabase.co/storage/v1/object/public/ward/";
 
 // Safer resolver (handles string or object)
 const resolveUrl = (img) => {

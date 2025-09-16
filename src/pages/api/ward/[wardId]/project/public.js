@@ -7,7 +7,7 @@ export default async function handler(req, res) {
 
   try {
     const { data, error } = await supabase
-      .from("project") // Use the view instead of direct table
+      .from("project")
       .select("*")
       .eq("ward_code", wardId)
       .order("created_at", { ascending: false });

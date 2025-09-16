@@ -1,0 +1,67 @@
+.uploadSelector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 2px dashed #ccc;
+  border-radius: 12px;
+  background: #fafafa;
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+.uploadSelector.dragging {
+  border-color: #0070f3;
+  background: #f0f9ff;
+}
+
+.uploadSelector label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.typeSelect {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: white;
+  cursor: pointer;
+}
+
+.fileInput {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 0.85rem;
+}
+
+.driveForm {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.driveForm input[type="url"] {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.driveForm button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: #0070f3;
+  color: white;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.driveForm button:hover {
+  background: #005bb5;
+}

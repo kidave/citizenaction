@@ -96,7 +96,7 @@ export default function WardSidebar({ disabledTabs = [] }) {
         {renderTabButton(
           WARD_TABS.COMMITTEE,
           <FaUsers className={styles.tabIcon} />,
-          "Ward Committee",
+          "Members",
         )}
         {renderTabButton(
           WARD_TABS.PROJECT,
