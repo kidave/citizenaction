@@ -26,9 +26,16 @@ const nextConfig = {
               script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://apis.google.com;
               frame-src 'self' https://accounts.google.com https://drive.google.com;
               connect-src 'self' https://*.supabase.co https://accounts.google.com;
-              img-src 'self' data: https://lh3.googleusercontent.com https://*.supabase.co;
+              img-src 'self' data: 
+                https://lh3.googleusercontent.com 
+                https://*.supabase.co
+                https://a.tile.openstreetmap.org
+                https://b.tile.openstreetmap.org
+                https://c.tile.openstreetmap.org
+                https://tiles.stadiamaps.com
+                https://server.arcgisonline.com;
               style-src 'self' 'unsafe-inline';
-            `.replace(/\s{2,}/g, " "), // collapse spaces into single
+            `.replace(/\s{2,}/g, " ").trim(), // collapse spaces and trim
           },
         ],
       },

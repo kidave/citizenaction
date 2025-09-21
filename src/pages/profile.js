@@ -1,65 +1,80 @@
 // pages/profile.js
 import { useEffect } from "react";
 import { useRouter } from "next/router";
-import Head from "next/head";
 import { useAuth } from "context/AuthContext";
-import styles from "styles/profile.module.css";
-import ProfileHeader from "components/profile/ProfileHeader";
-import ProfileView from "components/profile/ProfileView";
+import { FiArrowLeft } from "react-icons/fi";
 import Spinner from "components/shared/ui/Spinner";
-import ErrorMessage from "components/shared/ui/ErrorMessage";
 import useProfile from "hooks/useProfile";
+import styles from "styles/profile.module.css";
+import Layout from "components/home/Layout";
 
 export default function Profile() {
   const { user } = useAuth();
-  const { profile, loading, error } = useProfile();
+  const { profile, loading } = useProfile();
   const router = useRouter();
 
-  // Redirect if not logged in
   useEffect(() => {
     if (!loading && !user) {
       router.push("/auth");
     }
   }, [user, loading, router]);
 
-  // Loading state
   if (loading || !user || !profile) {
     return <Spinner mode="fullscreen" />;
   }
 
+  const hasPhone = !!profile.phone;
+  const phone = hasPhone ? `+${profile.phone}` : "N/A";
+
   return (
-    <div className={styles.container}>
-      <Head>
-        <title>Your Profile | Walking Project</title>
-      </Head>
-
-      {error && <ErrorMessage message={error} />}
-
-      <ProfileHeader />
-
-      <div className={styles.profileCard}>
-        <div className={styles.avatarSection}>
-          <div className={styles.avatarWrapper}>
-            <img
-              src={
-                profile.avatar_url ||
-                user.user_metadata?.avatar_url ||
-                "/user1.png"
-              }
-              alt="Profile"
-              className={styles.avatar}
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = "/user1.png";
-              }}
-            />
-          </div>
-          <h2 className={styles.userName}>{profile.name || "User"}</h2>
-          <div className={styles.userEmail}>{user.email}</div>
+    <Layout>
+      <div className={styles.profileContainer}>
+        <div className={styles.header}>
+          <button
+            onClick={() => router.back()}
+            className={styles.backButton}
+            aria-label="Go back"
+          >
+            <FiArrowLeft size={24} />
+          </button>
         </div>
 
-        <ProfileView profile={profile} />
+        <div className={styles.profileCard}>
+          <div className={styles.avatarSection}>
+            <div className={styles.avatarWrapper}>
+              <img
+                src={
+                  profile.avatar_url ||
+                  user.user_metadata?.avatar_url ||
+                  "/user1.png"
+                }
+                alt="Profile"
+                className={styles.avatar}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "/user1.png";
+                }}
+              />
+            </div>
+            <h2 className={styles.userName}>{profile.name || "User"}</h2>
+            <div className={styles.userEmail}>{user.email}</div>
+          </div>
+          <div className={styles.detailsGrid}>
+            <div className={styles.detailCard}>
+              <div className={styles.detailItem}>
+                <span className={styles.label}>Phone:</span>
+                <span className={styles.value}>
+                  {phone}
+                </span>
+              </div>
+              <div className={styles.detailItem}>
+                <span className={styles.label}>Designation:</span>
+                <span className={styles.value}>{profile.designation || "N/A"}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 }

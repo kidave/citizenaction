@@ -6,6 +6,7 @@ import { useAuth } from "context/AuthContext";
 import useAdminMeetings from "hooks/useAdminMeetings";
 import useWardCRUD from "hooks/useWardCRUD";
 import useMeetingImages from "hooks/useMeetingImages";
+import { useAlert } from "hooks/useAlert";
 import ImageStackPopup from "components/shared/image/ImageStackPopup";
 import MeetingCard from "components/shared/MeetingCard";
 import ImageManager from "components/admin/ImageManager";
@@ -18,6 +19,8 @@ export default function MeetingAdmin() {
   const { getAccessToken } = useAuth();
   const { meetings, loading, error, setMeetings } = useAdminMeetings(wardId);
   const { create, update, remove } = useWardCRUD("meeting", wardId);
+  const { showConfirmAlert, showSuccessAlert, showErrorAlert, AlertComponent } = useAlert();
+  
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [popupImages, setPopupImages] = useState([]);
   const [newMeeting, setNewMeeting] = useState(null);
@@ -38,6 +41,10 @@ export default function MeetingAdmin() {
       }
     } catch (err) {
       console.error("Failed to refresh meetings:", err);
+      showErrorAlert({ 
+        message: "Failed to refresh meetings", 
+        errorDetails: err.message 
+      });
     }
   };
 
@@ -45,30 +52,51 @@ export default function MeetingAdmin() {
     try {
       await create(formData);
       setNewMeeting(null);
+      showSuccessAlert({ message: "Meeting created successfully!" });
       refreshMeetings();
     } catch (err) {
       console.error("Failed to create meeting:", err);
+      showErrorAlert({ 
+        message: "Failed to create meeting", 
+        errorDetails: err.message 
+      });
     }
   };
 
   const handleUpdate = async (id, formData) => {
     try {
       await update(id, formData);
+      showSuccessAlert({ message: "Meeting updated successfully!" });
       refreshMeetings();
     } catch (err) {
       console.error("Failed to update meeting:", err);
+      showErrorAlert({ 
+        message: "Failed to update meeting", 
+        errorDetails: err.message 
+      });
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this meeting and all its images?")) {
-      try {
-        await remove(id);
-        refreshMeetings();
-      } catch (err) {
-        console.error("Failed to delete meeting:", err);
+    showConfirmAlert({
+      title: "Delete Meeting",
+      message: "Are you sure you want to delete this meeting and all its images?",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      onConfirm: async () => {
+        try {
+          await remove(id);
+          showSuccessAlert({ message: "Meeting deleted successfully!" });
+          refreshMeetings();
+        } catch (err) {
+          console.error("Failed to delete meeting:", err);
+          showErrorAlert({ 
+            message: "Failed to delete meeting", 
+            errorDetails: err.message 
+          });
+        }
       }
-    }
+    });
   };
 
   const toggleImageManager = (meetingId) => {
@@ -76,7 +104,13 @@ export default function MeetingAdmin() {
   };
 
   if (loading) return <Spinner />;
-  if (error) return <div>Error loading meetings: {error}</div>;
+  if (error) {
+    showErrorAlert({ 
+      message: "Error loading meetings", 
+      errorDetails: error 
+    });
+    return <div>Error loading meetings</div>;
+  }
 
   return (
     <>
@@ -102,6 +136,9 @@ export default function MeetingAdmin() {
           <div className={styles.addButtonText}>Add Meeting</div>
         </motion.button>
       </div>
+
+      {/* Alert Component */}
+      <AlertComponent />
 
       {/* New meeting card */}
       {newMeeting && (

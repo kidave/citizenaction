@@ -1,22 +1,18 @@
-// components/shared/ui/AuthAlert.js
+// components/shared/alert/CustomAlert.js
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/router";
 import styles from "styles/components/alert.module.css";
 
-const AuthAlert = ({ 
-  isOpen, 
-  onClose, 
-  title = "Authentication Required", 
-  message = "Please log in to access this feature",
+const CustomAlert = ({
+  isOpen,
+  onClose,
+  title,
+  message,
+  icon,
+  buttons,
+  customContent,
+  theme = "default",
   withBackdrop = true
 }) => {
-  const router = useRouter();
-
-  const handleLogin = () => {
-    router.push('/auth');
-    onClose();
-  };
-
   return (
     <AnimatePresence>
       {isOpen && (
@@ -31,10 +27,10 @@ const AuthAlert = ({
               onClick={onClose}
             />
           )}
-          
+
           <div className={styles.alertContainer}>
             <motion.div
-              className={styles.alert}
+              className={`${styles.alert} ${styles[`${theme}Alert`]}`}
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -42,25 +38,22 @@ const AuthAlert = ({
             >
               <div className={styles.alertContent}>
                 <div className={styles.alertHeader}>
+                  {icon && <div className={styles.alertIcon}>{icon}</div>}
                   <h3 className={styles.alertTitle}>{title}</h3>
-                </div>
-                
-                <p className={styles.alertMessage}>{message}</p>
-                
-                <div className={styles.alertButtons}>
-                  <button
-                    className={styles.cancelButton}
-                    onClick={onClose}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className={styles.loginButton}
-                    onClick={handleLogin}
-                  >
-                    Login
+                  <button className={styles.closeButton} onClick={onClose}>
+                    ×
                   </button>
                 </div>
+
+                {message && <p className={styles.alertMessage}>{message}</p>}
+
+                {customContent}
+
+                {buttons && (
+                  <div className={styles.alertButtons}>
+                    {buttons}
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>
@@ -70,4 +63,4 @@ const AuthAlert = ({
   );
 };
 
-export default AuthAlert;
+export default CustomAlert;

@@ -76,6 +76,26 @@ function StepContent({ stepKey, project, resolveUrl }) {
 }
 
 function SingleProject({ project, resolveUrl }) {
+  // Map status to display text
+  const getStatusDisplay = (status) => {
+    const statusMap = {
+      pending: "Pending",
+      in_progress: "In Progress",
+      completed: "Completed"
+    };
+    return statusMap[status] || status;
+  };
+
+      // Helper function to format dates
+  const formatDate = (date) => {
+    if (!(date instanceof Date)) date = new Date(date);
+    return date.toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
   const steps = [
     {
       key: "A",
@@ -167,11 +187,44 @@ function SingleProject({ project, resolveUrl }) {
 
   return (
     <div className={styles.projectDetailContainer}>
+      {/* Enhanced Project Header */}
       <div className={styles.projectHeader}>
-        <h1>{project.title}</h1>
-        <span className={`${styles.statusBadge} ${styles[project.status]}`}>
-          {project.status.replace("_", " ")}
-        </span>
+        <div className={styles.projectTitleSection}>
+          <h3 className={styles.projectTitle}>{project.title}</h3>
+          <div className={styles.projectMeta}>
+            {project.location && (
+              <span className={styles.projectLocation}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="currentColor"/>
+                </svg>
+                {project.location}
+              </span>
+            )}
+            {project.start_date && (
+              <span className={styles.projectDate}>
+                Start Date:
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M19 4H18V2H16V4H8V2H6V4H5C3.89 4 3.01 4.9 3.01 6L3 20C3 21.1 3.89 22 5 22H19C20.1 22 21 21.1 21 20V6C21 4.9 20.1 4 19 4ZM19 20H5V10H19V20ZM19 8H5V6H19V8ZM12 13H17V18H12V13Z" fill="currentColor"/>
+                </svg>
+                {formatDate(project.start_date)}
+              </span>
+            )}
+            {project.end_date && (
+              <span className={styles.projectDate}>
+                End Date:
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M19 4H18V2H16V4H8V2H6V4H5C3.89 4 3.01 4.9 3.01 6L3 20C3 21.1 3.89 22 5 22H19C20.1 22 21 21.1 21 20V6C21 4.9 20.1 4 19 4ZM19 20H5V10H19V20ZM19 8H5V6H19V8ZM12 13H17V18H12V13Z" fill="currentColor"/>
+                </svg>
+                {formatDate(project.end_date)}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className={styles.statusSection}>
+          <span className={`${styles.statusBadge} ${styles[project.status]}`}>
+            {getStatusDisplay(project.status)}
+          </span>
+        </div>
       </div>
 
       <div className={styles.workflowStepper}>

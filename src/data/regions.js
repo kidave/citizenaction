@@ -1,9 +1,9 @@
 export const REGION_DATA = {
   region: { code: 'MMR', name: 'Mumbai Metropolitan Region' },
   cities: [
-    { code: 'MUM', name: 'Mumbai', status: 'Approved', active: true },
-    { code: 'TH', name: 'Thane', status: 'Pending', active: false },
-    { code: 'NM', name: 'Navi Mumbai', status: 'Pending', active: false },
+    { code: 'MUM', name: 'Mumbai', status: 'approved', active: true },
+    { code: 'TH', name: 'Thane', status: 'pending', active: false },
+    { code: 'NM', name: 'Navi Mumbai', status: 'pending', active: false },
   ],
   divisions: [
     { code: 'IC', name: 'Island City', city_code: 'MUM' },
@@ -161,12 +161,12 @@ export const REGION_DATA = {
 
 
 export const REGION_STATUS = {
-  Pending: { 
+  pending: { 
     color: "#ff9800", 
     label: "Planned", 
     disabled: true,
   },
-  Approved: { 
+  approved: { 
     color: "#4caf50", 
     label: "Available", 
     disabled: false,

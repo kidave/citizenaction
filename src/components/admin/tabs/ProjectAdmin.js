@@ -5,22 +5,20 @@ import { useAuth } from "context/AuthContext";
 import useAdminProjects from "hooks/useAdminProjects";
 import useWardCRUD from "hooks/useWardCRUD";
 import useProjectImages from "hooks/useProjectImages";
-import SuccessAlert from "components/shared/ui/SuccessAlert";
-import ConfirmAlert from "components/shared/ui/ConfirmAlert";
+import { useAlert } from "hooks/useAlert";
 import styles from "styles/layout/project.module.css";
 import { FaTrash } from "react-icons/fa";
 
 export default function ProjectAdmin({ wardId }) {
   const { isAdmin } = useAdmin();
   const { getAccessToken } = useAuth();
+  const { showConfirmAlert, showSuccessAlert, showErrorAlert, AlertComponent } = useAlert();
 
   const { projects, loading, error, refresh } = useAdminProjects(wardId);
   const { create, update, remove } = useWardCRUD("project", wardId);
 
   const [editing, setEditing] = useState(null);
   const [saveError, setSaveError] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(null);
-  const [success, setSuccess] = useState(null);
 
   const handleCreate = async (projectData) => {
     try {
@@ -30,11 +28,12 @@ export default function ProjectAdmin({ wardId }) {
       );
       const created = await create(cleanData);
       setEditing(created);
-      setSuccess({ title: "Created!", message: "Project created successfully." });
+      showSuccessAlert({ title: "Created!", message: "Project created successfully." });
       await refresh();
       return created;
     } catch (err) {
       setSaveError(err.message);
+      showErrorAlert({ message: "Failed to create project", errorDetails: err.message });
       throw err;
     }
   };
@@ -55,34 +54,37 @@ export default function ProjectAdmin({ wardId }) {
         const updated = await res.json();
         setEditing(updated);
       }
-      setSuccess({ title: "Updated!", message: "Project updated successfully." });
+      showSuccessAlert({ title: "Updated!", message: "Project updated successfully." });
       await refresh();
     } catch (err) {
       setSaveError(err.message);
+      showErrorAlert({ message: "Failed to update project", errorDetails: err.message });
       throw err;
     }
   };
 
   const handleDelete = async (id) => {
-    setConfirmDelete({
+    showConfirmAlert({
       title: "Delete Project?",
       message: "This will remove the project and all its images.",
+      confirmText: "Delete",
+      cancelText: "Cancel",
       onConfirm: async () => {
         try {
           await remove(id);
           if (editing && editing.id === id) setEditing(null);
           await refresh();
-          setSuccess({ title: "Deleted!", message: "Project deleted successfully." });
+          showSuccessAlert({ title: "Deleted!", message: "Project deleted successfully." });
         } catch (err) {
           setSaveError(err.message);
+          showErrorAlert({ message: "Failed to delete project", errorDetails: err.message });
         }
-        setConfirmDelete(null);
-      },
-      onCancel: () => setConfirmDelete(null),
+      }
     });
   };
 
   if (!isAdmin) {
+    showErrorAlert({ message: "You don't have access to manage projects." });
     return (
       <div className={styles.adminPanel}>
         <div className={styles.errorMessage}>
@@ -94,6 +96,7 @@ export default function ProjectAdmin({ wardId }) {
 
   return (
     <div className={styles.adminPanel}>
+      <AlertComponent />
       <div className={styles.adminHeader}>
         <button
           className={styles.primaryButton}
@@ -104,8 +107,8 @@ export default function ProjectAdmin({ wardId }) {
         </button>
       </div>
 
-      {error && <div className={styles.errorMessage}>Error: {error}</div>}
-      {saveError && <div className={styles.errorMessage}>Error: {saveError}</div>}
+      {error && showErrorAlert({ message: `Error: ${error}` })}
+      {saveError && showErrorAlert({ message: `Error: ${saveError}` })}
 
       {loading ? (
         <div className={styles.loading}>Loading projects...</div>
@@ -131,14 +134,6 @@ export default function ProjectAdmin({ wardId }) {
                   </button>
                 </div>
               </div>
-              <div className={styles.adminItemDetails}>
-                <span className={`${styles.statusBadge} ${styles[p.status]}`}>
-                  {p.status?.replace("_", " ") || "Unknown"}
-                </span>
-                {p.start_date && (
-                  <small>Start: {new Date(p.start_date).toLocaleDateString()}</small>
-                )}
-              </div>
             </div>
           ))}
         </div>
@@ -158,23 +153,6 @@ export default function ProjectAdmin({ wardId }) {
           }}
         />
       )}
-
-      {/* Alerts */}
-      <SuccessAlert
-        isOpen={!!success}
-        onClose={() => setSuccess(null)}
-        title={success?.title}
-        message={success?.message}
-      />
-      {confirmDelete && (
-        <ConfirmAlert
-          isOpen={true}
-          title={confirmDelete.title}
-          message={confirmDelete.message}
-          onConfirm={confirmDelete.onConfirm}
-          onCancel={confirmDelete.onCancel}
-        />
-      )}
     </div>
   );
 }
@@ -183,7 +161,10 @@ export default function ProjectAdmin({ wardId }) {
 function ProjectForm({ wardId, project = {}, onSave, onCancel }) {
   const [form, setForm] = useState(() => ({
     title: "",
-    status: "Pending",
+    status: "planned",
+    start_date: "",
+    end_date: "",
+    location: "",
     ...project,
   }));
 
@@ -198,7 +179,7 @@ function ProjectForm({ wardId, project = {}, onSave, onCancel }) {
     useProjectImages(wardId, projectId);
 
   useEffect(() => {
-    setForm({ title: "", status: "Pending", ...project });
+    setForm({ title: "", status: "planned", start_date: "", end_date: "", location: "", ...project });
   }, [project]);
 
   const handleSubmit = async (e) => {
@@ -228,7 +209,7 @@ function ProjectForm({ wardId, project = {}, onSave, onCancel }) {
   const steps = [
     { key: "A", label: "Setting the Stage", fields: [{ name: "community_engagement", label: "Community Engagement", type: "textarea" }, { name: "kickoff_notes", label: "Kickoff Notes", type: "textarea" }] },
     { key: "B", label: "Identifying the Project", fields: [{ name: "rationale", label: "Rationale", type: "textarea" }, { name: "assessment_tools", label: "Assessment Tools", type: "textarea" }, { name: "route_analysis_report", label: "Route Analysis Report", type: "textarea" }, { name: "wardmap_url", label: "Ward Map URL", type: "url" }] },
-    { key: "C", label: "Coordination & Approval", fields: [{ name: "coordination_notes", label: "Coordination Notes", type: "textarea" }, { name: "agencies_involved", label: "Agencies Involved", type: "text" }, { name: "commencement_letter_url", label: "Commencement Letter URL", type: "url" }] },
+    { key: "C", label: "Coordination & Approval", fields: [{ name: "coordination_notes", label: "Coordination Notes", type: "textarea" }, { name: "agencies_involved", label: "Agencies Involved", type: "textarea" }, { name: "commencement_letter_url", label: "Commencement Letter URL", type: "url" }] },
     { key: "D", label: "Execution & Monitoring", fields: [{ name: "progress_notes", label: "Progress Notes", type: "textarea" }, { name: "execution_details", label: "Execution Details", type: "textarea" }, { name: "documentation_links", label: "Documentation Links", type: "url" }] },
     { key: "E", label: "Final Deliverables & Learnings", fields: [{ name: "learnings", label: "Learnings", type: "textarea" }, { name: "community_impact", label: "Community Impact", type: "textarea" }, { name: "final_report_url", label: "Final Report URL", type: "url" }] },
     { key: "F", label: "Scale-Up & Legacy", fields: [{ name: "next_route", label: "Next Route", type: "text" }, { name: "support_to_other_wards", label: "Support to Other Wards", type: "textarea" }, { name: "legacy_notes", label: "Legacy Notes", type: "textarea" }] },
@@ -242,7 +223,6 @@ function ProjectForm({ wardId, project = {}, onSave, onCancel }) {
 
         {/* Basic Info */}
         <div className={styles.formSection}>
-          <h4>Basic Information</h4>
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
               <label>Title *</label>
@@ -258,10 +238,36 @@ function ProjectForm({ wardId, project = {}, onSave, onCancel }) {
                 value={form.status}
                 onChange={(e) => setForm({ ...form, status: e.target.value })}
               >
-                <option value="Pending">Pending</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Completed">Completed</option>
+                <option value="planned">Planned</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
               </select>
+            </div>
+            <div className={styles.formGroup}>
+              <label>Location *</label>
+              <input
+                value={form.location}
+                onChange={(e) => setForm({ ...form, location: e.target.value })}
+                required
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label>Start Date *</label>
+              <input
+                type="date"
+                value={form.start_date}
+                onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+                required
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label>End Date *</label>
+              <input
+                type="date"
+                value={form.end_date}
+                onChange={(e) => setForm({ ...form, end_date: e.target.value })}
+                required
+              />
             </div>
           </div>
         </div>
@@ -269,7 +275,7 @@ function ProjectForm({ wardId, project = {}, onSave, onCancel }) {
         {/* Steps */}
         {steps.map((s) => (
           <div key={s.key} className={styles.formSection}>
-            <h4>{s.label} (Step {s.key})</h4>
+            <h4>{s.key}. {s.label}</h4>
             {s.fields.map((f) => (
               <div key={f.name} className={styles.formGroup}>
                 <label>{f.label}</label>
@@ -363,23 +369,6 @@ function ProjectForm({ wardId, project = {}, onSave, onCancel }) {
               </div>
             )}
           </div>
-        )}
-
-        {/* Alerts */}
-        <SuccessAlert
-          isOpen={!!success}
-          onClose={() => setSuccess(null)}
-          title={success?.title}
-          message={success?.message}
-        />
-        {confirmFileDelete && (
-          <ConfirmAlert
-            isOpen={true}
-            title={confirmFileDelete.title}
-            message={confirmFileDelete.message}
-            onConfirm={confirmFileDelete.onConfirm}
-            onCancel={confirmFileDelete.onCancel}
-          />
         )}
       </form>
     </div>

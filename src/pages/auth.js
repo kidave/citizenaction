@@ -57,7 +57,7 @@ export default function Auth() {
       <div className={styles.container}>
         <div className={styles.authCard}>
           <button onClick={handleBack} className={styles.backButton}>
-            <FiArrowLeft size={20} />
+            <FiArrowLeft size={24} />
             Back
           </button>
           

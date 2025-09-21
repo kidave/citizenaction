@@ -1,13 +1,14 @@
-// components/shared/ui/SuccessAlert.js
+// components/shared/alert/ErrorAlert.js
 import { motion, AnimatePresence } from "framer-motion";
+import { FiAlertCircle, FiX } from "react-icons/fi";
 import styles from "styles/components/alert.module.css";
 
-const SuccessAlert = ({
+const ErrorAlert = ({
   isOpen,
   onClose,
-  title = "Success!",
-  message = "Your action was completed successfully.",
-  referenceId = null,
+  title = "Error",
+  message = "Something went wrong. Please try again.",
+  errorDetails = null,
   buttonText = "Close",
   withBackdrop = true
 }) => {
@@ -28,7 +29,7 @@ const SuccessAlert = ({
 
           <div className={styles.alertContainer}>
             <motion.div
-              className={`${styles.alert} ${styles.successAlert}`}
+              className={`${styles.alert} ${styles.errorAlert}`}
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -36,20 +37,27 @@ const SuccessAlert = ({
             >
               <div className={styles.alertContent}>
                 <div className={styles.alertHeader}>
+                  <div className={styles.alertIcon}>
+                    <FiAlertCircle />
+                  </div>
                   <h3 className={styles.alertTitle}>{title}</h3>
+                  <button className={styles.closeButton} onClick={onClose}>
+                    <FiX />
+                  </button>
                 </div>
 
                 <p className={styles.alertMessage}>{message}</p>
 
-                {referenceId && (
-                  <p className={styles.alertMessage}>
-                    Reference ID: <strong>{referenceId}</strong>
-                  </p>
+                {errorDetails && (
+                  <details className={styles.errorDetails}>
+                    <summary>Error Details</summary>
+                    <pre>{errorDetails}</pre>
+                  </details>
                 )}
 
                 <div className={styles.alertButtons}>
                   <button
-                    className={styles.successButton}
+                    className={styles.errorButton}
                     onClick={onClose}
                   >
                     {buttonText}
@@ -64,4 +72,4 @@ const SuccessAlert = ({
   );
 };
 
-export default SuccessAlert;
+export default ErrorAlert;

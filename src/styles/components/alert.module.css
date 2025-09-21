@@ -136,3 +136,172 @@
 .successButton:hover {
   background: #059669;
 }
+
+
+/* Add to your existing alert.module.css */
+
+/* Alert Types */
+.successAlert {
+  border-top: 4px solid #10b981 !important;
+}
+
+.errorAlert {
+  border-top: 4px solid #ef4444 !important;
+}
+
+.warningAlert {
+  border-top: 4px solid #f59e0b !important;
+}
+
+.infoAlert {
+  border-top: 4px solid #3b82f6 !important;
+}
+
+.validationAlert {
+  border-top: 4px solid #8b5cf6 !important;
+}
+
+.loadingAlert {
+  border-top: 4px solid #6b7280 !important;
+}
+
+.confirmAlert {
+  border-top: 4px solid #6366f1 !important;
+}
+
+/* Alert Header with Icon */
+.alertHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.alertIcon {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+/* Close Button */
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px;
+  margin-left: auto;
+  color: #6b7280;
+  border-radius: 4px;
+}
+
+.closeButton:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* Button Variants */
+.successButton {
+  background-color: #10b981 !important;
+  color: white !important;
+}
+
+.successButton:hover {
+  background-color: #059669 !important;
+}
+
+.errorButton {
+  background-color: #ef4444 !important;
+  color: white !important;
+}
+
+.errorButton:hover {
+  background-color: #dc2626 !important;
+}
+
+.warningButton {
+  background-color: #f59e0b !important;
+  color: white !important;
+}
+
+.warningButton:hover {
+  background-color: #d97706 !important;
+}
+
+.infoButton {
+  background-color: #3b82f6 !important;
+  color: white !important;
+}
+
+.infoButton:hover {
+  background-color: #2563eb !important;
+}
+
+.validationButton {
+  background-color: #8b5cf6 !important;
+  color: white !important;
+}
+
+.validationButton:hover {
+  background-color: #7c3aed !important;
+}
+
+/* Loading Spinner */
+.loadingSpinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #f3f4f6;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error Details */
+.errorDetails {
+  margin: 1rem 0;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.errorDetails summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #374151;
+}
+
+.errorDetails pre {
+  margin: 0.5rem 0 0 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Validation Errors */
+.validationErrors {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+  color: #dc2626;
+  font-size: 0.875rem;
+}
+
+.validationErrors li {
+  margin: 0.25rem 0;
+  line-height: 1.4;
+}
+
+/* Alert Container Improvements */
+.alertContainer {
+  z-index: 10000 !important; /* Higher z-index for alerts */
+}
+
+.alertBackdrop {
+  z-index: 9999 !important; /* Higher z-index for backdrop */
+}

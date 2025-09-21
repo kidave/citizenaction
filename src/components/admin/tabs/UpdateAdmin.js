@@ -5,6 +5,7 @@ import { useWard } from "context/WardContext";
 import { useAuth } from "context/AuthContext";
 import useAdminUpdates from "hooks/useAdminUpdates";
 import useWardCRUD from "hooks/useWardCRUD";
+import { useAlert } from "hooks/useAlert";
 import UpdateCard from "components/shared/UpdateCard";
 import UpdateForm from "components/shared/UpdateForm";
 import Spinner from "components/shared/ui/Spinner";
@@ -16,6 +17,8 @@ export default function UpdateAdmin() {
   const { getAccessToken } = useAuth();
   const { updates, loading, error, setUpdates } = useAdminUpdates(wardId);
   const { create, update, remove } = useWardCRUD("update", wardId);
+  const { showConfirmAlert, showSuccessAlert, showErrorAlert, AlertComponent } = useAlert();
+
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
@@ -33,7 +36,8 @@ export default function UpdateAdmin() {
         setUpdates(data || []);
       }
     } catch (err) {
-      console.error("Failed to refresh updates:", err);
+      console.error("Failed to refresh monthly updates:", err);
+      showErrorAlert({ message: "Failed to refresh monthly updates", errorDetails: err.message });
     }
   };
 
@@ -41,9 +45,11 @@ export default function UpdateAdmin() {
     try {
       await create(formData);
       setShowAddForm(false);
+      showSuccessAlert({ message: "Monthly Update created successfully!" });
       refreshUpdates();
     } catch (err) {
-      console.error("Failed to create update:", err);
+      console.error("Failed to create Monthly Update:", err);
+      showErrorAlert({ message: "Failed to create Monthly Update", errorDetails: err.message });
     }
   };
 
@@ -51,28 +57,44 @@ export default function UpdateAdmin() {
     try {
       await update(id, formData);
       setEditingId(null);
+      showSuccessAlert({ message: "Monthly Update updated successfully!" });
       refreshUpdates();
     } catch (err) {
-      console.error("Failed to update update:", err);
+      console.error("Failed to update monthly update:", err);
+      showErrorAlert({ message: "Failed to update Monthly Update", errorDetails: err.message });
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this update?")) {
-      try {
-        await remove(id);
-        refreshUpdates();
-      } catch (err) {
-        console.error("Failed to delete update:", err);
+    showConfirmAlert({
+      title: "Delete Update",
+      message: "Are you sure you want to delete this Monthly Update?",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      onConfirm: async () => {
+        try {
+          await remove(id);
+          showSuccessAlert({ message: "Monthly Update deleted successfully!" });
+          refreshUpdates();
+        } catch (err) {
+          console.error("Failed to delete update:", err);
+          showErrorAlert({ message: "Failed to delete Monthly Update", errorDetails: err.message });
+        }
       }
-    }
+    });
   };
 
   if (loading) return <Spinner />;
-  if (error) return <div>Error loading updates: {error}</div>;
+  if (error) {
+    showErrorAlert({ message: "Error loading Monthly Updates", errorDetails: error });
+    return <div>Error loading updates</div>;
+  }
 
   return (
     <>
+      {/* Alert Component */}
+      <AlertComponent />
+
       {/* Add update button */}
       <div className={styles.addButtonContainer}>
         <motion.button 
@@ -82,7 +104,7 @@ export default function UpdateAdmin() {
           whileTap={{ scale: 0.9 }}
         > 
           <FaPlus className={styles.addButtonIconFa} />
-          <div className={styles.addButtonText}>Add Update</div>
+          <div className={styles.addButtonText}>Add Monthly Update</div>
         </motion.button>
       </div>
 

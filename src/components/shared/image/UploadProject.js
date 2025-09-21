@@ -3,7 +3,7 @@ import { supabase } from "utils/supabaseClient";
 
 export default function UploadProject({ wardCode }) {
   const [title, setTitle] = useState("");
-  const [status, setStatus] = useState("Pending");
+  const [status, setStatus] = useState("pending");
   const [rationale, setRationale] = useState("");
   const [designSummary, setDesignSummary] = useState("");
   const [beforeFiles, setBeforeFiles] = useState([]);
@@ -43,7 +43,7 @@ export default function UploadProject({ wardCode }) {
 
       setMessage("✅ Project created successfully!");
       setTitle("");
-      setStatus("Pending");
+      setStatus("pending");
       setRationale("");
       setDesignSummary("");
       setBeforeFiles([]);
@@ -90,17 +90,17 @@ export default function UploadProject({ wardCode }) {
 
       <select value={status} onChange={(e) => setStatus(e.target.value)}>
         {[
-          "Pending",
-          "Approved",
-          "Rejected",
-          "In Progress",
-          "Blocked",
-          "Resolved",
-          "Completed",
-          "Available",
-          "Unavailable",
-          "Active",
-          "Inactive",
+          "pending",
+          "approved",
+          "rejected",
+          "in_progress",
+          "blocked",
+          "resolved",
+          "completed",
+          "available",
+          "unavailable",
+          "active",
+          "inactive",
         ].map((s) => (
           <option key={s} value={s}>
             {s}

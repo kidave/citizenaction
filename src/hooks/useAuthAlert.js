@@ -1,6 +1,6 @@
 // hooks/useAuthAlert.js
 import { useState, useCallback } from "react";
-import AuthAlert from "components/shared/ui/AuthAlert";
+import AuthAlert from "components/shared/alert/AuthAlert";
 
 export const useAuthAlert = () => {
   const [isOpen, setIsOpen] = useState(false);

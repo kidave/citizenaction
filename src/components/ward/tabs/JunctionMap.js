@@ -178,12 +178,6 @@ export default function JunctionMap({
       boundary={boundary}
       onMapInit={(map) => {
         mapRef.current = map;
-        // Add a small delay to ensure map is fully initialized
-        setTimeout(() => {
-          if (mapRef.current) {
-            mapRef.current.invalidateSize();
-          }
-        }, 100);
       }}
     ></BaseMap>
   );

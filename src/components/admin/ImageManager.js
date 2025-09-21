@@ -1,10 +1,14 @@
 // components/admin/ImageManager.js
 import { useState, useRef } from "react";
 import useMeetingImages from "hooks/useMeetingImages";
+import { useAlert } from "hooks/useAlert";
 import styles from "styles/layout/admin.module.css";
+import { FaTrash } from "react-icons/fa";
 
 export default function ImageManager({ meetingId, wardId }) {
   const { images, resolveUrl, upload, remove, loading } = useMeetingImages(meetingId);
+  const { showConfirmAlert, showSuccessAlert, showErrorAlert, AlertComponent } = useAlert();
+  
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const fileInputRef = useRef(null);
@@ -20,11 +24,12 @@ export default function ImageManager({ meetingId, wardId }) {
       for (const file of files) {
         await upload(wardId, file);
       }
+      showSuccessAlert({ message: "Images uploaded successfully!" });
     } catch (error) {
       setUploadError(error.message);
+      showErrorAlert({ message: "Failed to upload images", errorDetails: error.message });
     } finally {
       setIsUploading(false);
-      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -32,21 +37,28 @@ export default function ImageManager({ meetingId, wardId }) {
   };
 
   const handleDeleteImage = async (image) => {
-    if (window.confirm("Are you sure you want to delete this image?")) {
-      try {
-        await remove(image);
-      } catch (error) {
-        console.error("Failed to delete image:", error);
-        alert("Failed to delete image");
+    showConfirmAlert({
+      title: "Delete Image",
+      message: "Are you sure you want to delete this image?",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      onConfirm: async () => {
+        try {
+          await remove(image);
+          showSuccessAlert({ message: "Image deleted successfully!" });
+        } catch (error) {
+          console.error("Failed to delete image:", error);
+          showErrorAlert({ message: "Failed to delete image", errorDetails: error.message });
+        }
       }
-    }
+    });
   };
 
   return (
     <div className={styles.imagesAdmin}>
-      <div className={styles.sectionHeader}>
-        Upload or Delete Images
-      </div>
+      {/* Alert Component */}
+      <AlertComponent />
+      
       {/* Upload section */}
       <div className={styles.uploadSection}>
         <input
@@ -59,7 +71,7 @@ export default function ImageManager({ meetingId, wardId }) {
           className={styles.fileInput}
         />
         {isUploading && <p>Uploading images...</p>}
-        {uploadError && <p className={styles.error}>{uploadError}</p>}
+        {uploadError && showErrorAlert({ message: `Upload error: ${uploadError}` })}
       </div>
 
       {/* Image thumbnails */}
@@ -72,7 +84,7 @@ export default function ImageManager({ meetingId, wardId }) {
               className={styles.deleteImageButton}
               disabled={isUploading}
             >
-              ✕
+              <FaTrash />
             </button>
           </div>
         ))}

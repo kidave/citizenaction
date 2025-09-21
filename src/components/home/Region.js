@@ -191,7 +191,7 @@ function Region() {
       {/* Cities */}
       <div className={styles.scrollContainer}>
         {cities.map((city) => {
-          const config = statusConfig[city.status] || statusConfig.Pending;
+          const config = statusConfig[city.status] || statusConfig.pending;
           return (
             <div
               key={city.code}

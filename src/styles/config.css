@@ -293,14 +293,6 @@ object {
   max-width: 100%;
 }
 
-/* Touch-friendly button sizes for mobile */
-button,
-.btn {
-  min-height: 44px;
-  min-width: 44px;
-  padding: var(--spacing-sm) var(--spacing-md);
-}
-
 /* Responsive text alignment */
 .text-center-mobile {
   text-align: center;

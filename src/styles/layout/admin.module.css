@@ -178,12 +178,9 @@
   position: absolute;
   top: 4px;
   right: 4px;
-  background: lightcoral;
-  color: white;
+  background: transparent;
+  color: lightcoral;
   border: none;
-  border-radius: 4px;
-  padding: 2px 6px;
-  font-size: 0.7rem;
   cursor: pointer;
 }
 

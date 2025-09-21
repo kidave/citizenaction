@@ -1,5 +1,4 @@
 /* home.module.css */
-
 .hero {
   position: relative;
   height: 80vh;
@@ -17,17 +16,6 @@
 .heroContent {
   max-width: 800px;
   animation: fadeInUp 1s ease-out;
-}
-
-.hero h1 {
-  font-size: 4rem;
-  font-weight: 700;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.hero p {
-  font-size: 1.5rem;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .ctaButton {
@@ -117,15 +105,6 @@
   .hero {
     height: 70vh;
     min-height: 500px;
-  }
-
-  .hero h1 {
-    font-size: 2.5rem;
-  }
-
-  .hero p {
-    font-size: 1.2rem;
-    margin-bottom: 2rem;
   }
 
   .ctaButton {

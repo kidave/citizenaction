@@ -56,7 +56,7 @@ export default function CommitteeButton({ inline = false, variant = "primary" })
     }
 
     if (status?.has_application) {
-      if (status.application_status === "Pending") {
+      if (status.application_status === "pending") {
         showAlert("Application Status", "Your application is pending approval.", {
           type: "info",
           duration: 4000
@@ -94,7 +94,7 @@ export default function CommitteeButton({ inline = false, variant = "primary" })
     );
   }
 
-  if (status?.has_application && status.application_status === "Pending") {
+  if (status?.has_application && status.application_status === "pending") {
     return (
       <div className={`${styles.pendingStatus} ${inline ? styles.inline : ""}`}>
         Application Pending

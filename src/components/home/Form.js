@@ -5,7 +5,7 @@ import { StakeholderService } from "data/stakeholder";
 import Modal from "components/shared/ui/ModalForm";
 import { useCommitteeForm } from "hooks/useCommitteeForm";
 import FormPhoneInput from "components/shared/ui/FormPhoneInput";
-import SuccessAlert from "components/shared/ui/SuccessAlert";
+import SuccessAlert from "components/shared/alert/SuccessAlert";
 
 export default function Form({ show, onClose, onSuccess }) {
   const [categories, setCategories] = useState([]);

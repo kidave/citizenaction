@@ -1,0 +1,48 @@
+/* styles/components/Header.module.css */
+.header {
+  background-color: #cdcae7;
+  position: relative;
+  width: 100%;
+  z-index: 1000;
+}
+
+.headerContainer {
+  display: flex;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  height: 64px;
+}
+
+.logo {
+  margin-right: 2rem;
+}
+
+.navBar {
+  flex: 1;
+}
+
+/* Gradient animation for the main nav */
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .headerContainer {
+    padding: 0 1rem;
+  }
+  
+  .logo {
+    margin-right: 1rem;
+  }
+}
