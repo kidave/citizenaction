@@ -2,45 +2,46 @@
 import { useState, useEffect } from "react";
 import { supabase } from "utils/supabaseClient";
 
+// hooks/useRegionMeetings.js
 export default function useRegionMeetings(regionCode) {
-  const [meetings, setMeetings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [state, setState] = useState({
+    meetings: [],
+    loading: true,
+    error: null
+  });
 
   useEffect(() => {
     if (!regionCode) {
-      setLoading(false);
+      setState(prev => ({ ...prev, loading: false }));
       return;
     }
 
     const fetchMeetings = async () => {
       try {
-        setLoading(true);
-        setError(null);
-        
         const { data, error } = await supabase
-          .from("region_meeting")
-          .select(`
-            id, title, meeting_date, location,
-            meet_link, recording_url, transcript, transcript_json,
-            attendees, action_items, minutes_url
-          `)
+          .from("region_meeting_view")
+          .select("*")
           .eq("region_code", regionCode)
           .order("meeting_date", { ascending: false });
 
         if (error) throw error;
-        setMeetings(data || []);
-        
+
+        setState({
+          meetings: data || [],
+          loading: false,
+          error: null
+        });
       } catch (err) {
-        console.error("Error fetching region meetings:", err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
+        setState({
+          meetings: [],
+          loading: false,
+          error: err.message
+        });
       }
     };
 
     fetchMeetings();
   }, [regionCode]);
 
-  return { meetings, loading, error };
+  return state;
 }

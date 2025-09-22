@@ -1,7 +1,6 @@
 // pages/region/[regionCode].js
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import Layout from "components/home/Layout";
 import { RegionProvider } from "context/RegionContext";
 import RegionLayout from "components/region/RegionLayout";
 import Spinner from "components/shared/ui/Spinner";
@@ -21,32 +20,26 @@ export default function RegionPage() {
 
   if (isLoading) {
     return (
-      <Layout>
-        <div className={styles.pageLoading}>
-          <Spinner />
-        </div>
-      </Layout>
+      <div className={styles.pageLoading}>
+        <Spinner />
+      </div>
     );
   }
 
   if (!regionCode) {
     return (
-      <Layout>
-        <div className={styles.errorContainer}>
-          <h2>Invalid Region</h2>
-          <p>Region code is required.</p>
-        </div>
-      </Layout>
+      <div className={styles.errorContainer}>
+        <h2>Invalid Region</h2>
+        <p>Region code is required.</p>
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <div className={styles.regionPage}>
-        <RegionProvider regionCode={regionCode}>
-          <RegionLayout />
-        </RegionProvider>
-      </div>
-    </Layout>
+    <div className={styles.regionPage}>
+      <RegionProvider regionCode={regionCode}>
+        <RegionLayout />
+      </RegionProvider>
+    </div>
   );
 }

@@ -1,30 +1,17 @@
 // components/RegionMeetingTab.js
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { supabase } from "utils/supabaseClient";
 import MediaVideoContainer from "components/shared/media/MediaVideoContainer";
 import { FaCalendar, FaUsers, FaTasks, FaVideo, FaExternalLinkAlt, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import useRegionMeetings from "hooks/useRegionMeetings";
+import Spinner from "components/shared/ui/Spinner";
+import { useAlert } from "hooks/useAlert";
 import styles from "styles/components/regionMeetingTab.module.css";
 
 export default function RegionMeetingTab({ regionCode }) {
-  const [meetings, setMeetings] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { meetings, loading, error } = useRegionMeetings(regionCode);
   const [expandedCards, setExpandedCards] = useState({});
-
-  useEffect(() => {
-    async function fetchMeetings() {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("region_meeting")
-        .select("*")
-        .eq("region_code", regionCode)
-        .order("meeting_date", { ascending: false });
-      if (!error) setMeetings(data);
-      setLoading(false);
-    }
-
-    fetchMeetings();
-  }, [regionCode]);
+  const { showErrorAlert } = useAlert();
 
   const toggleCardExpansion = (meetingId) => {
     setExpandedCards(prev => ({
@@ -42,12 +29,16 @@ export default function RegionMeetingTab({ regionCode }) {
     });
   };
 
-  if (loading) return (
-    <div className={styles.loadingContainer}>
-      <div className={styles.spinner}></div>
-      <p>Loading meetings...</p>
-    </div>
-  );
+  // Error handling
+  if (error) {
+    showErrorAlert({ 
+      message: "Error loading meetings", 
+      errorDetails: error 
+    });
+    return <div>Error loading meetings</div>;
+  }
+
+  if (loading) return <Spinner />;
 
   if (!meetings.length) return (
     <div className={styles.emptyState}>
