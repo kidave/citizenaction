@@ -2,24 +2,29 @@
 import { useRouter } from "next/router";
 
 export const REGION_TABS = {
-  MEETING: "meeting",
+  NEWSLETTER: "newsletter",
+  MEETING: "meeting", 
   UPDATE: "update",
   PROJECT: "project",
-  NEWSLETTER: "newsletter",
+  POLICY: "policy"
 };
 
 export function useRegionTabs() {
   const router = useRouter();
   const { regionCode, tab } = router.query;
 
-  const activeTab = tab || REGION_TABS.MEETING;
+  // Default tab
+  const { tab: activeTab = REGION_TABS.NEWSLETTER } = router.query;
+  
 
   const navigateToTab = (tabKey) => {
-    router.push({
-      pathname: `/region/[regionCode]`,
-      query: { regionCode, tab: tabKey },
-    });
+    if (!regionCode) return;
+    router.push(
+      `/region/${regionCode}/${tabKey}`, 
+      undefined, 
+      { shallow: true }
+    );
   };
 
-  return { activeTab, navigateToTab };
+  return { activeTab, navigateToTab, regionCode };
 }

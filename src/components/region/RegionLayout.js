@@ -1,20 +1,45 @@
 // components/region/RegionLayout.js
-import { useState } from "react";
-import styles from "styles/layout/region.module.css";
+import { useMediaQuery } from "react-responsive";
+import { useRouter } from "next/router";
+import Layout from "components/home/Layout";
+import { RegionProvider } from "context/RegionContext";
 import RegionSidebar from "./RegionSidebar";
 import RegionContent from "./RegionContent";
+import Spinner from "components/shared/ui/Spinner";
+import styles from "styles/layout/container.module.css";
 
-export default function RegionLayout() {
-  const [activeTab, setActiveTab] = useState("newsletter");
+
+function RegionLayoutContent() {
+  const router = useRouter();
+  const { regionCode, tab: activeTab } = router.query;
+  const isMobile = useMediaQuery({ maxWidth: 768 });
+  const isTablet = useMediaQuery({ maxWidth: 1024 });
 
   return (
-    <div className={styles.regionLayout}>
-      <div className={styles.sidebarContainer}>
-        <RegionSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+    <Layout>
+      <div className={styles.page}>
+        {/* Show sidebar on desktop only (not mobile or tablet) */}
+        {!isMobile && !isTablet && <RegionSidebar />}
+        
+        <div className={styles.wardMain}>
+          <RegionContent activeTab={activeTab} />
+        </div>
+
+        {/* {isMobile && <WardBottomBar activeTab={activeTab} />} */}
       </div>
-      <div className={styles.contentContainer}>
-        <RegionContent activeTab={activeTab} />
-      </div>
-    </div>
+    </Layout>
+  );
+}
+
+export default function RegionLayout() {
+  const router = useRouter();
+  const { regionCode } = router.query;
+
+  if (!regionCode) return <Spinner mode="fullscreen" />;
+
+  return (
+    <RegionProvider regionCode={regionCode}>
+      <RegionLayoutContent />
+    </RegionProvider>
   );
 }

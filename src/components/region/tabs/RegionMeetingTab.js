@@ -1,64 +1,195 @@
-// components/region/tabs/RegionMeetingTab.js
+// components/RegionMeetingTab.js
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "utils/supabaseClient";
-import { useRegion } from "context/RegionContext";
-import styles from "styles/layout/region.module.css";
+import MediaVideoContainer from "components/shared/media/MediaVideoContainer";
+import { FaCalendar, FaUsers, FaTasks, FaVideo, FaExternalLinkAlt, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import styles from "styles/components/regionMeetingTab.module.css";
 
-export default function RegionMeetingTab() {
-  const { regionCode } = useRegion();
+export default function RegionMeetingTab({ regionCode }) {
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expandedCards, setExpandedCards] = useState({});
 
   useEffect(() => {
-    if (!regionCode) return;
-
-    const fetchMeetings = async () => {
+    async function fetchMeetings() {
       setLoading(true);
       const { data, error } = await supabase
         .from("region_meeting")
         .select("*")
         .eq("region_code", regionCode)
         .order("meeting_date", { ascending: false });
-
-      if (error) console.error(error);
-      else setMeetings(data || []);
+      if (!error) setMeetings(data);
       setLoading(false);
-    };
+    }
 
     fetchMeetings();
   }, [regionCode]);
 
-  if (loading) return <div className={styles.loading}>Loading meetings...</div>;
-  if (!meetings.length) return <div className={styles.noData}>No meetings found for this region.</div>;
+  const toggleCardExpansion = (meetingId) => {
+    setExpandedCards(prev => ({
+      ...prev,
+      [meetingId]: !prev[meetingId]
+    }));
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    });
+  };
+
+  if (loading) return (
+    <div className={styles.loadingContainer}>
+      <div className={styles.spinner}></div>
+      <p>Loading meetings...</p>
+    </div>
+  );
+
+  if (!meetings.length) return (
+    <div className={styles.emptyState}>
+      <FaCalendar size={48} />
+      <h3>No meetings found</h3>
+      <p>There are no meetings scheduled for this region yet.</p>
+    </div>
+  );
 
   return (
-    <div className={styles.tabContent}>
-      <h2>Regional Meetings</h2>
-      <div className={styles.cardGrid}>
-        {meetings.map((meeting) => (
-          <div key={meeting.id} className={styles.card}>
-            <div className={styles.cardHeader}>
-              <h3>{meeting.title}</h3>
-              <span className={styles.date}>
-                {new Date(meeting.meeting_date).toLocaleDateString()}
-              </span>
-            </div>
-            <div className={styles.cardBody}>
-              <p>{meeting.description}</p>
-              {meeting.location && (
-                <p className={styles.location}>
-                  <strong>Location:</strong> {meeting.location}
-                </p>
-              )}
-              {meeting.minutes_url && (
-                <a href={meeting.minutes_url} target="_blank" rel="noreferrer" className={styles.link}>
-                  View Minutes
-                </a>
-              )}
-            </div>
-          </div>
+    <div className={styles.meetingTimeline}>
+      
+      <AnimatePresence>
+        {meetings.map((meeting, index) => (
+          <motion.div
+            key={meeting.id}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+            className={styles.timelineItem}
+          >
+            
+            <motion.div 
+              className={`${styles.meetingCard} ${expandedCards[meeting.id] ? styles.expanded : ''}`}
+              whileHover={{ y: -2 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <div className={styles.cardHeader}>
+                <div className={styles.headerContent}>
+                  <h3 className={styles.meetingTitle}>{meeting.title}</h3>
+                  <span className={styles.meetingDate}>
+                    <FaCalendar className={styles.icon} />
+                    {formatDate(meeting.meeting_date)}
+                  </span>
+                </div>
+                
+                <button 
+                  onClick={() => toggleCardExpansion(meeting.id)}
+                  className={styles.expandButton}
+                  aria-label={expandedCards[meeting.id] ? "Collapse" : "Expand"}
+                >
+                  {expandedCards[meeting.id] ? <FaChevronUp /> : <FaChevronDown />}
+                </button>
+              </div>
+
+              <div className={styles.cardContent}>
+                {meeting.summary && (
+                  <div className={styles.summarySection}>
+                    <p className={styles.summaryText}>{meeting.summary}</p>
+                  </div>
+                )}
+
+                <AnimatePresence>
+                  {expandedCards[meeting.id] && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className={styles.expandedContent}
+                    >
+                      {meeting.attendees?.length > 0 && (
+                        <div className={styles.detailSection}>
+                          <div className={styles.sectionHeader}>
+                            <FaUsers className={styles.sectionIcon} />
+                            <h4>Attendees</h4>
+                          </div>
+                          <div className={styles.attendeeList}>
+                            {meeting.attendees.map((attendee, idx) => (
+                              <span key={idx} className={styles.attendeeTag}>
+                                {attendee}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {meeting.action_items && Array.isArray(meeting.action_items) && meeting.action_items.length > 0 && (
+                        <div className={styles.detailSection}>
+                          <div className={styles.sectionHeader}>
+                            <FaTasks className={styles.sectionIcon} />
+                            <h4>Action Items</h4>
+                          </div>
+                          <div className={styles.actionItems}>
+                            {meeting.action_items.map((item, index) => (
+                              <div key={index} className={styles.actionItem}>
+                                <div className={styles.assignee}>
+                                  <strong>{item.assignee}:</strong>
+                                </div>
+                                {Array.isArray(item.tasks) && item.tasks.length > 0 && (
+                                  <ul className={styles.taskList}>
+                                    {item.tasks.map((task, taskIndex) => (
+                                      <li key={taskIndex} className={styles.task}>
+                                        {task}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {meeting.recording_url && (
+                        <div className={styles.detailSection}>
+                          <div className={styles.sectionHeader}>
+                            <FaVideo className={styles.sectionIcon} />
+                            <h4>Recording</h4>
+                          </div>
+                          <MediaVideoContainer 
+                            videoUrl={meeting.recording_url} 
+                            title={meeting.title} 
+                          />
+                        </div>
+                      )}
+
+                      {meeting.meet_link && (
+                        <div className={styles.detailSection}>
+                          <div className={styles.sectionHeader}>
+                            <FaExternalLinkAlt className={styles.sectionIcon} />
+                            <h4>Meeting Link</h4>
+                          </div>
+                          <a 
+                            href={meeting.meet_link} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className={styles.meetLink}
+                          >
+                            Join Google Meet
+                            <FaExternalLinkAlt size={12} />
+                          </a>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          </motion.div>
         ))}
-      </div>
+      </AnimatePresence>
     </div>
   );
 }

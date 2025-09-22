@@ -1,4 +1,4 @@
-// pages/region/[regionCode]/index.js
+// pages/region/index.js
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
@@ -447,4 +447,3 @@ const RegionPolicies = () => (
     </div>
   </div>
 );
-// Similarly create UpdateCard, ProjectCard, NewsletterCard components...

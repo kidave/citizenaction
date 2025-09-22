@@ -1,34 +1,15 @@
 // components/region/tabs/RegionUpdateTab.js
-import { useEffect, useState } from "react";
-import { supabase } from "utils/supabaseClient";
+import useRegionUpdates from "hooks/useRegionUpdates";
 import { useRegion } from "context/RegionContext";
+import Spinner from "components/shared/ui/Spinner";
 import styles from "styles/layout/region.module.css";
 
 export default function RegionUpdateTab() {
   const { regionCode } = useRegion();
-  const [updates, setUpdates] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { updates, loading, error } = useRegionUpdates(regionCode);
 
-  useEffect(() => {
-    if (!regionCode) return;
-
-    const fetchUpdates = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("region_update")
-        .select("*")
-        .eq("region_code", regionCode)
-        .order("update_date", { ascending: false });
-
-      if (error) console.error(error);
-      else setUpdates(data || []);
-      setLoading(false);
-    };
-
-    fetchUpdates();
-  }, [regionCode]);
-
-  if (loading) return <div className={styles.loading}>Loading updates...</div>;
+  if (loading) return <Spinner />;
+  if (error) return <div className={styles.error}>Error: {error}</div>;
   if (!updates.length) return <div className={styles.noData}>No updates found for this region.</div>;
 
   return (

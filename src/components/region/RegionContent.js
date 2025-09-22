@@ -1,5 +1,7 @@
 // components/region/RegionContent.js
-import styles from "styles/layout/region.module.css";
+import styles from "styles/layout/container.module.css";
+import { useRegion } from "context/RegionContext";
+
 import RegionNewsletterTab from "./tabs/RegionNewsletterTab";
 import RegionMeetingTab from "./tabs/RegionMeetingTab";
 import RegionUpdateTab from "./tabs/RegionUpdateTab";
@@ -7,16 +9,19 @@ import RegionProjectTab from "./tabs/RegionProjectTab";
 import RegionPolicyTab from "./tabs/RegionPolicyTab";
 
 export default function RegionContent({ activeTab }) {
+  const { regionCode } = useRegion();
+
   const tabComponents = {
-    newsletter: <RegionNewsletterTab />,
-    meeting: <RegionMeetingTab />,
-    update: <RegionUpdateTab />,
-    project: <RegionProjectTab />,
-    policy: <RegionPolicyTab />,
+    meeting: <RegionMeetingTab regionCode={regionCode} />,
+    update: <RegionUpdateTab regionCode={regionCode} />,
+    project: <RegionProjectTab regionCode={regionCode} />,
+    newsletter: <RegionNewsletterTab regionCode={regionCode} />,
+    policy: <RegionPolicyTab regionCode={regionCode} />,
   };
 
+
   return (
-    <div className={styles.regionContent}>
+    <div className={styles.wardContent}>
       {tabComponents[activeTab] || <RegionNewsletterTab />}
     </div>
   );
