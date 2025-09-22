@@ -70,7 +70,7 @@ export function AuthProvider({ children }) {
   const value = {
     user,
     loading,
-    login, // handles both redirect + One Tap
+    login,
     logout,
     getAccessToken,
   };

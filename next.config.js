@@ -2,40 +2,36 @@
 const nextConfig = {
   images: {
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "gostxgfnoilfmybaohhx.supabase.co",
-        pathname: "/storage/v1/object/public/**",
-      },
-      {
-        protocol: "https",
-        hostname: "lh3.googleusercontent.com", // Google avatars
-      },
+      { protocol: "https", hostname: "gostxgfnoilfmybaohhx.supabase.co", pathname: "/storage/v1/object/public/**" },
+      { protocol: "https", hostname: "lh3.googleusercontent.com" },
+      { protocol: "https", hostname: "*.sender.net" },
+      { protocol: "https", hostname: "*.sendercdn.com" },
     ],
   },
 
   async headers() {
+    const isDev = process.env.NODE_ENV === "development";
+
     return [
       {
-        source: "/(.*)", // apply to all routes
+        source: "/(.*)",
         headers: [
           {
             key: "Content-Security-Policy",
             value: `
               default-src 'self';
-              script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://apis.google.com;
-              frame-src 'self' https://accounts.google.com https://drive.google.com;
-              connect-src 'self' https://*.supabase.co https://accounts.google.com;
-              img-src 'self' data: 
-                https://lh3.googleusercontent.com 
-                https://*.supabase.co
-                https://a.tile.openstreetmap.org
-                https://b.tile.openstreetmap.org
-                https://c.tile.openstreetmap.org
-                https://tiles.stadiamaps.com
-                https://server.arcgisonline.com;
+              script-src 'self' ${isDev ? "'unsafe-eval'" : ""} https://accounts.google.com https://apis.google.com;
               style-src 'self' 'unsafe-inline';
-            `.replace(/\s{2,}/g, " ").trim(), // collapse spaces and trim
+              img-src 'self' data: https://lh3.googleusercontent.com https://*.supabase.co https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://tiles.stadiamaps.com https://server.arcgisonline.com https://*.sender.net https://*.sendercdn.com;
+              connect-src 'self' https://*.supabase.co https://accounts.google.com https://api.sender.net;
+              frame-src 'self' https://accounts.google.com https://drive.google.com https://*.sender.net https://*.sendercdn.com;
+              frame-ancestors 'self' https://app.sender.net;
+              base-uri 'self';
+              form-action 'self';
+              font-src 'self' https://fonts.gstatic.com;
+              object-src 'none';
+              upgrade-insecure-requests;
+            `.replace(/\s{2,}/g, " ").trim(),
           },
         ],
       },

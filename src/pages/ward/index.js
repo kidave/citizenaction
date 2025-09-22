@@ -41,13 +41,9 @@ export default function WardOverview() {
         .limit(3);
 
       let updateQuery = supabase
-        .from("monthly_update")
+        .from("update_with_images")
         .select(`
-          id,
-          operation,
-          description,
-          date,
-          ward_code,
+          *,
           ward:ward_code (name, division:division_code (city:city_code (code, name)))
         `)
         .order("date", { ascending: false })
@@ -94,7 +90,14 @@ export default function WardOverview() {
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-IN", {
       day: "numeric",
-      month: "short",
+      month: "long",
+      year: "numeric"
+    });
+  };
+
+  const formatDateU = (dateString) => {
+    return new Date(dateString).toLocaleDateString("en-IN", {
+      month: "long",
       year: "numeric"
     });
   };
@@ -200,6 +203,50 @@ export default function WardOverview() {
     </motion.div>
   );
 
+  // Add this with MeetingCard and ProjectCard
+  const UpdateCard = ({ update }) => (
+    <motion.div 
+      className={styles.card}
+      whileHover={{ y: -5 }}
+      transition={{ duration: 0.2 }}
+    >
+      {/* Image Gallery */}
+      {update.images && update.images.length > 0 && (
+        <div className={styles.cardImages}>
+          <div className={styles.imageGrid}>
+            {update.images.slice(0, 1).map((image) => (
+              <CardImage 
+                key={image.id} 
+                src={resolveUrl(image.path)} 
+                alt="Update photo" 
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className={styles.cardHeader}>
+        <h3>{formatDateU(update.date)}</h3>
+        <span className={styles.date}>
+          {update.operation?.substring(0, 90)}
+        </span>
+      </div>
+      <div className={styles.cardFooter}>
+        <span className={styles.wardBadge}>
+          <FiMapPin />
+          {update.ward.name} Ward, {update.ward.division.city.name}
+        </span>
+        <a 
+          href={`/ward/${update.ward_code}/update`}
+          className={styles.viewMore}
+        >
+          Read More <FiArrowRight />
+        </a>
+      </div>
+    </motion.div>
+  );
+
+
   const CardImage = ({ src, alt }) => {
     const [error, setError] = useState(false);
 
@@ -289,34 +336,7 @@ export default function WardOverview() {
             <div className={styles.cardsContainer}>
               {latestUpdates.length > 0 ? (
                 latestUpdates.map((update) => (
-                  <motion.div 
-                    key={update.id}
-                    className={styles.card}
-                    whileHover={{ y: -5 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div className={styles.cardHeader}>
-                      <h3>{update.operation}</h3>
-                      <span className={styles.date}>
-                        {formatDate(update.date)}
-                      </span>
-                    </div>
-                    <div className={styles.cardBody}>
-                      <p>{update.description?.substring(0, 150)}...</p>
-                    </div>
-                    <div className={styles.cardFooter}>
-                      <span className={styles.wardBadge}>
-                        <FiMapPin />
-                        {update.ward.name} Ward, {update.ward.division.city.name}
-                      </span>
-                      <a 
-                        href={`/ward/${update.ward_code}/update`}
-                        className={styles.viewMore}
-                      >
-                        Read More <FiArrowRight />
-                      </a>
-                    </div>
-                  </motion.div>
+                  <UpdateCard key={update.id} update={update} />
                 ))
               ) : (
                 <p className={styles.noData}>No monthly updates found</p>

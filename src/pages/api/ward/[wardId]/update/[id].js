@@ -60,6 +60,29 @@ export default async function handler(req, res) {
         return res.status(403).json({ error: "Not authorized to delete this update" });
       }
 
+      // First, get all images for this update to delete from storage
+      const { data: images, error: imagesError } = await supabase
+        .from("update_images")
+        .select("path")
+        .eq("update_id", id);
+        
+      if (imagesError) {
+        console.error("Error fetching update images:", imagesError);
+      }
+
+      // Delete images from storage
+      if (images && images.length > 0) {
+        const imagePaths = images.map(img => img.path);
+        const { error: storageError } = await supabase.storage
+          .from("ward")
+          .remove(imagePaths);
+          
+        if (storageError) {
+          console.error("Error deleting images from storage:", storageError);
+        }
+      }
+
+      // Delete the update (this should cascade delete update_images)
       const { error } = await supabase
         .from("monthly_update")
         .delete()

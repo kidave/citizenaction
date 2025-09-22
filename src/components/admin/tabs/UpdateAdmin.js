@@ -11,6 +11,9 @@ import UpdateForm from "components/shared/UpdateForm";
 import Spinner from "components/shared/ui/Spinner";
 import styles from "styles/layout/timeline.module.css";
 import { FaPlus } from "react-icons/fa";
+import useUpdateImages from "hooks/useUpdateImages";
+import UpdateImageManager from "components/admin/UpdateImageManager";
+import ImageStackPopup from "components/shared/image/ImageStackPopup";
 
 export default function UpdateAdmin() {
   const { wardId } = useWard();
@@ -21,6 +24,9 @@ export default function UpdateAdmin() {
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [popupImages, setPopupImages] = useState([]);
+  const [expandedUpdateId, setExpandedUpdateId] = useState(null);
 
   const refreshUpdates = async () => {
     try {
@@ -90,12 +96,47 @@ export default function UpdateAdmin() {
     return <div>Error loading updates</div>;
   }
 
+  const toggleImageManager = (updateId) => {
+    setExpandedUpdateId(expandedUpdateId === updateId ? null : updateId);
+  };
+
+  // Compact Image Container Component
+  const CompactImageContainer = ({ updateId, onImageClick }) => {
+    const { images, resolveUrl } = useUpdateImages(updateId);
+    
+    const handleClick = () => {
+      onImageClick(images.map(img => resolveUrl(img.path)));
+    };
+
+    if (images.length === 0) return null;
+
+    return (
+      <div className={styles.compactImageSection}>        
+        <div className={styles.compactImageGrid}>
+          {images.slice(0, 4).map((img, idx) => (
+            <div key={idx} className={styles.compactImageWrapper}>
+              <img
+                src={resolveUrl(img.path)}
+                alt={`Update image ${idx + 1}`}
+                onClick={handleClick}
+                className={styles.compactImage}
+              />
+              {idx === 3 && images.length > 4 && (
+                <div className={styles.moreImagesOverlay}>
+                  +{images.length - 4}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
-      {/* Alert Component */}
       <AlertComponent />
 
-      {/* Add update button */}
       <div className={styles.addButtonContainer}>
         <motion.button 
           className={styles.addButton}
@@ -108,7 +149,6 @@ export default function UpdateAdmin() {
         </motion.button>
       </div>
 
-      {/* Add update form */}
       {showAddForm && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
@@ -122,7 +162,6 @@ export default function UpdateAdmin() {
         </motion.div>
       )}
 
-      {/* Timeline View */}
       <div className={styles.timelineWrapper}>
         {updates.length === 0 ? (
           <p className={styles.emptyTimeline}>No updates yet.</p>
@@ -132,7 +171,7 @@ export default function UpdateAdmin() {
               <div key={item.id} className={styles.timelineItemUpdate}>
                 <div
                   className={styles.centeredDate}
-                  style={{ cursor: "auto" }} // Remove pointer cursor since we're not toggling
+                  style={{ cursor: "auto" }}
                 >
                   {new Date(item.date).toLocaleDateString("en-US", { 
                     month: "long", 
@@ -149,12 +188,42 @@ export default function UpdateAdmin() {
                     onDelete={handleDelete}
                     onCancelEdit={() => setEditingId(null)}
                   />
+                  
+                  {/* Image Management Section */}
+                  <div className={styles.imageManagerToggle}>
+                    <button 
+                      onClick={() => toggleImageManager(item.id)}
+                      className={styles.toggleButton}
+                    >
+                      {expandedUpdateId === item.id ? "Hide Images" : "Manage Images"}
+                    </button>
+                  </div>
+                  
+                  {expandedUpdateId === item.id && (
+                    <UpdateImageManager updateId={item.id} wardId={wardId} />
+                  )}
+
+                  <CompactImageContainer
+                    updateId={item.id} 
+                    wardId={wardId}
+                    onImageClick={(images) => {
+                      setPopupImages(images);
+                      setIsPopupOpen(true);
+                    }}
+                  />
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {isPopupOpen && (
+        <ImageStackPopup
+          images={popupImages}
+          onClose={() => setIsPopupOpen(false)}
+        />
+      )}
     </>
   );
 }

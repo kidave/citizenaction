@@ -1,4 +1,3 @@
-// pages/api/ward/[wardId]/update/admin.js
 import { createServerSupabase } from "utils/supabaseServer";
 
 export default async function handler(req, res) {
@@ -6,7 +5,6 @@ export default async function handler(req, res) {
   const token = req.headers.authorization?.replace("Bearer ", "");
   const supabase = createServerSupabase(token);
 
-  // Get the current user
   const {
     data: { user },
     error: userError,
@@ -18,7 +16,7 @@ export default async function handler(req, res) {
 
   try {
     const { data, error } = await supabase
-      .from("monthly_update")
+      .from("update_view")
       .select("*")
       .eq("ward_code", wardId)
       .eq("user_id", user.id)

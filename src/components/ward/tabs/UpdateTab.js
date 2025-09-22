@@ -3,12 +3,17 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWard } from "context/WardContext";
 import useWardUpdates from "hooks/useWardUpdates";
+import useUpdateImages from "hooks/useUpdateImages";
+import ImageStackPopup from "components/shared/image/ImageStackPopup";
 import Spinner from "components/shared/ui/Spinner";
 import styles from "styles/layout/timeline.module.css";
+import { FaImages, FaEye } from "react-icons/fa";
 
 export default function UpdateTab() {
   const { wardId } = useWard();
   const { updates, loading, error } = useWardUpdates(wardId);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [popupImages, setPopupImages] = useState([]);
 
   if (loading) return <Spinner />;
   if (error) return <div>Error loading updates: {error.message}</div>;
@@ -36,11 +41,43 @@ export default function UpdateTab() {
         <ul className={styles.discussionList}>
           {points.map((pt, i) => (
             <li key={i} className={styles.discussionPoint}>
-              <span className={styles.bullet}>•</span>
               {pt}
             </li>
           ))}
         </ul>
+      </div>
+    );
+  };
+
+  // Compact Image Container Component
+  const CompactImageContainer = ({ updateId, onImageClick }) => {
+    const { images, resolveUrl } = useUpdateImages(updateId);
+    
+    const handleClick = () => {
+      onImageClick(images.map(img => resolveUrl(img.path)));
+    };
+
+    if (images.length === 0) return null;
+
+    return (
+      <div className={styles.compactImageSection}>        
+        <div className={styles.compactImageGrid}>
+          {images.slice(0, 4).map((img, idx) => (
+            <div key={idx} className={styles.compactImageWrapper}>
+              <img
+                src={resolveUrl(img.path)}
+                alt={`Update image ${idx + 1}`}
+                onClick={handleClick}
+                className={styles.compactImage}
+              />
+              {idx === 3 && images.length > 4 && (
+                <div className={styles.moreImagesOverlay}>
+                  +{images.length - 4}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
@@ -68,13 +105,23 @@ export default function UpdateTab() {
                 transition={{ duration: 0.4 }}
                 className={`${styles.timelineCard} ${styles.updateCard}`}
               >
-                <div className={styles.cardHeader}>
-                  <span className={styles.cardTypeBadge}>Update</span>
-                </div>
-                <div className={styles.updateDetails}>
-                  {renderDiscussion("Key Operations", update.operation)}
-                  {renderDiscussion("Description", update.description)}
-                  {renderDiscussion("Support Needed", update.support)}
+                
+                <div className={styles.updateContent}>
+                  {/* Images displayed at the top in a compact format */}
+                  <CompactImageContainer 
+                    updateId={update.id} 
+                    onImageClick={(images) => {
+                      setPopupImages(images);
+                      setIsPopupOpen(true);
+                    }}
+                  />
+                  
+                  {/* Update content */}
+                  <div className={styles.updateTextContent}>
+                    {renderDiscussion("Key Operations", update.operation)}
+                    {renderDiscussion("Description", update.description)}
+                    {renderDiscussion("Support Needed", update.support)}
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -85,12 +132,11 @@ export default function UpdateTab() {
   };
 
   return (
-    <div className={styles.timelineWrapper}>
-      {updates.length === 0 ? (
-        <p className={styles.emptyTimeline}>No updates yet.</p>
-      ) : (
-        <>
-          {/* Desktop View */}
+    <>
+      <div className={styles.timelineWrapper}>
+        {updates.length === 0 ? (
+          <p className={styles.emptyTimeline}>No monthly updates yet.</p>
+        ) : (
           <div className={styles.desktopView}>
             {updates.map((update, index) => (
               <DesktopUpdateCard 
@@ -100,8 +146,15 @@ export default function UpdateTab() {
               />
             ))}
           </div>
-        </>
+        )}
+      </div>
+
+      {isPopupOpen && (
+        <ImageStackPopup
+          images={popupImages}
+          onClose={() => setIsPopupOpen(false)}
+        />
       )}
-    </div>
+    </>
   );
 }

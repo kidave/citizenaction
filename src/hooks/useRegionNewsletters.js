@@ -5,25 +5,41 @@ import { supabase } from "utils/supabaseClient";
 export default function useRegionNewsletters(regionCode) {
   const [newsletters, setNewsletters] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!regionCode) return;
+    if (!regionCode) {
+      setLoading(false);
+      return;
+    }
 
     const fetchNewsletters = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("region_newsletter")
-        .select("*")
-        .eq("region_code", regionCode)
-        .order("created_at", { ascending: false });
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const { data, error } = await supabase
+          .from("region_newsletter")
+          .select("*")
+          .eq("region_code", regionCode)
+          .order("created_at", { ascending: false });
 
-      if (error) console.error(error);
-      else setNewsletters(data);
-      setLoading(false);
+        if (error) {
+          setError(error.message);
+          console.error("Error fetching newsletters:", error);
+        } else {
+          setNewsletters(data || []);
+        }
+      } catch (err) {
+        setError(err.message);
+        console.error("Unexpected error:", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchNewsletters();
   }, [regionCode]);
 
-  return { newsletters, loading };
+  return { newsletters, loading, error };
 }
