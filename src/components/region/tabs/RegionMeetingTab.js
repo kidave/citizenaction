@@ -69,19 +69,20 @@ export default function RegionMeetingTab({ regionCode }) {
               <div className={styles.cardHeader}>
                 <div className={styles.headerContent}>
                   <h3 className={styles.meetingTitle}>{meeting.title}</h3>
-                  <span className={styles.meetingDate}>
-                    <FaCalendar className={styles.icon} />
-                    {formatDate(meeting.meeting_date)}
-                  </span>
+                  <div className={styles.headerBottom}>
+                    <span className={styles.meetingDate}>
+                      <FaCalendar className={styles.icon} />
+                      {formatDate(meeting.meeting_date)}
+                    </span>
+                    <button 
+                      onClick={() => toggleCardExpansion(meeting.id)}
+                      className={styles.expandButton}
+                      aria-label={expandedCards[meeting.id] ? "Collapse" : "Expand"}
+                    >
+                      {expandedCards[meeting.id] ? <FaChevronUp /> : <FaChevronDown />}
+                    </button>
+                  </div>
                 </div>
-                
-                <button 
-                  onClick={() => toggleCardExpansion(meeting.id)}
-                  className={styles.expandButton}
-                  aria-label={expandedCards[meeting.id] ? "Collapse" : "Expand"}
-                >
-                  {expandedCards[meeting.id] ? <FaChevronUp /> : <FaChevronDown />}
-                </button>
               </div>
 
               <div className={styles.cardContent}>
