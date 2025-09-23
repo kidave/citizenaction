@@ -1,5 +1,5 @@
 // components/RegionMeetingTab.js
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import MediaVideoContainer from "components/shared/media/MediaVideoContainer";
 import { FaCalendar, FaUsers, FaTasks, FaVideo, FaExternalLinkAlt, FaChevronDown, FaChevronUp } from "react-icons/fa";
@@ -12,6 +12,15 @@ export default function RegionMeetingTab({ regionCode }) {
   const { meetings, loading, error } = useRegionMeetings(regionCode);
   const [expandedCards, setExpandedCards] = useState({});
   const { showErrorAlert } = useAlert();
+
+  useEffect(() => {
+    if (meetings.length > 0) {
+      setExpandedCards(prev => ({
+        ...prev,
+        [meetings[0].id]: true
+      }));
+    }
+  }, [meetings]);
 
   const toggleCardExpansion = (meetingId) => {
     setExpandedCards(prev => ({
