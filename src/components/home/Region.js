@@ -40,7 +40,7 @@ function Region() {
     setAnchorRect(null);
   }, []);
 
-  // 🚀 Keyboard navigation
+
   useEffect(() => {
     const handleKey = (e) => {
       if (e.key === "ArrowLeft") {
@@ -195,14 +195,15 @@ function Region() {
           return (
             <div
               key={city.code}
-              className={`${styles.scrollCard} ${selectedCity === city.code ? styles.active : ""}`}
+              /* className={`${styles.scrollCard} ${selectedCity === city.code ? styles.active : ""}`}
               style={{
                 backgroundImage: `url(/images/cities/${city.code}.jpg)`,
                 opacity: config.disabled ? 0.4 : 1,
                 cursor: config.disabled ? "not-allowed" : "pointer",
-              }}
+              }}*/
               onClick={() => !config.disabled && handleCityChange(city.code)}
             >
+              {/*
               <div className={styles.scrollOverlay}>
                 {city.name}
                 {config.disabled && (
@@ -211,6 +212,7 @@ function Region() {
                   </span>
                 )}
               </div>
+              */}
             </div>
           );
         })}

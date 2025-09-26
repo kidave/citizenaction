@@ -1,7 +1,7 @@
 export const REGION_DATA = {
   region: { code: 'MMR', name: 'Mumbai Metropolitan Region' },
   cities: [
-    //{ code: 'MUM', name: 'Mumbai', status: 'approved', active: true },
+    { code: 'MUM', name: 'Mumbai', status: 'approved', active: true },
     //{ code: 'TH', name: 'Thane', status: 'pending', active: false },
     //{ code: 'NM', name: 'Navi Mumbai', status: 'pending', active: false },
     //{ code: 'MB', name: 'Mira Bhayandar', status: 'pending', active: false },
