@@ -1,20 +1,74 @@
 export const REGION_DATA = {
-  region: { code: 'MMR', name: 'Mumbai Metropolitan Region' },
+  regions: [
+    { code: 'MMR', name: 'Mumbai Metropolitan Region' },
+    { code: 'NCR', name: 'National Capital Region' },
+    { code: 'BMR', name: 'Bangalore Metropolitan Region' },
+    { code: 'CMA', name: 'Chennai Metropolitan Area' },
+    { code: 'KMA', name: 'Kolkata Metropolitan Area'},
+    { code: 'HMR', name: 'Hyderabad Metropolitan Region'},
+    { code: 'PMR', name: 'Pune Metropolitan Region'},
+    { code: 'AMR', name: 'Ahmedabad Metropolitan Region'},
+    { code: 'SMR', name: 'Surat Metropolitan Region'},
+  ],  
   cities: [
-    { code: 'MUM', name: 'Mumbai', status: 'approved', active: true },
-    //{ code: 'TH', name: 'Thane', status: 'pending', active: false },
-    //{ code: 'NM', name: 'Navi Mumbai', status: 'pending', active: false },
-    //{ code: 'MB', name: 'Mira Bhayandar', status: 'pending', active: false },
-    //{ code: 'VV', name: 'Vasai Virar', status: 'pending', active: false },
-    //{ code: 'KD', name: 'Kalyan Dombivali', status: 'pending', active: false },
+    // Mumbai Metropolitan Region (MMR)
+    { code: 'MUM', name: 'Mumbai', status: 'approved', active: true, region_code: 'MMR' },
+    { code: 'THN', name: 'Thane', status: 'pending', active: false, region_code: 'MMR' },
+    { code: 'NVM', name: 'Navi Mumbai', status: 'pending', active: false, region_code: 'MMR' },
+    /*{ code: 'MBR', name: 'Mira Bhayandar', status: 'pending', active: false, region_code: 'MMR' },
+    { code: 'VVR', name: 'Vasai Virar', status: 'pending', active: false, region_code: 'MMR' },
+    { code: 'KLD', name: 'Kalyan Dombivali', status: 'pending', active: false, region_code: 'MMR' },
+    
+    National Capital Region (NCR)
+    { code: 'DEL', name: 'Delhi', status: 'planned', active: false, region_code: 'NCR' },
+    { code: 'GGN', name: 'Gurugram', status: 'planned', active: false, region_code: 'NCR' },
+    { code: 'NOI', name: 'Noida', status: 'planned', active: false, region_code: 'NCR' },
+    { code: 'FBD', name: 'Faridabad', status: 'planned', active: false, region_code: 'NCR' },
+    { code: 'GZB', name: 'Ghaziabad', status: 'planned', active: false, region_code: 'NCR' },
+    
+    // Bangalore Metropolitan Region (BMR)
+    { code: 'BLR', name: 'Bangalore', status: 'planned', active: false, region_code: 'BMR' },
+    { code: 'WFD', name: 'Whitefield', status: 'planned', active: false, region_code: 'BMR' },
+    { code: 'ECY', name: 'Electronic City', status: 'planned', active: false, region_code: 'BMR' },
+    
+    // Chennai Metropolitan Area (CMA)
+    { code: 'CHE', name: 'Chennai', status: 'planned', active: false, region_code: 'CMA' },
+    { code: 'SPB', name: 'Sriperumbudur', status: 'planned', active: false, region_code: 'CMA' },
+    { code: 'ORG', name: 'Oragadam', status: 'planned', active: false, region_code: 'CMA' },
+    
+    // Kolkata Metropolitan Area (KMA)
+    { code: 'KOL', name: 'Kolkata', status: 'planned', active: false, region_code: 'KMA' },
+    { code: 'HWR', name: 'Howrah', status: 'planned', active: false, region_code: 'KMA' },
+    { code: 'SLK', name: 'Salt Lake', status: 'planned', active: false, region_code: 'KMA' },
+    
+    // Hyderabad Metropolitan Region (HMR)
+    { code: 'HYD', name: 'Hyderabad', status: 'planned', active: false, region_code: 'HMR' },
+    { code: 'CYD', name: 'Cyberabad', status: 'planned', active: false, region_code: 'HMR' },
+    { code: 'HTC', name: 'HITEC City', status: 'planned', active: false, region_code: 'HMR' },
+    
+    // Pune Metropolitan Region (PMR)
+    { code: 'PUN', name: 'Pune', status: 'planned', active: false, region_code: 'PMR' },
+    { code: 'PCP', name: 'Pimpri-Chinchwad', status: 'planned', active: false, region_code: 'PMR' },
+    { code: 'HNW', name: 'Hinjewadi', status: 'planned', active: false, region_code: 'PMR' },
+    
+    // Ahmedabad Metropolitan Region (AMR)
+    { code: 'AMD', name: 'Ahmedabad', status: 'planned', active: false, region_code: 'AMR' },
+    { code: 'GND', name: 'Gandhinagar', status: 'planned', active: false, region_code: 'AMR' },
+    
+    // Surat Metropolitan Region (SMR)
+    { code: 'SUR', name: 'Surat', status: 'planned', active: false, region_code: 'SMR' },
+    */
   ],
+
   divisions: [
+    // Mumbai Divisions
     { code: 'IC', name: 'Island City', city_code: 'MUM' },
     { code: 'WS', name: 'Western Suburb', city_code: 'MUM' },
     { code: 'ES', name: 'Eastern Suburb', city_code: 'MUM' },
   ],
 
   wards: [
+    // Mumbai Wards
     { code: 'A', name: 'A', division_code: 'IC',
       tooltip: {
         areas: ["Colaba", "Fort", "Cuffe Parade"],
@@ -162,30 +216,62 @@ export const REGION_DATA = {
   ]
 };
 
-
 export const REGION_STATUS = {
-  pending: { 
-    color: "#ff9800", 
+  planned: { 
+    color: "red", 
     label: "Planned", 
     disabled: true,
+    tooltip: "Coming soon"
+  },
+  pending: { 
+    color: "orange", 
+    label: "In Development", 
+    disabled: true,
+    tooltip: "Under development"
   },
   approved: { 
-    color: "#4caf50", 
+    color: "green", 
     label: "Available", 
     disabled: false,
-    tooltip: "click to select"
+    tooltip: "Click to select"
   },
 };
 
-// Core data operations
+// Enhanced RegionService with new methods
 export const RegionService = {
-  getCities: () => REGION_DATA.cities,
+  // Get all regions
+  getRegions: () => REGION_DATA.regions,
   
+  // Get cities by region
+  getCitiesByRegion: (regionCode) => 
+    REGION_DATA.cities.filter(city => city.region_code === regionCode),
+  
+  // Get divisions by city
   getDivisionsByCity: (cityCode) => 
-    REGION_DATA.divisions.filter(d => d.city_code === cityCode),
+    REGION_DATA.divisions.filter(div => div.city_code === cityCode),
   
+  // Get wards by division
   getWardsByDivision: (divisionCode) => 
-    REGION_DATA.wards.filter(w => w.division_code === divisionCode),
+    REGION_DATA.wards.filter(ward => ward.division_code === divisionCode),
+  
+  // Get wards by city
+  getWardsByCity: (cityCode) => {
+    const cityDivisions = REGION_DATA.divisions.filter(div => div.city_code === cityCode);
+    const divisionCodes = cityDivisions.map(div => div.code);
+    return REGION_DATA.wards.filter(ward => divisionCodes.includes(ward.division_code));
+  },
+  
+  // Get wards by region
+  getWardsByRegion: (regionCode) => {
+    const regionCities = REGION_DATA.cities.filter(city => city.region_code === regionCode);
+    const cityCodes = regionCities.map(city => city.code);
+    const regionDivisions = REGION_DATA.divisions.filter(div => cityCodes.includes(div.city_code));
+    const divisionCodes = regionDivisions.map(div => div.code);
+    return REGION_DATA.wards.filter(ward => divisionCodes.includes(ward.division_code));
+  },
+  
+  // Existing methods
+  getCities: () => REGION_DATA.cities,
   
   getCityByCode: (cityCode) => 
     REGION_DATA.cities.find(c => c.code === cityCode),
@@ -196,13 +282,30 @@ export const RegionService = {
   getWardByCode: (wardCode) =>
     REGION_DATA.wards.find(w => w.code === wardCode),
   
+  getRegionByCode: (regionCode) =>
+    REGION_DATA.regions.find(r => r.code === regionCode),
+  
   getFullRegionPath: (wardCode) => {
     const ward = REGION_DATA.wards.find(w => w.code === wardCode);
     if (!ward) return null;
     
     const division = REGION_DATA.divisions.find(d => d.code === ward.division_code);
     const city = REGION_DATA.cities.find(c => c.code === division?.city_code);
+    const region = REGION_DATA.regions.find(r => r.code === city?.region_code);
     
-    return { city, division, ward };
+    return { region, city, division, ward };
+  },
+  
+  // New method to get available regions with active cities
+  getAvailableRegions: () => {
+    return REGION_DATA.regions.map(region => {
+      const cities = RegionService.getCitiesByRegion(region.code);
+      const activeCities = cities.filter(city => city.active);
+      return {
+        ...region,
+        cities: activeCities,
+        hasActiveCities: activeCities.length > 0
+      };
+    }).filter(region => region.hasActiveCities);
   }
 };

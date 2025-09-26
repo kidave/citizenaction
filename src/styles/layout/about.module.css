@@ -131,10 +131,6 @@
   transition: all 0.3s ease;
 }
 
-.infoText {
-  color: black;
-}
-
 .text {
   font-size: 1.1rem;
   color: grey;
@@ -142,7 +138,6 @@
   margin: 0 auto;
   max-width: 60%;
   position: relative;
-  z-index: 1;
 }
 
 .highlight {
@@ -155,6 +150,7 @@
   background-clip: text;
   transition: all 0.3s ease;
 }
+
 .emphasis {
   color: black;
   display: block;

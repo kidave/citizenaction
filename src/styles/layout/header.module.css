@@ -4,7 +4,7 @@
 
 /* Add to your existing header.module.css */
 .header {
-  position: relative;
+  position: fixed;
   width: 100%;
   z-index: 1000;
   background: rgba(255, 255, 255, 0.95);

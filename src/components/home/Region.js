@@ -187,7 +187,6 @@ function Region() {
         )}
       </div>
 
-      {/* Rest of the component remains the same */}
       {/* Cities */}
       <div className={styles.scrollContainer}>
         {cities.map((city) => {
@@ -195,15 +194,15 @@ function Region() {
           return (
             <div
               key={city.code}
-              /* className={`${styles.scrollCard} ${selectedCity === city.code ? styles.active : ""}`}
+              className={`${styles.scrollCard} ${selectedCity === city.code ? styles.active : ""}`}
               style={{
                 backgroundImage: `url(/images/cities/${city.code}.jpg)`,
                 opacity: config.disabled ? 0.4 : 1,
                 cursor: config.disabled ? "not-allowed" : "pointer",
-              }}*/
+              }}
               onClick={() => !config.disabled && handleCityChange(city.code)}
             >
-              {/*
+              
               <div className={styles.scrollOverlay}>
                 {city.name}
                 {config.disabled && (
@@ -212,7 +211,7 @@ function Region() {
                   </span>
                 )}
               </div>
-              */}
+              
             </div>
           );
         })}
@@ -221,12 +220,7 @@ function Region() {
 
       {/* Divisions */}
         {selectedCity && (
-          <>
-            <div className={styles.sectionTitle}>
-              <FiMap className={styles.sectionIcon} />
-              <span>Navigate Division</span>
-            </div>
-            
+          <>            
             <div className={styles.divisionCarouselContainer}>
               <button
                 className={`${styles.divisionNavButton} ${styles.left}`}
@@ -285,7 +279,7 @@ function Region() {
         <>
           <div className={styles.sectionTitle}>
             <FiMapPin className={styles.sectionIcon} />
-            <span>Select Ward</span>
+            Select Ward
           </div>
           <div className={styles.wardContainer}>
             {wards.map((ward) => (

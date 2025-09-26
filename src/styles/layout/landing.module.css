@@ -8,13 +8,13 @@
 .hero {
   display: flex;
   align-items: center;
-  padding: 4rem;
+  padding: 0 4rem;
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
   position: relative;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  margin: 0 auto;
+  gap: 1rem;
 }
 
 .heroContent {
@@ -26,8 +26,6 @@
 .heroTitle {
   font-size: 3.5rem;
   font-weight: 800;
-  color: #2d3748;
-  margin-bottom: 1.5rem;
   line-height: 1.2;
 }
 
@@ -50,9 +48,6 @@
   flex: 1;
   position: relative;
   height: 400px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .floatingElement {
@@ -104,20 +99,6 @@
   text-align: center;
 }
 
-.sectionHeader h2 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #2d3748;
-  margin-bottom: 1rem;
-}
-
-.sectionHeader p {
-  font-size: 1.1rem;
-  color: #718096;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
 /* Button Styles */
 .heroCta {
   display: flex;
@@ -154,19 +135,6 @@
 .statItem {
   flex: 1;
   min-width: 200px;
-}
-
-.statItem h3 {
-  font-size: 3rem;
-  font-weight: 800;
-  color: white;
-  margin-bottom: 0.5rem;
-}
-
-.statItem p {
-  font-size: 1.1rem;
-  color: white;
-  font-weight: 500;
 }
 
 /* CTA Section */
@@ -208,10 +176,6 @@
     flex-direction: column;
     gap: 1rem;
   }
-  
-  .sectionHeader h2 {
-    font-size: 2rem;
-  }
 
   .ctaButton {
     padding: 0.8rem;
@@ -240,4 +204,42 @@
 
 .bannerIcon {
   font-size: 14px;
+}
+
+/* Add to styles/layout/landing.module.css */
+
+.latestSection {
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+}
+
+.latestCta {
+  display: flex;
+}
+
+.viewAllLink {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  color: #667eea;
+  font-weight: 600;
+  font-size: 1.1rem;
+  padding: 0.8rem 1.5rem;
+  border: 2px solid #667eea;
+  border-radius: 24px;
+  cursor: pointer;
+}
+
+.viewAllLink:hover {
+  background: #667eea;
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .latestSection {
+    padding: 2rem 1rem;
+    margin: 1rem 0;
+  }
 }

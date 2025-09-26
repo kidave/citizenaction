@@ -4,6 +4,9 @@ import { useRef } from "react";
 import Layout from "components/home/Layout";
 import About from "components/home/About";
 import Region from "components/home/Region";
+import LatestMeetings from "components/home/LatestMeetings";
+import LatestProjects from "components/home/LatestProjects";
+import LatestUpdates from "components/home/LatestUpdates";
 import styles from "styles/layout/landing.module.css";
 import CommitteeButton from "components/shared/ui/CommitteeButton";
 import DriveEmbed from "components/shared/ui/DriveEmbed";
@@ -20,7 +23,7 @@ const sectionVariants = {
   }
 };
 
-const SectionWrapper = ({ children, id }) => {
+const SectionWrapper = ({ children, id, className = "" }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -31,7 +34,7 @@ const SectionWrapper = ({ children, id }) => {
       variants={sectionVariants}
       initial="hidden"
       animate={isInView ? "visible" : "hidden"}
-      className={styles.section}
+      className={`${styles.section} ${className}`}
     >
       {children}
     </motion.section>
@@ -47,11 +50,16 @@ export default function Home() {
       {/* Ongoing Improvement Banner */}
       <div className={styles.improvementBanner}>
         <div className={styles.bannerContent}>
-          <span>This page is under ongoing improvement and limited to mumbai</span>
+          <span>This page is under ongoing improvement and limited to Mumbai</span>
         </div>
       </div>
 
-      <div className={styles.landing}>
+      <div className={styles.landing}>        
+        {/* Latest Projects Section */}
+        <SectionWrapper id="latest-projects" className={styles.latestSection}>
+          <LatestProjects limit={2} />
+        </SectionWrapper>
+
         {/* Hero Section */}
         <motion.section 
           ref={heroRef}
@@ -85,7 +93,7 @@ export default function Home() {
             >
               <button 
                 className={styles.ctaButton}
-                onClick={() => document.getElementById('about-section').scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                onClick={() => document.getElementById('region-section').scrollIntoView({ behavior: 'smooth', block: 'center' })}
               >
                 Get Started
               </button>
@@ -96,8 +104,26 @@ export default function Home() {
             <div className={styles.floatingElement}></div>
             <div className={styles.floatingElement}></div>
             <div className={styles.floatingElement}></div>
+            <motion.div 
+              className={styles.latestCta}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+            >
+              <button 
+                className={styles.viewAllLink}
+                onClick={() => document.getElementById('latest-updates').scrollIntoView({ behavior: 'smooth', block: 'end' })}
+              >
+                Monthly Updates
+              </button>
+            </motion.div>
           </div>
         </motion.section>
+
+        {/* Latest Meetings Section */}
+        <SectionWrapper id="latest-meetings" className={styles.latestSection}>
+          <LatestMeetings limit={3} />
+        </SectionWrapper>
 
         {/* About Section */}
         <SectionWrapper id="about-section">
@@ -109,6 +135,11 @@ export default function Home() {
           <Region />
         </SectionWrapper>
 
+        {/* Latest Updates Section */}
+        <SectionWrapper id="latest-updates" className={styles.latestSection}>
+          <LatestUpdates limit={3} />
+        </SectionWrapper>
+
         {/* Stats Section */}
         <SectionWrapper id="stats-section">
           <div className={styles.ctaSection}>
@@ -118,7 +149,7 @@ export default function Home() {
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                <h3>24</h3>
+                <h1>24</h1>
                 <p>Active Ward Committees</p>
               </motion.div>
               <motion.div 
@@ -126,7 +157,7 @@ export default function Home() {
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 300, delay: 0.1 }}
               >
-                <h3>200+</h3>
+                <h1>200+</h1>
                 <p>Community Members</p>
               </motion.div>
               <motion.div 
@@ -134,7 +165,7 @@ export default function Home() {
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 300, delay: 0.2 }}
               >
-                <h3>35+</h3>
+                <h1>35+</h1>
                 <p>Community Walks</p>
               </motion.div>
             </div>

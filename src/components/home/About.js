@@ -1,9 +1,6 @@
 // components/About.js
 import styles from "styles/layout/about.module.css";
-import {
-  FaMapSigns,
-  FaMousePointer,
-} from "react-icons/fa";
+import { FaMapSigns, FaMousePointer } from "react-icons/fa";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa6";
 import Link from "next/link";
 import { useState } from "react";
@@ -37,10 +34,10 @@ export default function About() {
           isCollapsed ? styles.collapsed : styles.expanded
         }`}
       >
-        <h2>
+        <h1>
           <span className={styles.highlight}>Purpose</span> &{" "}
           <span className={styles.highlight}>Objective</span>
-        </h2>
+        </h1>
 
         <p className={styles.text}>
           <span className={styles.highlight}>Walking Project</span> is a citizen-driven initiative to
