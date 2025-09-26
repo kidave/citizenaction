@@ -119,6 +119,25 @@
   border-color: #ef4444;
 }
 
+.input {
+  width: 95%;
+  padding: 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 1rem;
+  background: white;
+  transition: all 0.3s ease;
+  appearance: none;
+  background-size: 1rem;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+
 .errorField {
   border-color: #ef4444 !important;
 }

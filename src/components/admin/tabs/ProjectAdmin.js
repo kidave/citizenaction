@@ -6,8 +6,9 @@ import useAdminProjects from "hooks/useAdminProjects";
 import useWardCRUD from "hooks/useWardCRUD";
 import useProjectImages from "hooks/useProjectImages";
 import { useAlert } from "hooks/useAlert";
+import { AddButton, EditButton, DeleteButton, SaveButton, CancelButton } from "components/shared/ui/Buttons";
 import styles from "styles/layout/project.module.css";
-import { FaTrash } from "react-icons/fa";
+import { FiTrash2 } from "react-icons/fi";
 
 export default function ProjectAdmin({ wardId }) {
   const { isAdmin } = useAdmin();
@@ -98,13 +99,13 @@ export default function ProjectAdmin({ wardId }) {
     <div className={styles.adminPanel}>
       <AlertComponent />
       <div className={styles.adminHeader}>
-        <button
-          className={styles.primaryButton}
+        <AddButton
           onClick={() => setEditing({})}
           disabled={loading}
+          size="large"
         >
-          {loading ? "Loading..." : "+ New Project"}
-        </button>
+          {loading ? "Loading..." : "New Project"}
+        </AddButton>
       </div>
 
       {error && showErrorAlert({ message: `Error: ${error}` })}
@@ -121,17 +122,21 @@ export default function ProjectAdmin({ wardId }) {
           {projects.map((p) => (
             <div key={p.id} className={styles.adminItem}>
               <div className={styles.adminItemHeader}>
-                <h3>{p.title || "Untitled Project"}</h3>
+                <div className={styles.adminItemTitle}>{p.title || "Untitled Project"}</div>
                 <div className={styles.adminItemActions}>
-                  <button className={styles.editButton} onClick={() => setEditing(p)}>
+                  <EditButton 
+                    size="small" 
+                    onClick={() => setEditing(p)}
+                  >
                     Edit
-                  </button>
-                  <button
-                    className={styles.deleteButton}
+                  </EditButton>
+                  <DeleteButton
+                    size="small"
+                    variant="danger"
                     onClick={() => handleDelete(p.id)}
                   >
                     Delete
-                  </button>
+                  </DeleteButton>
                 </div>
               </div>
             </div>
@@ -322,12 +327,12 @@ function ProjectForm({ wardId, project = {}, onSave, onCancel }) {
         ))}
 
         <div className={styles.formActions}>
-          <button type="submit" disabled={saving}>
-            {saving ? "Saving..." : "Save Project"}
-          </button>
-          <button type="button" onClick={onCancel}>
+          <SaveButton saving={saving} type="submit" disabled={saving}>
+            Save Project
+          </SaveButton>
+          <CancelButton type="button" onClick={onCancel}>
             Cancel
-          </button>
+          </CancelButton>
         </div>
 
         {/* Uploaded files */}
@@ -361,8 +366,9 @@ function ProjectForm({ wardId, project = {}, onSave, onCancel }) {
                           onCancel: () => setConfirmFileDelete(null),
                         })
                       }
+                      className={styles.deleteFileButton}
                     >
-                    <FaTrash />
+                    <FiTrash2 size={14} />
                     </button>
                   </div>
                 ))}

@@ -22,7 +22,7 @@ export default function RegionContent({ activeTab }) {
 
   return (
     <div className={styles.wardContent}>
-      {tabComponents[activeTab] || <RegionNewsletterTab />}
+      {tabComponents[activeTab] || <RegionMeetingTab />}
     </div>
   );
 }

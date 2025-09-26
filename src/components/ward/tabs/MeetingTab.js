@@ -63,7 +63,7 @@ export default function MeetingTab() {
       {item.location && (
         <div className={styles.detailItem}>
           <span className={styles.detailIcon}>
-            <FaMapMarkerAlt color="#e53935" />
+            <FaMapMarkerAlt color="lightcoral" />
           </span>
           <span className={styles.detailText}>
             <strong>Location: </strong>
@@ -74,7 +74,7 @@ export default function MeetingTab() {
       {item.notable_attendees && (
         <div className={styles.detailItem}>
           <span className={styles.detailIcon}>
-            <FaUserFriends color="#333" />
+            <FaUserFriends color="black" />
           </span>
           <span className={styles.detailText}>
             <strong>Key Attendees: </strong>
@@ -85,7 +85,7 @@ export default function MeetingTab() {
       {item.mood_rating && (
         <div className={styles.detailItem}>
           <span className={styles.detailIcon}>
-            <FaStar />
+            <FaStar color="gold"/>
           </span>
           <span className={styles.detailText}>
             <strong>Mood: </strong>

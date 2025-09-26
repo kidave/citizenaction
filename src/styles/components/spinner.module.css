@@ -1,7 +1,33 @@
+/* styles/components/spinner.module.css */
 .spinner {
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-left-color: #fcc700; /* Yellow highlight */
+  border: 4px solid rgba(102, 126, 234, 0.2);
+  border-left-color: #667eea;
   border-radius: 50%;
+  animation: spin 1s linear infinite;
+  background: transparent;
+  mask: none;
+  -webkit-mask: none;
+}
+
+/* Alternative simpler version without gradient */
+.spinner.simple {
+  border: 4px solid rgba(102, 126, 234, 0.2);
+  border-left-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  background: transparent;
+  mask: none;
+  -webkit-mask: none;
+}
+
+/* Gradient border version */
+.spinner.gradient {
+  border: 4px solid transparent;
+  border-radius: 50%;
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(135deg, #667eea 0%, #764ba2 100%) border-box;
+  mask: none;
+  -webkit-mask: none;
   animation: spin 1s linear infinite;
 }
 
@@ -30,15 +56,41 @@
   border-width: 6px;
 }
 
+.xlarge {
+  width: 80px;
+  height: 80px;
+  border-width: 8px;
+}
+
 /* Fullscreen overlay mode */
 .fullscreen {
   position: fixed;
   inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.7); /* optional overlay */
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
   z-index: 9999;
+  gap: 1.5rem;
+}
+
+.loadingText {
+  text-align: center;
+  color: #374151;
+}
+
+.loadingText h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.loadingText p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6b7280;
 }
 
 /* Inline centered mode (relative to parent) */
@@ -46,4 +98,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 1rem;
+}
+
+/* Button spinner variant */
+.buttonSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-left-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin-right: 0.5rem;
 }

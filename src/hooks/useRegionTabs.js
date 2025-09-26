@@ -14,7 +14,7 @@ export function useRegionTabs() {
   const { regionCode, tab } = router.query;
 
   // Default tab
-  const { tab: activeTab = REGION_TABS.NEWSLETTER } = router.query;
+  const { tab: activeTab = REGION_TABS.MEETING } = router.query;
   
 
   const navigateToTab = (tabKey) => {

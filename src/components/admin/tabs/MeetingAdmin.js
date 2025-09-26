@@ -11,8 +11,9 @@ import ImageStackPopup from "components/shared/image/ImageStackPopup";
 import MeetingCard from "components/shared/MeetingCard";
 import ImageManager from "components/admin/ImageManager";
 import Spinner from "components/shared/ui/Spinner";
+import { AddButton, ImageButton } from "components/shared/ui/Buttons";
 import styles from "styles/layout/timeline.module.css";
-import { FaUsers, FaPlus } from "react-icons/fa";
+import { FaUsers } from "react-icons/fa";
 
 export default function MeetingAdmin() {
   const { wardId } = useWard();
@@ -116,8 +117,7 @@ export default function MeetingAdmin() {
     <>
       {/* Add meeting button */}
       <div className={styles.addButtonContainer}>
-        <motion.button 
-          className={styles.addButton}
+        <AddButton
           onClick={() => {
             setNewMeeting({
               id: "new",
@@ -129,12 +129,11 @@ export default function MeetingAdmin() {
               mood_rating: 5,
             });
           }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-        > 
-          <FaPlus className={styles.addButtonIconFa} />
-          <div className={styles.addButtonText}>Add Meeting</div>
-        </motion.button>
+          disabled={loading}
+          size="large"
+        >
+          Add Meeting
+        </AddButton>
       </div>
 
       {/* Alert Component */}
@@ -175,12 +174,13 @@ export default function MeetingAdmin() {
                 ) : (
                   <>
                     <div className={styles.imageManagerToggle}>
-                      <button 
+                      <ImageButton 
                         onClick={() => toggleImageManager(item.id)}
-                        className={styles.toggleButton}
+                        size="small"
+                        variant={expandedMeetingId === item.id ? "primary" : "outline"}
                       >
                         {expandedMeetingId === item.id ? "Hide Images" : "Manage Images"}
-                      </button>
+                      </ImageButton>
                     </div>
                     {expandedMeetingId === item.id && (
                       <ImageManager meetingId={item.id} wardId={wardId} />
@@ -214,12 +214,13 @@ export default function MeetingAdmin() {
                 ) : (
                   <>
                     <div className={styles.imageManagerToggle}>
-                      <button 
+                      <ImageButton 
                         onClick={() => toggleImageManager(item.id)}
-                        className={styles.toggleButton}
+                        size="small"
+                        variant={expandedMeetingId === item.id ? "outline" : "outline"}
                       >
                         {expandedMeetingId === item.id ? "Hide Images" : "Manage Images"}
-                      </button>
+                      </ImageButton>
                     </div>
                     {expandedMeetingId === item.id && (
                       <ImageManager meetingId={item.id} wardId={wardId} />

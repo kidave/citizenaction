@@ -12,8 +12,8 @@ export default function RegionSidebar() {
   if (!regionCode) return null;
 
   const tabs = [
-    { key: REGION_TABS.NEWSLETTER, icon: <FaRegNewspaper className={styles.tabIcon} />, label: "Newsletters" },
     { key: REGION_TABS.MEETING, icon: <FaTimeline className={styles.tabIcon} />, label: "Meetings" },
+    { key: REGION_TABS.NEWSLETTER, icon: <FaRegNewspaper className={styles.tabIcon} />, label: "Newsletters" },
     { key: REGION_TABS.UPDATE, icon: <TbTimelineEventFilled className={styles.tabIcon} />, label: "Updates" },
     { key: REGION_TABS.PROJECT, icon: <MdAssignment className={styles.tabIcon} />, label: "Projects" },
     { key: REGION_TABS.POLICY, icon: <MdPolicy className={styles.tabIcon} />, label: "Policies" }

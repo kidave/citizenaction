@@ -23,8 +23,10 @@ export default function Form({ show, onClose, onSuccess }) {
     mode: "onChange",
     defaultValues: {
       stakeholder: "",
-      phone: "",
-      country_code: "91"
+      mobile: "",
+      country_code: "91",
+      designation: "",
+      locality: "",
     }
   });
 
@@ -56,8 +58,10 @@ export default function Form({ show, onClose, onSuccess }) {
   const onSubmit = async (data) => {
     const result = await submitForm({
       stakeholder_id: parseInt(data.stakeholder),
-      phone: data.phone,
-      country_code: data.country_code
+      mobile: data.mobile,
+      country_code: data.country_code,
+      designation: data.designation,
+      locality: data.locality,
     });
 
     if (result.success && onSuccess) {
@@ -65,11 +69,11 @@ export default function Form({ show, onClose, onSuccess }) {
     }
   };
 
-  const handlePhoneChange = useCallback(
-    (phone, country) => {
-      setValue("phone", phone, { shouldValidate: true });
+  const handleMobileChange = useCallback(
+    (mobile, country) => {
+      setValue("mobile", mobile, { shouldValidate: true });
       setValue("country_code", country.countryCode, { shouldValidate: true });
-      trigger("phone");
+      trigger("mobile");
     },
     [setValue, trigger]
   );
@@ -139,20 +143,84 @@ export default function Form({ show, onClose, onSuccess }) {
                 </div>
 
                 <div className={styles.formSection}>
-                  <label htmlFor="phone" className={styles.label}>
-                    Phone Number *
+                  <label htmlFor="mobile" className={styles.label}>
+                    mobile Number *
                   </label>
                   <FormPhoneInput
-                    id="phone"
-                    value={watch("phone")}
+                    id="mobile"
+                    value={watch("mobile")}
                     countryCode={watch("country_code")}
-                    onChange={handlePhoneChange}
-                    error={errors.phone}
-                    className={errors.phone ? styles.errorField : ""}
+                    onChange={handleMobileChange}
+                    error={errors.mobile}
+                    className={errors.mobile ? styles.errorField : ""}
                   />
-                  {errors.phone && (
+                  {errors.mobile && (
                     <span className={styles.errorText} role="alert">
-                      {errors.phone.message}
+                      {errors.mobile.message}
+                    </span>
+                  )}
+                </div>
+
+                {/* ✅ Added Designation Input Field */}
+                <div className={styles.formSection}>
+                  <label htmlFor="designation" className={styles.label}>
+                    Designation *
+                  </label>
+                  <input
+                    id="designation"
+                    type="text"
+                    {...register("designation", {
+                      required: "Designation is required",
+                      minLength: {
+                        value: 2,
+                        message: "Designation must be at least 2 characters"
+                      },
+                      maxLength: {
+                        value: 100,
+                        message: "Designation must be less than 100 characters"
+                      }
+                    })}
+                    className={`${styles.input} ${
+                      errors.designation ? styles.errorField : ""
+                    }`}
+                    placeholder="Enter your designation"
+                    aria-invalid={errors.designation ? "true" : "false"}
+                  />
+                  {errors.designation && (
+                    <span className={styles.errorText} role="alert">
+                      {errors.designation.message}
+                    </span>
+                  )}
+                </div>
+
+                {/* ✅ Added Locality Input Field */}
+                <div className={styles.formSection}>
+                  <label htmlFor="locality" className={styles.label}>
+                    Locality *
+                  </label>
+                  <input
+                    id="locality"
+                    type="text"
+                    {...register("locality", {
+                      required: "Locality is required",
+                      minLength: {
+                        value: 2,
+                        message: "Locality must be at least 2 characters"
+                      },
+                      maxLength: {
+                        value: 100,
+                        message: "Locality must be less than 100 characters"
+                      }
+                    })}
+                    className={`${styles.input} ${
+                      errors.locality ? styles.errorField : ""
+                    }`}
+                    placeholder="Enter your locality"
+                    aria-invalid={errors.locality ? "true" : "false"}
+                  />
+                  {errors.locality && (
+                    <span className={styles.errorText} role="alert">
+                      {errors.locality.message}
                     </span>
                   )}
                 </div>

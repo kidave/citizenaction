@@ -23,8 +23,8 @@ export default function Profile() {
     return <Spinner mode="fullscreen" />;
   }
 
-  const hasPhone = !!profile.phone;
-  const phone = hasPhone ? `+${profile.phone}` : "N/A";
+  const hasMobile = !!profile.mobile;
+  const mobile = hasMobile ? `+${profile.mobile}` : "N/A";
 
   return (
     <Layout>
@@ -64,12 +64,16 @@ export default function Profile() {
               <div className={styles.detailItem}>
                 <span className={styles.label}>Phone:</span>
                 <span className={styles.value}>
-                  {phone}
+                  {mobile}
                 </span>
               </div>
               <div className={styles.detailItem}>
                 <span className={styles.label}>Designation:</span>
                 <span className={styles.value}>{profile.designation || "N/A"}</span>
+              </div>
+              <div className={styles.detailItem}>
+                <span className={styles.label}>Locality:</span>
+                <span className={styles.value}>{profile.locality || "N/A"}</span>
               </div>
             </div>
           </div>

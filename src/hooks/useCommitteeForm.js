@@ -7,19 +7,27 @@ export const useCommitteeForm = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [formId, setFormId] = useState(null);
+  const [showAuthAlert, setShowAuthAlert] = useState(false);
 
   const submitForm = useCallback(async (formData) => {
     setLoading(true);
     setError("");
     setSuccess(false);
     setFormId(null);
+    setShowAuthAlert(false);
 
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
 
       if (!token) {
-        throw new Error("Not authenticated. Please log in again.");
+        setShowAuthAlert(true);
+        setLoading(false);
+        return { 
+          success: false, 
+          error: "Authentication required",
+          requiresAuth: true 
+        };
       }
 
       const res = await fetch("/api/user/form", {
@@ -39,11 +47,18 @@ export const useCommitteeForm = () => {
 
       setSuccess(true);
       setFormId(result.form_id);
-      return { success: true, formId: result.form_id, message: result.message };
+      return { 
+        success: true, 
+        formId: result.form_id, 
+        message: result.message 
+      };
     } catch (err) {
       const errorMessage = err.message || "An unexpected error occurred. Please try again.";
       setError(errorMessage);
-      return { success: false, error: errorMessage };
+      return { 
+        success: false, 
+        error: errorMessage 
+      };
     } finally {
       setLoading(false);
     }
@@ -54,6 +69,11 @@ export const useCommitteeForm = () => {
     setError("");
     setSuccess(false);
     setFormId(null);
+    setShowAuthAlert(false);
+  }, []);
+
+  const closeAuthAlert = useCallback(() => {
+    setShowAuthAlert(false);
   }, []);
 
   return { 
@@ -62,6 +82,8 @@ export const useCommitteeForm = () => {
     error, 
     success, 
     formId,
+    showAuthAlert,
+    closeAuthAlert,
     reset 
   };
 };

@@ -17,7 +17,7 @@ const MeetingDetails = ({ item }) => (
     {item.location && (
       <div className={styles.detailItem}>
         <span className={styles.detailIcon}>
-          <FaMapMarkerAlt color="#e53935" />
+          <FaMapMarkerAlt color="lightcoral" />
         </span>
         <span className={styles.detailText}>
           <strong>Location: </strong>
@@ -28,7 +28,7 @@ const MeetingDetails = ({ item }) => (
     {item.notable_attendees && (
       <div className={styles.detailItem}>
         <span className={styles.detailIcon}>
-          <FaUserFriends color="#333" />
+          <FaUserFriends color="black" />
         </span>
         <span className={styles.detailText}>
           <strong>Key Attendees: </strong>

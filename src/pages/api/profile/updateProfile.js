@@ -17,11 +17,11 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: "Not authenticated" });
   }
 
-  const { name, designation, social, phone, country_code, avatar_url } = req.body;
+  const { name, designation, social, mobile, country_code, avatar_url } = req.body;
 
   // Basic validation
-  if (phone && phone.length > 20) {
-    return res.status(400).json({ error: "Phone number too long" });
+  if (mobile && mobile.length > 20) {
+    return res.status(400).json({ error: "Mobile number too long" });
   }
 
   const { data, error } = await supabase
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
         name,
         designation,
         social,
-        phone,
+        mobile,
         country_code,
         avatar_url,
         email: user.email, // always sync email from auth

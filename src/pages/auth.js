@@ -49,7 +49,7 @@ export default function Auth() {
   };
 
   return (
-    <Layout showHeader={false} showFooter={false}>
+    <Layout >
       <Head>
         <title>Login | Walking Project</title>
       </Head>

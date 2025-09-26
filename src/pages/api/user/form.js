@@ -23,14 +23,14 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: "Invalid or expired token" });
     }
 
-    const { stakeholder_id, phone, country_code } = req.body;
+    const { stakeholder_id, mobile, country_code, locality, designation } = req.body;
     
     // Validate required fields with better error messages
     if (!stakeholder_id) {
       return res.status(400).json({ error: "Category selection is required" });
     }
-    if (!phone) {
-      return res.status(400).json({ error: "Phone number is required" });
+    if (!mobile) {
+      return res.status(400).json({ error: "Mobile number is required" });
     }
     if (!country_code) {
       return res.status(400).json({ error: "Country code is required" });
@@ -38,16 +38,26 @@ export default async function handler(req, res) {
 
     // Validate phone format
     const phoneRegex = /^\+?[1-9]\d{1,14}$/; // E.164 format
-    if (!phoneRegex.test(phone)) {
+    if (!phoneRegex.test(mobile)) {
       return res.status(400).json({ error: "Invalid phone number format" });
+    }
+
+    if (!locality) {
+      return res.status(400).json({ error: "Locality is required" });
+    }
+
+    if (!designation) {
+      return res.status(400).json({ error: "Designation is required" });
     }
 
     // Call the stored procedure
     const { data, error: rpcError } = await supabase.rpc('submit_committee_form', {
       p_user_id: user.id,
       p_stakeholder_id: stakeholder_id,
-      p_phone: phone,
-      p_country_code: country_code
+      p_mobile: mobile,
+      p_country_code: country_code,
+      p_locality: locality,
+      p_designation: designation
     });
 
     if (rpcError) {

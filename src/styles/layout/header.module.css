@@ -14,66 +14,6 @@
   height: 64px; /* Fixed height for header */
 }
 
-/* Top gradient bar */
-.topBar {
-  background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 0.5rem 1.25rem;
-  gap: 1.5rem;
-  height: 48px;
-  min-height: 48px;
-  position: relative;
-  overflow: hidden;
-}
-
-.topBar::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  animation: shimmer 3s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 100%;
-  }
-}
-
-.topBarText {
-  font-size: 0.9rem;
-  font-weight: 500;
-  z-index: 1;
-}
-
-.donateNow {
-  background: transparent;
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
-  padding: 6px 20px;
-  border-radius: 30px;
-  transition: all 0.3s ease;
-  z-index: 1;
-}
-
-.donateNow:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
 
 /* Main navigation bar */
 .bottomBar {
@@ -179,6 +119,87 @@
 
 .navButton:hover::after {
   width: 70%;
+}
+
+/* =============================
+    ACTIVE STATES (Matches your theme)
+   ============================= */
+
+/* Active state for desktop navigation buttons */
+.navButton.active {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+  font-weight: 700;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+/* Active state for dropdown items */
+.dropdownItem.active {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  color: #667eea;
+  font-weight: 600;
+  border-left: 3px solid #667eea;
+  position: relative;
+}
+
+/* Active state for dropdown parent button when child is active */
+.navButton.active.dropdownParent {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+}
+
+/* Active state for mobile navigation */
+.mobileNavItem.active {
+  color: #667eea;
+  font-weight: 700;
+  border-left: 4px solid #667eea;
+  transform: translateX(5px);
+}
+
+.mobileNavSubItem.active {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  color: #667eea;
+  font-weight: 600;
+  border-left: 3px solid #667eea;
+  padding-left: 1.8rem;
+  position: relative;
+}
+
+.mobileNavSection strong.active {
+  color: #667eea;
+  font-weight: 800;
+  text-shadow: 0 1px 2px rgba(102, 126, 234, 0.3);
+  position: relative;
+  padding-left: 0.5rem;
+}
+
+/* Profile dropdown active states */
+.profileDropdown .dropdownItem.active {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  color: #667eea;
+  font-weight: 600;
+  border-left: 3px solid #667eea;
+}
+
+/* Smooth transitions for active states */
+.navButton,
+.dropdownItem,
+.mobileNavItem,
+.mobileNavSubItem {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover effects that work with active states */
+.navButton:not(.active):hover {
+  background: rgba(102, 126, 234, 0.08);
+}
+
+.dropdownItem:not(.active):hover {
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.mobileNavItem:not(.active):hover,
+.mobileNavSubItem:not(.active):hover {
+  background: rgba(102, 126, 234, 0.05);
 }
 
 /* Dropdown */
@@ -396,6 +417,8 @@
   padding-left: 1.5rem;
 }
 
+
+
 /* =============================
      Responsive
    ============================= */
@@ -411,25 +434,6 @@
 
   .bottomBar {
     padding: 0.75rem 1rem;
-  }
-
-  .topBar {
-    padding: 0.5rem 1rem;
-    flex-direction: column;
-    gap: 0.75rem;
-    height: auto;
-    min-height: auto;
-    padding: 0.75rem;
-  }
-  
-  .topBarText {
-    text-align: center;
-    font-size: 0.85rem;
-  }
-  
-  .donateNow {
-    font-size: 0.85rem;
-    padding: 5px 16px;
   }
 
   .bottomBarText {

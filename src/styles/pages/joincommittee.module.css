@@ -1,0 +1,460 @@
+/* styles/pages/joincommittee.module.css */
+.formPage {
+  min-height: auto;
+  min-height: auto; /* Dynamic viewport height for mobile */
+  align-items: center;
+  justify-content: center;
+  margin: 1rem auto;
+  box-sizing: border-box;
+}
+
+.formContainer {
+  display: grid;
+  position: relative;
+  grid-template-columns: 1fr 1fr;
+  max-width: 1200px;
+  width: 100%;
+  height: auto;
+  min-height: 500px; /* Minimum height */
+  background: white;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  transition: filter 0.3s ease;
+}
+
+/* Left Side - Content - Improved Design */
+.contentSide {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%), 
+              url('/images/walkability-bg.jpg') center/cover no-repeat;
+  color: white;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow-y: auto;
+  max-height: 100%;
+  position: relative;
+}
+
+.contentHeader {
+  margin-bottom: 1rem;
+}
+
+
+.logo {
+  max-width: 180px;
+  height: auto;
+  filter: brightness(0) invert(1); /* Make logo white */
+  margin: 0 auto 1rem;
+}
+
+.contentHeader p {
+  opacity: 0.95;
+  margin: 0;
+}
+
+.featuresList {
+  list-style: none;
+  padding: 0;
+  margin: 2rem 0;
+}
+
+.featuresList li {
+  display: flex;
+  align-items: flex-start;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+}
+
+.featureIcon {
+  margin-right: 1rem;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  background: rgba(255, 255, 255, 0.2);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contactInfo {
+  margin-top: auto;
+  font-size: 0.9rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.contactInfo p {
+  margin: 0;
+  opacity: 0.9;
+}
+
+/* Right Side - Form */
+.formSide {
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow-y: auto;
+  max-height: 100%;
+}
+
+.form {
+  width: 100%;
+}
+
+.formGrid {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.formSection {
+  margin-bottom: 0;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.select, .input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: white;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 0.9rem;
+}
+
+.select:focus, .input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.phoneInputContainer {
+  position: relative;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.phoneInputContainer.focused {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.phoneInputContainer.error {
+  border-color: #ef4444;
+}
+
+.errorField {
+  border-color: #ef4444 !important;
+}
+
+.errorField:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+.errorText {
+  display: block;
+  margin-top: 0.25rem;
+  color: #ef4444;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  color: #dc2626;
+  font-size: 0.85rem;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.submitButton,
+.cancelButton {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.submitButton {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.submitButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.submitButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.cancelButton {
+  background: #f8fafc;
+  color: #64748b;
+  border: 2px solid #e2e8f0;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.buttonSpinner {
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 0.5rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  color: white;
+  text-align: center;
+}
+
+.loadingContainer .spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 968px) {
+  .formContainer {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+  }
+  
+  .contentSide {
+    padding: 2rem;
+    text-align: center;
+  }
+  
+  .contentHeader h3 {
+    font-size: 1.75rem;
+  }
+  
+  .formSide {
+    padding: 2rem;
+  }
+  
+  .featuresList li {
+    text-align: left;
+  }
+  
+  .logo {
+    max-width: 100px;
+  }
+}
+
+@media (max-width: 768px) {
+  .formPage {
+    padding: 0.5rem;
+    min-height: 100dvh;
+  }
+  
+  .formContainer {
+    border-radius: 16px;
+  }
+  
+  .contentSide, .formSide {
+    padding: 1.5rem;
+  }
+  
+  .submitButton,
+  .cancelButton {
+    width: 100%;
+  }
+  
+  .contentHeader h3 {
+    font-size: 1.5rem;
+  }
+  
+  .logo {
+    max-width: 80px;
+  }
+}
+
+@media (max-height: 700px) {
+  /* Adjust for shorter screens */
+  .contentSide {
+    padding: 1.5rem;
+  }
+  
+  .formSide {
+    padding: 1.5rem;
+  }
+  
+  .formGrid {
+    gap: 0.75rem;
+  }
+  
+  .featuresList {
+    margin: 1rem 0;
+  }
+  
+  .featuresList li {
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* Phone input customization */
+.react-tel-input {
+  margin-bottom: 0;
+}
+
+.react-tel-input .form-control {
+  width: 100% !important;
+  padding-left: 48px !important;
+  height: auto !important;
+  border-radius: 8px !important;
+  border: none !important;
+  font-size: 0.9rem !important;
+  padding: 0.75rem !important;
+  background: transparent !important;
+}
+
+.react-tel-input .form-control:focus {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.react-tel-input .flag-dropdown {
+  border-radius: 8px 0 0 8px !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+.react-tel-input .flag-dropdown.open {
+  background: white !important;
+}
+
+/* Loading Overlay Styles */
+.loadingOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.loadingContent {
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 90%;
+}
+
+.loadingContent .spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+.loadingContent h3 {
+  margin: 0 0 0.5rem 0;
+  color: #374151;
+  font-size: 1.25rem;
+}
+
+.loadingContent p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+/* Blur effect for main content when loading */
+.blurred {
+  filter: blur(2px);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Disabled state for form elements */
+.select:disabled,
+.input:disabled {
+  background-color: #f9fafb;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Remove the old loadingContainer styles since we're not using them anymore */
+/* .loadingContainer { ... } */
+
+/* Keep the existing styles below, just add the new ones above */

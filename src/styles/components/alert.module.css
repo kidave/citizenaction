@@ -20,8 +20,8 @@
   max-width: 400px;
   width: 90%;
   pointer-events: auto;
-  border: 1px solid #e1e5e9;
-  border-top: 4px solid #2563eb; /* Blue top border for auth alerts */
+  border: 1px solid lightgrey;
+  border-top: 4px solid gold;
 }
 
 .alertContent {
@@ -36,7 +36,6 @@
   margin: 0;
   font-size: 1.2rem;
   font-weight: 600;
-  color: #1a1a1a;
   line-height: 1.4;
 }
 
@@ -44,7 +43,6 @@
   margin: 0 0 24px 0;
   font-size: 1rem;
   line-height: 1.5;
-  color: #555;
 }
 
 .alertButtons {
@@ -57,20 +55,18 @@
 /* Cancel button */
 .cancelButton {
   padding: 10px 20px;
-  border: 1px solid #d1d5db;
+  border: 1px solid lightgrey;
   border-radius: 6px;
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   min-width: 80px;
-  background: white;
-  color: #374151;
+  background: whitesmoke;
 }
 
 .cancelButton:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
+  filter: brightness(0.9);
 }
 
 /* Login button */
@@ -83,12 +79,12 @@
   cursor: pointer;
   transition: all 0.2s ease;
   min-width: 80px;
-  background: #2563eb;
-  color: white;
+  background: gold;
+  color: black;
 }
 
 .loginButton:hover {
-  background: #1d4ed8;
+  filter: brightness(0.9);
 }
 
 .alertBackdrop {
@@ -103,21 +99,10 @@
   pointer-events: auto;
 }
 
-/* Responsive design */
-@media (max-width: 480px) {
-  .alertButtons {
-    flex-direction: column;
-  }
-  
-  .cancelButton,
-  .loginButton {
-    width: 100%;
-  }
-}
 
-/* Reuse .alert but with green accent */
+
 .successAlert {
-  border-top: 4px solid #10b981; /* Green top border */
+  border-top: 4px solid lightseagreen; /* Green top border */
 }
 
 .successButton {
@@ -129,44 +114,41 @@
   cursor: pointer;
   transition: all 0.2s ease;
   min-width: 80px;
-  background: #10b981;
+  background: lightseagreen;
   color: white;
 }
 
 .successButton:hover {
-  background: #059669;
+  background: lightseagreen;
 }
-
-
-/* Add to your existing alert.module.css */
 
 /* Alert Types */
 .successAlert {
-  border-top: 4px solid #10b981 !important;
+  border-top: 4px solid lightseagreen !important;
 }
 
 .errorAlert {
-  border-top: 4px solid #ef4444 !important;
+  border-top: 4px solid lightcoral !important;
 }
 
 .warningAlert {
-  border-top: 4px solid #f59e0b !important;
+  border-top: 4px solid orange !important;
 }
 
 .infoAlert {
-  border-top: 4px solid #3b82f6 !important;
+  border-top: 4px solid blue !important;
 }
 
 .validationAlert {
-  border-top: 4px solid #8b5cf6 !important;
+  border-top: 4px solid darkorchid !important;
 }
 
 .loadingAlert {
-  border-top: 4px solid #6b7280 !important;
+  border-top: 4px solid #3b82f6 !important;
 }
 
 .confirmAlert {
-  border-top: 4px solid #6366f1 !important;
+  border-top: 4px solid skyblue !important;
 }
 
 /* Alert Header with Icon */
@@ -185,65 +167,65 @@
 
 /* Close Button */
 .closeButton {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
+  padding: 10px 20px;
+  border: 1px solid lightgrey;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
   cursor: pointer;
-  padding: 4px;
-  margin-left: auto;
-  color: #6b7280;
-  border-radius: 4px;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  background: whitesmoke;
 }
 
 .closeButton:hover {
-  background: #f3f4f6;
-  color: #374151;
+  filter: brightness(0.9);
 }
 
 /* Button Variants */
 .successButton {
-  background-color: #10b981 !important;
+  background-color: lightseagreen !important;
   color: white !important;
 }
 
 .successButton:hover {
-  background-color: #059669 !important;
+  filter: brightness(0.9);
 }
 
 .errorButton {
-  background-color: #ef4444 !important;
+  background-color: lightcoral !important;
   color: white !important;
 }
 
 .errorButton:hover {
-  background-color: #dc2626 !important;
+  filter: brightness(0.9);
 }
 
 .warningButton {
-  background-color: #f59e0b !important;
+  background-color: orange !important;
   color: white !important;
 }
 
 .warningButton:hover {
-  background-color: #d97706 !important;
+  filter: brightness(0.9);
 }
 
 .infoButton {
-  background-color: #3b82f6 !important;
+  background-color: blue !important;
   color: white !important;
 }
 
 .infoButton:hover {
-  background-color: #2563eb !important;
+  filter: brightness(0.9);
 }
 
 .validationButton {
-  background-color: #8b5cf6 !important;
+  background-color: darkorchid !important;
   color: white !important;
 }
 
 .validationButton:hover {
-  background-color: #7c3aed !important;
+  filter: brightness(0.9);
 }
 
 /* Loading Spinner */
@@ -265,7 +247,6 @@
 .errorDetails {
   margin: 1rem 0;
   padding: 0.5rem;
-  background: #f8f9fa;
   border-radius: 4px;
   font-size: 0.875rem;
 }
@@ -273,7 +254,6 @@
 .errorDetails summary {
   cursor: pointer;
   font-weight: 600;
-  color: #374151;
 }
 
 .errorDetails pre {
@@ -281,14 +261,13 @@
   white-space: pre-wrap;
   word-break: break-all;
   font-size: 0.75rem;
-  color: #6b7280;
 }
 
 /* Validation Errors */
 .validationErrors {
   margin: 1rem 0;
   padding-left: 1.5rem;
-  color: #dc2626;
+  color: lightcoral;
   font-size: 0.875rem;
 }
 
@@ -304,4 +283,16 @@
 
 .alertBackdrop {
   z-index: 9999 !important; /* Higher z-index for backdrop */
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .alertButtons {
+    flex-direction: column;
+  }
+  
+  .cancelButton,
+  .loginButton {
+    width: 100%;
+  }
 }

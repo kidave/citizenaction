@@ -9,8 +9,8 @@ import { useAlert } from "hooks/useAlert";
 import UpdateCard from "components/shared/UpdateCard";
 import UpdateForm from "components/shared/UpdateForm";
 import Spinner from "components/shared/ui/Spinner";
+import { AddButton, ImageButton } from "components/shared/ui/Buttons";
 import styles from "styles/layout/timeline.module.css";
-import { FaPlus } from "react-icons/fa";
 import useUpdateImages from "hooks/useUpdateImages";
 import UpdateImageManager from "components/admin/UpdateImageManager";
 import ImageStackPopup from "components/shared/image/ImageStackPopup";
@@ -138,15 +138,12 @@ export default function UpdateAdmin() {
       <AlertComponent />
 
       <div className={styles.addButtonContainer}>
-        <motion.button 
-          className={styles.addButton}
+        <AddButton
           onClick={() => setShowAddForm(!showAddForm)}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-        > 
-          <FaPlus className={styles.addButtonIconFa} />
-          <div className={styles.addButtonText}>Add Monthly Update</div>
-        </motion.button>
+          size="large"
+        >
+          Add Monthly Update
+        </AddButton>
       </div>
 
       {showAddForm && (
@@ -191,12 +188,13 @@ export default function UpdateAdmin() {
                   
                   {/* Image Management Section */}
                   <div className={styles.imageManagerToggle}>
-                    <button 
+                    <ImageButton 
                       onClick={() => toggleImageManager(item.id)}
-                      className={styles.toggleButton}
+                      size="small"
+                      variant={expandedUpdateId === item.id ? "outline" : "outline"}
                     >
                       {expandedUpdateId === item.id ? "Hide Images" : "Manage Images"}
-                    </button>
+                    </ImageButton>
                   </div>
                   
                   {expandedUpdateId === item.id && (

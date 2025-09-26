@@ -19,7 +19,7 @@ export default function FormPhoneInput({
       <PhoneInput
         country={"in"}
         value={value}
-        onChange={(phone, country) => onChange(phone, country)}
+        onChange={(mobile, country) => onChange(mobile, country)}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         inputProps={{

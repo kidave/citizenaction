@@ -61,7 +61,6 @@ export default function About() {
         <FaMousePointer className={styles.infoIcon} />
         <span className={styles.infoText}>
           <strong>Tip:</strong> Click on your{" "}
-          <span className={styles.highlight}>city</span> and then your{" "}
           <span className={styles.highlight}>ward</span> to check progress, view
           updates, and get involved!{" "}
           <Link

@@ -91,12 +91,12 @@
 }
 
 .adminActions button:first-of-type {
-  background: lightskyblue;
+  background: skyblue;
   color: white;
 }
 
 .adminActions button:last-of-type {
-  background: red;
+  background: lightcoral;
   color: white;
 }
 
@@ -114,7 +114,7 @@
 }
 
 .formActions button:first-of-type {
-  background: skyblue;
+  background: lightseagreen;
   color: white;
 }
 

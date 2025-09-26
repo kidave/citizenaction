@@ -5,6 +5,7 @@ import useWardCommittees from "hooks/useWardCommittees";
 import { MdVolunteerActivism } from "react-icons/md";
 import {  FaUserAlt, FaUserTie, FaUserGraduate, FaWheelchair, FaStore, FaHome, FaChalkboardTeacher, FaUserSecret } from "react-icons/fa";
 import { FaUserDoctor } from "react-icons/fa6";
+import CommitteeButton from "components/shared/ui/CommitteeButton";
 
 const STAKEHOLDER_ICONS = {
   "Senior Citizen": FaUserAlt,
@@ -36,7 +37,7 @@ export default function CommitteeTab() {
     <div className={styles.memberList}>
       {committees.length === 0 ? (
         <p className={styles.emptyMessage}>
-          Interested in joining the committee? Tap the <strong>Apply</strong> button above, 
+          Interested in joining the committee? Tap the <strong>Join Committee</strong> button in the homepage, 
           or email us at <a href="mailto:info@walkingproject.org">info@walkingproject.org</a>.
         </p>
       ) : (
