@@ -274,7 +274,6 @@ export default function Header() {
           )}
         </nav>
 
-        {/* Mobile menu button and sidebar remain the same */}
         <button
           className={styles.mobileMenuButton}
           onClick={() => setMobileOpen(true)}
@@ -282,7 +281,6 @@ export default function Header() {
           <FiMenu size={24} />
         </button>
         
-        {/* Mobile sidebar implementation remains the same */}
         {mobileOpen && (
           <div className={styles.mobileOverlay} onClick={() => setMobileOpen(false)}>
             <div className={styles.mobileSidebar} onClick={(e) => e.stopPropagation()}>
@@ -290,7 +288,66 @@ export default function Header() {
                 <FiX size={24} />
               </button>
               <div className={styles.mobileNavContent}>
-                {/* Mobile navigation content remains the same */}
+                {staticMenu.map((item) => (
+                  <div
+                    key={item.label}
+                    className={styles.mobileNavItem}
+                    onClick={() => {
+                      router.push(item.path);
+                      setMobileOpen(false);
+                    }}
+                  >
+                    {item.label}
+                  </div>
+                ))}
+
+                {Object.keys(dropdownItems).map((label) => (
+                  <div key={label} className={styles.mobileNavSection}>
+                    <strong>{label}</strong>
+                    {dropdownItems[label].map((sub) => (
+                      <div
+                        key={sub.label}
+                        className={styles.mobileNavSubItem}
+                        onClick={() => {
+                          router.push(sub.path);
+                          setMobileOpen(false);
+                        }}
+                      >
+                        {sub.label}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+
+                {!user ? (
+                  <div
+                    className={styles.mobileNavItem}
+                    onClick={() => {
+                      router.push("/auth");
+                      setMobileOpen(false);
+                    }}
+                  >
+                    Login
+                  </div>
+                ) : (
+                  <>
+                    <div
+                      className={styles.mobileNavItem}
+                      onClick={() => router.push("/profile")}
+                    >
+                      My Profile
+                    </div>
+                    <div
+                      className={styles.mobileNavItem}
+                      onClick={() => {
+                        handleLogout();
+                        setMobileOpen(false);
+                      }}
+                    >
+                      Logout
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
