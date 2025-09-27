@@ -202,7 +202,7 @@
 .dropdownContent {
   display: none;
   position: absolute;
-  top: calc(100% + 5px);
+  top: calc(100% + 5px); /* Keep some gap for visual separation */
   left: 0;
   background: white;
   border-radius: 12px;
@@ -214,6 +214,17 @@
   transform: translateY(10px);
   transition: all 0.3s ease;
   border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Add an invisible bridge between button and dropdown */
+.dropdownContent::before {
+  content: '';
+  position: absolute;
+  top: -10px; /* Extends upward into the gap */
+  left: 0;
+  width: 100%;
+  height: 10px; /* Covers the gap */
+  background: transparent;
 }
 
 .dropdown:hover .dropdownContent,

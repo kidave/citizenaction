@@ -89,7 +89,7 @@ export default function CommitteeButton({ inline = false, variant = "primary" })
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
-        My Committee: {status.ward_name}
+        {status.ward_name}
       </motion.button>
     );
   }

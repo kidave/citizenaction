@@ -1,10 +1,10 @@
 // components/home/Header.js
 import styles from "styles/layout/header.module.css";
 import { useRouter } from "next/router";
-import { useState, useEffect, useRef } from "react";
-import { FiChevronDown, FiMenu, FiX, FiChevronRight } from "react-icons/fi";
+import { useState, useEffect } from "react";
+import { FiChevronDown, FiMenu, FiX } from "react-icons/fi";
 import { useAuth } from "context/AuthContext";
-import { REGION_DATA, REGION_STATUS, RegionService } from "data/regions";
+import CommitteeButton from "components/shared/ui/CommitteeButton";
 
 export default function Header() {
   const router = useRouter();
@@ -13,11 +13,6 @@ export default function Header() {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [regionDropdownOpen, setRegionDropdownOpen] = useState(false);
-  const [selectedCity, setSelectedCity] = useState('MUM'); // Default to Mumbai
-  const [selectedDivision, setSelectedDivision] = useState(null);
-  
-  const regionDropdownRef = useRef(null);
 
   const handleDropdownToggle = (label) => {
     setOpenDropdown(openDropdown === label ? null : label);
@@ -25,10 +20,6 @@ export default function Header() {
 
   const toggleProfileDropdown = () => {
     setProfileOpen(!profileOpen);
-  };
-
-  const toggleRegionDropdown = () => {
-    setRegionDropdownOpen(!regionDropdownOpen);
   };
 
   const handleLogout = async () => {
@@ -54,53 +45,8 @@ export default function Header() {
     return false;
   };
 
-  // Handle ward selection
-  const handleWardSelect = (wardCode) => {
-    router.push(`/ward/${wardCode}`);
-    setRegionDropdownOpen(false);
-  };
-
-  // Handle city selection
-  const handleCitySelect = (cityCode) => {
-    setSelectedCity(cityCode);
-    setSelectedDivision(null);
-  };
-
-  // Handle division selection
-  const handleDivisionSelect = (divisionCode) => {
-    setSelectedDivision(divisionCode === selectedDivision ? null : divisionCode);
-  };
-
-  // Get current city data
-  const currentCity = RegionService.getCityByCode(selectedCity);
-  const cityDivisions = RegionService.getDivisionsByCity(selectedCity);
-  const currentDivision = selectedDivision ? RegionService.getDivisionByCode(selectedDivision) : null;
-  const divisionWards = selectedDivision ? RegionService.getWardsByDivision(selectedDivision) : [];
-
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      // Close profile dropdown
-      if (!e.target.closest(`.${styles.profileWrapper}`)) {
-        setProfileOpen(false);
-      }
-      
-      // Close region dropdown
-      if (regionDropdownRef.current && !regionDropdownRef.current.contains(e.target)) {
-        setRegionDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
-
   const dropdownItems = {
-    More: [
-      {
-        label: "Annual SV Road Walk",
-        path: "https://www.walkingproject.org/activities-projects/annual-sv-road-walk",
-      },
+    Community: [
       {
         label: "Manifesto",
         path: "https://www.walkingproject.org/activities-projects/manifesto",
@@ -118,43 +64,14 @@ export default function Header() {
         path: "https://www.walkingproject.org/activities-projects/community-talks",
       },
       {
-        label: "AQ Mapping",
-        path: "https://www.walkingproject.org/activities-projects/aq-mapping",
-      },
-      {
-        label: "Ward Map",
-        path: "https://www.walkingproject.org/activities-projects/wardmap",
-      },
-      {
         label: "Student Engagement",
         path: "https://www.walkingproject.org/activities-projects/student-engagement",
-      },
-      {
-        label: "Temperature Mapping",
-        path: "https://www.walkingproject.org/activities-projects/temperature-mapping",
-      },
-      {
-        label: "Footpath Mapping",
-        path: "https://www.walkingproject.org/activities-projects/footpath-mapping",
-      },
-      {
-        label: "In The News",
-        path: "https://www.walkingproject.org/activities-projects/in-the-news",
-      },
-      {
-        label: "Participate",
-        path: "https://www.walkingproject.org/participate",
-      },
-      { 
-        label: "Resources", 
-        path: "https://www.walkingproject.org/resources" 
       },
     ],
   };
 
   const staticMenu = [
     { label: "Home", path: "/" },
-    { label: "Join Committee", path: "/joincommittee" },
   ];
 
   return (
@@ -197,6 +114,7 @@ export default function Header() {
             </button>
           ))}
 
+          {/* Replace static Join Committee with CommitteeButton */}
           
 
           {Object.keys(dropdownItems).map((label) => (
@@ -272,6 +190,9 @@ export default function Header() {
               )}
             </div>
           )}
+          <div className={styles.committeeButtonWrapper}>
+            <CommitteeButton inline={true} variant="secondary" />
+          </div>
         </nav>
 
         <button
@@ -300,6 +221,11 @@ export default function Header() {
                     {item.label}
                   </div>
                 ))}
+
+                {/* Mobile version of CommitteeButton */}
+                <div className={styles.mobileCommitteeButton}>
+                  <CommitteeButton inline={true} variant="secondary" />
+                </div>
 
                 {Object.keys(dropdownItems).map((label) => (
                   <div key={label} className={styles.mobileNavSection}>
@@ -356,6 +282,3 @@ export default function Header() {
     </header>
   );
 }
-
-// Export your existing data (keep this at the bottom)
-export { REGION_DATA, REGION_STATUS, RegionService };

@@ -8,7 +8,6 @@ import LatestMeetings from "components/home/LatestMeetings";
 import LatestProjects from "components/home/LatestProjects";
 import LatestUpdates from "components/home/LatestUpdates";
 import styles from "styles/layout/landing.module.css";
-import CommitteeButton from "components/shared/ui/CommitteeButton";
 import DriveEmbed from "components/shared/ui/DriveEmbed";
 
 const driveLink = "https://drive.google.com/file/d/1IXXgyc-Y2GNQvqsr5gwZQDx8PqTRP1y7/preview";
@@ -75,7 +74,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              Walking Project <span className={styles.highlight}>Ward Committees</span>
+              Ward <span className={styles.highlight}>Committees</span>
             </motion.h1>
             <motion.p 
               className={styles.heroSubtitle}
@@ -93,23 +92,10 @@ export default function Home() {
             >
               <button 
                 className={styles.ctaButton}
-                onClick={() => document.getElementById('region-section').scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                onClick={() => document.getElementById('about-section').scrollIntoView({ behavior: 'smooth', block: 'center' })}
               >
-                Get Started
+                About Us
               </button>
-              <CommitteeButton />
-            </motion.div>
-          </div>
-          <div className={styles.heroVisual}>
-            <div className={styles.floatingElement}></div>
-            <div className={styles.floatingElement}></div>
-            <div className={styles.floatingElement}></div>
-            <motion.div 
-              className={styles.latestCta}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
               <button 
                 className={styles.viewAllLink}
                 onClick={() => document.getElementById('latest-updates').scrollIntoView({ behavior: 'smooth', block: 'end' })}
@@ -117,6 +103,11 @@ export default function Home() {
                 Monthly Updates
               </button>
             </motion.div>
+          </div>
+          <div className={styles.heroVisual}>
+            <div className={styles.floatingElement}></div>
+            <div className={styles.floatingElement}></div>
+            <div className={styles.floatingElement}></div>
           </div>
         </motion.section>
 

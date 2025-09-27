@@ -129,17 +129,6 @@
   .card {
     padding: 1rem;
   }
-  
-  .cardHeader {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .cardFooter {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: flex-start;
-  }
 }
 
 .cardImages {
