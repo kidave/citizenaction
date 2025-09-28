@@ -1,4 +1,4 @@
-// components/ward/WardBottomBar.js (simplified version)
+// components/ward/WardBottomBar.js (updated)
 import { useState, useEffect } from "react";
 import styles from "styles/layout/bottombar.module.css";
 import { useRouter } from "next/router";
@@ -14,6 +14,7 @@ export default function WardBottomBar({ activeTab }) {
   const { wardId } = router.query;
   const [user, setUser] = useState(null);
   const isMobile = useMediaQuery({ maxWidth: 768 });
+  const isTablet = useMediaQuery({ minWidth: 769, maxWidth: 1024 });
 
   useEffect(() => {
     // Check auth state on mount
@@ -42,52 +43,59 @@ export default function WardBottomBar({ activeTab }) {
     }
   };
 
-  if (!isMobile) return null;
+  // Don't show on desktop
+  if (!isMobile && !isTablet) return null;
 
   return (
     <>
       <div className={styles.bottomBar}>
         <button
-          className={`${styles.hamburgerButton} ${activeTab === "meeting" ? styles.active : ""}`}
+          className={`${styles.bottomBarButton} ${activeTab === "meeting" ? styles.active : ""}`}
           onClick={() => handleTabChange("meeting")}
           aria-label="Meetings"
         >
-          <BsCardList />
+          <BsCardList className={styles.bottomBarIcon} />
+          <span className={styles.bottomBarLabel}>Meetings</span>
         </button>
         <button
-          className={`${styles.hamburgerButton} ${activeTab === "update" ? styles.active : ""}`}
+          className={`${styles.bottomBarButton} ${activeTab === "update" ? styles.active : ""}`}
           onClick={() => handleTabChange("update")}
           aria-label="Updates"
         >
-          <TbTimelineEvent />
+          <TbTimelineEvent className={styles.bottomBarIcon} />
+          <span className={styles.bottomBarLabel}>Updates</span>
         </button>
         <button
-          className={`${styles.hamburgerButton} ${activeTab === "project" ? styles.active : ""}`}
+          className={`${styles.bottomBarButton} ${activeTab === "project" ? styles.active : ""}`}
           onClick={() => handleTabChange("project")}
-          aria-label="Projects Taken"
+          aria-label="Projects"
         >
-          <MdOutlineAssignment />
+          <MdOutlineAssignment className={styles.bottomBarIcon} />
+          <span className={styles.bottomBarLabel}>Projects</span>
         </button>
         <button
-          className={`${styles.hamburgerButton} ${activeTab === "committee" ? styles.active : ""}`}
+          className={`${styles.bottomBarButton} ${activeTab === "committee" ? styles.active : ""}`}
           onClick={() => handleTabChange("committee")}
-          aria-label="Committee Members"
+          aria-label="Members"
         >
-          <FaUsers />
+          <FaUsers className={styles.bottomBarIcon} />
+          <span className={styles.bottomBarLabel}>Members</span>
         </button>
         <button
-          className={`${styles.hamburgerButton} ${activeTab === "road" ? styles.active : ""}`}
+          className={`${styles.bottomBarButton} ${activeTab === "road" ? styles.active : ""}`}
           onClick={() => handleTabChange("road")}
-          aria-label="Route Identified"
+          aria-label="Routes"
         >
-          <FaRoad />
+          <FaRoad className={styles.bottomBarIcon} />
+          <span className={styles.bottomBarLabel}>Routes</span>
         </button>
         <button
-          className={`${styles.hamburgerButton} ${activeTab === "junction" ? styles.active : ""}`}
+          className={`${styles.bottomBarButton} ${activeTab === "junction" ? styles.active : ""}`}
           onClick={() => handleTabChange("junction")}
-          aria-label="Junction Design"
+          aria-label="Junctions"
         >
-          <BsFillSignIntersectionSideFill />
+          <BsFillSignIntersectionSideFill className={styles.bottomBarIcon} />
+          <span className={styles.bottomBarLabel}>Junctions</span>
         </button>
       </div>
     </>

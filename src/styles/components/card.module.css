@@ -27,15 +27,7 @@
   box-shadow: 0 4px 16px rgba(252, 199, 0, 0.23);
 }
 
-@media (max-width: 600px) {
-  .metricsIcon {
-    bottom: 16px;
-    right: 16px;
-    width: 46px;
-    height: 46px;
-    font-size: 1.5rem;
-  }
-}
+
 
 .metricsOverlay {
   position: fixed;
@@ -109,11 +101,7 @@
   color: black;
 }
 
-@media (max-width: 700px) {
-  .metricsFloatingCard {
-    display: none;
-  }
-}
+
 
 .memberList {
   display: flex;
@@ -129,9 +117,9 @@
   border-radius: 20px;
   border: none;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  width: 170px; /* Fixed width */
-  min-height: 250px; /* Changed from height to min-height */
-  max-height: 250px; /* Added max-height */
+  width: 160px; /* Fixed width */
+  min-height: 200px; /* Changed from height to min-height */
+  max-height: 200px; /* Added max-height */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -213,12 +201,7 @@
 }
 
 .cardContent {
-  color: black;
   line-height: 1.5;
-}
-
-.cardContent p {
-  margin: 8px 0;
 }
 
 .closeButton {
@@ -281,7 +264,6 @@
   align-items: center;
   gap: 6px;
   font-size: 1rem;
-  color: #555;
   background-color: none;
   padding: 4px 10px;
   border-radius: 12px;
@@ -290,5 +272,19 @@
 
 .stakeholderIcon {
   font-size: 0.9rem;
-  color: #555;
+}
+
+@media (max-width: 768px) {
+  .memberList {
+    display: grid;
+  }
+
+  .memberCard {
+    padding: 8px;
+    border-radius: 16px;
+    width: 240px; /* Fixed width */
+    min-height: 120px; /* Changed from height to min-height */
+    max-height: 120px; /* Added max-height */
+    flex-direction: row;
+  }
 }

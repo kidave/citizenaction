@@ -102,9 +102,9 @@ function SingleProject({ project, resolveUrl }) {
       label: "Setting the Stage",
       content: (
         <>
-          <h4>Community Engagement</h4>
+          <h5>Community Engagement</h5>
           <p>{project.community_engagement || "No details yet."}</p>
-          <h4>Kickoff</h4>
+          <h5>Kickoff</h5>
           <p>{project.kickoff_notes || "No kickoff notes yet."}</p>
         </>
       ),
@@ -114,11 +114,11 @@ function SingleProject({ project, resolveUrl }) {
       label: "Identifying the Project",
       content: (
         <>
-          <h4>Rationale</h4>
+          <h5>Rationale</h5>
           <p>{project.rationale || "No rationale provided."}</p>
-          <h4>Assessment Tools</h4>
+          <h5>Assessment Tools</h5>
           <p>{project.assessment_tools || "No assessment tools provided."}</p>
-          <h4>Route Analysis</h4>
+          <h5>Route Analysis</h5>
           <p>{project.route_analysis_report || "No route analysis report provided."}</p>
           {project.wardmap_url && <a href={project.wardmap_url}>View WardMAP</a>}
         </>
@@ -129,9 +129,9 @@ function SingleProject({ project, resolveUrl }) {
       label: "Coordination & Approval",
       content: (
         <>
-          <h4>Coordination Notes</h4>
+          <h5>Coordination Notes</h5>
           <p>{project.coordination_notes || "No coordination notes provided."}</p>
-          <h4>Agencies Involved</h4>
+          <h5>Agencies Involved</h5>
           <p>{project.agencies_involved || "No agencies involved provided."}</p>
           {project.commencement_letter_url && (
             <a href={project.commencement_letter_url}>View Commencement Letter</a>
@@ -144,9 +144,9 @@ function SingleProject({ project, resolveUrl }) {
       label: "Execution & Monitoring",
       content: (
         <>
-          <h4>Progress Notes</h4>
+          <h5>Progress Notes</h5>
           <p>{project.progress_notes || "No progress notes provided."}</p>
-          <h4>Execution Details</h4>
+          <h5>Execution Details</h5>
           <p>{project.execution_details || "No execution details provided."}</p>
           {project.documentation_links && (
             <a href={project.documentation_links}>View Documentation</a>
@@ -159,9 +159,9 @@ function SingleProject({ project, resolveUrl }) {
       label: "Final Deliverables & Learnings",
       content: (
         <>
-          <h4>Learnings</h4>
+          <h5>Learnings</h5>
           <p>{project.learnings || "No learnings provided."}</p>
-          <h4>Community Impact</h4>
+          <h5>Community Impact</h5>
           <p>{project.community_impact || "No community impact details provided."}</p>
           {project.final_report_url && (
             <a href={project.final_report_url}>Download Final Report</a>
@@ -174,11 +174,11 @@ function SingleProject({ project, resolveUrl }) {
       label: "Scale-Up & Legacy",
       content: (
         <>
-          <h4>Next Route</h4>
+          <h5>Next Route</h5>
           <p>{project.next_route || "No next route provided."}</p>
-          <h4>Support to Other Wards</h4>
+          <h5>Support to Other Wards</h5>
           <p>{project.support_to_other_wards || "No support details provided."}</p>
-          <h4>Legacy Notes</h4>
+          <h5>Legacy Notes</h5>
           <p>{project.legacy_notes || "No legacy notes provided."}</p>
         </>
       ),
@@ -190,7 +190,7 @@ function SingleProject({ project, resolveUrl }) {
       {/* Enhanced Project Header */}
       <div className={styles.projectHeader}>
         <div className={styles.projectTitleSection}>
-          <h3 className={styles.projectTitle}>{project.title}</h3>
+          <h3>{project.title}</h3>
           <div className={styles.projectMeta}>
             {project.location && (
               <span className={styles.projectLocation}>
@@ -238,8 +238,8 @@ function SingleProject({ project, resolveUrl }) {
             transition={{ duration: 0.6, delay: i * 0.1 }}
           >
             <div className={styles.stepHeader}>
-              <span className={styles.stepNumber}>{step.key}.</span>
-              <span className={styles.stepLabel}>{step.label}</span>
+              <h4 className={styles.stepNumber}>{step.key}.</h4>
+              <h4 className={styles.stepLabel}>{step.label}</h4>
             </div>
             <div className={styles.stepContent}>
               {step.content}

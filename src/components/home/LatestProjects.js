@@ -87,7 +87,6 @@ export default function LatestProjects({ limit = 3 }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1 }}
-          whileHover={{ y: -5 }}
         >
 
           <div className={styles.cardHeader}>
