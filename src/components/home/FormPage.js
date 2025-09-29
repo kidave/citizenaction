@@ -5,7 +5,7 @@ import { StakeholderService } from "data/stakeholder";
 import { useCommitteeForm } from "hooks/useCommitteeForm";
 import FormPhoneInput from "components/shared/ui/FormPhoneInput";
 import SuccessAlert from "components/shared/alert/SuccessAlert";
-import AuthAlert from "components/shared/alert/AuthAlert"; // Import AuthAlert
+import AuthAlert from "components/shared/alert/AuthAlert";
 import styles from "styles/pages/joincommittee.module.css";
 import Image from "next/image";
 
@@ -45,7 +45,7 @@ export default function Form() {
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const categoriesData = await StakeholderService.getStakeholder();
+        const categoriesData = StakeholderService.getStakeholder();
         setCategories(categoriesData);
       } catch (err) {
         console.error("Failed to load categories:", err);

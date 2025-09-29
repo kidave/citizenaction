@@ -5,6 +5,7 @@ import "styles/main.css";
 import "react-phone-input-2/lib/style.css";
 
 import { AuthProvider } from "context/AuthContext";
+import { AuthAlertProvider } from "hooks/useAuthAlert"; // Add this import
 
 const openSans = Open_Sans({
   subsets: ["latin"],
@@ -24,14 +25,16 @@ function MyApp({ Component, pageProps }) {
         />
       </Head>
       <AuthProvider>
-        <script
-          src="https://accounts.google.com/gsi/client"
-          async
-          defer
-        ></script>
-        <main className={openSans.variable}>
-          {getLayout(<Component {...pageProps} />)}
-        </main>
+        <AuthAlertProvider>
+          <script
+            src="https://accounts.google.com/gsi/client"
+            async
+            defer
+          ></script>
+          <main className={openSans.variable}>
+            {getLayout(<Component {...pageProps} />)}
+          </main>
+        </AuthAlertProvider>
       </AuthProvider>
     </>
   );

@@ -4,10 +4,18 @@ import styles from "styles/layout/container.module.css";
 import Layout from "components/home/Layout";
 import WardSidebar from "./WardSidebar";
 import WardBottomBar from "./WardBottomBar";
-import WardContent from "./WardContent";
+import WardHeader from "./WardHeader";
 import { useRouter } from "next/router";
 import { WardProvider } from "context/WardContext";
 import Spinner from "components/shared/ui/Spinner";
+
+// Import tab components directly
+import MeetingTab from "./tabs/MeetingTab";
+import UpdateTab from "./tabs/UpdateTab";
+import CommitteeTab from "./tabs/CommitteeTab";
+import RoadTab from "./tabs/RoadTab";
+import JunctionTab from "./tabs/JunctionTab";
+import ProjectTab from "./tabs/ProjectTab";
 
 function WardLayoutContent() {
   const router = useRouter();
@@ -16,6 +24,15 @@ function WardLayoutContent() {
   const isTablet = useMediaQuery({ minWidth: 769, maxWidth: 1024 });
   const isDesktop = useMediaQuery({ minWidth: 1025 });
 
+  const tabComponents = {
+    meeting: <MeetingTab />,
+    update: <UpdateTab />,
+    committee: <CommitteeTab />,
+    road: <RoadTab />,
+    junction: <JunctionTab />,
+    project: <ProjectTab />,
+  };
+
   return (
     <Layout>
       <div className={styles.page}>
@@ -23,7 +40,8 @@ function WardLayoutContent() {
         {isDesktop && <WardSidebar />}
         
         <div className={styles.wardMain}>
-          <WardContent activeTab={activeTab} />
+          <WardHeader />
+          {tabComponents[activeTab] || <MeetingTab />}
         </div>
 
         {/* Show bottom bar on mobile AND tablet */}

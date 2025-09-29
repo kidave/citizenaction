@@ -5,15 +5,17 @@
 
 .topSidebar {
   background: white;
-  width: 100%;
+  width: auto;
   display: flex;
   position: sticky;
   top: 0; /* Below the header */
   z-index: 998;
   align-items: center;
   padding: 0 20px;
-  border-bottom: 1px solid #eee;
+  margin: 0 1rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
   height: 60px;
   gap: 16px;
 }
@@ -86,7 +88,6 @@
 .tabContainer {
   display: flex;
   align-items: center;
-  margin-right: 24px;
   gap: 8px;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE/Edge */

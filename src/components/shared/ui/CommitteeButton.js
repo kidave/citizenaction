@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { motion } from "framer-motion";
 import { useRouter } from "next/router";
-import Form from "components/home/Form";
 import { useAuth } from "context/AuthContext";
 import { useAuthAlert } from "hooks/useAuthAlert";
 import styles from "styles/components/button.module.css";
@@ -15,7 +14,6 @@ const fetcher = async ([url, token]) => {
 };
 
 export default function CommitteeButton({ inline = false, variant = "primary" }) {
-  const [showForm, setShowForm] = useState(false);
   const [token, setToken] = useState(null);
   const { user, getAccessToken } = useAuth();
   const { showAuthAlert, AuthAlertComponent } = useAuthAlert();
@@ -37,7 +35,6 @@ export default function CommitteeButton({ inline = false, variant = "primary" })
     data: status,
     error,
     isValidating,
-    mutate,
   } = useSWR(user && token ? ["/api/user/check", token] : null, fetcher, {
     revalidateOnFocus: false,
     shouldRetryOnError: false,
@@ -57,21 +54,19 @@ export default function CommitteeButton({ inline = false, variant = "primary" })
 
     if (status?.has_application) {
       if (status.application_status === "pending") {
-        showAlert("Application Status", "Your application is pending approval.", {
-          type: "info",
-          duration: 4000
-        });
+        // You might want to show a toast notification here
+        console.log("Application is pending approval");
+        return;
       } else if (status.application_status === "Rejected") {
-        setShowForm(true);
+        // Redirect to join committee page even if previously rejected
+        router.push("/joincommittee");
+        return;
       }
       return;
     }
 
-    setShowForm(true);
-  };
-
-  // After form submit: refresh cached status, keep modal open so success UI shows
-  const handleFormSuccess = async () => {
+    // Redirect to join committee page for new applications
+    router.push("/joincommittee");
   };
 
   if (status?.is_member) {
@@ -120,16 +115,6 @@ export default function CommitteeButton({ inline = false, variant = "primary" })
           "Join Committee"
         )}
       </motion.button>
-
-      <Form
-        show={showForm}
-        onClose={() => {
-          mutate();      // refresh status only after user closes modal
-          setShowForm(false);
-        }}
-        onSuccess={handleFormSuccess}
-      />
-      <AuthAlertComponent />
     </>
   );
 }

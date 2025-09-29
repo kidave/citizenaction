@@ -1,11 +1,88 @@
 /* styles/layout/wardheader.module.css */
 .wardHeader {
-  flex-direction: column;
+  background: transparent;
+  width: auto;
+  display: flex;
+  position: sticky;
+  align-items: center;
+  justify-content: center;
+  top: 0;
+  height: 64px;
+  z-index: 998;
+  padding: 0 1rem;
+  gap: 16px;
 }
 
 /* Leadership Section */
 .leadership {
   display: flex;
-  gap: 1rem;
-  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Selector Section */
+.selector {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.dropdownWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border: 1px solid lightgrey;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+.dropdownIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: grey;
+}
+
+.dropdown {
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  cursor: pointer;
+  color: grey;
+}
+
+.dropdown:focus {
+  outline: none;
+}
+
+.dropdown:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1024px) {
+  .wardHeader {
+    flex-direction: column;
+    padding: 0.5rem;
+    gap: 0;
+  }
+
+  .leadership {
+    justify-content: center;
+    gap: 8px;
+    padding: 0;
+  }
+
+  /* Selector Section */
+  .selector {
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .dropdownWrapper {
+    justify-content: center;
+    padding: 4px 8px;
+  }
 }

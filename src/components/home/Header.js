@@ -114,9 +114,6 @@ export default function Header() {
             </button>
           ))}
 
-          {/* Replace static Join Committee with CommitteeButton */}
-          
-
           {Object.keys(dropdownItems).map((label) => (
             <div key={label} className={styles.dropdown}>
               <button
