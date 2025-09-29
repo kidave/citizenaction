@@ -8,7 +8,6 @@ import useWardCRUD from "hooks/useWardCRUD";
 import { useAlert } from "hooks/useAlert";
 import UpdateCard from "components/shared/UpdateCard";
 import UpdateForm from "components/shared/UpdateForm";
-import Spinner from "components/shared/ui/Spinner";
 import { AddButton, ImageButton } from "components/shared/ui/Buttons";
 import styles from "styles/layout/timeline.module.css";
 import useUpdateImages from "hooks/useUpdateImages";
@@ -90,7 +89,7 @@ export default function UpdateAdmin() {
     });
   };
 
-  if (loading) return <Spinner />;
+  if (loading);
   if (error) {
     showErrorAlert({ message: "Error loading Monthly Updates", errorDetails: error });
     return <div>Error loading updates</div>;
@@ -142,7 +141,7 @@ export default function UpdateAdmin() {
           onClick={() => setShowAddForm(!showAddForm)}
           size="large"
         >
-          Add Monthly Update
+          Add Update
         </AddButton>
       </div>
 

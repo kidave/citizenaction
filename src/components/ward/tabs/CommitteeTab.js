@@ -13,7 +13,7 @@ export default function CommitteeTab() {
     return `https://gostxgfnoilfmybaohhx.supabase.co/storage/v1/object/public/profile/avatar/${avatarUrl}`;
   };
 
-  if (loading) return <p>Loading committees...</p>;
+  if (loading) return;
   if (error) return <p>Error loading committees: {error.message}</p>;
 
   return (

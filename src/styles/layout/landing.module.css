@@ -195,10 +195,15 @@
 }
 
 /* Add to styles/layout/landing.module.css */
+.projectSection {
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+}
 
 .latestSection {
   padding: 1rem;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  background: lavender;
+  box-shadow: 0 -4px 8px rgba(102, 126, 234, 0.2);
 }
 
 .latestCta {

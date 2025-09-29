@@ -55,7 +55,7 @@ export default function Home() {
 
       <div className={styles.landing}>        
         {/* Latest Projects Section */}
-        <SectionWrapper id="latest-projects" className={styles.latestSection}>
+        <SectionWrapper id="latest-projects" className={styles.projectSection}>
           <LatestProjects limit={2} />
         </SectionWrapper>
 
@@ -113,6 +113,10 @@ export default function Home() {
 
         {/* Latest Meetings Section */}
         <SectionWrapper id="latest-meetings" className={styles.latestSection}>
+          <div className={styles.sectionHeader}>
+            <h2>Latest <span className={styles.highlight}>Meetings</span></h2>
+            <p>Recent ward committee meetings and discussions</p>
+          </div>
           <LatestMeetings limit={3} />
         </SectionWrapper>
 
@@ -128,6 +132,10 @@ export default function Home() {
 
         {/* Latest Updates Section */}
         <SectionWrapper id="latest-updates" className={styles.latestSection}>
+          <div className={styles.sectionHeader}>
+            <h2>Monthly <span className={styles.highlight}>Updates</span></h2>
+            <p>Monthly progress reports and community updates</p>
+          </div>
           <LatestUpdates limit={3} />
         </SectionWrapper>
 

@@ -4,7 +4,7 @@ import { useAuth } from "context/AuthContext";
 
 export default function useAdminMeetings(wardId) {
   const [meetings, setMeetings] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { getAccessToken } = useAuth();
 

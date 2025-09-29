@@ -8,7 +8,7 @@ export default function RegionUpdateTab() {
   const { regionCode } = useRegion();
   const { updates, loading, error } = useRegionUpdates(regionCode);
 
-  if (loading) return <Spinner />;
+  if (loading) return <Spinner mode="inline" />;
   if (error) return <div className={styles.error}>Error: {error}</div>;
   if (!updates.length) return <div className={styles.noData}>No updates found for this region.</div>;
 

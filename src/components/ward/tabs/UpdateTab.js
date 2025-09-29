@@ -5,9 +5,7 @@ import { useWard } from "context/WardContext";
 import useWardUpdates from "hooks/useWardUpdates";
 import useUpdateImages from "hooks/useUpdateImages";
 import ImageStackPopup from "components/shared/image/ImageStackPopup";
-import Spinner from "components/shared/ui/Spinner";
 import styles from "styles/layout/timeline.module.css";
-import { FaImages, FaEye } from "react-icons/fa";
 
 export default function UpdateTab() {
   const { wardId } = useWard();
@@ -15,7 +13,7 @@ export default function UpdateTab() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [popupImages, setPopupImages] = useState([]);
 
-  if (loading) return <Spinner />;
+  if (loading) return;
   if (error) return <div>Error loading updates: {error.message}</div>;
 
   // Helper function to format dates

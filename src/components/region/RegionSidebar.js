@@ -1,38 +1,59 @@
 // components/region/RegionSidebar.js
 import styles from "styles/layout/sidebar.module.css";
 import { FaRegNewspaper } from "react-icons/fa";
-import { FaTimeline } from "react-icons/fa6";
-import { TbTimelineEventFilled } from "react-icons/tb";
-import { MdAssignment, MdPolicy } from "react-icons/md";
+import { BsCardList } from "react-icons/bs";
+import { TbTimelineEvent } from "react-icons/tb";
+import { MdOutlineAssignment, MdOutlinePolicy } from "react-icons/md";
 import { useRegionTabs, REGION_TABS } from "hooks/useRegionTabs";
 
-export default function RegionSidebar() {
+export default function RegionSidebar({ disabledTabs = [] }) {
   const { activeTab, navigateToTab, regionCode } = useRegionTabs();
 
   if (!regionCode) return null;
 
-  const tabs = [
-    { key: REGION_TABS.MEETING, icon: <FaTimeline className={styles.tabIcon} />, label: "Meetings" },
-    { key: REGION_TABS.NEWSLETTER, icon: <FaRegNewspaper className={styles.tabIcon} />, label: "Newsletters" },
-    { key: REGION_TABS.UPDATE, icon: <TbTimelineEventFilled className={styles.tabIcon} />, label: "Updates" },
-    { key: REGION_TABS.PROJECT, icon: <MdAssignment className={styles.tabIcon} />, label: "Projects" },
-    { key: REGION_TABS.POLICY, icon: <MdPolicy className={styles.tabIcon} />, label: "Policies" }
-  ];
+  const isTabDisabled = (tab) => disabledTabs.includes(tab);
+
+  const renderTabButton = (tabKey, icon, label) => (
+    <button
+      className={`${styles.tab} ${activeTab === tabKey ? styles.active : ""} ${isTabDisabled(tabKey) ? styles.disabled : ""}`}
+      onClick={() => navigateToTab(tabKey)}
+      title={label}
+      disabled={isTabDisabled(tabKey)}
+    >
+      {icon}
+      <span className={styles.tabText}>{label}</span>
+    </button>
+  );
 
   return (
     <div className={styles.topSidebar}>
+      {/* Tabs */}
       <div className={styles.tabContainer}>
-        {tabs.map(({ key, icon, label }) => (
-          <button
-            key={key}
-            className={`${styles.tab} ${activeTab === key ? styles.active : ""}`}
-            onClick={() => navigateToTab(key)}
-            title={label}
-          >
-            {icon}
-            <span className={styles.tabText}>{label}</span>
-          </button>
-        ))}
+        {renderTabButton(
+          REGION_TABS.MEETING,
+          <BsCardList className={styles.tabIcon} />,
+          "Weekly Meetings",
+        )}
+        {renderTabButton(
+          REGION_TABS.UPDATE,
+          <TbTimelineEvent className={styles.tabIcon} />,
+          "Monthly Updates",
+        )}
+        {renderTabButton(
+          REGION_TABS.PROJECT,
+          <MdOutlineAssignment className={styles.tabIcon} />,
+          "Project Details",
+        )}
+        {renderTabButton(
+          REGION_TABS.NEWSLETTER,
+          <FaRegNewspaper className={styles.tabIcon} />,
+          "Newsletters",
+        )}
+        {renderTabButton(
+          REGION_TABS.POLICY,
+          <MdOutlinePolicy className={styles.tabIcon} />,
+          "Policies",
+        )}
       </div>
     </div>
   );

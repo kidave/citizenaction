@@ -6,7 +6,6 @@ import useWardMeetings from "hooks/useWardMeetings";
 import useMeetingImages from "hooks/useMeetingImages";
 import MoodVisualization from "components/shared/MoodVisualization";
 import ImageStackPopup from "components/shared/image/ImageStackPopup";
-import Spinner from "components/shared/ui/Spinner";
 import styles from "styles/layout/timeline.module.css";
 import { 
   FaMapMarkerAlt, 
@@ -21,7 +20,7 @@ export default function MeetingTab() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [popupImages, setPopupImages] = useState([]);
 
-  if (loading) return <Spinner />;
+  if (loading) return;
   if (error) return <div>Error loading meetings: {error.message}</div>;
 
   // Helper function to format dates

@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import MediaVideoContainer from "components/shared/media/MediaVideoContainer";
 import { FaCalendar, FaUsers, FaTasks, FaVideo, FaExternalLinkAlt, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import useRegionMeetings from "hooks/useRegionMeetings";
-import Spinner from "components/shared/ui/Spinner";
 import { useAlert } from "hooks/useAlert";
 import styles from "styles/components/regionMeetingTab.module.css";
+import Spinner from "components/shared/ui/Spinner";
 
 export default function RegionMeetingTab({ regionCode }) {
   const { meetings, loading, error } = useRegionMeetings(regionCode);
@@ -47,7 +47,7 @@ export default function RegionMeetingTab({ regionCode }) {
     return <div>Error loading meetings</div>;
   }
 
-  if (loading) return <Spinner />;
+  if (loading) return <Spinner mode="inline" />;
 
   if (!meetings.length) return (
     <div className={styles.emptyState}>

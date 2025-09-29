@@ -3,8 +3,13 @@ import { useMediaQuery } from "react-responsive";
 import styles from "styles/layout/container.module.css";
 import AdminSidebar from "./AdminSidebar";
 import AdminBottomBar from "./AdminBottomBar";
-import AdminContent from "./AdminContent";
 import { useRouter } from "next/router";
+
+// Import admin tab components directly
+import MeetingAdmin from "./tabs/MeetingAdmin";
+import UpdateAdmin from "./tabs/UpdateAdmin";
+import CommitteeAdmin from "./tabs/CommitteeAdmin";
+import ProjectAdmin from "./tabs/ProjectAdmin";
 
 export default function AdminLayout({ wardId, activeTab }) {
   const router = useRouter();
@@ -12,6 +17,13 @@ export default function AdminLayout({ wardId, activeTab }) {
 
   const handleTabChange = (tab) => {
     router.push(`/admin/${wardId}/${tab}`);
+  };
+
+  const tabComponents = {
+    meeting: <MeetingAdmin wardId={wardId} />,
+    update: <UpdateAdmin wardId={wardId} />,
+    committee: <CommitteeAdmin wardId={wardId} />,
+    project: <ProjectAdmin wardId={wardId} />,
   };
 
   return (
@@ -24,10 +36,7 @@ export default function AdminLayout({ wardId, activeTab }) {
       )}
       
       <div className={styles.wardMain}>
-        <AdminContent 
-          activeTab={activeTab} 
-          wardId={wardId} 
-        />
+        {tabComponents[activeTab] || <MeetingAdmin wardId={wardId} />}
       </div>
 
       {isMobile && (

@@ -10,7 +10,6 @@ import { useAlert } from "hooks/useAlert";
 import ImageStackPopup from "components/shared/image/ImageStackPopup";
 import MeetingCard from "components/shared/MeetingCard";
 import ImageManager from "components/admin/ImageManager";
-import Spinner from "components/shared/ui/Spinner";
 import { AddButton, ImageButton } from "components/shared/ui/Buttons";
 import styles from "styles/layout/timeline.module.css";
 import { FaUsers } from "react-icons/fa";
@@ -104,7 +103,7 @@ export default function MeetingAdmin() {
     setExpandedMeetingId(expandedMeetingId === meetingId ? null : meetingId);
   };
 
-  if (loading) return <Spinner />;
+  if (loading);
   if (error) {
     showErrorAlert({ 
       message: "Error loading meetings", 

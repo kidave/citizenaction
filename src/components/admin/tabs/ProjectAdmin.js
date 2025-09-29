@@ -104,7 +104,7 @@ export default function ProjectAdmin({ wardId }) {
           disabled={loading}
           size="large"
         >
-          {loading ? "Loading..." : "New Project"}
+          New Project
         </AddButton>
       </div>
 
@@ -112,7 +112,7 @@ export default function ProjectAdmin({ wardId }) {
       {saveError && showErrorAlert({ message: `Error: ${saveError}` })}
 
       {loading ? (
-        <div className={styles.loading}>Loading projects...</div>
+        <div className={styles.loading}></div>
       ) : projects.length === 0 && !editing ? (
         <div className={styles.emptyState}>
           <p>No projects found. Create your first project to get started.</p>

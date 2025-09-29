@@ -1,23 +1,24 @@
-// components/admin/AdminBottomBar.js
+// components/region/RegionBottomBar.js
 import styles from "styles/layout/bottombar.module.css";
 import { useRouter } from "next/router";
-import { BsCardList, BsPeople } from "react-icons/bs";
+import { FaRegNewspaper } from "react-icons/fa";
+import { BsCardList } from "react-icons/bs";
 import { TbTimelineEvent } from "react-icons/tb";
-import { MdOutlineAssignment } from "react-icons/md";
+import { MdOutlineAssignment, MdPolicy } from "react-icons/md";
 import { useMediaQuery } from "react-responsive";
 
-export default function AdminBottomBar({ activeTab }) {
+export default function RegionBottomBar({ activeTab }) {
   const router = useRouter();
-  const { wardId } = router.query;
+  const { regionCode } = router.query;
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const isTablet = useMediaQuery({ minWidth: 769, maxWidth: 1024 });
-  
+
   const handleTabChange = (tab) => {
-    if (wardId) {
-      router.push(`/admin/${wardId}/${tab}`);
+    if (regionCode) {
+      router.push(`/region/${regionCode}/${tab}`);
     }
   };
-  
+
   // Don't show on desktop
   if (!isMobile && !isTablet) return null;
 
@@ -49,12 +50,20 @@ export default function AdminBottomBar({ activeTab }) {
           <span className={styles.bottomBarLabel}>Projects</span>
         </button>
         <button
-          className={`${styles.bottomBarButton} ${activeTab === "committee" ? styles.active : ""}`}
-          onClick={() => handleTabChange("committee")}
-          aria-label="Members"
+          className={`${styles.bottomBarButton} ${activeTab === "newsletter" ? styles.active : ""}`}
+          onClick={() => handleTabChange("newsletter")}
+          aria-label="Newsletters"
         >
-          <BsPeople className={styles.bottomBarIcon} />
-          <span className={styles.bottomBarLabel}>Members</span>
+          <FaRegNewspaper className={styles.bottomBarIcon} />
+          <span className={styles.bottomBarLabel}>Newsletters</span>
+        </button>
+        <button
+          className={`${styles.bottomBarButton} ${activeTab === "policy" ? styles.active : ""}`}
+          onClick={() => handleTabChange("policy")}
+          aria-label="Policies"
+        >
+          <MdPolicy className={styles.bottomBarIcon} />
+          <span className={styles.bottomBarLabel}>Policies</span>
         </button>
       </div>
     </>

@@ -1,17 +1,10 @@
 // components/admin/AdminSidebar.js
 import styles from "styles/layout/sidebar.module.css";
 import { useRouter } from "next/router";
-import { FaUsers } from "react-icons/fa";
-import { FaTimeline } from "react-icons/fa6";
-import { TbTimelineEventFilled } from "react-icons/tb";
-import { MdAssignment } from "react-icons/md";
-
-const ADMIN_TABS = {
-  MEETING: "meeting",
-  UPDATE: "update", 
-  COMMITTEE: "committee",
-  PROJECT: "project",
-};
+import { BsCardList, BsPeople } from "react-icons/bs";
+import { TbTimelineEvent } from "react-icons/tb";
+import { MdOutlineAssignment } from "react-icons/md";
+import { WARD_TABS } from "hooks/useWardTabs";
 
 export default function AdminSidebar({ wardId, activeTab }) {
   const router = useRouter();
@@ -53,24 +46,24 @@ export default function AdminSidebar({ wardId, activeTab }) {
       {/* Tabs */}
       <div className={styles.tabContainer}>
         {renderTabButton(
-          ADMIN_TABS.MEETING,
-          <FaTimeline className={styles.tabIcon} />,
+          WARD_TABS.PROJECT,
+          <MdOutlineAssignment className={styles.tabIcon} />,
+          "Project Details",
+        )}
+        {renderTabButton(
+          WARD_TABS.MEETING,
+          <BsCardList className={styles.tabIcon} />,
           "Minutes of Meeting",
         )}
         {renderTabButton(
-          ADMIN_TABS.UPDATE,
-          <TbTimelineEventFilled className={styles.tabIcon} />,
+          WARD_TABS.UPDATE,
+          <TbTimelineEvent className={styles.tabIcon} />,
           "Monthly Update",
         )}
         {renderTabButton(
-          ADMIN_TABS.COMMITTEE,
-          <FaUsers className={styles.tabIcon} />,
-          "Ward Committee",
-        )}
-        {renderTabButton(
-          ADMIN_TABS.PROJECT,
-          <MdAssignment className={styles.tabIcon} />,
-          "Project Taken",
+          WARD_TABS.COMMITTEE,
+          <BsPeople className={styles.tabIcon} />,
+          "Members",
         )}
       </div>
     </div>
