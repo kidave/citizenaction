@@ -1,13 +1,13 @@
-// components/region/RegionBottomBar.js
+// components/region/RegionBottombar.js
 import styles from "styles/layout/bottombar.module.css";
 import { useRouter } from "next/router";
 import { FaRegNewspaper } from "react-icons/fa";
 import { BsCardList } from "react-icons/bs";
 import { TbTimelineEvent } from "react-icons/tb";
-import { MdOutlineAssignment, MdPolicy } from "react-icons/md";
+import { MdOutlineAssignment, MdOutlinePolicy } from "react-icons/md";
 import { useMediaQuery } from "react-responsive";
 
-export default function RegionBottomBar({ activeTab }) {
+export default function RegionBottombar({ activeTab }) {
   const router = useRouter();
   const { regionCode } = router.query;
   const isMobile = useMediaQuery({ maxWidth: 768 });
@@ -57,12 +57,12 @@ export default function RegionBottomBar({ activeTab }) {
           <FaRegNewspaper className={styles.bottomBarIcon} />
           <span className={styles.bottomBarLabel}>Newsletters</span>
         </button>
-        <button
+                <button
           className={`${styles.bottomBarButton} ${activeTab === "policy" ? styles.active : ""}`}
           onClick={() => handleTabChange("policy")}
           aria-label="Policies"
         >
-          <MdPolicy className={styles.bottomBarIcon} />
+          <MdOutlinePolicy className={styles.bottomBarIcon} />
           <span className={styles.bottomBarLabel}>Policies</span>
         </button>
       </div>

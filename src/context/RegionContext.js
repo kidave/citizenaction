@@ -1,50 +1,39 @@
 // context/RegionContext.js
-import { createContext, useContext, useState, useEffect } from "react";
-import { supabase } from "utils/supabaseClient";
+import { createContext, useContext, useMemo } from "react";
+import Spinner from "components/shared/ui/Spinner";
 
 const RegionContext = createContext();
 
-export function RegionProvider({ children, regionCode, regionInfo: initialRegionInfo }) {
-  const code = regionCode || "MMR"; // default to MMR
-  const [regionInfo, setRegionInfo] = useState(initialRegionInfo || null);
-  const [loading, setLoading] = useState(!initialRegionInfo);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (code && !initialRegionInfo) {
-      fetchRegionInfo(code);
-    }
-  }, [code, initialRegionInfo]);
-
-  const fetchRegionInfo = async (codeParam = code) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const { data, error } = await supabase
-        .from("region")
-        .select("*")
-        .eq("code", codeParam)
-        .single();
-      if (error) throw error;
-      setRegionInfo(data);
-    } catch (err) {
-      console.error("Error fetching region info:", err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+export function RegionProvider({ children, regionCode }) {
+  // Since we only have MMR region, we can hardcode the info
+  const regionInfo = {
+    code: regionCode || "MMR",
+    name: "Mumbai Metropolitan Region",
+    // Add any other static region info you need
   };
 
-  const value = { regionCode: code, regionInfo, loading, error, refetchRegionInfo: fetchRegionInfo };
+  const loading = false; // No loading since data is static
+  const error = null; // No error since data is static
 
-  return <RegionContext.Provider value={value}>{children}</RegionContext.Provider>;
+  const contextValue = useMemo(
+    () => ({
+      regionCode: regionCode || "MMR",
+      regionInfo,
+      loading,
+      error,
+    }),
+    [regionCode] // Only depend on regionCode changes
+  );
+
+  return (
+    <RegionContext.Provider value={contextValue}>
+      {children}
+    </RegionContext.Provider>
+  );
 }
-
 
 export function useRegion() {
   const context = useContext(RegionContext);
-  if (!context) {
-    throw new Error("useRegion must be used within a RegionProvider");
-  }
+  if (!context) throw new Error("useRegion must be used within a RegionProvider");
   return context;
 }

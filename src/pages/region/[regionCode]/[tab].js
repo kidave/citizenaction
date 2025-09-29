@@ -1,10 +1,10 @@
-// pages/ward/[regionCode]/[tab].js
+// pages/region/[regionCode]/[tab].js (NOT ward!)
 import RegionLayout from "components/region/RegionLayout";
 import { RegionProvider } from "context/RegionContext";
 import Spinner from "components/shared/ui/Spinner";
 import { useRouter } from "next/router";
 
-export default function WardTabPage() {
+export default function RegionTabPage() {
   const router = useRouter();
   const { regionCode } = router.query;
 
