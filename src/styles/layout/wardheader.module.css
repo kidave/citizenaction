@@ -65,7 +65,7 @@
 @media (max-width: 1024px) {
   .wardHeader {
     flex-direction: column;
-    padding: 0.5rem;
+    padding: 1.5rem;
     gap: 0;
   }
 
@@ -84,5 +84,11 @@
   .dropdownWrapper {
     justify-content: center;
     padding: 4px 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .wardHeader {
+    padding: 1rem;
   }
 }

@@ -4,7 +4,7 @@
    CONTAINER & LAYOUT
    ============================================ */
 .regionContainer {
-  padding: 2rem;
+  padding: 1rem;
   height: auto;
   max-width: 1200px;
   margin: 0 auto;
@@ -566,10 +566,7 @@
    RESPONSIVE DESIGN
    ============================================ */
 @media (max-width: 1024px) {
-  .regionContainer {
-    padding: 1.5rem;
-    margin: 1.5rem;
-  }
+
   
   .scrollCard {
     flex: 0 0 250px;
@@ -583,11 +580,7 @@
 }
 
 @media (max-width: 768px) {
-  .regionContainer {
-    padding: 1rem;
-    margin: 1rem;
-    border-radius: 16px;
-  }
+
   
   .sectionTitle {
     font-size: 1.25rem;

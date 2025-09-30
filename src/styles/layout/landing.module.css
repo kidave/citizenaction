@@ -24,7 +24,6 @@
 
 .heroSubtitle {
   font-size: 1.25rem;
-  color: #4a5568;
   margin-bottom: 2rem;
   line-height: 1.6;
 }
@@ -231,7 +230,11 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .viewAllLink {
-    display: none;
+  .hero {
+    padding: 2rem;
+  }
+
+  .heroSubtitle {
+    font-size: 1.1rem;
   }
 }

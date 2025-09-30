@@ -43,11 +43,10 @@ export default function MeetingTab() {
 
     return (
       <div className={styles.discussionSection}>
-        <h5 className={styles.sectionTitle}>Discussion Points</h5>
+        <h5 className={styles.sectionTitle}>Discussion</h5>
         <ul className={styles.discussionList}>
           {points.map((pt, i) => (
             <li key={i} className={styles.discussionPoint}>
-              <span className={styles.bullet}>•</span>
               {pt}
             </li>
           ))}
