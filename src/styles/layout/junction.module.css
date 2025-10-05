@@ -1,19 +1,24 @@
 .junctionContainer {
   background: transparent;
-  border-radius: 12px;
-  margin: 20px;
+  margin: 1rem;
   display: flex;
   flex-direction: column;
 }
 
 .junctionHeader {
   display: flex;
-  align-items: flex-start;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.5rem;
   margin-bottom: 0.5rem;
   background: lavenderblush;
-  border-radius: 10px;
+  border-radius: 16px;
   padding: 1rem 1.2rem;
+}
+
+.junctionHeaderTopRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
 }
 
 .junctionHeaderIcon {
@@ -26,13 +31,14 @@
 .junctionTitle {
   font-size: 1.25rem;
   font-weight: 700;
-  margin: 0 0 0.2rem 0;
+  margin: 0;
   letter-spacing: 0.01em;
+  flex: 1;
 }
 
 .junctionSubtitle {
   font-size: 1rem;
-  margin-bottom: 0;
+  margin: 0;
 }
 
 .junctionDescription {

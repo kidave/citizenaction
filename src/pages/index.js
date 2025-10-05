@@ -98,7 +98,7 @@ export default function Home() {
               </button>
               <button 
                 className={styles.viewAllLink}
-                onClick={() => document.getElementById('latest-updates').scrollIntoView({ behavior: 'smooth', block: 'end' })}
+                onClick={() => document.getElementById('latest-updates').scrollIntoView({ behavior: 'smooth', block: 'start' })}
               >
                 Monthly Updates
               </button>

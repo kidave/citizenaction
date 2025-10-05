@@ -216,7 +216,7 @@
   color: #667eea;
   font-weight: 600;
   font-size: 1.1rem;
-  padding: 0.8rem 1.5rem;
+  padding: 0.5rem;
   border: 2px solid #667eea;
   border-radius: 24px;
   cursor: pointer;
@@ -225,7 +225,6 @@
 .viewAllLink:hover {
   background: #667eea;
   color: white;
-  transform: translateY(-2px);
 }
 
 /* Responsive */

@@ -100,8 +100,24 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* ===== ACTIVE DATE STYLES ===== */
+.centeredDate.activeDate {
+  background: lightseagreen;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Keep the hover styles for non-active dates */
+.centeredDate:not(.activeDate):hover {
+  background: lightseagreen;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
 .fullWidthCard {
-  width: 95%;
+  margin: 1rem;
   position: relative;
   z-index: 2;
 }

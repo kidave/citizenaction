@@ -208,16 +208,16 @@ function formatRoadType(type) {
 function Header({ roadCount, wardName }) {
   return (
     <div className={headerStyles.junctionHeader}>
-      <FaRoad className={headerStyles.junctionHeaderIcon} />
-      <div>
+      <div className={headerStyles.junctionHeaderTopRow}>
+        <FaRoad className={headerStyles.junctionHeaderIcon} />
         <h3 className={headerStyles.junctionTitle}>
           {roadCount} Roads in {wardName} Ward
         </h3>
-        <p className={headerStyles.junctionSubtitle}>
-          The committees first step in this phase is to identify a specific
-          stretch of road that requires walkability improvement.
-        </p>
       </div>
+      <p className={headerStyles.junctionSubtitle}>
+        The committees first step in this phase is to identify a specific
+        stretch of road that requires walkability improvement.
+      </p>
     </div>
   );
 }

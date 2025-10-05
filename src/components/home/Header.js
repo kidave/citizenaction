@@ -46,6 +46,12 @@ export default function Header() {
   };
 
   const dropdownItems = {
+    Region: [
+      {
+        label: "Mumbai Metropolitan Region",
+        path: "/region/MMR",
+      },
+    ],
     Community: [
       {
         label: "Manifesto",

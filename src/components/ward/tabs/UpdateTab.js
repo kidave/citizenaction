@@ -86,7 +86,7 @@ export default function UpdateTab() {
     return (
       <div className={styles.timelineItemUpdate}>
         <div
-          className={styles.centeredDate}
+          className={`${styles.centeredDate} ${isActive ? styles.activeDate : ''}`}
           onClick={() => setIsActive(!isActive)}
           style={{ cursor: "pointer" }}
         >

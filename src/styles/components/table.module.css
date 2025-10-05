@@ -27,7 +27,7 @@
   background-color: whitesmoke;
   color: grey;
   padding: 10px;
-  border-right: 1px solid rgb(255, 255, 255);
+  border-right: white 1px solid;
 }
 
 .table thead th:hover {

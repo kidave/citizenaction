@@ -103,16 +103,16 @@ export default function JunctionTab() {
 function Header({ junctionCount, wardName }) {
   return (
     <div className={styles.junctionHeader}>
-      <FaMapMarkerAlt className={styles.junctionHeaderIcon} />
-      <div>
+      <div className={styles.junctionHeaderTopRow}>
+        <FaMapMarkerAlt className={styles.junctionHeaderIcon} />
         <h3 className={styles.junctionTitle}>
           Identified {junctionCount} Junctions in {wardName} Ward
         </h3>
-        <p className={styles.junctionSubtitle}>
-          Each intersection represents a critical point for pedestrian movement
-          and traffic flow in your ward.
-        </p>
       </div>
+      <p className={styles.junctionSubtitle}>
+        Each intersection represents a critical point for pedestrian movement
+        and traffic flow in your ward.
+      </p>
     </div>
   );
 }
