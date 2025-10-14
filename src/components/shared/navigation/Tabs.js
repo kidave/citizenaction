@@ -1,5 +1,5 @@
 import { useState } from "react";
-import styles from "styles/components/Tabs.module.css";
+import styles from "styles/components/navigation/Tabs.module.css";
 
 export default function Tabs({ 
   tabs, 

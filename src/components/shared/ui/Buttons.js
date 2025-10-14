@@ -11,9 +11,10 @@ import {
   FiUpload,
   FiPlus,
   FiSearch,
-  FiImage
+  FiImage,
+  FiEyeOff
 } from "react-icons/fi";
-import styles from "styles/components/buttons.module.css";
+import styles from "styles/components/interact/buttons.module.css";
 
 // Base button component
 const BaseButton = ({ 
@@ -227,6 +228,29 @@ const SearchButton = ({
   </BaseButton>
 );
 
+// Publish Button
+const PublishButton = ({ 
+  children, 
+  published = false, 
+  publishing = false, 
+  showIcon = true,
+  ...props 
+}) => {
+  const buttonText = published ? "Unpublish" : "Publish";
+  const icon = published ? <FiEyeOff size={16} /> : <FiEye size={16} />;
+  
+  return (
+    <BaseButton
+      variant={published ? "warning" : "success"}
+      loading={publishing}
+      icon={showIcon && !publishing ? icon : null}
+      {...props}
+    >
+      {publishing ? "Updating..." : (children || buttonText)}
+    </BaseButton>
+  );
+};
+
 // Icon Button (for icon-only buttons)
 const IconButton = ({ 
   icon, 
@@ -274,6 +298,7 @@ export {
   DownloadButton,
   UploadButton,
   SearchButton,
+  PublishButton,
   IconButton,
   ImageButton
 };

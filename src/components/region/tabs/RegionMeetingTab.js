@@ -6,7 +6,7 @@ import { FaCalendar, FaUsers, FaTasks, FaVideo, FaExternalLinkAlt, FaChevronDown
 import useRegionMeetings from "hooks/useRegionMeetings";
 import { useRegion } from "context/RegionContext";
 import { useAlert } from "hooks/useAlert";
-import styles from "styles/components/regionMeetingTab.module.css";
+import styles from "styles/tabs/meeting.module.css";
 import Spinner from "components/shared/ui/Spinner";
 
 export default function RegionMeetingTab() {

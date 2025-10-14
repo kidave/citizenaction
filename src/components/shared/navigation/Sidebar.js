@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import styles from "styles/components/Sidebar.module.css";
+import styles from "styles/components/navigation/Sidebar.module.css";
 
 export default function Sidebar({ 
   tabs = [], 

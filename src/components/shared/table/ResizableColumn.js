@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import styles from "styles/components/table.module.css";
+import styles from "styles/components/data/table.module.css";
 
 export default function ResizableColumn({ columnKey, currentWidth, onResize }) {
   const startResize = useCallback(

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import styles from "styles/layout/junction.module.css";
+import styles from "styles/tabs/junction.module.css";
 import { FaMapMarkerAlt, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useWard } from "context/WardContext";
 import useWardJunctions from "hooks/useWardJunctions";

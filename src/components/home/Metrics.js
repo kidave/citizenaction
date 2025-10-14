@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "utils/supabaseClient";
-import styles from "styles/components/card.module.css";
+import styles from "styles/components/design/card.module.css";
 import {
   FaChartBar,
   FaMapMarkedAlt,

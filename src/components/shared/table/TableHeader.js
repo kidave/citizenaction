@@ -1,4 +1,4 @@
-import styles from "styles/components/table.module.css";
+import styles from "styles/components/data/table.module.css";
 
 export default function TableHeader({ width, children }) {
   return (

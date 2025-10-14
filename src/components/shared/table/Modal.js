@@ -1,4 +1,4 @@
-import styles from "styles/components/modal.module.css";
+import styles from "styles/components/feedback/modal.module.css";
 
 export default function Modal({ isOpen, imageUrl, onClose }) {
   if (!isOpen) return null;

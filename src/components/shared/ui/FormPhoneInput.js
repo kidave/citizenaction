@@ -2,7 +2,7 @@
 import { useState } from "react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import styles from "styles/components/form.module.css";
+import styles from "styles/components/data/form.module.css";
 
 export default function FormPhoneInput({ 
   value, 

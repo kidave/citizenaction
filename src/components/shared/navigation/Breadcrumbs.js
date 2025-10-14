@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import styles from "styles/components/Breadcrumbs.module.css";
+import styles from "styles/compoonents/navigation/Breadcrumbs.module.css";
 
 export default function Breadcrumbs() {
   const router = useRouter();

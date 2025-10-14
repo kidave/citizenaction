@@ -1,5 +1,5 @@
 // components/Footer.js
-import styles from "styles/components/footer.module.css";
+import styles from "styles/components/navigation/footer.module.css";
 import {
   FaFacebook,
   FaYoutube,

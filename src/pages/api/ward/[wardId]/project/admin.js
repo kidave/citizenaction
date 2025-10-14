@@ -17,15 +17,16 @@ export default async function handler(req, res) {
   }
 
   try {
+    // REMOVE .eq("user_id", user.id) - RLS will handle security
     const { data, error } = await supabase
       .from("project")
       .select("*")
       .eq("ward_code", wardId)
-      .eq("user_id", user.id)
+      .order("created_at", { ascending: false }); // Add ordering
 
     if (error) throw error;
     res.status(200).json(data || []);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch meetings" });
+    res.status(500).json({ error: "Failed to fetch projects" });
   }
 }

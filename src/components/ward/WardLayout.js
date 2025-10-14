@@ -41,7 +41,7 @@ function WardLayoutContent() {
         
         <div className={styles.wardMain}>
           <WardHeader />
-          {tabComponents[activeTab] || <MeetingTab />}
+          {tabComponents[activeTab] || <ProjectTab />}
         </div>
 
         {/* Show bottom bar on mobile AND tablet */}

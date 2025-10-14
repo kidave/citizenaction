@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { RegionService } from "data/regions";
-import styles from "styles/components/tooltip.module.css";
+import styles from "styles/components/feedback/tooltip.module.css";
 
 export default function DivisionTooltip({ divisionCode, anchorRect, onClose }) {
   const ref = useRef(null);

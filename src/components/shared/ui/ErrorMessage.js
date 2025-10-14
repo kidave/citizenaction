@@ -1,6 +1,6 @@
 // components/shared/ErrorMessage.js
 import { useEffect } from "react";
-import styles from "styles/components/error.module.css";
+import styles from "styles/components/feedback/error.module.css";
 
 export default function ErrorMessage({
   message,

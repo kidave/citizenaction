@@ -1,5 +1,5 @@
 import Image from "next/image";
-import styles from "styles/components/card.module.css";
+import styles from "styles/components/design/card.module.css";
 import { useWard } from "context/WardContext";
 import useWardCommittees from "hooks/useWardCommittees";
 
@@ -19,8 +19,8 @@ export default function CommitteeTab() {
   return (
     <div className={styles.memberList}>
       {committees.length === 0 ? (
-        <p className={styles.emptyMessage}>
-          Interested in joining the committee? Tap the <strong>Join Committee</strong> button in the homepage, 
+        <p className={styles.empty}>
+          Interested in joining the committee? Tap the <strong>Join Committee</strong> button, 
           or email us at <a href="mailto:info@walkingproject.org">info@walkingproject.org</a>.
         </p>
       ) : (

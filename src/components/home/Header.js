@@ -82,7 +82,7 @@ export default function Header() {
 
   return (
     <header className={styles.header}>
-      <div className={styles.bottomBar}>
+      
         <div
           className={styles.logoContainer}
           onClick={() => router.push("https://www.walkingproject.org")}
@@ -281,7 +281,6 @@ export default function Header() {
             </div>
           </div>
         )}
-      </div>
     </header>
   );
 }

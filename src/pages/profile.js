@@ -5,7 +5,7 @@ import { useAuth } from "context/AuthContext";
 import { FiArrowLeft } from "react-icons/fi";
 import Spinner from "components/shared/ui/Spinner";
 import useProfile from "hooks/useProfile";
-import styles from "styles/profile.module.css";
+import styles from "styles/pages/profile.module.css";
 import Layout from "components/home/Layout";
 
 export default function Profile() {

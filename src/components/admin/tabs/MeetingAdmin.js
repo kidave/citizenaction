@@ -11,7 +11,7 @@ import ImageStackPopup from "components/shared/image/ImageStackPopup";
 import MeetingCard from "components/shared/MeetingCard";
 import ImageManager from "components/admin/ImageManager";
 import { AddButton, ImageButton } from "components/shared/ui/Buttons";
-import styles from "styles/layout/timeline.module.css";
+import styles from "styles/tabs/timeline.module.css";
 import { FaUsers } from "react-icons/fa";
 
 export default function MeetingAdmin() {
@@ -128,8 +128,8 @@ export default function MeetingAdmin() {
               mood_rating: 5,
             });
           }}
+          variant="outline"
           disabled={loading}
-          size="large"
         >
           Add Meeting
         </AddButton>
@@ -175,8 +175,6 @@ export default function MeetingAdmin() {
                     <div className={styles.imageManagerToggle}>
                       <ImageButton 
                         onClick={() => toggleImageManager(item.id)}
-                        size="small"
-                        variant={expandedMeetingId === item.id ? "primary" : "outline"}
                       >
                         {expandedMeetingId === item.id ? "Hide Images" : "Manage Images"}
                       </ImageButton>
@@ -215,8 +213,6 @@ export default function MeetingAdmin() {
                     <div className={styles.imageManagerToggle}>
                       <ImageButton 
                         onClick={() => toggleImageManager(item.id)}
-                        size="small"
-                        variant={expandedMeetingId === item.id ? "outline" : "outline"}
                       >
                         {expandedMeetingId === item.id ? "Hide Images" : "Manage Images"}
                       </ImageButton>

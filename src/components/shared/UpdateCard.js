@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import UpdateForm from "./UpdateForm";
-import styles from "styles/layout/timeline.module.css";
+import styles from "styles/tabs/timeline.module.css";
 
 // Helper function to render discussion points
 const renderDiscussion = (label, content) => {

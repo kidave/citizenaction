@@ -1,6 +1,6 @@
 // components/DriveEmbed.js
 import { useState } from "react";
-import styles from "styles/components/driveembed.module.css";
+import styles from "styles/components/data/driveembed.module.css";
 
 export default function DriveEmbed({ driveLink, title = "Document Preview" }) {
   const [isExpanded, setIsExpanded] = useState(true);

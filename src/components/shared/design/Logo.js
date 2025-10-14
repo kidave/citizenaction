@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import styles from "styles/components/Logo.module.css";
+import styles from "styles/components/design/Logo.module.css";
 
 export default function Logo({ 
   logo = { 

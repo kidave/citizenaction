@@ -2,9 +2,10 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useWard } from "context/WardContext";
 import useWardProjects from "hooks/useWardProjects";
-import styles from "styles/layout/project.module.css";
+import styles from "styles/tabs/project.module.css";
 import ImageComparison from "components/shared/image/ImageComparison";
 import ImageStackPopup from "components/shared/image/ImageStackPopup";
+import ImageEmbed from "components/shared/image/ImageEmbed";
 
 export default function ProjectTab() {
   const { wardId } = useWard();
@@ -12,13 +13,16 @@ export default function ProjectTab() {
 
   if (loading) return;
   if (error) return <p>Error loading projects: {error.message}</p>;
-  if (!projects || projects.length === 0) {
-    return <div className={styles.projectPlaceholder}>No projects available</div>;
+
+  const publishedProjects = projects?.filter(project => project.is_published) || [];
+  
+  if (publishedProjects.length === 0) {
+    return <p className={styles.empty}>No projects yet.</p>
   }
 
   return (
     <div className={styles.projectList}>
-      {projects.map((project, index) => (
+      {publishedProjects.map((project, index) => (
         <SingleProject
           key={project.id || index}
           project={project}
@@ -40,9 +44,26 @@ function StepContent({ stepKey, project, resolveUrl }) {
   const stacks = images.filter((img) => img.type === "stack");
   const before = images.filter((img) => img.type === "comparison-before");
   const after = images.filter((img) => img.type === "comparison-after");
+  const documents = images.filter((img) => img.type === "document");
+  const singleImages = images.filter((img) => img.type === "image");
 
   return (
     <div className={styles.stepMedia}>
+      {/* Single Images */}
+      {singleImages.length > 0 && (
+        <div className={styles.singleImages}>
+          {singleImages.map((img, idx) => (
+            <div key={idx} className={styles.singleImageItem}>
+              <ImageEmbed 
+                src={resolveUrl(img.path)} 
+                alt={img.caption || `Step ${stepKey} image`}
+              />
+              {img.caption && <p className={styles.imageCaption}>{img.caption}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Image Stack Grid */}
       {stacks.length > 0 && (
         <>
@@ -57,6 +78,25 @@ function StepContent({ stepKey, project, resolveUrl }) {
             onClose={() => setPopupImages([])}
           />
         </>
+      )}
+
+      {/* Documents */}
+      {documents.length > 0 && (
+        <div className={styles.documentsSection}>
+          <h5>Documents</h5>
+          {documents.map((doc, idx) => (
+            <div key={idx} className={styles.documentItem}>
+              <a 
+                href={resolveUrl(doc.path)} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className={styles.documentLink}
+              >
+                📄 {doc.caption || `Document ${idx + 1}`}
+              </a>
+            </div>
+          ))}
+        </div>
       )}
 
       {/* Before / After Comparison */}

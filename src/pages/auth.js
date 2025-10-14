@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "context/AuthContext";
 import Head from "next/head";
-import styles from "styles/auth.module.css";
+import styles from "styles/pages/auth.module.css";
 import { FcGoogle } from "react-icons/fc";
 import { FiArrowLeft, FiLoader, FiShield, FiLock } from "react-icons/fi";
 import Layout from "components/home/Layout";

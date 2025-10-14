@@ -1,20 +1,21 @@
 export const REGION_DATA = {
+  states: { code: 'MH', name: 'Maharashtra' },
   regions: [
-    { code: 'MMR', name: 'Mumbai Metropolitan Region' },
-    { code: 'NCR', name: 'National Capital Region' },
-    { code: 'BMR', name: 'Bangalore Metropolitan Region' },
-    { code: 'CMA', name: 'Chennai Metropolitan Area' },
-    { code: 'KMA', name: 'Kolkata Metropolitan Area'},
-    { code: 'HMR', name: 'Hyderabad Metropolitan Region'},
-    { code: 'PMR', name: 'Pune Metropolitan Region'},
-    { code: 'AMR', name: 'Ahmedabad Metropolitan Region'},
-    { code: 'SMR', name: 'Surat Metropolitan Region'},
-  ],  
+    { code: 'MMR', name: 'Mumbai Metropolitan Region', compositeCode: 'MH-MMR' },
+    { code: 'NCR', name: 'National Capital Region', compositeCode: 'DL-NCR' },
+    { code: 'BMR', name: 'Bangalore Metropolitan Region', compositeCode: 'KA-BMR' },
+    { code: 'CMA', name: 'Chennai Metropolitan Area', compositeCode: 'TN-CMA' },
+    { code: 'KMA', name: 'Kolkata Metropolitan Area', compositeCode: 'WB-KMA' },
+    { code: 'HMR', name: 'Hyderabad Metropolitan Region', compositeCode: 'TG-HMR' },
+    { code: 'PMR', name: 'Pune Metropolitan Region', compositeCode: 'MH-PMR' },
+    { code: 'AMR', name: 'Ahmedabad Metropolitan Region', compositeCode: 'GJ-AMR' },
+    { code: 'SMR', name: 'Surat Metropolitan Region', compositeCode: 'GJ-SMR' },
+  ],
   cities: [
     // Mumbai Metropolitan Region (MMR)
-    { code: 'MUM', name: 'Mumbai', status: 'approved', active: true, region_code: 'MMR' },
-    { code: 'THN', name: 'Thane', status: 'pending', active: false, region_code: 'MMR' },
-    { code: 'NVM', name: 'Navi Mumbai', status: 'pending', active: false, region_code: 'MMR' },
+    { code: 'MUM', name: 'Mumbai', status: 'approved', active: true, region_code: 'MMR', compositeCode: 'MH-MMR-MUM' },
+    { code: 'THN', name: 'Thane', status: 'pending', active: false, region_code: 'MMR', compositeCode: 'MH-MMR-THN' },
+    { code: 'NVM', name: 'Navi Mumbai', status: 'pending', active: false, region_code: 'MMR', compositeCode: 'MH-MMR-NVM' },
     /*{ code: 'MBR', name: 'Mira Bhayandar', status: 'pending', active: false, region_code: 'MMR' },
     { code: 'VVR', name: 'Vasai Virar', status: 'pending', active: false, region_code: 'MMR' },
     { code: 'KLD', name: 'Kalyan Dombivali', status: 'pending', active: false, region_code: 'MMR' },
@@ -70,144 +71,168 @@ export const REGION_DATA = {
   wards: [
     // Mumbai Wards
     { code: 'A', name: 'A', division_code: 'IC',
+      compositeCode: 'MH-MMR-MUM-A',
       tooltip: {
         areas: ["Colaba", "Fort", "Cuffe Parade"],
         landmarks: ["Gateway of India", "CSMT", "Sassoon Dock"]
       }
     },
     { code: 'B', name: 'B', division_code: 'IC',
+      compositeCode: 'MH-MMR-MUM-B',
       tooltip: {
         areas: ["Dongri", "Mandvi"],
         landmarks: ["Bhendi Bazaar", "Jama Masjid"]
       }
     },
     { code: 'C', name: 'C', division_code: 'IC',
+      compositeCode: 'MH-MMR-MUM-C',
       tooltip: {
         areas: ["Marine Lines", "Kalbadevi", "Bhuleshwar"],
         landmarks: ["Marine Drive", "Mumbadevi Temple", "Metro Cinema"]
       }
     },
     { code: 'D', name: 'D', division_code: 'IC',
+      compositeCode: 'MH-MMR-MUM-D',
       tooltip: {
         areas: ["Malabar Hill", "Walkeshwar", "Grant Road"],
         landmarks: ["Hanging Gardens", "Mani Bhavan", "Babulnath Temple"]
       }
     },
     { code: 'E', name: 'E', division_code: 'IC',
+      compositeCode: 'MH-MMR-MUM-E',
       tooltip: {
         areas: ["Byculla", "Mazgaon", "Chinchpokli"],
         landmarks: ["Byculla Zoo", "Mazgaon Dock", "Nagpada"]
       }
     },
     { code: 'FN', name: 'F North', division_code: 'IC',
+      compositeCode: 'MH-MMR-MUM-FN',
       tooltip: {
         areas: ["Matunga", "Sion", "Wadala"],
         landmarks: ["Five Gardens", "Sion Fort", "Wadala Truck Terminus"]
       }
     },
     { code: 'FS', name: 'F South', division_code: 'IC',
+      compositeCode: 'MH-MMR-MUM-FS',
       tooltip: {
         areas: ["Parel", "Sewri", "Naigaon"],
         landmarks: ["Sewri Fort", "Mahatma Phule Market", "High Street Phoenix"]
       }
     },
     { code: 'GN', name: 'G North', division_code: 'IC',
+      compositeCode: 'MH-MMR-MUM-GN',
       tooltip: {
         areas: ["Dadar", "Mahim", "Dharavi"],
         landmarks: ["Siddhivinayak Temple", "Shivaji Park", "Mahim Dargah"]
       }
     },
     { code: 'GS', name: 'G South', division_code: 'IC',
+      compositeCode: 'MH-MMR-MUM-GS',
       tooltip: {
         areas: ["Worli", "Prabhadevi"],
         landmarks: ["Worli Sea Face", "Haji Ali Dargah", "Nehru Planetarium"]
       }
     },
     { code: 'HE', name: 'H East', division_code: 'WS',
+      compositeCode: 'MH-MMR-MUM-HE',
       tooltip: {
         areas: ["Bandra East", "Santacruz East", "Vakola"],
         landmarks: ["BKC", "Mithi River", "MMRDA Grounds"]
       }
     },
     { code: 'HW', name: 'H West', division_code: 'WS',
+      compositeCode: 'MH-MMR-MUM-HW',
       tooltip: {
         areas: ["Bandra West", "Khar West"],
         landmarks: ["Bandra Fort", "Mount Mary Church", "Carter Road"]
       }
     },
     { code: 'KE', name: 'K East', division_code: 'WS',
+      compositeCode: 'MH-MMR-MUM-KE',
       tooltip: {
         areas: ["Andheri East", "Jogeshwari East"],
         landmarks: ["SEEPZ", "Powai Lake", "JVLR"]
       }
     },
     { code: 'KW', name: 'K West', division_code: 'WS',
+      compositeCode: 'MH-MMR-MUM-KW',
       tooltip: {
         areas: ["Andheri West", "Versova", "Lokhandwala"],
         landmarks: ["Versova Beach", "Gilbert Hill", "Infinity Mall"]
       }
     },
     { code: 'L', name: 'L', division_code: 'ES',
+      compositeCode: 'MH-MMR-MUM-L',
       tooltip: {
         areas: ["Kurla", "Chembur"],
         landmarks: ["Phoenix Marketcity", "Chembur Gymkhana"]
       }
     },
     { code: 'ME', name: 'M East', division_code: 'ES',
+      compositeCode: 'MH-MMR-MUM-ME',
       tooltip: {
         areas: ["Govandi", "Mankhurd", "Shivaji Nagar"],
         landmarks: ["Deonar Dumping Ground", "Anushakti Nagar"]
       }
     },
     { code: 'MW', name: 'M West', division_code: 'ES',
+      compositeCode: 'MH-MMR-MUM-MW',
       tooltip: {
         areas: ["Chembur West", "Mahul"],
         landmarks: ["R. K. Studios", "Mahul Creek"]
       }
     },
     { code: 'N', name: 'N', division_code: 'ES',
+      compositeCode: 'MH-MMR-MUM-N',
       tooltip: {
         areas: ["Ghatkopar", "Vikhroli"],
         landmarks: ["R-City Mall", "Vikhroli Mangroves"]
       }
     },
     { code: 'PN', name: 'P North', division_code: 'WS',
+      compositeCode: 'MH-MMR-MUM-PN',
       tooltip: {
         areas: ["Malad", "Chincholi", "Marve"],
         landmarks: ["Aksa Beach", "Inorbit Mall", "Marve Beach"]
       }
     },
     { code: 'PS', name: 'P South', division_code: 'WS',
+      compositeCode: 'MH-MMR-MUM-PS',
       tooltip: {
         areas: ["Goregaon", "Aarey"],
         landmarks: ["Film City", "Oberoi Mall", "Aarey Colony"]
       }
     },
     { code: 'RC', name: 'R Central', division_code: 'WS',
+      compositeCode: 'MH-MMR-MUM-RC',
       tooltip: {
         areas: ["Borivali", "Dahisar"],
         landmarks: ["Sanjay Gandhi National Park", "Essel World", "Kanheri Caves"]
       }
     },
     { code: 'RN', name: 'R North', division_code: 'WS',
+      compositeCode: 'MH-MMR-MUM-RN',
       tooltip: {
         areas: ["Dahisar", "Mira Road Border"],
         landmarks: ["Dahisar Check Naka", "Thakur Mall"]
       }
     },
     { code: 'RS', name: 'R South', division_code: 'WS',
+      compositeCode: 'MH-MMR-MUM-RS',
       tooltip: {
         areas: ["Kandivali", "Charkop", "Thakur"],
         landmarks: ["Sports Authority of India", "Kandivali Education Society", "Poisar Gymkhana"]
       }
     },
     { code: 'S', name: 'S', division_code: 'ES',
+      compositeCode: 'MH-MMR-MUM-S',
       tooltip: {
         areas: ["Bhandup", "Nahur"],
         landmarks: ["Bhandup Complex", "Yogi Hills"]
       }
     },
     { code: 'T', name: 'T', division_code: 'ES',
+      compositeCode: 'MH-MMR-MUM-T',
       tooltip: {
         areas: ["Mulund", "Nahur East"],
         landmarks: ["R Mall", "Mulund Check Naka"]
@@ -307,5 +332,27 @@ export const RegionService = {
         hasActiveCities: activeCities.length > 0
       };
     }).filter(region => region.hasActiveCities);
-  }
+  },
+  // Get composite code for a ward: STATE-REGION-CITY-WARD
+  getWardCompositeCode: (wardCode, stateCode = "MH") => {
+    const fullPath = RegionService.getFullRegionPath(wardCode);
+    if (!fullPath) return null;
+    const { region, city, ward } = fullPath;
+    return `${stateCode}-${region.code}-${city.code}-${ward.code}`;
+  },
+
+  // Get composite code for a city: STATE-REGION-CITY
+  getCityCompositeCode: (cityCode, stateCode = "MH") => {
+    const city = RegionService.getCityByCode(cityCode);
+    if (!city) return null;
+    const region = RegionService.getRegionByCode(city.region_code);
+    return `${stateCode}-${region.code}-${city.code}`;
+  },
+
+  // Get composite code for a region: STATE-REGION
+  getRegionCompositeCode: (regionCode, stateCode = "MH") => {
+    const region = RegionService.getRegionByCode(regionCode);
+    if (!region) return null;
+    return `${stateCode}-${region.code}`;
+  },
 };

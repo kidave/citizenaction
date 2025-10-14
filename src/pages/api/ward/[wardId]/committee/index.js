@@ -17,7 +17,7 @@ export default async function handler(req, res) {
       .from("committee")
       .select("*")
       .eq("ward_code", wardId)
-      .order("role_id", { ascending: true });
+      .order("created_at", { ascending: true });
     return error ? res.status(400).json({ error: error.message }) : res.json(data);
   }
 

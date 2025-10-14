@@ -196,7 +196,7 @@ function Region() {
               key={city.code}
               className={`${styles.scrollCard} ${selectedCity === city.code ? styles.active : ""}`}
               style={{
-                backgroundImage: `url(/images/cities/${city.code}.jpg)`,
+                backgroundImage: `url(/images/city/${city.code}.jpg)`,
                 opacity: config.disabled ? 0.4 : 1,
                 cursor: config.disabled ? "not-allowed" : "pointer",
               }}

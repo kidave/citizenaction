@@ -1,5 +1,5 @@
 import { useState } from "react";
-import styles from "styles/components/uploadselector.module.css";
+import styles from "styles/components/data/uploadselector.module.css";
 
 export default function UploadSelector({ onUpload }) {
   const [type, setType] = useState("");

@@ -1,5 +1,5 @@
 // components/shared/ui/ButtonGroup.js
-import styles from "styles/components/buttons.module.css";
+import styles from "styles/components/interact/buttons.module.css";
 
 export const ButtonGroup = ({ 
   children, 

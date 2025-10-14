@@ -4,11 +4,17 @@ import { useAdmin } from "context/AdminContext";
 import { useAuth } from "context/AuthContext";
 import useAdminProjects from "hooks/useAdminProjects";
 import useWardCRUD from "hooks/useWardCRUD";
-import useProjectImages from "hooks/useProjectImages";
 import { useAlert } from "hooks/useAlert";
-import { AddButton, EditButton, DeleteButton, SaveButton, CancelButton } from "components/shared/ui/Buttons";
-import styles from "styles/layout/project.module.css";
-import { FiTrash2 } from "react-icons/fi";
+import { 
+  AddButton, 
+  EditButton, 
+  DeleteButton, 
+  SaveButton, 
+  CancelButton,
+  PublishButton
+} from "components/shared/ui/Buttons";
+import ProjectImageManager from "components/admin/ProjectImageManager";
+import styles from "styles/tabs/project.module.css";
 
 export default function ProjectAdmin({ wardId }) {
   const { isAdmin } = useAdmin();
@@ -20,6 +26,7 @@ export default function ProjectAdmin({ wardId }) {
 
   const [editing, setEditing] = useState(null);
   const [saveError, setSaveError] = useState(null);
+  const [publishingStates, setPublishingStates] = useState({});
 
   const handleCreate = async (projectData) => {
     try {
@@ -46,15 +53,6 @@ export default function ProjectAdmin({ wardId }) {
         Object.entries(projectData).filter(([_, v]) => v !== undefined && v !== null)
       );
       await update(id, cleanData);
-
-      const token = await getAccessToken();
-      const res = await fetch(`/api/ward/${wardId}/project/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        setEditing(updated);
-      }
       showSuccessAlert({ title: "Updated!", message: "Project updated successfully." });
       await refresh();
     } catch (err) {
@@ -84,10 +82,27 @@ export default function ProjectAdmin({ wardId }) {
     });
   };
 
+  const handlePublishToggle = async (project) => {
+    setPublishingStates(prev => ({ ...prev, [project.id]: true }));
+    
+    try {
+      await update(project.id, { is_published: !project.is_published });
+      showSuccessAlert({ 
+        title: "Success!", 
+        message: `Project ${!project.is_published ? 'published' : 'unpublished'} successfully.` 
+      });
+      await refresh();
+    } catch (err) {
+      showErrorAlert({ message: "Failed to update project", errorDetails: err.message });
+    } finally {
+      setPublishingStates(prev => ({ ...prev, [project.id]: false }));
+    }
+  };
+
   if (!isAdmin) {
-    showErrorAlert({ message: "You don't have access to manage projects." });
     return (
       <div className={styles.adminPanel}>
+        <AlertComponent />
         <div className={styles.errorMessage}>
           You don't have access to manage projects.
         </div>
@@ -100,40 +115,51 @@ export default function ProjectAdmin({ wardId }) {
       <AlertComponent />
       <div className={styles.adminHeader}>
         <AddButton
+          variant="outline"
           onClick={() => setEditing({})}
           disabled={loading}
-          size="large"
         >
           New Project
         </AddButton>
       </div>
 
-      {error && showErrorAlert({ message: `Error: ${error}` })}
-      {saveError && showErrorAlert({ message: `Error: ${saveError}` })}
+      {error && <div className={styles.errorMessage}>Error: {error}</div>}
+      {saveError && <div className={styles.errorMessage}>Error: {saveError}</div>}
 
       {loading ? (
-        <div className={styles.loading}></div>
+        <div className={styles.loading}>Loading projects...</div>
       ) : projects.length === 0 && !editing ? (
         <div className={styles.emptyState}>
           <p>No projects found. Create your first project to get started.</p>
         </div>
       ) : (
         <div className={styles.projectList}>
-          {projects.map((p) => (
-            <div key={p.id} className={styles.adminItem}>
+          {projects.map((project) => (
+            <div key={project.id} className={styles.adminItem}>
               <div className={styles.adminItemHeader}>
-                <div className={styles.adminItemTitle}>{p.title || "Untitled Project"}</div>
+                <div className={styles.adminItemTitle}>
+                  <h4>{project.title || "Untitled Project"}</h4>
+                  <div className={styles.projectMeta}>
+                    <h5>{project.is_published ? 'Published' : 'Draft'}</h5>
+                  </div>
+                </div>
                 <div className={styles.adminItemActions}>
+                  <PublishButton
+                    size="small"
+                    published={project.is_published}
+                    publishing={publishingStates[project.id]}
+                    onClick={() => handlePublishToggle(project)}
+                  />
                   <EditButton 
                     size="small" 
-                    onClick={() => setEditing(p)}
+                    onClick={() => setEditing(project)}
                   >
                     Edit
                   </EditButton>
                   <DeleteButton
                     size="small"
                     variant="danger"
-                    onClick={() => handleDelete(p.id)}
+                    onClick={() => handleDelete(project.id)}
                   >
                     Delete
                   </DeleteButton>
@@ -162,220 +188,316 @@ export default function ProjectAdmin({ wardId }) {
   );
 }
 
-/* ----------------- Project Form ----------------- */
 function ProjectForm({ wardId, project = {}, onSave, onCancel }) {
   const [form, setForm] = useState(() => ({
     title: "",
-    status: "planned",
+    status: "pending",
     start_date: "",
     end_date: "",
     location: "",
+    description: "",
+    is_published: false,
+    custom_sections: [],
     ...project,
   }));
 
   const [saving, setSaving] = useState(false);
-  const [uploadType, setUploadType] = useState("stack");
-  const [uploadingFiles, setUploadingFiles] = useState({});
-  const [confirmFileDelete, setConfirmFileDelete] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [activeStep, setActiveStep] = useState("A"); // Start with first step active
+  const [newSection, setNewSection] = useState({ key: "", label: "", content: "" });
 
   const projectId = form.id || null;
-  const { images, loading: imagesLoading, upload, remove: removeImage, resolveUrl, refresh } =
-    useProjectImages(wardId, projectId);
 
   useEffect(() => {
-    setForm({ title: "", status: "planned", start_date: "", end_date: "", location: "", ...project });
+    setForm({ 
+      title: "", 
+      status: "pending", 
+      start_date: "", 
+      end_date: "", 
+      location: "",
+      description: "",
+      is_published: false,
+      custom_sections: [],
+      ...project 
+    });
   }, [project]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    await onSave(form);
-    setSuccess({ title: "Saved!", message: "Project saved successfully." });
-    setSaving(false);
-  };
-
-  const handleMultipleFileUpload = async (files, step, type) => {
-    if (!files?.length || !projectId) return;
-    setUploadingFiles((prev) => ({ ...prev, [step]: true }));
     try {
-      await Promise.all(
-        Array.from(files).map((f) =>
-          upload(f, step, type).catch(() => ({ error: f.name }))
-        )
-      );
-      await refresh();
-      setSuccess({ title: "Uploaded!", message: `${files.length} file(s) uploaded.` });
+      await onSave(form);
     } finally {
-      setUploadingFiles((prev) => ({ ...prev, [step]: false }));
+      setSaving(false);
     }
   };
 
-  const steps = [
-    { key: "A", label: "Setting the Stage", fields: [{ name: "community_engagement", label: "Community Engagement", type: "textarea" }, { name: "kickoff_notes", label: "Kickoff Notes", type: "textarea" }] },
-    { key: "B", label: "Identifying the Project", fields: [{ name: "rationale", label: "Rationale", type: "textarea" }, { name: "assessment_tools", label: "Assessment Tools", type: "textarea" }, { name: "route_analysis_report", label: "Route Analysis Report", type: "textarea" }, { name: "wardmap_url", label: "Ward Map URL", type: "url" }] },
-    { key: "C", label: "Coordination & Approval", fields: [{ name: "coordination_notes", label: "Coordination Notes", type: "textarea" }, { name: "agencies_involved", label: "Agencies Involved", type: "textarea" }, { name: "commencement_letter_url", label: "Commencement Letter URL", type: "url" }] },
-    { key: "D", label: "Execution & Monitoring", fields: [{ name: "progress_notes", label: "Progress Notes", type: "textarea" }, { name: "execution_details", label: "Execution Details", type: "textarea" }, { name: "documentation_links", label: "Documentation Links", type: "url" }] },
-    { key: "E", label: "Final Deliverables & Learnings", fields: [{ name: "learnings", label: "Learnings", type: "textarea" }, { name: "community_impact", label: "Community Impact", type: "textarea" }, { name: "final_report_url", label: "Final Report URL", type: "url" }] },
-    { key: "F", label: "Scale-Up & Legacy", fields: [{ name: "next_route", label: "Next Route", type: "text" }, { name: "support_to_other_wards", label: "Support to Other Wards", type: "textarea" }, { name: "legacy_notes", label: "Legacy Notes", type: "textarea" }] },
+  const addCustomSection = () => {
+    if (newSection.key && newSection.label) {
+      setForm(prev => ({
+        ...prev,
+        custom_sections: [...prev.custom_sections, { ...newSection }]
+      }));
+      setNewSection({ key: "", label: "", content: "" });
+    }
+  };
+
+  const removeCustomSection = (index) => {
+    setForm(prev => ({
+      ...prev,
+      custom_sections: prev.custom_sections.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateCustomSection = (index, field, value) => {
+    setForm(prev => ({
+      ...prev,
+      custom_sections: prev.custom_sections.map((section, i) =>
+        i === index ? { ...section, [field]: value } : section
+      )
+    }));
+  };
+
+  const defaultSteps = [
+    { key: "A", label: "Setting the Stage", fields: ["community_engagement", "kickoff_notes"] },
+    { key: "B", label: "Identifying the Project", fields: ["rationale", "assessment_tools", "route_analysis_report", "wardmap_url"] },
+    { key: "C", label: "Coordination & Approval", fields: ["coordination_notes", "agencies_involved", "commencement_letter_url"] },
+    { key: "D", label: "Execution & Monitoring", fields: ["progress_notes", "execution_details", "documentation_links"] },
+    { key: "E", label: "Final Deliverables", fields: ["learnings", "community_impact", "final_report_url"] },
+    { key: "F", label: "Scale-Up & Legacy", fields: ["next_route", "support_to_other_wards", "legacy_notes"] },
   ];
 
   return (
     <div className={styles.projectFormOverlay}>
       <div className={styles.projectFormBackdrop} onClick={onCancel}></div>
       <form onSubmit={handleSubmit} className={styles.projectForm}>
-        <h3>{projectId ? "Edit Project" : "New Project"}</h3>
-
-        {/* Basic Info */}
-        <div className={styles.formSection}>
-          <div className={styles.formRow}>
-            <div className={styles.formGroup}>
-              <label>Title *</label>
-              <input
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                required
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label>Status</label>
-              <select
-                value={form.status}
-                onChange={(e) => setForm({ ...form, status: e.target.value })}
-              >
-                <option value="planned">Planned</option>
-                <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
-              </select>
-            </div>
-            <div className={styles.formGroup}>
-              <label>Location *</label>
-              <input
-                value={form.location}
-                onChange={(e) => setForm({ ...form, location: e.target.value })}
-                required
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label>Start Date *</label>
-              <input
-                type="date"
-                value={form.start_date}
-                onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                required
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label>End Date *</label>
-              <input
-                type="date"
-                value={form.end_date}
-                onChange={(e) => setForm({ ...form, end_date: e.target.value })}
-                required
-              />
-            </div>
+        <div className={styles.formHeader}>
+          <h3>{projectId ? "Edit Project" : "New Project"}</h3>
+          <div className={styles.formActions}>
+            <SaveButton saving={saving} type="submit" disabled={saving}>
+              {saving ? 'Saving...' : 'Save Project'}
+            </SaveButton>
+            <CancelButton type="button" onClick={onCancel}>
+              Cancel
+            </CancelButton>
           </div>
         </div>
 
-        {/* Steps */}
-        {steps.map((s) => (
-          <div key={s.key} className={styles.formSection}>
-            <h4>{s.key}. {s.label}</h4>
-            {s.fields.map((f) => (
-              <div key={f.name} className={styles.formGroup}>
-                <label>{f.label}</label>
-                {f.type === "textarea" ? (
-                  <textarea
-                    value={form[f.name] || ""}
-                    onChange={(e) => setForm({ ...form, [f.name]: e.target.value })}
-                  />
-                ) : (
+        <div className={styles.formContent}>
+          {/* Basic Information Section - Updated Layout */}
+          <div className={styles.formSection}>
+            <div className={styles.sectionHeader}>
+              <h4>Basic Information</h4>
+            </div>
+            <div className={styles.formGridCompact}>
+              <div className={styles.formGroup}>
+                <label>Project Title *</label>
+                <input
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  placeholder="Enter project title"
+                  required
+                />
+              </div>
+              
+              <div className={styles.formRowCompact}>
+                <div className={styles.formGroup}>
+                  <label>Status</label>
+                  <select
+                    value={form.status}
+                    onChange={(e) => setForm({ ...form, status: e.target.value })}
+                  >
+                    <option value="pending">Planning</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+                
+                <div className={styles.formGroup}>
+                  <label>Location *</label>
                   <input
-                    type={f.type}
-                    value={form[f.name] || ""}
-                    onChange={(e) => setForm({ ...form, [f.name]: e.target.value })}
+                    value={form.location}
+                    onChange={(e) => setForm({ ...form, location: e.target.value })}
+                    placeholder="Project location"
+                    required
                   />
+                </div>
+              </div>
+              
+              <div className={styles.formRowCompact}>
+                <div className={styles.formGroup}>
+                  <label>Start Date *</label>
+                  <input
+                    type="date"
+                    value={form.start_date}
+                    onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+                    required
+                  />
+                </div>
+                
+                <div className={styles.formGroup}>
+                  <label>End Date *</label>
+                  <input
+                    type="date"
+                    value={form.end_date}
+                    onChange={(e) => setForm({ ...form, end_date: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className={styles.formGroup}>
+              <label>Project Description</label>
+              <textarea
+                value={form.description || ""}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                placeholder="Brief description of the project..."
+                rows={3}
+              />
+            </div>
+          </div>
+
+          {/* Horizontal Step Navigation */}
+          <div className={styles.formSection}>
+            <div className={styles.sectionHeader}>
+              <h4>Project Details</h4>
+            </div>
+            
+            {/* Step Tabs */}
+            <div className={styles.stepTabs}>
+              {defaultSteps.map(step => (
+                <button
+                  key={step.key}
+                  type="button"
+                  className={`${styles.stepTab} ${activeStep === step.key ? styles.active : ''}`}
+                  onClick={() => setActiveStep(step.key)}
+                >
+                  <span className={styles.stepNumber}>{step.key}</span>
+                  <span className={styles.stepLabel}>{step.label}</span>
+                </button>
+              ))}
+            </div>
+            
+            {/* Active Step Content */}
+            <div className={styles.stepContent}>
+              {defaultSteps.map(step => (
+                <div 
+                  key={step.key} 
+                  className={`${styles.stepPanel} ${activeStep === step.key ? styles.active : ''}`}
+                >
+                  <div className={styles.stepFields}>
+                    {step.fields.map(field => (
+                      <div key={field} className={styles.formGroup}>
+                        <label>{field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</label>
+                        {field.includes('_url') ? (
+                          <input
+                            type="url"
+                            value={form[field] || ""}
+                            onChange={(e) => setForm({ ...form, [field]: e.target.value })}
+                            placeholder={`Enter ${field.replace('_url', ' URL')}`}
+                          />
+                        ) : (
+                          <textarea
+                            value={form[field] || ""}
+                            onChange={(e) => setForm({ ...form, [field]: e.target.value })}
+                            placeholder={`Enter ${field.replace(/_/g, ' ')}`}
+                            rows={4}
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Image Manager for this step */}
+                  {projectId && (
+                    <ProjectImageManager
+                      projectId={projectId}
+                      wardId={wardId}
+                      step={step.key}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Custom Sections */}
+          <div className={styles.formSection}>
+            <div className={styles.sectionHeader}>
+              <h4>Custom Sections</h4>
+            </div>
+            
+            <div className={styles.customSectionCreator}>
+              <div className={styles.creatorForm}>
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label>Section Key</label>
+                    <input
+                      value={newSection.key}
+                      onChange={(e) => setNewSection({ ...newSection, key: e.target.value.toUpperCase() })}
+                      placeholder="A, B, C1, etc."
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>Section Label</label>
+                    <input
+                      value={newSection.label}
+                      onChange={(e) => setNewSection({ ...newSection, label: e.target.value })}
+                      placeholder="Section title"
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>&nbsp;</label>
+                    <button 
+                      type="button" 
+                      onClick={addCustomSection} 
+                      className={styles.addSectionButton}
+                      disabled={!newSection.key || !newSection.label}
+                    >
+                      + Add Section
+                    </button>
+                  </div>
+                </div>
+                {newSection.key && newSection.label && (
+                  <div className={styles.formGroup}>
+                    <label>Section Content</label>
+                    <textarea
+                      value={newSection.content}
+                      onChange={(e) => setNewSection({ ...newSection, content: e.target.value })}
+                      placeholder="Enter section content..."
+                      rows={3}
+                    />
+                  </div>
                 )}
               </div>
-            ))}
+            </div>
 
-            {projectId && (
-              <div className={styles.uploadSection}>
-                <h5>Upload Files</h5>
-                <select
-                  value={uploadType}
-                  onChange={(e) => setUploadType(e.target.value)}
-                >
-                  <option value="stack">Image Stack</option>
-                  <option value="comparison-before">Before Images</option>
-                  <option value="comparison-after">After Images</option>
-                  <option value="document">Document</option>
-                </select>
-                <input
-                  type="file"
-                  multiple
-                  accept={uploadType === "document" ? ".pdf,.doc,.docx" : "image/*"}
-                  onChange={(e) =>
-                    handleMultipleFileUpload(e.target.files, s.key, uploadType)
-                  }
-                  disabled={uploadingFiles[s.key]}
-                />
-                {uploadingFiles[s.key] && <div>Uploading...</div>}
-              </div>
-            )}
-          </div>
-        ))}
-
-        <div className={styles.formActions}>
-          <SaveButton saving={saving} type="submit" disabled={saving}>
-            Save Project
-          </SaveButton>
-          <CancelButton type="button" onClick={onCancel}>
-            Cancel
-          </CancelButton>
-        </div>
-
-        {/* Uploaded files */}
-        {projectId && (
-          <div className={styles.uploadedFiles}>
-            <h4>Uploaded Files</h4>
-            {imagesLoading ? (
-              <div>Loading...</div>
-            ) : (
-              <div className={styles.fileGrid}>
-                {images.map((img) => (
-                  <div key={img.id} className={styles.fileItem}>
-                    {img.type === "document" ? (
-                      <a href={resolveUrl(img.path)} target="_blank" rel="noreferrer">
-                        {img.path.split("/").pop()}
-                      </a>
-                    ) : (
-                      <img src={resolveUrl(img.path)} alt={img.path} />
-                    )}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setConfirmFileDelete({
-                          title: "Delete File?",
-                          message: `Remove ${img.path.split("/").pop()}?`,
-                          onConfirm: async () => {
-                            await removeImage(img);
-                            await refresh();
-                            setConfirmFileDelete(null);
-                          },
-                          onCancel: () => setConfirmFileDelete(null),
-                        })
-                      }
-                      className={styles.deleteFileButton}
-                    >
-                    <FiTrash2 size={14} />
-                    </button>
+            {form.custom_sections.length > 0 && (
+              <div className={styles.customSectionsList}>
+                {form.custom_sections.map((section, index) => (
+                  <div key={index} className={styles.customSectionItem}>
+                    <div className={styles.sectionHeader}>
+                      <h5>{section.key}. {section.label}</h5>
+                      <button
+                        type="button"
+                        onClick={() => removeCustomSection(index)}
+                        className={styles.removeSectionButton}
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <textarea
+                      value={section.content}
+                      onChange={(e) => updateCustomSection(index, 'content', e.target.value)}
+                      placeholder="Section content..."
+                      rows={3}
+                    />
                   </div>
                 ))}
               </div>
             )}
           </div>
-        )}
+        </div>
       </form>
     </div>
   );

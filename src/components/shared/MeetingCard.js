@@ -10,7 +10,7 @@ import {
 } from "react-icons/fa";
 import MeetingForm from "./MeetingForm";
 import MoodVisualization from "./MoodVisualization";
-import styles from "styles/layout/timeline.module.css";
+import styles from "styles/tabs/timeline.module.css";
 
 const MeetingDetails = ({ item }) => (
   <div className={styles.meetingDetails}>
@@ -53,7 +53,6 @@ const MeetingDetails = ({ item }) => (
         <ul className={styles.discussionList}>
           {item.discussion.split("\n").filter(s => s.trim()).map((pt, i) => (
             <li key={i} className={styles.discussionPoint}>
-              <span className={styles.bullet}>•</span>
               {pt}
             </li>
           ))}

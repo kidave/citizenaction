@@ -1,6 +1,6 @@
 // components/shared/alert/LoadingAlert.js
 import { motion, AnimatePresence } from "framer-motion";
-import styles from "styles/components/alert.module.css";
+import styles from "styles/components/feedback/alert.module.css";
 
 const LoadingAlert = ({
   isOpen,

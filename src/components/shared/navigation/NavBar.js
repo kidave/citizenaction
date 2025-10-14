@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { FiChevronDown, FiMenu, FiX } from "react-icons/fi";
 import { useAuth } from "context/AuthContext";
-import styles from "styles/components/NavBar.module.css";
+import styles from "styles/components/navigation/NavBar.module.css";
 
 export default function NavBar({ 
   menuItems = [],

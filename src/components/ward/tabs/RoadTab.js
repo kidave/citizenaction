@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import headerStyles from "styles/layout/junction.module.css";
-import styles from "styles/layout/road.module.css";
+import headerStyles from "styles/tabs/junction.module.css";
+import styles from "styles/tabs/road.module.css";
 import dynamic from "next/dynamic";
 import { Table, TableHeader, TableCell } from "components/shared/table";
 import { FiChevronsLeft, FiChevronLeft, FiChevronRight, FiChevronsRight } from "react-icons/fi";

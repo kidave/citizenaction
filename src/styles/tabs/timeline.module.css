@@ -142,15 +142,6 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
-  padding-bottom: 0.8rem;
-  border-bottom: 1px solid #eee;
-}
-
-.timelineCardTitle {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: black;
-  margin: 0;
 }
 
 .cardTypeBadge {
@@ -182,43 +173,29 @@
 
 /* ===== DETAILS & CONTENT ===== */
 .sectionTitle {
-  margin: 1.2rem 0 0.8rem;
-  color: black;
-  font-size: 0.9rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 600;
   display: flex;
-  align-items: center;
 }
 
 
 .discussionList {
   list-style: none;
   padding-left: 0;
-  margin: 0;
+  margin-top: 0;
+  margin-bottom: 1rem;
 }
 
 .discussionPoint {
-  margin-bottom: 0.6rem;
   display: flex;
   align-items: flex-start;
-  line-height: 1.6;
+  line-height: 2;
   color: grey;
-}
-
-.bullet {
-  color: grey;
-  margin-right: 12px;
-  margin-left: 6px;
-  font-weight: bold;
-  flex-shrink: 0;
 }
 
 /* Meeting detail blocks */
 .meetingDetails,
 .updateDetails {
-  padding: 0.5rem 0;
+  padding: 0;
 }
 
 .detailItem {
@@ -371,7 +348,7 @@
 }
 
 .imageManagerToggle {
-  margin-top: 1rem;
+  margin: 1rem;
   text-align: center;
 }
 
@@ -466,7 +443,6 @@
 
 /* ===== COMPACT IMAGE STYLES FOR UPDATES ===== */
 .compactImageSection {
-  margin-bottom: 1.5rem;
   padding: 1rem;
   background: #f8f9fa;
   border-radius: 8px;

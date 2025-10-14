@@ -1,7 +1,7 @@
 // components/shared/alert/AuthAlert.js
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/router";
-import styles from "styles/components/alert.module.css";
+import styles from "styles/components/feedback/alert.module.css";
 
 const AuthAlert = ({ 
   isOpen, 

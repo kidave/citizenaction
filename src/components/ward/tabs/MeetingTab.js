@@ -6,7 +6,7 @@ import useWardMeetings from "hooks/useWardMeetings";
 import useMeetingImages from "hooks/useMeetingImages";
 import MoodVisualization from "components/shared/MoodVisualization";
 import ImageStackPopup from "components/shared/image/ImageStackPopup";
-import styles from "styles/layout/timeline.module.css";
+import styles from "styles/tabs/timeline.module.css";
 import { 
   FaMapMarkerAlt, 
   FaUserFriends, 

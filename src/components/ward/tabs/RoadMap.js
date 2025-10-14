@@ -5,7 +5,7 @@ import BaseMap from "components/shared/maps/Basemap";
 import GeoJSONLayer from "components/shared/maps/GeoJSONLayer";
 import WardBoundaryLayer from "components/shared/maps/WardBoundaryLayer";
 import { useWard } from "context/WardContext";
-import styles from "styles/layout/road.module.css";
+import styles from "styles/tabs/road.module.css";
 import L from "leaflet";
 
 export default function RoadMap({

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/router";
 import { useAuth } from "context/AuthContext";
 import { useAuthAlert } from "hooks/useAuthAlert";
-import styles from "styles/components/button.module.css";
+import styles from "styles/components/interact/button.module.css";
 
 const fetcher = async ([url, token]) => {
   const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });

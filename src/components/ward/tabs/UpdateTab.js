@@ -5,7 +5,7 @@ import { useWard } from "context/WardContext";
 import useWardUpdates from "hooks/useWardUpdates";
 import useUpdateImages from "hooks/useUpdateImages";
 import ImageStackPopup from "components/shared/image/ImageStackPopup";
-import styles from "styles/layout/timeline.module.css";
+import styles from "styles/tabs/timeline.module.css";
 
 export default function UpdateTab() {
   const { wardId } = useWard();

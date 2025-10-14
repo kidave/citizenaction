@@ -1,5 +1,5 @@
 // components/shared/MoodVisualization.js
-import styles from "styles/layout/timeline.module.css";
+import styles from "styles/tabs/timeline.module.css";
 
 export default function MoodVisualization({ rating }) {
   const getMoodColor = (rating) => {
