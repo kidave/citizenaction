@@ -5,6 +5,22 @@
   flex-direction: column;
 }
 
+.junctionContent {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+
+.junctionListSection {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.junctionMapSection {
+  flex: 1;
+  position: relative;
+}
+
 .junctionHeader {
   display: flex;
   flex-direction: column;
@@ -50,29 +66,11 @@
   margin-top: 0.2rem;
 }
 
-.topSection {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.tableSection {
-  flex: 1;
-  min-width: 300px;
-}
-
-.mapSection {
-  flex: 2;
-  display: flex;
-  flex-direction: column;
-}
-
 .mapContainer {
   position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
-  min-height: 400px;
 }
 
 .map {
@@ -92,10 +90,7 @@
   background: rgba(255, 255, 255, 0.8);
 }
 
-.junctionTable {
-  max-height: 320px;
-  overflow-y: auto;
-}
+
 
 .junctionTable th {
   position: sticky;
@@ -318,5 +313,6 @@
   background: #f0f4ff !important;
   border-left: 4px solid #667eea;
 }
+
 
 

@@ -53,6 +53,7 @@ export default function ProjectMap({
           center={[19.076, 72.8777]}
           zoom={12}
           wardId={wardId}
+          showBoundary={false}
         />
       );
     }
@@ -66,6 +67,7 @@ export default function ProjectMap({
           center={[19.076, 72.8777]}
           zoom={14}
           wardId={wardId}
+          showBoundary={false}
         />
       );
     }

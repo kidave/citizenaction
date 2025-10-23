@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
-import { supabase } from "utils/supabaseClient";
 import { useWard } from "context/WardContext";
 import { useWardProjects, useWardJunctions, useWardRoads } from "hooks/useWardData";
 import styles from "styles/tabs/project.module.css";
@@ -374,23 +373,18 @@ function SingleProject({ project, junctions, roads, index }) {
         <div className={styles.headerBottom}>
           <div className={styles.headerDateLeft}>
             {project.start_date && (
-              <span className={styles.projectDate}>
+              <span>
                 <strong>Start Date - </strong>
                 {formatDate(project.start_date)}
               </span>
             )}
             {project.end_date && (
-              <span className={styles.projectDate}>
+              <span>
                 <strong>End Date - </strong>
                 {formatDate(project.end_date)}
               </span>
             )}
-            {project.location && (
-              <span className={styles.projectLocation}>
-                <strong>Location - </strong>
-                {project.location}
-              </span>
-            )}
+            
           </div>
           <div className={styles.headerDateRight}>
             <motion.div
@@ -404,11 +398,15 @@ function SingleProject({ project, junctions, roads, index }) {
         </div>
 
         {/* Project Description */}
-        {project.description && (
-          <div className={styles.projectDescription}>
-            <p>{project.description}</p>
-          </div>
+        {project.location && (
+          <p>
+            <strong>Location - </strong>{project.location}
+          </p>
         )}
+        {project.description && (
+          <p>{project.description}</p>
+        )}
+        
       </div>
 
       {/* Expandable Content */}

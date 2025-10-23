@@ -122,8 +122,8 @@ function TopSection({ junctions, selectedJunction, onSelectJunction, wardId }) {
   const DEFAULT_ZOOM = 12;
 
   return (
-    <div className={styles.topSection}>
-      <div className={styles.tableSection}>
+    <div className={styles.junctionContent}>
+      <div className={styles.junctionListSection}>
         {junctions?.length > 0 ? (
           <div className={styles.junctionTable}>
             <Table className={styles.table}>
@@ -179,7 +179,7 @@ function TopSection({ junctions, selectedJunction, onSelectJunction, wardId }) {
         )}
       </div>
 
-      <div className={styles.mapSection}>
+      <div className={styles.junctionMapSection}>
         <JunctionMap
           junctions={junctions}
           selectedJunction={selectedJunction}

@@ -14,10 +14,12 @@ export default function RoadMap({
   onRoadSelect,
   center = [19.076, 72.8777],
   zoom = 12,
-  wardId, // Add wardId prop
+  wardId,
+  showBoundary = true,
 }) {
   const mapRef = useRef(null);
-  const { data: boundary } = useWardBoundary(wardId);
+  const { data: boundary, error } = useWardBoundary(wardId);
+  console.log("🧭 useWardBoundary output:", { boundary, error });
   const roadLayersRef = useRef({});
   const isMountedRef = useRef(true);
 
@@ -114,7 +116,7 @@ export default function RoadMap({
         }}
       >
         {/* Boundary Layer */}
-        {boundary && (
+        {showBoundary && boundary && (
           <BoundaryLayer
             map={mapRef.current}
             boundary={boundary}

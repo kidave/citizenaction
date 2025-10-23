@@ -98,7 +98,11 @@ export function useWardData(wardId, dataType, options = {}) {
 
         // Boundary (RPC)
         case "boundary":
-          result = await supabase.rpc("get_ward_boundary", { ward_code: wardId });
+          result = await supabase
+            .from("ward")
+            .select("code, name, geom")
+            .eq("code", wardId)
+            .single();
           break;
 
         default:

@@ -35,6 +35,9 @@ export default function MapContainer({
         center,
         zoom,
         zoomControl: false,
+        // Set lower z-index for the map
+        fadeAnimation: false,
+        zoomAnimation: false,
       });
 
       // Add default tile layer
@@ -44,6 +47,13 @@ export default function MapContainer({
 
       // Add zoom control
       L.control.zoom({ position: 'topright' }).addTo(mapInstance.current);
+
+      // Explicitly set lower z-index for map container
+      const container = mapInstance.current.getContainer();
+      if (container) {
+        container.style.zIndex = '1';
+        container.style.position = 'relative';
+      }
 
       // Store initial values
       prevCenterRef.current = center;
