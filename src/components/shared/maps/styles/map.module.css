@@ -63,3 +63,14 @@
   margin-bottom: 8px;
   font-size: 16px;
 }
+
+.custom-junction-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Optional: Add hover effect */
+.custom-junction-marker:hover {
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+}

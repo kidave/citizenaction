@@ -6,27 +6,21 @@ export default async function handler(req, res) {
   const token = req.headers.authorization?.replace("Bearer ", "");
   const supabase = createServerSupabase(token);
 
-  // Get the current user
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-  
-  if (userError || !user) {
-    return res.status(401).json({ error: "Not authenticated" });
-  }
+  // Auth
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) return res.status(401).json({ error: "Not authenticated" });
 
-  try {
-    // REMOVE .eq("user_id", user.id) - RLS will handle security
-    const { data, error } = await supabase
+  if (req.method === "GET") {
+    const { data: projects, error } = await supabase
       .from("project")
       .select("*")
       .eq("ward_code", wardId)
-      .order("created_at", { ascending: false }); // Add ordering
+      .order("created_at", { ascending: false });
 
-    if (error) throw error;
-    res.status(200).json(data || []);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch projects" });
+    if (error) return res.status(400).json({ error: error.message });
+    return res.json(projects || []);
   }
+
+  res.setHeader("Allow", ["GET"]);
+  res.status(405).end(`Method ${req.method} Not Allowed`);
 }

@@ -1,93 +1,105 @@
-import { useState, useRef } from "react";
-import useUpdateImages from "hooks/useUpdateImages";
+// components/admin/UpdateImageManager.js
+import { useState } from "react";
 import { useAlert } from "hooks/useAlert";
-import styles from "styles/layout/admin.module.css";
-import { FaTrash } from "react-icons/fa";
+import { useUpdateImages } from "hooks/useImages";
+import FileUploader from "components/shared/FileUploader";
+import ImageStackPopup from "components/shared/image/ImageStackPopup";
+import styles from "styles/components/data/imagemanager.module.css";
+import { FiFile } from "react-icons/fi";
 
 export default function UpdateImageManager({ updateId, wardId }) {
-  const { images, resolveUrl, upload, remove, loading } = useUpdateImages(updateId);
+  const { files, loading, upload, remove, resolveUrl, refresh } = useUpdateImages(updateId, wardId);
   const { showConfirmAlert, showSuccessAlert, showErrorAlert, AlertComponent } = useAlert();
-  
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState(null);
-  const fileInputRef = useRef(null);
 
-  const handleFileSelect = async (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [popupFiles, setPopupFiles] = useState([]);
+  const [uploadType, setUploadType] = useState("image");
 
-    setIsUploading(true);
-    setUploadError(null);
-
+  const handleUpload = async (file) => {
     try {
-      for (const file of files) {
-        await upload(wardId, file);
-      }
-      showSuccessAlert({ message: "Images uploaded successfully!" });
-    } catch (error) {
-      setUploadError(error.message);
-      showErrorAlert({ message: "Failed to upload images", errorDetails: error.message });
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      await upload(file, "general", uploadType);
+      showSuccessAlert({ message: "File uploaded successfully!" });
+    } catch (err) {
+      showErrorAlert({ message: "Failed to upload file", errorDetails: err.message });
     }
   };
 
-  const handleDeleteImage = async (image) => {
+  const handleDelete = (file) => {
     showConfirmAlert({
-      title: "Delete Image",
-      message: "Are you sure you want to delete this image?",
+      title: "Delete File?",
+      message: `Are you sure you want to delete ${file.path.split('/').pop()}?`,
       confirmText: "Delete",
       cancelText: "Cancel",
       onConfirm: async () => {
         try {
-          await remove(image);
-          showSuccessAlert({ message: "Image deleted successfully!" });
-        } catch (error) {
-          console.error("Failed to delete image:", error);
-          showErrorAlert({ message: "Failed to delete image", errorDetails: error.message });
+          await remove(file);
+          showSuccessAlert({ message: "File deleted successfully!" });
+        } catch (err) {
+          showErrorAlert({ message: "Failed to delete file", errorDetails: err.message });
         }
-      }
+      },
     });
   };
 
+  const openPopup = (files) => {
+    setPopupFiles(files.map((file) => resolveUrl(file.path)));
+    setIsPopupOpen(true);
+  };
+
   return (
-    <div className={styles.imagesAdmin}>
+    <div className={styles.imageManager}>
       <AlertComponent />
-      
-      <div className={styles.uploadSection}>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleFileSelect}
-          disabled={isUploading}
-          className={styles.fileInput}
-        />
-        {isUploading && <p>Uploading images...</p>}
-        {uploadError && showErrorAlert({ message: `Upload error: ${uploadError}` })}
+
+      <div className={styles.managerHeader}>
+        <h4>Files for Update</h4>
+        <select value={uploadType} onChange={(e) => setUploadType(e.target.value)}>
+          <option value="image">Single Image</option>
+          <option value="stack">Image Stack</option>
+          <option value="comparison-before">Before</option>
+          <option value="comparison-after">After</option>
+          <option value="document">Document</option>
+        </select>
       </div>
 
-      <div className={styles.imageThumbs}>
-        {images.map((img) => (
-          <div key={img.id} className={styles.imageWrapper}>
-            <img src={resolveUrl(img.path)} alt="Update image" />
-            <button 
-              onClick={() => handleDeleteImage(img)}
-              className={styles.deleteImageButton}
-              disabled={isUploading}
-            >
-              <FaTrash />
-            </button>
+      <FileUploader
+        onUpload={handleUpload}
+        onDelete={handleDelete}
+        uploadedFiles={files}
+        accept={uploadType === "document" ? ".pdf,.doc,.docx,.txt" : "image/*"}
+        multiple
+        maxFiles={10}
+        label={`Upload ${uploadType.replace("-", " ")} files`}
+        loading={loading}
+      />
+
+      {files.length > 0 && (
+        <div className={styles.previewSection}>
+          <div className={styles.previewGrid}>
+            {files.map((file) => (
+              <div key={file.id} className={styles.previewItem}>
+                {file.type === "document" ? (
+                  <div className={styles.documentPreview}>
+                    <FiFile className={styles.documentIcon} />
+                    <span>{file.path.split("/").pop()}</span>
+                    <a href={resolveUrl(file.path)} target="_blank" rel="noopener noreferrer">
+                      View
+                    </a>
+                  </div>
+                ) : (
+                  <img
+                    src={resolveUrl(file.path)}
+                    alt={file.type}
+                    className={styles.previewImage}
+                    onClick={() => openPopup([file])}
+                  />
+                )}
+              </div>
+            ))}
           </div>
-        ))}
-        {images.length === 0 && !loading && (
-          <p className={styles.noImages}>No images yet. Upload some to get started.</p>
-        )}
-      </div>
+        </div>
+      )}
+
+      {isPopupOpen && <ImageStackPopup files={popupFiles} onClose={() => setIsPopupOpen(false)} />}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, useEffect } from "react";
-import useWardHeader from "hooks/useWardHeader";
+import { useWardHeader } from "hooks/useWardData";
 import Spinner from "components/shared/ui/Spinner";
 import { useRegionData } from "hooks/useRegionData";
 
@@ -7,37 +7,32 @@ const WardContext = createContext();
 
 export function WardProvider({ children, wardId }) {
   const { setNavigatingWard } = useRegionData();
-  const {
-    wardInfo,
-    loading: infoLoading,
-    error: infoError,
-  } = useWardHeader(wardId);
   
-  const loading =
-    infoLoading;
+  // Use the new simplified hook
+  const { data: wardInfo, loading: infoLoading, error: infoError } = useWardHeader(wardId);
+  
+  const loading = infoLoading;
 
-    useEffect(() => {
-      if (!loading) {
-        setNavigatingWard(null);
-      }
-    }, [loading, setNavigatingWard]);
+  useEffect(() => {
+    if (!loading) {
+      setNavigatingWard(null);
+    }
+  }, [loading, setNavigatingWard]);
 
-  const error =
-    infoError;
+  const error = infoError;
 
   const contextValue = useMemo(
     () => ({
       wardId,
-      wardInfo,
+      wardInfo: wardInfo || {
+        wardName: "",
+        convenor: null,
+        coConvenor: null,
+      },
       loading,
       error,
     }),
-    [
-      wardId,
-      wardInfo,
-      loading,
-      error,
-    ],
+    [wardId, wardInfo, loading, error]
   );
 
   return (

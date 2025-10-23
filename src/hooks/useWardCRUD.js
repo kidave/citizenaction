@@ -1,17 +1,18 @@
 // hooks/useWardCRUD.js
 import { useAuth } from "context/AuthContext";
+import { useAlert } from "hooks/useAlert";
 
-export default function useWardCRUD(resource, wardId, mutate) {
+export default function useWardCRUD(resource, wardId) {
   const { getAccessToken } = useAuth();
+  const { showSuccessAlert, showErrorAlert } = useAlert();
 
-  const request = async (method, body, id = null) => {
+  const request = async (method, body = null, id = null) => {
     try {
       const token = await getAccessToken();
       if (!token) {
-        throw new Error("No authentication token available. Please log in again.");
+        throw new Error("No authentication token available");
       }
 
-      // FIX: Use singular resource name (project, not projects)
       const url = id
         ? `/api/ward/${wardId}/${resource}/${id}`
         : `/api/ward/${wardId}/${resource}`;
@@ -25,9 +26,8 @@ export default function useWardCRUD(resource, wardId, mutate) {
         body: body ? JSON.stringify(body) : undefined,
       });
 
-      // Handle HTML responses (like 404 pages)
       const contentType = res.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
+      if (!contentType?.includes("application/json")) {
         throw new Error(`Server returned ${res.status} ${res.statusText}`);
       }
 
@@ -41,7 +41,6 @@ export default function useWardCRUD(resource, wardId, mutate) {
         throw new Error(result.error || "Request failed");
       }
 
-      if (mutate) await mutate();
       return result;
     } catch (error) {
       console.error("CRUD operation failed:", error);
@@ -49,9 +48,38 @@ export default function useWardCRUD(resource, wardId, mutate) {
     }
   };
 
-  return {
-    create: (data) => request("POST", data),
-    update: (id, data) => request("PUT", data, id),
-    remove: (id) => request("DELETE", null, id),
+  const create = async (data) => {
+    try {
+      const result = await request("POST", data);
+      showSuccessAlert({ message: `${resource} created successfully!` });
+      return result;
+    } catch (error) {
+      showErrorAlert({ message: `Failed to create ${resource}`, errorDetails: error.message });
+      throw error;
+    }
   };
+
+  const update = async (id, data) => {
+    try {
+      const result = await request("PUT", data, id);
+      showSuccessAlert({ message: `${resource} updated successfully!` });
+      return result;
+    } catch (error) {
+      showErrorAlert({ message: `Failed to update ${resource}`, errorDetails: error.message });
+      throw error;
+    }
+  };
+
+  const remove = async (id) => {
+    try {
+      const result = await request("DELETE", null, id);
+      showSuccessAlert({ message: `${resource} deleted successfully!` });
+      return result;
+    } catch (error) {
+      showErrorAlert({ message: `Failed to delete ${resource}`, errorDetails: error.message });
+      throw error;
+    }
+  };
+
+  return { create, update, remove };
 }

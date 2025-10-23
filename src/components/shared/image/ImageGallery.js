@@ -2,17 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./image.module.css";
 
-const BUCKET_URL =
-  "https://<your-project-id>.supabase.co/storage/v1/object/public/ward/";
-
-// Safer resolver (handles string or object)
-const resolveUrl = (img) => {
-  if (!img) return "/no-image.svg";
-  const path = typeof img === "string" ? img : img?.path;
-  if (!path) return "/no-image.svg";
-  if (path.startsWith("http")) return path;
-  return `${BUCKET_URL}${path}`;
-};
 
 export default function ImageStackPopup({
   images = [],
@@ -59,7 +48,7 @@ export default function ImageStackPopup({
             {images.map((img, i) => (
               <motion.img
                 key={img.id || i}
-                src={resolveUrl(img)}
+                src={img}
                 alt={`Image ${i + 1}`}
                 className={styles.gridImage}
                 onClick={() => setZoomedIndex(i)}
@@ -82,7 +71,7 @@ export default function ImageStackPopup({
                 exit={{ opacity: 0 }}
               >
                 <motion.img
-                  src={resolveUrl(images[zoomedIndex])}
+                  src={images[zoomedIndex]}
                   alt={`Zoomed ${zoomedIndex + 1}`}
                   className={styles.zoomedImage}
                   initial={{ scale: 0.5, opacity: 0 }}

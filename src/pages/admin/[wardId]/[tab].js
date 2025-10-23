@@ -1,4 +1,4 @@
-// pages/admin/[wardId]/[tab].js (Fixed)
+// pages/admin/[wardId]/[tab].js
 import { useRouter } from "next/router";
 import Spinner from "components/shared/ui/Spinner";
 import { AdminProvider, useAdmin } from "context/AdminContext";

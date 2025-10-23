@@ -15,7 +15,7 @@ export default function WardBottomBar({ activeTab }) {
 
   const handleTabChange = (tab) => {
     if (wardId) {
-      router.push(`/${regionCode}/${cityCode}/${wardId}/${tab}`);
+      router.push(`/ward/${wardId}/${tab}`);
     }
   };
 

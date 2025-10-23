@@ -27,36 +27,13 @@ export function AuthProvider({ children }) {
   }, []);
 
   /**
-   * Normal login with Google OAuth redirect
+   * Login with Google OAuth redirect (the working method)
    */
-  const loginWithRedirect = () =>
+  const login = () =>
     supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
-
-  /**
-   * One Tap login (exchange Google ID token directly)
-   */
-  const loginWithIdToken = async (googleJwt) => {
-    if (!googleJwt) throw new Error("Missing Google ID token");
-    return supabase.auth.signInWithIdToken({
-      provider: "google",
-      token: googleJwt,
-    });
-  };
-
-  /**
-   * Unified login function:
-   * - If called with token → One Tap flow
-   * - Else → Redirect flow
-   */
-  const login = (googleJwt) => {
-    if (googleJwt) {
-      return loginWithIdToken(googleJwt);
-    }
-    return loginWithRedirect();
-  };
 
   const logout = () => supabase.auth.signOut();
 

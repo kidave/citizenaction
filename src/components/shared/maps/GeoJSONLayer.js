@@ -16,41 +16,90 @@ export default function GeoJSONLayer({
   onLayerCreated,
 }) {
   const layerRef = useRef(null);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
-    if (!map || !geojson) return;
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      // Cleanup layer on unmount
+      if (layerRef.current) {
+        try {
+          layerRef.current.remove();
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+        layerRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    // Check if map is valid and ready
+    if (!map || !map.addLayer || !geojson || !isMountedRef.current) {
+      console.log("GeoJSONLayer: Map not ready or no geojson", { 
+        mapReady: !!map, 
+        hasAddLayer: map?.addLayer, 
+        hasGeojson: !!geojson,
+        isMounted: isMountedRef.current 
+      });
+      return;
+    }
 
     try {
       const processedGeoJSON = transformGeoJSON(geojson);
-      if (!processedGeoJSON) return;
+      if (!processedGeoJSON || !isMountedRef.current) {
+        console.log("GeoJSONLayer: No processed GeoJSON");
+        return;
+      }
 
       const style = getRoadStyle(styleOptions, selected);
 
+      console.log("GeoJSONLayer: Creating layer");
       layerRef.current = L.geoJSON(processedGeoJSON, {
         style: () => style,
         onEachFeature: (feature, layer) => {
-          if (popupContent) {
+          if (popupContent && isMountedRef.current) {
             layer.bindPopup(() => popupContent);
           }
-          if (onClick) {
-            layer.on("click", (e) => onClick(e));
+          if (onClick && isMountedRef.current) {
+            layer.on("click", (e) => {
+              if (isMountedRef.current) onClick(e);
+            });
           }
         },
-      }).addTo(map);
+      });
+
+      // Safely add to map with additional checks
+      if (map && map.addLayer && isMountedRef.current) {
+        try {
+          layerRef.current.addTo(map);
+          console.log("GeoJSONLayer: Layer successfully added to map");
+        } catch (addError) {
+          console.error("GeoJSONLayer: Error adding layer to map:", addError);
+          return;
+        }
+      }
 
       // Call the callback if provided
-      if (onLayerCreated) {
+      if (onLayerCreated && isMountedRef.current && layerRef.current) {
         onLayerCreated(layerRef.current);
       }
 
-      return () => {
-        if (layerRef.current) {
-          layerRef.current.remove();
-        }
-      };
     } catch (e) {
-      console.error("Error creating GeoJSON layer:", e);
+      console.error("GeoJSONLayer: Error creating GeoJSON layer:", e);
     }
+
+    return () => {
+      if (layerRef.current && isMountedRef.current) {
+        try {
+          layerRef.current.remove();
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+        layerRef.current = null;
+      }
+    };
   }, [
     map,
     geojson,

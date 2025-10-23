@@ -1,10 +1,10 @@
 // components/admin/tabs/ProjectAdmin.js
 import { useState, useEffect } from "react";
 import { useAdmin } from "context/AdminContext";
-import { useAuth } from "context/AuthContext";
-import useAdminProjects from "hooks/useAdminProjects";
+import { useAdminWardProjects } from "hooks/useWardData";
 import useWardCRUD from "hooks/useWardCRUD";
 import { useAlert } from "hooks/useAlert";
+import ButtonGroup from "components/shared/ui/ButtonGroup";
 import { 
   AddButton, 
   EditButton, 
@@ -18,11 +18,10 @@ import styles from "styles/tabs/project.module.css";
 
 export default function ProjectAdmin({ wardId }) {
   const { isAdmin } = useAdmin();
-  const { getAccessToken } = useAuth();
   const { showConfirmAlert, showSuccessAlert, showErrorAlert, AlertComponent } = useAlert();
 
-  const { projects, loading, error, refresh } = useAdminProjects(wardId);
-  const { create, update, remove } = useWardCRUD("project", wardId);
+  const { data: projects, loading, error, refresh } = useAdminWardProjects(wardId);
+  const { create, update, remove } = useWardCRUD("project", wardId); // Remove publish
 
   const [editing, setEditing] = useState(null);
   const [saveError, setSaveError] = useState(null);
@@ -36,12 +35,10 @@ export default function ProjectAdmin({ wardId }) {
       );
       const created = await create(cleanData);
       setEditing(created);
-      showSuccessAlert({ title: "Created!", message: "Project created successfully." });
       await refresh();
       return created;
     } catch (err) {
       setSaveError(err.message);
-      showErrorAlert({ message: "Failed to create project", errorDetails: err.message });
       throw err;
     }
   };
@@ -53,11 +50,9 @@ export default function ProjectAdmin({ wardId }) {
         Object.entries(projectData).filter(([_, v]) => v !== undefined && v !== null)
       );
       await update(id, cleanData);
-      showSuccessAlert({ title: "Updated!", message: "Project updated successfully." });
       await refresh();
     } catch (err) {
       setSaveError(err.message);
-      showErrorAlert({ message: "Failed to update project", errorDetails: err.message });
       throw err;
     }
   };
@@ -73,29 +68,29 @@ export default function ProjectAdmin({ wardId }) {
           await remove(id);
           if (editing && editing.id === id) setEditing(null);
           await refresh();
-          showSuccessAlert({ title: "Deleted!", message: "Project deleted successfully." });
         } catch (err) {
           setSaveError(err.message);
-          showErrorAlert({ message: "Failed to delete project", errorDetails: err.message });
         }
       }
     });
   };
 
-  const handlePublishToggle = async (project) => {
-    setPublishingStates(prev => ({ ...prev, [project.id]: true }));
-    
+  const handlePublish = async (projectId, publishState) => {
     try {
-      await update(project.id, { is_published: !project.is_published });
+      setPublishingStates(prev => ({ ...prev, [projectId]: true }));
+      // Use update function to change is_published status
+      await update(projectId, { is_published: publishState });
       showSuccessAlert({ 
-        title: "Success!", 
-        message: `Project ${!project.is_published ? 'published' : 'unpublished'} successfully.` 
+        message: `Project ${publishState ? 'published' : 'unpublished'} successfully!` 
       });
       await refresh();
     } catch (err) {
-      showErrorAlert({ message: "Failed to update project", errorDetails: err.message });
+      showErrorAlert({ 
+        message: `Failed to ${publishState ? 'publish' : 'unpublish'} project`, 
+        errorDetails: err.message 
+      });
     } finally {
-      setPublishingStates(prev => ({ ...prev, [project.id]: false }));
+      setPublishingStates(prev => ({ ...prev, [projectId]: false }));
     }
   };
 
@@ -113,7 +108,7 @@ export default function ProjectAdmin({ wardId }) {
   return (
     <div className={styles.adminPanel}>
       <AlertComponent />
-      <div className={styles.adminHeader}>
+      <ButtonGroup>
         <AddButton
           variant="outline"
           onClick={() => setEditing({})}
@@ -121,20 +116,20 @@ export default function ProjectAdmin({ wardId }) {
         >
           New Project
         </AddButton>
-      </div>
+      </ButtonGroup>
 
       {error && <div className={styles.errorMessage}>Error: {error}</div>}
       {saveError && <div className={styles.errorMessage}>Error: {saveError}</div>}
 
       {loading ? (
         <div className={styles.loading}>Loading projects...</div>
-      ) : projects.length === 0 && !editing ? (
+      ) : (!projects || projects.length === 0) && !editing ? ( // Add null check for projects
         <div className={styles.emptyState}>
           <p>No projects found. Create your first project to get started.</p>
         </div>
       ) : (
         <div className={styles.projectList}>
-          {projects.map((project) => (
+          {projects?.map((project) => ( 
             <div key={project.id} className={styles.adminItem}>
               <div className={styles.adminItemHeader}>
                 <div className={styles.adminItemTitle}>
@@ -143,12 +138,12 @@ export default function ProjectAdmin({ wardId }) {
                     <h5>{project.is_published ? 'Published' : 'Draft'}</h5>
                   </div>
                 </div>
-                <div className={styles.adminItemActions}>
+                <ButtonGroup>
                   <PublishButton
                     size="small"
                     published={project.is_published}
                     publishing={publishingStates[project.id]}
-                    onClick={() => handlePublishToggle(project)}
+                    onClick={() => handlePublish(project.id, !project.is_published)}
                   />
                   <EditButton 
                     size="small" 
@@ -163,7 +158,7 @@ export default function ProjectAdmin({ wardId }) {
                   >
                     Delete
                   </DeleteButton>
-                </div>
+                </ButtonGroup>
               </div>
             </div>
           ))}
@@ -272,14 +267,14 @@ function ProjectForm({ wardId, project = {}, onSave, onCancel }) {
       <form onSubmit={handleSubmit} className={styles.projectForm}>
         <div className={styles.formHeader}>
           <h3>{projectId ? "Edit Project" : "New Project"}</h3>
-          <div className={styles.formActions}>
+          <ButtonGroup>
             <SaveButton saving={saving} type="submit" disabled={saving}>
               {saving ? 'Saving...' : 'Save Project'}
             </SaveButton>
             <CancelButton type="button" onClick={onCancel}>
               Cancel
             </CancelButton>
-          </div>
+          </ButtonGroup>
         </div>
 
         <div className={styles.formContent}>
@@ -446,17 +441,14 @@ function ProjectForm({ wardId, project = {}, onSave, onCancel }) {
                       placeholder="Section title"
                     />
                   </div>
-                  <div className={styles.formGroup}>
-                    <label>&nbsp;</label>
-                    <button 
-                      type="button" 
+                  <ButtonGroup>
+                    <AddButton 
                       onClick={addCustomSection} 
-                      className={styles.addSectionButton}
                       disabled={!newSection.key || !newSection.label}
                     >
-                      + Add Section
-                    </button>
-                  </div>
+                      Add Section
+                    </AddButton>
+                  </ButtonGroup>
                 </div>
                 {newSection.key && newSection.label && (
                   <div className={styles.formGroup}>
@@ -478,13 +470,11 @@ function ProjectForm({ wardId, project = {}, onSave, onCancel }) {
                   <div key={index} className={styles.customSectionItem}>
                     <div className={styles.sectionHeader}>
                       <h5>{section.key}. {section.label}</h5>
-                      <button
-                        type="button"
+                      <DeleteButton
                         onClick={() => removeCustomSection(index)}
-                        className={styles.removeSectionButton}
                       >
-                        ×
-                      </button>
+                        Delete
+                      </DeleteButton>
                     </div>
                     <textarea
                       value={section.content}

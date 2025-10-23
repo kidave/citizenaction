@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import styles from "styles/tabs/junction.module.css";
-import { FaMapMarkerAlt, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaMapMarkerAlt, FaExternalLinkAlt } from "react-icons/fa";
 import { useWard } from "context/WardContext";
-import useWardJunctions from "hooks/useWardJunctions";
+import { useProjectJunctions } from "hooks/useProjectJunctions";
 import { Table, TableHeader, TableCell } from "components/shared/table";
+import { useWardTabs } from "hooks/useWardTabs";
 
 const JunctionMap = dynamic(() => import("./JunctionMap"), {
   ssr: false,
@@ -14,53 +16,45 @@ const JunctionMap = dynamic(() => import("./JunctionMap"), {
 });
 
 export default function JunctionTab() {
-  const { wardId, wardInfo, boundary } = useWard();
-  const { junctions, loading, error } = useWardJunctions(wardId);
+  const { wardId } = useWard();
+  const { data: junctions, loading, error } = useProjectJunctions(wardId);
   const [selectedJunction, setSelectedJunction] = useState(null);
-  const [beforeIndex, setBeforeIndex] = useState(0);
-  const [afterIndex, setAfterIndex] = useState(0);
 
-  // Reset selection when component unmounts
+  // Reset selection when ward changes
   useEffect(() => {
-    return () => {
-      setSelectedJunction(null);
+    setSelectedJunction(null);
+  }, [wardId]);
+
+  const getWardName = () => {
+    return wardId ? `Ward ${wardId}` : "Selected Ward";
+  };
+
+  const getStatusDisplay = (status) => {
+    const statusMap = {
+      pending: "Pending",
+      in_progress: "In Progress",
+      completed: "Completed"
     };
-  }, []);
+    return statusMap[status] || status;
+  };
 
-  useEffect(() => {
-    setBeforeIndex(0);
-    setAfterIndex(0);
-  }, [junctions]);
-
-  const beforeImages = selectedJunction
-    ? [
-        {
-          url: `https://gostxgfnoilfmybaohhx.supabase.co/storage/v1/object/public/junction/Mumbai/${wardInfo?.wardName}/${selectedJunction.fid}/before1.jpg`,
-          date: "2023-01-15",
-        },
-        {
-          url: `https://gostxgfnoilfmybaohhx.supabase.co/storage/v1/object/public/junction/Mumbai/${wardInfo?.wardName}/${selectedJunction.fid}/before2.jpg`,
-          date: "2023-01-20",
-        },
-      ]
-    : [];
-
-  const afterImages = selectedJunction
-    ? [
-        {
-          url: `https://gostxgfnoilfmybaohhx.supabase.co/storage/v1/object/public/junction/Mumbai/${wardInfo?.wardName}/${selectedJunction.fid}/after1.jpg`,
-          date: "2023-06-20",
-        },
-        {
-          url: `https://gostxgfnoilfmybaohhx.supabase.co/storage/v1/object/public/junction/Mumbai/${wardInfo?.wardName}/${selectedJunction.fid}/after2.jpg`,
-          date: "2023-07-15",
-        },
-      ]
-    : [];
+  const formatDate = (date) => {
+    if (!date) return "Not specified";
+    if (!(date instanceof Date)) date = new Date(date);
+    return date.toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
 
   const renderContent = () => {
-    if (junctions === undefined) {
+    if (loading) {
       return <div className={styles.loading}>Loading junction data...</div>;
+    }
+
+    if (error) {
+      return <div className={styles.error}>Error loading junctions: {error.message}</div>;
     }
 
     return (
@@ -69,18 +63,14 @@ export default function JunctionTab() {
           junctions={junctions}
           selectedJunction={selectedJunction}
           onSelectJunction={setSelectedJunction}
-          boundary={boundary}
+          wardId={wardId}
         />
 
         {selectedJunction && (
           <BottomSection
             junction={selectedJunction}
-            beforeImages={beforeImages}
-            afterImages={afterImages}
-            beforeIndex={beforeIndex}
-            afterIndex={afterIndex}
-            onBeforeIndexChange={setBeforeIndex}
-            onAfterIndexChange={setAfterIndex}
+            getStatusDisplay={getStatusDisplay}
+            formatDate={formatDate}
           />
         )}
       </>
@@ -91,7 +81,7 @@ export default function JunctionTab() {
     <div className={styles.junctionContainer}>
       <Header
         junctionCount={junctions?.length || 0}
-        wardName={wardInfo?.wardName}
+        wardName={getWardName()}
       />
       <Description />
       {renderContent()}
@@ -99,19 +89,19 @@ export default function JunctionTab() {
   );
 }
 
-// Child Components
+// Header Components (similar to ProjectTab)
 function Header({ junctionCount, wardName }) {
   return (
     <div className={styles.junctionHeader}>
       <div className={styles.junctionHeaderTopRow}>
         <FaMapMarkerAlt className={styles.junctionHeaderIcon} />
         <h3 className={styles.junctionTitle}>
-          Identified {junctionCount} Junctions in {wardName} Ward
+          Identified {junctionCount} Junctions in {wardName}
         </h3>
       </div>
       <p className={styles.junctionSubtitle}>
         Each intersection represents a critical point for pedestrian movement
-        and traffic flow in your ward.
+        and traffic flow in your ward. Click on a junction to view details and associated projects.
       </p>
     </div>
   );
@@ -121,13 +111,13 @@ function Description() {
   return (
     <div className={styles.junctionDescription}>
       Explore the map and table below to see identified junctions, their
-      suggested design, and images. Click on a junction to view more
+      suggested design, and associated projects. Click on a junction to view more
       information.
     </div>
   );
 }
 
-function TopSection({ junctions, selectedJunction, onSelectJunction }) {
+function TopSection({ junctions, selectedJunction, onSelectJunction, wardId }) {
   const MUMBAI_CENTER = [19.076, 72.8777];
   const DEFAULT_ZOOM = 12;
 
@@ -140,11 +130,15 @@ function TopSection({ junctions, selectedJunction, onSelectJunction }) {
               <thead>
                 <tr>
                   <TableHeader width={200}>Junction Name</TableHeader>
+                  <TableHeader width={120}>Project Status</TableHeader>
                   <TableHeader width={150}>Action</TableHeader>
                 </tr>
               </thead>
               <tbody>
                 {junctions.map((junction) => {
+                  const hasProject = !!junction.project;
+                  const status = junction.project?.status;
+                  
                   return (
                     <tr
                       key={junction.fid}
@@ -155,6 +149,15 @@ function TopSection({ junctions, selectedJunction, onSelectJunction }) {
                       }
                     >
                       <TableCell>{junction.name || "Unnamed"}</TableCell>
+                      <TableCell>
+                        {hasProject ? (
+                          <span className={`${styles.statusBadge} ${styles[status]}`}>
+                            {status ? status.replace('_', ' ') : 'No Project'}
+                          </span>
+                        ) : (
+                          <span className={styles.noProject}>No Project</span>
+                        )}
+                      </TableCell>
                       <td>
                         <button
                           onClick={() => onSelectJunction(junction)}
@@ -162,7 +165,7 @@ function TopSection({ junctions, selectedJunction, onSelectJunction }) {
                         >
                           {selectedJunction?.fid === junction.fid
                             ? "Viewing"
-                            : "View"}
+                            : "View Details"}
                         </button>
                       </td>
                     </tr>
@@ -183,136 +186,102 @@ function TopSection({ junctions, selectedJunction, onSelectJunction }) {
           onJunctionSelect={onSelectJunction}
           center={MUMBAI_CENTER}
           zoom={DEFAULT_ZOOM}
+          wardId={wardId}
         />
       </div>
     </div>
   );
 }
 
-function BottomSection({
-  junction,
-  beforeImages,
-  afterImages,
-  beforeIndex,
-  afterIndex,
-  onBeforeIndexChange,
-  onAfterIndexChange,
-}) {
+function BottomSection({ junction, getStatusDisplay, formatDate }) {
   return (
-    <div className={styles.bottomSection}>
-      <DetailsCard junction={junction} />
-      <ImageComparison
-        beforeImages={beforeImages}
-        afterImages={afterImages}
-        beforeIndex={beforeIndex}
-        afterIndex={afterIndex}
-        onBeforeIndexChange={onBeforeIndexChange}
-        onAfterIndexChange={onAfterIndexChange}
-      />
-    </div>
+    <motion.div
+      className={styles.bottomSection}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <JunctionDetails junction={junction} />
+      {junction.project && (
+        <ProjectConnection project={junction.project} getStatusDisplay={getStatusDisplay} formatDate={formatDate} />
+      )}
+    </motion.div>
   );
 }
 
-function DetailsCard({ junction }) {
+function JunctionDetails({ junction }) {
   return (
-    <div className={styles.detailSection}>
-      <h4>Suggested Improvement</h4>
       <div className={styles.detailCard}>
-        <div className={styles.detailItem}>
-          <span className={styles.detailLabel}>FID</span>
-          <span>{junction.fid}</span>
-        </div>
-        <div className={styles.detailItem}>
-          <span className={styles.detailLabel}>Junction Name</span>
-          <span>{junction.name}</span>
-        </div>
-        <div className={styles.detailItem}></div>
-        <div className={styles.detailItem}>
-          <span className={styles.detailLabel}>Design Suggestion</span>
-          <span>{junction.suggested_design}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ImageComparison({
-  beforeImages,
-  afterImages,
-  beforeIndex,
-  afterIndex,
-  onBeforeIndexChange,
-  onAfterIndexChange,
-}) {
-  return (
-    <div className={styles.imageComparison}>
-      <ImagePanel
-        title="Before"
-        images={beforeImages}
-        currentIndex={beforeIndex}
-        onNavigate={onBeforeIndexChange}
-      />
-      <ImagePanel
-        title="After"
-        images={afterImages}
-        currentIndex={afterIndex}
-        onNavigate={onAfterIndexChange}
-      />
-    </div>
-  );
-}
-
-function ImagePanel({ title, images, currentIndex, onNavigate }) {
-  const hasImages = images.length > 0;
-
-  return (
-    <div className={styles.imageGrid}>
-      <h5>{title}</h5>
-      <div className={styles.imageSlider}>
-        {hasImages ? (
-          <>
-            <button
-              onClick={() => onNavigate((prev) => Math.max(0, prev - 1))}
-              className={styles.navButton}
-              disabled={images.length <= 1}
-              aria-label="Previous image"
-              type="button"
-            >
-              <FaChevronLeft />
-            </button>
-            <img
-              src={images[currentIndex]?.url}
-              alt={`${title} ${currentIndex + 1}`}
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = "/no-image.svg";
-              }}
-            />
-            <button
-              onClick={() => onNavigate((prev) => (prev + 1) % images.length)}
-              className={styles.navButton}
-              disabled={images.length <= 1}
-              aria-label="Next image"
-              type="button"
-            >
-              <FaChevronRight />
-            </button>
-            {images.length > 1 && (
-              <div className={styles.imageCounter}>
-                {currentIndex + 1} / {images.length}
-              </div>
-            )}
-          </>
-        ) : (
-          <div className={styles.imagePlaceholder}>
-            <img
-              src="/no-image.svg"
-              alt="No image available"
-              className={styles.noImage}
-            />
+        <div className={styles.detailGrid}>
+          <div className={styles.detailItem}>
+            <span className={styles.detailLabel}>Junction ID</span>
+            <span>{junction.fid}</span>
           </div>
-        )}
+          <div className={styles.detailItem}>
+            <span className={styles.detailLabel}>Junction Name</span>
+            <span>{junction.name || "Unnamed Junction"}</span>
+          </div>
+        </div>
       </div>
-    </div>
+  );
+}
+
+function ProjectConnection({ project, getStatusDisplay, formatDate }) {
+  const { navigateToTab } = useWardTabs();
+
+  const handleViewProject = () => {
+    navigateToTab('project');
+  };
+
+  return (
+      <div className={styles.projectCard}>
+        <div className={styles.projectHeaderRow}>
+          <h5 className={styles.projectTitle}>{project.title}</h5>
+          <span className={`${styles.statusBadge} ${styles[project.status]}`}>
+            {getStatusDisplay(project.status)}
+          </span>
+        </div>
+        
+        <div className={styles.projectMeta}>
+          {project.location && (
+            <span className={styles.projectLocation}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="currentColor"/>
+              </svg>
+              {project.location}
+            </span>
+          )}
+          {project.start_date && (
+            <span className={styles.projectDate}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 4H18V2H16V4H8V2H6V4H5C3.89 4 3.01 4.9 3.01 6L3 20C3 21.1 3.89 22 5 22H19C20.1 22 21 21.1 21 20V6C21 4.9 20.1 4 19 4ZM19 20H5V10H19V20ZM19 8H5V6H19V8ZM12 13H17V18H12V13Z" fill="currentColor"/>
+              </svg>
+              Started: {formatDate(project.start_date)}
+            </span>
+          )}
+          {project.end_date && (
+            <span className={styles.projectDate}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 4H18V2H16V4H8V2H6V4H5C3.89 4 3.01 4.9 3.01 6L3 20C3 21.1 3.89 22 5 22H19C20.1 22 21 21.1 21 20V6C21 4.9 20.1 4 19 4ZM19 20H5V10H19V20ZM19 8H5V6H19V8ZM12 13H17V18H12V13Z" fill="currentColor"/>
+              </svg>
+              Ended: {formatDate(project.end_date)}
+            </span>
+          )}
+        </div>
+
+        <div className={styles.projectDescription}>
+          <p>{project.description || project.rationale || "No description available."}</p>
+        </div>
+
+        <div className={styles.projectActions}>
+          <button 
+            className={styles.viewProjectButton}
+            onClick={handleViewProject}
+          >
+            View Full Project Details
+            <FaExternalLinkAlt />
+          </button>
+        </div>
+      </div>
   );
 }

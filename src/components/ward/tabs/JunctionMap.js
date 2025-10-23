@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import L from "leaflet";
-import BaseMap from "components/shared/maps/Basemap";
+import MapContainer from "components/shared/maps/MapContainer";
+import CustomMarker from "components/shared/maps/CustomMarker";
+import BoundaryLayer from "components/shared/maps/BoundaryLayer";
 import { transformCoordinates } from "components/shared/maps/utils/coordinateUtils";
-import { useWard } from "context/WardContext";
+import { useWardBoundary } from "hooks/useWardData";
 
 export default function JunctionMap({
   junctions,
@@ -12,173 +13,91 @@ export default function JunctionMap({
   onJunctionSelect,
   center = [19.076, 72.8777],
   zoom = 12,
+  wardId,
 }) {
-  const [currentLayer, setCurrentLayer] = useState("osm");
   const mapRef = useRef(null);
-  const markersRef = useRef([]);
-  const { boundary } = useWard();
+  const { data: boundary } = useWardBoundary(wardId);
+  const [mapReady, setMapReady] = useState(false);
+  const previousJunctionRef = useRef(null);
 
-  // Handle selected junction change
+  // Handle map initialization
+  const handleMapInit = (map) => {
+    mapRef.current = map;
+    setMapReady(true);
+  };
+
+  // Fly to selected junction with smooth animation
   useEffect(() => {
-    if (!mapRef.current || !selectedJunction) return;
+    if (!mapRef.current || !selectedJunction || !mapReady) return;
 
-    let isMounted = true;
-    const flyToMarker = () => {
-      if (!isMounted || !mapRef.current) return;
+    try {
+      let lat = selectedJunction.latitude;
+      let lng = selectedJunction.longitude;
+
+      // Transform coordinates if needed
+      [lng, lat] = transformCoordinates([lng, lat]);
+
+      if (isNaN(lat) || isNaN(lng)) return;
+
+      const currentZoom = mapRef.current.getZoom();
+      const targetZoom = 17; // Direct zoom level for junctions
       
-      try {
-        let lat = selectedJunction.latitude;
-        let lng = selectedJunction.longitude;
-
-        // Transform coordinates if needed
-        [lng, lat] = transformCoordinates([lng, lat]);
-
-        if (isNaN(lat) || isNaN(lng)) return;
-
-        // Fly to the selected junction with padding
-        mapRef.current.flyTo([lat, lng], 17, {
-          animate: true,
-          duration: 2,
-          padding: [50, 50],
-        });
-
-        // Find and highlight the selected marker
-        markersRef.current.forEach((marker) => {
-          if (marker && marker.getLatLng) {
-            const markerPos = marker.getLatLng();
-            const isSelected =
-              markerPos.lat.toFixed(6) === lat.toFixed(6) &&
-              markerPos.lng.toFixed(6) === lng.toFixed(6);
-
-            marker.setOpacity(isSelected ? 1 : 0.7);
-            if (isSelected) marker.openPopup();
-          }
-        });
-      } catch (error) {
-        console.error("Error in flyToMarker:", error);
-      }
-    };
-
-    // Small delay to ensure map is ready
-    const timer = setTimeout(flyToMarker, 50);
-    
-    return () => {
-      isMounted = false;
-      clearTimeout(timer);
-      // Cancel any ongoing flyTo animation
-      if (mapRef.current && mapRef.current._flyToBounds) {
-        mapRef.current.stop();
-      }
-    };
-  }, [selectedJunction]);
-
-  // Initialize markers
-  useEffect(() => {
-    if (!mapRef.current || !junctions || !mapRef.current._leaflet_id) return;
-
-    let isMounted = true;
-
-    // Clear existing markers
-    markersRef.current.forEach((marker) => {
-      if (marker && mapRef.current) {
-        try {
-          mapRef.current.removeLayer(marker);
-        } catch (e) {
-          console.error("Error removing marker:", e);
-        }
-      }
-    });
-    markersRef.current = [];
-
-    if (junctions.length === 0) return;
-
-    const newMarkers = junctions
-      .map((junction) => {
-        if (!isMounted) return null;
-        
-        try {
-          let lat = junction.latitude || center[0];
-          let lng = junction.longitude || center[1];
-
-          // Transform coordinates if needed
-          [lng, lat] = transformCoordinates([lng, lat]);
-
-          if (isNaN(lat) || isNaN(lng)) return null;
-
-          const marker = L.marker([lat, lng], {
-            opacity: selectedJunction?.fid === junction.fid ? 1 : 0.7,
-            riseOnHover: true,
-          });
-
-          marker.on("click", () => {
-            if (!isMounted || !mapRef.current) return;
-            onJunctionSelect(junction);
-            mapRef.current.flyTo([lat, lng], 17, {
-              animate: true,
-              duration: 2,
-            });
-          });
-
-          marker.addTo(mapRef.current);
-          return marker;
-        } catch (error) {
-          console.error("Error creating marker:", error);
-          return null;
-        }
-      })
-      .filter(Boolean);
-
-    if (!isMounted) {
-      // Clean up if component unmounted during async operations
-      newMarkers.forEach((marker) => {
-        if (marker && mapRef.current) {
-          try {
-            mapRef.current.removeLayer(marker);
-          } catch (e) {
-            console.error("Error cleaning up marker:", e);
-          }
-        }
+      // Smooth fly to the selected junction
+      mapRef.current.flyTo([lat, lng], targetZoom, {
+        animate: true,
+        duration: 1.2, // Smooth duration
+        easeLinearity: 0.25,
       });
-      return;
+
+      previousJunctionRef.current = selectedJunction;
+
+    } catch (error) {
+      console.error("Error flying to junction:", error);
     }
-
-    markersRef.current = newMarkers;
-
-    // Fit bounds to all markers
-    if (newMarkers.length > 0) {
-      try {
-        const group = L.featureGroup(newMarkers);
-        mapRef.current.fitBounds(group.getBounds(), {
-          padding: [50, 50],
-          maxZoom: 15,
-        });
-      } catch (e) {
-        console.error("Error fitting bounds:", e);
-      }
-    }
-
-    return () => {
-      isMounted = false;
-      newMarkers.forEach((marker) => {
-        if (marker && mapRef.current) {
-          try {
-            mapRef.current.removeLayer(marker);
-          } catch (e) {
-            console.error("Error removing marker:", e);
-          }
-        }
-      });
-    };
-  }, [junctions, center, onJunctionSelect, selectedJunction]);
+  }, [selectedJunction, mapReady]);
 
   return (
-    <BaseMap
-      center={center}
-      zoom={zoom}
-      boundary={boundary}
-      onMapInit={(map) => {
-        mapRef.current = map;
-      }}
-    ></BaseMap>
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <MapContainer
+        center={center}
+        zoom={zoom}
+        onMapInit={handleMapInit}
+        className="junction-map-container"
+      >
+        {/* Boundary Layer */}
+        {mapReady && boundary && (
+          <BoundaryLayer
+            map={mapRef.current}
+            boundary={boundary}
+            wardId={wardId}
+          />
+        )}
+
+        {/* Junction Markers */}
+        {mapReady && junctions?.map((junction) => {
+          let lat = junction.latitude;
+          let lng = junction.longitude;
+
+          [lng, lat] = transformCoordinates([lng, lat]);
+          if (isNaN(lat) || isNaN(lng)) return null;
+
+          const isSelected = selectedJunction?.fid === junction.fid;
+
+          return (
+            <CustomMarker
+              key={junction.fid}
+              map={mapRef.current}
+              position={[lat, lng]}
+              isSelected={isSelected}
+              popupContent={`
+                <strong>${junction.name || "Unnamed Junction"}</strong>
+                ${junction.suggested_design ? `<br>${junction.suggested_design}` : ''}
+              `}
+              onClick={onJunctionSelect ? () => onJunctionSelect(junction) : null}
+            />
+          );
+        })}
+      </MapContainer>
+    </div>
   );
 }

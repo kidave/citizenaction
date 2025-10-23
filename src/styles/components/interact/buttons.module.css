@@ -17,6 +17,7 @@
   text-decoration: none;
   outline: none;
   line-height: 1;
+  width: auto;
 }
 
 .baseButton:disabled {
@@ -25,7 +26,7 @@
   transform: none !important;
 }
 
-/* Size Variants */
+/* Size Variants - Default (Large screens) */
 .small {
   padding: 8px 12px;
   font-size: 0.875rem;
@@ -115,6 +116,7 @@
   align-items: center;
   gap: 8px;
   justify-content: center;
+  flex-wrap: nowrap;
 }
 
 /* Icon Styles */
@@ -123,6 +125,7 @@
   display: flex;
   align-items: center;
   transition: transform 0.2s ease;
+  flex-shrink: 0;
 }
 
 /* Loading Spinner */
@@ -133,6 +136,7 @@
   border-top: 2px solid currentColor;
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  flex-shrink: 0;
 }
 
 @keyframes spin {
@@ -172,8 +176,16 @@
   border: 0;
 }
 
-/* Responsive Design */
+/* Enhanced Responsive Design */
+
+/* Tablet screens (768px and below) */
 @media (max-width: 768px) {
+  .small {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    min-height: 28px;
+  }
+  
   .medium {
     padding: 8px 16px;
     font-size: 0.85rem;
@@ -189,13 +201,132 @@
   .buttonContent {
     gap: 6px;
   }
+  
+  /* Adjust icon sizes for tablet */
+  .small .iconLeft,
+  .small .iconRight {
+    font-size: 12px;
+  }
+  
+  .medium .iconLeft,
+  .medium .iconRight {
+    font-size: 14px;
+  }
+  
+  .large .iconLeft,
+  .large .iconRight {
+    font-size: 16px;
+  }
+  
+  /* Adjust spinner size */
+  .spinner {
+    width: 14px;
+    height: 14px;
+  }
+  
+  /* Icon-only buttons adjustment */
+  .baseButton.iconOnly.small {
+    padding: 5px;
+  }
+  
+  .baseButton.iconOnly.medium {
+    padding: 7px;
+  }
+  
+  .baseButton.iconOnly.large {
+    padding: 9px;
+  }
+}
+
+/* Mobile screens (480px and below) */
+@media (max-width: 480px) {
+  .small {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    min-height: 24px;
+  }
+  
+  .medium {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    min-height: 32px;
+  }
+  
+  .large {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    min-height: 36px;
+  }
+  
+  .buttonContent {
+    gap: 4px;
+  }
+  
+  /* Adjust icon sizes for mobile */
+  .small .iconLeft,
+  .small .iconRight {
+    font-size: 11px;
+  }
+  
+  .medium .iconLeft,
+  .medium .iconRight {
+    font-size: 12px;
+  }
+  
+  .large .iconLeft,
+  .large .iconRight {
+    font-size: 14px;
+  }
+  
+  /* Adjust spinner size */
+  .spinner {
+    width: 12px;
+    height: 12px;
+  }
+  
+  /* Icon-only buttons adjustment */
+  .baseButton.iconOnly.small {
+    padding: 4px;
+  }
+  
+  .baseButton.iconOnly.medium {
+    padding: 6px;
+  }
+  
+  .baseButton.iconOnly.large {
+    padding: 8px;
+  }
+  
+  /* Make buttons full width on very small screens */
+  .baseButton {
+    justify-content: center;
+  }
+}
+
+/* Extra small screens (320px and below) */
+@media (max-width: 320px) {
+  .small,
+  .medium,
+  .large {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+  
+  .buttonContent {
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  /* Hide text on extra small screens for icon buttons when appropriate */
+  .baseButton.iconText .buttonContent span:not(.iconLeft):not(.iconRight):not(.spinner) {
+    display: none;
+  }
 }
 
 /* Button Group Styles */
 .buttonGroup {
   display: flex;
   gap: 12px;
-  flex-wrap: wrap;
 }
 
 .buttonGroup.horizontal {
@@ -218,13 +349,30 @@
   justify-content: flex-end;
 }
 
+/* Button Group Responsive */
+@media (max-width: 768px) {
+  .buttonGroup {
+    gap: 8px;
+  }
+}
+
 @media (max-width: 480px) {
   .buttonGroup.horizontal {
-    flex-direction: column;
     width: 100%;
+    gap: 6px;
   }
   
   .buttonGroup.horizontal .baseButton {
     width: 100%;
+  }
+  
+  .buttonGroup {
+    gap: 6px;
+  }
+}
+
+@media (max-width: 320px) {
+  .buttonGroup {
+    gap: 4px;
   }
 }

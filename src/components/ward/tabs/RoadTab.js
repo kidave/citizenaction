@@ -6,7 +6,7 @@ import { Table, TableHeader, TableCell } from "components/shared/table";
 import { FiChevronsLeft, FiChevronLeft, FiChevronRight, FiChevronsRight } from "react-icons/fi";
 import { FaRoad } from "react-icons/fa";
 import { useWard } from "context/WardContext";
-import useWardRoads from "hooks/useWardRoads";
+import { useWardRoads } from "hooks/useWardData";
 
 const RoadMap = dynamic(() => import("./RoadMap"), {
   ssr: false,
@@ -14,18 +14,16 @@ const RoadMap = dynamic(() => import("./RoadMap"), {
 });
 
 export default function RoadTab() {
-  const { wardId, wardInfo } = useWard();
-  const { roads, loading: roadsLoading, error: roadsError } = useWardRoads(wardId);
+  const { wardId } = useWard();
+  const { data: roads, loading, error } = useWardRoads(wardId);
   const MUMBAI_CENTER = [19.076, 72.8777];
   const DEFAULT_ZOOM = 12;
   const [selectedRoad, setSelectedRoad] = useState(null);
-  const [wardBoundary, setWardBoundary] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
   useEffect(() => {
     return () => {
-      // This will clean up when user navigates away from this tab
       setSelectedRoad(null);
     };
   }, []);
@@ -37,23 +35,6 @@ export default function RoadTab() {
     currentPage * itemsPerPage,
   ) || [];
 
-  // Fetch ward boundary
-  useEffect(() => {
-    if (!wardInfo?.wardId) return;
-
-    const fetchWardBoundary = async () => {
-      try {
-        const response = await fetch(`/api/ward-boundary?wardId=${wardInfo.wardId}`);
-        const data = await response.json();
-        setWardBoundary(data.geometry);
-      } catch (error) {
-        console.error("Error fetching ward boundary:", error);
-      }
-    };
-
-    fetchWardBoundary();
-  }, [wardInfo?.wardId]);
-
   // Pagination controls
   const handlePageInput = (e) => {
     let val = Number(e.target.value);
@@ -63,12 +44,12 @@ export default function RoadTab() {
     setCurrentPage(val);
   };
 
-  if (roadsLoading) return <p>Loading roads...</p>;
-  if (roadsError) return <p>Error loading roads: {roadsError.message}</p>;
+  if (loading) return <p>Loading roads...</p>;
+  if (error) return <p>Error loading roads: {error.message}</p>;
 
   return (
     <div className={styles.roadContainer}>
-      <Header roadCount={roads?.length || 0} wardName={wardInfo?.wardName} />
+      <Header roadCount={roads?.length || 0} wardName={wardId} />
       <Description />
 
       <div className={styles.roadContent}>
@@ -77,7 +58,7 @@ export default function RoadTab() {
             <p className={styles.empty}>No roads found.</p>
           ) : (
             <div className={styles.tableWrapper}>
-              {/* --- Table --- */}
+              {/* Table and pagination code remains the same */}
               <Table className={styles.table}>
                 <thead>
                   <tr>
@@ -112,6 +93,8 @@ export default function RoadTab() {
                   ))}
                 </tbody>
               </Table>
+
+
 
               {/* --- Pagination --- */}
               <div className={styles.pagination}>
@@ -168,6 +151,7 @@ export default function RoadTab() {
             onRoadSelect={setSelectedRoad}
             center={MUMBAI_CENTER}
             zoom={DEFAULT_ZOOM}
+            wardId={wardId}
           />
         </div>
       </div>
@@ -175,7 +159,7 @@ export default function RoadTab() {
   );
 }
 
-// 🛠️ Helper to clean up road type rendering
+// Helper function and other components remain the same
 function formatRoadType(type) {
   const mapping = {
     motorway: "Motorway",
@@ -204,7 +188,6 @@ function formatRoadType(type) {
   return mapping[type] || type;
 }
 
-// Header Component
 function Header({ roadCount, wardName }) {
   return (
     <div className={headerStyles.junctionHeader}>
@@ -222,7 +205,6 @@ function Header({ roadCount, wardName }) {
   );
 }
 
-// Description Component
 function Description() {
   return (
     <div className={headerStyles.junctionDescription}>

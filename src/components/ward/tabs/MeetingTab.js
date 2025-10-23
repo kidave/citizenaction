@@ -1,164 +1,59 @@
 // components/ward/tabs/MeetingTab.js
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useWard } from "context/WardContext";
-import useWardMeetings from "hooks/useWardMeetings";
-import useMeetingImages from "hooks/useMeetingImages";
-import MoodVisualization from "components/shared/MoodVisualization";
+import { useWardMeetings } from "hooks/useWardData";
+import MeetingCard from "components/shared/card/MeetingCard";
 import ImageStackPopup from "components/shared/image/ImageStackPopup";
 import styles from "styles/tabs/timeline.module.css";
-import { 
-  FaMapMarkerAlt, 
-  FaUserFriends, 
-  FaStar, 
-  FaUsers 
-} from "react-icons/fa";
 
 export default function MeetingTab() {
   const { wardId } = useWard();
-  const { meetings, loading, error } = useWardMeetings(wardId);
+  const { data: meetings, loading, error } = useWardMeetings(wardId);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [popupImages, setPopupImages] = useState([]);
+  const [startImageIndex, setStartImageIndex] = useState(0);
 
-  if (loading) return;
+  if (loading) return <div>Loading meetings...</div>;
   if (error) return <div>Error loading meetings: {error.message}</div>;
+  if (!meetings || meetings.length === 0)
+    return <p className={styles.emptyTimeline}>No meetings yet.</p>;
 
-  // Helper function to format dates
-  const formatDate = (date) => {
-    if (!(date instanceof Date)) date = new Date(date);
-    return date.toLocaleDateString("en-US", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  };
-
-  // Helper function to render discussion points
-  const renderDiscussion = (discussion) => {
-    if (!discussion) return null;
-
-    const points = Array.isArray(discussion)
-      ? discussion
-      : discussion.split("\n").filter((s) => s.trim());
-
-    return (
-      <div className={styles.discussionSection}>
-        <h5 className={styles.sectionTitle}>Discussion</h5>
-        <ul className={styles.discussionList}>
-          {points.map((pt, i) => (
-            <li key={i} className={styles.discussionPoint}>
-              {pt}
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  };
-
-  // Helper function to render meeting details
-  const MeetingDetails = ({ item }) => (
-    <div className={styles.meetingDetails}>
-      {item.location && (
-        <div className={styles.detailItem}>
-          <span className={styles.detailIcon}>
-            <FaMapMarkerAlt color="lightcoral" />
-          </span>
-          <span className={styles.detailText}>
-            <strong>Location: </strong>
-            {item.location}
-          </span>
-        </div>
-      )}
-      {item.notable_attendees && (
-        <div className={styles.detailItem}>
-          <span className={styles.detailIcon}>
-            <FaUserFriends color="black" />
-          </span>
-          <span className={styles.detailText}>
-            <strong>Key Attendees: </strong>
-            {item.notable_attendees}
-          </span>
-        </div>
-      )}
-      {item.mood_rating && (
-        <div className={styles.detailItem}>
-          <span className={styles.detailIcon}>
-            <FaStar color="gold"/>
-          </span>
-          <span className={styles.detailText}>
-            <strong>Mood: </strong>
-            <MoodVisualization rating={item.mood_rating} />
-          </span>
-        </div>
-      )}
-      {renderDiscussion(item.discussion)}
-    </div>
-  );
-
-  // Component for individual timeline items (desktop view)
   const TimelineItemMeeting = ({ item, index }) => {
-    const { images, resolveUrl } = useMeetingImages(item.id);
     const isLeft = index % 2 === 0;
+    const safeImages = item.images || [];
+    const thumbnails = safeImages.slice(0, 1);
 
-    const thumbnailsToShow = useMemo(() => {
-      if (images.length <= 1) return images;
-      return [...images].sort(() => 0.5 - Math.random()).slice(0, 1);
-    }, [images]);
-
-    const handleImageClick = () => {
-      setPopupImages(images.map(img => resolveUrl(img.path)));
+    const handleImageClick = (clickedIndex = 0) => {
+      const imageUrls = safeImages.map((img) => img.path);
+      setPopupImages(imageUrls);
+      setStartImageIndex(clickedIndex);
       setIsPopupOpen(true);
     };
-
-    const renderCard = () => (
-      <motion.div
-        initial={{ opacity: 0, y: 70 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.2 }}
-        transition={{ duration: 0.7, delay: index * 0.1 }}
-        className={`${styles.timelineCard} ${styles.meetingCard}`}
-      >
-        <div className={styles.cardHeader}>
-          <h4 className={styles.timelineCardTitle}>{item.title}</h4>
-          <span className={styles.cardTypeBadge}>{formatDate(item.date)}</span>
-        </div>
-        <MeetingDetails item={item} />
-      </motion.div>
-    );
 
     const renderImageContainer = () => (
       <motion.div
         className={styles.imageContainer}
         initial={{ opacity: 0, y: 70 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.2 }}
-        transition={{ duration: 0.7, delay: index * 0.1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
       >
-        <div className={styles.imageHeader}></div>
         <div className={styles.imageThumbs}>
-          {images.length > 0 ? (
+          {safeImages.length > 0 ? (
             <>
-              {thumbnailsToShow.map((img, idx) => (
-                <div key={idx} className={styles.imageWrapper}>
-                  <img
-                    src={resolveUrl(img.path)}
-                    alt=""
-                    onClick={handleImageClick}
-                  />
+              {thumbnails.map((img, idx) => (
+                <div key={img.id || idx} className={styles.imageWrapper}>
+                  <img src={img.path} alt="" onClick={() => handleImageClick(idx)} />
                 </div>
               ))}
-              {images.length > thumbnailsToShow.length && (
-                <div
-                  className={styles.moreImages}
-                  onClick={handleImageClick}
-                >
-                  +{images.length - thumbnailsToShow.length}
+              {safeImages.length > thumbnails.length && (
+                <div className={styles.moreImages} onClick={() => handleImageClick(0)}>
+                  +{safeImages.length - thumbnails.length}
                 </div>
               )}
             </>
-          ) : (
-            <p></p>
-          )}
+          ) : <p></p>}
         </div>
       </motion.div>
     );
@@ -166,15 +61,27 @@ export default function MeetingTab() {
     return (
       <div className={`${styles.timelineItemMeeting} ${isLeft ? styles.left : styles.right}`}>
         <div className={styles.timelineSide}>
-          {isLeft ? renderCard() : renderImageContainer()}
-        </div>
-
-        <div className={styles.timelineIconWrapper}>
-          <FaUsers className={styles.timelineIconFa} />
+          {isLeft ? (
+            <MeetingCard
+              item={item}
+              index={index}
+              editable={false}
+            />
+          ) : (
+            renderImageContainer()
+          )}
         </div>
 
         <div className={styles.timelineSide}>
-          {!isLeft ? renderCard() : renderImageContainer()}
+          {!isLeft ? (
+            <MeetingCard
+              item={item}
+              index={index}
+              editable={false}
+            />
+          ) : (
+            renderImageContainer()
+          )}
         </div>
       </div>
     );
@@ -182,24 +89,16 @@ export default function MeetingTab() {
 
   return (
     <>
-      {/* Desktop View */}
       <div className={styles.timelineWrapper}>
-        {meetings.length === 0 ? (
-          <p className={styles.emptyTimeline}>No meetings yet.</p>
-        ) : (
-          meetings.map((item, index) => (
-            <TimelineItemMeeting
-              key={item.id}
-              item={item}
-              index={index}
-            />
-          ))
-        )}
+        {meetings.map((item, index) => (
+          <TimelineItemMeeting key={item.id} item={item} index={index} />
+        ))}
       </div>
 
       {isPopupOpen && (
         <ImageStackPopup
-          images={popupImages}
+          files={popupImages}
+          startIndex={startImageIndex}
           onClose={() => setIsPopupOpen(false)}
         />
       )}

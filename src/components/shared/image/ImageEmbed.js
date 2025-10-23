@@ -1,4 +1,3 @@
-// components/shared/image/SingleImageEmbed.js
 import styles from "./image.module.css";
 
 export default function ImageEmbed({ src, alt = "Embedded Image" }) {

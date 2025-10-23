@@ -4,7 +4,7 @@
   position: relative;
   padding: 2rem 0;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 0 2rem;
 }
 
 .timelineItem {
@@ -236,10 +236,11 @@
   color: #718096;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
+
+@media (max-width: 1024px) {
   .meetingTimeline {
     padding: 0;
+    margin: 0;
   }
 
   .timelineItem {

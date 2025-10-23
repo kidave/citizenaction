@@ -74,7 +74,7 @@ function AnimatedImagePanel({ title, images, currentIndex, onNavigate }) {
               <AnimatePresence mode="wait" initial={false}>
                 <motion.img
                   key={`${title}-${currentIndex}`}
-                  src={resolveUrl(images[currentIndex])}
+                  src={images[currentIndex]}
                   alt={`${title} ${currentIndex + 1}`}
                   initial={{ opacity: 0, x: 100 }}
                   animate={{ opacity: 1, x: 0 }}

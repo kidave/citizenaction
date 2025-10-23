@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import BaseMap from "components/shared/maps/Basemap";
+import MapContainer from "components/shared/maps/MapContainer"; // Use MapContainer instead of BaseMap
 import GeoJSONLayer from "components/shared/maps/GeoJSONLayer";
-import WardBoundaryLayer from "components/shared/maps/WardBoundaryLayer";
-import { useWard } from "context/WardContext";
+import BoundaryLayer from "components/shared/maps/BoundaryLayer";
+import { useWardBoundary } from "hooks/useWardData";
 import styles from "styles/tabs/road.module.css";
 import L from "leaflet";
 
@@ -14,10 +14,12 @@ export default function RoadMap({
   onRoadSelect,
   center = [19.076, 72.8777],
   zoom = 12,
+  wardId, // Add wardId prop
 }) {
   const mapRef = useRef(null);
-  const { wardId } = useWard();
+  const { data: boundary } = useWardBoundary(wardId);
   const roadLayersRef = useRef({});
+  const isMountedRef = useRef(true);
 
   const getPopupContent = (road) => `
     <div class="popup-content">
@@ -27,33 +29,74 @@ export default function RoadMap({
     </div>
   `;
 
-  // Fly to selected road
+  // Safe geometry parsing
+  const parseGeometry = (geometry) => {
+    if (!geometry) return null;
+    
+    try {
+      if (typeof geometry === 'string') {
+        if (geometry.trim().startsWith('{')) {
+          return JSON.parse(geometry);
+        }
+      }
+      return geometry;
+    } catch (e) {
+      console.error("Error parsing geometry:", e);
+      return null;
+    }
+  };
+
+  // Cleanup function
   useEffect(() => {
-    if (!mapRef.current || !selectedRoad || !selectedRoad.geometry) return;
+    isMountedRef.current = true;
+    
+    return () => {
+      isMountedRef.current = false;
+      Object.values(roadLayersRef.current).forEach(layer => {
+        if (layer && layer.remove) {
+          try {
+            layer.remove();
+          } catch (e) {
+            // Ignore cleanup errors
+          }
+        }
+      });
+      roadLayersRef.current = {};
+    };
+  }, []);
+
+  // Fly to selected road - KEEP THIS SMOOTH ANIMATION!
+  useEffect(() => {
+    if (!mapRef.current || !selectedRoad || !isMountedRef.current) return;
+
+    const geoJSON = parseGeometry(selectedRoad.geometry);
+    if (!geoJSON) return;
 
     try {
-      const geoJSON = typeof selectedRoad.geometry === "string"
-        ? JSON.parse(selectedRoad.geometry)
-        : selectedRoad.geometry;
-
       const layer = L.geoJSON(geoJSON);
       const bounds = layer.getBounds();
 
-      mapRef.current.flyToBounds(bounds, {
-        padding: [50, 50],
-        duration: 1,
-        maxZoom: 17,
-      });
+      if (bounds.isValid()) {
+        mapRef.current.flyToBounds(bounds, {
+          padding: [50, 50],
+          duration: 1,
+          maxZoom: 17,
+        });
+      }
 
       // Highlight selected road
       Object.values(roadLayersRef.current).forEach((layer) => {
-        if (layer) {
+        if (layer && isMountedRef.current) {
           const isSelected = layer.feature?.properties?.fid === selectedRoad.fid;
-          layer.setStyle({
-            weight: isSelected ? 8 : 3,
-            opacity: isSelected ? 0.9 : 0.5,
-          });
-          if (isSelected) layer.bringToFront();
+          try {
+            layer.setStyle({
+              weight: isSelected ? 8 : 3,
+              opacity: isSelected ? 0.9 : 0.5,
+            });
+            if (isSelected) layer.bringToFront();
+          } catch (e) {
+            // Ignore style setting errors
+          }
         }
       });
     } catch (e) {
@@ -63,46 +106,46 @@ export default function RoadMap({
 
   return (
     <div className={styles.mapContainer}>
-      <BaseMap
+      <MapContainer
         center={center}
         zoom={zoom}
         onMapInit={(map) => {
           mapRef.current = map;
         }}
       >
-        {/* Ward Boundary Layer */}
-        <WardBoundaryLayer map={mapRef.current} wardId={wardId} />
-        
-        {/* Road Layers */}
-        {roads.map((road) => {
-          if (!road.geometry) return null;
+        {/* Boundary Layer */}
+        {boundary && (
+          <BoundaryLayer
+            map={mapRef.current}
+            boundary={boundary}
+            wardId={wardId}
+          />
+        )}
 
-          let geoJSON;
-          try {
-            geoJSON = typeof road.geometry === "string"
-              ? JSON.parse(road.geometry)
-              : road.geometry;
-          } catch (e) {
-            return null;
-          }
+        {/* Road Layers - KEEP YOUR EXISTING LOGIC */}
+        {roads && roads.map((road) => {
+          const geoJSON = parseGeometry(road.geometry);
+          if (!geoJSON) return null;
 
           return (
             <GeoJSONLayer
-              key={road.fid}
+              key={`${wardId}-${road.fid}`}
               map={mapRef.current}
               geojson={geoJSON}
               styleOptions={{ fclass: road.fclass }}
               popupContent={getPopupContent(road)}
-              onClick={() => onRoadSelect(road)}
+              onClick={onRoadSelect ? () => isMountedRef.current && onRoadSelect(road) : null}
               selected={selectedRoad?.fid === road.fid}
               onLayerCreated={(layer) => {
-                roadLayersRef.current[road.fid] = layer;
-                layer.feature = { properties: { fid: road.fid } };
+                if (isMountedRef.current) {
+                  roadLayersRef.current[road.fid] = layer;
+                  layer.feature = { properties: { fid: road.fid } };
+                }
               }}
             />
           );
         })}
-      </BaseMap>
+      </MapContainer>
     </div>
   );
 }

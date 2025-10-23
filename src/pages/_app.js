@@ -26,11 +26,6 @@ function MyApp({ Component, pageProps }) {
       </Head>
       <AuthProvider>
         <AuthAlertProvider>
-          <script
-            src="https://accounts.google.com/gsi/client"
-            async
-            defer
-          ></script>
           <main className={openSans.variable}>
             {getLayout(<Component {...pageProps} />)}
           </main>

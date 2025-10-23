@@ -60,8 +60,13 @@ export default async function handler(req, res) {
         .eq("ward_code", wardId)
         .single();
 
-      if (checkError || existingMeeting.user_id !== user.id) {
-        return res.status(403).json({ error: "Not authorized to delete this meeting" });
+      if (checkError) {
+        return res.status(404).json({ error: "Meeting not found" });
+      }
+
+      // ONLY allow the meeting owner to delete (remove admin check)
+      if (existingMeeting.user_id !== user.id) {
+        return res.status(403).json({ error: "Not authorized to delete this meeting. Only the meeting owner can delete it." });
       }
 
       // First, get all images for this meeting to delete from storage
@@ -104,7 +109,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Internal server error" });
     }
   }
-
+  
   res.setHeader("Allow", ["PUT", "DELETE"]);
   res.status(405).end(`Method ${req.method} Not Allowed`);
 }

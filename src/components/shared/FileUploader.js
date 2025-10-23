@@ -3,6 +3,7 @@ import { useState, useRef } from "react";
 import { useAlert } from "hooks/useAlert";
 import styles from "styles/components/data/fileuploader.module.css";
 import { FiUpload, FiFile, FiImage, FiX } from "react-icons/fi";
+import { DeleteButton } from "components/shared/ui/Buttons";
 
 export default function FileUploader({
   onUpload,
@@ -40,6 +41,8 @@ export default function FileUploader({
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
     handleFiles(files);
+    // Reset the input value to allow uploading the same file again
+    e.target.value = '';
   };
 
   const handleFiles = async (files) => {
@@ -52,12 +55,28 @@ export default function FileUploader({
       return;
     }
 
+    // Validate file types if accept is specified
+    if (accept !== "*/*") {
+      const invalidFiles = files.filter(file => {
+        if (accept.includes('image/*')) {
+          return !file.type.startsWith('image/');
+        }
+        // Add more validation as needed
+        return false;
+      });
+
+      if (invalidFiles.length > 0) {
+        showErrorAlert({ 
+          message: `Invalid file type. Please upload ${accept === "image/*" ? "images only" : "supported file types"}.` 
+        });
+        return;
+      }
+    }
+
     try {
       for (const file of files) {
         setUploadProgress(prev => ({ ...prev, [file.name]: 0 }));
-        await onUpload(file, (progress) => {
-          setUploadProgress(prev => ({ ...prev, [file.name]: progress }));
-        });
+        await onUpload(file);
         setUploadProgress(prev => {
           const newProgress = { ...prev };
           delete newProgress[file.name];
@@ -69,16 +88,48 @@ export default function FileUploader({
     }
   };
 
-  const getFileIcon = (fileType) => {
-    if (fileType.startsWith('image/')) return <FiImage className={styles.fileIcon} />;
+  const getFileIcon = (file) => {
+    const fileType = file.type || '';
+    const fileName = file.path || file.name || '';
+    
+    if (fileType.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName)) {
+      return <FiImage className={styles.fileIcon} />;
+    }
+    if (/\.(pdf)$/i.test(fileName)) {
+      return <FiFile className={styles.fileIcon} />;
+    }
     return <FiFile className={styles.fileIcon} />;
   };
 
-  const getFileType = (fileName) => {
-    if (fileName.includes('.pdf')) return 'PDF';
-    if (fileName.includes('.doc')) return 'Document';
-    if (fileName.includes('.jpg') || fileName.includes('.png') || fileName.includes('.jpeg')) return 'Image';
+  const getFileType = (file) => {
+    const fileName = file.path || file.name || '';
+    const fileType = file.type || '';
+    
+    if (fileType.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName)) {
+      return 'Image';
+    }
+    if (/\.(pdf)$/i.test(fileName)) return 'PDF';
+    if (/\.(doc|docx)$/i.test(fileName)) return 'Document';
+    if (/\.(txt)$/i.test(fileName)) return 'Text';
     return 'File';
+  };
+
+  const getFileName = (file) => {
+    return file.name || file.path?.split('/').pop() || 'Unknown file';
+  };
+
+  const getFileDetails = (file) => {
+    const details = [getFileType(file)];
+    
+    if (file.step) {
+      details.push(`Step ${file.step}`);
+    }
+    
+    if (file.type && file.type !== 'image') {
+      details.push(file.type.replace('-', ' '));
+    }
+    
+    return details.join(' • ');
   };
 
   return (
@@ -91,7 +142,7 @@ export default function FileUploader({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        onClick={() => !disabled && fileInputRef.current?.click()}
+        onClick={() => !disabled && !loading && fileInputRef.current?.click()}
       >
         <input
           ref={fileInputRef}
@@ -106,12 +157,15 @@ export default function FileUploader({
         <div className={styles.uploadContent}>
           <FiUpload className={styles.uploadIcon} />
           <div className={styles.uploadText}>
-            <p className={styles.uploadTitle}>{label}</p>
+            <p className={styles.uploadTitle}>
+              {loading ? 'Uploading...' : label}
+            </p>
             <p className={styles.uploadSubtitle}>
               Drag & drop files here or click to browse
             </p>
             <p className={styles.uploadInfo}>
-              Accepted: {accept === "image/*" ? "Images" : "All files"} • Max: {maxFiles} files
+              Accepted: {accept === "image/*" ? "Images" : "Various files"} • Max: {maxFiles} files
+              {uploadedFiles.length > 0 && ` • ${maxFiles - uploadedFiles.length} remaining`}
             </p>
           </div>
         </div>
@@ -144,32 +198,36 @@ export default function FileUploader({
             {uploadedFiles.map((file, index) => (
               <div key={file.id || index} className={styles.fileItem}>
                 <div className={styles.fileInfo}>
-                  {getFileIcon(file.type || file.path)}
+                  {getFileIcon(file)}
                   <div className={styles.fileDetails}>
                     <span className={styles.fileName}>
-                      {file.name || file.path.split('/').pop()}
+                      {getFileName(file)}
                     </span>
                     <span className={styles.fileType}>
-                      {getFileType(file.path || file.name)}
-                      {file.step && ` • Step ${file.step}`}
-                      {file.type && ` • ${file.type.replace('-', ' ')}`}
+                      {getFileDetails(file)}
                     </span>
                   </div>
                 </div>
-                <button
-                  type="button"
+                <DeleteButton
+                  size="small"
                   onClick={(e) => {
                     e.stopPropagation();
                     onDelete(file);
                   }}
-                  className={styles.deleteButton}
-                  disabled={disabled}
+                  disabled={disabled || loading}
                 >
-                  <FiX />
-                </button>
+                  Delete
+                </DeleteButton>
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Loading State */}
+      {loading && (
+        <div className={styles.loadingState}>
+          <p>Processing files...</p>
         </div>
       )}
     </div>

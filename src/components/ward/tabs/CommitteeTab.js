@@ -1,24 +1,20 @@
 import Image from "next/image";
 import styles from "styles/components/design/card.module.css";
 import { useWard } from "context/WardContext";
-import useWardCommittees from "hooks/useWardCommittees";
+import { useWardCommittees } from "hooks/useWardData";
 
 export default function CommitteeTab() {
   const { wardId } = useWard();
-  const { committees, loading, error } = useWardCommittees(wardId);
+  const { data: committees, loading, error } = useWardCommittees(wardId);
 
-  const getAvatarUrl = (avatarUrl) => {
-    if (!avatarUrl) return "/user.png";
-    if (avatarUrl.startsWith("http")) return avatarUrl;
-    return `https://gostxgfnoilfmybaohhx.supabase.co/storage/v1/object/public/profile/avatar/${avatarUrl}`;
-  };
+  const getAvatarUrl = (avatarUrl) => avatarUrl ? avatarUrl : "/user.png";
 
-  if (loading) return;
+  if (loading) return <p>Loading committees...</p>;
   if (error) return <p>Error loading committees: {error.message}</p>;
 
   return (
     <div className={styles.memberList}>
-      {committees.length === 0 ? (
+      {!committees?.length ? (
         <p className={styles.empty}>
           Interested in joining the committee? Tap the <strong>Join Committee</strong> button, 
           or email us at <a href="mailto:info@walkingproject.org">info@walkingproject.org</a>.
