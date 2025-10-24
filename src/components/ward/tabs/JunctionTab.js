@@ -111,7 +111,7 @@ function Description() {
   return (
     <div className={styles.junctionDescription}>
       Explore the map and table below to see identified junctions, their
-      suggested design, and associated projects. Click on a junction to view more
+      suggested design, and associated projects. Click on any row to view more
       information.
     </div>
   );
@@ -120,6 +120,21 @@ function Description() {
 function TopSection({ junctions, selectedJunction, onSelectJunction, wardId }) {
   const MUMBAI_CENTER = [19.076, 72.8777];
   const DEFAULT_ZOOM = 12;
+
+  const handleRowClick = (junction) => {
+    onSelectJunction(junction);
+  };
+
+  const getStatusClass = (junction) => {
+    if (!junction.project) return styles.noProject;
+    return styles[junction.project.status] || '';
+  };
+
+  const getStatusText = (junction) => {
+    if (!junction.project) return "No Project";
+    const status = junction.project.status;
+    return status ? status.replace('_', ' ') : 'No Project';
+  };
 
   return (
     <div className={styles.junctionContent}>
@@ -131,43 +146,30 @@ function TopSection({ junctions, selectedJunction, onSelectJunction, wardId }) {
                 <tr>
                   <TableHeader width={200}>Junction Name</TableHeader>
                   <TableHeader width={120}>Project Status</TableHeader>
-                  <TableHeader width={150}>Action</TableHeader>
                 </tr>
               </thead>
               <tbody>
                 {junctions.map((junction) => {
-                  const hasProject = !!junction.project;
-                  const status = junction.project?.status;
+                  const isSelected = selectedJunction?.fid === junction.fid;
                   
                   return (
                     <tr
                       key={junction.fid}
-                      className={
-                        selectedJunction?.fid === junction.fid
-                          ? styles.selectedRow
-                          : ""
-                      }
+                      className={`${styles.clickableRow} ${
+                        isSelected ? styles.selectedRow : ""
+                      }`}
+                      onClick={() => handleRowClick(junction)}
                     >
-                      <TableCell>{junction.name || "Unnamed"}</TableCell>
                       <TableCell>
-                        {hasProject ? (
-                          <span className={`${styles.statusBadge} ${styles[status]}`}>
-                            {status ? status.replace('_', ' ') : 'No Project'}
-                          </span>
-                        ) : (
-                          <span className={styles.noProject}>No Project</span>
-                        )}
+                        <div className={styles.junctionName}>
+                          {junction.name || "Unnamed"}
+                        </div>
                       </TableCell>
-                      <td>
-                        <button
-                          onClick={() => onSelectJunction(junction)}
-                          className={styles.viewButton}
-                        >
-                          {selectedJunction?.fid === junction.fid
-                            ? "Viewing"
-                            : "View Details"}
-                        </button>
-                      </td>
+                      <TableCell>
+                        <div className={`${styles.statusCell} ${getStatusClass(junction)}`}>
+                          {getStatusText(junction)}
+                        </div>
+                      </TableCell>
                     </tr>
                   );
                 })}

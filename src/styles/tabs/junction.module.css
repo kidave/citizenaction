@@ -9,6 +9,7 @@
   display: flex;
   gap: 10px;
   margin-bottom: 1rem;
+  max-height: 360px;
 }
 
 .junctionListSection {
@@ -17,7 +18,7 @@
 }
 
 .junctionMapSection {
-  flex: 1;
+  flex: 2;
   position: relative;
 }
 
@@ -90,54 +91,61 @@
   background: rgba(255, 255, 255, 0.8);
 }
 
-
-
 .junctionTable th {
   position: sticky;
   top: 0;
 }
 
-.viewButton {
-  background-color: whitesmoke;
-  color: grey;
-  border: none;
-  font: 1em sans-serif;
-  padding: 5px 10px;
-  border-radius: 4px;
+/* Clickable row styles */
+.clickableRow {
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.2s ease;
 }
 
-.viewButton:hover {
-  background-color: lightgrey;
+.clickableRow:hover {
+  background-color: whitesmoke !important;
+  color: black;
 }
 
-/* Update these styles in junction.module.css */
-.bottomSection {
-  display: flex;
-  flex-direction: column;
+.selectedRow {
+  background: grey !important;
+  color: white;
 }
 
-.detailSection {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
+/* Status cell styles */
+.statusCell {
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
+  text-transform: capitalize;
+  transition: all 0.2s ease;
 }
 
-.detailCard {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+/* Status colors */
+.statusCell.pending {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
 }
 
-.detailItem {
-  display: flex;
-  align-items: center;
+.statusCell.in_progress {
+  background: #cce7ff;
+  color: #004085;
+  border: 1px solid #b3d7ff;
 }
 
-.detailLabel {
-  font-weight: 600;
-  margin-right: 10px;
+.statusCell.completed {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.statusCell.noProject {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
 }
 
 .noData {
@@ -148,39 +156,6 @@
 .loading {
   padding: 20px;
   text-align: center;
-}
-
-/* Status badges matching ProjectTab */
-.statusBadge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: capitalize;
-}
-
-.statusBadge.pending {
-  background: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeaa7;
-}
-
-.statusBadge.in_progress {
-  background: #cce7ff;
-  color: #004085;
-  border: 1px solid #b3d7ff;
-}
-
-.statusBadge.completed {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.noProject {
-  color: #6c757d;
-  font-style: italic;
-  font-size: 0.875rem;
 }
 
 /* Enhanced detail sections */
@@ -248,10 +223,31 @@
   flex: 1;
 }
 
-/* Adjust status badge for header positioning */
-.projectHeaderRow .statusBadge {
-  flex-shrink: 0;
-  margin-top: 0.125rem; /* Small alignment adjustment */
+/* Keep status badges for project details section */
+.statusBadge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.statusBadge.pending {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.statusBadge.in_progress {
+  background: #cce7ff;
+  color: #004085;
+  border: 1px solid #b3d7ff;
+}
+
+.statusBadge.completed {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
 }
 
 /* Project meta information */
@@ -308,11 +304,23 @@
   background: #5a6fd8;
 }
 
-/* Enhanced table styles */
-.selectedRow {
-  background: #f0f4ff !important;
-  border-left: 4px solid #667eea;
+.viewButton {
+  background-color: whitesmoke;
+  color: grey;
+  border: none;
+  font: 1em sans-serif;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
+.viewButton:hover {
+  background-color: lightgrey;
+}
 
-
+@media (max-width: 1024px) {
+  .junctionContainer {
+    margin: 0;
+  } 
+}

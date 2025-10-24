@@ -456,6 +456,11 @@
     margin: 0;
   }
 
+  .timelineCard {
+    margin: 0;
+    margin-bottom: 1rem;
+  }
+
   .timelineWrapper::before {
     display: none;
   }

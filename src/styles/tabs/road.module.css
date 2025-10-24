@@ -7,7 +7,8 @@
 
 .roadContent {
   display: flex;
-  gap: 10px;
+  gap: 8px;
+  max-height: 400px;
 }
 
 .roadListSection {
@@ -111,4 +112,10 @@
 .pageInputTotal {
   color: grey;
   margin-left: 2px;
+}
+
+@media (max-width: 1024px) {
+  .roadContainer {
+    margin: 0;
+  } 
 }
