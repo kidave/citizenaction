@@ -1,11 +1,10 @@
 import { motion } from "framer-motion";
 import { FiMapPin, FiCalendar, FiArrowRight, FiImage } from "react-icons/fi";
-import { useWardMeetings } from "hooks/useWardData";
+import useLatestItems from "hooks/useLatestItems";
 import styles from "styles/layout/latest-items.module.css";
 
 export default function LatestMeetings({ limit = 3 }) {
-  // Global latest meetings
-  const { data: meetings, loading, error } = useWardMeetings(null, { limit });
+  const { data: meetings, loading, error } = useLatestItems("meeting", limit);
 
   if (loading) return <div className={styles.loading}>Loading meetings...</div>;
   if (error)

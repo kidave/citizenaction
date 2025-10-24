@@ -78,9 +78,6 @@
   font-size: 0.85rem;
 }
 
-
-
-
 /* Image Comparison */
 
 .imagePanel {
@@ -91,6 +88,7 @@
 .imageComparison {
   display: flex;
   gap: 20px;
+  margin-block: 1rem;
 }
 
 .imageGrid {
@@ -281,19 +279,17 @@
 
 .imageEmbed {
   display: flex;
-  justify-content: center;
-  align-items: center;
+  justify-content: left;
+  align-items: left;
   overflow: hidden;
   border-radius: 12px;
-  border: 1px solid #eee;
-  background: #fafafa;
   padding: 0.5rem;
   max-width: 100%;
 }
 
 .imageEmbed img {
   max-width: 100%;
-  height: auto;
+  max-height: 600px;
   object-fit: contain;
   border-radius: 8px;
 }

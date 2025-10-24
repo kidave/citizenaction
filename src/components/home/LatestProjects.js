@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
 import { FiMapPin, FiArrowRight, FiTrendingUp } from "react-icons/fi";
-import { useWardProjects } from "hooks/useWardData";
+import useLatestItems from "hooks/useLatestItems";
 import styles from "styles/layout/latest-items.module.css";
 
 export default function LatestProjects({ limit = 3 }) {
-  const { data: projects, loading, error } = useWardProjects(null, { limit });
+  const { data: projects, loading, error } = useLatestItems("project", limit);
 
   if (loading) return <div className={styles.loading}>Loading projects...</div>;
   if (error)

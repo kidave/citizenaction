@@ -27,10 +27,7 @@ export function useWardData(wardId, dataType, options = {}) {
       case "project":
         query = supabase
           .from("project_with_images")
-          .select(`
-            *,
-            ward:ward_code (name, division:division_code (city:city_code (code, name)))
-          `);
+          .select("*");
 
         if (!admin) query = query.eq("is_published", true);
         if (!isGlobal) query = query.eq("ward_code", wardId);
@@ -44,10 +41,7 @@ export function useWardData(wardId, dataType, options = {}) {
       case "meeting":
         query = supabase
           .from("meeting_with_images")
-          .select(`
-            *,
-            ward:ward_code (name, division:division_code (city:city_code (code, name)))
-          `);
+          .select("*");
         if (!isGlobal) query = query.eq("ward_code", wardId);
         query = query.order("date", { ascending: false });
         if (limit) query = query.limit(limit);
@@ -59,10 +53,7 @@ export function useWardData(wardId, dataType, options = {}) {
       case "update":
         query = supabase
           .from("update_with_images")
-          .select(`
-            *,
-            ward:ward_code (name, division:division_code (city:city_code (code, name)))
-          `);
+          .select("*");
         if (!isGlobal) query = query.eq("ward_code", wardId);
         query = query.order("date", { ascending: false });
         if (limit) query = query.limit(limit);

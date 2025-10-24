@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
 import { FiMapPin, FiArrowRight, FiFileText, FiImage } from "react-icons/fi";
-import { useWardUpdates } from "hooks/useWardData";
+import useLatestItems from "hooks/useLatestItems";
 import styles from "styles/layout/latest-items.module.css";
 
 export default function LatestUpdates({ limit = 3 }) {
-  const { data: updates, loading, error } = useWardUpdates(null, { limit });
+  const { data: updates, loading, error } = useLatestItems("update", limit);
 
   if (loading) return <div className={styles.loading}>Loading updates...</div>;
   if (error)
