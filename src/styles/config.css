@@ -188,15 +188,9 @@ h6 {
 /* Container responsive settings */
 .container {
   width: 100%;
-  max-width: 100%;
-  margin: 0;
-  overflow-x: hidden;
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 0 var(--spacing-md);
-}
-
-.full-width {
-  width: 100vw;
-  margin-left: calc(-50vw + 50%);
 }
 
 /* Responsive grid system */

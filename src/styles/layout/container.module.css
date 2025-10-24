@@ -1,13 +1,10 @@
-/* In container.module.css - Update these classes */
+/* styles/layout/container.module.css */
 .page {
   display: flex;
   flex-direction: column;
   min-height: auto;
   width: 100%;
   max-width: 100%;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
 }
 
 .wardMain {
@@ -16,15 +13,4 @@
   flex-direction: column;
   width: 100%;
   max-width: 100%;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
-}
-
-/* Add mobile landscape fix */
-@media (max-width: 896px) and (orientation: landscape) {
-  .page, .wardMain {
-    width: 100vw;
-    max-width: 100vw;
-  }
 }
