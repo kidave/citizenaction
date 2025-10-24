@@ -467,32 +467,3 @@ object {
 .align-baseline { vertical-align: baseline; }
 
 .no-top-space { margin-top: 0; padding-top: 0; }
-
-/* Mobile Landscape Fix */
-@media (max-width: 896px) and (orientation: landscape) {
-  :root {
-    --spacing-md: 0.5rem;
-    --spacing-lg: 0.75rem;
-  }
-  
-  .container {
-    padding: 0;
-    margin: 0;
-  }
-  
-  /* Ensure all grid items take full width */
-  .grid-2,
-  .grid-3,
-  .grid-4 {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-sm);
-  }
-  
-  /* Remove any horizontal padding/margin */
-  body, html, #__next {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-  }
-}
