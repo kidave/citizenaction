@@ -63,7 +63,7 @@ export default function ProjectMap({
         <RoadMap
           roads={roads}
           selectedRoad={selectedRoad}
-          onRoadSelect={null} // ❌ disable clicks
+          onRoadSelect={null}
           center={[19.076, 72.8777]}
           zoom={14}
           wardId={wardId}
