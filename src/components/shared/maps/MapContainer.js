@@ -15,7 +15,7 @@ L.Icon.Default.mergeOptions({
 export default function MapContainer({
   center = [19.076, 72.8777],
   zoom = 12,
-  wardId,
+  wardCode,
   children,
   onMapInit,
   className = "",

@@ -2,7 +2,7 @@
 import { useAuth } from "context/AuthContext";
 import { useAlert } from "hooks/useAlert";
 
-export default function useWardCRUD(resource, wardId) {
+export default function useWardCRUD(resource, wardCode) {
   const { getAccessToken } = useAuth();
   const { showSuccessAlert, showErrorAlert } = useAlert();
 
@@ -14,8 +14,8 @@ export default function useWardCRUD(resource, wardId) {
       }
 
       const url = id
-        ? `/api/ward/${wardId}/${resource}/${id}`
-        : `/api/ward/${wardId}/${resource}`;
+        ? `/api/ward/${wardCode}/${resource}/${id}`
+        : `/api/ward/${wardCode}/${resource}`;
 
       const res = await fetch(url, {
         method,

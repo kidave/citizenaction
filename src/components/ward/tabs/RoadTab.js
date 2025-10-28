@@ -14,8 +14,8 @@ const RoadMap = dynamic(() => import("./RoadMap"), {
 });
 
 export default function RoadTab() {
-  const { wardId } = useWard();
-  const { data: roads, loading, error } = useWardRoads(wardId);
+  const { wardCode } = useWard();
+  const { data: roads, loading, error } = useWardRoads(wardCode);
   const MUMBAI_CENTER = [19.076, 72.8777];
   const DEFAULT_ZOOM = 12;
   const [selectedRoad, setSelectedRoad] = useState(null);
@@ -49,7 +49,7 @@ export default function RoadTab() {
 
   return (
     <div className={styles.roadContainer}>
-      <Header roadCount={roads?.length || 0} wardName={wardId} />
+      <Header roadCount={roads?.length || 0} wardName={wardCode} />
       <Description />
 
       <div className={styles.roadContent}>
@@ -151,7 +151,7 @@ export default function RoadTab() {
             onRoadSelect={setSelectedRoad}
             center={MUMBAI_CENTER}
             zoom={DEFAULT_ZOOM}
-            wardId={wardId}
+            wardCode={wardCode}
           />
         </div>
       </div>

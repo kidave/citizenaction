@@ -10,12 +10,12 @@ import { AddButton, EditButton, DeleteButton, SaveButton, CancelButton, PublishB
 import ProjectImageManager from "components/admin/ProjectImageManager";
 import styles from "styles/tabs/project.module.css";
 
-export default function ProjectAdmin({ wardId }) {
+export default function ProjectAdmin({ wardCode }) {
   const { isAdmin } = useAdmin();
   const { showConfirmAlert, showSuccessAlert, showErrorAlert, AlertComponent } = useAlert();
 
-  const { data: projects, loading, error, refresh } = useAdminWardProjects(wardId);
-  const { create, update, remove } = useWardCRUD("project", wardId);
+  const { data: projects, loading, error, refresh } = useAdminWardProjects(wardCode);
+  const { create, update, remove } = useWardCRUD("project", wardCode);
 
   const [editing, setEditing] = useState(null);
   const [publishingStates, setPublishingStates] = useState({});
@@ -180,7 +180,7 @@ export default function ProjectAdmin({ wardId }) {
 
       {editing !== null && (
         <ProjectForm
-          wardId={wardId}
+          wardCode={wardCode}
           project={editing}
           onSave={async (proj) => {
             if (proj.id) await handleUpdate(proj.id, proj);
@@ -195,7 +195,7 @@ export default function ProjectAdmin({ wardId }) {
   );
 }
 
-function ProjectForm({ wardId, project = {}, onSave, onCancel }) {
+function ProjectForm({ wardCode, project = {}, onSave, onCancel }) {
   const [form, setForm] = useState(() => ({
     title: "",
     status: "pending",
@@ -375,7 +375,7 @@ function ProjectForm({ wardId, project = {}, onSave, onCancel }) {
                   {projectId && (
                     <ProjectImageManager
                       projectId={projectId}
-                      wardId={wardId}
+                      wardCode={wardCode}
                       step={step.key}
                     />
                   )}

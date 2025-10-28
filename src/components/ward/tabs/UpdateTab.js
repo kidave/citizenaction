@@ -7,8 +7,8 @@ import ImageStackPopup from "components/shared/image/ImageStackPopup";
 import styles from "styles/tabs/timeline.module.css";
 
 export default function UpdateTab() {
-  const { wardId } = useWard();
-  const { data: updates, loading, error } = useWardUpdates(wardId);
+  const { wardCode } = useWard();
+  const { data: updates, loading, error } = useWardUpdates(wardCode);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [popupFiles, setPopupFiles] = useState([]);
 

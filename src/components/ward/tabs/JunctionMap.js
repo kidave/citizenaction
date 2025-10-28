@@ -13,12 +13,12 @@ export default function JunctionMap({
   onJunctionSelect,
   center = [19.076, 72.8777],
   zoom = 12,
-  wardId,
+  wardCode,
   showBoundary = true,
   zoomControl = true,
 }) {
   const mapRef = useRef(null);
-  const { data: boundary } = useWardBoundary(wardId);
+  const { data: boundary } = useWardBoundary(wardCode);
   const [mapReady, setMapReady] = useState(false);
   const previousJunctionRef = useRef(null);
 
@@ -84,7 +84,7 @@ export default function JunctionMap({
           <BoundaryLayer
             map={mapRef.current}
             boundary={boundary}
-            wardId={wardId}
+            wardCode={wardCode}
           />
         )}
 

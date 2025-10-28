@@ -12,13 +12,13 @@ const resolveUrl = (path) => {
  * Unified data hook (ward-specific + global)
  * Now cached automatically using React Query
  */
-export function useWardData(wardId, dataType, options = {}) {
+export function useWardData(wardCode, dataType, options = {}) {
   const { enabled = true, admin = false, limit = null } = options;
 
-  const queryKey = [dataType, wardId || "global", admin, limit];
+  const queryKey = [dataType, wardCode || "global", admin, limit];
 
   const queryFn = async () => {
-    const isGlobal = !wardId;
+    const isGlobal = !wardCode;
     let query;
     let result;
 
@@ -30,7 +30,7 @@ export function useWardData(wardId, dataType, options = {}) {
           .select("*");
 
         if (!admin) query = query.eq("is_published", true);
-        if (!isGlobal) query = query.eq("ward_code", wardId);
+        if (!isGlobal) query = query.eq("ward_code", wardCode);
         query = query.order("start_date", { ascending: false });
         if (limit) query = query.limit(limit);
 
@@ -42,7 +42,7 @@ export function useWardData(wardId, dataType, options = {}) {
         query = supabase
           .from("meeting_with_images")
           .select("*");
-        if (!isGlobal) query = query.eq("ward_code", wardId);
+        if (!isGlobal) query = query.eq("ward_code", wardCode);
         query = query.order("date", { ascending: false });
         if (limit) query = query.limit(limit);
 
@@ -54,7 +54,7 @@ export function useWardData(wardId, dataType, options = {}) {
         query = supabase
           .from("update_with_images")
           .select("*");
-        if (!isGlobal) query = query.eq("ward_code", wardId);
+        if (!isGlobal) query = query.eq("ward_code", wardCode);
         query = query.order("date", { ascending: false });
         if (limit) query = query.limit(limit);
 
@@ -66,7 +66,7 @@ export function useWardData(wardId, dataType, options = {}) {
         result = await supabase
           .from("committee_member_view")
           .select("*")
-          .eq("ward_code", wardId)
+          .eq("ward_code", wardCode)
           .order("joined_at", { ascending: true });
         break;
 
@@ -75,33 +75,43 @@ export function useWardData(wardId, dataType, options = {}) {
         result = await supabase
           .from("ward_header_view")
           .select("*")
-          .eq("ward_code", wardId)
+          .eq("ward_code", wardCode)
           .single();
 
-        if (!result.error && result.data) {
-          const w = result.data;
-          result.data = {
-            wardName: w.ward_name,
-            convenor: w.convenor_name ? { name: w.convenor_name } : null,
-            coConvenor: w.co_convenor_name ? { name: w.co_convenor_name } : null,
-          };
+        if (result.error) {
+          // Check if it's a "not found" error
+          if (result.error.code === 'PGRST116') { // PGRST116 is the code for "not found"
+            return null; // Return null to indicate ward doesn't exist
+          }
+          throw result.error;
         }
+
+        if (!result.data) {
+          return null; // Ward doesn't exist
+        }
+
+        const w = result.data;
+        return {
+          wardName: w.ward_name,
+          convenor: w.convenor_name ? { name: w.convenor_name } : null,
+          coConvenor: w.co_convenor_name ? { name: w.co_convenor_name } : null,
+        };
         break;
 
       // --- RPC CALLS ---
       case "junctions":
-        result = await supabase.rpc("get_ward_junctions", { ward_code: wardId });
+        result = await supabase.rpc("get_ward_junctions", { ward_code: wardCode });
         break;
 
       case "roads":
-        result = await supabase.rpc("get_roads", { gr_ward_code: wardId });
+        result = await supabase.rpc("get_roads", { gr_ward_code: wardCode });
         break;
 
       case "boundary":
         result = await supabase
           .from("ward")
           .select("code, name, geom")
-          .eq("code", wardId)
+          .eq("code", wardCode)
           .single();
         break;
 
@@ -141,36 +151,36 @@ export function useWardData(wardId, dataType, options = {}) {
 }
 
 // ---- Derived hooks ----
-export const useWardProjects = (wardId, options = {}) =>
-  useWardData(wardId, "project", { ...options, admin: false });
+export const useWardProjects = (wardCode, options = {}) =>
+  useWardData(wardCode, "project", { ...options, admin: false });
 
-export const useWardMeetings = (wardId, options = {}) =>
-  useWardData(wardId, "meeting", { ...options, admin: false });
+export const useWardMeetings = (wardCode, options = {}) =>
+  useWardData(wardCode, "meeting", { ...options, admin: false });
 
-export const useWardUpdates = (wardId, options = {}) =>
-  useWardData(wardId, "update", { ...options, admin: false });
+export const useWardUpdates = (wardCode, options = {}) =>
+  useWardData(wardCode, "update", { ...options, admin: false });
 
-export const useWardCommittees = (wardId, options = {}) =>
-  useWardData(wardId, "committee", options);
+export const useWardCommittees = (wardCode, options = {}) =>
+  useWardData(wardCode, "committee", options);
 
-export const useWardHeader = (wardId, options = {}) =>
-  useWardData(wardId, "header", options);
+export const useWardHeader = (wardCode, options = {}) =>
+  useWardData(wardCode, "header", options);
 
-export const useWardJunctions = (wardId, options = {}) =>
-  useWardData(wardId, "junctions", options);
+export const useWardJunctions = (wardCode, options = {}) =>
+  useWardData(wardCode, "junctions", options);
 
-export const useWardRoads = (wardId, options = {}) =>
-  useWardData(wardId, "roads", options);
+export const useWardRoads = (wardCode, options = {}) =>
+  useWardData(wardCode, "roads", options);
 
-export const useWardBoundary = (wardId, options = {}) =>
-  useWardData(wardId, "boundary", options);
+export const useWardBoundary = (wardCode, options = {}) =>
+  useWardData(wardCode, "boundary", options);
 
 // ---- Admin versions ----
-export const useAdminWardProjects = (wardId, options = {}) =>
-  useWardData(wardId, "project", { ...options, admin: true });
+export const useAdminWardProjects = (wardCode, options = {}) =>
+  useWardData(wardCode, "project", { ...options, admin: true });
 
-export const useAdminWardMeetings = (wardId, options = {}) =>
-  useWardData(wardId, "meeting", { ...options, admin: true });
+export const useAdminWardMeetings = (wardCode, options = {}) =>
+  useWardData(wardCode, "meeting", { ...options, admin: true });
 
-export const useAdminWardUpdates = (wardId, options = {}) =>
-  useWardData(wardId, "update", { ...options, admin: true });
+export const useAdminWardUpdates = (wardCode, options = {}) =>
+  useWardData(wardCode, "update", { ...options, admin: true });

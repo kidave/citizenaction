@@ -11,32 +11,32 @@ import UpdateAdmin from "./tabs/UpdateAdmin";
 import CommitteeAdmin from "./tabs/CommitteeAdmin";
 import ProjectAdmin from "./tabs/ProjectAdmin";
 
-export default function AdminLayout({ wardId, activeTab }) {
+export default function AdminLayout({ wardCode, activeTab }) {
   const router = useRouter();
   const isMobile = useMediaQuery({ maxWidth: 768 });
 
   const handleTabChange = (tab) => {
-    router.push(`/admin/${wardId}/${tab}`);
+    router.push(`/admin/${wardCode}/${tab}`);
   };
 
   const tabComponents = {
-    meeting: <MeetingAdmin wardId={wardId} />,
-    update: <UpdateAdmin wardId={wardId} />,
-    committee: <CommitteeAdmin wardId={wardId} />,
-    project: <ProjectAdmin wardId={wardId} />,
+    meeting: <MeetingAdmin wardCode={wardCode} />,
+    update: <UpdateAdmin wardCode={wardCode} />,
+    committee: <CommitteeAdmin wardCode={wardCode} />,
+    project: <ProjectAdmin wardCode={wardCode} />,
   };
 
   return (
     <div className={styles.page}>
       {!isMobile && (
         <AdminSidebar 
-          wardId={wardId} 
+          wardCode={wardCode} 
           activeTab={activeTab} 
         />
       )}
       
       <div className={styles.wardMain}>
-        {tabComponents[activeTab] || <MeetingAdmin wardId={wardId} />}
+        {tabComponents[activeTab] || <MeetingAdmin wardCode={wardCode} />}
       </div>
 
       {isMobile && (

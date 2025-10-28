@@ -19,10 +19,10 @@ const ProjectMap = dynamic(() => import("./ProjectMap"), {
 });
 
 export default function ProjectTab() {
-  const { wardId } = useWard();
-  const { data: projects, loading, error } = useWardProjects(wardId);
-  const { data: junctions } = useWardJunctions(wardId);
-  const { data: roads } = useWardRoads(wardId);
+  const { wardCode } = useWard();
+  const { data: projects, loading, error } = useWardProjects(wardCode);
+  const { data: junctions } = useWardJunctions(wardCode);
+  const { data: roads } = useWardRoads(wardCode);
 
   if (loading) return;
   if (error) return <p>Error loading projects: {error.message}</p>;
@@ -191,12 +191,7 @@ function StepContent({ stepKey, project }) {
     return stepContents[key] || null;
   };
 
-
-
-  // Determine if it's a predefined step or custom section
-  const stepContent = ['A', 'B', 'C', 'D', 'E', 'F'].includes(stepKey) 
-    ? getStepContent(stepKey)
-    : getCustomSectionContent(stepKey);
+  const stepContent = getStepContent(stepKey);
 
   // Separate single image for side display (first image of type "image")
   const sideImage = images.find((img) => img.type === "image");
@@ -214,7 +209,6 @@ function StepContent({ stepKey, project }) {
   // Check if there's any content to display
   const hasContent = stepContent || sideImage || images.length > 0;
   
-  // If no content at all, return null
   if (!hasContent) return null;
 
   return (
@@ -429,7 +423,6 @@ function SingleProject({ project, junctions, roads, index }) {
                 {formatDate(project.end_date)}
               </span>
             )}
-            
           </div>
           <div className={styles.headerDateRight}>
             <motion.div
@@ -459,7 +452,7 @@ function SingleProject({ project, junctions, roads, index }) {
                   junctionFid={project.junction_fid}
                   roadFid={project.road_fid}
                   projectTitle={project.title}
-                  wardId={project.ward_code}
+                  wardCode={project.ward_code}
                   junctions={junctions}
                   roads={roads}
                   viewOnly={true}
@@ -468,9 +461,8 @@ function SingleProject({ project, junctions, roads, index }) {
             )}
 
             {/* Workflow Steps */}
-            {activeSteps.length > 0  && (
+            {activeSteps.length > 0 && (
               <div className={styles.workflowStepper}>
-                {/* Predefined Steps */}
                 {activeSteps.map((step, i) => (
                   <motion.div
                     key={step.key}
@@ -496,7 +488,7 @@ function SingleProject({ project, junctions, roads, index }) {
             )}
 
             {/* No Content Message */}
-            {activeSteps.length === 0 && customSections.length === 0 && (
+            {activeSteps.length === 0 && (
               <div className={styles.noContentMessage}>
                 <p>No project details available yet. Check back later for updates.</p>
               </div>

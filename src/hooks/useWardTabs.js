@@ -13,18 +13,18 @@ export const WARD_TABS = {
 
 export const useWardTabs = () => {
   const router = useRouter();
-  const { tab: activeTab = WARD_TABS.PROJECT } = router.query;
+  const { tab: activeWardTab = WARD_TABS.PROJECT } = router.query;
 
-  const navigateToTab = (tabName) => {
-    const { wardId } = router.query;
-    if (wardId) {
-      router.push(`/ward/${wardId}/${tabName}`);
+  const navigateToWardTab = (tabName) => {
+    const { wardCode } = router.query;
+    if (wardCode) {
+      router.push(`/ward/${wardCode}/${tabName}`);
     }
   };
 
   return {
-    activeTab,
-    navigateToTab,
+    activeWardTab,
+    navigateToWardTab,
     WARD_TABS,
   };
 };

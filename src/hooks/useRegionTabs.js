@@ -11,20 +11,18 @@ export const REGION_TABS = {
 
 export function useRegionTabs() {
   const router = useRouter();
-  const { regionCode, tab } = router.query;
+  const { regionCode } = router.query;
+  const { regionTab: activeRegionTab = REGION_TABS.MEETING } = router.query;
 
-  // Default tab
-  const { tab: activeTab = REGION_TABS.MEETING } = router.query;
-  
-
-  const navigateToTab = (tabKey) => {
-    if (!regionCode) return;
-    router.push(
-      `/region/${regionCode}/${tabKey}`, 
-      undefined, 
-      { shallow: true }
-    );
+  const navigateToRegionTab = (regionTabName) => {
+    if (regionCode) {
+      router.push(`/region/${regionCode}/${regionTabName}`);
+    }
   };
 
-  return { activeTab, navigateToTab, regionCode };
+  return { 
+    activeRegionTab, 
+    navigateToRegionTab, 
+    regionCode 
+  };
 }

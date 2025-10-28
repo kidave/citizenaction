@@ -5,15 +5,15 @@ import { useRouter } from "next/router";
 
 const AdminContext = createContext();
 
-export function AdminProvider({ children, wardId }) {
+export function AdminProvider({ children, wardCode }) {
   const { getAccessToken, user } = useAuth();
   const [roleId, setRoleId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [hasFetched, setHasFetched] = useState(false);
 
   useEffect(() => {
-    if (!user || !wardId || hasFetched) {
-      if (!user || !wardId) {
+    if (!user || !wardCode || hasFetched) {
+      if (!user || !wardCode) {
         setRoleId(null);
         setLoading(false);
       }
@@ -24,7 +24,7 @@ export function AdminProvider({ children, wardId }) {
       setLoading(true);
       try {
         const token = await getAccessToken();
-        const res = await fetch(`/api/ward/${wardId}/role`, {
+        const res = await fetch(`/api/ward/${wardCode}/role`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -39,7 +39,7 @@ export function AdminProvider({ children, wardId }) {
     };
 
     fetchRole();
-  }, [user, wardId, getAccessToken, hasFetched]); // Added hasFetched dependency
+  }, [user, wardCode, getAccessToken, hasFetched]); // Added hasFetched dependency
 
   const isAdmin = roleId && [1, 2, 3].includes(roleId);
 
@@ -51,15 +51,15 @@ export function AdminProvider({ children, wardId }) {
 }
 
 // useAdmin hook remains the same
-export function useAdmin({ require = false, wardId, fallbackTab = "meeting" } = {}) {
+export function useAdmin({ require = false, wardCode, fallbackTab = "meeting" } = {}) {
   const ctx = useContext(AdminContext);
   const router = useRouter();
 
   useEffect(() => {
-    if (!ctx.loading && require && !ctx.isAdmin && wardId) {
-      router.replace(`/ward/${wardId}/${fallbackTab}`);
+    if (!ctx.loading && require && !ctx.isAdmin && wardCode) {
+      router.replace(`/ward/${wardCode}/${fallbackTab}`);
     }
-  }, [ctx.loading, ctx.isAdmin, require, wardId, fallbackTab, router]);
+  }, [ctx.loading, ctx.isAdmin, require, wardCode, fallbackTab, router]);
 
   return ctx;
 }

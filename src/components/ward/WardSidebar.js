@@ -6,20 +6,20 @@ import { TbTimelineEvent } from "react-icons/tb";
 import { MdOutlineAssignment } from "react-icons/md";
 import { useWardTabs, WARD_TABS } from "hooks/useWardTabs";
 
-export default function WardSidebar({ disabledTabs = [] }) {
-  const { activeTab, navigateToTab } = useWardTabs();
+export default function WardSidebar({ disabledWardTabs = [] }) {
+  const { activeWardTab, navigateToWardTab } = useWardTabs();
 
-  const isTabDisabled = (tab) => disabledTabs.includes(tab);
+  const isWardTabDisabled = (wardTab) => disabledWardTabs.includes(wardTab);
 
-  const renderTabButton = (tabKey, icon, label) => (
+  const renderWardTabButton = (wardTabName, wardTabIcon, wardTabLabel) => (
     <button
-      className={`${styles.tab} ${activeTab === tabKey ? styles.active : ""} ${isTabDisabled(tabKey) ? styles.disabled : ""}`}
-      onClick={() => navigateToTab(tabKey)}
-      title={label}
-      disabled={isTabDisabled(tabKey)}
+      className={`${styles.tab} ${activeWardTab === wardTabName ? styles.active : ""} ${isWardTabDisabled(wardTabName) ? styles.disabled : ""}`}
+      onClick={() => navigateToWardTab(wardTabName)}
+      title={wardTabLabel}
+      disabled={isWardTabDisabled(wardTabName)}
     >
-      {icon}
-      <span className={styles.tabText}>{label}</span>
+      {wardTabIcon}
+      <span className={styles.tabText}>{wardTabLabel}</span>
     </button>
   );
 
@@ -27,32 +27,32 @@ export default function WardSidebar({ disabledTabs = [] }) {
     <div className={styles.topSidebar}>
       {/* Tabs */}
       <div className={styles.tabContainer}>
-        {renderTabButton(
+        {renderWardTabButton(
           WARD_TABS.PROJECT,
           <MdOutlineAssignment className={styles.tabIcon} />,
           "Project Details",
         )}
-        {renderTabButton(
+        {renderWardTabButton(
           WARD_TABS.MEETING,
           <BsCardList className={styles.tabIcon} />,
           "Minutes of Meeting",
         )}
-        {renderTabButton(
+        {renderWardTabButton(
           WARD_TABS.UPDATE,
           <TbTimelineEvent className={styles.tabIcon} />,
           "Monthly Update",
         )}
-        {renderTabButton(
+        {renderWardTabButton(
           WARD_TABS.COMMITTEE,
           <BsPeople className={styles.tabIcon} />,
           "Members",
         )}
-        {renderTabButton(
+        {renderWardTabButton(
           WARD_TABS.JUNCTION,
           <BsSignIntersectionSide className={styles.tabIcon} />,
           "Junction Design",
         )}
-        {renderTabButton(
+        {renderWardTabButton(
           WARD_TABS.ROAD,
           <FaRoad className={styles.tabIcon} />,
           "Routes Identified",

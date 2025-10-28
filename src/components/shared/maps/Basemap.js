@@ -15,7 +15,7 @@ export default function BaseMap({
   children,
   onMapInit,
   className = "",
-  wardId,
+  wardCode,
   autoZoomToBoundary = true,
 }) {
   const mapRef = useRef(null);
@@ -28,12 +28,12 @@ export default function BaseMap({
   const isMountedRef = useRef(true);
 
   // Use the ward boundary hook
-  const { data: boundary, loading: boundaryLoading } = useWardBoundary(wardId);
+  const { data: boundary, loading: boundaryLoading } = useWardBoundary(wardCode);
 
   // Debug boundary data
   useEffect(() => {
     console.log("🔍 BaseMap Boundary Debug:");
-    console.log("Ward ID:", wardId);
+    console.log("Ward ID:", wardCode);
     console.log("Boundary Data:", boundary);
     console.log("Boundary Loading:", boundaryLoading);
     console.log("Boundary Type:", typeof boundary);
@@ -51,7 +51,7 @@ export default function BaseMap({
         console.log("Boundary geom type:", typeof boundary.geom);
       }
     }
-  }, [boundary, wardId, boundaryLoading]);
+  }, [boundary, wardCode, boundaryLoading]);
 
   // Process boundary data
   const processBoundary = useCallback((boundaryData) => {
@@ -134,7 +134,7 @@ export default function BaseMap({
 
   // Update boundary layer
   const updateBoundaryLayer = useCallback(() => {
-    console.log("🔄 Updating boundary layer for ward:", wardId);
+    console.log("🔄 Updating boundary layer for ward:", wardCode);
     
     if (!mapInstance.current || !isMountedRef.current) {
       console.log("🚫 Map not ready for boundary update");
@@ -185,7 +185,7 @@ export default function BaseMap({
     } else {
       console.log("❌ No processed boundary to display");
     }
-  }, [boundary, wardId, processBoundary, autoZoomToBoundary, safeFitBounds]);
+  }, [boundary, wardCode, processBoundary, autoZoomToBoundary, safeFitBounds]);
 
   // Initialize map
   useEffect(() => {
@@ -233,8 +233,8 @@ export default function BaseMap({
     console.log("✅ BaseMap initialized");
 
     // Add boundary if available
-    if (wardId && !boundaryLoading && boundary) {
-      console.log("🚀 Initial boundary load for ward:", wardId);
+    if (wardCode && !boundaryLoading && boundary) {
+      console.log("🚀 Initial boundary load for ward:", wardCode);
       updateBoundaryLayer();
     }
 
@@ -285,13 +285,13 @@ export default function BaseMap({
     };
   }, []);
 
-  // Update boundary when wardId or boundary data changes
+  // Update boundary when wardCode or boundary data changes
   useEffect(() => {
     if (initializedRef.current && isMountedRef.current && !boundaryLoading) {
       console.log("🔄 Boundary data changed, updating layer");
       updateBoundaryLayer();
     }
-  }, [boundary, wardId, boundaryLoading, updateBoundaryLayer]);
+  }, [boundary, wardCode, boundaryLoading, updateBoundaryLayer]);
 
   // Update tile layer when currentLayer changes
   useEffect(() => {

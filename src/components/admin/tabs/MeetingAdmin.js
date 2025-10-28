@@ -15,12 +15,12 @@ import { AddButton, ImageButton } from "components/shared/ui/Buttons";
 import styles from "styles/tabs/timeline.module.css";
 
 export default function MeetingAdmin() {
-  const { wardId } = useWard();
+  const { wardCode } = useWard();
   const { isAdmin } = useAdmin();
-  const { create, update, remove } = useWardCRUD("meeting", wardId);
+  const { create, update, remove } = useWardCRUD("meeting", wardCode);
   const { showConfirmAlert, showSuccessAlert, showErrorAlert, AlertComponent } = useAlert();
 
-  const { data: meetings, loading, error, refresh } = useAdminWardMeetings(wardId);
+  const { data: meetings, loading, error, refresh } = useAdminWardMeetings(wardCode);
   
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [popupFiles, setPopupFiles] = useState([]);
@@ -191,7 +191,7 @@ export default function MeetingAdmin() {
                       </ImageButton>
                     </div>
                     {expandedMeetingId === item.id && (
-                      <MeetingImageManager meetingId={item.id} wardId={wardId} refresh={refresh} />
+                      <MeetingImageManager meetingId={item.id} wardCode={wardCode} refresh={refresh} />
                     )}
                     <FileContainer 
                       meetingId={item.id} 
@@ -228,7 +228,7 @@ export default function MeetingAdmin() {
                       </ImageButton>
                     </div>
                     {expandedMeetingId === item.id && (
-                      <MeetingImageManager meetingId={item.id} wardId={wardId} refresh={refresh} />
+                      <MeetingImageManager meetingId={item.id} wardCode={wardCode} refresh={refresh} />
                     )}
                     <FileContainer 
                       meetingId={item.id} 

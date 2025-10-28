@@ -17,7 +17,7 @@ const RoadMap = dynamic(() => import("./RoadMap"), {
 export default function ProjectMap({
   junctionFid,
   roadFid,
-  wardId,
+  wardCode,
   junctions = [],
   roads = [],
 }) {
@@ -52,7 +52,7 @@ export default function ProjectMap({
           onJunctionSelect={null} // ❌ disable clicks
           center={[19.076, 72.8777]}
           zoom={12}
-          wardId={wardId}
+          wardCode={wardCode}
           showBoundary={false}
           zoomControl={false} // ✅ Disable zoom control
         />
@@ -67,7 +67,7 @@ export default function ProjectMap({
           onRoadSelect={null} // ❌ disable clicks
           center={[19.076, 72.8777]}
           zoom={14}
-          wardId={wardId}
+          wardCode={wardCode}
           showBoundary={false}
           zoomControl={false} // ✅ Disable zoom control
         />

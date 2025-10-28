@@ -14,12 +14,12 @@ export default function RoadMap({
   onRoadSelect,
   center = [19.076, 72.8777],
   zoom = 12,
-  wardId,
+  wardCode,
   showBoundary = true,
   zoomControl = true,
 }) {
   const mapRef = useRef(null);
-  const { data: boundary } = useWardBoundary(wardId);
+  const { data: boundary } = useWardBoundary(wardCode);
   const roadLayersRef = useRef({});
   const isMountedRef = useRef(true);
   const [mapReady, setMapReady] = useState(false);
@@ -133,7 +133,7 @@ export default function RoadMap({
           <BoundaryLayer
             map={mapRef.current}
             boundary={boundary}
-            wardId={wardId}
+            wardCode={wardCode}
           />
         )}
 
@@ -144,7 +144,7 @@ export default function RoadMap({
 
           return (
             <GeoJSONLayer
-              key={`${wardId}-${road.fid}`}
+              key={`${wardCode}-${road.fid}`}
               map={mapRef.current}
               geojson={geoJSON}
               styleOptions={{ fclass: road.fclass }}

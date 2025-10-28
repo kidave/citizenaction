@@ -4,8 +4,8 @@ import { useWard } from "context/WardContext";
 import { useWardCommittees } from "hooks/useWardData";
 
 export default function CommitteeTab() {
-  const { wardId } = useWard();
-  const { data: committees, loading, error } = useWardCommittees(wardId);
+  const { wardCode } = useWard();
+  const { data: committees, loading, error } = useWardCommittees(wardCode);
 
   const getAvatarUrl = (avatarUrl) => avatarUrl ? avatarUrl : "/user.png";
 

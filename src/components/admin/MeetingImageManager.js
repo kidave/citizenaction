@@ -7,8 +7,8 @@ import ImageStackPopup from "components/shared/image/ImageStackPopup";
 import styles from "styles/components/data/imagemanager.module.css";
 import { FiFile } from "react-icons/fi";
 
-export default function MeetingImageManager({ meetingId, wardId }) {
-  const { files, loading, upload, remove, resolveUrl, refresh } = useMeetingImages(meetingId, wardId);
+export default function MeetingImageManager({ meetingId, wardCode }) {
+  const { files, loading, upload, remove, resolveUrl, refresh } = useMeetingImages(meetingId, wardCode);
   const { showConfirmAlert, showSuccessAlert, showErrorAlert, AlertComponent } = useAlert();
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);

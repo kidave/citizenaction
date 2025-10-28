@@ -8,13 +8,13 @@ import { useMediaQuery } from "react-responsive";
 
 export default function AdminBottomBar({ activeTab }) {
   const router = useRouter();
-  const { wardId } = router.query;
+  const { wardCode } = router.query;
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const isTablet = useMediaQuery({ minWidth: 769, maxWidth: 1024 });
   
   const handleTabChange = (tab) => {
-    if (wardId) {
-      router.push(`/admin/${wardId}/${tab}`);
+    if (wardCode) {
+      router.push(`/admin/${wardCode}/${tab}`);
     }
   };
   

@@ -6,11 +6,11 @@ import { TbTimelineEvent } from "react-icons/tb";
 import { MdOutlineAssignment } from "react-icons/md";
 import { WARD_TABS } from "hooks/useWardTabs";
 
-export default function AdminSidebar({ wardId, activeTab }) {
+export default function AdminSidebar({ wardCode, activeTab }) {
   const router = useRouter();
 
   const navigateToTab = (tabName) => {
-    router.push(`/admin/${wardId}/${tabName}`);
+    router.push(`/admin/${wardCode}/${tabName}`);
   };
 
   const renderTabButton = (tabKey, icon, label) => (

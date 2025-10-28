@@ -61,7 +61,6 @@ export default function RegionMeetingTab() {
 
   return (
     <div className={styles.meetingTimeline}>
-      
       <AnimatePresence>
         {meetings.map((meeting, index) => (
           <motion.div
@@ -71,13 +70,15 @@ export default function RegionMeetingTab() {
             transition={{ duration: 0.5, delay: index * 0.1 }}
             className={styles.timelineItem}
           >
-            
             <motion.div 
               className={`${styles.meetingCard} ${expandedCards[meeting.id] ? styles.expanded : ''}`}
-              whileHover={{ y: -2 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
-              <div className={styles.cardHeader}>
+              {/* Make the entire header clickable */}
+              <div 
+                className={styles.cardHeader}
+                onClick={() => toggleCardExpansion(meeting.id)}
+              >
                 <div className={styles.headerContent}>
                   <h3 className={styles.meetingTitle}>{meeting.title}</h3>
                   <div className={styles.headerBottom}>
@@ -85,13 +86,13 @@ export default function RegionMeetingTab() {
                       <FaCalendar className={styles.icon} />
                       {formatDate(meeting.meeting_date)}
                     </span>
-                    <button 
-                      onClick={() => toggleCardExpansion(meeting.id)}
-                      className={styles.expandButton}
-                      aria-label={expandedCards[meeting.id] ? "Collapse" : "Expand"}
+                    <motion.div
+                      animate={{ rotate: expandedCards[meeting.id] ? 180 : 0 }}
+                      transition={{ duration: 0.3 }}
+                      className={styles.expandIcon}
                     >
-                      {expandedCards[meeting.id] ? <FaChevronUp /> : <FaChevronDown />}
-                    </button>
+                      <FaChevronDown />
+                    </motion.div>
                   </div>
                 </div>
               </div>

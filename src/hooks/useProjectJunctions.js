@@ -2,18 +2,18 @@
 import { useWardJunctions } from "./useWardData";
 import { useWardProjects } from "./useWardData";
 
-export const useProjectJunctions = (wardId) => {
+export const useProjectJunctions = (wardCode) => {
   const { 
     data: junctions, 
     loading: junctionsLoading, 
     error: junctionsError 
-  } = useWardJunctions(wardId);
+  } = useWardJunctions(wardCode);
   
   const { 
     data: projects, 
     loading: projectsLoading, 
     error: projectsError 
-  } = useWardProjects(wardId);
+  } = useWardProjects(wardCode);
 
   // Connect junctions with their projects
   const junctionsWithProjects = junctions?.map(junction => {

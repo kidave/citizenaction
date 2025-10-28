@@ -6,7 +6,7 @@ import L from "leaflet";
 export default function BoundaryLayer({
   map,
   boundary,
-  wardId,
+  wardCode,
 }) {
   const layerRef = useRef(null);
 
@@ -14,7 +14,7 @@ export default function BoundaryLayer({
     console.log("🔄 BoundaryLayer: Received boundary data", { 
       mapReady: !!map, 
       boundary: boundary,
-      wardId 
+      wardCode 
     });
 
     if (!map) {
@@ -77,8 +77,8 @@ export default function BoundaryLayer({
         },
         onEachFeature: function (feature, layer) {
           // Add popup with ward info
-          if (wardId) {
-            layer.bindPopup(`Ward Boundary: ${wardId}`);
+          if (wardCode) {
+            layer.bindPopup(`Ward Boundary: ${wardCode}`);
           }
         }
       }).addTo(map);
@@ -114,7 +114,7 @@ export default function BoundaryLayer({
         }
       }
     };
-  }, [map, boundary, wardId]);
+  }, [map, boundary, wardCode]);
 
   return null;
 }

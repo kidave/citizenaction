@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "utils/supabaseClient";
 
-export default function useImages(entityType, entityId, wardId) {
+export default function useImages(entityType, entityId, wardCode) {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -44,8 +44,8 @@ export default function useImages(entityType, entityId, wardId) {
     supabase.storage.from("ward").getPublicUrl(path).data.publicUrl;
 
   const upload = async (file, step = "A", type = "image") => {
-    if (!wardId || !entityId) {
-      throw new Error("wardId and entityId required for upload");
+    if (!wardCode || !entityId) {
+      throw new Error("wardCode and entityId required for upload");
     }
     
     setLoading(true);
@@ -55,10 +55,10 @@ export default function useImages(entityType, entityId, wardId) {
       let destPath;
       if (entityType === 'project') {
         // Project: includes step and type in path
-        destPath = `${wardId}/${entityType}/${entityId}/${step}/${type}/${safeFileName}`;
+        destPath = `${wardCode}/${entityType}/${entityId}/${step}/${type}/${safeFileName}`;
       } else {
         // Meeting and Update: includes type but NOT step in path
-        destPath = `${wardId}/${entityType}/${entityId}/${type}/${safeFileName}`;
+        destPath = `${wardCode}/${entityType}/${entityId}/${type}/${safeFileName}`;
       }
 
       const { error: uploadError } = await supabase.storage
@@ -119,11 +119,11 @@ export default function useImages(entityType, entityId, wardId) {
 }
 
 // Specialized image hooks with consistent parameter order
-export const useMeetingImages = (meetingId, wardId) => 
-  useImages('meeting', meetingId, wardId);
+export const useMeetingImages = (meetingId, wardCode) => 
+  useImages('meeting', meetingId, wardCode);
 
-export const useUpdateImages = (updateId, wardId) => 
-  useImages('update', updateId, wardId);
+export const useUpdateImages = (updateId, wardCode) => 
+  useImages('update', updateId, wardCode);
 
-export const useProjectImages = (wardId, projectId) => 
-  useImages('project', projectId, wardId);
+export const useProjectImages = (wardCode, projectId) => 
+  useImages('project', projectId, wardCode);

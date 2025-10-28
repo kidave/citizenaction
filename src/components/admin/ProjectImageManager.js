@@ -7,8 +7,8 @@ import ImageStackPopup from "components/shared/image/ImageStackPopup";
 import styles from "styles/components/data/imagemanager.module.css";
 import { FiFile } from "react-icons/fi";
 
-export default function ProjectImageManager({ wardId, projectId, step }) {
-  const { files, loading, upload, remove, resolveUrl, refresh } = useProjectImages(wardId, projectId);
+export default function ProjectImageManager({ wardCode, projectId, step }) {
+  const { files, loading, upload, remove, resolveUrl, refresh } = useProjectImages(wardCode, projectId);
   const { showConfirmAlert, showSuccessAlert, showErrorAlert, AlertComponent } = useAlert();
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);

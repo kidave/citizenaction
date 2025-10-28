@@ -10,12 +10,12 @@ import { AddButton } from "components/shared/ui/Buttons";
 import styles from "styles/tabs/timeline.module.css";
 
 export default function UpdateAdmin() {
-  const { wardId } = useWard();
+  const { wardCode } = useWard();
   const { isAdmin } = useAdmin();
-  const { create, update, remove } = useWardCRUD("monthly_update", wardId);
+  const { create, update, remove } = useWardCRUD("monthly_update", wardCode);
   const { showConfirmAlert, showSuccessAlert, showErrorAlert, AlertComponent } = useAlert();
 
-  const { data: updates, loading, error, refresh } = useAdminWardUpdates(wardId);
+  const { data: updates, loading, error, refresh } = useAdminWardUpdates(wardCode);
   
   const [newUpdate, setNewUpdate] = useState(null);
   const [publishingStates, setPublishingStates] = useState({});

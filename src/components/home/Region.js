@@ -7,7 +7,7 @@ import styles from "styles/layout/region.module.css";
 import { FiMap, FiMapPin, FiCrosshair, FiCheck, FiNavigation } from "react-icons/fi";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRegionData } from "hooks/useRegionData";
+import { useLocationData } from "hooks/useLocation";
 import WardTooltip from "components/shared/ui/WardTooltip";
 
 function Region() {
@@ -22,7 +22,7 @@ function Region() {
     handleDivisionChange,
     handleWardChange,
     navigatingWard,
-  } = useRegionData();
+  } = useLocationData();
 
   const [detecting, setDetecting] = useState(false);
   const [detectedWard, setDetectedWard] = useState(null);

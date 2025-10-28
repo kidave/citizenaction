@@ -8,8 +8,8 @@ import ImageStackPopup from "components/shared/image/ImageStackPopup";
 import styles from "styles/tabs/timeline.module.css";
 
 export default function MeetingTab() {
-  const { wardId } = useWard();
-  const { data: meetings, loading, error } = useWardMeetings(wardId);
+  const { wardCode } = useWard();
+  const { data: meetings, loading, error } = useWardMeetings(wardCode);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [popupImages, setPopupImages] = useState([]);
   const [startImageIndex, setStartImageIndex] = useState(0);

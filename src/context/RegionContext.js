@@ -1,29 +1,53 @@
 // context/RegionContext.js
-import { createContext, useContext, useMemo } from "react";
+import { createContext, useContext, useMemo, useEffect, useState } from "react";
+import { LocationService } from "utils/location";
 import Spinner from "components/shared/ui/Spinner";
 
 const RegionContext = createContext();
 
 export function RegionProvider({ children, regionCode }) {
-  // Since we only have MMR region, we can hardcode the info
-  const regionInfo = {
-    code: regionCode || "MMR",
-    name: "Mumbai Metropolitan Region",
-    // Add any other static region info you need
-  };
+  const [regionInfo, setRegionInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const loading = false; // No loading since data is static
-  const error = null; // No error since data is static
+  useEffect(() => {
+    const loadRegionData = async () => {
+      try {
+        setLoading(true);
+        const regionData = await LocationService.getRegionByCode(regionCode || "MMR");
+        setRegionInfo(regionData);
+      } catch (err) {
+        console.error("Error loading region data:", err);
+        setError(err.message);
+        // Fallback to static data if DB fails
+        setRegionInfo({
+          code: regionCode || "MMR",
+          name: "Mumbai Metropolitan Region",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadRegionData();
+  }, [regionCode]);
 
   const contextValue = useMemo(
     () => ({
       regionCode: regionCode || "MMR",
-      regionInfo,
+      regionInfo: regionInfo || {
+        code: regionCode || "MMR",
+        name: "Mumbai Metropolitan Region",
+      },
       loading,
       error,
     }),
-    [regionCode] // Only depend on regionCode changes
+    [regionCode, regionInfo, loading, error]
   );
+
+  if (loading) {
+    return <Spinner />;
+  }
 
   return (
     <RegionContext.Provider value={contextValue}>

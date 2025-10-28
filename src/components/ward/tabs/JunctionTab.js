@@ -16,17 +16,17 @@ const JunctionMap = dynamic(() => import("./JunctionMap"), {
 });
 
 export default function JunctionTab() {
-  const { wardId } = useWard();
-  const { data: junctions, loading, error } = useProjectJunctions(wardId);
+  const { wardCode } = useWard();
+  const { data: junctions, loading, error } = useProjectJunctions(wardCode);
   const [selectedJunction, setSelectedJunction] = useState(null);
 
   // Reset selection when ward changes
   useEffect(() => {
     setSelectedJunction(null);
-  }, [wardId]);
+  }, [wardCode]);
 
   const getWardName = () => {
-    return wardId ? `Ward ${wardId}` : "Selected Ward";
+    return wardCode ? `Ward ${wardCode}` : "Selected Ward";
   };
 
   const getStatusDisplay = (status) => {
@@ -63,7 +63,7 @@ export default function JunctionTab() {
           junctions={junctions}
           selectedJunction={selectedJunction}
           onSelectJunction={setSelectedJunction}
-          wardId={wardId}
+          wardCode={wardCode}
         />
 
         {selectedJunction && (
@@ -117,7 +117,7 @@ function Description() {
   );
 }
 
-function TopSection({ junctions, selectedJunction, onSelectJunction, wardId }) {
+function TopSection({ junctions, selectedJunction, onSelectJunction, wardCode }) {
   const MUMBAI_CENTER = [19.076, 72.8777];
   const DEFAULT_ZOOM = 12;
 
@@ -188,7 +188,7 @@ function TopSection({ junctions, selectedJunction, onSelectJunction, wardId }) {
           onJunctionSelect={onSelectJunction}
           center={MUMBAI_CENTER}
           zoom={DEFAULT_ZOOM}
-          wardId={wardId}
+          wardCode={wardCode}
         />
       </div>
     </div>

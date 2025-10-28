@@ -4,12 +4,14 @@ import { useWard } from "context/WardContext";
 import { PiMapPinAreaFill } from "react-icons/pi";
 import { FaMap } from "react-icons/fa";
 import { useRouter } from "next/router";
-import { useRegionData } from "hooks/useRegionData";
 
 export default function WardHeader({ showHeader = true }) {
-  const { wardInfo } = useWard();
+  const { wardInfo, wardCode: contextWardCode, locationData } = useWard();
   const router = useRouter();
-  const { wardId } = router.query;
+  const { wardCode: routerWardCode } = router.query;
+  
+  // Use router wardCode first, fall back to context wardCode
+  const currentWardCode = routerWardCode || contextWardCode;
 
   const {
     divisions,
@@ -17,7 +19,7 @@ export default function WardHeader({ showHeader = true }) {
     selectedDivision,
     handleDivisionChange,
     handleWardChange
-  } = useRegionData();
+  } = locationData || {};
 
   if (!showHeader) return null;
 
@@ -30,12 +32,13 @@ export default function WardHeader({ showHeader = true }) {
           <select
             id="division-select"
             value={selectedDivision || ""}
-            onChange={(e) => handleDivisionChange(e.target.value)}
+            onChange={(e) => handleDivisionChange?.(e.target.value)}
             className={styles.dropdown}
             aria-label="Select Division"
+            disabled={!divisions?.length}
           >
-          <option value="">Select Division</option>
-            {divisions.map((division) => (
+            <option value="">Select Division</option>
+            {divisions?.map((division) => (
               <option key={division.code} value={division.code}>
                 {division.name}
               </option>
@@ -47,14 +50,14 @@ export default function WardHeader({ showHeader = true }) {
           <PiMapPinAreaFill className={styles.dropdownIcon} title="Ward" />
           <select
             id="ward-select"
-            value={wardId || ""}
-            onChange={(e) => handleWardChange(e.target.value)}
+            value={currentWardCode || ""}
+            onChange={(e) => handleWardChange?.(e.target.value)}
             className={styles.dropdown}
             aria-label="Select Ward"
-            disabled={!selectedDivision}
+            disabled={!selectedDivision || !wards?.length}
           >
-          <option value="">Select Ward</option>
-            {wards.map((ward) => (
+            <option value="">Select Ward</option>
+            {wards?.map((ward) => (
               <option key={ward.code} value={ward.code}>
                 {ward.name}
               </option>
@@ -62,6 +65,7 @@ export default function WardHeader({ showHeader = true }) {
           </select>
         </div>
       </div>
+      
       <div className={styles.leadership}>
         {wardInfo?.convenor?.name && (
           <p>

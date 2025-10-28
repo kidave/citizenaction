@@ -19,7 +19,7 @@ import ProjectTab from "./tabs/ProjectTab";
 
 function WardLayoutContent() {
   const router = useRouter();
-  const { wardId, tab: activeTab } = router.query;
+  const { wardCode, tab: activeTab } = router.query;
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const isTablet = useMediaQuery({ minWidth: 769, maxWidth: 1024 });
   const isDesktop = useMediaQuery({ minWidth: 1025 });
@@ -53,12 +53,12 @@ function WardLayoutContent() {
 
 export default function WardLayout() {
   const router = useRouter();
-  const { wardId } = router.query;
+  const { wardCode } = router.query;
 
-  if (!wardId) return <Spinner mode="fullscreen" />;
+  if (!wardCode) return <Spinner mode="fullscreen" />;
 
   return (
-    <WardProvider wardId={wardId}>
+    <WardProvider wardCode={wardCode}>
       <WardLayoutContent />
     </WardProvider>
   );
