@@ -27,6 +27,7 @@ export default function MeetingAdmin() {
   const [newMeeting, setNewMeeting] = useState(null);
   const [expandedMeetingId, setExpandedMeetingId] = useState(null);
   const [publishingStates, setPublishingStates] = useState({});
+  const [deletingMeetingId, setDeletingMeetingId] = useState(null);
 
   const handleCreate = async (formData) => {
     try {
@@ -56,6 +57,7 @@ export default function MeetingAdmin() {
   };
 
   const handleDelete = async (id) => {
+    setDeletingMeetingId(id);
     showConfirmAlert({
       title: "Delete Meeting",
       message: "Are you sure you want to delete this meeting and all its files?",
@@ -71,7 +73,12 @@ export default function MeetingAdmin() {
             message: "Failed to delete meeting", 
             errorDetails: err.message 
           });
+        } finally {
+          setDeletingMeetingId(null);
         }
+      },
+      onCancel: () => {
+        setDeletingMeetingId(null);
       }
     });
   };
@@ -151,6 +158,7 @@ export default function MeetingAdmin() {
             setNewMeeting(null);
           }}
           isNew={true}
+          deleting={false}
         />
       )}
 
@@ -171,6 +179,7 @@ export default function MeetingAdmin() {
                     onDelete={handleDelete}
                     onPublish={handlePublish}
                     publishingStates={publishingStates}
+                    deleting={deletingMeetingId === item.id}
                   />
                 ) : (
                   <>
@@ -206,6 +215,7 @@ export default function MeetingAdmin() {
                       onDelete={handleDelete}
                       onPublish={handlePublish}
                       publishingStates={publishingStates}
+                      deleting={deletingMeetingId === item.id}
                     />
                   </>
                 ) : (

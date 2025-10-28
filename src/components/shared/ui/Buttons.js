@@ -36,9 +36,13 @@ const BaseButton = ({
       className={`${styles.baseButton} ${styles[variant]} ${styles[size]} ${className}`}
       disabled={disabled || loading}
       onClick={onClick}
-      whileHover={{ scale: disabled ? 1 : 1.02 }}
-      whileTap={{ scale: disabled ? 1 : 0.98 }}
-      transition={{ duration: 0.2 }}
+      whileHover={{ 
+        filter: disabled ? "brightness(1)" : "brightness(0.9)" 
+      }}
+      whileTap={{ 
+        filter: disabled ? "brightness(1)" : "brightness(0.8)" 
+      }}
+      transition={{ duration: 0.1 }}
       {...props}
     >
       {loading ? (
@@ -132,11 +136,12 @@ const ViewButton = ({
 // Cancel Button
 const CancelButton = ({ 
   children = "Cancel", 
-  showIcon = true,
+  showIcon = false,
   ...props 
 }) => (
   <BaseButton
-    variant="outline"
+    variant="danger"
+    icon={showIcon ? <FiX size={16} /> : null}
     {...props}
   >
     {children}

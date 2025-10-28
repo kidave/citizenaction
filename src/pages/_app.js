@@ -5,13 +5,11 @@ import "styles/main.css";
 import "react-phone-input-2/lib/style.css";
 
 import { AuthProvider } from "context/AuthContext";
-import { AuthAlertProvider } from "hooks/useAuthAlert";
+import { AlertProvider } from "context/AlertContext";
+import GlobalAlert from "components/shared/alert/GlobalAlert";
 
 // 🧠 React Query Imports
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-// cache persistence
-// import { persistQueryClient } from "@tanstack/react-query-persist-client";
-// import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 
 const openSans = Open_Sans({
   subsets: ["latin"],
@@ -31,14 +29,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// ⚡ Optional Persistent Caching (uncomment if you want localStorage persistence)
-/*
-if (typeof window !== "undefined") {
-  const persister = createSyncStoragePersister({ storage: window.localStorage });
-  persistQueryClient({ queryClient, persister });
-}
-*/
-
 function MyApp({ Component, pageProps }) {
   const getLayout = Component.getLayout || ((page) => page);
 
@@ -53,11 +43,12 @@ function MyApp({ Component, pageProps }) {
 
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <AuthAlertProvider>
+          <AlertProvider>
             <main className={openSans.variable}>
               {getLayout(<Component {...pageProps} />)}
+              <GlobalAlert /> 
             </main>
-          </AuthAlertProvider>
+          </AlertProvider>
         </AuthProvider>
       </QueryClientProvider>
     </>

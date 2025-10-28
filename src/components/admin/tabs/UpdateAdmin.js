@@ -19,6 +19,7 @@ export default function UpdateAdmin() {
   
   const [newUpdate, setNewUpdate] = useState(null);
   const [publishingStates, setPublishingStates] = useState({});
+  const [deletingUpdateId, setDeletingUpdateId] = useState(null);
 
   const handleCreate = async (formData) => {
     try {
@@ -48,6 +49,7 @@ export default function UpdateAdmin() {
   };
 
   const handleDelete = async (id) => {
+    setDeletingUpdateId(id);
     showConfirmAlert({
       title: "Delete Update",
       message: "Are you sure you want to delete this Monthly Update?",
@@ -63,7 +65,12 @@ export default function UpdateAdmin() {
             message: "Failed to delete monthly update", 
             errorDetails: err.message 
           });
+        } finally {
+          setDeletingUpdateId(null);
         }
+      },
+      onCancel: () => {
+        setDeletingUpdateId(null);
       }
     });
   };
@@ -137,6 +144,7 @@ export default function UpdateAdmin() {
           onPublish={handlePublish}
           publishingStates={publishingStates}
           isNew={true}
+          deleting={false}
         />
       )}
 
@@ -155,6 +163,7 @@ export default function UpdateAdmin() {
                 onDelete={handleDelete}
                 onPublish={handlePublish}
                 publishingStates={publishingStates}
+                deleting={deletingUpdateId === item.id}
               />
             ))}
           </div>

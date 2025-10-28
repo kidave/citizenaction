@@ -15,6 +15,7 @@ export default function JunctionMap({
   zoom = 12,
   wardId,
   showBoundary = true,
+  zoomControl = true,
 }) {
   const mapRef = useRef(null);
   const { data: boundary } = useWardBoundary(wardId);
@@ -24,6 +25,18 @@ export default function JunctionMap({
   // Handle map initialization
   const handleMapInit = (map) => {
     mapRef.current = map;
+    
+    if (!zoomControl) {
+      mapRef.current.touchZoom.disable();
+      mapRef.current.doubleClickZoom.disable();
+      mapRef.current.scrollWheelZoom.disable();
+      mapRef.current.boxZoom.disable();
+    }
+    
+    // ✅ Keep these enabled for panning:
+    // - mapRef.current.dragging (enables panning)
+    // - mapRef.current.keyboard (allows keyboard navigation)
+    
     setMapReady(true);
   };
 
@@ -46,7 +59,7 @@ export default function JunctionMap({
       // Smooth fly to the selected junction
       mapRef.current.flyTo([lat, lng], targetZoom, {
         animate: true,
-        duration: 1.2, // Smooth duration
+        duration: 1.2,
         easeLinearity: 0.25,
       });
 
@@ -64,6 +77,7 @@ export default function JunctionMap({
         zoom={zoom}
         onMapInit={handleMapInit}
         className="junction-map-container"
+        zoomControl={zoomControl}
       >
         {/* Boundary Layer */}
         {mapReady && showBoundary && boundary && (

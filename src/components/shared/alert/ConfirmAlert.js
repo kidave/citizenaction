@@ -12,6 +12,14 @@ const ConfirmAlert = ({
   onCancel,
   withBackdrop = true
 }) => {
+  const handleConfirm = async () => {
+    try {
+      await onConfirm(); // Wait for the confirm action to complete
+    } finally {
+      onCancel(); // Always close the alert regardless of success/error
+    }
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -41,7 +49,7 @@ const ConfirmAlert = ({
                 </div>
                 <p className={styles.alertMessage}>{message}</p>
                 <div className={styles.alertButtons}>
-                  <button className={styles.successButton} onClick={onConfirm}>
+                  <button className={styles.successButton} onClick={handleConfirm}>
                     {confirmText}
                   </button>
                   <button className={styles.cancelButton} onClick={onCancel}>

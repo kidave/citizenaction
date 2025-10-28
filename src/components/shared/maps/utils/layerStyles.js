@@ -64,7 +64,8 @@ export const getRoadStyle = (styleOptions, isSelected = false) => {
     ...baseStyle,
     ...styleOptions,
     color: isSelected ? "#F5F5F5" : baseStyle.color,
-    weight: isSelected ? 1 : baseStyle.weight,
-    opacity: isSelected ? 0.1 : 0,
+    weight: isSelected ? 6 : baseStyle.weight,
+    opacity: isSelected ? 0.9 : 0.7,
+    fillOpacity: 0,
   };
 };

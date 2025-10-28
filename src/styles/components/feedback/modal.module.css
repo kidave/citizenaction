@@ -1,3 +1,157 @@
+/* styles/components/shared/modal.module.css */
+.modalContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.modalContainer.center {
+  align-items: center;
+  justify-content: center;
+}
+
+.modalContainer.top {
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 2rem;
+}
+
+.modalContainer.bottom {
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 2rem;
+}
+
+.modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+  overflow: hidden;
+}
+
+/* Modal Sizes */
+.modal.small {
+  max-width: 400px;
+  width: 90vw;
+}
+
+.modal.medium {
+  max-width: 600px;
+  width: 90vw;
+}
+
+.modal.large {
+  max-width: 800px;
+  width: 90vw;
+}
+
+.modal.fullscreen {
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  border-radius: 0;
+}
+
+/* Modal Content */
+.modalContent {
+  padding: 24px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modalHeader {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #1f2937;
+}
+
+.modalBody {
+  margin-bottom: 24px;
+}
+
+.modalMessage {
+  margin: 0 0 16px 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #6b7280;
+}
+
+.modalFooter {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+/* Close Button */
+.modalClose {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 4px;
+  color: #9ca3af;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalClose:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modal.small,
+  .modal.medium,
+  .modal.large {
+    width: 95vw;
+    margin: 1rem;
+  }
+  
+  .modalContent {
+    padding: 20px;
+  }
+  
+  .modalFooter {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .modalContent {
+    padding: 16px;
+  }
+  
+  .modalContainer.top {
+    padding-top: 1rem;
+  }
+  
+  .modalContainer.bottom {
+    padding-bottom: 1rem;
+  }
+}
+
+
+
 /* Image Modal Styles */
 .modalOverlay {
   position: fixed;

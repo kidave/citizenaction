@@ -10,6 +10,8 @@ import ImageStackPopup from "components/shared/image/ImageStackPopup";
 import ImageEmbed from "components/shared/image/ImageEmbed";
 import DriveEmbed from "components/shared/ui/DriveEmbed";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import ButtonGroup from "components/shared/ui/ButtonGroup";
+import { ImageButton } from "components/shared/ui/Buttons";
 
 const ProjectMap = dynamic(() => import("./ProjectMap"), {
   ssr: false,
@@ -189,11 +191,7 @@ function StepContent({ stepKey, project }) {
     return stepContents[key] || null;
   };
 
-  // Get custom section content
-  const getCustomSectionContent = (key) => {
-    const customSection = project.custom_sections?.find(section => section.key === key);
-    return customSection ? <p>{customSection.content}</p> : null;
-  };
+
 
   // Determine if it's a predefined step or custom section
   const stepContent = ['A', 'B', 'C', 'D', 'E', 'F'].includes(stepKey) 
@@ -263,17 +261,16 @@ function StepContent({ stepKey, project }) {
 
           {/* Stacked Images */}
           {stacks.length > 0 && (
-            <>
-              <button
+            <ButtonGroup>
+              <ImageButton
                 onClick={() => setPopupFiles(stacks.map((img) => img.path))}
-                className={styles.viewStackButton}
               >
                 View Stack ({stacks.length})
-              </button>
+              </ImageButton>
               {popupFiles.length > 0 && (
                 <ImageStackPopup files={popupFiles} onClose={() => setPopupFiles([])} />
               )}
-            </>
+            </ButtonGroup>
           )}
 
           {/* Before / After */}
@@ -359,11 +356,6 @@ function SingleProject({ project, junctions, roads, index }) {
     return hasFieldContent || hasImages;
   };
 
-  // Check if a custom section has content
-  const customSectionHasContent = (section) => {
-    return section.content && section.content.trim() !== '';
-  };
-
   // Predefined steps configuration
   const predefinedSteps = [
     {
@@ -400,11 +392,6 @@ function SingleProject({ project, junctions, roads, index }) {
 
   // Filter steps to only show those with content
   const activeSteps = predefinedSteps.filter(step => stepHasContent(step.fields));
-
-  // Get custom sections (ensure it's an array)
-  const customSections = Array.isArray(project.custom_sections) 
-    ? project.custom_sections.filter(section => customSectionHasContent(section))
-    : [];
 
   return (
     <motion.div 
@@ -454,17 +441,6 @@ function SingleProject({ project, junctions, roads, index }) {
             </motion.div>
           </div>
         </div>
-
-        {/* Project Description */}
-        {project.location && (
-          <p>
-            <strong>Location - </strong>{project.location}
-          </p>
-        )}
-        {project.description && (
-          <p>{project.description}</p>
-        )}
-        
       </div>
 
       {/* Expandable Content */}
@@ -492,7 +468,7 @@ function SingleProject({ project, junctions, roads, index }) {
             )}
 
             {/* Workflow Steps */}
-            {(activeSteps.length > 0 || customSections.length > 0) && (
+            {activeSteps.length > 0  && (
               <div className={styles.workflowStepper}>
                 {/* Predefined Steps */}
                 {activeSteps.map((step, i) => (
@@ -511,29 +487,6 @@ function SingleProject({ project, junctions, roads, index }) {
                     <div className={styles.stepContent}>
                       <StepContent
                         stepKey={step.key}
-                        project={project}
-                      />
-                    </div>
-                  </motion.div>
-                ))}
-
-                {/* Custom Sections */}
-                {customSections.map((section, i) => (
-                  <motion.div
-                    key={`custom-${section.key}-${i}`}
-                    className={styles.stepContainer}
-                    initial={{ opacity: 0, y: 50 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, amount: 0.3 }}
-                    transition={{ duration: 0.6, delay: (activeSteps.length + i) * 0.1 }}
-                  >
-                    <div className={styles.stepHeader}>
-                      <h4 className={styles.stepNumber}>{section.key}.</h4>
-                      <h4 className={styles.stepLabel}>{section.label}</h4>
-                    </div>
-                    <div className={styles.stepContent}>
-                      <StepContent
-                        stepKey={section.key}
                         project={project}
                       />
                     </div>

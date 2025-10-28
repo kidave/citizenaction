@@ -358,12 +358,7 @@
 
 @media (max-width: 480px) {
   .buttonGroup.horizontal {
-    width: 100%;
     gap: 6px;
-  }
-  
-  .buttonGroup.horizontal .baseButton {
-    width: 100%;
   }
   
   .buttonGroup {

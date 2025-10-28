@@ -48,10 +48,12 @@ export default function useWardCRUD(resource, wardId) {
     }
   };
 
-  const create = async (data) => {
+  const create = async (data, customSuccessMessage = null) => {
     try {
       const result = await request("POST", data);
-      showSuccessAlert({ message: `${resource} created successfully!` });
+      showSuccessAlert({ 
+        message: customSuccessMessage || `${resource} created successfully!` 
+      });
       return result;
     } catch (error) {
       showErrorAlert({ message: `Failed to create ${resource}`, errorDetails: error.message });
@@ -59,10 +61,12 @@ export default function useWardCRUD(resource, wardId) {
     }
   };
 
-  const update = async (id, data) => {
+  const update = async (id, data, customSuccessMessage = null) => {
     try {
       const result = await request("PUT", data, id);
-      showSuccessAlert({ message: `${resource} updated successfully!` });
+      showSuccessAlert({ 
+        message: customSuccessMessage || `${resource} updated successfully!` 
+      });
       return result;
     } catch (error) {
       showErrorAlert({ message: `Failed to update ${resource}`, errorDetails: error.message });
@@ -70,10 +74,12 @@ export default function useWardCRUD(resource, wardId) {
     }
   };
 
-  const remove = async (id) => {
+  const remove = async (id, customSuccessMessage = null) => {
     try {
       const result = await request("DELETE", null, id);
-      showSuccessAlert({ message: `${resource} deleted successfully!` });
+      showSuccessAlert({ 
+        message: customSuccessMessage || `${resource} deleted successfully!` 
+      });
       return result;
     } catch (error) {
       showErrorAlert({ message: `Failed to delete ${resource}`, errorDetails: error.message });

@@ -1,7 +1,6 @@
 // components/shared/card/MeetingCard.js
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useAlert } from "hooks/useAlert";
 import MoodVisualization from "components/shared/MoodVisualization";
 import StatusBadge from 'components/shared/card/StatusBadge';
 import { ButtonGroup } from "components/shared/ui/ButtonGroup";
@@ -18,7 +17,7 @@ export default function MeetingCard({
   onPublish,
   publishingStates = {},
   isNew = false,
-  showConfirmAlert
+  deleting = false
 }) {
   const [isEditing, setIsEditing] = useState(isNew);
   const [form, setForm] = useState({
@@ -66,7 +65,6 @@ export default function MeetingCard({
       return;
     }
     
-    // Remove the showConfirmAlert call and call onDelete directly
     console.log('MeetingCard: Calling onDelete with id:', item.id);
     onDelete(item.id);
   };
@@ -219,6 +217,8 @@ export default function MeetingCard({
                 <DeleteButton
                   size="small"
                   onClick={handleDelete}
+                  disabled={deleting}
+                  loading={deleting}
                 />
               </ButtonGroup>
             )}

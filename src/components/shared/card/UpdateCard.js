@@ -14,7 +14,8 @@ export default function UpdateCard({
   onDelete,
   onPublish,
   publishingStates = {},
-  isNew = false 
+  isNew = false,
+  deleting = false
 }) {
   const [isEditing, setIsEditing] = useState(isNew);
   const [isActive, setIsActive] = useState(index === 0);
@@ -189,6 +190,8 @@ export default function UpdateCard({
                         <DeleteButton
                           size="small"
                           onClick={handleDelete}
+                          disabled={deleting}
+                          loading={deleting}
                         />
                       </ButtonGroup>
                     )}

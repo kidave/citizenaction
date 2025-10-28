@@ -54,6 +54,7 @@ export default function ProjectMap({
           zoom={12}
           wardId={wardId}
           showBoundary={false}
+          zoomControl={false} // ✅ Disable zoom control
         />
       );
     }
@@ -62,12 +63,13 @@ export default function ProjectMap({
       return (
         <RoadMap
           roads={roads}
-          selectedRoad={selectedRoad}
-          onRoadSelect={null}
+          selectedRoad={selectedRoad} // ✅ Make sure this is passed correctly
+          onRoadSelect={null} // ❌ disable clicks
           center={[19.076, 72.8777]}
           zoom={14}
           wardId={wardId}
           showBoundary={false}
+          zoomControl={false} // ✅ Disable zoom control
         />
       );
     }

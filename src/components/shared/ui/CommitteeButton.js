@@ -4,7 +4,7 @@ import useSWR from "swr";
 import { motion } from "framer-motion";
 import { useRouter } from "next/router";
 import { useAuth } from "context/AuthContext";
-import { useAuthAlert } from "hooks/useAuthAlert";
+import { useAlert } from "context/AlertContext";
 import styles from "styles/components/interact/button.module.css";
 
 const fetcher = async ([url, token]) => {
@@ -16,7 +16,7 @@ const fetcher = async ([url, token]) => {
 export default function CommitteeButton({ inline = false, variant = "primary" }) {
   const [token, setToken] = useState(null);
   const { user, getAccessToken } = useAuth();
-  const { showAuthAlert, AuthAlertComponent } = useAuthAlert();
+  const { showAuthAlert } = useAlert();
   const router = useRouter();
 
   // Grab a token once per auth change
@@ -43,7 +43,7 @@ export default function CommitteeButton({ inline = false, variant = "primary" })
 
   const handleButtonClick = async () => {
     if (!user) {
-      showAuthAlert(); // Simple call - no parameters needed
+      showAuthAlert(); // Same API, but now uses global system
       return;
     }
 
@@ -54,7 +54,7 @@ export default function CommitteeButton({ inline = false, variant = "primary" })
 
     if (status?.has_application) {
       if (status.application_status === "pending") {
-        // You might want to show a toast notification here
+        
         console.log("Application is pending approval");
         return;
       } else if (status.application_status === "Rejected") {

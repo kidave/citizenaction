@@ -19,6 +19,8 @@ export default function MapContainer({
   children,
   onMapInit,
   className = "",
+  interactive = true, // ✅ Add this prop with default true
+  zoomControl = true, // ✅ Add this prop with default true
 }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
@@ -31,22 +33,38 @@ export default function MapContainer({
     if (mapRef.current && !mapInstance.current && !isInitializedRef.current) {
       isInitializedRef.current = true;
       
-      mapInstance.current = L.map(mapRef.current, {
+      // ✅ Configure map options based on interactive prop
+      const mapOptions = {
         center,
         zoom,
-        zoomControl: false,
-        // Set lower z-index for the map
         fadeAnimation: false,
         zoomAnimation: false,
-      });
+      };
+
+      // ✅ Disable interactions if not interactive
+      if (!interactive) {
+        mapOptions.dragging = false;
+        mapOptions.touchZoom = false;
+        mapOptions.doubleClickZoom = false;
+        mapOptions.scrollWheelZoom = false;
+        mapOptions.boxZoom = false;
+        mapOptions.keyboard = false;
+        mapOptions.zoomControl = false; // Disable zoom control
+      } else {
+        mapOptions.zoomControl = zoomControl; // Use zoomControl prop
+      }
+
+      mapInstance.current = L.map(mapRef.current, mapOptions);
 
       // Add default tile layer
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
       }).addTo(mapInstance.current);
 
-      // Add zoom control
-      L.control.zoom({ position: 'topright' }).addTo(mapInstance.current);
+      // Add zoom control only if interactive and zoomControl is true
+      if (interactive && zoomControl) {
+        L.control.zoom({ position: 'topright' }).addTo(mapInstance.current);
+      }
 
       // Explicitly set lower z-index for map container
       const container = mapInstance.current.getContainer();

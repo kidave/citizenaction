@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import MapContainer from "components/shared/maps/MapContainer"; // Use MapContainer instead of BaseMap
+import { useEffect, useRef, useState } from "react";
+import MapContainer from "components/shared/maps/MapContainer";
 import GeoJSONLayer from "components/shared/maps/GeoJSONLayer";
 import BoundaryLayer from "components/shared/maps/BoundaryLayer";
 import { useWardBoundary } from "hooks/useWardData";
@@ -16,12 +16,13 @@ export default function RoadMap({
   zoom = 12,
   wardId,
   showBoundary = true,
+  zoomControl = true,
 }) {
   const mapRef = useRef(null);
-  const { data: boundary, error } = useWardBoundary(wardId);
-  console.log("🧭 useWardBoundary output:", { boundary, error });
+  const { data: boundary } = useWardBoundary(wardId);
   const roadLayersRef = useRef({});
   const isMountedRef = useRef(true);
+  const [mapReady, setMapReady] = useState(false);
 
   const getPopupContent = (road) => `
     <div class="popup-content">
@@ -48,6 +49,20 @@ export default function RoadMap({
     }
   };
 
+  const handleMapInit = (map) => {
+    mapRef.current = map;
+    
+    // ✅ Only disable zoom interactions, keep panning enabled
+    if (!zoomControl) {
+      mapRef.current.touchZoom.disable();
+      mapRef.current.doubleClickZoom.disable();
+      mapRef.current.scrollWheelZoom.disable();
+      mapRef.current.boxZoom.disable();
+    }
+    
+    setMapReady(true);
+  };
+
   // Cleanup function
   useEffect(() => {
     isMountedRef.current = true;
@@ -67,7 +82,7 @@ export default function RoadMap({
     };
   }, []);
 
-  // Fly to selected road - KEEP THIS SMOOTH ANIMATION!
+  // Fly to selected road
   useEffect(() => {
     if (!mapRef.current || !selectedRoad || !isMountedRef.current) return;
 
@@ -86,16 +101,15 @@ export default function RoadMap({
         });
       }
 
-      // Highlight selected road
+      // ✅ REMOVED: The manual style setting - now handled by getRoadStyle in GeoJSONLayer
+      // Just ensure selected road is brought to front
       Object.values(roadLayersRef.current).forEach((layer) => {
         if (layer && isMountedRef.current) {
           const isSelected = layer.feature?.properties?.fid === selectedRoad.fid;
           try {
-            layer.setStyle({
-              weight: isSelected ? 8 : 3,
-              opacity: isSelected ? 0.9 : 0.5,
-            });
-            if (isSelected) layer.bringToFront();
+            if (isSelected) {
+              layer.bringToFront();
+            }
           } catch (e) {
             // Ignore style setting errors
           }
@@ -111,9 +125,8 @@ export default function RoadMap({
       <MapContainer
         center={center}
         zoom={zoom}
-        onMapInit={(map) => {
-          mapRef.current = map;
-        }}
+        onMapInit={handleMapInit}
+        zoomControl={zoomControl}
       >
         {/* Boundary Layer */}
         {showBoundary && boundary && (
@@ -124,7 +137,7 @@ export default function RoadMap({
           />
         )}
 
-        {/* Road Layers - KEEP YOUR EXISTING LOGIC */}
+        {/* Road Layers */}
         {roads && roads.map((road) => {
           const geoJSON = parseGeometry(road.geometry);
           if (!geoJSON) return null;
@@ -142,6 +155,11 @@ export default function RoadMap({
                 if (isMountedRef.current) {
                   roadLayersRef.current[road.fid] = layer;
                   layer.feature = { properties: { fid: road.fid } };
+                  
+                  // ✅ Bring selected road to front when layer is created
+                  if (selectedRoad?.fid === road.fid) {
+                    layer.bringToFront();
+                  }
                 }
               }}
             />
