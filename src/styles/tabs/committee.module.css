@@ -73,8 +73,6 @@
 
 .infoSection {
   margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid #f0f0f0;
 }
 
 .infoSection:last-child {
@@ -113,7 +111,8 @@
 
 /* Members Section */
 .membersSection {
-  margin-top: 2rem;
+  margin-block: 2rem;
+  margin-inline: 1rem;
 }
 
 /* Member List */
@@ -121,7 +120,6 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 1.5rem;
-  margin-bottom: 2rem;
 }
 
 .memberCard {
@@ -271,7 +269,7 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .committeeContainer {
-    padding: 0.5rem;
+    margin: 0;
   }
   
   .infoHeader {
@@ -287,7 +285,7 @@
   }
   
   .infoContent {
-    padding: 0 1rem;
+    padding: 0.5rem;
   }
   
   .memberList {
