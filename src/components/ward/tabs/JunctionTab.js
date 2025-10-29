@@ -229,10 +229,10 @@ function JunctionDetails({ junction }) {
 }
 
 function ProjectConnection({ project, getStatusDisplay, formatDate }) {
-  const { navigateToTab } = useWardTabs();
+  const { navigateToWardTab } = useWardTabs();
 
   const handleViewProject = () => {
-    navigateToTab('project');
+    navigateToWardTab('project');
   };
 
   return (

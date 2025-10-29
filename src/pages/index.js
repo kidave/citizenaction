@@ -49,7 +49,7 @@ export default function Home() {
       {/* Ongoing Improvement Banner */}
       <div className={styles.improvementBanner}>
         <div className={styles.bannerContent}>
-          <span>This page is under ongoing improvement and limited to Mumbai</span>
+          <span>This page is under ongoing improvement and limited to Mumbai Metropolitan Region</span>
         </div>
       </div>
 

@@ -1,0 +1,321 @@
+/* styles/components/design/card.module.css */
+
+.committeeContainer {
+  padding: 1rem 0;
+  max-width: 1200px;
+  margin-inline: 2rem;
+}
+
+/* Information Sections */
+.infoContainer {
+  margin-bottom: 2rem;
+}
+
+.infoCard {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border-top: 4px solid gold;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.infoCard:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.infoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.infoHeader:hover {
+  background: rgb(253, 245, 193);
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.sectionIcon {
+  color: gold;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.expandIcon {
+  color: gold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.infoContent {
+  padding: 1.5rem;
+}
+
+.infoSection {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.infoSection:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.infoSection h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: gold;
+}
+
+.infoSection p {
+  margin: 0 0 0.75rem 0;
+  line-height: 1.6;
+  color: #4a5568;
+}
+
+.bulletList {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: #4a5568;
+}
+
+.bulletList li {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.bulletList li:last-child {
+  margin-bottom: 0;
+}
+
+/* Members Section */
+.membersSection {
+  margin-top: 2rem;
+}
+
+/* Member List */
+.memberList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.memberCard {
+  text-align: center;
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.memberCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.memberImageContainer {
+  margin: 0 auto 1rem;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid gold;
+}
+
+.memberImage {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.memberDetail {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.memberRole {
+  margin: 0;
+  font-size: 0.85rem;
+  color: gold;
+  font-weight: 500;
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.emptyContent {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.emptyIcon {
+  font-size: 3rem;
+  color: gold;
+  margin-bottom: 1rem;
+  opacity: 0.7;
+}
+
+.emptyState h3 {
+  margin: 0 0 0.75rem 0;
+  color: #374151;
+  font-size: 1.5rem;
+}
+
+.emptyState p {
+  margin: 0 0 1.5rem 0;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.contactInfo {
+  margin-top: 1.5rem !important;
+  font-size: 0.9rem;
+  color: gold !important;
+}
+
+.contactInfo a {
+  color: gold;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.contactInfo a:hover {
+  text-decoration: underline;
+}
+
+/* Join CTA */
+.joinCta {
+  background: linear-gradient(135deg, gold 0%, orange 100%);
+  color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.ctaContent h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.ctaContent p {
+  margin: 0 0 1.5rem 0;
+  opacity: 0.9;
+}
+
+/* Buttons */
+.joinButton, .ctaButton {
+  display: inline-block;
+  background: gold;
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.joinButton:hover, .ctaButton:hover {
+  background: #5a6fd8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.ctaButton {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.ctaButton:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .committeeContainer {
+    padding: 0.5rem;
+  }
+  
+  .infoHeader {
+    padding: 1rem;
+  }
+  
+  .headerContent {
+    gap: 0.75rem;
+  }
+  
+  .sectionTitle {
+    font-size: 1.1rem;
+  }
+  
+  .infoContent {
+    padding: 0 1rem;
+  }
+  
+  .memberList {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 1rem;
+  }
+  
+  .joinCta {
+    padding: 1.5rem;
+  }
+  
+  .ctaContent h3 {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .memberList {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .sectionTitle {
+    font-size: 1.3rem;
+  }
+}
