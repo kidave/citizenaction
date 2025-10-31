@@ -111,7 +111,7 @@
 
 /* Members Section */
 .membersSection {
-  margin-block: 2rem;
+  margin-bottom: 2rem;
   margin-inline: 1rem;
 }
 
@@ -164,78 +164,13 @@
   font-weight: 500;
 }
 
-/* Empty State */
-.emptyState {
-  text-align: center;
-  padding: 3rem 2rem;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-}
-
-.emptyContent {
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-.emptyIcon {
-  font-size: 3rem;
-  color: gold;
-  margin-bottom: 1rem;
-  opacity: 0.7;
-}
-
-.emptyState h3 {
-  margin: 0 0 0.75rem 0;
-  color: #374151;
-  font-size: 1.5rem;
-}
-
-.emptyState p {
-  margin: 0 0 1.5rem 0;
-  color: #6b7280;
-  line-height: 1.5;
-}
-
-.contactInfo {
-  margin-top: 1.5rem !important;
-  font-size: 0.9rem;
-  color: gold !important;
-}
-
-.contactInfo a {
-  color: gold;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.contactInfo a:hover {
-  text-decoration: underline;
-}
-
 /* Join CTA */
 .joinCta {
-  background: linear-gradient(135deg, gold 0%, orange 100%);
-  color: white;
-  padding: 2rem;
-  border-radius: 12px;
   text-align: center;
-  margin-top: 2rem;
-}
-
-.ctaContent h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-.ctaContent p {
-  margin: 0 0 1.5rem 0;
-  opacity: 0.9;
 }
 
 /* Buttons */
-.joinButton, .ctaButton {
+.joinButton {
   display: inline-block;
   background: gold;
   color: white;
@@ -250,21 +185,10 @@
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
-.joinButton:hover, .ctaButton:hover {
-  background: #5a6fd8;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+.joinButton:hover {
+  filter: brightness(0.9);
 }
 
-.ctaButton {
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.ctaButton:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
 
 /* Responsive Design */
 @media (max-width: 768px) {

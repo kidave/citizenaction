@@ -170,6 +170,52 @@ export default function CommitteeTab() {
 
   return (
     <div className={styles.committeeContainer}>
+      {/* Current Committee Members */}
+      <div className={styles.membersSection}>
+
+        {!committees?.length ? (
+          <div className={styles.joinCta}>
+              <p>Be the first to one to help shape sustainable neighborhoods in your ward!</p>
+              <Link href="/joincommittee" className={styles.joinButton}>
+                Join Committee
+              </Link>
+          </div>
+        ) : (
+          <>
+            <div className={styles.memberList}>
+              {committees.map((committee) => (
+                <div key={committee.user_id} className={styles.memberCard}>
+                  <div className={styles.memberImageContainer}>
+                    <Image
+                      src={getAvatarUrl(committee.avatar_url)}
+                      alt={`${committee.name}'s avatar`}
+                      height={80}
+                      width={80}
+                      className={styles.memberImage}
+                      priority
+                      onError={(e) => { e.target.src = "/user.png"; }}
+                    />
+                  </div>
+                  <h4 className={styles.memberDetail}>{committee.name}</h4>
+                  {committee.designation && (
+                    <p className={styles.memberRole}>{committee.designation}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            {/* Join CTA for when there are members */}
+            <div className={styles.joinCta}>
+              <div className={styles.ctaContent}>
+                <p>Help shape sustainable neighborhoods in your ward!</p>
+                <Link href="/joincommittee" className={styles.joinButton}>
+                  Join Committee
+                </Link>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
       {/* Committee Information Sections */}
       <div className={styles.infoContainer}>
         {committeeInfo.map((section) => (
@@ -206,62 +252,6 @@ export default function CommitteeTab() {
             </AnimatePresence>
           </div>
         ))}
-      </div>
-
-      {/* Current Committee Members */}
-      <div className={styles.membersSection}>
-
-        {!committees?.length ? (
-          <div className={styles.emptyState}>
-            <div className={styles.emptyContent}>
-              <FaInfoCircle className={styles.emptyIcon} />
-              <h3>No Committee Members Yet</h3>
-              <p>Be the first to join and help improve walkability in your ward!</p>
-              <Link href="/joincommittee" className={styles.joinButton}>
-                Join Committee
-              </Link>
-              <p className={styles.contactInfo}>
-                Interested in joining? Email us at{" "}
-                <a href="mailto:info@walkingproject.org">info@walkingproject.org</a>
-              </p>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className={styles.memberList}>
-              {committees.map((committee) => (
-                <div key={committee.user_id} className={styles.memberCard}>
-                  <div className={styles.memberImageContainer}>
-                    <Image
-                      src={getAvatarUrl(committee.avatar_url)}
-                      alt={`${committee.name}'s avatar`}
-                      height={80}
-                      width={80}
-                      className={styles.memberImage}
-                      priority
-                      onError={(e) => { e.target.src = "/user.png"; }}
-                    />
-                  </div>
-                  <h4 className={styles.memberDetail}>{committee.name}</h4>
-                  {committee.designation && (
-                    <p className={styles.memberRole}>{committee.designation}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-            
-            {/* Join CTA for when there are members */}
-            <div className={styles.joinCta}>
-              <div className={styles.ctaContent}>
-                <h3>Want to join the committee?</h3>
-                <p>Help shape walkable, sustainable neighborhoods in your ward</p>
-                <Link href="/joincommittee" className={styles.ctaButton}>
-                  Join Committee
-                </Link>
-              </div>
-            </div>
-          </>
-        )}
       </div>
     </div>
   );

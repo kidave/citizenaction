@@ -63,9 +63,9 @@ export const REGION_DATA = {
 
   divisions: [
     // Mumbai Divisions
-    { code: 'IC', name: 'Island City', city_code: 'MUM' },
-    { code: 'WS', name: 'Western Suburb', city_code: 'MUM' },
-    { code: 'ES', name: 'Eastern Suburb', city_code: 'MUM' },
+    { code: 'IC', name: 'Island City', city_code: 'MUM', id: 1 },
+    { code: 'WS', name: 'Western Suburb', city_code: 'MUM', id: 2 },
+    { code: 'ES', name: 'Eastern Suburb', city_code: 'MUM', id: 3 },
   ],
 
   wards: [
@@ -273,7 +273,8 @@ export const RegionService = {
   
   // Get divisions by city
   getDivisionsByCity: (cityCode) => 
-    REGION_DATA.divisions.filter(div => div.city_code === cityCode),
+    REGION_DATA.divisions.filter(div => div.city_code === cityCode).sort((a, b) => a.id - b.id),
+
   
   // Get wards by division
   getWardsByDivision: (divisionCode) => 

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useWard } from "context/WardContext";
 import { useWardMeetings } from "hooks/useWardData";
 import MeetingCard from "components/shared/card/MeetingCard";
+import MeetingInfo from "components/shared/card/MeetingInfo";
 import ImageStackPopup from "components/shared/image/ImageStackPopup";
 import styles from "styles/tabs/timeline.module.css";
 
@@ -16,8 +17,6 @@ export default function MeetingTab() {
 
   if (loading) return <div>Loading meetings...</div>;
   if (error) return <div>Error loading meetings: {error.message}</div>;
-  if (!meetings || meetings.length === 0)
-    return <p className={styles.emptyTimeline}>No meetings yet.</p>;
 
   const TimelineItemMeeting = ({ item, index }) => {
     const isLeft = index % 2 === 0;
@@ -89,18 +88,28 @@ export default function MeetingTab() {
 
   return (
     <>
-      <div className={styles.timelineWrapper}>
-        {meetings.map((item, index) => (
-          <TimelineItemMeeting key={item.id} item={item} index={index} />
-        ))}
-      </div>
+      {/* Meeting Information Sections */}
+      <MeetingInfo />
 
-      {isPopupOpen && (
-        <ImageStackPopup
-          files={popupImages}
-          startIndex={startImageIndex}
-          onClose={() => setIsPopupOpen(false)}
-        />
+      {/* Actual Meetings Timeline */}
+      {!meetings || meetings.length === 0 ? (
+        <p className={styles.emptyTimeline}>No meetings yet.</p>
+      ) : (
+        <>
+          <div className={styles.timelineWrapper}>
+            {meetings.map((item, index) => (
+              <TimelineItemMeeting key={item.id} item={item} index={index} />
+            ))}
+          </div>
+
+          {isPopupOpen && (
+            <ImageStackPopup
+              files={popupImages}
+              startIndex={startImageIndex}
+              onClose={() => setIsPopupOpen(false)}
+            />
+          )}
+        </>
       )}
     </>
   );
