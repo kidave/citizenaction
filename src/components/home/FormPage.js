@@ -139,7 +139,7 @@ export default function Form() {
           </div>
           
           <div className={styles.contentHeader}>
-            <p>Become a part of your <strong>Ward Committee</strong> to improve walkability and create better urban spaces.</p>
+            <p>Become a part of your <strong>Ward Committee</strong> to create better urban spaces and improving everday life.</p>
           </div>
           
           <ul className={styles.featuresList}>
@@ -157,7 +157,7 @@ export default function Form() {
             </li>
             <li>
               <span className={styles.featureIcon}>✓</span>
-              <span>Help shape walkable, sustainable neighborhoods</span>
+              <span>Help shape sustainable neighborhoods</span>
             </li>
           </ul>
           

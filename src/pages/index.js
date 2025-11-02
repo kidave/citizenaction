@@ -82,7 +82,8 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              The primary local unit for implementing the Walkability Improvement Initiative.
+              Your Local Unit for implementing <br />
+              Community Driven Civic Collaboration.
             </motion.p>
             <motion.div 
               className={styles.heroCta}

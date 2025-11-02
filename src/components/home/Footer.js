@@ -15,7 +15,7 @@ export default function Footer() {
       <div className={styles.footerContent}>
         <div className={styles.footerInfo}>
           <h3>Walking Project</h3>
-          <p>Creating walkable, inclusive, and vibrant neighborhoods through community collaboration.</p>
+          <p>Creating sustainable, inclusive, and vibrant neighborhoods through community collaboration.</p>
         </div>
         
         <div className={styles.socialIcons}>

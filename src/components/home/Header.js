@@ -58,7 +58,7 @@ export default function Header() {
         path: "https://www.walkingproject.org/activities-projects/manifesto",
       },
       { 
-        label: "Community Forum", 
+        label: "Community Connect", 
         path: "/forum" 
       },
       {

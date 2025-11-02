@@ -44,10 +44,10 @@ export default function About() {
           make our neighborhoods more walkable, inclusive, and vibrant. Through{" "}
           <span className={styles.highlight}>ward committees</span>, we bring
           together residents, local leaders, volunteers and civic officials to
-          identify walkability issues, propose changes, foster collaboration and
-          track progress, for walkable streets and public spaces.
+          identify civic issues, propose changes, foster collaboration and
+          track progress.
           <span className={styles.emphasis}>
-            Join us in making cities walkable, starting from your own ward!
+            Join us in making cities sustainable, starting from your own ward!
           </span>
         </p>
       </div>

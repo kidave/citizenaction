@@ -1,6 +1,6 @@
-// index.js - Updated with modern features
+// index.js - Community Forum for Citizen Engagement
 import { useEffect, useState } from "react";
-import styles from "styles/forum/landing.module.css";
+import styles from "styles/pages/forum-home.module.css";
 import Head from "next/head";
 import Header from "components/home/Header";
 import Footer from "components/home/Footer";
@@ -8,15 +8,30 @@ import { useAuth } from "context/AuthContext";
 import Link from "next/link";
 import { supabase } from "utils/supabaseClient";
 
-export default function ForumLanding() {
+// React Icons
+import { 
+  FaPalette, 
+  FaBusinessTime, 
+  FaNewspaper, 
+  FaHandshake,
+  FaLandmark,
+  FaTheaterMasks,
+  FaUtensils,
+  FaLightbulb,
+  FaCalendarAlt,
+  FaUsers,
+  FaChartLine,
+  FaNetworkWired,
+  FaBell
+} from "react-icons/fa";
+
+export default function CommunityForum() {
   const { user, loading, login } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [recentPosts, setRecentPosts] = useState([]);
-  const [stats, setStats] = useState({ posts: 0, users: 0, issues: 0 });
 
   useEffect(() => {
     const fetchData = async () => {
-      // Check admin status
       if (user) {
         const { data: profile } = await supabase
           .from("profile")
@@ -28,18 +43,6 @@ export default function ForumLanding() {
           setIsAdmin(true);
         }
       }
-
-      // Get recent approved posts
-      //const { data: posts } = await supabase
-      //.from('forum_topics')
-      //.select('id, title, content, created_at, view_count, post_count')
-      //.eq('status', 'approved')
-      //.order('created_at', { ascending: false })
-      //.limit(4);
-
-      //setRecentPosts(posts || []);
-
-      // Get forum stats
     };
 
     fetchData();
@@ -49,19 +52,19 @@ export default function ForumLanding() {
     <div className={styles.container}>
       <Header />
       <Head>
-        <title>Community Forum | Walkability Discussions</title>
+        <title>Community Connect | Share, Create, Grow Together</title>
         <meta
           name="description"
-          content="Join the conversation around improving walkability in our city"
+          content="Your platform to share ideas, showcase talents, promote business, and build meaningful community connections"
         />
       </Head>
 
       <header className={styles.hero}>
         <div className={styles.heroContent}>
-          <h1>Walkability Forum</h1>
+          <h1>Community Connect</h1>
           <p>
-            Join the conversation around making our streets safer and more
-            pedestrian-friendly
+            Your voice, your creativity, your community. Share stories, showcase talents, 
+            discuss ideas, and build meaningful connections with fellow citizens.
           </p>
 
           {!loading &&
@@ -70,11 +73,11 @@ export default function ForumLanding() {
                 href="/forum/post/create-post"
                 className={styles.primaryButton}
               >
-                Create New Post
+                Share Your Story
               </Link>
             ) : (
               <button onClick={login} className={styles.primaryButton}>
-                Sign in to participate
+                Join the Conversation
               </button>
             ))}
         </div>
@@ -82,83 +85,166 @@ export default function ForumLanding() {
 
       <section className={styles.features}>
         <div className={styles.featureCard}>
-          <div className={styles.featureIcon}>📝</div>
-          <h3>Report Issues</h3>
-          <p>Document and share walkability problems in your neighborhood</p>
+          <div className={styles.featureIcon}>
+            <FaPalette size={48} />
+          </div>
+          <h3>Showcase Creativity</h3>
+          <p>Share your art, writing, photography, or any creative work with the community</p>
         </div>
         <div className={styles.featureCard}>
-          <div className={styles.featureIcon}>💡</div>
-          <h3>Discuss Solutions</h3>
-          <p>Collaborate with others to find practical improvements</p>
+          <div className={styles.featureIcon}>
+            <FaBusinessTime size={48} />
+          </div>
+          <h3>Promote Local Business</h3>
+          <p>Highlight your services, products, or local ventures to neighborhood customers</p>
         </div>
         <div className={styles.featureCard}>
-          <div className={styles.featureIcon}>📈</div>
-          <h3>Track Progress</h3>
-          <p>Follow up on reported issues and see what's being fixed</p>
+          <div className={styles.featureIcon}>
+            <FaNewspaper size={48} />
+          </div>
+          <h3>Community Journalism</h3>
+          <p>Report local stories, events, and issues that matter to our community</p>
+        </div>
+        <div className={styles.featureCard}>
+          <div className={styles.featureIcon}>
+            <FaHandshake size={48} />
+          </div>
+          <h3>Build Connections</h3>
+          <p>Meet like-minded neighbors, form groups, and collaborate on local projects</p>
         </div>
       </section>
 
-      {recentPosts.length > 0 && (
-        <section className={styles.recentPosts}>
-          <div className={styles.sectionHeader}>
-            <h2>Recently Discussed Topics</h2>
-            <Link href="/forum/post/view-post" className={styles.viewAllLink}>
-              View All Posts →
-            </Link>
+      <section className={styles.communityCategories}>
+        <h2>Explore Community Topics</h2>
+        <div className={styles.categoriesGrid}>
+          <div className={styles.categoryItem}>
+            <div className={styles.categoryIcon}>
+              <FaLandmark size={40} />
+            </div>
+            <h3>Civic Matters</h3>
+            <p>Discuss local governance, infrastructure, and community needs</p>
           </div>
-        </section>
-      )}
+          <div className={styles.categoryItem}>
+            <div className={styles.categoryIcon}>
+              <FaTheaterMasks size={40} />
+            </div>
+            <h3>Arts & Culture</h3>
+            <p>Share artistic works, cultural events, and creative expressions</p>
+          </div>
+          <div className={styles.categoryItem}>
+            <div className={styles.categoryIcon}>
+              <FaUtensils size={40} />
+            </div>
+            <h3>Local Business</h3>
+            <p>Promote shops, services, and entrepreneurial ventures</p>
+          </div>
+          <div className={styles.categoryItem}>
+            <div className={styles.categoryIcon}>
+              <FaNewspaper size={40} />
+            </div>
+            <h3>Community News</h3>
+            <p>Report local happenings, events, and neighborhood stories</p>
+          </div>
+          <div className={styles.categoryItem}>
+            <div className={styles.categoryIcon}>
+              <FaLightbulb size={40} />
+            </div>
+            <h3>Ideas & Innovation</h3>
+            <p>Propose community projects, solutions, and innovative ideas</p>
+          </div>
+          <div className={styles.categoryItem}>
+            <div className={styles.categoryIcon}>
+              <FaCalendarAlt size={40} />
+            </div>
+            <h3>Events & Meetups</h3>
+            <p>Announce and organize local gatherings and activities</p>
+          </div>
+        </div>
+      </section>
 
       <section className={styles.howItWorks}>
-        <h2>How the Forum Works</h2>
+        <h2>How Our Community Platform Works</h2>
         <div className={styles.steps}>
           <div className={styles.step}>
-            <div className={styles.stepNumber}>1</div>
-            <h3>Create an account</h3>
-            <p>Sign up to join the community and start contributing</p>
+            <h3>Join Our Community</h3>
+            <p>Create your profile and become part of our growing neighborhood network</p>
           </div>
           <div className={styles.step}>
-            <div className={styles.stepNumber}>2</div>
-            <h3>Submit your issue</h3>
-            <p>Describe the walkability problem with location details</p>
+            <h3>Share Your Voice</h3>
+            <p>Post stories, showcase work, promote business, or discuss local topics</p>
           </div>
           <div className={styles.step}>
-            <div className={styles.stepNumber}>3</div>
-            <h3>Community discussion</h3>
-            <p>Engage with others to find solutions and improvements</p>
+            <h3>Connect & Engage</h3>
+            <p>Interact with fellow citizens, collaborate, and build relationships</p>
           </div>
           <div className={styles.step}>
-            <div className={styles.stepNumber}>4</div>
-            <h3>Track resolution</h3>
-            <p>Follow the progress as authorities address the issues</p>
+            <h3>Grow Together</h3>
+            <p>Watch your ideas and connections flourish within the community</p>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.communityBenefits}>
+        <h2>Why Join Our Community Platform?</h2>
+        <div className={styles.benefitsGrid}>
+          <div className={styles.benefitCard}>
+            <h3>Amplify Your Voice</h3>
+            <p>Reach neighbors and local audience with your messages and creations</p>
+          </div>
+          <div className={styles.benefitCard}>
+            <h3>Discover Local Talent</h3>
+            <p>Find amazing artists, entrepreneurs, and thinkers in your own backyard</p>
+          </div>
+          <div className={styles.benefitCard}>
+            <h3>Build Your Network</h3>
+            <p>Connect with potential customers, collaborators, and community partners</p>
+          </div>
+          <div className={styles.benefitCard}>
+            <h3>Stay Informed</h3>
+            <p>Get the pulse of your neighborhood through citizen journalism</p>
           </div>
         </div>
       </section>
 
       {!loading && user && (
         <section className={styles.userDashboard}>
-          <h2>Your Dashboard</h2>
+          <h2>Your Community Hub</h2>
           <div className={styles.dashboardLinks}>
             <Link href="/forum/post/my-post" className={styles.dashboardCard}>
-              <h3>My Posts</h3>
-              <p>View and manage your submitted posts</p>
+              <h3>My Contributions</h3>
+              <p>Manage your posts, articles, and creative shares</p>
             </Link>
             <Link href="/forum/post/view-post" className={styles.dashboardCard}>
-              <h3>Browse Discussions</h3>
-              <p>Explore all approved posts</p>
+              <h3>Explore Community</h3>
+              <p>Discover posts from fellow citizens</p>
+            </Link>
+            <Link href="/forum/connections" className={styles.dashboardCard}>
+              <h3>My Connections</h3>
+              <p>View and manage your community network</p>
             </Link>
             {isAdmin && (
               <Link
                 href="/forum/post/review-post"
                 className={styles.dashboardCard}
               >
-                <h3>Moderation</h3>
-                <p>Review pending posts</p>
+                <h3>Community Moderation</h3>
+                <p>Help maintain quality and positive engagement</p>
               </Link>
             )}
           </div>
         </section>
       )}
+
+      {!loading && !user && (
+        <section className={styles.joinCta}>
+          <h2>Ready to Connect with Your Community?</h2>
+          <p>Join thousands of citizens sharing, creating, and building together</p>
+          <button onClick={login} className={styles.ctaButton}>
+            Become a Community Member
+          </button>
+        </section>
+      )}
+
       <Footer />
     </div>
   );
