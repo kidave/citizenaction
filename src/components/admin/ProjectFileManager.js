@@ -13,7 +13,7 @@ export default function ProjectFileManager({ wardCode, projectId, step }) {
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [popupFiles, setPopupFiles] = useState([]);
-  const [uploadType, setUploadType] = useState("file");
+  const [uploadType, setUploadType] = useState("image");
 
   const stepFiles = files.filter((file) => file.step === step);
 

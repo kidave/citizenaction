@@ -23,6 +23,22 @@ export default function ProjectTab() {
   const { data: projects, loading, error } = useWardProjects(wardCode);
   const { data: junctions } = useWardJunctions(wardCode);
   const { data: roads } = useWardRoads(wardCode);
+  // DEBUG: Check the actual data structure
+  console.log('🔍 ALL PROJECTS DATA:', projects);
+  
+  if (projects) {
+    projects.forEach((project, index) => {
+      console.log(`📁 Project ${index}: ${project.title}`, {
+        id: project.id,
+        totalFiles: project.files?.length || 0,
+        filesByStep: project.files?.reduce((acc, file) => {
+          acc[file.step] = (acc[file.step] || 0) + 1;
+          return acc;
+        }, {}),
+        allFiles: project.files
+      });
+    });
+  }
 
   if (loading) return;
   if (error) return <p>Error loading projects: {error.message}</p>;
@@ -52,9 +68,17 @@ function StepContent({ stepKey, project }) {
   const [popupFiles, setPopupFiles] = useState([]);
   const [beforeIndex, setBeforeIndex] = useState(0);
   const [afterIndex, setAfterIndex] = useState(0);
-
+  
   // FIX: Use 'files' instead of 'images' - this matches what useWardData returns
   const stepFiles = project.files?.filter((file) => file.step === stepKey) || [];
+
+  // DEBUG: Check what files are available for this step - MOVED AFTER stepFiles definition
+  console.log(`🔍 Step ${stepKey} files for project ${project.title}:`, stepFiles.map(f => ({
+    id: f.id,
+    step: f.step,
+    type: f.type,
+    path: f.path
+  })));
 
   // Get step content based on stepKey
   const getStepContent = (key) => {
@@ -194,18 +218,17 @@ function StepContent({ stepKey, project }) {
 
   const stepContent = getStepContent(stepKey);
 
-  // Separate single image for side display (first file of type "image")
-  const sideFile = stepFiles.find((file) => file.type === "image");
-  
-  // Filter out the side file from other media
-  const otherFiles = stepFiles.filter((file) => file !== sideFile);
+  // FIX: Separate files by type FIRST, then pick side file
+  const allImages = stepFiles.filter((file) => file.type === "image");
+  const stacks = stepFiles.filter((file) => file.type === "stack");
+  const before = stepFiles.filter((file) => file.type === "comparison-before");
+  const after = stepFiles.filter((file) => file.type === "comparison-after");
+  const documents = stepFiles.filter((file) => file.type === "document");
+  const driveLinks = stepFiles.filter((file) => file.type === "drive-link");
 
-  const stacks = otherFiles.filter((file) => file.type === "stack");
-  const before = otherFiles.filter((file) => file.type === "comparison-before");
-  const after = otherFiles.filter((file) => file.type === "comparison-after");
-  const documents = otherFiles.filter((file) => file.type === "document");
-  const singleImages = otherFiles.filter((file) => file.type === "image");
-  const driveLinks = otherFiles.filter((file) => file.type === "drive-link");
+  // Use first image as side file, rest as single images
+  const sideFile = allImages[0];
+  const singleImages = allImages.slice(1); // All images except the first one
 
   // Check if there's any content to display
   const hasContent = stepContent || sideFile || stepFiles.length > 0;
@@ -402,7 +425,12 @@ function SingleProject({ project, junctions, roads, index }) {
         style={{ cursor: 'pointer' }}
       >
         <div className={styles.headerTop}>
-          <h3>{project.title}</h3>
+          <div className={styles.titleSection}>
+            <h3>{project.title}</h3>
+            {project.description && (
+              <p className={styles.projectDescription}>{project.description}</p>
+            )}
+          </div>
           <div className={styles.headerTopRight}>
             <span className={`${styles.statusBadge} ${styles[project.status]}`}>
               {getStatusDisplay(project.status)}

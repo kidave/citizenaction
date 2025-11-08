@@ -62,7 +62,7 @@ export default function CommitteeMember({
             />
           </div>
           <div>
-            <h3 className={styles.userName}>{member.user_name || 'Unknown User'}</h3>
+            <h3 className={styles.userName}>{member.name || 'Unknown User'}</h3>
             <h5 className={styles.label}>{member.stakeholder_name || 'N/A'}</h5>
           </div>
         </div>
@@ -77,14 +77,14 @@ export default function CommitteeMember({
               <span className={styles.value}>{member.email || 'N/A'}</span>
             </div>
             <div className={styles.detailRow}>
-              <span className={styles.label}>Scope:</span>
-              <span className={styles.value}>
-                {member.scope_type}: {getScopeName(member.scope_code)}
-              </span>
+              <span className={styles.label}>Role:</span>
+              <span className={styles.value}>{member.scope_type} {member.scope_role}</span>
             </div>
             <div className={styles.detailRow}>
-              <span className={styles.label}>Role:</span>
-              <span className={styles.value}>{member.scope_role}</span>
+              <span className={styles.label}>Scope Name:</span>
+              <span className={styles.value}>
+                {getScopeName(member.ward_code)}
+              </span>
             </div>
             <div className={styles.detailRow}>
               <span className={styles.label}>Joined:</span>

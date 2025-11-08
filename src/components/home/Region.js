@@ -9,7 +9,6 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDetect } from "hooks/useDetect";
 import WardTooltip from "components/shared/ui/WardTooltip";
-// import { useRouter } from "next/navigation"; // uncomment if you want auto-redirect
 
 function Region() {
   const {
@@ -25,7 +24,6 @@ function Region() {
     navigatingWard,
   } = useDetect();
 
-  // const router = useRouter(); // optional for redirect
   const [detecting, setDetecting] = useState(false);
   const [detectedWard, setDetectedWard] = useState(null);
   const wardButtonsRef = useRef({});
@@ -60,7 +58,7 @@ function Region() {
     return () => window.removeEventListener("keydown", handleKey);
   }, [divisions, currentDivisionIdx, handleDivisionChange, closeTooltip]);
 
-  // 🚀 Detect user's ward using Supabase RPC
+  // Detect user's ward using Supabase RPC
   const detectMyWard = useCallback(() => {
     if (!navigator.geolocation) {
       alert("Geolocation is not supported in your browser.");
@@ -115,8 +113,6 @@ function Region() {
             }
           }, 400);
 
-          // optional redirect
-          // router.push(`/ward/${wardId}/meeting`);
         } catch (e) {
           console.error("Detection error:", e);
           setDetecting(false);

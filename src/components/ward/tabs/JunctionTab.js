@@ -30,12 +30,7 @@ export default function JunctionTab() {
   };
 
   const getStatusDisplay = (status) => {
-    const statusMap = {
-      pending: "Pending",
-      in_progress: "In Progress",
-      completed: "Completed"
-    };
-    return statusMap[status] || status;
+    return status || "Unknown";
   };
 
   const formatDate = (date) => {

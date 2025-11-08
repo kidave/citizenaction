@@ -5,7 +5,7 @@ import styles from 'styles/components/feedback/status.module.css';
  * Reusable Status Badge Component
  * 
  * @param {Object} props
- * @param {string} props.status - The status value (pending, approved, rejected, in_progress, etc.)
+ * @param {string} props.status - The status value (Pending, Approved, Rejected, In Progress, etc.)
  * @param {string} [props.variant="badge"] - The variant: "badge" | "status" | "publish" | "inline"
  * @param {string} [props.size="medium"] - The size: "small" | "medium" | "large"
  * @param {boolean} [props.showIcon=false] - Whether to show an icon

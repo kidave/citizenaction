@@ -54,11 +54,14 @@ export default function useStorage(entityType, entityId, wardCode) {
       
       let destPath;
       if (entityType === 'project') {
-        // Project: includes step and type in path
-        destPath = `${wardCode}/${entityType}/${entityId}/${step}/${type}/${safeFileName}`;
-      } else {
-        // Meeting and Update: includes type but NOT step in path
-        destPath = `${wardCode}/${entityType}/${entityId}/${type}/${safeFileName}`;
+        // CLEAN STRUCTURE: Direct step folders under project
+        destPath = `${wardCode}/project/${entityId}/${step}/${type}/${safeFileName}`;
+      } else if (entityType === 'meeting') {
+        // Meeting files structure
+        destPath = `${wardCode}/meeting/${entityId}/${type}/${safeFileName}`;
+      } else if (entityType === 'update') {
+        // Update files structure  
+        destPath = `${wardCode}/update/${entityId}/${type}/${safeFileName}`;
       }
 
       const { error: uploadError } = await supabase.storage
@@ -71,7 +74,7 @@ export default function useStorage(entityType, entityId, wardCode) {
         [`${entityType}_id`]: entityId,
         path: destPath,
         is_main: false,
-        type: type // Store type for all entities
+        type: type
       };
 
       if (entityType === 'project') {

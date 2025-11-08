@@ -198,7 +198,7 @@ export default function ProjectAdmin({ wardCode }) {
 function ProjectForm({ wardCode, project = {}, onSave, onCancel }) {
   const [form, setForm] = useState(() => ({
     title: "",
-    status: "pending",
+    status: "Pending",
     start_date: "",
     end_date: "",
     location: "",
@@ -271,9 +271,10 @@ function ProjectForm({ wardCode, project = {}, onSave, onCancel }) {
                   value={form.status}
                   onChange={(e) => setForm({ ...form, status: e.target.value })}
                 >
-                  <option value="pending">Planning</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="completed">Completed</option>
+                  <option value="Pending">Planning</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Proposed">Proposed</option>
                 </select>
               </div>
             </div> 
