@@ -290,6 +290,28 @@ const ImageButton = ({
   </BaseButton>
 );
 
+const AssignButton = ({ 
+  children, 
+  assigned = false, 
+  assigning = false, 
+  showIcon = true, 
+  ...props 
+}) => {
+  const buttonText = assigned ? "Unassign" : "Assign";
+  const icon = assigned ? <FiEyeOff size={16} /> : <FiEye size={16} />;
+  
+  return (
+    <BaseButton
+      variant={assigned ? "warning" : "success"}
+      loading={assigning}
+      icon={showIcon && !assigning ? icon : null}
+      {...props}
+    >
+      {assigning ? "Updating..." : (children || buttonText)}
+    </BaseButton>
+  );
+};
+
 // Export all buttons and base component
 export default BaseButton;
 export {
@@ -305,5 +327,6 @@ export {
   SearchButton,
   PublishButton,
   IconButton,
-  ImageButton
+  ImageButton,
+  AssignButton
 };

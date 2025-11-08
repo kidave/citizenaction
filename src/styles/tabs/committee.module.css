@@ -36,7 +36,7 @@
 }
 
 .infoHeader:hover {
-  background: rgb(253, 245, 193);
+  background: lightgoldenrodyellow;
 }
 
 .headerContent {
@@ -240,4 +240,66 @@
   .sectionTitle {
     font-size: 1.3rem;
   }
+}
+
+
+
+/* styles/admin/committee.module.css */
+.adminPanel {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+
+.tabNavigation {
+  display: flex;
+  border-bottom: 1px solid gold;
+  margin: 1rem;
+}
+
+.tabButton {
+  padding: 12px 24px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.tabButton:hover {
+  background: lightgoldenrodyellow;
+}
+
+.activeTab {
+  border-bottom-color: gold;
+  background: lightgoldenrodyellow;
+}
+
+.tabContent {
+  margin: 1rem;
+  min-height: 400px;
+}
+
+.formsGrid,
+.membersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.emptyMessage,
+.emptyState {
+  text-align: center;
+  padding: 40px;
+  border-radius: 8px;
+}
+
+.errorMessage {
+  background: #fed7d7;
+  color: #c53030;
+  padding: 16px;
+  border-radius: 8px;
+  text-align: center;
 }

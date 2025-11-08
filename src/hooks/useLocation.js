@@ -1,4 +1,3 @@
-// hooks/useLocation.js
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
 import { useWardTabs } from "./useWardTabs";
@@ -10,7 +9,7 @@ export const useLocationData = () => {
   const { wardCode } = router.query;
   const { activeWardTab } = useWardTabs();
   const { activeRegionTab } = useRegionTabs();
-  
+
   const [selectedCity, setSelectedCity] = useState(null);
   const [selectedDivision, setSelectedDivision] = useState(null);
   const [wards, setWards] = useState([]);
@@ -22,32 +21,39 @@ export const useLocationData = () => {
   const [navigatingWard, setNavigatingWard] = useState(null);
   const [navigatingRegion, setNavigatingRegion] = useState(null);
 
-  // Load initial data and sync with current ward
+  // 🔹 Load cities and optionally ward hierarchy
   useEffect(() => {
     const loadInitialData = async () => {
       setLoading(true);
       try {
         const citiesData = await LocationService.getCities();
         setCities(citiesData);
-        
-        // If we're in a ward route, initialize with current ward data
+
         if (wardCode) {
+          // Load hierarchy for current ward
           const regionPath = await LocationService.getFullRegionPath(wardCode);
           if (regionPath) {
             setSelectedCity(regionPath.city.code);
-            
             const divisionsData = await LocationService.getDivisionsByCity(regionPath.city.code);
             setDivisions(divisionsData);
             setSelectedDivision(regionPath.division.code);
-            
             const wardsData = await LocationService.getWardsByDivision(regionPath.division.code);
             setWards(wardsData);
           }
         } else {
-          // Set default city if no ward is selected
-          if (!selectedCity && citiesData.length > 0) {
-            const defaultCity = citiesData.find(city => city.status === 'approved') || citiesData[0];
-            setSelectedCity(defaultCity.code);
+          // 👇 Default to Mumbai (MH-MMR-MUM)
+          const defaultCityCode = "MH-MMR-MUM";
+          setSelectedCity(defaultCityCode);
+
+          // Load its divisions & wards automatically
+          const divisionsData = await LocationService.getDivisionsByCity(defaultCityCode);
+          setDivisions(divisionsData);
+
+          if (divisionsData.length > 0) {
+            const firstDivision = divisionsData[0];
+            setSelectedDivision(firstDivision.code);
+            const wardsData = await LocationService.getWardsByDivision(firstDivision.code);
+            setWards(wardsData);
           }
         }
       } catch (error) {
@@ -59,37 +65,32 @@ export const useLocationData = () => {
     };
 
     loadInitialData();
-  }, [wardCode]); // Only depend on wardCode changes
+  }, [wardCode]);
 
-  // Load divisions when city changes
+  // 🔹 Load divisions when city changes
   useEffect(() => {
     const loadDivisions = async () => {
-      if (!selectedCity) return;
-      
+      if (!selectedCity || wardCode) return;
       try {
         const divisionsData = await LocationService.getDivisionsByCity(selectedCity);
         setDivisions(divisionsData);
-        
-        // Only reset division if we're not in a specific ward route
-        if (!wardCode) {
-          setSelectedDivision(null);
-          setWards([]);
+        if (divisionsData.length > 0) {
+          const firstDivision = divisionsData[0];
+          setSelectedDivision(firstDivision.code);
+          const wardsData = await LocationService.getWardsByDivision(firstDivision.code);
+          setWards(wardsData);
         }
       } catch (error) {
         console.error("Error loading divisions:", error);
       }
     };
-
-    if (initialLoadComplete) {
-      loadDivisions();
-    }
+    if (initialLoadComplete) loadDivisions();
   }, [selectedCity, initialLoadComplete, wardCode]);
 
-  // Load wards when division changes
+  // 🔹 Load wards when division changes
   useEffect(() => {
     const loadWards = async () => {
-      if (!selectedDivision) return;
-      
+      if (!selectedDivision || wardCode) return;
       try {
         const wardsData = await LocationService.getWardsByDivision(selectedDivision);
         setWards(wardsData);
@@ -97,36 +98,35 @@ export const useLocationData = () => {
         console.error("Error loading wards:", error);
       }
     };
-
-    if (initialLoadComplete) {
-      loadWards();
-    }
-  }, [selectedDivision, initialLoadComplete]);
+    if (initialLoadComplete) loadWards();
+  }, [selectedDivision, initialLoadComplete, wardCode]);
 
   const handleCityChange = useCallback(async (cityCode) => {
-    const city = cities.find(c => c.code === cityCode);
+    const city = cities.find((c) => c.code === cityCode);
     if (LOCATION_STATUS[city?.status]?.disabled) return;
-    
+
     setSelectedCity(cityCode);
-    // Don't reset division if we're in a ward route - let the URL drive the state
-    if (!wardCode) {
-      setSelectedDivision(null);
-      setWards([]);
-    }
-  }, [cities, wardCode]);
+    setSelectedDivision(null);
+    setWards([]);
+
+    const divisionsData = await LocationService.getDivisionsByCity(cityCode);
+    setDivisions(divisionsData);
+  }, [cities]);
 
   const handleDivisionChange = useCallback(async (divisionCode) => {
     setSelectedDivision(divisionCode);
+    const wardsData = await LocationService.getWardsByDivision(divisionCode);
+    setWards(wardsData);
   }, []);
 
   const handleWardChange = useCallback((wardCode) => {
     setNavigatingWard(wardCode);
-    router.push(`/ward/${wardCode}/${activeWardTab || 'meeting'}`);
+    router.push(`/ward/${wardCode}/${activeWardTab || "meeting"}`);
   }, [activeWardTab, router]);
 
   const handleRegionChange = useCallback((regionCode) => {
     setNavigatingRegion(regionCode);
-    router.push(`/region/${regionCode}/${activeRegionTab || 'meeting'}`);
+    router.push(`/region/${regionCode}/${activeRegionTab || "meeting"}`);
   }, [activeRegionTab, router]);
 
   return {
@@ -134,7 +134,8 @@ export const useLocationData = () => {
     cities,
     divisions,
     wards,
-    
+    loading,
+
     // State
     selectedCity,
     selectedDivision,
@@ -142,11 +143,10 @@ export const useLocationData = () => {
     navigatingRegion,
     setNavigatingWard,
     setNavigatingRegion,
-    loading,
 
     // Config
     statusConfig: LOCATION_STATUS,
-    
+
     // Handlers
     handleCityChange,
     handleDivisionChange,

@@ -36,14 +36,14 @@ export default function useLatestItems(type, limit = 3) {
       switch (type) {
         case "meeting":
           query = supabase
-            .from("meeting_with_images")
+            .from("ward_meeting_with_files")
             .select(`*, ward:ward_code (name, division:division_code (city:city_code (code, name)))`)
             .order("date", { ascending: false })
             .limit(limit);
           break;
         case "project":
           query = supabase
-            .from("project_with_images")
+            .from("ward_project_with_files")
             .select(`*, ward:ward_code (name, division:division_code (city:city_code (code, name)))`)
             .eq("is_published", true)
             .order("start_date", { ascending: false })
@@ -51,7 +51,7 @@ export default function useLatestItems(type, limit = 3) {
           break;
         case "update":
           query = supabase
-            .from("update_with_images")
+            .from("ward_update_with_files")
             .select(`*, ward:ward_code (name, division:division_code (city:city_code (code, name)))`)
             .order("date", { ascending: false })
             .limit(limit);

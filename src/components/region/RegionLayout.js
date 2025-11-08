@@ -15,8 +15,6 @@ import RegionUpdateTab from "./tabs/RegionUpdateTab";
 import RegionProjectTab from "./tabs/RegionProjectTab";
 import RegionPolicyTab from "./tabs/RegionPolicyTab";
 
-
-// components/region/RegionLayout.js
 function RegionLayoutContent() {
   const router = useRouter();
   const { regionCode, tab: activeTab } = router.query;
@@ -43,7 +41,7 @@ function RegionLayoutContent() {
         </div>
 
         {/* Show bottom bar on mobile */}
-        {(isMobile || isTablet) && <RegionBottombar activeTab={activeTab} />}
+        {(isMobile || isTablet) && <RegionBottombar activeRegionTab={activeTab} />}
       </div>
     </Layout>
   );

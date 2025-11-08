@@ -12,7 +12,7 @@ export const REGION_TABS = {
 export function useRegionTabs() {
   const router = useRouter();
   const { regionCode } = router.query;
-  const { regionTab: activeRegionTab = REGION_TABS.MEETING } = router.query;
+  const { tab: activeRegionTab = REGION_TABS.MEETING } = router.query;
 
   const navigateToRegionTab = (regionTabName) => {
     if (regionCode) {

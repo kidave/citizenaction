@@ -4,11 +4,12 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { supabase } from "utils/supabaseClient";
 import styles from "styles/layout/region.module.css";
-import { FiMap, FiMapPin, FiCrosshair, FiCheck, FiNavigation } from "react-icons/fi";
+import { FiMapPin, FiCrosshair, FiCheck, FiNavigation } from "react-icons/fi";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDetect } from "hooks/useDetect";
 import WardTooltip from "components/shared/ui/WardTooltip";
+// import { useRouter } from "next/navigation"; // uncomment if you want auto-redirect
 
 function Region() {
   const {
@@ -24,12 +25,11 @@ function Region() {
     navigatingWard,
   } = useDetect();
 
+  // const router = useRouter(); // optional for redirect
   const [detecting, setDetecting] = useState(false);
   const [detectedWard, setDetectedWard] = useState(null);
   const wardButtonsRef = useRef({});
-  const divisionViewRef = useRef(null);
   const [currentDivisionIdx, setCurrentDivisionIdx] = useState(0);
-  
 
   // Tooltip state
   const [hoverWard, setHoverWard] = useState(null);
@@ -40,7 +40,7 @@ function Region() {
     setAnchorRect(null);
   }, []);
 
-
+  // keyboard navigation
   useEffect(() => {
     const handleKey = (e) => {
       if (e.key === "ArrowLeft") {
@@ -60,11 +60,13 @@ function Region() {
     return () => window.removeEventListener("keydown", handleKey);
   }, [divisions, currentDivisionIdx, handleDivisionChange, closeTooltip]);
 
+  // 🚀 Detect user's ward using Supabase RPC
   const detectMyWard = useCallback(() => {
     if (!navigator.geolocation) {
       alert("Geolocation is not supported in your browser.");
       return;
     }
+
     setDetecting(true);
     setDetectedWard(null);
 
@@ -78,7 +80,8 @@ function Region() {
 
           setDetecting(false);
 
-          if (error || !data) {
+          if (error || !data || data.length === 0) {
+            console.error("Ward detection failed:", error || "No data");
             alert("Could not detect your ward.");
             return;
           }
@@ -87,6 +90,7 @@ function Region() {
           const wardId = row?.ward_code;
           const divisionId = row?.division_code;
           const cityId = row?.city_code;
+          const wardName = row?.ward_name;
 
           if (!wardId || !divisionId || !cityId) {
             alert("Ward / Division / City not found in response");
@@ -94,16 +98,14 @@ function Region() {
           }
 
           // update selections
-          setDetectedWard(wardId);
+          setDetectedWard({ code: wardId, name: wardName });
           handleCityChange(cityId);
           handleDivisionChange(divisionId);
-
-          // sync carousel index so useEffect won't override
           setCurrentDivisionIdx(
             divisions.findIndex((d) => d.code === divisionId) || 0
           );
 
-          // wait for wards to load then highlight
+          // highlight detected ward
           setTimeout(() => {
             const button = wardButtonsRef.current[wardId];
             if (button) {
@@ -112,7 +114,11 @@ function Region() {
               setTimeout(() => button.classList.remove("highlighted-ward"), 3000);
             }
           }, 400);
+
+          // optional redirect
+          // router.push(`/ward/${wardId}/meeting`);
         } catch (e) {
+          console.error("Detection error:", e);
           setDetecting(false);
           alert("Could not detect your ward.");
         }
@@ -123,8 +129,9 @@ function Region() {
       },
       { enableHighAccuracy: true, timeout: 15000 }
     );
-  }, [handleCityChange, handleDivisionChange]);
+  }, [handleCityChange, handleDivisionChange, divisions]);
 
+  // keep carousel division synced
   useEffect(() => {
     if (divisions.length > 0 && currentDivisionIdx < divisions.length) {
       const activeDivision = divisions[currentDivisionIdx];
@@ -133,18 +140,15 @@ function Region() {
       }
     }
   }, [divisions, currentDivisionIdx, handleDivisionChange, selectedDivision]);
-  
 
   return (
     <div className={styles.regionContainer}>
-      <div className={styles.floatingElement}></div>
-      <div className={styles.floatingElement}></div>
-      <div className={styles.floatingElement}></div>
-      
-      {/* Detect my ward - UPDATED STYLING */}
+      {/* Detect My Ward */}
       <div className={styles.detectWardContainer}>
         <motion.button
-          className={`${styles.detectWardButton} ${detecting ? styles.detecting : ''} ${detectedWard ? styles.detected : ''}`}
+          className={`${styles.detectWardButton} ${
+            detecting ? styles.detecting : ""
+          } ${detectedWard ? styles.detected : ""}`}
           onClick={detectMyWard}
           disabled={detecting}
           whileHover={{ scale: 1.05 }}
@@ -152,7 +156,7 @@ function Region() {
         >
           <span className={styles.buttonContent}>
             {detecting ? (
-              <motion.div 
+              <motion.div
                 className={styles.spinner}
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -165,7 +169,11 @@ function Region() {
               <FiCrosshair className={styles.crosshairIcon} />
             )}
             <span className={styles.buttonText}>
-              {detecting ? "Locating..." : detectedWard ? "Location Found" : "Locate My Ward"}
+              {detecting
+                ? "Locating..."
+                : detectedWard
+                ? "Location Found"
+                : "Locate My Ward"}
             </span>
           </span>
           {!detecting && !detectedWard && (
@@ -174,14 +182,15 @@ function Region() {
         </motion.button>
 
         {detectedWard && (
-          <motion.div 
+          <motion.div
             className={styles.detectedWardResult}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
           >
             <span className={styles.resultLabel}>Your Ward:</span>
             <span className={styles.wardName}>
-              {wards.find((w) => w.code === detectedWard)?.name}
+              {detectedWard?.name ||
+                wards.find((w) => w.code === detectedWard?.code)?.name}
             </span>
           </motion.div>
         )}
@@ -194,7 +203,9 @@ function Region() {
           return (
             <div
               key={city.code}
-              className={`${styles.scrollCard} ${selectedCity === city.code ? styles.active : ""}`}
+              className={`${styles.scrollCard} ${
+                selectedCity === city.code ? styles.active : ""
+              }`}
               style={{
                 backgroundImage: `url(/images/city/${city.code}.jpg)`,
                 opacity: config.disabled ? 0.4 : 1,
@@ -202,77 +213,78 @@ function Region() {
               }}
               onClick={() => !config.disabled && handleCityChange(city.code)}
             >
-              
               <div className={styles.scrollOverlay}>
                 {city.name}
                 {config.disabled && (
-                  <span className={styles.statusBadge} style={{ backgroundColor: config.color }}>
+                  <span
+                    className={styles.statusBadge}
+                    style={{ backgroundColor: config.color }}
+                  >
                     {config.label}
                   </span>
                 )}
               </div>
-              
             </div>
           );
         })}
       </div>
 
-
       {/* Divisions */}
-        {selectedCity && (
-          <>            
-            <div className={styles.divisionCarouselContainer}>
-              <button
-                className={`${styles.divisionNavButton} ${styles.left}`}
-                onClick={() => setCurrentDivisionIdx(i => Math.max(0, i - 1))}
-                disabled={currentDivisionIdx === 0}
-              >
-                <FaChevronLeft />
-              </button>
-              
-              <div className={styles.divisionCarousel}>
-                <div className={styles.divisionView} ref={divisionViewRef}>
-                  <AnimatePresence mode="wait" initial={false}>
-                    {divisions.length > 0 && (
-                      <motion.div
-                        key={divisions[currentDivisionIdx].code}
-                        initial={{ opacity: 0, x: 100 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -100 }}
-                        transition={{ duration: 0.3 }}
-                        style={{
-                          backgroundImage: `url(/images/division/${divisions[currentDivisionIdx].code}.jpg)`,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                          width: "100%",
-                          height: "100%",
-                          borderRadius: "16px",
-                          cursor: "pointer",
-                        }}
-                        onClick={() => handleDivisionChange(divisions[currentDivisionIdx].code)}
-                      >
-                        <div className={styles.scrollOverlay}>
-                          {divisions[currentDivisionIdx].name}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
-              
-              <button
-                className={`${styles.divisionNavButton} ${styles.right}`}
-                onClick={() =>
-                  setCurrentDivisionIdx(i => Math.min(divisions.length - 1, i + 1))
-                }
-                disabled={currentDivisionIdx === divisions.length - 1}
-              >
-                <FaChevronRight />
-              </button>
-            </div>
-          </>
-        )}
+      {selectedCity && (
+        <div className={styles.divisionCarouselContainer}>
+          <button
+            className={`${styles.divisionNavButton} ${styles.left}`}
+            onClick={() => setCurrentDivisionIdx((i) => Math.max(0, i - 1))}
+            disabled={currentDivisionIdx === 0}
+          >
+            <FaChevronLeft />
+          </button>
 
+          <div className={styles.divisionCarousel}>
+            <div className={styles.divisionView}>
+              <AnimatePresence mode="wait" initial={false}>
+                {divisions.length > 0 && (
+                  <motion.div
+                    key={divisions[currentDivisionIdx].code}
+                    initial={{ opacity: 0, x: 100 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -100 }}
+                    transition={{ duration: 0.3 }}
+                    style={{
+                      backgroundImage: `url(/images/division/${divisions[currentDivisionIdx].code}.jpg)`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      width: "100%",
+                      height: "100%",
+                      borderRadius: "16px",
+                      cursor: "pointer",
+                    }}
+                    onClick={() =>
+                      handleDivisionChange(divisions[currentDivisionIdx].code)
+                    }
+                  >
+                    <div className={styles.scrollOverlay}>
+                      {divisions[currentDivisionIdx].name}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          <button
+            className={`${styles.divisionNavButton} ${styles.right}`}
+            onClick={() =>
+              setCurrentDivisionIdx((i) =>
+                Math.min(divisions.length - 1, i + 1)
+              )
+            }
+            disabled={currentDivisionIdx === divisions.length - 1}
+          >
+            <FaChevronRight />
+          </button>
+        </div>
+      )}
 
       {/* Wards */}
       {selectedDivision && (
@@ -288,9 +300,10 @@ function Region() {
                 style={{ position: "relative", display: "inline-block" }}
                 ref={(el) => (wardButtonsRef.current[ward.code] = el)}
                 onMouseEnter={(e) => {
-                  const buttonEl = e.currentTarget.querySelector("button");
-                  if (!buttonEl) return;
-                  const rect = buttonEl.getBoundingClientRect();
+                  const rect = e.currentTarget
+                    .querySelector("button")
+                    ?.getBoundingClientRect();
+                  if (!rect) return;
                   setHoverWard(ward.code);
                   setAnchorRect({
                     left: rect.left,
@@ -308,10 +321,8 @@ function Region() {
                   onClick={() => handleWardChange(ward.code)}
                   disabled={!!navigatingWard}
                 >
-                  {navigatingWard === ward.code
-                    ? "Loading..."
-                    : ward.name}
-                  {detectedWard === ward.code && (
+                  {navigatingWard === ward.code ? "Loading..." : ward.name}
+                  {detectedWard?.code === ward.code && (
                     <span className={styles.wardBadge}>You</span>
                   )}
                 </button>

@@ -150,3 +150,138 @@
   background: #fffdf0;
   border-bottom-color: gold;
 }
+
+
+/* styles/shared/card.module.css */
+.card {
+  border-radius: 12px;
+  border: 1px solid gold;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1.5rem;
+  background: lightgoldenrodyellow;
+  border-bottom: 1px solid gold;
+}
+
+.userInfo {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  flex: 1;
+}
+
+.avatarContainer {
+  flex-shrink: 0;
+}
+
+.avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid gold;
+}
+
+.userName {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+
+.memberActions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.cardContent {
+  padding: 1.5rem;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.detailRow:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.label {
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 0.875rem;
+}
+
+.value {
+  color: #2d3748;
+  font-size: 0.875rem;
+  text-align: right;
+}
+
+.formGroup {
+  margin-bottom: 1rem;
+}
+
+.formGroup:last-child {
+  margin-bottom: 0;
+}
+
+.select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid gold;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.select:focus {
+  outline: none;
+  border-color: gold;
+  box-shadow: 0 0 0 3px lightgoldenrodyellow;
+}
+
+.cardFooter {
+  padding: 1rem 1.5rem;
+  background: lightgoldenrodyellow;
+  border-top: 1px solid gold;
+}
+
+
+/* Status colors */
+.statusPending {
+  color: orange;
+  background: yellow;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.statusApproved {
+  color: #38a169;
+  background: #c6f6d5;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.statusRejected {
+  color: #e53e3e;
+  background: #fed7d7;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}

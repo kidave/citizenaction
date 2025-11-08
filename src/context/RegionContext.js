@@ -21,7 +21,7 @@ export function RegionProvider({ children, regionCode }) {
         setError(err.message);
         // Fallback to static data if DB fails
         setRegionInfo({
-          code: regionCode || "MMR",
+          code: regionCode || "MH-MMR",
           name: "Mumbai Metropolitan Region",
         });
       } finally {
@@ -34,9 +34,9 @@ export function RegionProvider({ children, regionCode }) {
 
   const contextValue = useMemo(
     () => ({
-      regionCode: regionCode || "MMR",
+      regionCode: regionCode || "MH-MMR",
       regionInfo: regionInfo || {
-        code: regionCode || "MMR",
+        code: regionCode || "MH-MMR",
         name: "Mumbai Metropolitan Region",
       },
       loading,

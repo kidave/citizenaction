@@ -6,8 +6,8 @@ export default async function handler(req, res) {
 
   try {
     const { data, error } = await supabase
-      .rpc("get_ward_junctions", {
-      ward_code: wardCode,
+      .rpc("get_junctions", {
+      gj_ward_code: wardCode,
     });
     if (error) throw error;
     res.status(200).json(data || []);

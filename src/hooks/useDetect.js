@@ -1,68 +1,95 @@
-// hooks/useDetect.js
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
 import { useWardTabs } from "./useWardTabs";
-import { RegionService, REGION_STATUS } from "data/regions";
+import { LocationService, LOCATION_STATUS } from "utils/location";
 
 export const useDetect = () => {
   const router = useRouter();
   const { wardId } = router.query;
   const { activeTab } = useWardTabs();
-  
-  const [selectedCity, setSelectedCity] = useState("MUM");
-  const [selectedDivision, setSelectedDivision] = useState(null);
+
+  const [cities, setCities] = useState([]);
+  const [divisions, setDivisions] = useState([]);
   const [wards, setWards] = useState([]);
 
+  const [selectedCity, setSelectedCity] = useState("MH-MMR-MUM"); // ✅ Default city to Mumbai
+  const [selectedDivision, setSelectedDivision] = useState(null);
   const [navigatingWard, setNavigatingWard] = useState(null);
 
-  // Initialize with current ward if in ward route
+  // Load cities initially
   useEffect(() => {
-    if (!wardId) return;
-    const regionPath = RegionService.getFullRegionPath(wardId);
-    if (!regionPath) return;
+    (async () => {
+      const cityList = await LocationService.getCities();
+      setCities(cityList);
 
-    setSelectedCity(regionPath.city.code);
-    setSelectedDivision(regionPath.division.code);
-    setWards(RegionService.getWardsByDivision(regionPath.division.code));
-  }, [wardId]);
+      // ✅ If MH-MMR-MUM exists, pre-load its divisions
+      const defaultCity = cityList.find(c => c.code === "MH-MMR-MUM");
+      if (defaultCity) {
+        setSelectedCity(defaultCity.code);
+        const divList = await LocationService.getDivisionsByCity(defaultCity.code);
+        setDivisions(divList);
 
-  const handleCityChange = (cityCode) => {
-    const city = RegionService.getCityByCode(cityCode);
-    if (REGION_STATUS[city?.status]?.disabled) return;
-    
+        // ✅ Auto-select the first division
+        if (divList.length > 0) {
+          const firstDivision = divList[0];
+          setSelectedDivision(firstDivision.code);
+
+          const wardList = await LocationService.getWardsByDivision(firstDivision.code);
+          setWards(wardList);
+        }
+      }
+    })();
+  }, []);
+
+  // Handle city change
+  const handleCityChange = useCallback(async (cityCode, preserveDivision = false) => {
+    const city = await LocationService.getCityByCode(cityCode);
+    if (LOCATION_STATUS[city?.status]?.disabled) return;
+
     setSelectedCity(cityCode);
-    setSelectedDivision(null);
-    setWards([]);
-  };
+    if (!preserveDivision) {
+      setSelectedDivision(null);
+      setWards([]);
+    }
 
-  const handleDivisionChange = (divisionCode) => {
+    const divList = await LocationService.getDivisionsByCity(cityCode);
+    setDivisions(divList);
+
+    // ✅ Automatically load first division + wards (only if not preserving)
+    if (!preserveDivision && divList.length > 0) {
+      const firstDivision = divList[0];
+      setSelectedDivision(firstDivision.code);
+      const wardList = await LocationService.getWardsByDivision(firstDivision.code);
+      setWards(wardList);
+    }
+  }, []);
+
+
+  // Handle division change
+  const handleDivisionChange = useCallback(async (divisionCode) => {
     setSelectedDivision(divisionCode);
-    setWards(RegionService.getWardsByDivision(divisionCode));
-  };
+    const wardList = await LocationService.getWardsByDivision(divisionCode);
+    setWards(wardList);
+  }, []);
 
-  const handleWardChange = useCallback((wardCode) => {
-    setNavigatingWard(wardCode);
-    router.push(`/ward/${wardCode}/${activeTab || 'meeting'}`);
-  }, [activeTab, router, setNavigatingWard]);
+  // Handle ward navigation
+  const handleWardChange = useCallback(
+    (wardCode) => {
+      setNavigatingWard(wardCode);
+      router.push(`/ward/${wardCode}/${activeTab || "meeting"}`);
+    },
+    [activeTab, router]
+  );
 
   return {
-    // Data
-    cities: RegionService.getCities(),
-    divisions: selectedCity 
-      ? RegionService.getDivisionsByCity(selectedCity) 
-      : [],
+    cities,
+    divisions,
     wards,
-    
-    // State
     selectedCity,
     selectedDivision,
     navigatingWard,
     setNavigatingWard,
-
-    // Config
-    statusConfig: REGION_STATUS,
-    
-    // Handlers
+    statusConfig: LOCATION_STATUS,
     handleCityChange,
     handleDivisionChange,
     handleWardChange,

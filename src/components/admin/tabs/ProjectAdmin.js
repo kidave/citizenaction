@@ -7,7 +7,7 @@ import { useAlert } from "hooks/useAlert";
 import StatusBadge from 'components/shared/card/StatusBadge';
 import ButtonGroup from "components/shared/ui/ButtonGroup";
 import { AddButton, EditButton, DeleteButton, SaveButton, CancelButton, PublishButton } from "components/shared/ui/Buttons";
-import ProjectImageManager from "components/admin/ProjectImageManager";
+import ProjectFileManager from "components/admin/ProjectFileManager";
 import styles from "styles/tabs/project.module.css";
 
 export default function ProjectAdmin({ wardCode }) {
@@ -15,7 +15,7 @@ export default function ProjectAdmin({ wardCode }) {
   const { showConfirmAlert, showSuccessAlert, showErrorAlert, AlertComponent } = useAlert();
 
   const { data: projects, loading, error, refresh } = useAdminWardProjects(wardCode);
-  const { create, update, remove } = useWardCRUD("project", wardCode);
+  const { create, update, remove } = useWardCRUD("ward_project", wardCode);
 
   const [editing, setEditing] = useState(null);
   const [publishingStates, setPublishingStates] = useState({});
@@ -204,7 +204,6 @@ function ProjectForm({ wardCode, project = {}, onSave, onCancel }) {
     location: "",
     description: "",
     is_published: false,
-    custom_sections: [],
     ...project,
   }));
 
@@ -222,7 +221,6 @@ function ProjectForm({ wardCode, project = {}, onSave, onCancel }) {
       location: "",
       description: "",
       is_published: false,
-      custom_sections: [],
       ...project 
     });
   }, [project]);
@@ -373,7 +371,7 @@ function ProjectForm({ wardCode, project = {}, onSave, onCancel }) {
                   
                   {/* Image Manager for this step */}
                   {projectId && (
-                    <ProjectImageManager
+                    <ProjectFileManager
                       projectId={projectId}
                       wardCode={wardCode}
                       step={step.key}

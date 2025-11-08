@@ -1,4 +1,4 @@
-// components/ward/tabs/MeetingTab.js
+// components/ward/tabs/MeetingTab
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useWard } from "context/WardContext";
@@ -20,17 +20,18 @@ export default function MeetingTab() {
 
   const TimelineItemMeeting = ({ item, index }) => {
     const isLeft = index % 2 === 0;
-    const safeImages = item.images || [];
-    const thumbnails = safeImages.slice(0, 1);
+    
+    const safeFiles = item.files || [];
+    const thumbnails = safeFiles.slice(0, 1);
 
     const handleImageClick = (clickedIndex = 0) => {
-      const imageUrls = safeImages.map((img) => img.path);
+      const imageUrls = safeFiles.map((file) => file.path);
       setPopupImages(imageUrls);
       setStartImageIndex(clickedIndex);
       setIsPopupOpen(true);
     };
 
-    const renderImageContainer = () => (
+    const renderFileContainer = () => (
       <motion.div
         className={styles.imageContainer}
         initial={{ opacity: 0, y: 70 }}
@@ -39,16 +40,16 @@ export default function MeetingTab() {
         transition={{ duration: 0.6 }}
       >
         <div className={styles.imageThumbs}>
-          {safeImages.length > 0 ? (
+          {safeFiles.length > 0 ? (
             <>
-              {thumbnails.map((img, idx) => (
-                <div key={img.id || idx} className={styles.imageWrapper}>
-                  <img src={img.path} alt="" onClick={() => handleImageClick(idx)} />
+              {thumbnails.map((file, idx) => (
+                <div key={file.id || idx} className={styles.imageWrapper}>
+                  <img src={file.path} alt="" onClick={() => handleImageClick(idx)} />
                 </div>
               ))}
-              {safeImages.length > thumbnails.length && (
+              {safeFiles.length > thumbnails.length && (
                 <div className={styles.moreImages} onClick={() => handleImageClick(0)}>
-                  +{safeImages.length - thumbnails.length}
+                  +{safeFiles.length - thumbnails.length}
                 </div>
               )}
             </>
@@ -67,7 +68,7 @@ export default function MeetingTab() {
               editable={false}
             />
           ) : (
-            renderImageContainer()
+            renderFileContainer()
           )}
         </div>
 
@@ -79,7 +80,7 @@ export default function MeetingTab() {
               editable={false}
             />
           ) : (
-            renderImageContainer()
+            renderFileContainer()
           )}
         </div>
       </div>
@@ -88,10 +89,8 @@ export default function MeetingTab() {
 
   return (
     <>
-      {/* Meeting Information Sections */}
       <MeetingInfo />
 
-      {/* Actual Meetings Timeline */}
       {!meetings || meetings.length === 0 ? (
         <p className={styles.emptyTimeline}>No meetings yet.</p>
       ) : (

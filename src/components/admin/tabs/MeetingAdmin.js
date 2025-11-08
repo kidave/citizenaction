@@ -6,10 +6,10 @@ import { useAdmin } from "context/AdminContext";
 import { useAlert } from "hooks/useAlert";
 import useWardCRUD from "hooks/useWardCRUD";
 import { useAdminWardMeetings } from "hooks/useWardData";
-import { useMeetingImages } from "hooks/useImages";
+import { useMeetingFiles } from "hooks/useStorage";
 import ImageStackPopup from "components/shared/image/ImageStackPopup";
 import MeetingCard from "components/shared/card/MeetingCard";
-import MeetingImageManager from "components/admin/MeetingImageManager";
+import MeetingFileManager from "components/admin/MeetingFileManager";
 import ButtonGroup from "components/shared/ui/ButtonGroup";
 import { AddButton, ImageButton } from "components/shared/ui/Buttons";
 import styles from "styles/tabs/timeline.module.css";
@@ -17,7 +17,7 @@ import styles from "styles/tabs/timeline.module.css";
 export default function MeetingAdmin() {
   const { wardCode } = useWard();
   const { isAdmin } = useAdmin();
-  const { create, update, remove } = useWardCRUD("meeting", wardCode);
+  const { create, update, remove } = useWardCRUD("ward_meeting", wardCode);
   const { showConfirmAlert, showSuccessAlert, showErrorAlert, AlertComponent } = useAlert();
 
   const { data: meetings, loading, error, refresh } = useAdminWardMeetings(wardCode);
@@ -191,7 +191,7 @@ export default function MeetingAdmin() {
                       </ImageButton>
                     </div>
                     {expandedMeetingId === item.id && (
-                      <MeetingImageManager meetingId={item.id} wardCode={wardCode} refresh={refresh} />
+                      <MeetingFileManager meetingId={item.id} wardCode={wardCode} refresh={refresh} />
                     )}
                     <FileContainer 
                       meetingId={item.id} 
@@ -228,7 +228,7 @@ export default function MeetingAdmin() {
                       </ImageButton>
                     </div>
                     {expandedMeetingId === item.id && (
-                      <MeetingImageManager meetingId={item.id} wardCode={wardCode} refresh={refresh} />
+                      <MeetingFileManager meetingId={item.id} wardCode={wardCode} refresh={refresh} />
                     )}
                     <FileContainer 
                       meetingId={item.id} 
@@ -257,7 +257,7 @@ export default function MeetingAdmin() {
 
 // Helper component for files
 function FileContainer({ meetingId, onFileClick }) {
-  const { files, resolveUrl } = useMeetingImages(meetingId);
+  const { files, resolveUrl } = useMeetingFiles(meetingId);
   
   const handleClick = () => {
     onFileClick(files.map(file => resolveUrl(file.path)));

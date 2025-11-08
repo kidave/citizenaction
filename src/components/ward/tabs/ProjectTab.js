@@ -1,4 +1,4 @@
-// components/ward/tabs/ProjectTab.js
+// components/ward/tabs/ProjectTab.js - FIXED VERSION
 import { useState } from "react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
@@ -53,7 +53,8 @@ function StepContent({ stepKey, project }) {
   const [beforeIndex, setBeforeIndex] = useState(0);
   const [afterIndex, setAfterIndex] = useState(0);
 
-  const images = project.images?.filter((img) => img.step === stepKey) || [];
+  // FIX: Use 'files' instead of 'images' - this matches what useWardData returns
+  const stepFiles = project.files?.filter((file) => file.step === stepKey) || [];
 
   // Get step content based on stepKey
   const getStepContent = (key) => {
@@ -193,28 +194,28 @@ function StepContent({ stepKey, project }) {
 
   const stepContent = getStepContent(stepKey);
 
-  // Separate single image for side display (first image of type "image")
-  const sideImage = images.find((img) => img.type === "image");
+  // Separate single image for side display (first file of type "image")
+  const sideFile = stepFiles.find((file) => file.type === "image");
   
-  // Filter out the side image from other media
-  const otherImages = images.filter((img) => img !== sideImage);
+  // Filter out the side file from other media
+  const otherFiles = stepFiles.filter((file) => file !== sideFile);
 
-  const stacks = otherImages.filter((img) => img.type === "stack");
-  const before = otherImages.filter((img) => img.type === "comparison-before");
-  const after = otherImages.filter((img) => img.type === "comparison-after");
-  const documents = otherImages.filter((img) => img.type === "document");
-  const singleImages = otherImages.filter((img) => img.type === "image");
-  const driveLinks = otherImages.filter((img) => img.type === "drive-link");
+  const stacks = otherFiles.filter((file) => file.type === "stack");
+  const before = otherFiles.filter((file) => file.type === "comparison-before");
+  const after = otherFiles.filter((file) => file.type === "comparison-after");
+  const documents = otherFiles.filter((file) => file.type === "document");
+  const singleImages = otherFiles.filter((file) => file.type === "image");
+  const driveLinks = otherFiles.filter((file) => file.type === "drive-link");
 
   // Check if there's any content to display
-  const hasContent = stepContent || sideImage || images.length > 0;
+  const hasContent = stepContent || sideFile || stepFiles.length > 0;
   
   if (!hasContent) return null;
 
   return (
     <div className={styles.stepMediaContainer}>
-      {/* Step Content with Side Image Layout */}
-      {(stepContent || sideImage) && (
+      {/* Step Content with Side File Layout */}
+      {(stepContent || sideFile) && (
         <div className={styles.stepContentLayout}>
           {stepContent && (
             <div className={styles.stepTextContent}>
@@ -222,15 +223,15 @@ function StepContent({ stepKey, project }) {
             </div>
           )}
           
-          {/* Side Image */}
-          {sideImage && (
-            <div className={styles.stepSideImage}>
+          {/* Side File */}
+          {sideFile && (
+            <div className={styles.stepSideFile}>
               <ImageEmbed 
-                src={sideImage.path} 
-                alt={sideImage.caption || "Step image"} 
+                src={sideFile.path} 
+                alt={sideFile.caption || "Step image"} 
               />
-              {sideImage.caption && (
-                <p className={styles.imageCaption}>{sideImage.caption}</p>
+              {sideFile.caption && (
+                <p className={styles.imageCaption}>{sideFile.caption}</p>
               )}
             </div>
           )}
@@ -241,23 +242,23 @@ function StepContent({ stepKey, project }) {
       {(stacks.length > 0 || before.length > 0 || after.length > 0 || 
         documents.length > 0 || singleImages.length > 0 || driveLinks.length > 0) && (
         <div className={styles.stepMedia}>
-          {/* Single Images (excluding the side image) */}
+          {/* Single Images (excluding the side file) */}
           {singleImages.length > 0 && (
             <div className={styles.singleImages}>
-              {singleImages.map((img, idx) => (
-                <div key={idx} className={styles.singleImageItem}>
-                  <ImageEmbed src={img.path} alt={img.caption || "Image"} />
-                  {img.caption && <p className={styles.imageCaption}>{img.caption}</p>}
+              {singleImages.map((file, idx) => (
+                <div key={idx} className={styles.singleFileItem}>
+                  <ImageEmbed src={file.path} alt={file.caption || "Image"} />
+                  {file.caption && <p className={styles.imageCaption}>{file.caption}</p>}
                 </div>
               ))}
             </div>
           )}
 
-          {/* Stacked Images */}
+          {/* Stacked Files */}
           {stacks.length > 0 && (
             <ButtonGroup>
               <ImageButton
-                onClick={() => setPopupFiles(stacks.map((img) => img.path))}
+                onClick={() => setPopupFiles(stacks.map((file) => file.path))}
               >
                 View Stack ({stacks.length})
               </ImageButton>
@@ -270,8 +271,8 @@ function StepContent({ stepKey, project }) {
           {/* Before / After */}
           {(before.length > 0 || after.length > 0) && (
             <ImageComparison
-              beforeImages={before.map((img) => img.path)}
-              afterImages={after.map((img) => img.path)}
+              beforeImages={before.map((file) => file.path)}
+              afterImages={after.map((file) => file.path)}
               beforeIndex={beforeIndex}
               afterIndex={afterIndex}
               onBeforeIndexChange={setBeforeIndex}
@@ -283,8 +284,8 @@ function StepContent({ stepKey, project }) {
           {driveLinks.length > 0 && (
             <div className={styles.driveLinksSection}>
               <h5>Drive Links</h5>
-              {driveLinks.map((d, idx) => (
-                <DriveEmbed key={idx} driveLink={d.path} title={d.caption || "Document"} />
+              {driveLinks.map((file, idx) => (
+                <DriveEmbed key={idx} driveLink={file.path} title={file.caption || "Document"} />
               ))}
             </div>
           )}
@@ -292,15 +293,15 @@ function StepContent({ stepKey, project }) {
           {/* Document Links */}
           {documents.length > 0 && (
             <div className={styles.documentsSection}>
-              {documents.map((doc, idx) => (
+              {documents.map((file, idx) => (
                 <a
                   key={idx}
-                  href={doc.path}
+                  href={file.path}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={styles.documentLink}
                 >
-                  {doc.caption || `View Document ${idx + 1}`}
+                  {file.caption || `View Document ${idx + 1}`}
                 </a>
               ))}
             </div>
@@ -335,7 +336,7 @@ function SingleProject({ project, junctions, roads, index }) {
     });
   };
 
-  // Check if a step has any content (fields or images)
+  // Check if a step has any content (fields or files)
   const stepHasContent = (stepFields) => {
     // Check if any field has content
     const hasFieldContent = stepFields.some(field => {
@@ -343,11 +344,11 @@ function SingleProject({ project, junctions, roads, index }) {
       return value && value.toString().trim() !== '';
     });
     
-    // Check if step has images
-    const stepImages = project.images?.filter(img => img.step === stepFields[0]?.charAt(0)) || [];
-    const hasImages = stepImages.length > 0;
+    // Check if step has files
+    const stepFiles = project.files?.filter(file => file.step === stepFields[0]?.charAt(0)) || [];
+    const hasFiles = stepFiles.length > 0;
     
-    return hasFieldContent || hasImages;
+    return hasFieldContent || hasFiles;
   };
 
   // Predefined steps configuration

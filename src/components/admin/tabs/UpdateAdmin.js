@@ -12,7 +12,7 @@ import styles from "styles/tabs/timeline.module.css";
 export default function UpdateAdmin() {
   const { wardCode } = useWard();
   const { isAdmin } = useAdmin();
-  const { create, update, remove } = useWardCRUD("monthly_update", wardCode);
+  const { create, update, remove } = useWardCRUD("ward_update", wardCode);
   const { showConfirmAlert, showSuccessAlert, showErrorAlert, AlertComponent } = useAlert();
 
   const { data: updates, loading, error, refresh } = useAdminWardUpdates(wardCode);

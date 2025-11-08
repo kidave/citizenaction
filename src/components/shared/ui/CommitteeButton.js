@@ -1,73 +1,60 @@
 // components/shared/ui/CommitteeButton.js
-import { useEffect, useState } from "react";
-import useSWR from "swr";
 import { motion } from "framer-motion";
 import { useRouter } from "next/router";
 import { useAuth } from "context/AuthContext";
 import { useAlert } from "context/AlertContext";
+import { useUserStatus } from "hooks/useUserStatus";
 import styles from "styles/components/interact/button.module.css";
 
-const fetcher = async ([url, token]) => {
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-  if (!res.ok) throw new Error("Failed to check status");
-  return res.json();
-};
-
 export default function CommitteeButton({ inline = false, variant = "primary" }) {
-  const [token, setToken] = useState(null);
-  const { user, getAccessToken } = useAuth();
+  const { user } = useAuth();
   const { showAuthAlert } = useAlert();
   const router = useRouter();
+  const { data: status, isLoading } = useUserStatus();
 
-  // Grab a token once per auth change
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      if (!user) { setToken(null); return; }
-      const t = await getAccessToken();
-      if (mounted) setToken(t || null);
-    })();
-    return () => { mounted = false; };
-  }, [user, getAccessToken]);
-
-  // SWR caches this globally, so it won't refetch on every mount/route change
-  const {
-    data: status,
-    error,
-    isValidating,
-  } = useSWR(user && token ? ["/api/user/check", token] : null, fetcher, {
-    revalidateOnFocus: false,
-    shouldRetryOnError: false,
-    dedupingInterval: 60_000, // cache identical requests for 60s
-  });
-
-  const handleButtonClick = async () => {
+  const handleButtonClick = () => {
     if (!user) {
-      showAuthAlert(); // Same API, but now uses global system
+      showAuthAlert();
       return;
     }
 
     if (status?.is_member) {
-      router.push(`/ward/${status.ward_code}`);
+      const isAdmin = [1, 2, 3].includes(status.role_id);
+      router.push(
+        isAdmin
+          ? `/admin/${status.ward_code}/meeting`
+          : `/ward/${status.ward_code}/meeting`
+      );
       return;
     }
 
     if (status?.has_application) {
       if (status.application_status === "pending") {
-        
         console.log("Application is pending approval");
         return;
-      } else if (status.application_status === "Rejected") {
-        // Redirect to join committee page even if previously rejected
-        router.push("/joincommittee");
-        return;
       }
+      // For rejected or any other status, allow re-application
+      router.push("/joincommittee");
       return;
     }
 
-    // Redirect to join committee page for new applications
+    // New application
     router.push("/joincommittee");
   };
+
+  if (isLoading && user) {
+    return (
+      <motion.button
+        className={`${styles.committeeButton} ${variant === "secondary" ? styles.secondary : ""} ${inline ? styles.inline : ""}`}
+        disabled
+      >
+        <span className={styles.buttonContent}>
+          <span className={styles.spinner}></span>
+          Checking...
+        </span>
+      </motion.button>
+    );
+  }
 
   if (status?.is_member) {
     const isAdmin = [1, 2, 3].includes(status.role_id);
@@ -98,23 +85,13 @@ export default function CommitteeButton({ inline = false, variant = "primary" })
   }
 
   return (
-    <>
-      <motion.button
-        onClick={handleButtonClick}
-        className={`${styles.committeeButton} ${variant === "secondary" ? styles.secondary : ""} ${inline ? styles.inline : ""}`}
-        disabled={!!user && isValidating}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        {!!user && isValidating ? (
-          <span className={styles.buttonContent}>
-            <span className={styles.spinner}></span>
-            Checking...
-          </span>
-        ) : (
-          "Join Committee"
-        )}
-      </motion.button>
-    </>
+    <motion.button
+      onClick={handleButtonClick}
+      className={`${styles.committeeButton} ${variant === "secondary" ? styles.secondary : ""} ${inline ? styles.inline : ""}`}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+    >
+      Join Committee
+    </motion.button>
   );
 }

@@ -45,7 +45,7 @@ function WardLayoutContent() {
         </div>
 
         {/* Show bottom bar on mobile AND tablet */}
-        {(isMobile || isTablet) && <WardBottomBar activeTab={activeTab} />}
+        {(isMobile || isTablet) && <WardBottomBar activeWardTab={activeTab} />}
       </div>
     </Layout>
   );
