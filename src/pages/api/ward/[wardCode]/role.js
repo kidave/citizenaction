@@ -17,12 +17,12 @@ export default async function handler(req, res) {
 
   const { data, error } = await supabase
     .from("committee")
-    .select("role_id")
+    .select("scope_role, scope_type")
     .eq("user_id", user.id)
     .eq("ward_code", wardCode)
     .maybeSingle();
 
   if (error) return res.status(500).json({ error: error.message });
 
-  res.json({ role_id: data?.role_id || null });
+  res.json({ scope_role: data?.scope_role || null, scope_type: data?.scope_type || null });
 }

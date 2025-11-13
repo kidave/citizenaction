@@ -32,7 +32,7 @@ export default async function handler(req, res) {
       application_status: null,
       ward_code: null,
       ward_name: null,
-      role_id: null,
+      scope_role: null,
       scope_type: null
     });
 

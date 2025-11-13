@@ -23,10 +23,10 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: "Invalid or expired token" });
     }
 
-    const { stakeholder_id, mobile, country_code, locality, designation } = req.body;
+    const { stakeholder, mobile, country_code, locality, designation } = req.body;
     
     // Validate required fields with better error messages
-    if (!stakeholder_id) {
+    if (!stakeholder) {
       return res.status(400).json({ error: "Category selection is required" });
     }
     if (!mobile) {
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
     // Call the stored procedure
     const { data, error: rpcError } = await supabase.rpc('submit_committee_form', {
       p_user_id: user.id,
-      p_stakeholder_id: stakeholder_id,
+      p_stakeholder: stakeholder,
       p_mobile: mobile,
       p_country_code: country_code,
       p_locality: locality,

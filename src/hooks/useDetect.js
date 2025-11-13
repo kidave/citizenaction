@@ -12,31 +12,36 @@ export const useDetect = () => {
   const [divisions, setDivisions] = useState([]);
   const [wards, setWards] = useState([]);
 
-  const [selectedCity, setSelectedCity] = useState("MH-MMR-MUM"); // ✅ Default city to Mumbai
+  const [selectedCity, setSelectedCity] = useState("MH-MMR-MUM");
   const [selectedDivision, setSelectedDivision] = useState(null);
   const [navigatingWard, setNavigatingWard] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Load cities initially
   useEffect(() => {
     (async () => {
-      const cityList = await LocationService.getCities();
-      setCities(cityList);
+      setIsLoading(true);
+      try {
+        const cityList = await LocationService.getCities();
+        setCities(cityList);
 
-      // ✅ If MH-MMR-MUM exists, pre-load its divisions
-      const defaultCity = cityList.find(c => c.code === "MH-MMR-MUM");
-      if (defaultCity) {
-        setSelectedCity(defaultCity.code);
-        const divList = await LocationService.getDivisionsByCity(defaultCity.code);
-        setDivisions(divList);
+        const defaultCity = cityList.find(c => c.code === "MH-MMR-MUM");
+        if (defaultCity) {
+          setSelectedCity(defaultCity.code);
+          const divList = await LocationService.getDivisionsByCity(defaultCity.code);
+          setDivisions(divList);
 
-        // ✅ Auto-select the first division
-        if (divList.length > 0) {
-          const firstDivision = divList[0];
-          setSelectedDivision(firstDivision.code);
-
-          const wardList = await LocationService.getWardsByDivision(firstDivision.code);
-          setWards(wardList);
+          if (divList.length > 0) {
+            const firstDivision = divList[0];
+            setSelectedDivision(firstDivision.code);
+            const wardList = await LocationService.getWardsByDivision(firstDivision.code);
+            setWards(wardList);
+          }
         }
+      } catch (error) {
+        console.error("Failed to load initial data:", error);
+      } finally {
+        setIsLoading(false);
       }
     })();
   }, []);
@@ -46,37 +51,51 @@ export const useDetect = () => {
     const city = await LocationService.getCityByCode(cityCode);
     if (LOCATION_STATUS[city?.status]?.disabled) return;
 
-    setSelectedCity(cityCode);
-    if (!preserveDivision) {
-      setSelectedDivision(null);
-      setWards([]);
-    }
+    setIsLoading(true);
+    try {
+      setSelectedCity(cityCode);
+      
+      if (!preserveDivision) {
+        setSelectedDivision(null);
+        setWards([]);
+      }
 
-    const divList = await LocationService.getDivisionsByCity(cityCode);
-    setDivisions(divList);
+      const divList = await LocationService.getDivisionsByCity(cityCode);
+      setDivisions(divList);
 
-    // ✅ Automatically load first division + wards (only if not preserving)
-    if (!preserveDivision && divList.length > 0) {
-      const firstDivision = divList[0];
-      setSelectedDivision(firstDivision.code);
-      const wardList = await LocationService.getWardsByDivision(firstDivision.code);
-      setWards(wardList);
+      // Only auto-select first division if not preserving current division
+      if (!preserveDivision && divList.length > 0) {
+        const firstDivision = divList[0];
+        setSelectedDivision(firstDivision.code);
+        const wardList = await LocationService.getWardsByDivision(firstDivision.code);
+        setWards(wardList);
+      }
+    } catch (error) {
+      console.error("Failed to change city:", error);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
-
   // Handle division change
   const handleDivisionChange = useCallback(async (divisionCode) => {
-    setSelectedDivision(divisionCode);
-    const wardList = await LocationService.getWardsByDivision(divisionCode);
-    setWards(wardList);
+    setIsLoading(true);
+    try {
+      setSelectedDivision(divisionCode);
+      const wardList = await LocationService.getWardsByDivision(divisionCode);
+      setWards(wardList);
+    } catch (error) {
+      console.error("Failed to change division:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   // Handle ward navigation
   const handleWardChange = useCallback(
     (wardCode) => {
       setNavigatingWard(wardCode);
-      router.push(`/ward/${wardCode}/${activeTab || "meeting"}`);
+      router.push(`/ward/${wardCode}/${activeTab || "project"}`);
     },
     [activeTab, router]
   );
@@ -88,6 +107,7 @@ export const useDetect = () => {
     selectedCity,
     selectedDivision,
     navigatingWard,
+    isLoading,
     setNavigatingWard,
     statusConfig: LOCATION_STATUS,
     handleCityChange,

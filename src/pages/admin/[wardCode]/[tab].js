@@ -12,7 +12,7 @@ function AdminPageContent({ wardCode, tab }) {
   if (loading) return <Spinner mode="fullscreen" />;
 
   if (!isAdmin) {
-    router.replace(`/ward/${wardCode}/${tab || "meeting"}`);
+    router.replace(`/ward/${wardCode}/${tab || "project"}`);
     return null;
   }
 

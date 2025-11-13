@@ -67,15 +67,15 @@ export default function WardHeader({ showHeader = true }) {
       </div>
       
       <div className={styles.leadership}>
-        {wardInfo?.wardConvenor?.name && (
+        {wardInfo?.wardConvener?.name && (
           <p>
-            <strong>Convenor</strong> {wardInfo.wardConvenor.name}
+            <strong>Convener</strong> {wardInfo.wardConvener.name}
           </p>
         )}
 
-        {wardInfo?.wardCoConvenor?.name && (
+        {wardInfo?.wardCoConvener?.name && (
           <p>
-            <strong>Co-Convenor</strong> {wardInfo.wardCoConvenor.name}
+            <strong>Co-Convener</strong> {wardInfo.wardCoConvener.name}
           </p>
         )}
       </div>

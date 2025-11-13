@@ -36,9 +36,8 @@ export default function CommitteeForm({
   };
 
   const getStakeholderName = () => {
-    if (form.stakeholder_name) return form.stakeholder_name;
-    if (form.stakeholder?.name) return form.stakeholder.name;
-    if (form.stakeholder_id) return `Stakeholder ID: ${form.stakeholder_id}`;
+    if (form.stakeholder) return form.stakeholder;
+    if (form.profile?.stakeholder) return form.profile.stakeholder;
     return 'Not specified';
   };
 

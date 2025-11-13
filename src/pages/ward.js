@@ -32,7 +32,7 @@ export default function WardOverview() {
 
       // Build base queries using the views
       let meetingQuery = supabase
-        .from("meeting_with_images")
+        .from("ward_meeting_with_files")
         .select(`
           *,
           ward:ward_code (name, division:division_code (city:city_code (code, name)))
@@ -41,7 +41,7 @@ export default function WardOverview() {
         .limit(3);
 
       let updateQuery = supabase
-        .from("update_with_images")
+        .from("ward_update_with_files")
         .select(`
           *,
           ward:ward_code (name, division:division_code (city:city_code (code, name)))
@@ -50,7 +50,7 @@ export default function WardOverview() {
         .limit(3);
 
       let projectQuery = supabase
-        .from("project_with_images")
+        .from("ward_project_with_files")
         .select(`
           *,
           ward:ward_code (name, division:division_code (city:city_code (code, name)))
@@ -123,13 +123,13 @@ export default function WardOverview() {
       transition={{ duration: 0.2 }}
     >
       {/* Image Gallery */}
-      {meeting.images && meeting.images.length > 0 && (
-        <div className={styles.cardImages}>
+      {meeting.files && meeting.files.length > 0 && (
+        <div className={styles.cardfiles}>
           <div className={styles.imageGrid}>
-            {meeting.images.slice(0, 1).map((image) => (
+            {meeting.files.slice(0, 1).map((file) => (
               <CardImage 
-                key={image.id} 
-                src={resolveUrl(image.path)} 
+                key={file.id} 
+                src={resolveUrl(file.path)} 
                 alt="Meeting photo" 
               />
             ))}
@@ -168,14 +168,14 @@ export default function WardOverview() {
       transition={{ duration: 0.2 }}
     >
       {/* Image Gallery */}
-      {project.images && project.images.length > 0 && (
-        <div className={styles.cardImages}>
+      {project.files && project.files.length > 0 && (
+        <div className={styles.cardfiles}>
           <div className={styles.imageGrid}>
-            {project.images.slice(0, 1).map((image) => (
+            {project.files.slice(0, 1).map((file) => (
               <CardImage 
-                key={image.id} 
-                src={resolveUrl(image.path)} 
-                alt={`Project ${image.step} - ${image.type}`} 
+                key={file.id} 
+                src={resolveUrl(file.path)} 
+                alt={`Project ${file.step} - ${file.type}`} 
               />
             ))}
           </div>
@@ -211,13 +211,13 @@ export default function WardOverview() {
       transition={{ duration: 0.2 }}
     >
       {/* Image Gallery */}
-      {update.images && update.images.length > 0 && (
+      {update.files && update.files.length > 0 && (
         <div className={styles.cardImages}>
           <div className={styles.imageGrid}>
-            {update.images.slice(0, 1).map((image) => (
+            {update.files.slice(0, 1).map((file) => (
               <CardImage 
-                key={image.id} 
-                src={resolveUrl(image.path)} 
+                key={file.id} 
+                src={resolveUrl(file.path)} 
                 alt="Update photo" 
               />
             ))}

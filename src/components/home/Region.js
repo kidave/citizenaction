@@ -59,7 +59,7 @@ function Region() {
   }, [divisions, currentDivisionIdx, handleDivisionChange, closeTooltip]);
 
   // Detect user's ward using Supabase RPC
-  const detectMyWard = useCallback(() => {
+  const detectMyWard = useCallback(async () => {
     if (!navigator.geolocation) {
       alert("Geolocation is not supported in your browser.");
       return;
@@ -68,63 +68,70 @@ function Region() {
     setDetecting(true);
     setDetectedWard(null);
 
-    navigator.geolocation.getCurrentPosition(
-      async ({ coords }) => {
-        try {
-          const { data, error } = await supabase.rpc("get_ward_by_point", {
-            lng: coords.longitude,
-            lat: coords.latitude,
-          });
+    try {
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 15000,
+        });
+      });
 
-          setDetecting(false);
+      const { coords } = position;
+      const { data, error } = await supabase.rpc("get_ward_by_point", {
+        lng: coords.longitude,
+        lat: coords.latitude,
+      });
 
-          if (error || !data || data.length === 0) {
-            console.error("Ward detection failed:", error || "No data");
-            alert("Could not detect your ward.");
-            return;
-          }
+      if (error || !data || data.length === 0) {
+        console.error("Ward detection failed:", error || "No data");
+        alert("Could not detect your ward.");
+        return;
+      }
 
-          const row = Array.isArray(data) ? data[0] : data;
-          const wardId = row?.ward_code;
-          const divisionId = row?.division_code;
-          const cityId = row?.city_code;
-          const wardName = row?.ward_name;
+      const row = Array.isArray(data) ? data[0] : data;
+      const wardId = row?.ward_code;
+      const divisionId = row?.division_code;
+      const cityId = row?.city_code;
+      const wardName = row?.ward_name;
 
-          if (!wardId || !divisionId || !cityId) {
-            alert("Ward / Division / City not found in response");
-            return;
-          }
+      if (!wardId || !divisionId || !cityId) {
+        alert("Ward / Division / City not found in response");
+        return;
+      }
 
-          // update selections
-          setDetectedWard({ code: wardId, name: wardName });
-          handleCityChange(cityId);
-          handleDivisionChange(divisionId);
-          setCurrentDivisionIdx(
-            divisions.findIndex((d) => d.code === divisionId) || 0
-          );
+      // Batch all state updates together
+      setDetectedWard({ code: wardId, name: wardName });
+      
+      // Use preserveDivision to avoid the auto-first-division behavior
+      await handleCityChange(cityId, true); // preserveDivision = true
+      
+      // Find the correct division index and set it directly
+      const divisionIndex = divisions.findIndex((d) => d.code === divisionId);
+      if (divisionIndex !== -1) {
+        setCurrentDivisionIdx(divisionIndex);
+        await handleDivisionChange(divisionId);
+      }
 
-          // highlight detected ward
-          setTimeout(() => {
-            const button = wardButtonsRef.current[wardId];
-            if (button) {
-              button.scrollIntoView({ behavior: "smooth", block: "nearest" });
-              button.classList.add("highlighted-ward");
-              setTimeout(() => button.classList.remove("highlighted-ward"), 3000);
-            }
-          }, 400);
-
-        } catch (e) {
-          console.error("Detection error:", e);
-          setDetecting(false);
-          alert("Could not detect your ward.");
+      // Highlight detected ward after a brief delay
+      setTimeout(() => {
+        const button = wardButtonsRef.current[wardId];
+        if (button) {
+          button.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          button.classList.add("highlighted-ward");
+          setTimeout(() => button.classList.remove("highlighted-ward"), 3000);
         }
-      },
-      () => {
-        setDetecting(false);
+      }, 500);
+
+    } catch (error) {
+      console.error("Detection error:", error);
+      if (error.code === error.PERMISSION_DENIED) {
         alert("Location permission denied.");
-      },
-      { enableHighAccuracy: true, timeout: 15000 }
-    );
+      } else {
+        alert("Could not detect your ward.");
+      }
+    } finally {
+      setDetecting(false);
+    }
   }, [handleCityChange, handleDivisionChange, divisions]);
 
   // keep carousel division synced

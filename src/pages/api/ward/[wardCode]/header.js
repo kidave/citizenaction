@@ -17,27 +17,26 @@ export default async function handler(req, res) {
     if (!wardData) {
       return res.status(404).json({
         wardName: "",
-        convenor: null,
-        coConvenor: null,
+        convener: null,
+        coConvener: null,
       });
     }
 
-    // Get convenor and co-convenor from committee_member_view
+    // Get convener and co convener from committee_member_view
     const { data: committeeData, error: committeeError } = await supabase
       .from("committee_member_view")
-      .select("user_id, role_id, name, email, avatar_url, designation, social")
+      .select("user_id, scope_role, scope_type, name, email, avatar_url, designation, social")
       .eq("ward_code", wardCode)
-      .in("role_id", [1, 2]);
 
     if (committeeError) throw committeeError;
 
-    const convenor = committeeData.find((m) => m.role_id === 1) || null;
-    const coConvenor = committeeData.find((m) => m.role_id === 2) || null;
+    const convener = committeeData.find((m) => m.scope_role === "Convener") || null;
+    const coConvener = committeeData.find((m) => m.scope_role === "CoConvener") || null;
 
     res.status(200).json({
       wardName: wardData.name,
-      convenor,
-      coConvenor,
+      convener,
+      coConvener,
     });
   } catch (error) {
     console.error("Ward header API error:", error);

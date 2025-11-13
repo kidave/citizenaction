@@ -200,7 +200,6 @@ function ProjectForm({ wardCode, project = {}, onSave, onCancel }) {
     title: "",
     status: "Pending",
     start_date: "",
-    end_date: "",
     location: "",
     description: "",
     is_published: false,
@@ -217,7 +216,6 @@ function ProjectForm({ wardCode, project = {}, onSave, onCancel }) {
       title: "", 
       status: "pending", 
       start_date: "", 
-      end_date: "", 
       location: "",
       description: "",
       is_published: false,
@@ -281,32 +279,20 @@ function ProjectForm({ wardCode, project = {}, onSave, onCancel }) {
 
             <div className={styles.formRowCompact}>
               <div className={styles.formGroup}>
-                <label>Start Date *</label>
-                <input
-                  type="date"
-                  value={form.start_date}
-                  onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                  required
-                />
-              </div>  
-              <div className={styles.formGroup}>
-                <label>End Date *</label>
-                <input
-                  type="date"
-                  value={form.end_date}
-                  onChange={(e) => setForm({ ...form, end_date: e.target.value })}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className={styles.formRowCompact}>  
-              <div className={styles.formGroup}>
                 <label>Location *</label>
                 <input
                   value={form.location}
                   onChange={(e) => setForm({ ...form, location: e.target.value })}
                   placeholder="Project location"
+                  required
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Start Date *</label>
+                <input
+                  type="date"
+                  value={form.start_date}
+                  onChange={(e) => setForm({ ...form, start_date: e.target.value })}
                   required
                 />
               </div>
@@ -356,7 +342,7 @@ function ProjectForm({ wardCode, project = {}, onSave, onCancel }) {
                             type="url"
                             value={form[field] || ""}
                             onChange={(e) => setForm({ ...form, [field]: e.target.value })}
-                            placeholder={`Enter ${field.replace('_url', ' URL')}`}
+                            placeholder={`Paste URL`}
                           />
                         ) : (
                           <textarea

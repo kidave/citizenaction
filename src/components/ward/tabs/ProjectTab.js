@@ -69,10 +69,8 @@ function StepContent({ stepKey, project }) {
   const [beforeIndex, setBeforeIndex] = useState(0);
   const [afterIndex, setAfterIndex] = useState(0);
   
-  // FIX: Use 'files' instead of 'images' - this matches what useWardData returns
   const stepFiles = project.files?.filter((file) => file.step === stepKey) || [];
 
-  // DEBUG: Check what files are available for this step - MOVED AFTER stepFiles definition
   console.log(`🔍 Step ${stepKey} files for project ${project.title}:`, stepFiles.map(f => ({
     id: f.id,
     step: f.step,
@@ -444,12 +442,6 @@ function SingleProject({ project, junctions, roads, index }) {
               <span>
                 <strong>Start Date - </strong>
                 {formatDate(project.start_date)}
-              </span>
-            )}
-            {project.end_date && (
-              <span>
-                <strong>End Date - </strong>
-                {formatDate(project.end_date)}
               </span>
             )}
           </div>

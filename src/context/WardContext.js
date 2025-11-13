@@ -52,8 +52,8 @@ export function WardProvider({ children, wardCode }) {
       wardCode,
       wardInfo: wardInfo || {
         wardName: "",
-        wardConvenor: null,
-        wardCoConvenor: null,
+        wardConvener: null,
+        wardCoConvener: null,
       },
       // Include location data in context
       locationData: {

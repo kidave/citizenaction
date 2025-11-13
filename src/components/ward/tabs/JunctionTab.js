@@ -16,7 +16,7 @@ const JunctionMap = dynamic(() => import("./JunctionMap"), {
 });
 
 export default function JunctionTab() {
-  const { wardCode } = useWard();
+  const { wardCode, wardInfo } = useWard();
   const { data: junctions, loading, error } = useProjectJunctions(wardCode);
   const [selectedJunction, setSelectedJunction] = useState(null);
 
@@ -26,7 +26,7 @@ export default function JunctionTab() {
   }, [wardCode]);
 
   const getWardName = () => {
-    return wardCode ? `Ward ${wardCode}` : "Selected Ward";
+    return wardInfo?.wardName || (wardCode ? `Ward ${wardCode}` : "Selected Ward");
   };
 
   const getStatusDisplay = (status) => {
@@ -91,7 +91,7 @@ function Header({ junctionCount, wardName }) {
       <div className={styles.junctionHeaderTopRow}>
         <FaMapMarkerAlt className={styles.junctionHeaderIcon} />
         <h3 className={styles.junctionTitle}>
-          Identified {junctionCount} Junctions in {wardName}
+          Identified {junctionCount} Junctions in {wardName} Ward
         </h3>
       </div>
       <p className={styles.junctionSubtitle}>

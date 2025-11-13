@@ -66,7 +66,7 @@ export default function Form() {
 
   const onSubmit = async (data) => {
     const result = await submitForm({
-      stakeholder_id: parseInt(data.stakeholder),
+      stakeholder: data.stakeholder,
       mobile: data.mobile,
       country_code: data.country_code,
       designation: data.designation,
@@ -192,9 +192,9 @@ export default function Form() {
                   disabled={loading}
                 >
                   <option value="">Select your category</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
+                  {categories.map(option => (
+                    <option key={option.id} value={option.name}>
+                      {option.name}
                     </option>
                   ))}
                 </select>

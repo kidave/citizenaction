@@ -18,18 +18,20 @@ export default function CommitteeButton({ inline = false, variant = "primary" })
       return;
     }
 
-    if (status?.is_member) {
-      const isAdmin = [1, 2, 3].includes(status.role_id);
-      router.push(
-        isAdmin
-          ? `/admin/${status.ward_code}/meeting`
-          : `/ward/${status.ward_code}/meeting`
-      );
+    if (status?.is_member && status.ward_code) {
+      const isLeader = status.scope_role && ['Convener', 'Co Convener', 'Member'].includes(status.scope_role);
+      
+      // Use the correct route structure based on your project
+      if (isLeader) {
+        router.push(`/admin/${status.ward_code}/project`);
+      } else {
+        router.push(`/ward/${status.ward_code}/project`);
+      }
       return;
     }
 
     if (status?.has_application) {
-      if (status.application_status === "pending") {
+      if (status.application_status === "Pending") {
         console.log("Application is pending approval");
         return;
       }
@@ -56,27 +58,45 @@ export default function CommitteeButton({ inline = false, variant = "primary" })
     );
   }
 
-  if (status?.is_member) {
-    const isAdmin = [1, 2, 3].includes(status.role_id);
+  if (status?.is_member && status.ward_code) {
+    const isLeader = status.scope_role && ['Convener', 'Co Convener', 'Member'].includes(status.scope_role);
+    const buttonText = status.ward_name || `Ward ${status.ward_code}`;
+    
+    // Add role display for better UX
+    const getRoleDisplay = () => {
+      if (!status.scope_role) return '';
+      return status.scope_role;
+    };
+
+    const roleDisplay = getRoleDisplay();
+    
     return (
       <motion.button
-        onClick={() =>
-          router.push(
-            isAdmin
-              ? `/admin/${status.ward_code}/meeting`
-              : `/ward/${status.ward_code}/meeting`
-          )
-        }
+        onClick={() => {
+          if (isLeader) {
+            router.push(`/admin/${status.ward_code}/project`);
+          } else {
+            router.push(`/ward/${status.ward_code}/project`);
+          }
+        }}
         className={`${styles.committeeButton} ${variant === "secondary" ? styles.secondary : ""} ${inline ? styles.inline : ""}`}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
+        title={roleDisplay ? `Role: ${roleDisplay}` : ''}
       >
-        {status.ward_name}
+        <span className={styles.buttonContent}>
+          {buttonText}
+          {roleDisplay && (
+            <span className={styles.roleBadge}>
+              {roleDisplay}
+            </span>
+          )}
+        </span>
       </motion.button>
     );
   }
 
-  if (status?.has_application && status.application_status === "pending") {
+  if (status?.has_application && status.application_status === "Pending") {
     return (
       <div className={`${styles.pendingStatus} ${inline ? styles.inline : ""}`}>
         Application Pending

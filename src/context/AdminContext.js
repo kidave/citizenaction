@@ -7,14 +7,16 @@ const AdminContext = createContext();
 
 export function AdminProvider({ children, wardCode }) {
   const { getAccessToken, user } = useAuth();
-  const [roleId, setRoleId] = useState(null);
+  const [userRole, setUserRole] = useState(null);
+  const [scopeType, setScopeType] = useState(null);
   const [loading, setLoading] = useState(true);
   const [hasFetched, setHasFetched] = useState(false);
 
   useEffect(() => {
     if (!user || !wardCode || hasFetched) {
       if (!user || !wardCode) {
-        setRoleId(null);
+        setUserRole(null);
+        setScopeType(null);
         setLoading(false);
       }
       return;
@@ -28,29 +30,42 @@ export function AdminProvider({ children, wardCode }) {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
-        setRoleId(data?.role_id || null);
-        setHasFetched(true); // Mark as fetched to prevent re-fetching
+        
+        // Updated to use scope_role and scope_type
+        setUserRole(data?.scope_role || null);
+        setScopeType(data?.scope_type || null);
+        setHasFetched(true);
       } catch (e) {
         console.error("Error fetching admin role:", e);
-        setRoleId(null);
+        setUserRole(null);
+        setScopeType(null);
       } finally {
         setLoading(false);
       }
     };
 
     fetchRole();
-  }, [user, wardCode, getAccessToken, hasFetched]); // Added hasFetched dependency
+  }, [user, wardCode, getAccessToken, hasFetched]);
 
-  const isAdmin = roleId && [1, 2, 3].includes(roleId);
+  // Updated admin check using scope_role
+  const isAdmin = userRole && ['Convener', 'Co Convener', 'Member'].includes(userRole);
+  const isLeader = userRole && ['Convener', 'Co Convener', 'Member'].includes(userRole);
+  const isConvener = userRole === 'Convener';
 
   return (
-    <AdminContext.Provider value={{ roleId, isAdmin, loading }}>
+    <AdminContext.Provider value={{ 
+      userRole, 
+      scopeType, 
+      isAdmin, 
+      isLeader, 
+      isConvener,
+      loading 
+    }}>
       {children}
     </AdminContext.Provider>
   );
 }
 
-// useAdmin hook remains the same
 export function useAdmin({ require = false, wardCode, fallbackTab = "meeting" } = {}) {
   const ctx = useContext(AdminContext);
   const router = useRouter();

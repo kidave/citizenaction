@@ -23,7 +23,8 @@ export default async function handler(req, res) {
       .from("committee")
       .select(`
         ward_code,
-        role_id,
+        scope_role,
+        scope_type
         ward:ward_code ( name )
       `)
       .eq("user_id", user.id)
@@ -52,7 +53,8 @@ export default async function handler(req, res) {
       application_status: applicationData?.application_status || null,
       ward_code: committeeData?.ward_code || null,
       ward_name: committeeData?.ward?.name || null,
-      role_id: committeeData?.role_id || null,
+      scope_role: committeeData?.scope_role || null,
+      scope_type: committeeData?.scope_type || null,
     });
   } catch (err) {
     console.error("Error checking status:", err);

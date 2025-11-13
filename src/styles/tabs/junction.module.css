@@ -1,6 +1,6 @@
 .junctionContainer {
   background: transparent;
-  margin: 1rem;
+  margin-inline: 1rem;
   display: flex;
   flex-direction: column;
 }
@@ -30,6 +30,7 @@
   background: lavenderblush;
   border-radius: 16px;
   padding: 1rem 1.2rem;
+  border: 2px solid lightcoral;
 }
 
 .junctionHeaderTopRow {

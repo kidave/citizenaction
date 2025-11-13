@@ -92,8 +92,8 @@ export function useWardData(wardCode, dataType, options = {}) {
         const w = result.data;
         return {
           wardName: w.ward_name,
-          wardConvenor: w.convenor_name ? { name: w.convenor_name } : null,
-          wardCoConvenor: w.co_convenor_name ? { name: w.co_convenor_name } : null,
+          wardConvener: w.convener_name ? { name: w.convener_name } : null,
+          wardCoConvener: w.co_convener_name ? { name: w.co_convener_name } : null,
         };
 
       // --- RPC CALLS ---

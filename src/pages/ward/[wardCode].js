@@ -10,7 +10,7 @@ export default function WardIndexPage() {
 
   useEffect(() => {
     if (wardCode) {
-      router.replace(`/ward/${wardCode}/meeting`);
+      router.replace(`/ward/${wardCode}/project`);
     }
   }, [wardCode, router]);
 

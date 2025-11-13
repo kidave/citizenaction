@@ -32,10 +32,8 @@ export function useCommitteeForms() {
             name,
             email,
             avatar_url,
-            phone
-          ),
-          stakeholder:stakeholder_id (
-            name
+            phone,
+            stakeholder
           )
         `)
         .order('created_at', { ascending: false });

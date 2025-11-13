@@ -85,7 +85,7 @@ export default function Header() {
       
         <div
           className={styles.logoContainer}
-          onClick={() => router.push("https://www.walkingproject.org")}
+          onClick={() => router.push("/")}
           aria-label="Home"
           role="button"
           tabIndex={0}

@@ -28,10 +28,10 @@ export const LocationService = {
   // Get divisions by city
   getDivisionsByCity: async (cityCode) => {
     const { data, error } = await supabase
-      .from("division")
+      .from("division_with_ward_order")
       .select("*")
       .eq("city_code", cityCode)
-      .order("name");
+      .order("first_ward_name");
     
     if (error) throw error;
     return data || [];
