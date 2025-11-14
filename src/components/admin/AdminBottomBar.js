@@ -14,7 +14,7 @@ export default function AdminBottomBar({ activeTab }) {
   
   const handleTabChange = (tab) => {
     if (wardCode) {
-      router.push(`/admin/${wardCode}/${tab}`);
+      router.push(`/admin/ward/${wardCode}/${tab}`);
     }
   };
   

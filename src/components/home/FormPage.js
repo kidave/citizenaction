@@ -71,7 +71,11 @@ export default function Form() {
       country_code: data.country_code,
       designation: data.designation,
       locality: data.locality,
+      contribution: data.contribution,
+      skills: data.skills,
+      expectations: data.expectations
     });
+
 
     // Auth requirement is handled by the hook and AuthAlert component
     if (result.success) {
@@ -175,143 +179,115 @@ export default function Form() {
               </div>
             )}
 
+            {/* SECTION 1 — Personal Information */}
+            <h3 className={styles.sectionTitle}>Your Details</h3>
+
             <div className={styles.formGrid}>
               <div className={styles.formSection}>
-                <label htmlFor="stakeholder" className={styles.label}>
-                  Category *
-                </label>
+                <label className={styles.label}>Category *</label>
                 <select
-                  id="stakeholder"
-                  {...register("stakeholder", {
-                    required: "Please select a category"
-                  })}
-                  className={`${styles.select} ${
-                    errors.stakeholder ? styles.errorField : ""
-                  }`}
-                  aria-invalid={errors.stakeholder ? "true" : "false"}
+                  {...register("stakeholder", { required: "Please select a category" })}
+                  className={`${styles.select} ${errors.stakeholder ? styles.errorField : ""}`}
                   disabled={loading}
                 >
                   <option value="">Select your category</option>
                   {categories.map(option => (
-                    <option key={option.id} value={option.name}>
-                      {option.name}
-                    </option>
+                    <option key={option.id} value={option.name}>{option.name}</option>
                   ))}
                 </select>
-                {errors.stakeholder && (
-                  <span className={styles.errorText} role="alert">
-                    {errors.stakeholder.message}
-                  </span>
-                )}
+                {errors.stakeholder && <span className={styles.errorText}>{errors.stakeholder.message}</span>}
               </div>
 
               <div className={styles.formSection}>
-                <label htmlFor="mobile" className={styles.label}>
-                  Mobile Number *
-                </label>
-                <FormPhoneInput
-                  id="mobile"
-                  value={watch("mobile")}
-                  countryCode={watch("country_code")}
-                  onChange={handleMobileChange}
-                  error={errors.mobile}
-                  className={errors.mobile ? styles.errorField : ""}
-                  disabled={loading}
-                />
-                {errors.mobile && (
-                  <span className={styles.errorText} role="alert">
-                    {errors.mobile.message}
-                  </span>
-                )}
-              </div>
-
-              <div className={styles.formSection}>
-                <label htmlFor="designation" className={styles.label}>
-                  Designation *
-                </label>
+                <label className={styles.label}>Designation *</label>
                 <input
-                  id="designation"
                   type="text"
                   {...register("designation", {
                     required: "Designation is required",
-                    minLength: {
-                      value: 2,
-                      message: "Designation must be at least 2 characters"
-                    },
-                    maxLength: {
-                      value: 100,
-                      message: "Designation must be less than 100 characters"
-                    }
+                    minLength: { value: 2, message: "Too short" }
                   })}
-                  className={`${styles.input} ${
-                    errors.designation ? styles.errorField : ""
-                  }`}
-                  placeholder="Enter your designation"
-                  aria-invalid={errors.designation ? "true" : "false"}
+                  className={`${styles.input} ${errors.designation ? styles.errorField : ""}`}
+                  placeholder="Your role or title"
                   disabled={loading}
                 />
-                {errors.designation && (
-                  <span className={styles.errorText} role="alert">
-                    {errors.designation.message}
-                  </span>
-                )}
+                {errors.designation && <span className={styles.errorText}>{errors.designation.message}</span>}
               </div>
 
               <div className={styles.formSection}>
-                <label htmlFor="locality" className={styles.label}>
-                  Locality *
-                </label>
+                <label className={styles.label}>Locality *</label>
                 <input
-                  id="locality"
                   type="text"
                   {...register("locality", {
                     required: "Locality is required",
-                    minLength: {
-                      value: 2,
-                      message: "Locality must be at least 2 characters"
-                    },
-                    maxLength: {
-                      value: 100,
-                      message: "Locality must be less than 100 characters"
-                    }
+                    minLength: { value: 2, message: "Too short" }
                   })}
-                  className={`${styles.input} ${
-                    errors.locality ? styles.errorField : ""
-                  }`}
-                  placeholder="Enter your locality"
-                  aria-invalid={errors.locality ? "true" : "false"}
+                  className={`${styles.input} ${errors.locality ? styles.errorField : ""}`}
+                  placeholder="Neighborhood / Area"
                   disabled={loading}
                 />
-                {errors.locality && (
-                  <span className={styles.errorText} role="alert">
-                    {errors.locality.message}
-                  </span>
-                )}
+                {errors.locality && <span className={styles.errorText}>{errors.locality.message}</span>}
               </div>
             </div>
 
-            <div className={styles.buttonGroup}>
-              <button
-                type="button"
-                onClick={() => router.back()}
-                className={styles.cancelButton}
+
+            {/* SECTION 2 — Contact */}
+            <h3 className={styles.sectionTitle}>Contact</h3>
+
+            <div className={styles.formSection}>
+              <label className={styles.label}>Mobile Number *</label>
+              <FormPhoneInput
+                value={watch("mobile")}
+                countryCode={watch("country_code")}
+                onChange={handleMobileChange}
+                error={errors.mobile}
                 disabled={loading}
-              >
+              />
+              {errors.mobile && <span className={styles.errorText}>{errors.mobile.message}</span>}
+            </div>
+
+
+            {/* SECTION 3 — Application Details */}
+            <h3 className={styles.sectionTitle}>Your Application</h3>
+
+            <div className={styles.formSection}>
+              <label className={styles.label}>How would you like to contribute? *</label>
+              <textarea
+                {...register("contribution", {
+                  required: "This is required",
+                  minLength: { value: 10, message: "Please provide more details" }
+                })}
+                className={`${styles.textarea} ${errors.contribution ? styles.errorField : ""}`}
+                placeholder="Tell us what role you want to play..."
+              />
+              {errors.contribution && <span className={styles.errorText}>{errors.contribution.message}</span>}
+            </div>
+
+            <div className={styles.formSection}>
+              <label className={styles.label}>Skills or resources you can offer</label>
+              <textarea
+                {...register("skills")}
+                className={styles.textarea}
+                placeholder="Eg: engineering, law, volunteer network, local contacts..."
+              />
+            </div>
+
+            <div className={styles.formSection}>
+              <label className={styles.label}>Your expectations from the committee</label>
+              <textarea
+                {...register("expectations")}
+                className={styles.textarea}
+                placeholder="Eg: want updates, want to attend walks, want leadership role..."
+              />
+            </div>
+
+
+            {/* Buttons */}
+            <div className={styles.buttonGroup}>
+              <button type="button" onClick={() => router.back()} className={styles.cancelButton}>
                 Cancel
               </button>
-              <button
-                type="submit"
-                disabled={loading || !isDirty || !isValid}
-                className={styles.submitButton}
-              >
-                {loading ? (
-                  <>
-                    <span className={styles.buttonSpinner}></span>
-                    Submitting...
-                  </>
-                ) : (
-                  "Submit"
-                )}
+              <button type="submit" disabled={!isDirty || !isValid || loading} className={styles.submitButton}>
+                {loading ? <><span className={styles.buttonSpinner}></span>Submitting...</> : "Submit"}
               </button>
             </div>
           </form>

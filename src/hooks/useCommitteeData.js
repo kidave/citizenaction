@@ -189,16 +189,6 @@ export function useScopes(scopeType = 'ward') {
 
 // Enhanced scopes hook that handles different scope types properly
 export function useCommitteeScopes(scopeType = 'Ward') {
-  // Map scope types to table names
-  const scopeTableMap = {
-    'Ward': 'ward',
-    'City': 'city', 
-    'Region': 'region',
-    'State': 'state'
-  };
-
-  const tableName = scopeTableMap[scopeType] || 'ward';
-  
   const { data, isLoading, error } = useQuery({
     queryKey: ['committee-scopes', scopeType],
     queryFn: async () => {
@@ -220,23 +210,6 @@ export function useCommitteeScopes(scopeType = 'Ward') {
     loading: isLoading, 
     error: error?.message 
   };
-}
-
-export function useRoles() {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['roles'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('role')
-        .select('*')
-        .order('name');
-
-      if (error) throw error;
-      return data;
-    }
-  });
-
-  return { data, loading: isLoading, error: error?.message };
 }
 
 // Keep wards for backward compatibility during migration

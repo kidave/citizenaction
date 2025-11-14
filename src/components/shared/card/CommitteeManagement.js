@@ -4,11 +4,11 @@ import { createPortal } from "react-dom";
 import styles from "styles/components/design/card.module.css";
 import { useScopes } from "hooks/useCommitteeData";
 
-export default function CommitteeManagement({ form, roles, onAssign, onClose }) {
+export default function CommitteeManagement({ form, onAssign, onClose }) {
   const [assignmentData, setAssignmentData] = useState({
     formId: form.id,
-    scope_type: 'ward',
-    scope_role: 'member',
+    scope_type: 'Ward',
+    scope_role: 'Member',
     scope_code: ''
   });
   const [submitting, setSubmitting] = useState(false);
@@ -143,8 +143,8 @@ export default function CommitteeManagement({ form, roles, onAssign, onClose }) 
                 required
               >
                 <option value="Member">Member</option>
-                <option value="Co Convenor">Co-Convenor</option>
-                <option value="Convenor">Convenor</option>
+                <option value="Co Convener">Co Convener</option>
+                <option value="Convener">Convener</option>
               </select>
             </div>
           </form>

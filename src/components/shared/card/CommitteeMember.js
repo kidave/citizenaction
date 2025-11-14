@@ -10,8 +10,7 @@ export default function CommitteeMember({
   member, 
   onUpdate, 
   onRemove, 
-  processing, 
-  roles = []
+  processing,
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
@@ -63,7 +62,7 @@ export default function CommitteeMember({
           </div>
           <div>
             <h3 className={styles.userName}>{member.name || 'Unknown User'}</h3>
-            <h5 className={styles.label}>{member.stakeholder_name || 'N/A'}</h5>
+            <h5 className={styles.label}>{member.stakeholder || 'N/A'}</h5>
           </div>
         </div>
       </div>
@@ -128,7 +127,7 @@ export default function CommitteeMember({
                 <option value="">Select {editData.scope_type}</option>
                 {scopes?.map(scope => (
                   <option key={scope.scope_code} value={scope.scope_code}>
-                    {scope.name} ({scope.scope_code})
+                    {scope.name}
                   </option>
                 ))}
               </select>

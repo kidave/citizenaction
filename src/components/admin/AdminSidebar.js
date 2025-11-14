@@ -10,7 +10,7 @@ export default function AdminSidebar({ wardCode, activeTab }) {
   const router = useRouter();
 
   const navigateToTab = (tabName) => {
-    router.push(`/admin/${wardCode}/${tabName}`);
+    router.push(`/admin/ward/${wardCode}/${tabName}`);
   };
 
   const renderTabButton = (tabKey, icon, label) => (

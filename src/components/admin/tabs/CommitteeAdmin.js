@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useAdmin } from "context/AdminContext";
 import { useAlert } from "hooks/useAlert";
-import { useCommitteeForms, useCommitteeMembers, useRoles, useScopes } from "hooks/useCommitteeData";
+import { useCommitteeForms, useCommitteeMembers, useScopes } from "hooks/useCommitteeData";
 import CommitteeForm from "components/shared/card/CommitteeForm";
 import CommitteeMember from "components/shared/card/CommitteeMember";
 import CommitteeManagement from "components/shared/card/CommitteeManagement";
@@ -33,7 +33,6 @@ export default function CommitteeAdmin() {
     removeMember 
   } = useCommitteeMembers();
 
-  const { data: roles } = useRoles();
   const { data: scopes } = useScopes('ward'); // Default to ward scopes
 
   const [processingId, setProcessingId] = useState(null);
@@ -221,7 +220,6 @@ export default function CommitteeAdmin() {
                   onUpdate={(updateData) => handleUpdateMember(member.user_id, updateData)}
                   onRemove={() => handleRemoveMember(member.user_id)}
                   processing={processingId === member.user_id}
-                  roles={roles}
                   scopes={scopes}
                 />
               ))}
@@ -234,7 +232,6 @@ export default function CommitteeAdmin() {
       {showAssignModal && selectedForm && (
         <CommitteeManagement
           form={selectedForm}
-          roles={roles}
           scopes={scopes}
           onAssign={handleAssignment}
           onClose={() => {

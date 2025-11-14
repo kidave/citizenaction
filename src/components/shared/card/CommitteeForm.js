@@ -15,8 +15,8 @@ export default function CommitteeForm({
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'approved': return styles.statusApproved;
-      case 'rejected': return styles.statusRejected;
+      case 'Approve': return styles.statusApproved;
+      case 'Reject': return styles.statusRejected;
       default: return styles.statusPending;
     }
   };
@@ -125,7 +125,7 @@ export default function CommitteeForm({
 
       <div className={styles.cardFooter}>
         <ButtonGroup>
-          {showActions && form.application_status === 'pending' && (
+          {showActions && form.application_status === 'Pending' && (
             <SaveButton
               onClick={onAssign}
               disabled={processing}

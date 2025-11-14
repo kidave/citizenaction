@@ -74,7 +74,7 @@ export default function CommitteeButton({ inline = false, variant = "primary" })
       <motion.button
         onClick={() => {
           if (isLeader) {
-            router.push(`/admin/${status.ward_code}/project`);
+            router.push(`/admin/ward/${status.ward_code}/project`);
           } else {
             router.push(`/ward/${status.ward_code}/project`);
           }
