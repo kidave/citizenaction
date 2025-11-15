@@ -1,4 +1,4 @@
-// pages/api/ward/[wardCode]/update/index.js
+// pages/api/ward/[wardCode]/ward_update/index.js
 import { createServerSupabase } from "utils/supabaseServer";
 
 export default async function handler(req, res) {

@@ -16,6 +16,7 @@ import CommitteeTab from "./tabs/CommitteeTab";
 import RoadTab from "./tabs/RoadTab";
 import JunctionTab from "./tabs/JunctionTab";
 import ProjectTab from "./tabs/ProjectTab";
+import AnnouncementTab from "./tabs/AnnouncementTab";
 
 function WardLayoutContent() {
   const router = useRouter();
@@ -31,6 +32,7 @@ function WardLayoutContent() {
     road: <RoadTab />,
     junction: <JunctionTab />,
     project: <ProjectTab />,
+    announcement: <AnnouncementTab />,
   };
 
   return (

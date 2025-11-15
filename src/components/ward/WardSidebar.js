@@ -4,6 +4,7 @@ import { FaRoad } from "react-icons/fa";
 import { BsCardList, BsSignIntersectionSide, BsPeople } from "react-icons/bs";
 import { TbTimelineEvent } from "react-icons/tb";
 import { MdOutlineAssignment } from "react-icons/md";
+import { FaBullhorn } from "react-icons/fa";
 import { useWardTabs, WARD_TABS } from "hooks/useWardTabs";
 
 export default function WardSidebar({ disabledWardTabs = [] }) {
@@ -27,6 +28,11 @@ export default function WardSidebar({ disabledWardTabs = [] }) {
     <div className={styles.topSidebar}>
       {/* Tabs */}
       <div className={styles.tabContainer}>
+        {renderWardTabButton(
+          WARD_TABS.ANNOUNCEMENT,
+          <FaBullhorn className={styles.tabIcon} />,
+          "Announcements",
+        )}
         {renderWardTabButton(
           WARD_TABS.PROJECT,
           <MdOutlineAssignment className={styles.tabIcon} />,

@@ -63,9 +63,8 @@
 
 @media (max-width: 1024px) {
   .wardHeader {
-    flex-direction: column;
-    padding: 1.5rem;
-    gap: 0;
+    padding: 1rem;
+    gap: 1rem;
   }
 
   .leadership {
@@ -88,6 +87,8 @@
 
 @media (max-width: 768px) {
   .wardHeader {
-    padding: 1rem;
+    flex-direction: column;
+    padding: 0.5rem;
+    gap: 0;
   }
 }

@@ -10,7 +10,8 @@ export default function useStorage(entityType, entityId, wardCode) {
   const tableMap = {
     meeting: 'ward_meeting_file',
     update: 'ward_update_file',
-    project: 'ward_project_file'
+    project: 'ward_project_file',
+    announcement: 'ward_announcement_file'
   };
 
   const table = tableMap[entityType];
@@ -62,6 +63,9 @@ export default function useStorage(entityType, entityId, wardCode) {
       } else if (entityType === 'update') {
         // Update files structure  
         destPath = `${wardCode}/update/${entityId}/${type}/${safeFileName}`;
+      } else if (entityType === 'announcement') {
+        // Announcement files structure
+        destPath = `${wardCode}/announcement/${entityId}/${type}/${safeFileName}`;
       }
 
       const { error: uploadError } = await supabase.storage
@@ -130,3 +134,6 @@ export const useUpdateFiles = (updateId, wardCode) =>
 
 export const useProjectFiles = (wardCode, projectId) => 
   useStorage('project', projectId, wardCode);
+
+export const useAnnouncementFiles = (announcementId, wardCode) => 
+  useStorage('announcement', announcementId, wardCode);

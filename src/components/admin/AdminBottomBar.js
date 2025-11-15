@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { BsCardList, BsPeople } from "react-icons/bs";
 import { TbTimelineEvent } from "react-icons/tb";
 import { MdOutlineAssignment } from "react-icons/md";
+import { FaBullhorn } from "react-icons/fa";
 import { useMediaQuery } from "react-responsive";
 
 export default function AdminBottomBar({ activeTab }) {
@@ -24,6 +25,14 @@ export default function AdminBottomBar({ activeTab }) {
   return (
     <>
       <div className={styles.bottomBar}>
+        <button
+          className={`${styles.bottomBarButton} ${activeTab === "announcement" ? styles.active : ""}`}
+          onClick={() => handleTabChange("announcement")}
+          aria-label="Announcement"
+        >
+          <FaBullhorn className={styles.bottomBarIcon} />
+          <span className={styles.bottomBarLabel}>Announcement</span>
+        </button>
         <button
           className={`${styles.bottomBarButton} ${activeTab === "meeting" ? styles.active : ""}`}
           onClick={() => handleTabChange("meeting")}

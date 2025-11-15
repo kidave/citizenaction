@@ -113,6 +113,25 @@ export function useWardData(wardCode, dataType, options = {}) {
           .single();
         break;
 
+      case "ward_announcement":
+        query = supabase
+          .from("ward_announcement_with_files")
+          .select("*")
+          .eq("ward_code", wardCode);
+        
+        if (!admin) {
+          query = query.eq("is_published", true);
+        }
+        
+        // Use scheduled_date for ordering, fallback to created_at
+        query = query.order("scheduled_date", { ascending: true }) // Show upcoming first
+                  .order("created_at", { ascending: false });
+        
+        if (limit) query = query.limit(limit);
+
+        result = await query;
+        break;
+
       default:
         throw new Error(`Unsupported dataType: ${dataType}`);
     }
@@ -173,6 +192,9 @@ export const useWardRoads = (wardCode, options = {}) =>
 export const useWardBoundary = (wardCode, options = {}) =>
   useWardData(wardCode, "boundary", options);
 
+export const useWardAnnouncements = (wardCode, options = {}) =>
+  useWardData(wardCode, "ward_announcement", { ...options, admin: false });
+
 // ---- Admin versions ----
 export const useAdminWardProjects = (wardCode, options = {}) =>
   useWardData(wardCode, "ward_project", { ...options, admin: true });
@@ -182,3 +204,6 @@ export const useAdminWardMeetings = (wardCode, options = {}) =>
 
 export const useAdminWardUpdates = (wardCode, options = {}) =>
   useWardData(wardCode, "ward_update", { ...options, admin: true });
+
+export const useAdminWardAnnouncements = (wardCode, options = {}) =>
+  useWardData(wardCode, "ward_announcement", { ...options, admin: true });

@@ -413,7 +413,7 @@
      Responsive
    ============================= */
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   /* Header mobile */
   .desktopNav {
     display: none;

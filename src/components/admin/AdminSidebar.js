@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { BsCardList, BsPeople } from "react-icons/bs";
 import { TbTimelineEvent } from "react-icons/tb";
 import { MdOutlineAssignment } from "react-icons/md";
+import { FaBullhorn } from "react-icons/fa";
 import { WARD_TABS } from "hooks/useWardTabs";
 
 export default function AdminSidebar({ wardCode, activeTab }) {
@@ -46,6 +47,11 @@ export default function AdminSidebar({ wardCode, activeTab }) {
       {/* Tabs */}
       <div className={styles.tabContainer}>
         {renderTabButton(
+          WARD_TABS.ANNOUNCEMENT,
+          <FaBullhorn className={styles.tabIcon} />,
+          "Announcements",
+        )}
+        {renderTabButton(
           WARD_TABS.PROJECT,
           <MdOutlineAssignment className={styles.tabIcon} />,
           "Project Details",
@@ -64,7 +70,7 @@ export default function AdminSidebar({ wardCode, activeTab }) {
           WARD_TABS.COMMITTEE,
           <BsPeople className={styles.tabIcon} />,
           "Members",
-        )}
+        )}        
       </div>
     </div>
   );

@@ -10,6 +10,7 @@ import MeetingAdmin from "./tabs/MeetingAdmin";
 import UpdateAdmin from "./tabs/UpdateAdmin";
 import CommitteeAdmin from "./tabs/CommitteeAdmin";
 import ProjectAdmin from "./tabs/ProjectAdmin";
+import AnnouncementAdmin from "./tabs/AnnouncementAdmin";
 
 export default function AdminLayout({ wardCode, activeTab }) {
   const router = useRouter();
@@ -24,6 +25,7 @@ export default function AdminLayout({ wardCode, activeTab }) {
     update: <UpdateAdmin wardCode={wardCode} />,
     committee: <CommitteeAdmin wardCode={wardCode} />,
     project: <ProjectAdmin wardCode={wardCode} />,
+    announcement: <AnnouncementAdmin wardCode={wardCode} />,
   };
 
   return (

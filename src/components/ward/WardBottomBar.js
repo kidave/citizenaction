@@ -5,6 +5,7 @@ import { FaRoad } from "react-icons/fa";
 import { BsCardList, BsSignIntersectionSide, BsPeople } from "react-icons/bs";
 import { TbTimelineEvent } from "react-icons/tb";
 import { MdOutlineAssignment } from "react-icons/md";
+import { FaBullhorn } from "react-icons/fa";
 import { useMediaQuery } from "react-responsive";
 
 export default function WardBottomBar({ activeWardTab }) {
@@ -25,6 +26,14 @@ export default function WardBottomBar({ activeWardTab }) {
   return (
     <>
       <div className={styles.bottomBar}>
+        <button
+          className={`${styles.bottomBarButton} ${activeWardTab === "announcement" ? styles.active : ""}`}
+          onClick={() => navigateToWardTab("announcement")}
+          aria-label="Announcement"
+        >
+          <FaBullhorn className={styles.bottomBarIcon} />
+          <span className={styles.bottomBarLabel}>Announcement</span>
+        </button>
         <button
           className={`${styles.bottomBarButton} ${activeWardTab === "meeting" ? styles.active : ""}`}
           onClick={() => navigateToWardTab("meeting")}
