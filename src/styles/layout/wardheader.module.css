@@ -9,7 +9,7 @@
   top: 0;
   z-index: 998;
   padding: 1rem;
-  gap: 16px;
+  gap: 2rem;
 }
 
 /* Leadership Section */
@@ -73,7 +73,6 @@
     padding: 0;
   }
 
-  /* Selector Section */
   .selector {
     justify-content: center;
     gap: 8px;
@@ -89,6 +88,16 @@
   .wardHeader {
     flex-direction: column;
     padding: 0.5rem;
-    gap: 0;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .selector {
+    flex-direction: column;
+  }
+
+  .leadership {
+    flex-direction: column;
   }
 }

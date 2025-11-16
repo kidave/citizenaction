@@ -1,13 +1,14 @@
 /* styles/components/design/card.module.css */
 
 .committeeContainer {
-  padding: 1rem 0;
-  max-width: 1200px;
-  margin-inline: 2rem;
+  margin: 1rem auto;
+  justify-content: center;
+  align-items: center;
 }
 
 /* Information Sections */
 .infoContainer {
+  margin-inline: 1rem;
   margin-bottom: 2rem;
 }
 
@@ -68,7 +69,8 @@
 }
 
 .infoContent {
-  padding: 1.5rem;
+  padding-inline: 2rem;
+  padding-block: 1rem;
 }
 
 .infoSection {
@@ -81,23 +83,19 @@
   border-bottom: none;
 }
 
-.infoSection h4 {
+.infoSection h5 {
   margin: 0 0 0.75rem 0;
-  font-size: 1rem;
-  font-weight: 600;
   color: gold;
 }
 
 .infoSection p {
   margin: 0 0 0.75rem 0;
   line-height: 1.6;
-  color: #4a5568;
 }
 
 .bulletList {
   margin: 0;
   padding-left: 1.5rem;
-  color: #4a5568;
 }
 
 .bulletList li {
@@ -154,7 +152,6 @@
   margin: 0 0 0.5rem 0;
   font-size: 1rem;
   font-weight: 600;
-  color: #374151;
 }
 
 .memberRole {
@@ -203,22 +200,22 @@
   .headerContent {
     gap: 0.75rem;
   }
+
+  .infoContainer {
+    margin-inline: 0.5rem;
+  }
   
   .sectionTitle {
-    font-size: 1.1rem;
+    font-size: 18px;
   }
   
   .infoContent {
     padding: 0.5rem;
   }
-  
+
   .memberList {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 1rem;
-  }
-  
-  .joinCta {
-    padding: 1.5rem;
   }
   
   .ctaContent h3 {
@@ -231,6 +228,10 @@
     grid-template-columns: repeat(2, 1fr);
   }
   
+  .infoSection h5 {
+    font-size: 0.9rem;
+  }
+
   .sectionHeader {
     flex-direction: column;
     align-items: flex-start;
@@ -238,7 +239,7 @@
   }
   
   .sectionTitle {
-    font-size: 1.3rem;
+    font-size: 0.8rem;
   }
 }
 

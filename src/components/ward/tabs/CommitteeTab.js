@@ -31,11 +31,11 @@ export default function CommitteeTab() {
       content: (
         <div>
           <div className={styles.infoSection}>
-            <h4>A. Number of Members</h4>
+            <h5>A. Number of Members</h5>
             <p>Up to 15 members per ward: Convener, Co-Convener + 13 active members.</p>
           </div>
           <div className={styles.infoSection}>
-            <h4>B. Expected Diversity in the Ward Committee</h4>
+            <h5>B. Expected Diversity in the Ward Committee</h5>
             <p>To ensure inclusive decision-making and a broad representation of local interests, Ward Committees include members from diverse stakeholder groups:</p>
             <ul className={styles.bulletList}>
               <li>Daily Commuters and Residents of housing societies to represent local residential interests.</li>
@@ -55,7 +55,7 @@ export default function CommitteeTab() {
       content: (
         <div>
           <div className={styles.infoSection}>
-            <h4>A. Convener</h4>
+            <h5>A. Convener</h5>
             <ul className={styles.bulletList}>
               <li>Primary point of contact between committee and civic authorities</li>
               <li>Schedule and organize monthly committee meetings</li>
@@ -66,7 +66,7 @@ export default function CommitteeTab() {
             </ul>
           </div>
           <div className={styles.infoSection}>
-            <h4>B. Co-Convener</h4>
+            <h5>B. Co-Convener</h5>
             <ul className={styles.bulletList}>
               <li>Support Convener in planning and executing meetings</li>
               <li>Take lead on specific tasks involving data collation, communications and documentation</li>
@@ -77,7 +77,7 @@ export default function CommitteeTab() {
             </ul>
           </div>
           <div className={styles.infoSection}>
-            <h4>C. Members</h4>
+            <h5>C. Members</h5>
             <ul className={styles.bulletList}>
               <li>Attend monthly meetings and actively participate in discussions and decision-making </li>
               <li>Identify walkability issues through surveys, observations and resident inputs</li>
@@ -101,7 +101,7 @@ export default function CommitteeTab() {
             <p>The Ward Committee setup begins with identifying a Convener through public call for expressions of interest. This ensures leadership comes from within the community and is rooted in a genuine commitment to improving walkability. The Convener may also identify a Co-Convener to support coordination and share responsibilities.</p>
           </div>
           <div className={styles.infoSection}>
-            <h4>A. Identification of Convener</h4>
+            <h5>A. Identification of Convener</h5>
             <p>
               The Convener is ideally a locally active resident or member of a citizen group with a demonstrated interest in civic issues. 
               Walking Project may use existing networks, past collaborators, or an open form to identify suitable individuals. 
@@ -110,7 +110,7 @@ export default function CommitteeTab() {
             </p>
           </div>
           <div className={styles.infoSection}>
-            <h4>B. Organizing a Community Talk</h4>
+            <h5>B. Organizing a Community Talk</h5>
             <p>The Conveners first task is to organize a Community Talk in collaboration with Walking Project. This is an open public meeting that:</p>
             <ul className={styles.bulletList}>
               <li>Introduces the walkability improvement initiative to local residents and stakeholders</li>
@@ -130,7 +130,7 @@ export default function CommitteeTab() {
             <p>The Community Talk sets the tone for participatory governance and helps gather initial momentum.</p>
           </div>
           <div className={styles.infoSection}>
-            <h4>C. Public Call for Membership</h4>
+            <h5>C. Public Call for Membership</h5>
             <p>
               Following the Community Talk, a public call is made to invite residents and stakeholders to join the Ward Committee. 
               Walking Project shares an Expression of Interest (EOI) form, accessible via a QR code during and after the event, to gather applications. 
@@ -139,7 +139,7 @@ export default function CommitteeTab() {
             </p>
           </div>
           <div className={styles.infoSection}>
-            <h4>D. Finalizing Meeting Logistics</h4>
+            <h5>D. Finalizing Meeting Logistics</h5>
             <p>
               The Convener is responsible for conducting monthly online meetings for easier convening.
               Alternatively identifying a suitable venue for physical meetings should be done by them typically the Ward Office or a public community space. Online meetings are suggested for easier logistics. 
@@ -147,11 +147,11 @@ export default function CommitteeTab() {
             </p>
           </div>
           <div className={styles.infoSection}>
-            <h4>E. Internal Onboarding and Role Allocation</h4>
+            <h5>E. Internal Onboarding and Role Allocation</h5>
             <p>Once the committee is formed, an internal kickoff meeting is held to introduce members and initiate collaboration. Roles such as Communications, Mapping, and Stakeholder Liaison are discussed and assigned based on members interests and strengths, laying the foundation for effective teamwork and accountability.</p>
           </div>
           <div className={styles.infoSection}>
-            <h4>F. Distribution of Resources and Orientation</h4>
+            <h5>F. Distribution of Resources and Orientation</h5>
             <p>At the initial meeting, Walking Project facilitates the following:</p>
             <ul className={styles.bulletList}>
               <li>Distribution of the Walkability Handbook and Ward Committee SOP Handbook</li>

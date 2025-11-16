@@ -17,7 +17,6 @@
 .announcementRow {
   display: grid;
   grid-template-columns: 60% 40%;
-  gap: 2rem;
   align-items: start;
   background: white;
   border-radius: 12px;
@@ -223,10 +222,6 @@
 .additionalInfo {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-  color: #666;
 }
 
 .imagePreview {
@@ -357,16 +352,16 @@
 }
 
 @media (max-width: 1024px) {
-  .announcementRow {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
   .infoSection {
     padding: 1rem;
   }
 }
 
 @media (max-width: 768px) {
+  .announcementRow {
+    grid-template-columns: 1fr;
+  }
+  
   .announcementContainer {
     margin-inline: 0;
   }

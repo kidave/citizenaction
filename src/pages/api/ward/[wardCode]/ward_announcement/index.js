@@ -37,16 +37,13 @@ export default async function handler(req, res) {
 
   if (req.method === "POST") {
     try {
-      const announcementData = {
-        ...req.body,
-        ward_code: wardCode,
-        user_id: user.id
-      };
-
       const { data, error } = await supabase
         .from("ward_announcement")
-        .insert(announcementData)
-        .select()
+        .insert([{ ...req.body, ward_code: wardCode, user_id: user.id }])
+        .select(`
+          *,
+          ward_announcement_file (*)
+        `)  // Include related files in response (consistent with meetings)
         .single();
 
       if (error) {

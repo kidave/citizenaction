@@ -142,33 +142,7 @@
   margin: 0 auto;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .hero {
-    flex-direction: column;
-    text-align: center;
-    padding: 0;
-  }
 
-  .heroContent {
-    max-width: 100%;
-    padding: 0 1rem;
-  }
-  
-  .heroTitle {
-    font-size: 2.5rem;
-  }
-  
-  .statsContainer {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .ctaButton {
-    padding: 0.8rem;
-    font-size: 1rem;
-  }
-}
 
 
 /* Subtle Ongoing Improvement Banner */
@@ -227,13 +201,40 @@
   color: white;
 }
 
-/* Responsive */
+/* Responsive Design */
 @media (max-width: 768px) {
   .hero {
-    padding: 2rem;
+    flex-direction: column;
+    text-align: center;
+    padding-block: 4rem;
+    padding-inline: 3rem;
   }
 
   .heroSubtitle {
-    font-size: 1.1rem;
+    font-size: 1rem;
+  }
+
+  .heroContent {
+    max-width: 100%;
+  }
+  
+  .heroTitle {
+    font-size: 2.5rem;
+  }
+  
+  .statsContainer {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .ctaButton {
+    padding: 0.8rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .hero {
+    padding-inline: 1rem;
   }
 }

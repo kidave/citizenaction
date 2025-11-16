@@ -81,7 +81,7 @@ export default function AnnouncementCard({
       <div className={styles.additionalInfo}>
         {announcement.contact_info && (
           <div className={styles.contactInfo}>
-            <MdOutlineEmail /> <BsTelephone /> {announcement.contact_info}
+            <MdOutlineEmail /> {announcement.contact_info}
           </div>
         )}
       </div>

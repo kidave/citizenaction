@@ -23,6 +23,24 @@ export function useWardData(wardCode, dataType, options = {}) {
     let result;
 
     switch (dataType) {
+      case "ward_announcement":
+        query = supabase
+          .from("ward_announcement_with_files")
+          .select("*")
+          .eq("ward_code", wardCode);
+        
+        if (!admin) {
+          query = query.eq("is_published", true);
+        }
+        
+        query = query.order("scheduled_date", { ascending: true })
+                  .order("created_at", { ascending: false });
+        
+        if (limit) query = query.limit(limit);
+
+        result = await query;
+        break;
+
       // --- PROJECTS ---
       case "ward_project":
         query = supabase
@@ -112,26 +130,7 @@ export function useWardData(wardCode, dataType, options = {}) {
           .eq("code", wardCode)
           .single();
         break;
-
-      case "ward_announcement":
-        query = supabase
-          .from("ward_announcement_with_files")
-          .select("*")
-          .eq("ward_code", wardCode);
-        
-        if (!admin) {
-          query = query.eq("is_published", true);
-        }
-        
-        // Use scheduled_date for ordering, fallback to created_at
-        query = query.order("scheduled_date", { ascending: true }) // Show upcoming first
-                  .order("created_at", { ascending: false });
-        
-        if (limit) query = query.limit(limit);
-
-        result = await query;
-        break;
-
+      
       default:
         throw new Error(`Unsupported dataType: ${dataType}`);
     }

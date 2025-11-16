@@ -422,19 +422,20 @@ function SingleProject({ project, junctions, roads, index }) {
         onClick={() => setIsExpanded(!isExpanded)}
         style={{ cursor: 'pointer' }}
       >
-        <div className={styles.headerTop}>
-          <div className={styles.titleSection}>
+        <div className={styles.headerBottom}>
+          <div className={styles.headerDateLeft}>
             <h3>{project.title}</h3>
-            {project.description && (
-              <p className={styles.projectDescription}>{project.description}</p>
-            )}
           </div>
-          <div className={styles.headerTopRight}>
+          <div className={styles.headerDateRight}>
             <span className={`${styles.statusBadge} ${styles[project.status]}`}>
               {getStatusDisplay(project.status)}
             </span>
-          </div>
+          </div>  
         </div>
+        
+        {project.description && (
+          <p className={styles.projectDescription}>{project.description}</p>
+        )}
 
         <div className={styles.headerBottom}>
           <div className={styles.headerDateLeft}>

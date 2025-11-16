@@ -1,4 +1,3 @@
-
 // pages/api/ward/[wardCode]/announcement/[id]/file/index.js
 import { createServerSupabase } from "utils/supabaseServer";
 

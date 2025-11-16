@@ -60,7 +60,10 @@ export default async function handler(req, res) {
         .update(req.body)
         .eq("id", id)
         .eq("ward_code", wardCode)
-        .select()
+        .select(`
+          *,
+          ward_announcement_file (*)
+        `)  // Include related files in response (consistent with meetings)
         .single();
         
       if (error) {
@@ -68,19 +71,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: error.message });
       }
       
-      // Get the full announcement with files
-      const { data: fullAnnouncement, error: fullError } = await supabase
-        .from("ward_announcement_with_files")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-      if (fullError) {
-        console.error("Error fetching full announcement:", fullError);
-        return res.json(data); // Return basic data if full fetch fails
-      }
-      
-      return res.json(fullAnnouncement);
+      return res.json(data);
     } catch (error) {
       console.error("Unexpected error in PUT handler:", error);
       return res.status(500).json({ error: "Internal server error" });
