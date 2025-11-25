@@ -28,7 +28,11 @@ export default function AnnouncementTab() {
           {announcements.map((announcement, index) => (
             <motion.div
               key={announcement.id}
-              className={styles.announcementRow}
+              className={`${styles.announcementRow} ${
+                announcement.files && announcement.files.length > 0 
+                  ? styles.withImages 
+                  : styles.withoutImages
+              }`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -39,9 +43,9 @@ export default function AnnouncementTab() {
                 />
               </div>
               
-              {/* Image Section */}
-              {announcement.files && announcement.files.length > 0 && (
-                <div className={styles.imageSection}>
+              {/* Image Section - Always render but conditionally show content */}
+              <div className={styles.imageSection}>
+                {announcement.files && announcement.files.length > 0 ? (
                   <div 
                     className={styles.mainImage}
                     onClick={() => {
@@ -60,8 +64,12 @@ export default function AnnouncementTab() {
                       </div>
                     )}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className={styles.noImagePlaceholder}>
+                    <p>No images</p>
+                  </div>
+                )}
+              </div>
             </motion.div>
           ))}
         </div>
