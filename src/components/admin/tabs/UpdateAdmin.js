@@ -8,6 +8,7 @@ import { useAdminWardUpdates } from "hooks/useWardData";
 import UpdateCard from "components/shared/card/UpdateCard";
 import { AddButton } from "components/shared/ui/Buttons";
 import styles from "styles/tabs/timeline.module.css";
+import ButtonGroup from "components/shared/ui/ButtonGroup";
 
 export default function UpdateAdmin() {
   const { wardCode } = useWard();
@@ -109,10 +110,10 @@ export default function UpdateAdmin() {
   if (error) return <div className={styles.errorMessage}>Error: {error}</div>;
 
   return (
-    <>
+    <div className={styles.adminPanel}>
       <AlertComponent />
 
-      <div className={styles.addButtonContainer}>
+      <ButtonGroup>
         <AddButton
           variant="outline"
           onClick={() => {
@@ -128,7 +129,7 @@ export default function UpdateAdmin() {
         >
           Add Update
         </AddButton>
-      </div>
+      </ButtonGroup>
 
       {newUpdate && (
         <UpdateCard
@@ -150,7 +151,7 @@ export default function UpdateAdmin() {
 
       <div>
         {updates && updates.length === 0 && !newUpdate ? (
-          <p className={styles.emptyTimeline}>No updates yet.</p>
+          <p>No updates yet. Document first monthly update to get started.</p>
         ) : (
           <div className={styles.desktopView}>
             {updates?.map((item, index) => (
@@ -169,6 +170,6 @@ export default function UpdateAdmin() {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }

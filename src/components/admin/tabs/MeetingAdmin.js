@@ -121,11 +121,11 @@ export default function MeetingAdmin() {
   if (error) return <div className={styles.errorMessage}>Error: {error}</div>;
 
   return (
-    <>
+    <div className={styles.adminPanel}>
       <AlertComponent />
 
       {/* Add meeting button */}
-      <div className={styles.addButtonContainer}>
+      <ButtonGroup>
         <AddButton
           onClick={() => {
             setNewMeeting({
@@ -141,9 +141,9 @@ export default function MeetingAdmin() {
           variant="outline"
           disabled={loading}
         >
-          Add Meeting
+          New Meeting
         </AddButton>
-      </div>
+      </ButtonGroup>
 
       {/* New meeting card */}
       {newMeeting && (
@@ -163,9 +163,9 @@ export default function MeetingAdmin() {
       )}
 
       {/* Timeline View */}
-      <div className={styles.timelineWrapper}>
+      <div>
         {meetings && meetings.length === 0 && !newMeeting ? (
-          <p className={styles.emptyTimeline}>No meetings yet.</p>
+          <p>No meetings yet. Document your first meeting to get started.</p>
         ) : (
           meetings?.map((item, index) => (
             <div key={item.id} className={`${styles.timelineItemMeeting} ${index % 2 === 0 ? styles.left : styles.right}`}>
@@ -251,7 +251,7 @@ export default function MeetingAdmin() {
           onClose={() => setIsPopupOpen(false)}
         />
       )}
-    </>
+    </div>
   );
 }
 

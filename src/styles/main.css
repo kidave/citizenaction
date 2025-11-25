@@ -1,4 +1,4 @@
 /* your other css files */
-@import "./config.css";
 @import "./global.css";
+@import "./config.css";
 @import "./animation.css";

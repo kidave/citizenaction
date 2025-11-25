@@ -1,4 +1,7 @@
-/* styles/global.css */
+/* =============================
+   GLOBAL RESET + ANTI-FOUC BASE
+   ============================= */
+
 html,
 body {
   height: 100%;
@@ -24,6 +27,62 @@ body {
   overflow-x: hidden;
 }
 
+/* Anti-FOUC header skeleton */
+header {
+  position: fixed;
+  display: flex;
+  background: #cdcae7;
+  color: black;
+  padding: 0.75rem 2rem;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  z-index: 999;
+  height: 64px;
+  box-sizing: border-box;
+}
+
+header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
+  animation: gradientFlow 5s ease infinite;
+}
+
+/* Prevent FOUC for header elements by applying minimal baseline */
+header .desktopNav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: 30px;
+}
+
+header .navButton {
+  background: none;
+  border: none;
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2d3748;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+header .dropdownContent {
+  display: none;
+}
+
+header .mobileMenuButton {
+  background: none;
+  border: none;
+}
+
+
+/* Spinner (global) */
 .spinner {
   border: 4px solid rgba(0, 0, 0, 0.1);
   width: 40px;
@@ -35,24 +94,6 @@ body {
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 200px;
-  width: 100%;
-}
-
-.container-fill {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

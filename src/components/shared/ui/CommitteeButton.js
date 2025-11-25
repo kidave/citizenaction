@@ -1,10 +1,10 @@
 // components/shared/ui/CommitteeButton.js
+import styles from "styles/components/interact/button.module.css";
 import { motion } from "framer-motion";
 import { useRouter } from "next/router";
 import { useAuth } from "context/AuthContext";
 import { useAlert } from "context/AlertContext";
 import { useUserStatus } from "hooks/useUserStatus";
-import styles from "styles/components/interact/button.module.css";
 
 export default function CommitteeButton({ inline = false, variant = "primary" }) {
   const { user } = useAuth();

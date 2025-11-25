@@ -14,6 +14,20 @@ export default function Header() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // 🔥 Prevent hydration mismatch: detect layout width on client
+  const [isDesktop, setIsDesktop] = useState(null);
+
+  useEffect(() => {
+    const checkWidth = () => {
+      setIsDesktop(window.innerWidth > 1024);
+    };
+
+    checkWidth(); // initial run on client
+    window.addEventListener("resize", checkWidth);
+
+    return () => window.removeEventListener("resize", checkWidth);
+  }, []);
+
   const handleDropdownToggle = (label) => {
     setOpenDropdown(openDropdown === label ? null : label);
   };
@@ -27,260 +41,240 @@ export default function Header() {
     setProfileOpen(false);
   };
 
-  // Check if a path is external (starts with http)
-  const isExternalLink = (path) => {
-    return path.startsWith('http');
-  };
+  const isExternalLink = (path) => path.startsWith("http");
 
-  // Check if a navigation item is active
   const isActive = (path) => {
     if (isExternalLink(path)) return false;
-    
-    // For exact matches
     if (router.pathname === path) return true;
-    
-    // For nested routes (e.g., /forum/thread should highlight /forum)
-    if (path !== '/' && router.pathname.startsWith(path)) return true;
-    
+    if (path !== "/" && router.pathname.startsWith(path)) return true;
     return false;
   };
 
   const dropdownItems = {
     Region: [
-      {
-        label: "Mumbai Metropolitan Region",
-        path: "/region/MH-MMR",
-      },
+      { label: "Mumbai Metropolitan Region", path: "/region/MH-MMR" },
     ],
     Community: [
-      {
-        label: "Manifesto",
-        path: "https://www.walkingproject.org/activities-projects/manifesto",
-      },
-      { 
-        label: "Community Connect", 
-        path: "/forum" 
-      },
-      {
-        label: "Community Walks",
-        path: "https://www.walkingproject.org/activities-projects/community-walks",
-      },
-      {
-        label: "Community Talks",
-        path: "https://www.walkingproject.org/activities-projects/community-talks",
-      },
-      {
-        label: "Student Engagement",
-        path: "https://www.walkingproject.org/activities-projects/student-engagement",
-      },
+      { label: "Manifesto", path: "https://www.walkingproject.org/activities-projects/manifesto" },
+      { label: "Community Connect", path: "/forum" },
+      { label: "Community Walks", path: "https://www.walkingproject.org/activities-projects/community-walks" },
+      { label: "Community Talks", path: "https://www.walkingproject.org/activities-projects/community-talks" },
+      { label: "Student Engagement", path: "https://www.walkingproject.org/activities-projects/student-engagement" },
     ],
   };
 
-  const staticMenu = [
-    { label: "Home", path: "/" },
-  ];
+  const staticMenu = [{ label: "Home", path: "/" }];
 
   return (
     <header className={styles.header}>
-      
-        <div
-          className={styles.logoContainer}
-          onClick={() => router.push("/")}
-          aria-label="Home"
-          role="button"
-          tabIndex={0}
-          title="Home"
-        >
-          <div className={styles.logo}>
-            <img 
-              src="/wp_icon_sm.png" 
-              alt="Logo" 
-              className={styles.logoIcon}
-              style={{ width: '32px', height: '40px' }}
-            />
-            <img
-              src="/wp_text_logo.png"
-              alt="Walking Project"
-              className={styles.logoText}
-              style={{ height: '40px' }}
-            />
-          </div>
+
+      {/* Logo */}
+      <div
+        className={styles.logoContainer}
+        onClick={() => router.push("/")}
+      >
+        <div className={styles.logo}>
+          <img src="/wp_icon_sm.avif" alt="Logo" className={styles.logoIcon} />
+          <img src="/wp_text_logo.avif" alt="Walking Project" className={styles.logoText} />
         </div>
-        
-        <nav className={styles.desktopNav}>
-          {staticMenu.map((item) => (
-            <button
-              key={item.label}
-              className={`${styles.navButton} ${
-                isActive(item.path) ? styles.active : ''
-              }`}
-              onClick={() => router.push(item.path)}
-            >
-              {item.label}
-            </button>
-          ))}
+      </div>
 
-          {Object.keys(dropdownItems).map((label) => (
-            <div key={label} className={styles.dropdown}>
-              <button
-                className={`${styles.navButton} ${
-                  dropdownItems[label].some(item => isActive(item.path)) ? styles.active : ''
-                }`}
-                onClick={() => handleDropdownToggle(label)}
-              >
-                {label}
-                <FiChevronDown size={14} style={{ marginLeft: "5px" }} />
-              </button>
-              {openDropdown === label && (
-                <div className={styles.dropdownContent}>
-                  {dropdownItems[label].map((subItem) => (
-                    <div
-                      key={subItem.label}
-                      className={`${styles.dropdownItem} ${
-                        isActive(subItem.path) ? styles.active : ''
-                      }`}
-                      onClick={() => router.push(subItem.path)}
-                    >
-                      {subItem.label}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+      {/* Layout hidden during SSR to avoid mobile→desktop jump */}
+      {isDesktop === null ? null : (
+        <>
+          {/* DESKTOP NAV */}
+          {isDesktop && (
+            <nav className={styles.desktopNav}>
+              {staticMenu.map((item) => (
+                <button
+                  key={item.label}
+                  className={`${styles.navButton} ${isActive(item.path) ? styles.active : ""}`}
+                  onClick={() => router.push(item.path)}
+                >
+                  {item.label}
+                </button>
+              ))}
 
-          {!user ? (
-            <button
-              className={`${styles.navButton} ${
-                router.pathname === '/auth' ? styles.active : ''
-              }`}
-              onClick={() => router.push("/auth")}
-            >
-              Login
-            </button>
-          ) : (
-            <div
-              className={styles.profileWrapper}
-              onClick={toggleProfileDropdown}
-            >
-              <img
-                src={
-                  profile?.avatar_url ||
-                  user.user_metadata?.avatar_url ||
-                  "/user1.png"
-                }
-                alt="avatar"
-                className={styles.avatar}
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = "/user1.png";
-                }}
-              />
-              {profileOpen && (
-                <div className={styles.profileDropdown}>
-                  <div
-                    className={`${styles.dropdownItem} ${
-                      router.pathname === '/profile' ? styles.active : ''
+              {Object.keys(dropdownItems).map((label) => (
+                <div key={label} className={styles.dropdown}>
+                  <button
+                    className={`${styles.navButton} ${
+                      dropdownItems[label].some((i) => isActive(i.path))
+                        ? styles.active
+                        : ""
                     }`}
-                    onClick={() => router.push("/profile")}
+                    onClick={() => handleDropdownToggle(label)}
                   >
-                    My Profile
-                  </div>
-                  <div className={styles.dropdownItem} onClick={handleLogout}>
-                    Logout
-                  </div>
+                    {label}
+                    <FiChevronDown size={14} style={{ marginLeft: 5 }} />
+                  </button>
+
+                  {openDropdown === label && (
+                    <div className={styles.dropdownContent}>
+                      {dropdownItems[label].map((subItem) => (
+                        <div
+                          key={subItem.label}
+                          className={`${styles.dropdownItem} ${
+                            isActive(subItem.path) ? styles.active : ""
+                          }`}
+                          onClick={() => router.push(subItem.path)}
+                        >
+                          {subItem.label}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {/* LOGIN / PROFILE */}
+              {!user ? (
+                <button
+                  className={`${styles.navButton} ${
+                    router.pathname === "/auth" ? styles.active : ""
+                  }`}
+                  onClick={() => router.push("/auth")}
+                >
+                  Login
+                </button>
+              ) : (
+                <div className={styles.profileWrapper} onClick={toggleProfileDropdown}>
+                  <img
+                    src={
+                      profile?.avatar_url ||
+                      user.user_metadata?.avatar_url ||
+                      "/user1.png"
+                    }
+                    alt="avatar"
+                    className={styles.avatar}
+                    onError={(e) => (e.target.src = "/user1.png")}
+                  />
+
+                  {profileOpen && (
+                    <div className={styles.profileDropdown}>
+                      <div
+                        className={`${styles.dropdownItem} ${
+                          router.pathname === "/profile" ? styles.active : ""
+                        }`}
+                        onClick={() => router.push("/profile")}
+                      >
+                        My Profile
+                      </div>
+                      <div className={styles.dropdownItem} onClick={handleLogout}>
+                        Logout
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
+
+              <div className={styles.committeeButtonWrapper}>
+                <CommitteeButton inline={true} variant="secondary" />
+              </div>
+            </nav>
           )}
-          <div className={styles.committeeButtonWrapper}>
-            <CommitteeButton inline={true} variant="secondary" />
-          </div>
-        </nav>
 
-        <button
-          className={styles.mobileMenuButton}
-          onClick={() => setMobileOpen(true)}
-        >
-          <FiMenu size={24} />
-        </button>
-        
-        {mobileOpen && (
-          <div className={styles.mobileOverlay} onClick={() => setMobileOpen(false)}>
-            <div className={styles.mobileSidebar} onClick={(e) => e.stopPropagation()}>
-              <button className={styles.closeButton} onClick={() => setMobileOpen(false)}>
-                <FiX size={24} />
-              </button>
-              <div className={styles.mobileNavContent}>
-                {staticMenu.map((item) => (
-                  <div
-                    key={item.label}
-                    className={styles.mobileNavItem}
-                    onClick={() => {
-                      router.push(item.path);
-                      setMobileOpen(false);
-                    }}
-                  >
-                    {item.label}
-                  </div>
-                ))}
+          {/* MOBILE NAV BUTTON */}
+          {!isDesktop && (
+            <button
+              className={styles.mobileMenuButton}
+              onClick={() => setMobileOpen(true)}
+            >
+              <FiMenu size={24} />
+            </button>
+          )}
 
-                {/* Mobile version of CommitteeButton */}
-                <div className={styles.mobileCommitteeButton}>
-                  <CommitteeButton inline={true} variant="secondary" />
-                </div>
+          {/* MOBILE SIDEBAR */}
+          {mobileOpen && !isDesktop && (
+            <div
+              className={styles.mobileOverlay}
+              onClick={() => setMobileOpen(false)}
+            >
+              <div
+                className={styles.mobileSidebar}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  className={styles.closeButton}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <FiX size={24} />
+                </button>
 
-                {Object.keys(dropdownItems).map((label) => (
-                  <div key={label} className={styles.mobileNavSection}>
-                    <strong>{label}</strong>
-                    {dropdownItems[label].map((sub) => (
-                      <div
-                        key={sub.label}
-                        className={styles.mobileNavSubItem}
-                        onClick={() => {
-                          router.push(sub.path);
-                          setMobileOpen(false);
-                        }}
-                      >
-                        {sub.label}
-                      </div>
-                    ))}
-                  </div>
-                ))}
-
-                {!user ? (
-                  <div
-                    className={styles.mobileNavItem}
-                    onClick={() => {
-                      router.push("/auth");
-                      setMobileOpen(false);
-                    }}
-                  >
-                    Login
-                  </div>
-                ) : (
-                  <>
+                <div className={styles.mobileNavContent}>
+                  {staticMenu.map((item) => (
                     <div
-                      className={styles.mobileNavItem}
-                      onClick={() => router.push("/profile")}
-                    >
-                      My Profile
-                    </div>
-                    <div
+                      key={item.label}
                       className={styles.mobileNavItem}
                       onClick={() => {
-                        handleLogout();
+                        router.push(item.path);
                         setMobileOpen(false);
                       }}
                     >
-                      Logout
+                      {item.label}
                     </div>
-                  </>
-                )}
+                  ))}
+
+                  <div className={styles.mobileCommitteeButton}>
+                    <CommitteeButton inline={true} variant="secondary" />
+                  </div>
+
+                  {Object.keys(dropdownItems).map((label) => (
+                    <div key={label} className={styles.mobileNavSection}>
+                      <strong>{label}</strong>
+                      {dropdownItems[label].map((sub) => (
+                        <div
+                          key={sub.label}
+                          className={styles.mobileNavSubItem}
+                          onClick={() => {
+                            router.push(sub.path);
+                            setMobileOpen(false);
+                          }}
+                        >
+                          {sub.label}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+
+                  {!user ? (
+                    <div
+                      className={styles.mobileNavItem}
+                      onClick={() => {
+                        router.push("/auth");
+                        setMobileOpen(false);
+                      }}
+                    >
+                      Login
+                    </div>
+                  ) : (
+                    <>
+                      <div
+                        className={styles.mobileNavItem}
+                        onClick={() => {
+                          router.push("/profile");
+                          setMobileOpen(false);
+                        }}
+                      >
+                        My Profile
+                      </div>
+                      <div
+                        className={styles.mobileNavItem}
+                        onClick={() => {
+                          handleLogout();
+                          setMobileOpen(false);
+                        }}
+                      >
+                        Logout
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </>
+      )}
     </header>
   );
 }

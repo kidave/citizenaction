@@ -6,7 +6,7 @@ export default function Sidebar({
   activeTab, 
   onTabChange,
   showLogo = true,
-  logo = { text: "/wp_text_logo.png" }
+  logo = { text: "/wp_text_logo.avif" }
 }) {
   const router = useRouter();
 

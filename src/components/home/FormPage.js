@@ -127,14 +127,14 @@ export default function Form() {
         <div className={styles.contentSide}>
           <div className={styles.logoContainer}>
             <Image 
-              src="/wp_icon_sm.png" 
+              src="/wp_icon_sm.avif" 
               alt="Walking Project Logo" 
               width={40}
               height={40}
               className={styles.logo}
             />
             <Image 
-              src="/wp_text_logo.png" 
+              src="/wp_text_logo.avif" 
               alt="Walking Project Text Logo" 
               width={180}
               height={40}

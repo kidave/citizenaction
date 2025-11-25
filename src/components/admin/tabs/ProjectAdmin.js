@@ -137,7 +137,7 @@ export default function ProjectAdmin({ wardCode }) {
           <p>No projects found. Create your first project to get started.</p>
         </div>
       ) : (
-        <div className={styles.adminItem}>
+        <div>
           {projects?.map((project) => ( 
             <div key={project.id} className={styles.projectItem}>
               <h4>{project.title || "Untitled Project"}</h4>
@@ -246,17 +246,13 @@ function ProjectForm({ wardCode, project = {}, onSave, onCancel }) {
   ];
 
   return (
-      <form onSubmit={handleSubmit} className={styles.projectForm}>
-        <div className={styles.formHeader}>
-          <h3>{projectId ? "Edit Project" : "New Project"}</h3>
-        </div>
-
+      <form onSubmit={handleSubmit}>
         <div className={styles.formContent}>
           <div className={styles.formSection}>
             <div className={styles.formRowCompact}>
               <div className={styles.formGroup}>
                 <label>Project Title *</label>
-                <textarea
+                <input
                   value={form.title || ""}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
                   placeholder="Title for the project..."

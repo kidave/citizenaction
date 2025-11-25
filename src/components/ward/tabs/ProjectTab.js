@@ -495,8 +495,8 @@ function SingleProject({ project, junctions, roads, index }) {
                     transition={{ duration: 0.6, delay: i * 0.1 }}
                   >
                     <div className={styles.stepHeader}>
-                      <h4 className={styles.stepNumber}>{step.key}.</h4>
-                      <h4 className={styles.stepLabel}>{step.label}</h4>
+                      <h4 className={styles.stepTitle}>{step.key}.</h4>
+                      <h4 className={styles.stepTitle}>{step.label}</h4>
                     </div>
                     <div className={styles.stepContent}>
                       <StepContent

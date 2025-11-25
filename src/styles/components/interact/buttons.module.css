@@ -313,7 +313,6 @@
   }
   
   .buttonContent {
-    flex-direction: column;
     gap: 2px;
   }
   

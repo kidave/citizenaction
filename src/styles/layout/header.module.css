@@ -2,7 +2,7 @@
     MODERN HEADER (desktop & mobile)
    ============================= */
 
-/* Add to your existing header.module.css */
+/* header.module.css */
 .header {
   position: fixed;
   display: flex;

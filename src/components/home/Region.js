@@ -254,7 +254,7 @@ function Region() {
                     exit={{ opacity: 0, x: -100 }}
                     transition={{ duration: 0.3 }}
                     style={{
-                      backgroundImage: `url(/images/division/${divisions[currentDivisionIdx].code}.jpg)`,
+                      backgroundImage: `url(/images/division/${divisions[currentDivisionIdx].code}.avif)`,
                       backgroundSize: "cover",
                       backgroundPosition: "center",
                       width: "100%",

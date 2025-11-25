@@ -3,8 +3,8 @@ import styles from "styles/components/design/Logo.module.css";
 
 export default function Logo({ 
   logo = { 
-    icon: "/wp_icon_sm.png", 
-    text: "/wp_text_logo.png",
+    icon: "/wp_icon_sm.avif", 
+    text: "/wp_text_logo.avif",
     homeLink: "/"
   },
   className = "",

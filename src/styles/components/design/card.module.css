@@ -108,10 +108,10 @@
 
 @media (max-width: 1024px) {
   .tabsContainer {
-    margin-inline: 0;
-    margin-bottom: 1rem;
+    margin: 0;
+    border: none;
+    border-radius: 0;
   }
-  
 }
 
 @keyframes fadeIn {

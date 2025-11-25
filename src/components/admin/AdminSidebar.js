@@ -38,7 +38,7 @@ export default function AdminSidebar({ wardCode, activeTab }) {
       >
         <div className={styles.logoContent}>
           <img
-            src="/wp_text_logo.png"
+            src="/wp_text_logo.avif"
             alt="Walking Project"
             className={styles.logoText}
           />

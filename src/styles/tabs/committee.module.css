@@ -1,15 +1,9 @@
 /* styles/components/design/card.module.css */
 
 .committeeContainer {
-  margin: 1rem auto;
+  margin: 1rem;
   justify-content: center;
   align-items: center;
-}
-
-/* Information Sections */
-.infoContainer {
-  margin-inline: 1rem;
-  margin-bottom: 2rem;
 }
 
 .infoCard {
@@ -110,7 +104,6 @@
 /* Members Section */
 .membersSection {
   margin-bottom: 2rem;
-  margin-inline: 1rem;
 }
 
 /* Member List */
@@ -190,7 +183,8 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .committeeContainer {
-    margin: 0;
+    margin-block: 0.5rem;
+    margin-inline: 0.5rem;
   }
   
   .infoHeader {
@@ -199,10 +193,6 @@
   
   .headerContent {
     gap: 0.75rem;
-  }
-
-  .infoContainer {
-    margin-inline: 0.5rem;
   }
   
   .sectionTitle {

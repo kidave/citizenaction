@@ -1,8 +1,8 @@
 // components/Layout.js
+import styles from "styles/layout/layout.module.css";
 import Head from "next/head";
 import Header from "./Header";
 import Footer from "./Footer";
-import styles from "styles/layout/layout.module.css";
 
 export default function Layout({ children, showHeader = true, showFooter = true }) {
   return (

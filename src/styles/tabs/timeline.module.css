@@ -14,7 +14,6 @@
   text-align: center;
   margin-top: 2rem;
   font-size: 1.3rem;
-  color: grey;
   font-weight: 500;
 }
 
@@ -98,10 +97,10 @@
 
 /* ===== CARDS ===== */
 .timelineCard {
-  margin: 1rem;
   background: white;
   border-radius: 16px;
   padding: 1.5rem;
+  margin-block: 1rem;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
   position: relative;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -181,7 +180,6 @@
   display: flex;
   align-items: flex-start;
   line-height: 2;
-  color: grey;
 }
 
 /* Meeting detail blocks */
@@ -266,10 +264,8 @@
 }
 
 /* Admin Button*/
-.addButtonContainer {
-  display: flex;
-  justify-content: center;
-  margin-top: 2rem;
+.adminPanel {
+  margin: 1rem;
 }
 
 .formContainer {
@@ -457,8 +453,9 @@
   }
 
   .timelineCard {
-    margin: 0;
-    margin-bottom: 1rem;
+    margin-block: 0;
+    padding: 1rem;
+    border-radius: 0;
   }
 
   .timelineWrapper::before {
@@ -471,10 +468,6 @@
 
   .timelineItemMeeting {
     flex-direction: column;
-  }
-
-  .timelineCard {
-    padding: 1rem;
   }
 
   .timelineIconWrapper {
@@ -497,6 +490,10 @@
   
   .imageSectionHeader {
     font-size: 0.8rem;
+  }
+
+  .discussionPoint {
+    line-height: 1.5;
   }
 }
 

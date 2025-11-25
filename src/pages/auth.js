@@ -63,12 +63,12 @@ export default function Auth() {
           
           <div className={styles.logoContainer}>
             <img 
-              src="/wp_icon_sm.png" 
+              src="/wp_icon_sm.avif" 
               alt="Logo" 
               className={styles.logoIcon}
             />
             <img
-              src="/wp_text_logo.png"
+              src="/wp_text_logo.avif"
               alt="Walking Project"
               className={styles.logoText}
             />
