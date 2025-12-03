@@ -33,7 +33,6 @@ import useMeetingAttendance from "hooks/useMeetingAttendance";
 import { useRegion } from "context/RegionContext";
 import { useAlert } from "hooks/useAlert";
 import { useAuth } from "context/AuthContext";
-import { getUserProfiles } from "utils/userMapping";
 import styles from "styles/tabs/meeting.module.css";
 import Spinner from "components/shared/ui/Spinner";
 import CountdownTimer from "components/shared/ui/CountdownTimer";
@@ -45,8 +44,6 @@ export default function RegionMeetingTab() {
   const { user } = useAuth();
   const [expandedCards, setExpandedCards] = useState({});
   const [meetingStatus, setMeetingStatus] = useState("upcoming");
-  const [attendeeProfiles, setAttendeeProfiles] = useState({});
-  const [actionItemProfiles, setActionItemProfiles] = useState({});
   const { showErrorAlert, showSuccessAlert } = useAlert();
 
   // Find the next upcoming meeting
@@ -62,12 +59,13 @@ export default function RegionMeetingTab() {
       return isAfter(meetingDateTime, now);
     });
     
+    // Return the closest future meeting, or the most recent past meeting if none are future
     return futureMeetings.length > 0 ? futureMeetings[0] : meetings[0];
   }, [meetings]);
 
   const currentMeeting = findNextMeeting();
   
-  // Hook for attendance (for upcoming meetings)
+  // Hook for attendance
   const { 
     attendance, 
     currentUserAttendance,
@@ -76,45 +74,7 @@ export default function RegionMeetingTab() {
     refresh: refreshAttendance
   } = useMeetingAttendance(currentMeeting?.id, regionCode);
 
-  // Load user profiles for attendees and action items
-  useEffect(() => {
-    const loadUserProfiles = async () => {
-      if (!meetings.length) return;
-      
-      // Collect all user_ids from attendees and action_items
-      const userIds = new Set();
-      
-      meetings.forEach(meeting => {
-        // Process attendees (could be array of strings or array of objects)
-        if (meeting.attendees && Array.isArray(meeting.attendees)) {
-          meeting.attendees.forEach(attendee => {
-            if (typeof attendee === 'object' && attendee.user_id) {
-              userIds.add(attendee.user_id);
-            }
-          });
-        }
-        
-        // Process action_items
-        if (meeting.action_items && Array.isArray(meeting.action_items)) {
-          meeting.action_items.forEach(item => {
-            if (item.user_id) {
-              userIds.add(item.user_id);
-            }
-          });
-        }
-      });
-      
-      if (userIds.size > 0) {
-        const profiles = await getUserProfiles(Array.from(userIds));
-        setAttendeeProfiles(profiles);
-        setActionItemProfiles(profiles);
-      }
-    };
-    
-    loadUserProfiles();
-  }, [meetings]);
-
-  // Get next Monday at 7 PM
+  // Get next Monday at 7 PM using date-fns
   const getNextMondayAt7PM = () => {
     const now = new Date();
     let nextMondayDate = nextMonday(now);
@@ -129,7 +89,7 @@ export default function RegionMeetingTab() {
     if (!currentMeeting?.meeting_date) return null;
     
     const meetingDate = parseISO(currentMeeting.meeting_date);
-    const meetingDateTime = setHours(setMinutes(setSeconds(meetingDate, 0), 0), 19);
+    const meetingDateTime = setHours(setMinutes(setSeconds(meetingDate, 0), 0), 19); // 7:00 PM
     return meetingDateTime;
   }, [currentMeeting]);
 
@@ -140,7 +100,7 @@ export default function RegionMeetingTab() {
 
     const now = new Date();
     const diffMs = meetingDateTime - now;
-    const meetingEnd = new Date(meetingDateTime.getTime() + (90 * 60 * 1000));
+    const meetingEnd = new Date(meetingDateTime.getTime() + (90 * 60 * 1000)); // 1.5 hours duration
     
     if (diffMs <= 0 && now < meetingEnd) {
       setMeetingStatus("live");
@@ -155,7 +115,7 @@ export default function RegionMeetingTab() {
 
   useEffect(() => {
     if (meetings.length > 0) {
-      // Expand the second last meeting if available
+      // Expand the second last meeting if available, otherwise expand the first
       const indexToExpand = meetings.length > 1 ? meetings.length - 2 : 0;
       setExpandedCards({
         [meetings[indexToExpand].id]: true
@@ -203,9 +163,10 @@ export default function RegionMeetingTab() {
     }
   };
 
-  // Handle attendance toggle
+  // Handle attendance toggle click
   const handleAttendanceToggle = async () => {
     if (!user) {
+      // Redirect to login page
       router.push('/auth');
       return;
     }
@@ -225,92 +186,6 @@ export default function RegionMeetingTab() {
   // Handle login redirect
   const handleLoginRedirect = () => {
     router.push('/auth');
-  };
-
-  // Helper to render attendees with avatars
-  const renderAttendees = (attendees) => {
-    if (!attendees || !Array.isArray(attendees)) return null;
-    
-    return (
-      <div className={styles.attendeeList}>
-        {attendees.map((attendee, idx) => {
-          // Handle both string and object formats
-          const attendeeName = typeof attendee === 'string' ? attendee : attendee.name;
-          const userId = typeof attendee === 'object' ? attendee.user_id : null;
-          const profile = userId ? attendeeProfiles[userId] : null;
-          
-          return (
-            <div key={idx} className={styles.attendeeWithAvatar}>
-              <div className={styles.attendeeAvatar}>
-                {profile?.avatar_url ? (
-                  <img 
-                    src={profile.avatar_url} 
-                    alt={attendeeName} 
-                    className={styles.avatarImage}
-                  />
-                ) : (
-                  <FaRegUser className={styles.defaultAvatar} />
-                )}
-              </div>
-              <span className={styles.attendeeTag}>
-                {attendeeName}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
-  // Helper to render action items with assignee avatars
-  const renderActionItems = (actionItems) => {
-    if (!actionItems || !Array.isArray(actionItems)) return null;
-    
-    return (
-      <div className={styles.actionItems}>
-        {actionItems.map((item, index) => {
-          const assigneeName = item.assignee || item.assignee_name;
-          const userId = item.user_id;
-          const profile = userId ? actionItemProfiles[userId] : null;
-          
-          return (
-            <div key={index} className={styles.actionItem}>
-              <div className={styles.assigneeWithAvatar}>
-                <div className={styles.assigneeAvatar}>
-                  {profile?.avatar_url ? (
-                    <img 
-                      src={profile.avatar_url} 
-                      alt={assigneeName} 
-                      className={styles.avatarImage}
-                    />
-                  ) : (
-                    <FaRegUser className={styles.defaultAvatar} />
-                  )}
-                </div>
-                <div className={styles.assigneeInfo}>
-                  <strong>{assigneeName}</strong>
-                  {profile?.designation && (
-                    <span className={styles.assigneeDesignation}>
-                      {profile.designation}
-                    </span>
-                  )}
-                </div>
-              </div>
-              
-              {Array.isArray(item.tasks) && item.tasks.length > 0 && (
-                <ul className={styles.taskList}>
-                  {item.tasks.map((task, taskIndex) => (
-                    <li key={taskIndex} className={styles.task}>
-                      {task}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    );
   };
 
   // Error handling
@@ -359,7 +234,7 @@ export default function RegionMeetingTab() {
           )}
         </div>
 
-        {/* Attendance Section - Same as before */}
+        {/* Attendance Section */}
         <div className={styles.attendanceSection}>
           <div className={styles.attendanceHeader}>
             <h5>
@@ -367,6 +242,7 @@ export default function RegionMeetingTab() {
               Who's Attending ({attendance.length})
             </h5>
             
+            {/* Toggle Attendance Button */}
             <div className={styles.attendanceToggleContainer}>
               {user ? (
                 <button 
@@ -413,6 +289,10 @@ export default function RegionMeetingTab() {
                         src={item.profile.avatar_url} 
                         alt={item.profile.name || 'User'} 
                         className={styles.avatarImage}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.parentElement.innerHTML = '<FaRegUser className="' + styles.defaultAvatar + '" />';
+                        }}
                       />
                     ) : (
                       <FaRegUser className={styles.defaultAvatar} />
@@ -435,13 +315,11 @@ export default function RegionMeetingTab() {
               ))}
             </div>
           ) : (
-            <div className={styles.noAttendees}>
-              <FaUsers className={styles.noAttendeesIcon} />
-              <p>No one has marked attendance yet. Be the first!</p>
-            </div>
+            <div/>
           )}
         </div>
 
+        {/* Join Button */}
         <div className={styles.joinSection}>
           <a 
             href={currentMeeting?.meet_link || meetings[0]?.meet_link}
@@ -461,7 +339,7 @@ export default function RegionMeetingTab() {
         </div>
       </div>
 
-      {/* Past Meetings Timeline */}
+      {/* Existing Meetings Timeline */}
       <AnimatePresence>
         {meetings.map((meeting, index) => (
           <motion.div
@@ -513,25 +391,47 @@ export default function RegionMeetingTab() {
                       transition={{ duration: 0.3 }}
                       className={styles.expandedContent}
                     >
-                      {/* Attendees section with avatars */}
-                      {meeting.attendees && meeting.attendees.length > 0 && (
+                      {meeting.attendees?.length > 0 && (
                         <div className={styles.detailSection}>
                           <div className={styles.sectionHeader}>
                             <FaUsers className={styles.sectionIcon} />
                             <h4>Attendees</h4>
                           </div>
-                          {renderAttendees(meeting.attendees)}
+                          <div className={styles.attendeeList}>
+                            {meeting.attendees.map((attendee, idx) => (
+                              <span key={idx} className={styles.attendeeTag}>
+                                {attendee}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       )}
 
-                      {/* Action Items with assignee avatars */}
                       {meeting.action_items && Array.isArray(meeting.action_items) && meeting.action_items.length > 0 && (
                         <div className={styles.detailSection}>
                           <div className={styles.sectionHeader}>
                             <FaTasks className={styles.sectionIcon} />
                             <h4>Action Items</h4>
                           </div>
-                          {renderActionItems(meeting.action_items)}
+                          <div className={styles.actionItems}>
+                            {meeting.action_items.map((item, index) => (
+                              <div key={index} className={styles.actionItem}>
+                                <div className={styles.assignee}>
+                                  {/* If assignee is a user_id, you could fetch their profile here */}
+                                  <strong>{item.assignee}:</strong>
+                                </div>
+                                {Array.isArray(item.tasks) && item.tasks.length > 0 && (
+                                  <ul className={styles.taskList}>
+                                    {item.tasks.map((task, taskIndex) => (
+                                      <li key={taskIndex} className={styles.task}>
+                                        {task}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
 
