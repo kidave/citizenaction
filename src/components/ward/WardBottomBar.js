@@ -82,6 +82,16 @@ export default function WardBottomBar({ activeWardTab }) {
           <FaRoad className={styles.bottomBarIcon} />
           <span className={styles.bottomBarLabel}>Routes</span>
         </button>
+        {/*
+        <button
+          className={`${styles.bottomBarButton} ${activeWardTab === "dashboard" ? styles.active : ""}`}
+          onClick={() => navigateToWardTab("dashboard")}
+          aria-label="Dashboard"
+        >
+          <FaRoad className={styles.bottomBarIcon} />
+          <span className={styles.bottomBarLabel}>Dashboard</span>
+        </button>
+        */}
       </div>
     </>
   );

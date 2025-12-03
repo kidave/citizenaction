@@ -1,0 +1,73 @@
+/* components/feedback/CountdownTimer.module.css */
+.countdownContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #f7fafc;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.countdownIcon {
+  color: #667eea;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.timeUnits {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.timeUnit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 40px;
+}
+
+.timeValue {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2d3748;
+  line-height: 1.2;
+}
+
+.timeLabel {
+  font-size: 0.7rem;
+  color: #718096;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+.liveText {
+  font-weight: 600;
+  color: #10B981;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .countdownContainer {
+    padding: 0.5rem 1rem;
+  }
+  
+  .timeUnits {
+    gap: 0.25rem;
+  }
+  
+  .timeUnit {
+    min-width: 35px;
+  }
+  
+  .timeValue {
+    font-size: 1rem;
+  }
+  
+  .timeLabel {
+    font-size: 0.65rem;
+  }
+}

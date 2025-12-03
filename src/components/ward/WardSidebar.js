@@ -63,6 +63,13 @@ export default function WardSidebar({ disabledWardTabs = [] }) {
           <FaRoad className={styles.tabIcon} />,
           "Routes Identified",
         )}
+        {/*
+        {renderWardTabButton(
+          WARD_TABS.DASHBOARD,
+          <FaRoad className={styles.tabIcon} />,
+          "Dashboard",
+        )}
+        */}
       </div>
     </div>
   );

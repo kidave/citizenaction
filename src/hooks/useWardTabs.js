@@ -10,6 +10,7 @@ export const WARD_TABS = {
   JUNCTION: "junction",
   ACTION: "action",
   ANNOUNCEMENT: "announcement",
+  DASHBOARD: "dashboard",
 };
 
 export const useWardTabs = () => {
