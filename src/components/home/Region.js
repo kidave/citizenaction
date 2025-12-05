@@ -331,11 +331,7 @@ function Region() {
                 </button>
 
                 {hoverWard === ward.code && anchorRect && (
-                  <WardTooltip
-                    wardCode={ward.code}
-                    anchorRect={anchorRect}
-                    onClose={closeTooltip}
-                  />
+                  <WardTooltip ward={ward} anchorRect={anchorRect} onClose={closeTooltip} />
                 )}
               </div>
             ))}

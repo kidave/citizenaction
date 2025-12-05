@@ -155,10 +155,8 @@ export default function RegionMeetingTab() {
 
   useEffect(() => {
     if (meetings.length > 0) {
-      // Expand the second last meeting if available
-      const indexToExpand = meetings.length > 1 ? meetings.length - 2 : 0;
       setExpandedCards({
-        [meetings[indexToExpand].id]: true
+        [meetings[1].id]: true
       });
     }
   }, [meetings]);

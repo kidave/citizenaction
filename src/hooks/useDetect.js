@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
 import { useWardTabs } from "./useWardTabs";
-import { LocationService, LOCATION_STATUS } from "utils/location";
+import { supabase } from "utils/supabaseClient";
+import { LOCATION_STATUS } from "utils/location";
 
 export const useDetect = () => {
   const router = useRouter();
-  const { wardId } = router.query;
   const { activeTab } = useWardTabs();
 
   const [cities, setCities] = useState([]);
@@ -15,83 +15,63 @@ export const useDetect = () => {
   const [selectedCity, setSelectedCity] = useState("MH-MMR-MUM");
   const [selectedDivision, setSelectedDivision] = useState(null);
   const [navigatingWard, setNavigatingWard] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Load cities initially
   useEffect(() => {
     (async () => {
-      setIsLoading(true);
-      try {
-        const cityList = await LocationService.getCities();
-        setCities(cityList);
-
-        const defaultCity = cityList.find(c => c.code === "MH-MMR-MUM");
-        if (defaultCity) {
-          setSelectedCity(defaultCity.code);
-          const divList = await LocationService.getDivisionsByCity(defaultCity.code);
-          setDivisions(divList);
-
-          if (divList.length > 0) {
-            const firstDivision = divList[0];
-            setSelectedDivision(firstDivision.code);
-            const wardList = await LocationService.getWardsByDivision(firstDivision.code);
-            setWards(wardList);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to load initial data:", error);
-      } finally {
-        setIsLoading(false);
-      }
+      const { data } = await supabase.from("city").select("*").order("name");
+      setCities(data);
     })();
   }, []);
 
-  // Handle city change
-  const handleCityChange = useCallback(async (cityCode, preserveDivision = false) => {
-    const city = await LocationService.getCityByCode(cityCode);
-    if (LOCATION_STATUS[city?.status]?.disabled) return;
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
 
-    setIsLoading(true);
-    try {
-      setSelectedCity(cityCode);
-      
-      if (!preserveDivision) {
-        setSelectedDivision(null);
-        setWards([]);
+      const { data, error } = await supabase.rpc("get_city_hierarchy", {
+        city_code_input: "MH-MMR-MUM"
+      });
+
+      if (error || !data) {
+        console.error("Hierarchy load failed:", error);
+        setLoading(false);
+        return;
       }
 
-      const divList = await LocationService.getDivisionsByCity(cityCode);
-      setDivisions(divList);
+      const flatDivisions = data.divisions.map((d) => ({
+        code: d.division.code,
+        name: d.division.name
+      }));
 
-      // Only auto-select first division if not preserving current division
-      if (!preserveDivision && divList.length > 0) {
-        const firstDivision = divList[0];
+      setDivisions(flatDivisions);
+
+      if (flatDivisions.length > 0) {
+        const firstDivision = flatDivisions[0];
         setSelectedDivision(firstDivision.code);
-        const wardList = await LocationService.getWardsByDivision(firstDivision.code);
-        setWards(wardList);
+
+        const wardSet = data.divisions[0].wards;
+        setWards(wardSet);
       }
-    } catch (error) {
-      console.error("Failed to change city:", error);
-    } finally {
-      setIsLoading(false);
-    }
+
+      setLoading(false);
+    })();
   }, []);
 
-  // Handle division change
   const handleDivisionChange = useCallback(async (divisionCode) => {
-    setIsLoading(true);
-    try {
-      setSelectedDivision(divisionCode);
-      const wardList = await LocationService.getWardsByDivision(divisionCode);
-      setWards(wardList);
-    } catch (error) {
-      console.error("Failed to change division:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    setSelectedDivision(divisionCode);
+
+    const { data } = await supabase.rpc("get_city_hierarchy", {
+      city_code_input: "MH-MMR-MUM"
+    });
+
+    const match = data.divisions.find(d => d.division.code === divisionCode);
+    if (match) setWards(match.wards);
   }, []);
 
-  // Handle ward navigation
+  const handleCityChange = useCallback(async (cityCode) => {
+    setSelectedCity(cityCode);
+  }, []);
+
   const handleWardChange = useCallback(
     (wardCode) => {
       setNavigatingWard(wardCode);
@@ -107,11 +87,10 @@ export const useDetect = () => {
     selectedCity,
     selectedDivision,
     navigatingWard,
-    isLoading,
-    setNavigatingWard,
+    loading,
     statusConfig: LOCATION_STATUS,
     handleCityChange,
     handleDivisionChange,
-    handleWardChange,
+    handleWardChange
   };
 };

@@ -1,70 +1,49 @@
+// components/shared/ui/WardTooltip.js
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { LocationService } from "utils/location";
 import styles from "styles/components/feedback/tooltip.module.css";
 
-export default function WardTooltip({ wardCode, anchorRect, onClose }) {
+export default function WardTooltip({ ward, anchorRect, onClose }) {
   const ref = useRef(null);
-  const [pos, setPos] = useState({ left: 0, top: 0 });
-  const [ward, setWard] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [pos, setPos] = useState({ left: 0, top: 0, position: "above" });
 
-  // Single effect for positioning that handles all cases
-  useEffect(() => {
-    if (!anchorRect) return;
+  // Recalculate AFTER component actually renders
+  const recalcPosition = () => {
+    if (!ref.current || !anchorRect) return;
 
-    const calculatePosition = () => {
-      // Use actual dimensions if available, otherwise estimate
-      const tooltipWidth = ref.current?.offsetWidth || 250;
-      const tooltipHeight = ref.current?.offsetHeight || (loading ? 80 : 150);
-      const padding = 8;
+    const tooltipWidth = ref.current.offsetWidth;
+    const tooltipHeight = ref.current.offsetHeight;
+    const padding = 8;
 
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
+    const vw = window.innerWidth;
 
-      let left = anchorRect.left + (anchorRect.width / 2) - (tooltipWidth / 2);
-      let top = anchorRect.top - tooltipHeight - padding;
-      let position = "above";
+    let left =
+      anchorRect.left + anchorRect.width / 2 - tooltipWidth / 2;
 
-      if (left < 12) left = 12;
-      if (left + tooltipWidth > vw - 12) left = vw - tooltipWidth - 12;
+    let top = anchorRect.top - tooltipHeight - padding;
+    let position = "above";
 
-      if (top < 12) {
-        top = anchorRect.bottom + padding;
-        position = "below";
-      }
+    if (left < 12) left = 12;
+    if (left + tooltipWidth > vw - 12)
+      left = vw - tooltipWidth - 12;
 
-      setPos({ left, top, position });
-    };
-
-    calculatePosition();
-
-    // Recalculate after a short delay when data loads
-    if (!loading && ward) {
-      const timer = setTimeout(calculatePosition, 50);
-      return () => clearTimeout(timer);
+    if (top < 12) {
+      top = anchorRect.bottom + padding;
+      position = "below";
     }
-  }, [anchorRect, loading, ward]);
 
+    setPos({ left, top, position });
+  };
+
+  // Initial + rerender positioning
   useEffect(() => {
-    const loadWardData = async () => {
-      try {
-        setLoading(true);
-        const wardData = await LocationService.getWardByCode(wardCode);
-        setWard(wardData);
-      } catch (error) {
-        console.error("Error loading ward data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    recalcPosition();
+    const t = setTimeout(recalcPosition, 25);
+    return () => clearTimeout(t);
+  }, [anchorRect, ward]);
 
-    if (wardCode) {
-      loadWardData();
-    }
-  }, [wardCode]);
-
+  // Handle click outside
   useEffect(() => {
     const handler = (e) => {
       if (ref.current && !ref.current.contains(e.target)) onClose?.();
@@ -76,54 +55,43 @@ export default function WardTooltip({ wardCode, anchorRect, onClose }) {
   return (
     <div
       ref={ref}
-      role="tooltip"
       className={styles.tooltipContainer}
       data-position={pos.position}
       style={{ left: pos.left, top: pos.top }}
     >
-      {loading ? (
-        <div className={styles.tooltipDescription}>Loading ward information...</div>
-      ) : (
-        <>
-          <div className={styles.tooltipTitle}>
-            Ward {ward?.name || wardCode}
+      <div className={styles.tooltipTitle}>Ward {ward.name}</div>
+
+      <div className={styles.tooltipBody}>
+        {ward.description && (
+          <div className={styles.tooltipDescription}>
+            {ward.description}
           </div>
+        )}
 
-          {ward?.description || ward?.areas?.length > 0 || ward?.landmarks?.length > 0 ? (
-            <div className={styles.tooltipBody}>
-              {ward.description && (
-                <div className={styles.tooltipDescription}>{ward.description}</div>
-              )}
-
-              {ward.areas && ward.areas.length > 0 && (
-                <div>
-                  <div className={styles.tooltipLabel}>Areas</div>
-                  <div className={styles.areaList}>
-                    {ward.areas.map((area, index) => (
-                      <span key={index} className={styles.areaItem}>{area}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {ward.landmarks && ward.landmarks.length > 0 && (
-                <div>
-                  <div className={styles.tooltipLabel}>Landmarks</div>
-                  <ul className={styles.landmarkList}>
-                    {ward.landmarks.map((landmark, index) => (
-                      <li key={index}>{landmark}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+        {ward.areas?.length > 0 && (
+          <div>
+            <div className={styles.tooltipLabel}>Areas</div>
+            <div className={styles.areaList}>
+              {ward.areas.map((a, i) => (
+                <span key={i} className={styles.areaItem}>
+                  {a}
+                </span>
+              ))}
             </div>
-          ) : (
-            <div className={styles.tooltipDescription}>
-              No additional information available for this ward.
-            </div>
-          )}
-        </>
-      )}
+          </div>
+        )}
+
+        {ward.landmarks?.length > 0 && (
+          <div>
+            <div className={styles.tooltipLabel}>Landmarks</div>
+            <ul className={styles.landmarkList}>
+              {ward.landmarks.map((lm, i) => (
+                <li key={i}>{lm}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

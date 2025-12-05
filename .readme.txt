@@ -1,0 +1,149 @@
+📘 Walking Project – Technical README
+1. Purpose
+
+The Walking Project is a community-driven platform for:
+
+Ward committees
+
+Meetings + projects + monthly updates
+
+Road/junction evaluations
+
+Civic participation across Mumbai Metropolitan Region
+
+The homepage provides:
+
+Latest Projects
+
+Latest Meetings
+
+Monthly Updates
+
+Region selector → City → Division → Ward
+
+Ward detection using GPS
+
+2. Authentication Flow
+Google OAuth Redirect
+
+User clicks “Login with Google” → Supabase redirects → callback.js → session saved.
+
+AuthContext manages:
+
+user
+
+login()
+
+logout()
+
+access token retrieval
+
+
+Supabase trigger ensures profile row is created on first login.
+
+3. Region → Division → Ward Flow
+
+Managed by:
+
+RegionContext (static MMR region)
+
+
+useDetect() hook for dynamic city/division/ward selection
+
+LocationService for database queries
+
+WardProvider for ward header & navigation state
+
+
+The UI:
+
+Loads cities
+
+Auto-selects Mumbai
+
+Loads divisions
+
+Loads wards
+
+GPS button calls RPC → detects ward
+
+Clicking a ward navigates to /ward/[code]/project
+
+4. Data Fetching (React Query)
+
+Configured globally:
+
+
+Stale time: 5 minutes
+
+Cache time: 30 minutes
+
+No refetch on window focus
+
+useWardData() API
+
+Centralized supabase querying:
+
+
+Supports:
+
+meetings
+
+projects
+
+updates
+
+announcements
+
+roads
+
+junctions
+
+boundaries
+
+header metadata
+
+All cached and deduplicated.
+
+5. Admin Permissions
+
+AdminContext checks roles for each ward via protected API.
+
+
+Roles:
+
+Convener
+
+Co-Convener
+
+Member
+
+Admin-only actions are protected.
+
+6. Database Structure Summary
+Region → City → Division → Ward hierarchy
+
+Tables used:
+
+region
+
+city
+
+division
+
+ward
+
+division_with_ward_order view
+
+7. Performance Strategy
+Already implemented:
+
+✔ React Query caching
+✔ Views for cheap queries
+✔ RPC for geo detection
+
+Recommended:
+
+⬆ Convert cities/divisions/wards into cached static data
+⬆ Add a single RPC to fetch full hierarchy
+⬆ Use Supabase CDN caching for anon reads
