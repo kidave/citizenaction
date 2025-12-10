@@ -1,4 +1,5 @@
 // components/shared/ui/CommitteeButton.js
+import { useState, useEffect } from "react";
 import styles from "styles/components/interact/button.module.css";
 import { motion } from "framer-motion";
 import { useRouter } from "next/router";
@@ -6,96 +7,86 @@ import { useAuth } from "context/AuthContext";
 import { useAlert } from "context/AlertContext";
 import { useUserStatus } from "hooks/useUserStatus";
 
-export default function CommitteeButton({ inline = false, variant = "primary" }) {
+export default function CommitteeButton({ inline = false }) {
+  const router = useRouter();
   const { user } = useAuth();
   const { showAuthAlert } = useAlert();
-  const router = useRouter();
   const { data: status, isLoading } = useUserStatus();
 
-  const handleButtonClick = () => {
-    if (!user) {
-      showAuthAlert();
-      return;
-    }
+  // 🟢 Prevent hydration mismatch
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
+  if (!hydrated) {
+    return (
+      <button className={`${styles.committeeButton} ${styles.secondary}`}>
+        Join Committee
+      </button>
+    );
+  }
 
-    if (status?.is_member && status.ward_code) {
-      const isLeader = status.scope_role && ['Convener', 'Co Convener', 'Member'].includes(status.scope_role);
-      
-      // Use the correct route structure based on your project
-      if (isLeader) {
-        router.push(`/admin/${status.ward_code}/project`);
-      } else {
-        router.push(`/ward/${status.ward_code}/project`);
-      }
-      return;
-    }
+  const goToScopeDashboard = () => {
+    if (!status) return;
 
-    if (status?.has_application) {
-      if (status.application_status === "Pending") {
-        console.log("Application is pending approval");
-        return;
-      }
-      // For rejected or any other status, allow re-application
-      router.push("/joincommittee");
-      return;
+    switch (status.scope_type) {
+      case "Ward":
+        return router.push(`/admin/ward/${status.ward_code}/project`);
+      case "City":
+        return router.push(`/admin/city/${status.city_code}/project`);
+      case "Region":
+        return router.push(`/admin/region/${status.region_code}/project`);
+      case "State":
+        return router.push(`/admin/state/${status.state_code}/project`);
+      default:
+        return router.push("/joincommittee");
     }
-
-    // New application
-    router.push("/joincommittee");
   };
 
-  if (isLoading && user) {
+  const handleClick = () => {
+    if (!user) return showAuthAlert();
+
+    if (status?.is_member) return goToScopeDashboard();
+
+    if (status?.has_application) {
+      if (status.application_status === "Pending") return;
+      return router.push("/joincommittee");
+    }
+
+    return router.push("/joincommittee");
+  };
+
+  // 🟡 Loading (but only if no cached status)
+  if (isLoading && !status) {
+    return (
+      <motion.button className={`${styles.committeeButton} ${styles.secondary}`}>
+        <span className={styles.spinner}></span> Checking...
+      </motion.button>
+    );
+  }
+
+  // 🟢 Member state (multi-scope)
+  if (status?.is_member) {
+    const label =
+      status.ward_name ||
+      status.city_code ||
+      status.region_code ||
+      status.state_code ||
+      "Committee";
+
     return (
       <motion.button
-        className={`${styles.committeeButton} ${variant === "secondary" ? styles.secondary : ""} ${inline ? styles.inline : ""}`}
-        disabled
+        onClick={goToScopeDashboard}
+        className={`${styles.committeeButton} ${styles.secondary} ${inline ? styles.inline : ""}`}
+        title={`Role: ${status.scope_role}`}
       >
         <span className={styles.buttonContent}>
-          <span className={styles.spinner}></span>
-          Checking...
+          {label}
+          <span className={styles.roleBadge}>{status.scope_role}</span>
         </span>
       </motion.button>
     );
   }
 
-  if (status?.is_member && status.ward_code) {
-    const isLeader = status.scope_role && ['Convener', 'Co Convener', 'Member'].includes(status.scope_role);
-    const buttonText = status.ward_name || `Ward ${status.ward_code}`;
-    
-    // Add role display for better UX
-    const getRoleDisplay = () => {
-      if (!status.scope_role) return '';
-      return status.scope_role;
-    };
-
-    const roleDisplay = getRoleDisplay();
-    
-    return (
-      <motion.button
-        onClick={() => {
-          if (isLeader) {
-            router.push(`/admin/ward/${status.ward_code}/project`);
-          } else {
-            router.push(`/ward/${status.ward_code}/project`);
-          }
-        }}
-        className={`${styles.committeeButton} ${variant === "secondary" ? styles.secondary : ""} ${inline ? styles.inline : ""}`}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        title={roleDisplay ? `Role: ${roleDisplay}` : ''}
-      >
-        <span className={styles.buttonContent}>
-          {buttonText}
-          {roleDisplay && (
-            <span className={styles.roleBadge}>
-              {roleDisplay}
-            </span>
-          )}
-        </span>
-      </motion.button>
-    );
-  }
-
+  // 🟡 Pending application
   if (status?.has_application && status.application_status === "Pending") {
     return (
       <div className={`${styles.pendingStatus} ${inline ? styles.inline : ""}`}>
@@ -104,12 +95,11 @@ export default function CommitteeButton({ inline = false, variant = "primary" })
     );
   }
 
+  // 🟢 Default
   return (
     <motion.button
-      onClick={handleButtonClick}
-      className={`${styles.committeeButton} ${variant === "secondary" ? styles.secondary : ""} ${inline ? styles.inline : ""}`}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
+      onClick={handleClick}
+      className={`${styles.committeeButton} ${styles.secondary} ${inline ? styles.inline : ""}`}
     >
       Join Committee
     </motion.button>

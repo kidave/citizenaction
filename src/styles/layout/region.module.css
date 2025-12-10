@@ -522,6 +522,7 @@
   padding: 12px 20px;
   font-size: 1rem;
   font-weight: 500;
+  text-decoration: none;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;

@@ -1,7 +1,6 @@
 // components/region/RegionLayout.js
 import { useMediaQuery } from "react-responsive";
 import { useRouter } from "next/router";
-import Layout from "components/home/Layout";
 import { RegionProvider } from "context/RegionContext";
 import RegionSidebar from "./RegionSidebar";
 import RegionBottombar from "./RegionBottombar";
@@ -31,7 +30,6 @@ function RegionLayoutContent() {
   };
 
   return (
-    <Layout>
       <div className={styles.page}>
         {/* Show sidebar on desktop only */}
         {isDesktop && <RegionSidebar />}
@@ -43,7 +41,6 @@ function RegionLayoutContent() {
         {/* Show bottom bar on mobile */}
         {(isMobile || isTablet) && <RegionBottombar activeRegionTab={activeTab} />}
       </div>
-    </Layout>
   );
 }
 

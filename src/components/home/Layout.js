@@ -4,7 +4,7 @@ import Head from "next/head";
 import Header from "./Header";
 import Footer from "./Footer";
 
-export default function Layout({ children, showHeader = true, showFooter = true }) {
+export default function Layout({ children }) {
   return (
     <>
       <Head>
@@ -13,12 +13,9 @@ export default function Layout({ children, showHeader = true, showFooter = true 
       </Head>
 
       <div className={styles.layout}>
-        {showHeader && (
-          <Header>
-          </Header>
-        )}
-        <main className={styles.main}>{children}</main>
-        {showFooter && <Footer />}
+        <Header />
+        <div className={styles.main}>{children}</div>
+        <Footer />
       </div>
     </>
   );

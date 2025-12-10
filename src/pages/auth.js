@@ -2,11 +2,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "context/AuthContext";
-import Head from "next/head";
 import styles from "styles/pages/auth.module.css";
 import { FcGoogle } from "react-icons/fc";
 import { FiArrowLeft, FiLoader, FiShield, FiLock } from "react-icons/fi";
-import Layout from "components/home/Layout";
 
 export default function Auth() {
   const [loading, setLoading] = useState(false);
@@ -49,17 +47,15 @@ export default function Auth() {
   };
 
   return (
-    <Layout >
-      <Head>
-        <title>Login | Walking Project</title>
-      </Head>
 
       <div className={styles.container}>
         <div className={styles.authCard}>
-          <button onClick={handleBack} className={styles.backButton}>
+          <a 
+            href="/"
+            className={styles.backButton}>
             <FiArrowLeft size={24} />
             Back
-          </button>
+          </a>
           
           <div className={styles.logoContainer}>
             <img 
@@ -122,6 +118,5 @@ export default function Auth() {
           <div className={styles.floatingElement}></div>
         </div>
       </div>
-    </Layout>
   );
 }

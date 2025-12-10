@@ -1,9 +1,9 @@
-import { useRouter } from "next/router";
+import Link from "next/link";
 import styles from "styles/components/design/Logo.module.css";
 
-export default function Logo({ 
+export default function Logo({
   logo = { 
-    icon: "/wp_icon_sm.avif", 
+    icon: "/wp_icon_sm.avif",
     text: "/wp_text_logo.avif",
     homeLink: "/"
   },
@@ -11,32 +11,24 @@ export default function Logo({
   showIcon = true,
   showText = true
 }) {
-  const router = useRouter();
-
   return (
-    <div
-      className={`${styles.logoContainer} ${className}`}
-      onClick={() => router.push(logo.homeLink)}
-      aria-label="Home"
-      role="button"
-      tabIndex={0}
-    >
+    <Link href={logo.homeLink} className={`${styles.logoContainer} ${className}`}>
       <div className={styles.logo}>
         {showIcon && (
           <img 
             src={logo.icon} 
-            alt="Logo" 
+            alt="Logo Icon"
             className={styles.logoIcon}
           />
         )}
         {showText && (
           <img
             src={logo.text}
-            alt="Walking Project"
+            alt="Walking Project Logo Text"
             className={styles.logoText}
           />
         )}
       </div>
-    </div>
+    </Link>
   );
 }

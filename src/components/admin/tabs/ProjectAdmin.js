@@ -214,7 +214,7 @@ function ProjectForm({ wardCode, project = {}, onSave, onCancel }) {
   useEffect(() => {
     setForm({ 
       title: "", 
-      status: "pending", 
+      status: "Pending", 
       start_date: "", 
       location: "",
       description: "",

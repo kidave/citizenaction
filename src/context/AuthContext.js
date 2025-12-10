@@ -1,12 +1,14 @@
 // context/AuthContext.js
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "utils/supabaseClient";
+import { useQueryClient } from "@tanstack/react-query";
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     // Get initial session
@@ -35,7 +37,15 @@ export function AuthProvider({ children }) {
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
 
-  const logout = () => supabase.auth.signOut();
+  const logout = async () => {
+    await supabase.auth.signOut();
+
+    // Clear all committee / user cache
+    localStorage.removeItem("userStatus");
+    queryClient.removeQueries({ queryKey: ["userStatus"] });
+
+    setUser(null);
+  };
 
   const getAccessToken = async () => {
     const {

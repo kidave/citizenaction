@@ -1,7 +1,6 @@
 // components/ward/WardLayout.js
 import { useMediaQuery } from "react-responsive";
 import styles from "styles/layout/container.module.css";
-import Layout from "components/home/Layout";
 import WardSidebar from "./WardSidebar";
 import WardBottomBar from "./WardBottomBar";
 import WardHeader from "./WardHeader";
@@ -38,7 +37,6 @@ function WardLayoutContent() {
   };
 
   return (
-    <Layout>
       <div className={styles.page}>
         {/* Show sidebar on desktop only */}
         {isDesktop && <WardSidebar />}
@@ -51,7 +49,6 @@ function WardLayoutContent() {
         {/* Show bottom bar on mobile AND tablet */}
         {(isMobile || isTablet) && <WardBottomBar activeWardTab={activeTab} />}
       </div>
-    </Layout>
   );
 }
 

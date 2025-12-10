@@ -1,36 +1,34 @@
 // components/home/Header.js
 import styles from "styles/layout/header.module.css";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import { FiChevronDown, FiMenu, FiX } from "react-icons/fi";
 import { useAuth } from "context/AuthContext";
+import Logo from "components/shared/design/Logo";
 import CommitteeButton from "components/shared/ui/CommitteeButton";
 
 export default function Header() {
   const router = useRouter();
   const { user, profile, logout } = useAuth();
 
-  const [openDropdown, setOpenDropdown] = useState(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // 🔥 Prevent hydration mismatch: detect layout width on client
-  const [isDesktop, setIsDesktop] = useState(null);
+  const [isDesktop, setIsDesktop] = useState(
+    typeof window !== "undefined" ? window.innerWidth > 1024 : true
+  );
+
 
   useEffect(() => {
-    const checkWidth = () => {
+    const handleResize = () => {
       setIsDesktop(window.innerWidth > 1024);
     };
 
-    checkWidth(); // initial run on client
-    window.addEventListener("resize", checkWidth);
-
-    return () => window.removeEventListener("resize", checkWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  const handleDropdownToggle = (label) => {
-    setOpenDropdown(openDropdown === label ? null : label);
-  };
 
   const toggleProfileDropdown = () => {
     setProfileOpen(!profileOpen);
@@ -63,21 +61,10 @@ export default function Header() {
     ],
   };
 
-  const staticMenu = [{ label: "Home", path: "/" }];
-
   return (
     <header className={styles.header}>
 
-      {/* Logo */}
-      <div
-        className={styles.logoContainer}
-        onClick={() => router.push("/")}
-      >
-        <div className={styles.logo}>
-          <img src="/wp_icon_sm.avif" alt="Logo" className={styles.logoIcon} />
-          <img src="/wp_text_logo.avif" alt="Walking Project" className={styles.logoText} />
-        </div>
-      </div>
+      <Logo />
 
       {/* Layout hidden during SSR to avoid mobile→desktop jump */}
       {isDesktop === null ? null : (
@@ -85,58 +72,36 @@ export default function Header() {
           {/* DESKTOP NAV */}
           {isDesktop && (
             <nav className={styles.desktopNav}>
-              {staticMenu.map((item) => (
-                <button
-                  key={item.label}
-                  className={`${styles.navButton} ${isActive(item.path) ? styles.active : ""}`}
-                  onClick={() => router.push(item.path)}
-                >
-                  {item.label}
-                </button>
-              ))}
 
               {Object.keys(dropdownItems).map((label) => (
                 <div key={label} className={styles.dropdown}>
-                  <button
-                    className={`${styles.navButton} ${
-                      dropdownItems[label].some((i) => isActive(i.path))
-                        ? styles.active
-                        : ""
-                    }`}
-                    onClick={() => handleDropdownToggle(label)}
-                  >
+                  <div className={styles.dropdownTrigger} tabIndex="0">
                     {label}
-                    <FiChevronDown size={14} style={{ marginLeft: 5 }} />
-                  </button>
+                    <FiChevronDown size={14} />
+                  </div>
 
-                  {openDropdown === label && (
-                    <div className={styles.dropdownContent}>
-                      {dropdownItems[label].map((subItem) => (
-                        <div
-                          key={subItem.label}
-                          className={`${styles.dropdownItem} ${
-                            isActive(subItem.path) ? styles.active : ""
-                          }`}
-                          onClick={() => router.push(subItem.path)}
-                        >
-                          {subItem.label}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <div className={styles.dropdownContent}>
+                    {dropdownItems[label].map((subItem) => (
+                      <Link 
+                        key={subItem.label}
+                        href={subItem.path}
+                        className={styles.dropdownItem}
+                      >
+                        {subItem.label}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               ))}
 
               {/* LOGIN / PROFILE */}
               {!user ? (
-                <button
-                  className={`${styles.navButton} ${
-                    router.pathname === "/auth" ? styles.active : ""
-                  }`}
-                  onClick={() => router.push("/auth")}
+                <Link
+                  href="/auth"
+                  className={styles.navButton}
                 >
                   Login
-                </button>
+                </Link>
               ) : (
                 <div className={styles.profileWrapper} onClick={toggleProfileDropdown}>
                   <img
@@ -169,7 +134,7 @@ export default function Header() {
               )}
 
               <div className={styles.committeeButtonWrapper}>
-                <CommitteeButton inline={true} variant="secondary" />
+                <CommitteeButton inline={true} />
               </div>
             </nav>
           )}
@@ -202,21 +167,8 @@ export default function Header() {
                 </button>
 
                 <div className={styles.mobileNavContent}>
-                  {staticMenu.map((item) => (
-                    <div
-                      key={item.label}
-                      className={styles.mobileNavItem}
-                      onClick={() => {
-                        router.push(item.path);
-                        setMobileOpen(false);
-                      }}
-                    >
-                      {item.label}
-                    </div>
-                  ))}
-
                   <div className={styles.mobileCommitteeButton}>
-                    <CommitteeButton inline={true} variant="secondary" />
+                    <CommitteeButton inline={true} />
                   </div>
 
                   {Object.keys(dropdownItems).map((label) => (

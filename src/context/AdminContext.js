@@ -1,66 +1,33 @@
 // context/AdminContext.js
-import { createContext, useContext, useEffect, useState } from "react";
-import { useAuth } from "./AuthContext";
+import { createContext, useContext, useEffect } from "react";
+import { useUserStatus } from "hooks/useUserStatus";
 import { useRouter } from "next/router";
 
 const AdminContext = createContext();
 
-export function AdminProvider({ children, wardCode }) {
-  const { getAccessToken, user } = useAuth();
-  const [userRole, setUserRole] = useState(null);
-  const [scopeType, setScopeType] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [hasFetched, setHasFetched] = useState(false);
+export function AdminProvider({ children }) {
+  const { data: status, isLoading } = useUserStatus();
 
-  useEffect(() => {
-    if (!user || !wardCode || hasFetched) {
-      if (!user || !wardCode) {
-        setUserRole(null);
-        setScopeType(null);
-        setLoading(false);
-      }
-      return;
-    }
+  const role = status?.scope_role || null;
+  const scope = status?.scope_type || null;
 
-    const fetchRole = async () => {
-      setLoading(true);
-      try {
-        const token = await getAccessToken();
-        const res = await fetch(`/api/ward/${wardCode}/role`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        
-        // Updated to use scope_role and scope_type
-        setUserRole(data?.scope_role || null);
-        setScopeType(data?.scope_type || null);
-        setHasFetched(true);
-      } catch (e) {
-        console.error("Error fetching admin role:", e);
-        setUserRole(null);
-        setScopeType(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRole();
-  }, [user, wardCode, getAccessToken, hasFetched]);
-
-  // Updated admin check using scope_role
-  const isAdmin = userRole && ['Convener', 'Co Convener', 'Member'].includes(userRole);
-  const isLeader = userRole && ['Convener', 'Co Convener', 'Member'].includes(userRole);
-  const isConvener = userRole === 'Convener';
+  // Same logic you had:
+  const isLeader = role && ["Convener", "Co Convener", "Member"].includes(role);
+  const isAdmin = isLeader;
+  const isConvener = role === "Convener";
 
   return (
-    <AdminContext.Provider value={{ 
-      userRole, 
-      scopeType, 
-      isAdmin, 
-      isLeader, 
-      isConvener,
-      loading 
-    }}>
+    <AdminContext.Provider
+      value={{
+        loading: isLoading,
+        userRole: role,
+        scopeType: scope,
+        status,
+        isAdmin,
+        isLeader,
+        isConvener,
+      }}
+    >
       {children}
     </AdminContext.Provider>
   );
@@ -70,9 +37,12 @@ export function useAdmin({ require = false, wardCode, fallbackTab = "meeting" } 
   const ctx = useContext(AdminContext);
   const router = useRouter();
 
+  // Keep your redirect logic exactly as-is
   useEffect(() => {
-    if (!ctx.loading && require && !ctx.isAdmin && wardCode) {
-      router.replace(`/ward/${wardCode}/${fallbackTab}`);
+    if (!ctx.loading && require) {
+      if (!ctx.isAdmin && wardCode) {
+        router.replace(`/ward/${wardCode}/${fallbackTab}`);
+      }
     }
   }, [ctx.loading, ctx.isAdmin, require, wardCode, fallbackTab, router]);
 

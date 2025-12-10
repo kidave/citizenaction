@@ -1,7 +1,6 @@
 // pages/index.js
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react"; 
-import Layout from "components/home/Layout";
 import About from "components/home/About";
 import Region from "components/home/Region";
 import LatestMeetings from "components/home/LatestMeetings";
@@ -45,7 +44,7 @@ export default function Home() {
   const isHeroInView = useInView(heroRef, { once: true });
 
   return (
-    <Layout>
+    <div className={styles.landing}>  
       {/* Ongoing Improvement Banner */}
       <div className={styles.improvementBanner}>
         <div className={styles.bannerContent}>
@@ -53,7 +52,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className={styles.landing}>        
+            
         {/* Latest Projects Section */}
         <SectionWrapper id="latest-projects" className={styles.projectSection}>
           <LatestProjects limit={2} />
@@ -178,6 +177,5 @@ export default function Home() {
           </div>
         </SectionWrapper>
       </div>
-    </Layout>
   );
 }

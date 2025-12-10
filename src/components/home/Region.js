@@ -303,9 +303,9 @@ function Region() {
                 style={{ position: "relative", display: "inline-block" }}
                 ref={(el) => (wardButtonsRef.current[ward.code] = el)}
                 onMouseEnter={(e) => {
-                  const rect = e.currentTarget
-                    .querySelector("button")
-                    ?.getBoundingClientRect();
+                  const target = e.currentTarget.querySelector("a, button");
+                  const rect = target?.getBoundingClientRect();
+
                   if (!rect) return;
                   setHoverWard(ward.code);
                   setAnchorRect({
@@ -319,7 +319,8 @@ function Region() {
                 }}
                 onMouseLeave={closeTooltip}
               >
-                <button
+                <a
+                  href={`/ward/${ward.code}/project`}
                   className={styles.wardBtn}
                   onClick={() => handleWardChange(ward.code)}
                   disabled={!!navigatingWard}
@@ -328,7 +329,7 @@ function Region() {
                   {detectedWard?.code === ward.code && (
                     <span className={styles.wardBadge}>You</span>
                   )}
-                </button>
+                </a>
 
                 {hoverWard === ward.code && anchorRect && (
                   <WardTooltip ward={ward} anchorRect={anchorRect} onClose={closeTooltip} />

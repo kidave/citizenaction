@@ -2,8 +2,6 @@
 import { useEffect, useState } from "react";
 import styles from "styles/pages/forum-home.module.css";
 import Head from "next/head";
-import Header from "components/home/Header";
-import Footer from "components/home/Footer";
 import { useAuth } from "context/AuthContext";
 import Link from "next/link";
 import { supabase } from "utils/supabaseClient";
@@ -50,7 +48,6 @@ export default function CommunityForum() {
 
   return (
     <div className={styles.container}>
-      <Header />
       <Head>
         <title>Community Connect | Share, Create, Grow Together</title>
         <meta
@@ -245,7 +242,6 @@ export default function CommunityForum() {
         </section>
       )}
 
-      <Footer />
     </div>
   );
 }

@@ -1,4 +1,3 @@
-// pages/_app.js
 import { Open_Sans } from "next/font/google";
 import Head from "next/head";
 import "styles/main.css";
@@ -7,8 +6,8 @@ import "react-phone-input-2/lib/style.css";
 import { AuthProvider } from "context/AuthContext";
 import { AlertProvider } from "context/AlertContext";
 import GlobalAlert from "components/shared/alert/GlobalAlert";
+import Layout from "components/home/Layout";
 
-// 🧠 React Query Imports
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const openSans = Open_Sans({
@@ -17,37 +16,34 @@ const openSans = Open_Sans({
   variable: "--font-main",
 });
 
-// ⚙️ React Query Client Configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // Data considered fresh for 5 min
-      cacheTime: 1000 * 60 * 30, // Stored in cache for 30 min
-      refetchOnWindowFocus: false, // Don't auto-refetch when switching tabs
-      retry: 1, // Retry once on network error
+      staleTime: 5 * 60 * 1000,
+      cacheTime: 30 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      retry: 1,
     },
   },
 });
 
 function MyApp({ Component, pageProps }) {
-  const getLayout = Component.getLayout || ((page) => page);
-
   return (
     <>
       <Head>
-        <meta
-          name="google-site-verification"
-          content="xFeTRB7PfCuzivu7kWdkZldq7mkRsTcEvqSiKqYxfic"
-        />
+        <meta name="google-site-verification" content="xFeTRB7..." />
       </Head>
 
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <AlertProvider>
-            <main className={openSans.variable}>
-              {getLayout(<Component {...pageProps} />)}
-              <GlobalAlert /> 
-            </main>
+            {/* Persistent layout applied globally */}
+            <Layout>
+              <main className={openSans.variable}>
+                <Component {...pageProps} />
+                <GlobalAlert />
+              </main>
+            </Layout>
           </AlertProvider>
         </AuthProvider>
       </QueryClientProvider>
