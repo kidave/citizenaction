@@ -4,16 +4,26 @@ import { useAuth } from "context/AuthContext";
 
 export default function useProfile() {
   const { user, getAccessToken } = useAuth();
-  const [profile, setProfile] = useState(() => {
-    return JSON.parse(localStorage.getItem("profile") || "null");
-  });
+  
+  // Safely access localStorage only on client-side
+  const getStoredProfile = () => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("profile");
+      return stored ? JSON.parse(stored) : null;
+    }
+    return null;
+  };
+
+  const [profile, setProfile] = useState(getStoredProfile());
   const [loading, setLoading] = useState(!profile);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!user) {
       setProfile(null);
-      localStorage.removeItem("profile");
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("profile");
+      }
       return;
     }
 
@@ -28,7 +38,9 @@ export default function useProfile() {
         if (!res.ok) throw new Error(data.error || "Failed to load profile");
 
         setProfile(data);
-        localStorage.setItem("profile", JSON.stringify(data));
+        if (typeof window !== "undefined") {
+          localStorage.setItem("profile", JSON.stringify(data));
+        }
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -37,7 +49,7 @@ export default function useProfile() {
     };
 
     fetchProfile();
-  }, [user]);
+  }, [user, getAccessToken]);
 
   return { profile, loading, error };
 }

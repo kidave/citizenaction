@@ -14,14 +14,15 @@ export default function Header() {
 
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false); // Track client-side mounting
 
-  // 🔥 Prevent hydration mismatch: detect layout width on client
-  const [isDesktop, setIsDesktop] = useState(
-    typeof window !== "undefined" ? window.innerWidth > 1024 : true
-  );
-
+  // Initialize state safely for SSR
+  const [isDesktop, setIsDesktop] = useState(true); // Default to true for SSR
 
   useEffect(() => {
+    setIsMounted(true); // Component is now mounted on client
+    setIsDesktop(window.innerWidth > 1024);
+    
     const handleResize = () => {
       setIsDesktop(window.innerWidth > 1024);
     };
@@ -63,23 +64,20 @@ export default function Header() {
 
   return (
     <header className={styles.header}>
-
       <Logo />
 
-      {/* Layout hidden during SSR to avoid mobile→desktop jump */}
-      {isDesktop === null ? null : (
+      {/* Only render navigation after component is mounted on client */}
+      {isMounted && (
         <>
           {/* DESKTOP NAV */}
           {isDesktop && (
             <nav className={styles.desktopNav}>
-
               {Object.keys(dropdownItems).map((label) => (
                 <div key={label} className={styles.dropdown}>
                   <div className={styles.dropdownTrigger} tabIndex="0">
                     {label}
                     <FiChevronDown size={14} />
                   </div>
-
                   <div className={styles.dropdownContent}>
                     {dropdownItems[label].map((subItem) => (
                       <Link 
@@ -96,10 +94,7 @@ export default function Header() {
 
               {/* LOGIN / PROFILE */}
               {!user ? (
-                <Link
-                  href="/auth"
-                  className={styles.navButton}
-                >
+                <Link href="/auth" className={styles.navButton}>
                   Login
                 </Link>
               ) : (
@@ -114,7 +109,6 @@ export default function Header() {
                     className={styles.avatar}
                     onError={(e) => (e.target.src = "/user1.png")}
                   />
-
                   {profileOpen && (
                     <div className={styles.profileDropdown}>
                       <div
@@ -165,12 +159,10 @@ export default function Header() {
                 >
                   <FiX size={24} />
                 </button>
-
                 <div className={styles.mobileNavContent}>
                   <div className={styles.mobileCommitteeButton}>
                     <CommitteeButton inline={true} />
                   </div>
-
                   {Object.keys(dropdownItems).map((label) => (
                     <div key={label} className={styles.mobileNavSection}>
                       <strong>{label}</strong>
@@ -188,7 +180,6 @@ export default function Header() {
                       ))}
                     </div>
                   ))}
-
                   {!user ? (
                     <div
                       className={styles.mobileNavItem}
