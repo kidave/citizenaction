@@ -2,11 +2,12 @@ import { motion } from "framer-motion";
 import { FiMapPin, FiCalendar, FiArrowRight, FiImage } from "react-icons/fi";
 import useLatestItems from "hooks/useLatestItems";
 import styles from "styles/layout/latest-items.module.css";
+import Spinner from "components/shared/ui/Spinner";
 
 export default function LatestMeetings({ limit = 3 }) {
   const { data: meetings, loading, error } = useLatestItems("meeting", limit);
 
-  if (loading) return <div className={styles.loading}>Loading meetings...</div>;
+  if (loading) return <Spinner mode="inline" size="small"/>;
   if (error)
     return <div className={styles.noData}><p>Error: {error}</p></div>;
   if (!meetings?.length)

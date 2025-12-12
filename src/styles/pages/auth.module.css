@@ -99,20 +99,6 @@
   transform: none;
 }
 
-.spinner {
-  border: 4px solid rgba(102, 126, 234, 0.2);
-  border-left-color: #667eea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  background: transparent;
-  mask: none;
-  -webkit-mask: none;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
 
 .error {
   background: rgba(254, 215, 215, 0.3);

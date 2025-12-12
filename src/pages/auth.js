@@ -5,6 +5,7 @@ import { useAuth } from "context/AuthContext";
 import styles from "styles/pages/auth.module.css";
 import { FcGoogle } from "react-icons/fc";
 import { FiArrowLeft, FiLoader, FiShield, FiLock } from "react-icons/fi";
+import Spinner from "components/shared/ui/Spinner";
 
 export default function Auth() {
   const [loading, setLoading] = useState(false);
@@ -78,7 +79,7 @@ export default function Auth() {
             disabled={loading}
           >
             {loading ? (
-              <FiLoader className={styles.spinner} size={20} />
+              <Spinner size="small" mode="inline" />
             ) : (
               <FcGoogle size={20} />
             )}

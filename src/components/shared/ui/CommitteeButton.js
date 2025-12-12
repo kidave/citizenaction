@@ -7,7 +7,7 @@ import { useAuth } from "context/AuthContext";
 import { useAlert } from "context/AlertContext";
 import { useUserStatus } from "hooks/useUserStatus";
 
-export default function CommitteeButton({ inline = false }) {
+export default function CommitteeButton() {
   const router = useRouter();
   const { user } = useAuth();
   const { showAuthAlert } = useAlert();
@@ -75,7 +75,7 @@ export default function CommitteeButton({ inline = false }) {
     return (
       <motion.button
         onClick={goToScopeDashboard}
-        className={`${styles.committeeButton} ${styles.secondary} ${inline ? styles.inline : ""}`}
+        className={styles.committeeButton}
         title={`Role: ${status.scope_role}`}
       >
         <span className={styles.buttonContent}>
@@ -89,7 +89,7 @@ export default function CommitteeButton({ inline = false }) {
   // 🟡 Pending application
   if (status?.has_application && status.application_status === "Pending") {
     return (
-      <div className={`${styles.pendingStatus} ${inline ? styles.inline : ""}`}>
+      <div className={styles.pendingStatus}>
         Application Pending
       </div>
     );
@@ -99,7 +99,7 @@ export default function CommitteeButton({ inline = false }) {
   return (
     <motion.button
       onClick={handleClick}
-      className={`${styles.committeeButton} ${styles.secondary} ${inline ? styles.inline : ""}`}
+      className={styles.committeeButton}
     >
       Join Committee
     </motion.button>

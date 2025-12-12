@@ -2,11 +2,12 @@ import { motion } from "framer-motion";
 import { FiMapPin, FiArrowRight, FiFileText, FiImage } from "react-icons/fi";
 import useLatestItems from "hooks/useLatestItems";
 import styles from "styles/layout/latest-items.module.css";
+import Spinner from "components/shared/ui/Spinner";
 
 export default function LatestUpdates({ limit = 3 }) {
   const { data: updates, loading, error } = useLatestItems("update", limit);
 
-  if (loading) return <div className={styles.loading}>Loading updates...</div>;
+  if (loading) return <Spinner mode="inline" size="small"/>;
   if (error)
     return <div className={styles.noData}><p>Error: {error}</p></div>;
   if (!updates?.length)

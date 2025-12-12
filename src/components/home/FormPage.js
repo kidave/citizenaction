@@ -8,6 +8,7 @@ import SuccessAlert from "components/shared/alert/SuccessAlert";
 import AuthAlert from "components/shared/alert/AuthAlert";
 import styles from "styles/pages/joincommittee.module.css";
 import Image from "next/image";
+import Spinner from "components/shared/ui/Spinner";
 
 export default function Form() {
   const router = useRouter();
@@ -76,7 +77,6 @@ export default function Form() {
       expectations: data.expectations
     });
 
-
     // Auth requirement is handled by the hook and AuthAlert component
     if (result.success) {
       // Success handled by the SuccessAlert component
@@ -114,7 +114,7 @@ export default function Form() {
       {loading && (
         <div className={styles.loadingOverlay}>
           <div className={styles.loadingContent}>
-            <div className={styles.spinner}></div>
+            <Spinner mode="inline" />
             <h3>Submitting your application...</h3>
             <p>Please wait while we process your request.</p>
           </div>
@@ -123,29 +123,14 @@ export default function Form() {
 
       {/* Main Content with conditional blur */}
       <div className={`${styles.formContainer} ${loading ? styles.blurred : ""}`}>
-        {/* Left Side - Improved Content */}
-        <div className={styles.contentSide}>
-          <div className={styles.logoContainer}>
-            <Image 
-              src="/wp_icon_sm.avif" 
-              alt="Walking Project Logo" 
-              width={40}
-              height={40}
-              className={styles.logo}
-            />
-            <Image 
-              src="/wp_text_logo.avif" 
-              alt="Walking Project Text Logo" 
-              width={180}
-              height={40}
-              className={styles.logo}
-            />
-          </div>
-          
+        
+        {/* TOP ROW - Header */}
+        <div className={styles.topRow}>
           <div className={styles.contentHeader}>
-            <p>Become a part of your <strong>Ward Committee</strong> to create better urban spaces and improving everday life.</p>
+            <p>Become a part of your <strong>Ward Committee</strong> to create better urban spaces and improving everyday life.</p>
           </div>
           
+          {/* Features List - Horizontal Row */}
           <ul className={styles.featuresList}>
             <li>
               <span className={styles.featureIcon}>✓</span>
@@ -164,22 +149,12 @@ export default function Form() {
               <span>Help shape sustainable neighborhoods</span>
             </li>
           </ul>
-          
-          <div className={styles.contactInfo}>
-            <p><strong>Questions?</strong> Contact us at info@walkingproject.org</p>
-          </div>
         </div>
 
-        {/* Right Side - Form */}
-        <div className={styles.formSide}>
-          <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
-            {error && !showAuthAlert && (
-              <div className={styles.error}>
-                <span className={styles.errorLabel}>Error:</span> {error}
-              </div>
-            )}
-
-            {/* SECTION 1 — Personal Information */}
+        {/* MIDDLE ROW - Left & Right Split */}
+        <div className={styles.middleRow}>
+          {/* LEFT SIDE - Personal Information */}
+          <div className={styles.leftSide}>
             <h3 className={styles.sectionTitle}>Your Details</h3>
 
             <div className={styles.formGrid}>
@@ -229,7 +204,6 @@ export default function Form() {
               </div>
             </div>
 
-
             {/* SECTION 2 — Contact */}
             <h3 className={styles.sectionTitle}>Contact</h3>
 
@@ -244,53 +218,76 @@ export default function Form() {
               />
               {errors.mobile && <span className={styles.errorText}>{errors.mobile.message}</span>}
             </div>
+          </div>
 
+          {/* RIGHT SIDE - Application Details */}
+          <div className={styles.rightSide}>
+            <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
+              {error && !showAuthAlert && (
+                <div className={styles.error}>
+                  <span className={styles.errorLabel}>Error:</span> {error}
+                </div>
+              )}
 
-            {/* SECTION 3 — Application Details */}
-            <h3 className={styles.sectionTitle}>Your Application</h3>
+              {/* SECTION 3 — Application Details */}
+              <h3 className={styles.sectionTitle}>Your Application</h3>
 
-            <div className={styles.formSection}>
-              <label className={styles.label}>How would you like to contribute? *</label>
-              <textarea
-                {...register("contribution", {
-                  required: "This is required",
-                  minLength: { value: 10, message: "Please provide more details" }
-                })}
-                className={`${styles.textarea} ${errors.contribution ? styles.errorField : ""}`}
-                placeholder="Tell us what role you want to play..."
+              <div className={styles.formSection}>
+                <label className={styles.label}>How would you like to contribute? *</label>
+                <textarea
+                  {...register("contribution", {
+                    required: "This is required",
+                    minLength: { value: 10, message: "Please provide more details" }
+                  })}
+                  className={`${styles.textarea} ${errors.contribution ? styles.errorField : ""}`}
+                  placeholder="Tell us what role you want to play..."
+                />
+                {errors.contribution && <span className={styles.errorText}>{errors.contribution.message}</span>}
+              </div>
+
+              <div className={styles.formSection}>
+                <label className={styles.label}>Your expectations from the committee</label>
+                <textarea
+                  {...register("expectations")}
+                  className={styles.textarea}
+                  placeholder="Eg: want updates, want to attend walks, want leadership role..."
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className={styles.buttonGroup}>
+                <button type="button" onClick={() => router.back()} className={styles.cancelButton}>
+                  Cancel
+                </button>
+                <button type="submit" disabled={!isDirty || !isValid || loading} className={styles.submitButton}>
+                  {loading ? <><span className={styles.buttonSpinner}></span>Submitting...</> : "Submit"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* BOTTOM ROW - Contact Info */}
+        <div className={styles.bottomRow}>
+          <div className={styles.contactInfo}>
+            <div className={styles.logoContainer}>
+              <Image 
+                src="/wp_icon_sm.avif" 
+                alt="Walking Project Logo" 
+                width={40}
+                height={40}
+                className={styles.logo}
               />
-              {errors.contribution && <span className={styles.errorText}>{errors.contribution.message}</span>}
-            </div>
-
-            <div className={styles.formSection}>
-              <label className={styles.label}>Skills or resources you can offer</label>
-              <textarea
-                {...register("skills")}
-                className={styles.textarea}
-                placeholder="Eg: engineering, law, volunteer network, local contacts..."
+              <Image 
+                src="/wp_text_logo.avif" 
+                alt="Walking Project Text Logo" 
+                width={180}
+                height={40}
+                className={styles.logo}
               />
             </div>
-
-            <div className={styles.formSection}>
-              <label className={styles.label}>Your expectations from the committee</label>
-              <textarea
-                {...register("expectations")}
-                className={styles.textarea}
-                placeholder="Eg: want updates, want to attend walks, want leadership role..."
-              />
-            </div>
-
-
-            {/* Buttons */}
-            <div className={styles.buttonGroup}>
-              <button type="button" onClick={() => router.back()} className={styles.cancelButton}>
-                Cancel
-              </button>
-              <button type="submit" disabled={!isDirty || !isValid || loading} className={styles.submitButton}>
-                {loading ? <><span className={styles.buttonSpinner}></span>Submitting...</> : "Submit"}
-              </button>
-            </div>
-          </form>
+            <p><strong>Questions?</strong> Contact us at info@walkingproject.org</p>
+          </div>
         </div>
       </div>
     </div>

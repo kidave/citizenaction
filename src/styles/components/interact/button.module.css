@@ -91,8 +91,8 @@
   background: transparent;
   color: #667eea;
   border: 2px solid #667eea;
-  padding: 1rem 2rem;
-  font-size: 1.1rem;
+  padding: 0.5rem 1.5rem;
+  font-size: 1rem;
   font-weight: 600;
   border-radius: 50px;
   cursor: pointer;
@@ -137,12 +137,6 @@
   transform: none !important;
 }
 
-/* Inline variant */
-.committeeButton.inline {
-  padding: 0.5rem 1.5rem;
-  font-size: 1rem;
-}
-
 /* Button content */
 .buttonContent {
   display: flex;
@@ -167,6 +161,8 @@
 
 /* Status messages */
 .pendingStatus {
+  display: inline-block;
+  margin-left: 10px;
   padding: 12px 24px;
   border-radius: 8px;
   color: #666;
@@ -174,19 +170,9 @@
   background: rgba(102, 126, 234, 0.1);
 }
 
-.pendingStatus.inline {
-  display: inline-block;
-  margin-left: 10px;
-}
-
 /* Responsive design */
 @media (max-width: 768px) {
   .committeeButton {
-    padding: 0.8rem;
-    font-size: 1rem;
-  }
-  
-  .committeeButton.inline {
     padding: 0.4rem 1.2rem;
     font-size: 0.9rem;
   }
