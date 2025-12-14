@@ -33,7 +33,6 @@ import useMeetingAttendance from "hooks/useMeetingAttendance";
 import { useRegion } from "context/RegionContext";
 import { useAlert } from "hooks/useAlert";
 import { useAuth } from "context/AuthContext";
-import { getUserProfiles } from "utils/userMapping";
 import styles from "styles/tabs/meeting.module.css";
 import Spinner from "components/shared/ui/Spinner";
 import CountdownTimer from "components/shared/ui/CountdownTimer";
@@ -45,8 +44,6 @@ export default function RegionMeetingTab() {
   const { user } = useAuth();
   const [expandedCards, setExpandedCards] = useState({});
   const [meetingStatus, setMeetingStatus] = useState("upcoming");
-  const [attendeeProfiles, setAttendeeProfiles] = useState({});
-  const [actionItemProfiles, setActionItemProfiles] = useState({});
   const { showErrorAlert, showSuccessAlert } = useAlert();
 
   // Find the next upcoming meeting
@@ -75,44 +72,6 @@ export default function RegionMeetingTab() {
     toggleAttendance, 
     refresh: refreshAttendance
   } = useMeetingAttendance(currentMeeting?.id, regionCode);
-
-  // Load user profiles for attendees and action items
-  useEffect(() => {
-    const loadUserProfiles = async () => {
-      if (!meetings.length) return;
-      
-      // Collect all user_ids from attendees and action_items
-      const userIds = new Set();
-      
-      meetings.forEach(meeting => {
-        // Process attendees (could be array of strings or array of objects)
-        if (meeting.attendees && Array.isArray(meeting.attendees)) {
-          meeting.attendees.forEach(attendee => {
-            if (typeof attendee === 'object' && attendee.user_id) {
-              userIds.add(attendee.user_id);
-            }
-          });
-        }
-        
-        // Process action_items
-        if (meeting.action_items && Array.isArray(meeting.action_items)) {
-          meeting.action_items.forEach(item => {
-            if (item.user_id) {
-              userIds.add(item.user_id);
-            }
-          });
-        }
-      });
-      
-      if (userIds.size > 0) {
-        const profiles = await getUserProfiles(Array.from(userIds));
-        setAttendeeProfiles(profiles);
-        setActionItemProfiles(profiles);
-      }
-    };
-    
-    loadUserProfiles();
-  }, [meetings]);
 
   // Get next Monday at 7 PM
   const getNextMondayAt7PM = () => {
@@ -225,33 +184,33 @@ export default function RegionMeetingTab() {
     router.push('/auth');
   };
 
-  // Helper to render attendees with avatars
   const renderAttendees = (attendees) => {
-    if (!attendees || !Array.isArray(attendees)) return null;
-    
+    if (!Array.isArray(attendees)) return null;
+
     return (
       <div className={styles.attendeeList}>
         {attendees.map((attendee, idx) => {
-          // Handle both string and object formats
-          const attendeeName = typeof attendee === 'string' ? attendee : attendee.name;
-          const userId = typeof attendee === 'object' ? attendee.user_id : null;
-          const profile = userId ? attendeeProfiles[userId] : null;
-          
+          const {
+            attendee_name,
+            avatar_url
+          } = attendee;
+
           return (
             <div key={idx} className={styles.attendeeWithAvatar}>
               <div className={styles.attendeeAvatar}>
-                {profile?.avatar_url ? (
-                  <img 
-                    src={profile.avatar_url} 
-                    alt={attendeeName} 
+                {avatar_url ? (
+                  <img
+                    src={avatar_url}
+                    alt={attendee_name}
                     className={styles.avatarImage}
                   />
                 ) : (
                   <FaRegUser className={styles.defaultAvatar} />
                 )}
               </div>
+
               <span className={styles.attendeeTag}>
-                {attendeeName}
+                {attendee_name}
               </span>
             </div>
           );
@@ -260,44 +219,50 @@ export default function RegionMeetingTab() {
     );
   };
 
+
+
   // Helper to render action items with assignee avatars
   const renderActionItems = (actionItems) => {
-    if (!actionItems || !Array.isArray(actionItems)) return null;
-    
+    if (!Array.isArray(actionItems)) return null;
+
     return (
       <div className={styles.actionItems}>
         {actionItems.map((item, index) => {
-          const assigneeName = item.assignee || item.assignee_name;
-          const userId = item.user_id;
-          const profile = userId ? actionItemProfiles[userId] : null;
-          
+          const {
+            assignee_name,
+            assignee_designation,
+            avatar_url,
+            actions
+          } = item;
+
           return (
             <div key={index} className={styles.actionItem}>
               <div className={styles.assigneeWithAvatar}>
                 <div className={styles.assigneeAvatar}>
-                  {profile?.avatar_url ? (
-                    <img 
-                      src={profile.avatar_url} 
-                      alt={assigneeName} 
+                  {avatar_url ? (
+                    <img
+                      src={avatar_url}
+                      alt={assignee_name}
                       className={styles.avatarImage}
                     />
                   ) : (
                     <FaRegUser className={styles.defaultAvatar} />
                   )}
                 </div>
+
                 <div className={styles.assigneeInfo}>
-                  <strong>{assigneeName}</strong>
-                  {profile?.designation && (
+                  <strong>{assignee_name}</strong>
+                  {assignee_designation && (
                     <span className={styles.assigneeDesignation}>
-                      {profile.designation}
+                      {assignee_designation}
                     </span>
                   )}
                 </div>
               </div>
-              
-              {Array.isArray(item.tasks) && item.tasks.length > 0 && (
+
+              {Array.isArray(actions) && actions.length > 0 && (
                 <ul className={styles.taskList}>
-                  {item.tasks.map((task, taskIndex) => (
+                  {actions.map((task, taskIndex) => (
                     <li key={taskIndex} className={styles.task}>
                       {task}
                     </li>
@@ -310,6 +275,8 @@ export default function RegionMeetingTab() {
       </div>
     );
   };
+
+
 
   // Error handling
   if (error) {
@@ -406,10 +373,10 @@ export default function RegionMeetingTab() {
               {attendance.map((item) => (
                 <div key={item.id} className={styles.attendeeItem}>
                   <div className={styles.avatar}>
-                    {item.profile?.avatar_url ? (
-                      <img 
-                        src={item.profile.avatar_url} 
-                        alt={item.profile.name || 'User'} 
+                    {item.avatar_url ? (
+                      <img
+                        src={item.avatar_url}
+                        alt={item.attendee_name}
                         className={styles.avatarImage}
                       />
                     ) : (
@@ -421,9 +388,10 @@ export default function RegionMeetingTab() {
                       </div>
                     )}
                   </div>
+
                   <div className={styles.attendeeInfo}>
                     <span className={styles.attendeeName}>
-                      {item.profile?.name || 'Anonymous User'}
+                      {item.attendee_name}
                       {item.user_id === user?.id && (
                         <span className={styles.youBadge}> (You)</span>
                       )}
@@ -431,6 +399,7 @@ export default function RegionMeetingTab() {
                   </div>
                 </div>
               ))}
+
             </div>
           ) : (
             <div className={styles.noAttendees}>

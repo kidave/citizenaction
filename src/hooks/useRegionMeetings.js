@@ -19,7 +19,7 @@ export default function useRegionMeetings(regionCode) {
     const fetchMeetings = async () => {
       try {
         const { data, error } = await supabase
-          .from("region_meeting_view")
+          .from("region_meeting_attendance_action")
           .select("*")
           .eq("region_code", regionCode)
           .order("meeting_date", { ascending: false });

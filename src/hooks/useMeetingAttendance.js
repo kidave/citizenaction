@@ -10,22 +10,23 @@ export default function useMeetingAttendance(meetingId, regionCode) {
 
   // Load current user's profile and attendance status
   const getCurrentUserAttendance = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       setCurrentUserAttendance(null);
       return null;
     }
-    
-    const { data: attendanceData } = await supabase
+
+    const { data } = await supabase
       .from('region_meeting_attendance')
       .select('*')
       .eq('meeting_id', meetingId)
       .eq('user_id', user.id)
       .single();
-    
-    setCurrentUserAttendance(attendanceData);
-    return attendanceData;
+
+    setCurrentUserAttendance(data);
+    return data;
   };
+
 
   // Fetch attendees for this meeting with user profiles
   const fetchAttendance = async () => {
@@ -34,19 +35,15 @@ export default function useMeetingAttendance(meetingId, regionCode) {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('region_meeting_attendance')
+        .from('region_meeting_attendance_view')
         .select(`
           id,
-          user_id,
           meeting_id,
           status,
           created_at,
-          profile:user_id (
-            name,
-            avatar_url,
-            designation,
-            email
-          )
+          attendee_name,
+          avatar_url,
+          user_id
         `)
         .eq('meeting_id', meetingId)
         .eq('status', 'attending');
