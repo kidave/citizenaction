@@ -8,6 +8,8 @@ import LatestProjects from "components/home/LatestProjects";
 import LatestUpdates from "components/home/LatestUpdates";
 import styles from "styles/layout/landing.module.css";
 import DriveEmbed from "components/shared/ui/DriveEmbed";
+import RegionMeetingShortcut from "components/home/RegionMeetingShortcut";
+
 
 const driveLink = "https://drive.google.com/file/d/1IXXgyc-Y2GNQvqsr5gwZQDx8PqTRP1y7/preview";
 
@@ -111,10 +113,14 @@ export default function Home() {
           </div>
         </motion.section>
 
+        <SectionWrapper id="meeting-shortcut" className={styles.latestSection}>
+          <RegionMeetingShortcut regionCode="MH-MMR" limit={3} />
+        </SectionWrapper>
+
         {/* Latest Meetings Section */}
         <SectionWrapper id="latest-meetings" className={styles.latestSection}>
           <div className={styles.sectionHeader}>
-            <h2>Latest <span className={styles.highlight}>Meetings</span></h2>
+            <h2>Ward <span className={styles.highlight}>Meetings</span></h2>
             <p>Recent ward committee meetings and discussions</p>
           </div>
           <LatestMeetings limit={3} />

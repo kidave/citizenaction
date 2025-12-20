@@ -833,3 +833,46 @@
   display: flex;
   gap: 0.5rem;
 }
+
+.meetingShortcutRow {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+@media (max-width: 768px) {
+  .meetingShortcutRow {
+    flex-direction: column;
+  }
+}
+
+.shortcutLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.shortcutLink:hover {
+  text-decoration: none;
+}
+
+.improvementBanner {
+  background: #fff3cd;
+  color: #856404;
+  text-align: center;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-bottom: 1px solid #ffeaa7;
+}
+
+.bannerContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.bannerIcon {
+  font-size: 14px;
+}
