@@ -39,10 +39,11 @@ async function fetchOSMRoads() {
 -------------------------------- */
 
 async function upsertRoad(way) {
-  const geom = {
-    type: "MultiLineString",
-    coordinates: way.geometry.map(p => [p.lon, p.lat]),
-  };
+  const coords = way.geometry
+    .map(p => `${p.lon} ${p.lat}`)
+    .join(", ");
+
+  const geomWKT = `SRID=4326;MULTILINESTRING((${coords}))`;
 
   const body = {
     osm_id: String(way.id),
@@ -55,11 +56,12 @@ async function upsertRoad(way) {
       : null,
     bridge: way.tags?.bridge ?? null,
     tunnel: way.tags?.tunnel ?? null,
-    geom,
+    geom: geomWKT,
     osm_last_seen: RUN_STARTED_AT,
     updated_at: RUN_STARTED_AT,
     deleted_at: null,
   };
+
 
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/roads?on_conflict=osm_id`,
