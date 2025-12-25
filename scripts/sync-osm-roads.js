@@ -1,35 +1,30 @@
+import "dotenv/config";
 import fetch from "node-fetch";
+
+/* -----------------------------
+   CONFIG
+-------------------------------- */
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+  throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_KEY");
+}
 
 const headers = {
   apikey: SUPABASE_SERVICE_KEY,
   Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
   "Content-Type": "application/json",
+  Prefer: "resolution=merge-duplicates",
 };
 
 const RUN_STARTED_AT = new Date().toISOString();
+const BATCH_SIZE = 500;
 
-const BBOXES = [
-  // South Mumbai + Navi Mumbai
-  [18.70, 72.60, 19.10, 72.95],
-  [18.70, 72.95, 19.10, 73.35],
-
-  // Mumbai Suburbs + Thane
-  [19.10, 72.60, 19.50, 72.95],
-  [19.10, 72.95, 19.50, 73.35],
-
-  // Kalyan–Dombivli–Bhiwandi
-  [19.50, 72.60, 19.80, 72.95],
-  [19.50, 72.95, 19.80, 73.35],
-
-  // Palghar–Vasai–Virar–Vadhavan
-  [19.80, 72.60, 20.10, 73.00],
-
-  // Uran–Pen
-  [18.90, 73.00, 19.30, 73.35],
-];
+/* -----------------------------
+   OVERPASS CONFIG
+-------------------------------- */
 
 const OVERPASS_ENDPOINTS = [
   "https://overpass-api.de/api/interpreter",
@@ -37,22 +32,29 @@ const OVERPASS_ENDPOINTS = [
   "https://overpass.nchc.org.tw/api/interpreter",
 ];
 
+const BBOXES = [
+  [18.70, 72.60, 19.10, 72.95],
+  [18.70, 72.95, 19.10, 73.35],
+  [19.10, 72.60, 19.50, 72.95],
+  [19.10, 72.95, 19.50, 73.35],
+  [19.50, 72.60, 19.80, 72.95],
+  [19.50, 72.95, 19.80, 73.35],
+  [19.80, 72.60, 20.10, 73.00],
+  [18.90, 73.00, 19.30, 73.35],
+];
 
 /* -----------------------------
-   1. FETCH OSM ROADS (MMR)
+   OVERPASS FETCH
 -------------------------------- */
 
 async function fetchFromOverpass(endpoint, query) {
   const res = await fetch(endpoint, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: `data=${encodeURIComponent(query)}`,
   });
 
   const text = await res.text();
-
   if (!text.trim().startsWith("{")) {
     throw new Error("Non-JSON Overpass response");
   }
@@ -78,7 +80,7 @@ async function fetchOSMRoads() {
       try {
         data = await fetchFromOverpass(endpoint, query);
         break;
-      } catch (err) {
+      } catch {
         console.warn(`Overpass failed at ${endpoint}, trying next mirror…`);
       }
     }
@@ -89,7 +91,7 @@ async function fetchOSMRoads() {
 
     for (const el of data.elements) {
       if (el.type === "way") {
-        allWays.set(el.id, el); // dedupe by osm_id
+        allWays.set(el.id, el);
       }
     }
   }
@@ -97,54 +99,53 @@ async function fetchOSMRoads() {
   return Array.from(allWays.values());
 }
 
-
-
 /* -----------------------------
-   2. UPSERT ROADS
+   TRANSFORM → DB ROW
 -------------------------------- */
 
-async function upsertRoad(way) {
+function wayToRow(way) {
   const coords = way.geometry
     .map(p => `${p.lon} ${p.lat}`)
     .join(", ");
 
-  const geomWKT = `SRID=4326;MULTILINESTRING((${coords}))`;
-
-  const body = {
+  return {
     osm_id: String(way.id),
     name: way.tags?.name ?? null,
     ref: way.tags?.ref ?? null,
     fclass: way.tags?.highway ?? null,
     oneway: way.tags?.oneway ?? null,
-    maxspeed: way.tags?.maxspeed
-      ? parseInt(way.tags.maxspeed)
-      : null,
+    maxspeed: way.tags?.maxspeed ? parseInt(way.tags.maxspeed) : null,
     bridge: way.tags?.bridge ?? null,
     tunnel: way.tags?.tunnel ?? null,
-    geom: geomWKT,
+    geom: `SRID=4326;MULTILINESTRING((${coords}))`,
     osm_last_seen: RUN_STARTED_AT,
     updated_at: RUN_STARTED_AT,
     deleted_at: null,
   };
+}
 
+/* -----------------------------
+   BATCH UPSERT
+-------------------------------- */
 
+async function upsertBatch(rows, batchNumber) {
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/roads?on_conflict=osm_id`,
     {
       method: "POST",
       headers,
-      body: JSON.stringify(body),
+      body: JSON.stringify(rows),
     }
   );
 
   if (!res.ok) {
     const t = await res.text();
-    console.error("Upsert failed:", t);
+    throw new Error(`Batch ${batchNumber} failed: ${t}`);
   }
 }
 
 /* -----------------------------
-   3. SOFT DELETE MISSING ROADS
+   POST-PROCESSING
 -------------------------------- */
 
 async function softDeleteMissing() {
@@ -162,37 +163,33 @@ async function softDeleteMissing() {
   });
 }
 
-/* -----------------------------
-   4. RECOMPUTE WARD CODE
--------------------------------- */
-
 async function recomputeWards() {
   const sql = `
-  with overlaps as (
-    select
-      r.fid,
-      w.code as ward_code,
-      ST_Length(
-        ST_Intersection(r.geom, w.geom)::geography
-      ) as overlap_len
-    from public.roads r
-    join public.ward w
-      on ST_Intersects(r.geom, w.geom)
-    where r.deleted_at is null
-  ),
-  ranked as (
-    select *,
-      row_number() over (
-        partition by fid
-        order by overlap_len desc
-      ) as rn
-    from overlaps
-  )
-  update public.roads r
-  set ward_code = ranked.ward_code
-  from ranked
-  where r.fid = ranked.fid
-    and ranked.rn = 1;
+    with overlaps as (
+      select
+        r.fid,
+        w.code as ward_code,
+        ST_Length(
+          ST_Intersection(r.geom, w.geom)::geography
+        ) as overlap_len
+      from public.roads r
+      join public.ward w
+        on ST_Intersects(r.geom, w.geom)
+      where r.deleted_at is null
+    ),
+    ranked as (
+      select *,
+        row_number() over (
+          partition by fid
+          order by overlap_len desc
+        ) as rn
+      from overlaps
+    )
+    update public.roads r
+    set ward_code = ranked.ward_code
+    from ranked
+    where r.fid = ranked.fid
+      and ranked.rn = 1;
   `;
 
   await fetch(`${SUPABASE_URL}/rest/v1/rpc/execute_sql`, {
@@ -210,8 +207,14 @@ async function recomputeWards() {
   const roads = await fetchOSMRoads();
   console.log(`Fetched ${roads.length} OSM roads`);
 
-  for (const way of roads) {
-    await upsertRoad(way);
+  const rows = roads.map(wayToRow);
+
+  let batchNumber = 1;
+  for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+    const batch = rows.slice(i, i + BATCH_SIZE);
+    await upsertBatch(batch, batchNumber);
+    console.log(`Upserted batch ${batchNumber} (${batch.length} rows)`);
+    batchNumber++;
   }
 
   await softDeleteMissing();
