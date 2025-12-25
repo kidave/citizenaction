@@ -1,0 +1,23 @@
+name: OSM Roads Sync
+
+on:
+  schedule:
+    - cron: "0 18 * * 0" # Sunday 11:30 PM IST
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install node-fetch
+
+      - run: node sync-osm-roads.js
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}

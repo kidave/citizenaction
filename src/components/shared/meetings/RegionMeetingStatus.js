@@ -17,7 +17,7 @@ export default function RegionMeetingStatus({
   meetLink
 }) {
   return (
-    <div className={styles.meetingLinkSection}>
+    <div className={styles.linkSection}>
       <div className={styles.meetingStatusContainer}>
         <div className={styles.headerTitle}>
           <div className={styles.headerTop}>

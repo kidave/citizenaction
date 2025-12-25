@@ -1,9 +1,8 @@
 /* styles/tabs/meeting.module.css */
-
 .meetingTimeline {
   position: relative;
-  padding: 2rem 0;
-  margin: 0 2rem;
+  padding: 1rem 0;
+  margin: 0 1rem;
 }
 
 .timelineItem {
@@ -11,6 +10,37 @@
   margin-bottom: 1rem;
 }
 
+.meetingStatusAttendance {
+  background: white;
+  border-radius: 12px;
+  border-top: 4px solid #667eea;
+}
+
+
+/* Improvement Banner */
+.improvementBanner {
+  background: #fff3cd;
+  color: #856404;
+  text-align: center;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-bottom: 1px solid #ffeaa7;
+}
+
+.bannerContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.bannerIcon {
+  font-size: 14px;
+}
+
+
+/* Meeting Card */
 .meetingCard {
   background: white;
   border-radius: 12px;
@@ -23,7 +53,7 @@
   box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15);
 }
 
-/* Make entire header clickable */
+/* Entire clickable header */
 .cardHeader {
   display: flex;
   justify-content: space-between;
@@ -90,10 +120,12 @@
   transition: all 0.3s ease;
 }
 
+/* Meeting Content */
 .cardContent {
   padding: 0 1.5rem;
 }
 
+/* Summary Section */
 .summarySection {
   padding: 1rem 0;
   border-bottom: 1px solid #f0f0f0;
@@ -109,6 +141,7 @@
   padding: 1rem 0;
 }
 
+/* Detail Section */
 .detailSection {
   margin-bottom: 1.5rem;
 }
@@ -135,6 +168,7 @@
   opacity: 0.8;
 }
 
+/* Attendee List */
 .attendeeList {
   display: flex;
   flex-wrap: wrap;
@@ -148,6 +182,7 @@
   font-weight: 500;
 }
 
+/* Action Items */
 .actionItems {
   display: flex;
   flex-direction: column;
@@ -186,154 +221,16 @@
   color: #667eea;
 }
 
-.meetLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: #667eea;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.meetLink:hover {
-  filter: brightness(0.95);
-}
-
-.loadingContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  color: #667eea;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f4f6;
-  border-left: 4px solid #667eea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.emptyState {
-  text-align: center;
-  padding: 3rem;
-  color: #a0aec0;
-}
-
-.emptyState h3 {
-  margin: 1rem 0 0.5rem 0;
-  color: #718096;
-}
-
-@media (max-width: 1024px) {
-  .meetingTimeline {
-    padding: 0;
-    margin: 0;
-  }
-
-  .meetingLinkSection {
-    border: none;
-    border-radius: 0;
-  }
-
-  .timelineItem {
-    margin-bottom: 0.2rem;
-  }
-
-  .meetingCard {
-    border: none;
-    border-radius: 0;
-  }
-
-  .cardHeader {
-    padding: 1rem;
-  }
-
-  .cardContent {
-    padding: 0 1rem;
-  }
-
-  .meetingTitle {
-    font-size: 1rem;
-    line-height: 1;
-  }
-
-  .meetingDate {
-    font-size: 0.85rem;
-  }
-
-  .summaryText {
-    line-height: 1.2;
-    font-size: 0.9rem;
-  }
-
-  .expandedContent {
-    padding: 0.5rem 0;
-  }
-
-  .detailSection {
-    margin-bottom: 0.5rem;
-  }
-
-  .sectionHeader {
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .sectionHeader h4 {
-    font-size: 0.8rem;
-  }
-
-  .attendeeList {
-    gap: 0.2rem;
-  }
-
-  .attendeeTag {
-    font-size: 0.7rem;
-    padding: 0.2rem 0.4rem;
-  }
-
-  .assignee {
-    font-size: 0.9rem;
-  }
-
-  .actionItem {
-    gap: 0.5rem;
-    padding: 0.5rem;
-  }
-
-  .task {
-    font-size: 0.85rem;
-    line-height: 1.2;
-    margin-bottom: 0.2rem;
-  }
-}
-
-
-/* Simplified Meeting Link Section */
+/* Meeting Link Section */
 .meetingLinkSection {
   background: white;
   border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  border-top: 4px solid #667eea;
 }
 
-.meetingLinkSection .sectionHeader {
-  margin-bottom: 1rem;
+.linkSection {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
 }
 
 .headerContent h4 {
@@ -396,6 +293,10 @@
   width: fit-content;
 }
 
+.meetLink:hover {
+  filter: brightness(0.95);
+}
+
 .meetLinkLive {
   background: #10B981;
   animation: pulseButton 1.5s infinite;
@@ -407,10 +308,6 @@
   100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
-.meetLink:hover {
-  filter: brightness(0.95);
-}
-
 .nextMeetingInfo {
   color: #4a5568;
   font-size: 0.95rem;
@@ -418,61 +315,26 @@
   padding-left: 0.5rem;
 }
 
-/* For empty state */
-.meetingInfo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #718096;
-  margin: 0.5rem 0 1rem 0;
-}
-
-.infoIcon {
-  font-size: 0.9rem;
-}
-
-.nextMeeting {
-  color: #4a5568;
-  font-weight: 500;
-  margin: 0 0 1rem 0;
-}
-
-/* Responsive Styles */
-@media (max-width: 768px) {
-  .meetingLinkSection {
-    border: none;
-    border-radius: 0;
-  }
-  
-  .meetingStatusContainer {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-  }
-  
-  .meetLink {
-    justify-content: center;
-  }
-  
-  .headerContent h4 {
-    font-size: 1.1rem;
-  }
-}
-
 /* Attendance Section */
+.meetingAttendanceSection {
+  background: white;
+  border-radius: 12px;
+  margin-inline: 16px;
+  padding-bottom: 16px;
+}
+
 .attendanceSection {
   background: #f8f9ff;
   border-radius: 12px;
-  padding: 1.5rem;
-  margin: 1.5rem 0;
-  border: 1px solid #edf2ff;
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.2);
+  padding: 16px;
 }
 
 .attendanceHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 8px;
 }
 
 .attendanceHeader h5 {
@@ -509,88 +371,6 @@
 .buttonIcon {
   font-size: 0.9rem;
 }
-
-/* Attendee Grid */
-.attendeeGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 1rem;
-}
-
-.attendeeItem {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  background: white;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  transition: transform 0.2s ease;
-}
-
-.attendeeItem:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: #edf2ff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.avatarImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.defaultAvatar {
-  color: #667eea;
-  font-size: 1.2rem;
-}
-
-.attendeeInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.attendeeName {
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: #2d3748;
-}
-
-.attendeeRole {
-  font-size: 0.8rem;
-  color: #718096;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .attendanceHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-  
-  .attendanceButton {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .attendeeGrid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  }
-}
-
-/* Add these styles to your existing meeting.module.css */
 
 /* Attendance Section Updates */
 .attendanceTitleIcon {
@@ -679,6 +459,68 @@
   font-size: 0.9rem;
 }
 
+/* Attendee Grid */
+.attendeeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.attendeeItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  transition: transform 0.2s ease;
+}
+
+.attendeeItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #edf2ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.defaultAvatar {
+  color: #667eea;
+  font-size: 1.2rem;
+}
+
+.attendeeInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.attendeeName {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #2d3748;
+}
+
+.attendeeRole {
+  font-size: 0.8rem;
+  color: #718096;
+}
+
 /* Current User Badge in Avatar */
 .avatar {
   position: relative;
@@ -724,36 +566,6 @@
   border-radius: 50%;
 }
 
-/* Responsive Updates */
-@media (max-width: 768px) {
-  .attendanceHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-  
-  .attendanceToggleContainer {
-    width: 100%;
-  }
-  
-  .attendanceToggle,
-  .loginButton {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .attendeeGrid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  }
-}
-
-@media (max-width: 1024px) {
-  .meetingLinkSection {
-    border: none;
-    border-radius: 0;
-    margin-bottom: 0.2rem;
-  }
-}
 
 /* Attendee with avatar style */
 .attendeeWithAvatar {
@@ -834,17 +646,43 @@
   gap: 0.5rem;
 }
 
-.meetingShortcutRow {
-  display: flex;
-  gap: 16px;
-  overflow-x: auto;
-  padding-bottom: 8px;
+
+/* Meeting Shortcuts */
+.shortcutContainer {
+  padding: 16px;
 }
 
-@media (max-width: 768px) {
-  .meetingShortcutRow {
-    flex-direction: column;
-  }
+.shortcutStatus {
+  width: 100%;
+}
+
+.shortcutStatus .linkSection {
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.2);
+}
+
+.shortcutCard {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  overflow-x: auto;
+}
+
+/* Force meeting card to have equal height */
+.shortcutCard .meetingCard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 300px;
+  min-width: 280px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.2);
+}
+
+.shortcutCard .summarySection {
+  border-bottom: none;
 }
 
 .shortcutLink {
@@ -856,23 +694,165 @@
   text-decoration: none;
 }
 
-.improvementBanner {
-  background: #fff3cd;
-  color: #856404;
-  text-align: center;
-  padding: 6px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  border-bottom: 1px solid #ffeaa7;
+/* Responsive Styles */
+@media (max-width: 1024px) {
+  .meetingTimeline {
+    padding: 0;
+    margin: 0;
+  }
+
+  .timelineItem {
+    margin-bottom: 0.2rem;
+  }
+
+  .linkSection {
+    padding: 16px;
+  }
+
+  .meetingCard {
+    border: none;
+    border-radius: 0;
+  }
+
+  .cardHeader {
+    padding: 1rem;
+  }
+
+  .cardContent {
+    padding: 0 1rem;
+  }
+
+  .meetingTitle {
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .meetingDate {
+    font-size: 0.85rem;
+  }
+
+  .summaryText {
+    line-height: 1.2;
+    font-size: 0.9rem;
+  }
+
+  .expandedContent {
+    padding: 0.5rem 0;
+  }
+
+  .detailSection {
+    margin-bottom: 0.5rem;
+  }
+
+  .sectionHeader {
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .sectionHeader h4 {
+    font-size: 0.8rem;
+  }
+
+  .attendeeList {
+    gap: 0.2rem;
+  }
+
+  .attendeeTag {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+  }
+
+  .assignee {
+    font-size: 0.9rem;
+  }
+
+  .actionItem {
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .task {
+    font-size: 0.85rem;
+    line-height: 1.2;
+    margin-bottom: 0.2rem;
+  }
+
+  .meetingStatusAttendance {
+    border: none;
+    border-radius: 0;
+    margin-bottom: 0;
+  }
+
+  .shortcutCard {
+    margin-top: 8px;
+    gap: 8px;
+  }
+
+  .shortcutCard .meetingCard {
+    min-height: auto;
+    min-width: auto;
+    min-width: 100%;
+  }
 }
 
-.bannerContent {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
+/* Responsive */
+@media (max-width: 768px) {
+  .attendeeGrid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+  
+  .attendeeGrid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
 }
 
-.bannerIcon {
-  font-size: 14px;
+
+@media (max-width: 768px) {
+  .nextMeetingInfo {
+    font-size: 0.7rem;
+    padding-left: 0;
+  }
+  
+  .meetLink {
+    justify-content: center;
+  }
+  
+  .headerContent h4 {
+    font-size: 1.1rem;
+  }
+
+  .shortcutCard {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 426px) {
+  .meetingStatusContainer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 320px) {
+  .attendanceHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .attendanceToggle,
+  .loginButton {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .attendanceButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .attendanceToggleContainer {
+    width: 100%;
+  }
 }

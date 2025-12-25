@@ -108,7 +108,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  margin-top: 1rem;
+  margin: 16px;
   background: radial-gradient(
     circle 500px at 50% 50%,
     rgb(221, 181, 232),

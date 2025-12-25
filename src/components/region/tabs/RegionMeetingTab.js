@@ -215,29 +215,33 @@ export default function RegionMeetingTab() {
   ---------------------------- */
   return (
     <div className={styles.meetingTimeline}>
-      {/* Meeting status + countdown */}
-      {currentMeeting && (
-        <RegionMeetingStatus
-          meetingStatus={meetingStatus}
-          getStatusColor={getStatusColor}
-          getStatusText={getStatusText}
-          nextMeetingDateTime={nextMeetingDateTime}
-          nextMeetingLabel={nextMeetingLabel}
-          meetLink={currentMeeting.meet_link}
-        />
-      )}
+      <div className={styles.meetingStatusAttendance}>
+        {/* Meeting status + countdown */}
+        {currentMeeting && (
+          <RegionMeetingStatus
+            meetingStatus={meetingStatus}
+            getStatusColor={getStatusColor}
+            getStatusText={getStatusText}
+            nextMeetingDateTime={nextMeetingDateTime}
+            nextMeetingLabel={nextMeetingLabel}
+            meetLink={currentMeeting.meet_link}
+          />
+        )}
 
-      {/* Attendance */}
-      {currentMeeting && (
-        <RegionMeetingAttendance
-          attendance={attendance}
-          currentUserAttendance={currentUserAttendance}
-          attendanceLoading={attendanceLoading}
-          user={user}
-          onToggleAttendance={toggleAttendance}
-          onLoginRedirect={handleLoginRedirect}
-        />
-      )}
+        <div className={styles.meetingAttendanceSection}>
+          {/* Attendance */}
+          {currentMeeting && (
+            <RegionMeetingAttendance
+              attendance={attendance}
+              currentUserAttendance={currentUserAttendance}
+              attendanceLoading={attendanceLoading}
+              user={user}
+              onToggleAttendance={toggleAttendance}
+              onLoginRedirect={handleLoginRedirect}
+            />
+          )}
+        </div>
+      </div>
 
       <div className={styles.improvementBanner}>
         <div className={styles.bannerContent}>

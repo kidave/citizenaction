@@ -509,13 +509,13 @@
   flex-wrap: wrap;
   gap: 1rem;
   justify-content: center;
-  margin: 2rem 0;
+  margin-block: 16px;
   position: relative;
   z-index: 10;
 }
 
 .wardBtn {
-  background: linear-gradient(135deg, #f8f9ff 0%, #edf2f7 100%);
+  background: white;
   color: #4a5568;
   border: 2px solid transparent;
   border-radius: 12px;
@@ -526,6 +526,12 @@
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
+  display: inline-block; /* Better control */
+  white-space: nowrap; /* Prevent text wrapping */
+  text-align: center;
+  min-width: fit-content; /* Ensure button has minimum width */
+  flex: 0 1 auto; /* Allow buttons to shrink/grow */
+  min-width: 100px; /* Set minimum width for mobile */
 }
 
 .wardBtn:hover {
@@ -567,7 +573,9 @@
    RESPONSIVE DESIGN
    ============================================ */
 @media (max-width: 1024px) {
-
+  .wardContainer {
+    gap: 0.75rem; /* Reduce gap on tablets */
+  }
   
   .scrollCard {
     flex: 0 0 250px;
@@ -628,15 +636,17 @@
     right: -16px;
   }
   
+  .wardContainer {
+    overflow-x: hidden; /* Prevent horizontal scroll */
+  }
+  
   .wardBtn {
     padding: 10px 16px;
     font-size: 0.9rem;
-  }
-  
-  .wardContainer {
-    gap: 0.75rem;
+    max-width: calc(50% - 0.375rem); /* Ensure 2 buttons per row with gap */
   }
 }
+
 
 @media (max-width: 480px) {
   .sectionTitle {
@@ -657,16 +667,8 @@
     width: 220px;
     height: 130px;
   }
-  
-  .wardBtn {
-    padding: 8px 12px;
-    font-size: 0.85rem;
-  }
-  
-  .wardContainer {
-    gap: 0.5rem;
-  }
 }
+
 
 /* ============================================
    ANIMATIONS & TRANSITIONS

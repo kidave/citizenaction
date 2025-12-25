@@ -7,7 +7,7 @@ import LatestMeetings from "components/home/LatestMeetings";
 import LatestProjects from "components/home/LatestProjects";
 import LatestUpdates from "components/home/LatestUpdates";
 import styles from "styles/layout/landing.module.css";
-import DriveEmbed from "components/shared/ui/DriveEmbed";
+import Sop from "components/home/SOP";
 import RegionMeetingShortcut from "components/home/RegionMeetingShortcut";
 
 
@@ -174,13 +174,14 @@ export default function Home() {
                 <p>Community Walks</p>
               </motion.div>
             </div>
-            <div className={styles.ctaContent}>
-              <DriveEmbed 
-                driveLink={driveLink}
-                title="Walking Project Guide"
-              />
-            </div>
           </div>
+        </SectionWrapper>
+        {/* SOP & Handbook Section */}
+        <SectionWrapper id="sop-section">
+          <Sop 
+            driveLink={driveLink}
+            title="Walking Project SOP Handbook"
+          />
         </SectionWrapper>
       </div>
   );

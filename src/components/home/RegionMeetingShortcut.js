@@ -9,21 +9,14 @@ import {
 } from "date-fns";
 
 import useRegionMeetings from "hooks/useRegionMeetings";
-import useMeetingAttendance from "hooks/useMeetingAttendance";
-import { useAuth } from "context/AuthContext";
-import { useRouter } from "next/router";
 import Link from "next/link";
 
 import RegionMeetingStatus from "components/shared/meetings/RegionMeetingStatus";
-import RegionMeetingAttendance from "components/shared/meetings/RegionMeetingAttendance";
 import RegionMeetingCard from "components/shared/meetings/RegionMeetingCard";
 import Spinner from "components/shared/ui/Spinner";
 import styles from "styles/tabs/meeting.module.css";
 
 export default function RegionMeetingShortcut({ regionCode }) {
-  const router = useRouter();
-  const { user } = useAuth();
-
   const { meetings, loading } = useRegionMeetings(regionCode);
 
   const [meetingStatus, setMeetingStatus] = useState("upcoming");
@@ -43,16 +36,6 @@ export default function RegionMeetingShortcut({ regionCode }) {
 
     return upcoming || meetings[0];
   }, [meetings])();
-
-  /* ---------------------------
-     Attendance (only current)
-  ---------------------------- */
-  const {
-    attendance,
-    currentUserAttendance,
-    loading: attendanceLoading,
-    toggleAttendance
-  } = useMeetingAttendance(currentMeeting?.id, regionCode);
 
   /* ---------------------------
      Next meeting datetime
@@ -109,7 +92,7 @@ export default function RegionMeetingShortcut({ regionCode }) {
     }
   };
 
-  if (loading) return <Spinner mode="inline" />;
+  if (loading) return <Spinner mode="inline" size="small" />;
 
   /* ---------------------------
      Recent completed meetings
@@ -118,34 +101,23 @@ export default function RegionMeetingShortcut({ regionCode }) {
   const recentMeetings = meetings.slice(1, 4);
 
   return (
-    <div className={styles.meetingTimeline}>
+    <div className={styles.shortcutContainer}>
       {/* Status + Countdown */}
-      {currentMeeting && (
-        <RegionMeetingStatus
-          meetingStatus={meetingStatus}
-          getStatusColor={getStatusColor}
-          getStatusText={getStatusText}
-          nextMeetingDateTime={nextMeetingDateTime}
-          nextMeetingLabel={nextMeetingLabel}
-          meetLink={currentMeeting.meet_link}
-        />
-      )}
-
-      {/* Attendance 
-      {currentMeeting && (
-        <RegionMeetingAttendance
-          attendance={attendance}
-          currentUserAttendance={currentUserAttendance}
-          attendanceLoading={attendanceLoading}
-          user={user}
-          onToggleAttendance={toggleAttendance}
-          onLoginRedirect={() => router.push("/auth")}
-        />
-      )}
-      */}
+      <div className={styles.shortcutStatus}>
+        {currentMeeting && (
+          <RegionMeetingStatus
+            meetingStatus={meetingStatus}
+            getStatusColor={getStatusColor}
+            getStatusText={getStatusText}
+            nextMeetingDateTime={nextMeetingDateTime}
+            nextMeetingLabel={nextMeetingLabel}
+            meetLink={currentMeeting.meet_link}
+          />
+        )}
+      </div>
       
       {/* Recent meetings shortcuts */}
-      <div className={styles.meetingShortcutRow}>
+      <div className={styles.shortcutCard}>
         {recentMeetings.map(meeting => (
           <Link
             href={`/region/${meeting.region_code}/meeting?meetingId=${meeting.id}`}

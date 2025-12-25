@@ -89,6 +89,7 @@
 
 .sectionHeader {
   text-align: center;
+  padding: 16px 8px 0 8px;
 }
 
 /* Button Styles */
@@ -169,12 +170,11 @@
 
 /* Add to styles/layout/landing.module.css */
 .projectSection {
-  padding: 1rem;
+  padding-top: 16px;
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
 }
 
 .latestSection {
-  padding: 1rem;
   background: lavender;
   box-shadow: 0 -4px 8px rgba(102, 126, 234, 0.2);
 }
@@ -208,6 +208,10 @@
     text-align: center;
     padding-block: 4rem;
     padding-inline: 3rem;
+  }
+
+  .latestSection {
+  padding: 0;
   }
 
   .heroSubtitle {
