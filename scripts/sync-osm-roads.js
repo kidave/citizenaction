@@ -11,39 +11,92 @@ const headers = {
 
 const RUN_STARTED_AT = new Date().toISOString();
 
+const BBOXES = [
+  // South Mumbai + Navi Mumbai
+  [18.70, 72.60, 19.10, 72.95],
+  [18.70, 72.95, 19.10, 73.35],
+
+  // Mumbai Suburbs + Thane
+  [19.10, 72.60, 19.50, 72.95],
+  [19.10, 72.95, 19.50, 73.35],
+
+  // Kalyan–Dombivli–Bhiwandi
+  [19.50, 72.60, 19.80, 72.95],
+  [19.50, 72.95, 19.80, 73.35],
+
+  // Palghar–Vasai–Virar–Vadhavan
+  [19.80, 72.60, 20.10, 73.00],
+
+  // Uran–Pen
+  [18.90, 73.00, 19.30, 73.35],
+];
+
+const OVERPASS_ENDPOINTS = [
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.kumi.systems/api/interpreter",
+  "https://overpass.nchc.org.tw/api/interpreter",
+];
+
+
 /* -----------------------------
    1. FETCH OSM ROADS (MMR)
 -------------------------------- */
 
-async function fetchOSMRoads() {
-  const overpassQuery = `
-  [out:json][timeout:300];
-  area["name"="Mumbai Metropolitan Region"]->.mmr;
-  (
-    way["highway"](area.mmr);
-  );
-  out tags geom;
-  `;
-
-  const res = await fetch("https://overpass-api.de/api/interpreter", {
+async function fetchFromOverpass(endpoint, query) {
+  const res = await fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: `data=${encodeURIComponent(overpassQuery)}`,
+    body: `data=${encodeURIComponent(query)}`,
   });
 
   const text = await res.text();
 
-  // 🔍 SAFETY CHECK (VERY IMPORTANT)
   if (!text.trim().startsWith("{")) {
-    console.error("Overpass non-JSON response:", text.slice(0, 500));
-    throw new Error("Overpass did not return JSON");
+    throw new Error("Non-JSON Overpass response");
   }
 
-  const data = JSON.parse(text);
-  return data.elements.filter(e => e.type === "way");
+  return JSON.parse(text);
 }
+
+async function fetchOSMRoads() {
+  const allWays = new Map();
+
+  for (const bbox of BBOXES) {
+    const query = `
+      [out:json][timeout:180];
+      (
+        way["highway"](${bbox.join(",")});
+      );
+      out tags geom;
+    `;
+
+    let data = null;
+
+    for (const endpoint of OVERPASS_ENDPOINTS) {
+      try {
+        data = await fetchFromOverpass(endpoint, query);
+        break;
+      } catch (err) {
+        console.warn(`Overpass failed at ${endpoint}, trying next mirror…`);
+      }
+    }
+
+    if (!data) {
+      throw new Error("All Overpass mirrors failed for bbox " + bbox.join(","));
+    }
+
+    for (const el of data.elements) {
+      if (el.type === "way") {
+        allWays.set(el.id, el); // dedupe by osm_id
+      }
+    }
+  }
+
+  return Array.from(allWays.values());
+}
+
 
 
 /* -----------------------------
