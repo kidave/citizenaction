@@ -40,7 +40,7 @@ async function fetchOSMRoads() {
 
 async function upsertRoad(way) {
   const geom = {
-    type: "LineString",
+    type: "MultiLineString",
     coordinates: way.geometry.map(p => [p.lon, p.lat]),
   };
 
