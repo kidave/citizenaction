@@ -27,12 +27,24 @@ async function fetchOSMRoads() {
 
   const res = await fetch("https://overpass-api.de/api/interpreter", {
     method: "POST",
-    body: overpassQuery,
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: `data=${encodeURIComponent(overpassQuery)}`,
   });
 
-  const data = await res.json();
+  const text = await res.text();
+
+  // 🔍 SAFETY CHECK (VERY IMPORTANT)
+  if (!text.trim().startsWith("{")) {
+    console.error("Overpass non-JSON response:", text.slice(0, 500));
+    throw new Error("Overpass did not return JSON");
+  }
+
+  const data = JSON.parse(text);
   return data.elements.filter(e => e.type === "way");
 }
+
 
 /* -----------------------------
    2. UPSERT ROADS
