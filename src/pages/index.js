@@ -7,7 +7,7 @@ import LatestMeetings from "components/home/LatestMeetings";
 import LatestProjects from "components/home/LatestProjects";
 import LatestUpdates from "components/home/LatestUpdates";
 import styles from "styles/layout/landing.module.css";
-import Sop from "components/home/SOP";
+import Sop from "components/home/Sop";
 import RegionMeetingShortcut from "components/home/RegionMeetingShortcut";
 
 
