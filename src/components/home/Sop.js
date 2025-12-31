@@ -5,7 +5,8 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import DriveEmbed from "components/shared/ui/DriveEmbed";
 import styles from "styles/layout/sop.module.css";
-import { FiChevronLeft, FiChevronRight, FiBook, FiTarget, FiUsers, FiTool, FiShield, FiArchive, FiRepeat } from "react-icons/fi";
+import { FiBook, FiTarget, FiUsers, FiTool, FiShield, FiArchive, FiRepeat } from "react-icons/fi";
+import Image from "next/image";
 
 const objectives = [
   {
@@ -13,49 +14,63 @@ const objectives = [
     icon: <FiBook />,
     title: "Provide a Clear Governance Framework",
     description: "Establish a standardized structure for how Ward Committees are formed, operated, and evaluated across all participating wards.",
-    color: "#667eea"
+    color: "#667eea",
+    image: "/images/sop-objectives/objective-1.avif",
+    alt: "Governance framework visualization showing hierarchical structure"
   },
   {
     id: 2,
     icon: <FiTarget />,
     title: "Guide Step-by-Step Implementation",
     description: "Lay out a practical, phase-wise roadmap from setup to execution that committees can follow to deliver tangible walkability improvements.",
-    color: "#764ba2"
+    color: "#764ba2",
+    image: "/images/sop-objectives/objective-2.avif",
+    alt: "Step-by-step implementation roadmap with milestones"
   },
   {
     id: 3,
     icon: <FiUsers />,
     title: "Define Roles and Responsibilities",
     description: "Outline roles for each committee member and civic partner to ensure accountability and smooth coordination.",
-    color: "#4facfe"
+    color: "#4facfe",
+    image: "/images/sop-objectives/objective-3.avif",
+    alt: "Team roles and responsibility matrix"
   },
   {
     id: 4,
     icon: <FiTool />,
     title: "Equip Committees with Tools and Templates",
     description: "Offer ready-to-use resources (forms, meeting formats, mapping tools, reporting templates) to streamline committee operations.",
-    color: "#00f2fe"
+    color: "#00f2fe",
+    image: "/images/sop-objectives/objective-4.avif",
+    alt: "Toolkit visualization with various templates and tools"
   },
   {
     id: 5,
     icon: <FiShield />,
     title: "Enable Civic-Government Collaboration",
     description: "Position Ward Committees as legitimate, recognized platforms that bridge the gap between citizens and municipal authorities.",
-    color: "#42e695"
+    color: "#42e695",
+    image: "/images/sop-objectives/objective-5.avif",
+    alt: "Collaboration bridge between citizens and government"
   },
   {
     id: 6,
     icon: <FiArchive />,
     title: "Promote Transparency and Record-Keeping",
-    description: "Encourage the use of standardized documentation including meeting minutes, reports, photos, and videos to ensure traceability and impact tracking.",
-    color: "#3bb2b8"
+    description: "Encourage the use of standardized documentation to ensure traceability and impact tracking.",
+    color: "#3bb2b8",
+    image: "/images/sop-objectives/objective-6.avif",
+    alt: "Documentation and record-keeping visualization"
   },
   {
     id: 7,
     icon: <FiRepeat />,
     title: "Support Learning and Replication",
     description: "Capture learnings from each route and create a foundation for scaling successful interventions to other areas in a replicable manner.",
-    color: "#f093fb"
+    color: "#f093fb",
+    image: "/images/sop-objectives/objective-7.avif",
+    alt: "Scaling and replication process flow"
   }
 ];
 
@@ -63,13 +78,15 @@ const purposeText = `This handbook is designed as a comprehensive Standard Opera
 
 export default function SopCta({ driveLink, title = "Walking Project Guide" }) {
   const [currentObjective, setCurrentObjective] = useState(0);
-  const [direction, setDirection] = useState(0); // -1 for left, 1 for right
+  const [direction, setDirection] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleNext = () => {
     setDirection(1);
     setCurrentObjective((prev) => 
       prev === objectives.length - 1 ? 0 : prev + 1
     );
+    setIsLoading(true);
   };
 
   const handlePrev = () => {
@@ -77,11 +94,13 @@ export default function SopCta({ driveLink, title = "Walking Project Guide" }) {
     setCurrentObjective((prev) => 
       prev === 0 ? objectives.length - 1 : prev - 1
     );
+    setIsLoading(true);
   };
 
   const goToObjective = (index) => {
     setDirection(index > currentObjective ? 1 : -1);
     setCurrentObjective(index);
+    setIsLoading(true);
   };
 
   // Auto-advance every 8 seconds
@@ -107,123 +126,119 @@ export default function SopCta({ driveLink, title = "Walking Project Guide" }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Preload images
+  useEffect(() => {
+    const preloadImages = () => {
+      objectives.forEach((obj) => {
+        const img = new window.Image();
+        img.src = obj.image;
+      });
+    };
+    
+    if (typeof window !== 'undefined') {
+      preloadImages();
+    }
+  }, []);
+
   return (
     <div className={styles.sopCta}>
-      {/* Left Side: Drive Embed */}
+      {/* Left Side: Drive Embed + Image */}
       <div className={styles.sopLeft}>
         <DriveEmbed 
           driveLink={driveLink}
           title={title}
         />
+
+        {/* Image Navigation Dots */}
+        <div className={styles.imageNavDots}>
+          {objectives.map((_, index) => (
+            <button
+              key={index}
+              className={`${styles.imageNavDot} ${
+                index === currentObjective ? styles.active : ''
+              }`}
+              onClick={() => goToObjective(index)}
+              aria-label={`Go to objective ${index + 1}`}
+            />
+          ))}
+        </div>
+        
+        {/* Image Animation Area */}
+        <div className={styles.imageContainer}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentObjective}
+              className={styles.imageWrapper}
+              initial={{ 
+                opacity: 0,
+                scale: 0.95
+              }}
+              animate={{ 
+                opacity: 1,
+                scale: 1
+              }}
+              exit={{ 
+                opacity: 0,
+                scale: 0.95
+              }}
+              transition={{ duration: 0.4 }}
+            >
+              {isLoading && (
+                <div className={styles.imageSkeleton}></div>
+              )}
+              <Image
+                src={objectives[currentObjective].image}
+                alt={objectives[currentObjective].alt}
+                width={600}
+                height={400}
+                className={styles.objectiveImage}
+                onLoadingComplete={() => setIsLoading(false)}
+                priority={currentObjective === 0}
+                quality={85}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
+              />
+            </motion.div>
+          </AnimatePresence>
+          
+          
+        </div>
       </div>
 
-      {/* Right Side: Objectives */}
+      {/* Right Side: Objectives Content */}
       <div className={styles.sopRight}>
-        <h2 className={styles.sopTitle}>Standard Operating Procedure</h2>
+        <h3 className={styles.sopTitle}>Standard Operating Procedure Handbook</h3>
         
         <div className={styles.sopPurpose}>
           {purposeText}
         </div>
 
-        <h3 className={styles.sopTitle}>
+        <h3 className={styles.sopSubtitle}>
           Objectives of the Handbook
         </h3>
 
-        {/* Progress Bar */}
-        <div className={styles.progressBar}>
-          <div 
-            className={styles.progressFill} 
-            style={{ 
-              width: `${((currentObjective + 1) / objectives.length) * 100}%` 
-            }}
-          />
-        </div>
-
-        {/* Animated Objectives Carousel */}
-        <div className={styles.objectivesContainer}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentObjective}
-              className={styles.objectiveCard}
-              initial={{ 
-                opacity: 0,
-                x: direction === 1 ? 100 : -100
+        {/* Current Objective Card */}
+        <div className={styles.objectiveCard}>
+          <div className={styles.objectiveHeader}>
+            <div 
+              className={styles.objectiveIcon}
+              style={{ 
+                background: `linear-gradient(135deg, ${objectives[currentObjective].color} 0%, ${objectives[currentObjective].color}99 100%)` 
               }}
-              animate={{ 
-                opacity: 1,
-                x: 0
-              }}
-              exit={{ 
-                opacity: 0,
-                x: direction === 1 ? -100 : 100
-              }}
-              transition={{ duration: 0.4 }}
             >
-              <div className={styles.objectiveHeader}>
-                <div className={styles.objectiveNumber}>
-                  {objectives[currentObjective].id}
-                </div>
-                <h3 className={styles.objectiveTitle}>
-                  {objectives[currentObjective].title}
-                </h3>
-              </div>
-              <div className={styles.objectiveContent}>
-                {objectives[currentObjective].description}
-              </div>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* Navigation Controls */}
-        <div className={styles.objectivesNavigation}>
-          <button 
-            className={styles.navButton}
-            onClick={handlePrev}
-            aria-label="Previous objective"
-          >
-            <FiChevronLeft />
-          </button>
-
-          <div className={styles.progressIndicator}>
-            {objectives.map((_, index) => (
-              <button
-                key={index}
-                className={`${styles.progressDot} ${
-                  index === currentObjective ? styles.active : ''
-                }`}
-                onClick={() => goToObjective(index)}
-                aria-label={`Go to objective ${index + 1}`}
-              />
-            ))}
-          </div>
-
-          <button 
-            className={styles.navButton}
-            onClick={handleNext}
-            aria-label="Next objective"
-          >
-            <FiChevronRight />
-          </button>
-        </div>
-
-        {/* Quick Objective List */}
-        <div className={styles.objectivesList}>
-          {objectives.map((obj, index) => (
-            <div
-              key={obj.id}
-              className={`${styles.objectiveItem} ${
-                index === currentObjective ? styles.active : ''
-              }`}
-              onClick={() => goToObjective(index)}
-            >
-              <span className={styles.objectiveItemNumber}>
-                {obj.id}.
-              </span>
-              <span className={styles.objectiveItemTitle}>
-                {obj.title}
-              </span>
+              {objectives[currentObjective].icon}
             </div>
-          ))}
+            <div>
+              <h4 className={styles.objectiveNumber}>
+                Objective {objectives[currentObjective].id}
+              </h4>
+              <h3 className={styles.objectiveTitle}>
+                {objectives[currentObjective].title}
+              </h3>
+            </div>
+          </div>
+          <div className={styles.objectiveContent}>
+            {objectives[currentObjective].description}
+          </div>
         </div>
       </div>
     </div>

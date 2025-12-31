@@ -100,9 +100,9 @@ export default function Home() {
               </button>
               <button 
                 className={styles.viewAllLink}
-                onClick={() => document.getElementById('latest-updates').scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                onClick={() => document.getElementById('sop-section').scrollIntoView({ behavior: 'smooth', block: 'start' })}
               >
-                Monthly Updates
+                SOP Handbook
               </button>
             </motion.div>
           </div>
@@ -112,19 +112,6 @@ export default function Home() {
             <div className={styles.floatingElement}></div>
           </div>
         </motion.section>
-
-        <SectionWrapper id="meeting-shortcut" className={styles.latestSection}>
-          <RegionMeetingShortcut regionCode="MH-MMR" limit={3} />
-        </SectionWrapper>
-
-        {/* Latest Meetings Section */}
-        <SectionWrapper id="latest-meetings" className={styles.latestSection}>
-          <div className={styles.sectionHeader}>
-            <h2>Ward <span className={styles.highlight}>Meetings</span></h2>
-            <p>Recent ward committee meetings and discussions</p>
-          </div>
-          <LatestMeetings limit={3} />
-        </SectionWrapper>
 
         {/* About Section */}
         <SectionWrapper id="about-section">
@@ -136,6 +123,20 @@ export default function Home() {
           <Region />
         </SectionWrapper>
 
+        {/* SOP & Handbook Section */}
+        <SectionWrapper id="sop-section">
+          <Sop 
+            driveLink={driveLink}
+            title="Walking Project SOP Handbook"
+          />
+        </SectionWrapper>
+
+        <SectionWrapper id="meeting-shortcut" className={styles.latestSection}>
+          <RegionMeetingShortcut regionCode="MH-MMR" limit={3} />
+        </SectionWrapper>
+
+
+
         {/* Latest Updates Section */}
         <SectionWrapper id="latest-updates" className={styles.latestSection}>
           <div className={styles.sectionHeader}>
@@ -145,44 +146,15 @@ export default function Home() {
           <LatestUpdates limit={3} />
         </SectionWrapper>
 
-        {/* Stats Section */}
-        <SectionWrapper id="stats-section">
-          <div className={styles.ctaSection}>
-            <div className={styles.statsContainer}>
-              <motion.div 
-                className={styles.statItem}
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <h1>24</h1>
-                <p>Active Ward Committees</p>
-              </motion.div>
-              <motion.div 
-                className={styles.statItem}
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 300, delay: 0.1 }}
-              >
-                <h1>200+</h1>
-                <p>Community Members</p>
-              </motion.div>
-              <motion.div 
-                className={styles.statItem}
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 300, delay: 0.2 }}
-              >
-                <h1>35+</h1>
-                <p>Community Walks</p>
-              </motion.div>
-            </div>
+        {/* Latest Meetings Section */}
+        <SectionWrapper id="latest-meetings" className={styles.latestSection}>
+          <div className={styles.sectionHeader}>
+            <h2>Ward <span className={styles.highlight}>Meetings</span></h2>
+            <p>Recent ward committee meetings and discussions</p>
           </div>
+          <LatestMeetings limit={3} />
         </SectionWrapper>
-        {/* SOP & Handbook Section */}
-        <SectionWrapper id="sop-section">
-          <Sop 
-            driveLink={driveLink}
-            title="Walking Project SOP Handbook"
-          />
-        </SectionWrapper>
+
       </div>
   );
 }
