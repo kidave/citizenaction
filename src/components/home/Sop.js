@@ -200,7 +200,6 @@ export default function SopCta({ driveLink, title = "Walking Project Guide" }) {
             </motion.div>
           </AnimatePresence>
           
-          
         </div>
       </div>
 
