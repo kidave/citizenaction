@@ -22,8 +22,31 @@ const nextConfig = {
               default-src 'self';
               script-src 'self' ${isDev ? "'unsafe-eval'" : ""} https://accounts.google.com https://apis.google.com;
               style-src 'self' 'unsafe-inline';
-              img-src 'self' data: https://lh3.googleusercontent.com https://*.supabase.co https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://tiles.stadiamaps.com https://server.arcgisonline.com https://*.sender.net https://*.sendercdn.com;
-              connect-src 'self' https://*.supabase.co https://accounts.google.com https://api.sender.net;
+              img-src 'self' 
+                data: 
+                blob:
+                https://lh3.googleusercontent.com 
+                https://*.supabase.co 
+                https://a.tile.openstreetmap.org 
+                https://b.tile.openstreetmap.org 
+                https://c.tile.openstreetmap.org 
+                https://tiles.stadiamaps.com 
+                https://server.arcgisonline.com 
+                https://*.sender.net 
+                https://*.sendercdn.com 
+                https://*.fbcdn.net
+                https://*.fna.fbcdn.net
+                https://*.mapillary.com
+                https://scontent.*.fna.fbcdn.net;
+                
+              connect-src 'self' 
+                https://*.supabase.co 
+                https://accounts.google.com 
+                https://api.sender.net
+                https://*.mapillary.com
+                https://graph.mapillary.com
+                https://*.fbcdn.net
+                https://*.fna.fbcdn.net;
               frame-src 'self' https://accounts.google.com https://drive.google.com https://*.sender.net https://*.sendercdn.com;
               frame-ancestors 'self' https://app.sender.net;
               base-uri 'self';

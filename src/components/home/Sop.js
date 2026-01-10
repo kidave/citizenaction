@@ -192,9 +192,9 @@ export default function SopCta({ driveLink, title = "Walking Project Guide" }) {
                 width={600}
                 height={400}
                 className={styles.objectiveImage}
-                onLoadingComplete={() => setIsLoading(false)}
+                onLoad={() => setIsLoading(false)}
                 priority={currentObjective === 0}
-                quality={85}
+                
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
               />
             </motion.div>

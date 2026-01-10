@@ -1,7 +1,5 @@
 // pages/404.js
 import { useRouter } from "next/router";
-import { useEffect } from "react";
-import Layout from "components/home/Layout";
 import styles from "styles/layout/error.module.css";
 
 export default function Custom404() {
@@ -13,7 +11,6 @@ export default function Custom404() {
   const wardCode = wardMatch ? wardMatch[1] : null;
 
   return (
-    <Layout>
       <div className={styles.errorContainer}>
         <div className={styles.errorContent}>
           <h1>404 - Page Not Found</h1>
@@ -43,6 +40,5 @@ export default function Custom404() {
           </div>
         </div>
       </div>
-    </Layout>
   );
 }
