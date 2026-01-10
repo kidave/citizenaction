@@ -120,11 +120,11 @@ export default function RegionMeetingShortcut({ regionCode }) {
       <div className={styles.shortcutCard}>
         {recentMeetings.map(meeting => (
           <Link
+            key={meeting.id}
             href={`/region/${meeting.region_code}/meeting?meetingId=${meeting.id}`}
             className={styles.shortcutLink}
           >
             <RegionMeetingCard
-              key={meeting.id}
               meeting={meeting}
               expanded={false}
               onToggle={() => {}}
