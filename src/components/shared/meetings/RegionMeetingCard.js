@@ -28,7 +28,7 @@ export default function RegionMeetingCard({
         {/* Header */}
         <div className={styles.cardHeader} onClick={onToggle}>
           <div className={styles.headerTitle}>
-            <h3 className={styles.meetingTitle}>{meeting.title}</h3>
+            <h4 className={styles.meetingTitle}>{meeting.title}</h4>
             <div className={styles.headerBottom}>
               <span className={styles.meetingDate}>
                 <FaCalendar className={styles.icon} />
@@ -66,7 +66,7 @@ export default function RegionMeetingCard({
                   <div className={styles.detailSection}>
                     <div className={styles.sectionHeader}>
                       <FaUsers className={styles.sectionIcon} />
-                      <h4>Attendees</h4>
+                      <h5>Attendees</h5>
                     </div>
 
                     <div className={styles.attendeeList}>
@@ -99,7 +99,7 @@ export default function RegionMeetingCard({
                     <div className={styles.detailSection}>
                       <div className={styles.sectionHeader}>
                         <FaTasks className={styles.sectionIcon} />
-                        <h4>Action Items</h4>
+                        <h5>Action Items</h5>
                       </div>
 
                       <div className={styles.actionItems}>
@@ -168,7 +168,7 @@ export default function RegionMeetingCard({
                   <div className={styles.detailSection}>
                     <div className={styles.sectionHeader}>
                       <FaVideo className={styles.sectionIcon} />
-                      <h4>Recording</h4>
+                      <h5>Recording</h5>
                     </div>
 
                     <MediaVideoContainer
