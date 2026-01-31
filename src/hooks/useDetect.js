@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
 import { useWardTabs } from "./useWardTabs";
-import { supabase } from "utils/supabaseClient";
+import { supabase } from "lib/supabase/client";
 import { LOCATION_STATUS } from "utils/location";
 
 export const useDetect = () => {

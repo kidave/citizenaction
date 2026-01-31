@@ -1,6 +1,6 @@
 // hooks/useRegionMeetings.js
 import { useState, useEffect } from "react";
-import { supabase } from "utils/supabaseClient";
+import { supabase } from "lib/supabase/client";
 
 // hooks/useRegionMeetings.js
 export default function useRegionMeetings(regionCode) {

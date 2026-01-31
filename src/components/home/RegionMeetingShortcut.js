@@ -11,10 +11,10 @@ import {
 import useRegionMeetings from "hooks/useRegionMeetings";
 import Link from "next/link";
 
-import RegionMeetingStatus from "components/shared/meetings/RegionMeetingStatus";
-import RegionMeetingCard from "components/shared/meetings/RegionMeetingCard";
-import Spinner from "components/shared/ui/Spinner";
-import styles from "styles/tabs/meeting.module.css";
+import RegionMeetingStatus from "components/tabs/meetings/RegionMeetingStatus";
+import RegionMeetingCard from "components/tabs/meetings/RegionMeetingCard";
+import Spinner from "components/ui/Spinner";
+import styles from "styles/components/tabs/meeting.module.css";
 
 export default function RegionMeetingShortcut({ regionCode }) {
   const { meetings, loading } = useRegionMeetings(regionCode);

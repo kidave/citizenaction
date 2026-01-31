@@ -1,7 +1,7 @@
 // context/WardContext.js
 import { createContext, useContext, useMemo, useEffect, useState } from "react";
 import { useWardHeader } from "hooks/useWardData";
-import Spinner from "components/shared/ui/Spinner";
+import Spinner from "components/ui/Spinner";
 import { useLocationData } from "hooks/useLocation";
 import { useRouter } from "next/router";
 

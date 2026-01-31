@@ -1,13 +1,16 @@
+"use client";
+
 import { motion } from "framer-motion";
 import { FiMapPin, FiArrowRight, FiFileText, FiImage } from "react-icons/fi";
 import useLatestItems from "hooks/useLatestItems";
-import styles from "styles/layout/latest-items.module.css";
-import Spinner from "components/shared/ui/Spinner";
+import styles from "styles/components/home/latest-items.module.css";
+import Spinner from "components/ui/Spinner";
+import Link from "next/link";
 
 export default function LatestUpdates({ limit = 3 }) {
   const { data: updates, loading, error } = useLatestItems("update", limit);
 
-  if (loading) return <Spinner mode="inline" size="small"/>;
+  if (loading) return <Spinner mode="inline" size="small" />;
   if (error)
     return <div className={styles.noData}><p>Error: {error}</p></div>;
   if (!updates?.length)
@@ -37,7 +40,7 @@ export default function LatestUpdates({ limit = 3 }) {
           {update.images?.[0] ? (
             <img
               src={update.images[0].path}
-              alt="Update photo"
+              alt="Update"
               className={styles.cardImage}
               loading="lazy"
             />
@@ -50,18 +53,20 @@ export default function LatestUpdates({ limit = 3 }) {
           </div>
 
           <div className={styles.cardBody}>
-            <p className={styles.operation}>
-              {update.operation?.substring(0, 120)}...
-            </p>
+            <p>{update.operation?.substring(0, 120)}…</p>
           </div>
 
           <div className={styles.cardFooter}>
             <span className={styles.location}>
               <FiMapPin /> {update.ward?.name || "—"} Ward
             </span>
-            <a href={`/ward/${update.ward_code}/update`} className={styles.viewLink}>
+
+            <Link
+              href={`/ward/${update.ward_code}/update`}
+              className={styles.viewLink}
+            >
               Read More <FiArrowRight />
-            </a>
+            </Link>
           </div>
         </motion.div>
       ))}

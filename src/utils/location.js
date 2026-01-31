@@ -1,5 +1,5 @@
 // utils/location.js
-import { supabase } from "utils/supabaseClient";
+import { supabase } from "lib/supabase/client";
 
 export const LocationService = {
   // Get all regions

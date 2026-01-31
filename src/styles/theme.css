@@ -1,0 +1,13 @@
+:root {
+  --background: 248 250 252;
+  --foreground: 15 23 42;
+
+  --primary: 79 70 229;          /* Indigo */
+  --primary-foreground: 255 255 255;
+
+  --accent: 124 58 237;          /* Purple */
+  --muted: 241 245 249;
+  --border: 226 232 240;
+
+  --radius: 12px;
+}

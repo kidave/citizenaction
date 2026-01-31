@@ -1,6 +1,8 @@
 // hooks/useLatestItems.js
+"use client";
+
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "utils/supabaseClient";
+import { supabase } from "lib/supabase/client";
 
 // Simple cache implementation
 const cache = new Map();

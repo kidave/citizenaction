@@ -1,0 +1,41 @@
+/* styles/components/ui/Logo.module.css */
+.logoContainer {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.logoContainer:hover {
+  transform: scale(1.05);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.logoIcon {
+  width: 32px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.logoText {
+  height: 40px;
+  object-fit: contain;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .logoIcon {
+    width: 28px;
+    height: 36px;
+  }
+  
+  .logoText {
+    height: 36px;
+  }
+}

@@ -15,8 +15,26 @@ export function AlertProvider({ children }) {
   }, []);
 
   const showAlert = useCallback((type, props = {}) => {
-    setAlertState({ isOpen: true, type, props });
-  }, []);
+    // Create a safe wrapper for the onClose callback
+    const wrappedProps = {
+      ...props,
+      onClose: () => {
+        try {
+          // Call the user's onClose callback if provided and is a function
+          if (typeof props.onClose === 'function') {
+            props.onClose();
+          }
+        } catch (err) {
+          console.error("Error in alert onClose callback:", err);
+        } finally {
+          // Always hide the alert
+          hideAlert();
+        }
+      }
+    };
+    
+    setAlertState({ isOpen: true, type, props: wrappedProps });
+  }, [hideAlert]);
 
   // Your existing alert methods
   const showSuccessAlert = useCallback((props = {}) => {

@@ -1,6 +1,6 @@
 // context/AuthContext.js
 import { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "utils/supabaseClient";
+import { supabase } from "lib/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 const AuthContext = createContext();
@@ -20,9 +20,23 @@ export function AuthProvider({ children }) {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user || null);
       setLoading(false);
+      
+      // Handle post-login redirect
+      if (event === "SIGNED_IN" && session) {
+        // Wait for Next.js to be ready
+        if (typeof window !== "undefined") {
+          const returnTo = localStorage.getItem("returnTo");
+          if (returnTo && window.location.pathname === "/auth/callback") {
+            setTimeout(() => {
+              localStorage.removeItem("returnTo");
+              window.location.href = returnTo;
+            }, 100);
+          }
+        }
+      }
     });
 
     return () => subscription.unsubscribe();

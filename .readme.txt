@@ -80,7 +80,7 @@ Cache time: 30 minutes
 
 No refetch on window focus
 
-useWardData() API
+useScopeData() API
 
 Centralized supabase querying:
 

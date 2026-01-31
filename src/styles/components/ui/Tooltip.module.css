@@ -1,0 +1,69 @@
+.tooltipContainer {
+  width: 280px;
+  max-width: 280px;
+  background: black;
+  color: white;
+  border-radius: 16px;
+  padding: 1rem;
+  pointer-events: auto;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+
+  animation: fadeIn 0.12s ease-out;
+  z-index: 9999;
+}
+
+.tooltipArrow {
+  fill: black;
+}
+
+.tooltipTitle {
+  font-weight: 500;
+}
+
+.tooltipBody {
+  display: grid;
+  gap: 4px;
+}
+
+.tooltipDescription {
+  font-weight: 400;
+}
+
+.tooltipLabel {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #aaa;
+}
+
+.areaList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.areaItem {
+  font-weight: 400;
+  padding-left: 16px;
+  line-height: 1.35;
+  font-size: 0.8rem;
+}
+
+.landmarkList {
+  margin-top: 0;
+  padding-left: 16px;
+  line-height: 1.35;
+  font-size: 0.8rem;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

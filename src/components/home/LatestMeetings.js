@@ -1,13 +1,16 @@
+"use client";
+
 import { motion } from "framer-motion";
 import { FiMapPin, FiCalendar, FiArrowRight, FiImage } from "react-icons/fi";
 import useLatestItems from "hooks/useLatestItems";
-import styles from "styles/layout/latest-items.module.css";
-import Spinner from "components/shared/ui/Spinner";
+import styles from "styles/components/home/latest-items.module.css";
+import Spinner from "components/ui/Spinner";
+import Link from "next/link";
 
 export default function LatestMeetings({ limit = 3 }) {
   const { data: meetings, loading, error } = useLatestItems("meeting", limit);
 
-  if (loading) return <Spinner mode="inline" size="small"/>;
+  if (loading) return <Spinner mode="inline" size="small" />;
   if (error)
     return <div className={styles.noData}><p>Error: {error}</p></div>;
   if (!meetings?.length)
@@ -38,14 +41,12 @@ export default function LatestMeetings({ limit = 3 }) {
           {meeting.images?.[0] ? (
             <img
               src={meeting.images[0].path}
-              alt="Meeting photo"
+              alt="Meeting"
               className={styles.cardImage}
               loading="lazy"
             />
           ) : (
-            <div className={styles.imageError}>
-              <FiImage />
-            </div>
+            <div className={styles.imageError}><FiImage /></div>
           )}
 
           <div className={styles.cardHeader}>
@@ -59,9 +60,13 @@ export default function LatestMeetings({ limit = 3 }) {
             <span className={styles.location}>
               <FiMapPin /> {meeting.ward?.name || "—"} Ward
             </span>
-            <a href={`/ward/${meeting.ward_code}/meeting`} className={styles.viewLink}>
+
+            <Link
+              href={`/ward/${meeting.ward_code}/meeting`}
+              className={styles.viewLink}
+            >
               View Details <FiArrowRight />
-            </a>
+            </Link>
           </div>
         </motion.div>
       ))}

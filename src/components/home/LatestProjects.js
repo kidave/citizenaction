@@ -1,13 +1,16 @@
+"use client";
+
 import { motion } from "framer-motion";
 import { FiMapPin, FiArrowRight, FiTrendingUp } from "react-icons/fi";
 import useLatestItems from "hooks/useLatestItems";
-import styles from "styles/layout/latest-items.module.css";
-import Spinner from "components/shared/ui/Spinner";
+import styles from "styles/components/home/latest-items.module.css";
+import Spinner from "components/ui/Spinner";
+import Link from "next/link";
 
 export default function LatestProjects({ limit = 3 }) {
   const { data: projects, loading, error } = useLatestItems("project", limit);
 
-  if (loading) return <Spinner mode="inline" size="small"/>;
+  if (loading) return <Spinner mode="inline" size="small" />;
   if (error)
     return <div className={styles.noData}><p>Error: {error}</p></div>;
   if (!projects?.length)
@@ -48,9 +51,13 @@ export default function LatestProjects({ limit = 3 }) {
             <span className={styles.location}>
               <FiMapPin /> {project.ward?.name || "—"} Ward
             </span>
-            <a href={`/ward/${project.ward_code}/project`} className={styles.viewLink}>
+
+            <Link
+              href={`/ward/${project.ward_code}/project`}
+              className={styles.viewLink}
+            >
               View Project <FiArrowRight />
-            </a>
+            </Link>
           </div>
         </motion.div>
       ))}

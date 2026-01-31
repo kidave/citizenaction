@@ -1,5 +1,5 @@
 // pages/api/profile/getProfile.js
-import { createServerSupabase } from "utils/supabaseServer";
+import { createServerSupabase } from "lib/supabase/server";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
