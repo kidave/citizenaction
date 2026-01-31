@@ -1,36 +1,20 @@
-// pages/_app.js
-import { Open_Sans } from "next/font/google";
 import Head from "next/head";
-
-// Global styles
 import "styles/main.css";
-import "react-phone-input-2/lib/style.css";
 
-// Contexts
 import { AuthProvider } from "context/AuthContext";
-import { AlertProvider } from "context/AlertContext";
-
-// Alerts & UI
-/* import GlobalAlert from "components/shared/alert/GlobalAlert"; */
+import Layout from "components/layout/Layout";
 import { Toaster } from "sonner";
 
-// Layout
-import Layout from "components/layout/Layout";
+import ErrorBoundary from "components/system/ErrorBoundary";
+import RouteLoader from "components/system/RouteLoader";
 
-// React Query
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-const openSans = Open_Sans({
-  subsets: ["latin"],
-  weight: ["300", "400", "600", "700"],
-  variable: "--font-main",
-});
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,   // 5 min
-      cacheTime: 30 * 60 * 1000,  // 30 min
+      staleTime: 5 * 60 * 1000,
+      cacheTime: 30 * 60 * 1000,
       refetchOnWindowFocus: false,
       retry: 1,
     },
@@ -38,6 +22,8 @@ const queryClient = new QueryClient({
 });
 
 function MyApp({ Component, pageProps }) {
+  const getLayout = Component.getLayout || ((page) => page);
+
   return (
     <>
       <Head>
@@ -46,24 +32,20 @@ function MyApp({ Component, pageProps }) {
           name="google-site-verification"
           content="xFeTRB7..."
         />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <AlertProvider>
-            
-            {/* Global Toasts */}
-            
+          <Layout>
+            <RouteLoader />
 
-            {/* Persistent site layout */}
-            <Layout>
-              <main className={openSans.variable}>
-                <Component {...pageProps} />
-                <Toaster richColors position="top-right" />
-              </main>
-            </Layout>
+            <ErrorBoundary>
+              {getLayout(<Component {...pageProps} />)}
+            </ErrorBoundary>
 
-          </AlertProvider>
+            <Toaster richColors position="top-right" />
+          </Layout>
         </AuthProvider>
       </QueryClientProvider>
     </>

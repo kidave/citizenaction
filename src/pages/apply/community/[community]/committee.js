@@ -164,7 +164,7 @@ export default function CreateCommitteePage() {
         <CardHeader>
           <CardTitle>New Committee</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Create a new committee for your community. You'll be automatically added as the creator.
+            Create a new committee for your community. You’ll be automatically added as the creator.
           </p>
         </CardHeader>
         
