@@ -41,7 +41,7 @@ const NAV_ITEMS = [
       },
       {
         title: "Search",
-        href: "/search/committees",
+        href: "/search/committee",
         description: "Search for active committees",
       },
       {
@@ -83,7 +83,7 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 z-50 w-full border-b bg-gradient-to-br
+    <header className="fixed top-0 z-50 w-full bg-gradient-to-br
           from-indigo-500/10
           to-purple-600/10">
       <div className="h-16 max-w-7xl mx-auto px-4 flex items-center justify-between">

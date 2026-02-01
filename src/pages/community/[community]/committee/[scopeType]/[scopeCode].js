@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-
+import Image from "next/image";
 import {
   Card,
   CardHeader,
@@ -20,6 +20,13 @@ export default function CommitteePage() {
   const router = useRouter();
   const { community, scopeType, scopeCode } = router.query;
   const { user, loading: authLoading } = useAuth();
+
+  const toTitleCase = (value = "") =>
+    value
+      .toLowerCase()
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+
 
   const {
     data: committee,
@@ -119,9 +126,11 @@ export default function CommitteePage() {
 
           {/* LOGO */}
           {committee.logo_url && (
-            <img
+            <Image
               src={committee.logo_url}
               alt={`${committee.name} logo`}
+              width={32}
+              height={32}
               className="h-14 w-14 rounded-md object-contain border"
             />
           )}
@@ -132,23 +141,9 @@ export default function CommitteePage() {
               {committee.name}
             </h1>
             {committee.scope_type && (
-              <Badge className="ml-2">{committee.scope_type}</Badge>
+              <Badge className="ml-2">{committee.scope_type.toUpperCase()}</Badge>
             )}
           </div>
-        </div>
-
-        {/* SCOPE INFO */}
-        <div className="flex items-center gap-4 text-muted-foreground">
-          <span>
-            {scopeType}: {scopeCode}
-          </span>
-          <span>•</span>
-          <Link 
-            href={`/community/${community}`}
-            className="hover:underline hover:text-foreground"
-          >
-            Community: {committee.community_name || community}
-          </Link>
         </div>
 
         {/* DESCRIPTION */}
@@ -172,9 +167,11 @@ export default function CommitteePage() {
 
           <CardContent>
             <div className="flex items-center gap-3">
-              <img
+              <Image
                 src={committee.owner_avatar_url || "/user1.png"}
                 alt={committee.owner_name || "Owner"}
+                width={32}
+                height={32}
                 className="h-10 w-10 rounded-full object-cover"
               />
               <span className="font-medium">

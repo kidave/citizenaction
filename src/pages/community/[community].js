@@ -2,7 +2,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/router";
 import Link from "next/link";
-
+import Image from "next/image";
 import {
   Card,
   CardHeader,
@@ -16,8 +16,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-import { useCommunityPublic } from "@/hooks/useCommunityPublic";
-import { useCommunityCommittees } from "@/hooks/useCommunityCommittees";
+import {
+  useCommunity,
+  useCommunityCommittee,
+} from "@/features/community/community.hooks";
+
 
 export default function CommunityPage() {
   const { user, loading: authLoading } = useAuth();
@@ -28,15 +31,15 @@ export default function CommunityPage() {
     data: community,
     isLoading,
     error,
-  } = useCommunityPublic(slug);
+  } = useCommunity(slug);
 
   const {
-    data: committees = [],
-    isLoading: committeesLoading,
-  } = useCommunityCommittees(slug);
+    data: committee = [],
+    isLoading: committeeLoading,
+  } = useCommunityCommittee(slug);
 
   /* ---------------- LOADING ---------------- */
-  if (isLoading) {
+  if (isLoading || committeeLoading) {
     return (
       <div className="max-w-6xl mx-auto px-4 py-10 space-y-8">
         <Skeleton className="h-8 w-64" />
@@ -74,9 +77,11 @@ export default function CommunityPage() {
         <div className="flex items-center gap-4">
           {/* LOGO */}
           {community.logo_url && (
-            <img
+            <Image
               src={community.logo_url}
               alt={`${community.name} logo`}
+              width={32} 
+              height={32}
               className="h-14 w-14 rounded-md object-contain border"
             />
           )}
@@ -107,9 +112,11 @@ export default function CommunityPage() {
 
           <CardContent>
             <div className="flex items-center gap-3">
-              <img
+              <Image
                 src={community.avatar_url || "/user1.png"}
                 alt={community.owner_name || "Owner"}
+                width={32}
+                height={32}
                 className="h-10 w-10 rounded-full object-cover"
               />
               <span className="font-medium">
@@ -175,34 +182,78 @@ export default function CommunityPage() {
           )}
         </div>
 
-        {committeesLoading ? (
+        {committeeLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Skeleton className="h-40 w-full" />
             <Skeleton className="h-40 w-full" />
           </div>
-        ) : committees.length > 0 ? (
+        ) : committee.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {committees.map((committee) => (
-              <Card key={committee.id} className="hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <CardTitle className="text-lg">{committee.name}</CardTitle>
-                    {committee.scope_type && (
-                      <Badge variant="outline">{committee.scope_type}</Badge>
+            {committee.map((committee) => (
+              <Card
+                key={committee.id}
+                className="group relative overflow-hidden transition-all hover:shadow-lg"
+              >
+                {/* ===== COVER IMAGE (same as search page) ===== */}
+                {committee.cover_url ? (
+                  <div className="relative h-40 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent z-10" />
+                    <Image
+                      src={committee.cover_url}
+                      alt={`${committee.name} cover`}
+                      fill
+                      className="object-cover"
+                    />
+
+                    {/* Logo on cover */}
+                    {committee.logo_url && (
+                      <div className="absolute bottom-3 left-3 z-20">
+                        <Image
+                          src={committee.logo_url}
+                          alt={`${committee.name} logo`}
+                          width={32}
+                          height={32}
+                          className="h-10 w-10 rounded-md border bg-background object-contain shadow-sm"
+                        />
+                      </div>
                     )}
                   </div>
-                  {committee.scope_code && (
-                    <CardDescription>
-                      Scope: {committee.scope_code}
-                    </CardDescription>
-                  )}
+                ) : (
+                  <div className="relative h-40 bg-muted/50 flex items-center justify-center">
+                    {committee.logo_url && (
+                      <Image
+                        src={committee.logo_url}
+                        alt={`${committee.name} logo`}
+                        width={32}
+                        height={32}
+                        className="h-14 w-14 rounded-md object-contain"
+                      />
+                    )}
+                  </div>
+                )}
+
+                {/* ===== CARD BODY ===== */}
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <CardTitle className="text-lg line-clamp-1">
+                      {committee.name}
+                    </CardTitle>
+
+                    {committee.scope_type && (
+                      <Badge variant="outline" className="shrink-0">
+                        {committee.scope_type.toUpperCase()}
+                      </Badge>
+                    )}
+                  </div>
                 </CardHeader>
+
                 <CardContent>
                   {committee.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
+                    <p className="text-sm font-medium text-muted-foreground line-clamp-2">
                       {committee.description}
                     </p>
                   )}
+
                   <div className="mt-4 text-xs text-muted-foreground">
                     {committee.member_count ? (
                       <span>{committee.member_count} members</span>
@@ -211,6 +262,7 @@ export default function CommunityPage() {
                     )}
                   </div>
                 </CardContent>
+
                 <CardFooter>
                   <Link
                     href={`/community/${community.slug}/committee/${committee.scope_type}/${committee.scope_code}`}
@@ -222,6 +274,7 @@ export default function CommunityPage() {
                   </Link>
                 </CardFooter>
               </Card>
+
             ))}
           </div>
         ) : (

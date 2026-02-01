@@ -1,4 +1,4 @@
-// pages/api/community/[slug]/committees.js - FIXED VERSION
+// pages/api/community/[slug]/committee.js
 import { createServerSupabase } from "@/lib/supabase/server";
 
 export default async function handler(req, res) {
@@ -26,8 +26,8 @@ export default async function handler(req, res) {
       });
     }
 
-    // Get committees - CORRECTED ORDER SYNTAX
-    const { data: committees, error } = await supabase
+    // Get committee - CORRECTED ORDER SYNTAX
+    const { data: committee, error } = await supabase
       .from("community_committee_public")
       .select("*")
       .eq("community_id", community.id)
@@ -37,13 +37,13 @@ export default async function handler(req, res) {
     if (error) {
       console.error("Supabase error:", error);
       return res.status(500).json({ 
-        error: "Failed to fetch committees", 
+        error: "Failed to fetch committee", 
         details: error.message
       });
     }
 
-    // Return committees
-    return res.status(200).json(committees || []);
+    // Return committee
+    return res.status(200).json(committee || []);
     
   } catch (error) {
     console.error("Unexpected error:", error);

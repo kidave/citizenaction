@@ -1,15 +1,15 @@
-// hooks/useCommunityCommittees.js
+// hooks/useCommunityCommittee.js
 import { useQuery } from "@tanstack/react-query";
 
-export function useCommunityCommittees(slug) {
+export function useCommunityCommittee(slug) {
   return useQuery({
-    queryKey: ["community-committees", slug],
+    queryKey: ["community-committee", slug],
     enabled: !!slug,
     queryFn: async () => {
-      const res = await fetch(`/api/community/${slug}/committees`);
+      const res = await fetch(`/api/community/${slug}/committee`);
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.error || "Failed to fetch committees");
+        throw new Error(error.error || "Failed to fetch committee");
       }
       return res.json();
     },

@@ -12,7 +12,7 @@ export default async function handler(req, res) {
 
   if (error) {
     console.error("Supabase error:", error);
-    return res.status(500).json({ error: "Failed to fetch committees" });
+    return res.status(500).json({ error: "Failed to fetch committee" });
   }
 
   return res.status(200).json(data || []);

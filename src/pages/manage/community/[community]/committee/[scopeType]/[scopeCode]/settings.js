@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Card,
   CardHeader,
@@ -19,7 +20,7 @@ import { ArrowLeft, Trash2, Upload, X, Save } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { authFetch } from "@/lib/fetch";
-import { committeeSchema } from "@/schemas/committee";
+import { committeeUpdateSchema } from "@/schemas/committee";
 import { supabase } from "@/lib/supabase/client";
 
 export default function CommitteeSettings() {
@@ -38,16 +39,16 @@ export default function CommitteeSettings() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const form = useForm({
-    resolver: zodResolver(committeeSchema),
+    resolver: zodResolver(committeeUpdateSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      email: "",
-      website: "",
-      contact_number: "",
-      primary_color: "",
-      logo_url: "",
-      cover_url: "",
+      name: undefined,
+      description: undefined,
+      email: undefined,
+      website: undefined,
+      contact_number: undefined,
+      primary_color: undefined,
+      logo_url: undefined,
+      cover_url: undefined,
     },
   });
 
@@ -60,14 +61,14 @@ export default function CommitteeSettings() {
         const data = await authFetch(`/api/committee/${community}/${scopeType}/${scopeCode}/settings`);
         
         form.reset({
-          name: data.name || "",
-          description: data.description || "",
-          email: data.email || "",
-          website: data.website || "",
-          contact_number: data.contact_number || "",
-          primary_color: data.primary_color || "",
-          logo_url: data.logo_url || "",
-          cover_url: data.cover_url || "",
+          name: data.name ?? undefined,
+          description: data.description ?? undefined,
+          email: data.email ?? undefined,
+          website: data.website ?? undefined,
+          contact_number: data.contact_number ?? undefined,
+          primary_color: data.primary_color ?? undefined,
+          logo_url: data.logo_url ?? undefined,
+          cover_url: data.cover_url ?? undefined,
         });
         
         setLoading(false);
@@ -141,7 +142,7 @@ export default function CommitteeSettings() {
         body: JSON.stringify({ logo_url: null }),
       });
       
-      form.setValue("logo_url", "", { shouldDirty: true });
+      form.setValue("logo_url", null, { shouldDirty: true });
       toast.success("Logo deleted");
     } catch (error) {
       toast.error(error.message);
@@ -202,7 +203,7 @@ export default function CommitteeSettings() {
         body: JSON.stringify({ cover_url: null }),
       });
       
-      form.setValue("cover_url", "", { shouldDirty: true });
+      form.setValue("cover_url", null, { shouldDirty: true });
       toast.success("Cover image deleted");
     } catch (error) {
       console.error("Delete cover error:", error);
@@ -222,16 +223,35 @@ export default function CommitteeSettings() {
   const confirmSave = async () => {
     setSaving(true);
     try {
-      const values = form.getValues();
-      
-      await authFetch(`/api/committee/${community}/${scopeType}/${scopeCode}/settings`, {
-        method: "PUT",
-        body: JSON.stringify(values),
-      });
-      
+      const dirty = form.formState.dirtyFields;
+
+      const payload = Object.fromEntries(
+        Object.keys(dirty).map((key) => [
+          key,
+          form.getValues(key),
+        ])
+      );
+
+      if (Object.keys(payload).length === 0) {
+        toast.info("No changes to save");
+        setShowSaveDialog(false);
+        return;
+      }
+
+      await authFetch(
+        `/api/committee/${community}/${scopeType}/${scopeCode}/settings`,
+        {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        }
+      );
+
       toast.success("Settings updated successfully");
       setShowSaveDialog(false);
-      form.reset(values);
+
+      // ✅ FIX: reset form correctly
+      form.reset(form.getValues());
+
       router.back();
     } catch (error) {
       console.error("Save error:", error);
@@ -240,6 +260,7 @@ export default function CommitteeSettings() {
       setSaving(false);
     }
   };
+
 
   // Delete committee
   const handleDelete = () => {
@@ -399,10 +420,12 @@ export default function CommitteeSettings() {
                 {form.watch("logo_url") ? (
                   <div className="flex items-center gap-4">
                     <div className="relative">
-                      <img
+                      <Image
                         src={form.watch("logo_url")}
                         className="h-20 w-20 object-contain rounded-lg border"
                         alt="Committee logo"
+                        height={32}
+                        width={32}
                       />
                     </div>
                     <div className="text-sm text-muted-foreground">
@@ -452,11 +475,13 @@ export default function CommitteeSettings() {
                 </div>
                 
                 {form.watch("cover_url") ? (
-                  <div>
-                    <img
+                  <div className="relative h-40 w-full max-w-md rounded-lg border overflow-hidden">
+                    <Image
                       src={form.watch("cover_url")}
-                      className="h-40 w-full object-cover rounded-lg border"
-                      alt="Committee cover"
+                      alt="Community cover"
+                      fill
+                      className="object-fit"
+                      sizes="(max-width: 768px) 100vw, 400px"
                     />
                     <p className="text-sm text-muted-foreground mt-2">
                       Current cover image. Upload a new one to replace.

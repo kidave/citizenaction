@@ -8,24 +8,28 @@ export default function Layout({ children }) {
     <>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Walking Project - Making Cities Walkable</title>
+        <title>Citizen Action</title>
       </Head>
 
-      <div className="min-h-screen flex flex-col overflow-x-hidden">
+      <div className="min-h-screen overflow-x-hidden">
 
         {/* Fixed Header */}
-        <Header />
+        <header className="fixed top-0 inset-x-0 z-50 h-[var(--header-height)]">
+          <Header />
+        </header>
 
-        {/* Main Content */}
-        <main className="flex-1 pt-16 w-full">
+        {/* Page Content */}
+        <main
+          className="w-full"
+          style={{ paddingTop: "var(--header-height)" }}
+        >
           {children}
         </main>
 
-        {/* Footer */}
+        {/* Footer (scroll-only, NOT part of viewport math) */}
         <Footer />
 
       </div>
     </>
   );
 }
-

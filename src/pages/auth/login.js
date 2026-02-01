@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
-
+import Image from "next/image";
 import { useAuth } from "context/AuthContext";
 
 import { Button } from "@/components/ui/button";
@@ -72,14 +72,18 @@ export default function Auth() {
 
           {/* Logo */}
           <div className="flex items-center justify-center gap-3">
-            <img
+            <Image
               src="/wp_icon_sm.avif"
               alt="Logo"
+              width={32} 
+              height={32}
               className="h-10 w-auto"
             />
-            <img
+            <Image
               src="/wp_text_logo.avif"
               alt="Walking Project"
+              width={128} 
+              height={128}
               className="h-8 w-auto"
             />
           </div>

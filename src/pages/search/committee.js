@@ -1,8 +1,9 @@
-//pages/search/committees.js
+//pages/search/committee.js
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import Image from "next/image";
 import {
   Select,
   SelectContent,
@@ -15,11 +16,11 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useCommitteeSearch } from "@/hooks/useCommitteeSearch";
 
-export default function CommitteesSearchPage() {
+export default function CommitteeSearchPage() {
   const router = useRouter();
   const { data = [], isLoading } = useCommitteeSearch();
   
-  console.log("Committees data:", data);
+  console.log("Committee data:", data);
   console.log("First committee:", data[0]);
 
   const [communitySlug, setCommunitySlug] = useState("");
@@ -43,17 +44,9 @@ export default function CommitteesSearchPage() {
   if (isLoading) return <div className="p-10">Loading…</div>;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-10 space-y-8">
-      {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Find Committees</h1>
-        <p className="text-muted-foreground">
-          Discover and join committees across communities
-        </p>
-      </div>
-
+    <div className="max-w-7xl mx-auto px-4 py-2 space-y-4">
       {/* Filters */}
-      <div className="flex flex-wrap gap-4 p-4 bg-muted/30 rounded-lg">
+      <div className="flex flex-wrap gap-4 p-2 bg-muted/30 rounded-lg">
         <div>
           <Input
             placeholder="Search committees…"
@@ -118,18 +111,22 @@ export default function CommitteesSearchPage() {
               {committee.cover_url ? (
                 <div className="relative h-48 overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent z-10" />
-                  <img
+                  <Image
                     src={committee.cover_url}
                     alt={`${committee.name} cover`}
-                    className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300"
+                    width={160}
+                    height={90}
+                    className="w-full h-full object-cover"
                   />
                   
                   {/* Logo on Cover */}
                   {committee.logo_url && (
                     <div className="absolute bottom-4 left-4 z-20">
-                      <img
+                      <Image
                         src={committee.logo_url}
                         alt={`${committee.name} logo`}
+                        width={32}
+                        height={32}
                         className="h-12 w-12 rounded-md border-2 border-background bg-background object-contain shadow-sm"
                       />
                     </div>
@@ -139,9 +136,11 @@ export default function CommitteesSearchPage() {
                 <div className="relative h-48 bg-gradient-to-br from-muted to-muted/50">
                   {committee.logo_url && (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <img
+                      <Image
                         src={committee.logo_url}
                         alt={`${committee.name} logo`}
+                        width={32}
+                        height={32}
                         className="h-20 w-20 rounded-md object-contain"
                       />
                     </div>

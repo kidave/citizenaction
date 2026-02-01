@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Card,
   CardHeader,
@@ -18,7 +19,7 @@ import { ArrowLeft, Trash2, Upload, X, Save } from "lucide-react";
 import { useAuth } from "context/AuthContext";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { authFetch } from "@/lib/fetch";
-import { communitySchema } from "@/schemas/community";
+import { communityUpdateSchema } from "@/schemas/community";
 import { supabase } from "@/lib/supabase/client";
 
 export default function CommunitySettings() {
@@ -38,17 +39,17 @@ export default function CommunitySettings() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const form = useForm({
-    resolver: zodResolver(communitySchema),
+    resolver: zodResolver(communityUpdateSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      email: "",
-      website: "",
-      contact_number: "",
-      primary_color: "",
-      logo_url: "",
-      cover_url: "",
-    },
+      name: undefined,
+      description: undefined,
+      email: undefined,
+      website: undefined,
+      contact_number: undefined,
+      primary_color: undefined,
+      logo_url: undefined,
+      cover_url: undefined,
+    }
   });
 
   // Load community data
@@ -63,14 +64,14 @@ export default function CommunitySettings() {
         console.log("Loaded data:", data);
         
         form.reset({
-          name: data.name || "",
-          description: data.description || "",
-          email: data.email || "",
-          website: data.website || "",
-          contact_number: data.contact_number || "",
-          primary_color: data.primary_color || "",
-          logo_url: data.logo_url || "",
-          cover_url: data.cover_url || "",
+          name: data.name ?? undefined,
+          description: data.description ?? undefined,
+          email: data.email ?? undefined,
+          website: data.website ?? undefined,
+          contact_number: data.contact_number ?? undefined,
+          primary_color: data.primary_color ?? undefined,
+          logo_url: data.logo_url ?? undefined,
+          cover_url: data.cover_url ?? undefined,
         });
         
         setLoading(false);
@@ -150,7 +151,7 @@ export default function CommunitySettings() {
         body: JSON.stringify({ logo_url: null }),
       });
       
-      form.setValue("logo_url", "", { shouldDirty: true });
+      form.setValue("logo_url", null, { shouldDirty: true });
       toast.success("Logo deleted");
     } catch (error) {
       toast.error(error.message);
@@ -211,7 +212,7 @@ export default function CommunitySettings() {
         body: JSON.stringify({ cover_url: null }),
       });
       
-      form.setValue("cover_url", "", { shouldDirty: true });
+      form.setValue("cover_url", null, { shouldDirty: true });
       toast.success("Cover image deleted");
     } catch (error) {
       console.error("Delete cover error:", {
@@ -235,12 +236,18 @@ export default function CommunitySettings() {
   const confirmSave = async () => {
     setSaving(true);
     try {
-      const values = form.getValues();
-      console.log("Saving values:", values);
+      const values = form.formState.dirtyFields;
+
+      const payload = Object.fromEntries(
+        Object.keys(values).map((key) => [
+          key,
+          form.getValues(key),
+        ])
+      );
       
       await authFetch(`/api/community/${slug}/settings`, {
         method: "PUT",
-        body: JSON.stringify(values),
+        body: JSON.stringify(payload),
       });
       
       toast.success("Settings updated successfully");
@@ -465,10 +472,12 @@ export default function CommunitySettings() {
                 {form.watch("logo_url") ? (
                   <div className="flex items-center gap-4">
                     <div className="relative">
-                      <img
+                      <Image
                         src={form.watch("logo_url")}
-                        className="h-20 w-20 object-contain rounded-lg border"
                         alt="Community logo"
+                        width={32}
+                        height={32}
+                        className="h-20 w-20 object-contain rounded-lg border"          
                       />
                     </div>
                     <div className="text-sm text-muted-foreground">
@@ -521,11 +530,13 @@ export default function CommunitySettings() {
                 </div>
                 
                 {form.watch("cover_url") ? (
-                  <div>
-                    <img
+                  <div className="relative h-40 w-full max-w-md rounded-lg border overflow-hidden">
+                    <Image
                       src={form.watch("cover_url")}
-                      className="h-40 w-full object-cover rounded-lg border"
                       alt="Community cover"
+                      fill
+                      className="object-fit"
+                      sizes="(max-width: 768px) 100vw, 400px"
                     />
                     <p className="text-sm text-muted-foreground mt-2">
                       Current cover image. Upload a new one to replace.

@@ -8,11 +8,6 @@ export default function Home() {
   return (
     <div className="w-full">
 
-      {/* Improvement Banner */}
-      <div className="bg-yellow-100 text-yellow-800 text-center text-sm py-1 px-4 border-b border-yellow-300">
-        This page is under ongoing improvement and limited to Mumbai Metropolitan Region
-      </div>
-
       {/* Hero */}
       <motion.section
         ref={heroRef}
@@ -20,8 +15,9 @@ export default function Home() {
         animate={isHeroInView ? { opacity: 1 } : {}}
         transition={{ duration: 0.8 }}
         className="
-          min-h-[clamp(80vh,100vh,110vh)]
-          flex items-center
+          min-h-[calc(100vh-var(--header-height))]
+          flex flex-col
+          justify-center
           px-6 md:px-12 lg:px-24
           bg-gradient-to-br
           from-indigo-500/10

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
 
 import { useCommunitySearch } from "@/hooks/useCommunitySearch";
 
@@ -37,14 +38,6 @@ export default function CommunitySearchPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10 space-y-8">
-      {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Find Communities</h1>
-        <p className="text-muted-foreground">
-          Discover and join active communities around the world
-        </p>
-      </div>
-
       {/* Filters */}
       <div className="flex flex-wrap gap-4 p-4 bg-muted/30 rounded-lg">
         <div>
@@ -81,18 +74,22 @@ export default function CommunitySearchPage() {
               {community.cover_url ? (
                 <div className="relative h-48 overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent z-10" />
-                  <img
+                  <Image
                     src={community.cover_url}
                     alt={`${community.name} cover`}
-                    className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 400px"
+                    className="w-40 h-40 object-cover"
                   />
                   
                   {/* Logo on Cover */}
                   {community.logo_url && (
                     <div className="absolute bottom-4 left-4 z-20">
-                      <img
+                      <Image
                         src={community.logo_url}
                         alt={`${community.name} logo`}
+                        width={32}
+                        height={32}
                         className="h-12 w-12 rounded-md border-2 border-background bg-background object-contain shadow-sm"
                       />
                     </div>
@@ -102,9 +99,11 @@ export default function CommunitySearchPage() {
                 <div className="relative h-48 bg-gradient-to-br from-muted to-muted/50">
                   {community.logo_url && (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <img
+                      <Image
                         src={community.logo_url}
                         alt={`${community.name} logo`}
+                        width={32}
+                        height={32}
                         className="h-20 w-20 rounded-md object-contain"
                       />
                     </div>
