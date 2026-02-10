@@ -70,9 +70,6 @@ export default async function handler(req, res) {
     }
 
     // Validate required fields
-    if (!clubData.name?.trim()) {
-      return res.status(400).json({ error: "Club name is required" });
-    }
 
     if (!clubData.scope_type?.trim() || !clubData.scope_code?.trim()) {
       return res.status(400).json({ error: "Scope type and code are required" });
@@ -122,7 +119,7 @@ export default async function handler(req, res) {
 
     if (existingClub) {
       return res.status(400).json({ 
-        error: `Club "${existingClub.name}" with scope ${clubData.scope_type}:${clubData.scope_code} already exists`,
+        error: `A club already exists for the selected ${clubData.scope_type}.`,
         existingClub: existingClub.name
       });
     }
@@ -144,7 +141,7 @@ export default async function handler(req, res) {
       .from("community_committee")
       .insert({
         community_id: community.id,
-        name: clubData.name.trim(),
+        name: null,
         description: clubData.description?.trim() || null,
         scope_type: clubData.scope_type,
         scope_code: clubData.scope_code,
@@ -164,7 +161,7 @@ export default async function handler(req, res) {
         .from("club")
         .insert({
           community_id: community.id,
-          name: clubData.name.trim(),
+          name: null,
           description: clubData.description?.trim() || null,
           scope_type: clubData.scope_type,
           scope_code: clubData.scope_code,

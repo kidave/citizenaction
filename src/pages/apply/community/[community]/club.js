@@ -1,14 +1,16 @@
-// pages/apply/community/[community]/club.js
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { toast } from "sonner";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
+
 import { useAuth } from "@/context/AuthContext";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import useProfile from "@/hooks/useProfile";
+import { useGeographicScopes } from "@/hooks/useGeographicScopes";
 import { authFetch } from "@/lib/fetch";
 
 import {
@@ -29,85 +31,107 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+
 import ScopeSelector from "@/components/shared/ScopeSelector";
 
-const clubSchema = z.object({
-  name: z.string().min(2, "Club name is required"),
-  description: z.string().optional(),
-  scope_type: z.string().min(1, "Scope type is required"),
-  scope_code: z.string().min(1, "Geographic scope is required"),
-  contact_email: z.string().email().optional().or(z.literal("")),
-  contact_phone: z.string().optional(),
-});
+/* ---------------------------------- */
+/* Schema */
+/* ---------------------------------- */
+
+import { clubCreateSchema } from "@/schemas/clubCreate";
+
+/* ---------------------------------- */
+/* Page */
+/* ---------------------------------- */
 
 export default function CreateClubPage() {
   const router = useRouter();
   const { community: slug } = router.query;
+
   const { user, loading: authLoading } = useAuth();
   useRequireAuth();
 
+  const { data: profile, isLoading: profileLoading } = useProfile();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [profile, setProfile] = useState(null);
-  const [profileLoading, setProfileLoading] = useState(true);
 
   const form = useForm({
-    resolver: zodResolver(clubSchema),
+    resolver: zodResolver(clubCreateSchema),
     defaultValues: {
-      name: "",
       description: "",
-      scope_type: "",
+      scope_type: "city",
       scope_code: "",
       contact_email: user?.email || "",
       contact_phone: "",
     },
   });
 
-  // Load profile
+  /* ---------------------------------- */
+  /* Autofill contact info from profile */
+  /* ---------------------------------- */
+
   useEffect(() => {
-    if (!user) return;
+    if (!profile) return;
 
-    const loadProfile = async () => {
-      try {
-        const data = await authFetch("/api/profile/getProfile");
-        setProfile(data);
-        
-        // Set default values from profile
-        if (data?.email) {
-          form.setValue("contact_email", data.email);
-        }
-        if (data?.mobile || data?.phone) {
-          form.setValue("contact_phone", data.mobile || data.phone);
-        }
-      } catch (error) {
-        console.error("Failed to load profile:", error);
-      } finally {
-        setProfileLoading(false);
-      }
-    };
+    if (profile.email) {
+      form.setValue("contact_email", profile.email);
+    }
+    if (profile.mobile || profile.phone) {
+      form.setValue("contact_phone", profile.mobile || profile.phone);
+    }
+  }, [profile, form]);
 
-    loadProfile();
-  }, [user, form]);
+  const scopeType = form.watch("scope_type");
+  const scopeCode = form.watch("scope_code");
+
+  const { data: scopes = [], isLoading: scopesLoading } =
+    useGeographicScopes({
+      type: scopeType,
+      parentCode: null,
+      enabled: !!scopeType,
+    });
+
+  const selectedScope = scopes?.find(
+    (s) => s.code === scopeCode
+  );
+
+  const scopeLogo = selectedScope?.logo_url;
+  const scopeCover = selectedScope?.cover_url;
+  const scopeName = selectedScope?.name;
+
+
+
+  /* ---------------------------------- */
+  /* Submit */
+  /* ---------------------------------- */
 
   const onSubmit = async (values) => {
     if (!slug) return;
 
     setIsSubmitting(true);
-    
+
     try {
-      const response = await authFetch(`/api/community/${slug}/apply-club`, {
+      await authFetch(`/api/community/${slug}/apply-club`, {
         method: "POST",
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          ...values,
+          name: null, // 👈 explicitly no custom name
+        }),
       });
 
-      toast.success(response.message || "Club created successfully!");
+      toast.success("Club created successfully!");
       router.push(`/community/${slug}`);
     } catch (error) {
       toast.error(error.message || "Failed to create club");
-      console.error("Submission error:", error);
+      console.error("Create club error:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  /* ---------------------------------- */
+  /* Loading states */
+  /* ---------------------------------- */
 
   if (authLoading || profileLoading) {
     return (
@@ -122,12 +146,8 @@ export default function CreateClubPage() {
             <Skeleton className="h-4 w-full" />
           </CardHeader>
           <CardContent className="space-y-4">
-            <Skeleton className="h-10 w-full" />
             <Skeleton className="h-24 w-full" />
-            <div className="grid grid-cols-2 gap-4">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
+            <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />
           </CardContent>
         </Card>
@@ -135,16 +155,22 @@ export default function CreateClubPage() {
     );
   }
 
-  if (!user) {
-    return null; // useRequireAuth will redirect
+  if (!user) return null;
+  if (!slug) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        Loading community…
+      </div>
+    );
   }
 
-  if (!slug) {
-    return <div className="flex justify-center items-center h-64">Loading community...</div>;
-  }
+  /* ---------------------------------- */
+  /* Render */
+  /* ---------------------------------- */
 
   return (
     <div className="max-w-2xl mx-auto py-10 px-4">
+      {/* Header */}
       <div className="flex items-center gap-3 mb-8">
         <Link
           href={`/community/${slug}`}
@@ -152,39 +178,61 @@ export default function CreateClubPage() {
         >
           <ArrowLeft className="h-4 w-4" />
         </Link>
+
         <div>
           <h1 className="text-2xl font-semibold">Create Club</h1>
-          <p className="text-sm text-muted-foreground">
-            Creating club for {slug} as {profile?.name || user.email}
-          </p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>New Club</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Create a new club for your community. You’ll be automatically added as the creator.
+            Creating a club which will represent a geographic area within {slug}.
           </p>
         </CardHeader>
-        
+
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-6"
+            >
+              {/* Geographic Scope */}
               <FormField
                 control={form.control}
-                name="name"
+                name="scope_type"
+                render={() => (
+                  <ScopeSelector
+                    value={{
+                      scope_type: form.watch("scope_type"),
+                      scope_code: form.watch("scope_code"),
+                    }}
+                    onChange={({ scope_type, scope_code }) => {
+                      form.setValue("scope_type", scope_type, {
+                        shouldValidate: true,
+                      });
+                      form.setValue("scope_code", scope_code, {
+                        shouldValidate: true,
+                      });
+                    }}
+                  />
+                )}
+              />
+
+              {/* Hidden scope_code */}
+              <FormField
+                control={form.control}
+                name="scope_code"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Club Name *</FormLabel>
+                  <FormItem className="hidden">
                     <FormControl>
-                      <Input placeholder="e.g., Mumbai Ward 45 Club" {...field} />
+                      <Input type="hidden" {...field} />
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
 
+              {/* Description */}
               <FormField
                 control={form.control}
                 name="description"
@@ -193,52 +241,16 @@ export default function CreateClubPage() {
                     <FormLabel>Description (Optional)</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Describe the purpose and activities of this club"
                         rows={3}
+                        placeholder="Purpose, responsibilities, or focus of this club"
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Scope Selector */}
-              <FormField
-                control={form.control}
-                name="scope_type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Geographic Scope *</FormLabel>
-                    <FormControl>
-                      <ScopeSelector
-                        onScopeChange={(type, code) => {
-                          field.onChange(type);
-                          form.setValue("scope_code", code);
-                        }}
-                        defaultType="city"
-                        defaultCountry="IN"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Hidden field for scope_code */}
-              <FormField
-                control={form.control}
-                name="scope_code"
-                render={({ field }) => (
-                  <FormItem className="hidden">
-                    <FormControl>
-                      <Input {...field} type="hidden" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
+              {/* Contact Info */}
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -247,10 +259,10 @@ export default function CreateClubPage() {
                     <FormItem>
                       <FormLabel>Contact Email (Optional)</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="email" 
-                          placeholder="club@example.com" 
-                          {...field} 
+                        <Input
+                          type="email"
+                          placeholder="club@example.com"
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
@@ -265,10 +277,10 @@ export default function CreateClubPage() {
                     <FormItem>
                       <FormLabel>Contact Phone (Optional)</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="tel" 
-                          placeholder="+91 9876543210" 
-                          {...field} 
+                        <Input
+                          type="tel"
+                          placeholder="+91 9876543210"
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
@@ -277,13 +289,65 @@ export default function CreateClubPage() {
                 />
               </div>
 
-              <div className="text-sm text-muted-foreground p-3 bg-muted/30 rounded-md">
-                <p className="font-medium mb-1">Your Information:</p>
-                <p>Name: {profile?.name || "Not set"}</p>
-                <p>Email: {profile?.email || user.email}</p>
-                <p>Phone: {profile?.mobile || profile?.phone || "Not set"}</p>
+              {/* Public Club Preview */}
+              <div className="rounded-md border bg-muted/30 p-4 text-sm space-y-3">
+                <div>
+                  <p className="font-medium">Club Identity</p>
+                  <p className="text-muted-foreground">
+                    This is how the club will appear publicly once created.
+                  </p>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  {scopeLogo && (
+                    <Image
+                      src={scopeLogo}
+                      alt="Scope logo"
+                      width={48}
+                      height={48}
+                      className="h-12 w-12 rounded-md object-contain border bg-background"
+                    />
+                  )}
+
+                  <div>
+                    <p className="font-medium">
+                      {scopeName || "Selected Geographic Area"}
+                    </p>
+                    <p className="text-muted-foreground text-sm">
+                      Club name and branding are derived from the selected geographic scope.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-1 pt-2 border-t">
+                  <p>
+                    Name:{" "}
+                    <span className="font-medium">
+                      {profile?.name || "Not set"}
+                    </span>
+                  </p>
+                  <p>
+                    Email:{" "}
+                    <span className="font-medium">
+                      {form.watch("contact_email") || "Not set"}
+                    </span>
+                  </p>
+                  <p>
+                    Phone:{" "}
+                    <span className="font-medium">
+                      {form.watch("contact_phone") || "Not set"}
+                    </span>
+                  </p>
+                </div>
+
+                <p className="text-xs text-muted-foreground">
+                  You can update contact details or customise the club name later from the
+                  club settings.<br />
+                  If you want to create a club without public contact info just leave the fields blank.
+                </p>
               </div>
 
+              {/* Actions */}
               <div className="flex gap-3 pt-4">
                 <Button
                   type="button"

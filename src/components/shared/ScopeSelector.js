@@ -1,7 +1,6 @@
-// components/ScopeSelector.js
-import { useState, useEffect } from "react";
-import { SCOPE_CONFIG, SCOPE_TYPES, COUNTRY_CODE } from "@/config/ScopeConfig";
+import { useState } from "react";
 import { useGeographicScopes } from "@/hooks/useGeographicScopes";
+import { SCOPE_CONFIG } from "@/config/scopeConfig";
 
 import {
   Select,
@@ -11,81 +10,33 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export default function ScopeSelector({ onScopeChange }) {
-  const [scopeType, setScopeType] = useState("city");
+/**
+ * Props:
+ * value: { scope_type, scope_code }
+ * onChange: ({ scope_type, scope_code }) => void
+ */
+export default function ScopeSelector({ value, onChange }) {
+  const { scope_type, scope_code } = value;
 
-  // selections
+  // LOCAL UI STATE (important!)
   const [selectedCity, setSelectedCity] = useState("");
-  const [selectedWard, setSelectedWard] = useState("");
-  const [selectedRegion, setSelectedRegion] = useState("");
 
-  const config = SCOPE_CONFIG[scopeType];
-
-  // -----------------------------
-  // DATA FETCHING (CONFIG DRIVEN)
-  // -----------------------------
+  // Fetch data
+  const regionQuery = useGeographicScopes({
+    type: "region",
+    enabled: scope_type === "region",
+  });
 
   const cityQuery = useGeographicScopes({
     type: "city",
-    enabled: scopeType === "city" || scopeType === "ward",
+    enabled: scope_type === "city" || scope_type === "ward",
   });
 
   const wardQuery = useGeographicScopes({
     type: "ward",
     parentCode: selectedCity,
-    enabled: scopeType === "ward" && !!selectedCity,
+    enabled: scope_type === "ward" && !!selectedCity,
   });
-
-  const regionQuery = useGeographicScopes({
-    type: "region",
-    enabled: scopeType === "region",
-  });
-
-  // -----------------------------
-  // EFFECT: notify parent
-  // -----------------------------
-
-  useEffect(() => {
-    if (scopeType === "region" && regionQuery.data?.length) {
-      // wait for user selection
-      onScopeChange("", "");
-    }
-
-    if (scopeType === "city" && selectedCity) {
-      onScopeChange("city", selectedCity);
-    }
-
-    if (scopeType === "ward" && selectedWard) {
-      onScopeChange("ward", selectedWard);
-    }
-  }, [scopeType, selectedCity, selectedWard]);
-
-  // -----------------------------
-  // RESET on scope change
-  // -----------------------------
-
-  const handleScopeTypeChange = (type) => {
-    setScopeType(type);
-    setSelectedCity("");
-    setSelectedWard("");
-    onScopeChange("", "");
-  };
-
-  const getCurrentScopeCode = () => {
-    if (scopeType === "region") return selectedRegion;
-    if (scopeType === "city") return selectedCity;
-    if (scopeType === "ward") return selectedWard;
-    return "";
-  };
-
-  const isScopeComplete = () => {
-    return Boolean(getCurrentScopeCode());
-  };
-
-
-  // -----------------------------
-  // RENDER
-  // -----------------------------
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -96,101 +47,88 @@ export default function ScopeSelector({ onScopeChange }) {
           At what level does your club represent?
         </label>
 
-        <Select value={scopeType} onValueChange={handleScopeTypeChange}>
+        <Select
+          value={scope_type}
+          onValueChange={(type) => {
+            setSelectedCity("");
+            onChange({ scope_type: type, scope_code: "" });
+          }}
+        >
           <SelectTrigger>
-            <SelectValue />
+            <SelectValue placeholder="Select scope" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="region">Region</SelectItem>
-            <SelectItem value="city">City</SelectItem>
-            <SelectItem value="ward">Ward</SelectItem>
+            {Object.entries(SCOPE_CONFIG).map(([key, cfg]) => (
+              <SelectItem key={key} value={key}>
+                {cfg.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
 
       {/* REGION */}
-      {scopeType === "region" && (
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Region</label>
-          <Select onValueChange={(v) => onScopeChange("region", v)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select region" />
-            </SelectTrigger>
-            <SelectContent>
-              {regionQuery.data?.map((r) => (
-                <SelectItem key={r.code} value={r.code}>
-                  {r.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      {scope_type === "region" && (
+        <LabeledSelect
+          label="Region"
+          data={regionQuery.data}
+          value={scope_code}
+          onChange={(v) =>
+            onChange({ scope_type, scope_code: v })
+          }
+        />
       )}
 
       {/* CITY */}
-      {(scopeType === "city" || scopeType === "ward") && (
-        <div className="space-y-2">
-          <label className="text-sm font-medium">City</label>
-          <Select
-            value={selectedCity}
-            onValueChange={(v) => {
-              setSelectedCity(v);
-              if (scopeType === "city") {
-                onScopeChange("city", v);
-              }
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select city" />
-            </SelectTrigger>
-            <SelectContent>
-              {cityQuery.data?.map((c) => (
-                <SelectItem key={c.code} value={c.code}>
-                  {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      {(scope_type === "city" || scope_type === "ward") && (
+        <LabeledSelect
+          label="City"
+          data={cityQuery.data}
+          value={scope_type === "city" ? scope_code : selectedCity}
+          onChange={(v) => {
+            setSelectedCity(v);
+            if (scope_type === "city") {
+              onChange({ scope_type, scope_code: v });
+            }
+          }}
+        />
       )}
 
       {/* WARD */}
-      {scopeType === "ward" && (
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Ward</label>
-          <Select
-            value={selectedWard}
-            disabled={!selectedCity}
-            onValueChange={(v) => {
-              setSelectedWard(v);
-              onScopeChange("ward", v);
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select ward" />
-            </SelectTrigger>
-            <SelectContent>
-              {wardQuery.data?.map((w) => (
-                <SelectItem key={w.code} value={w.code}>
-                  {w.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      {scope_type === "ward" && (
+        <LabeledSelect
+          label="Ward"
+          data={wardQuery.data}
+          value={scope_code}
+          disabled={!selectedCity}
+          onChange={(v) =>
+            onChange({ scope_type, scope_code: v })
+          }
+        />
       )}
+    </div>
+  );
+}
 
-      {/* Validation Status */}
-      <div className="p-3 bg-muted/30 rounded-md">
-        <p className="text-sm font-medium mb-1">Location:</p>
-        <p className="text-sm">
-          {isScopeComplete() ? (
-            <span className="text-green-600 capitalize">✓ {scopeType} ({getCurrentScopeCode()})</span>
-          ) : (
-            <span className="text-amber-600">Please select all required fields</span>
-          )}
-        </p>
-      </div>
+/* ---------------------------------- */
+/* Reusable shadcn Select */
+/* ---------------------------------- */
+function LabeledSelect({ label, data, value, onChange, disabled }) {
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-medium">{label}</label>
+      <Select value={value} onValueChange={onChange} disabled={disabled}>
+        <SelectTrigger>
+          <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
+        </SelectTrigger>
+        <SelectContent>
+          {data?.map((item) => (
+            <SelectItem key={item.code} value={item.code}>
+              {item.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

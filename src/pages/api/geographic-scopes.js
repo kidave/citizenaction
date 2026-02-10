@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   try {
     let query = supabase
       .from("geographic_scope")
-      .select("id, type, code, name, metadata, parent_id")
+      .select("id, type, code, name, metadata, parent_id, cover_url, logo_url")
       .order("name");
 
     // Filter by type if provided
