@@ -54,7 +54,7 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     await supabase.auth.signOut();
 
-    // Clear all committee / user cache
+    // Clear all club / user cache
     localStorage.removeItem("userStatus");
     queryClient.removeQueries({ queryKey: ["userStatus"] });
 

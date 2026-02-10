@@ -3,6 +3,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Image from "next/image";
+import { ArrowLeft } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -12,13 +13,22 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 
-import { Skeleton } from "@/components/ui/skeleton";
+import PageHeaderSkeleton from "@/components/skeletons/PageHeaderSkeleton";
+import MetaCardsSkeleton from "@/components/skeletons/MetaCardsSkeleton";
+import CarouselSkeleton from "@/components/skeletons/CarouselSkeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 import {
   useCommunity,
-  useCommunityCommittee,
+  useCommunityClub,
 } from "@/features/community/community.hooks";
 
 
@@ -34,16 +44,17 @@ export default function CommunityPage() {
   } = useCommunity(slug);
 
   const {
-    data: committee = [],
-    isLoading: committeeLoading,
-  } = useCommunityCommittee(slug);
+    data: club = [],
+    isLoading: clubLoading,
+  } = useCommunityClub(slug);
 
   /* ---------------- LOADING ---------------- */
-  if (isLoading || committeeLoading) {
+  if (isLoading || clubLoading) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-10 space-y-8">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-4 w-96" />
+      <div className="max-w-6xl mx-auto my-auto px-4 py-4 space-y-4">
+        <PageHeaderSkeleton />
+        <MetaCardsSkeleton />
+        <CarouselSkeleton />
       </div>
     );
   }
@@ -65,7 +76,7 @@ export default function CommunityPage() {
   /* ---------------- PAGE ---------------- */
   return (
     <div
-      className="max-w-6xl mx-auto px-4 py-10 space-y-10"
+      className="max-w-6xl mx-auto my-auto px-4 py-4 space-y-4"
       style={
         community.primary_color
           ? { "--community-primary": community.primary_color }
@@ -75,6 +86,15 @@ export default function CommunityPage() {
       {/* ================= HEADER ================= */}
       <header className="space-y-4">
         <div className="flex items-center gap-4">
+          {/* Back Button */}
+          <button
+            onClick={() => router.back()}
+            className="inline-flex items-center justify-center rounded-md border p-2 hover:bg-muted"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+
           {/* LOGO */}
           {community.logo_url && (
             <Image
@@ -171,124 +191,143 @@ export default function CommunityPage() {
         </Card>
       </section>
 
-      {/* ================= COMMITTEES SECTION ================= */}
+      {/* ================= CLUBS SECTION ================= */}
       <section>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-semibold">Committees</h2>
+          <h2 className="text-2xl font-semibold">Clubs</h2>
           {isOwner && (
-            <Link href={`/apply/community/${community.slug}/committee`}>
-              <Button>Create Committee</Button>
+            <Link href={`/apply/community/${community.slug}/club`}>
+              <Button>Create Club</Button>
             </Link>
           )}
         </div>
 
-        {committeeLoading ? (
+        {clubLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Skeleton className="h-40 w-full" />
-            <Skeleton className="h-40 w-full" />
+            <CarouselSkeleton className="h-40 w-full" />
+            <CarouselSkeleton className="h-40 w-full" />
           </div>
-        ) : committee.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {committee.map((committee) => (
-              <Card
-                key={committee.id}
-                className="group relative overflow-hidden transition-all hover:shadow-lg"
-              >
-                {/* ===== COVER IMAGE (same as search page) ===== */}
-                {committee.cover_url ? (
-                  <div className="relative h-40 overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent z-10" />
-                    <Image
-                      src={committee.cover_url}
-                      alt={`${committee.name} cover`}
-                      fill
-                      className="object-cover"
-                    />
-
-                    {/* Logo on cover */}
-                    {committee.logo_url && (
-                      <div className="absolute bottom-3 left-3 z-20">
-                        <Image
-                          src={committee.logo_url}
-                          alt={`${committee.name} logo`}
-                          width={32}
-                          height={32}
-                          className="h-10 w-10 rounded-md border bg-background object-contain shadow-sm"
-                        />
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="relative h-40 bg-muted/50 flex items-center justify-center">
-                    {committee.logo_url && (
-                      <Image
-                        src={committee.logo_url}
-                        alt={`${committee.name} logo`}
-                        width={32}
-                        height={32}
-                        className="h-14 w-14 rounded-md object-contain"
-                      />
-                    )}
-                  </div>
-                )}
-
-                {/* ===== CARD BODY ===== */}
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <CardTitle className="text-lg line-clamp-1">
-                      {committee.name}
-                    </CardTitle>
-
-                    {committee.scope_type && (
-                      <Badge variant="outline" className="shrink-0">
-                        {committee.scope_type.toUpperCase()}
-                      </Badge>
-                    )}
-                  </div>
-                </CardHeader>
-
-                <CardContent>
-                  {committee.description && (
-                    <p className="text-sm font-medium text-muted-foreground line-clamp-2">
-                      {committee.description}
-                    </p>
-                  )}
-
-                  <div className="mt-4 text-xs text-muted-foreground">
-                    {committee.member_count ? (
-                      <span>{committee.member_count} members</span>
-                    ) : (
-                      <span>No members yet</span>
-                    )}
-                  </div>
-                </CardContent>
-
-                <CardFooter>
-                  <Link
-                    href={`/community/${community.slug}/committee/${committee.scope_type}/${committee.scope_code}`}
-                    className="w-full"
+        ) : club.length > 0 ? (
+          <div className="relative px-4">
+            <Carousel
+              opts={{
+                align: "start",
+                slidesToScroll: 1,
+              }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-4">
+                {club.map((club) => (
+                  <CarouselItem 
+                    key={club.id} 
+                    className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3"
                   >
-                    <Button variant="outline" className="w-full">
-                      View Committee
-                    </Button>
-                  </Link>
-                </CardFooter>
-              </Card>
+                    <Card className="group relative overflow-hidden transition-all hover:shadow-lg h-full">
+                      {/* ===== COVER IMAGE (same as search page) ===== */}
+                      {club.cover_url ? (
+                        <div className="relative h-40 overflow-hidden">
+                          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent z-10" />
+                          <Image
+                            src={club.cover_url}
+                            alt={`${club.name} cover`}
+                            fill
+                            className="object-cover"
+                          />
 
-            ))}
+                          {/* Logo on cover */}
+                          {club.logo_url && (
+                            <div className="absolute bottom-3 left-3 z-20">
+                              <Image
+                                src={club.logo_url}
+                                alt={`${club.name} logo`}
+                                width={32}
+                                height={32}
+                                className="h-10 w-10 rounded-md border bg-background object-contain shadow-sm"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="relative h-40 bg-muted/50 flex items-center justify-center">
+                          {club.logo_url && (
+                            <Image
+                              src={club.logo_url}
+                              alt={`${club.name} logo`}
+                              width={32}
+                              height={32}
+                              className="h-14 w-14 rounded-md object-contain"
+                            />
+                          )}
+                        </div>
+                      )}
+
+                      {/* ===== CARD BODY ===== */}
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <CardTitle className="text-lg line-clamp-1">
+                            {club.name}
+                          </CardTitle>
+
+                          {club.scope_type && (
+                            <Badge variant="outline" className="shrink-0">
+                              {club.scope_type.toUpperCase()}
+                            </Badge>
+                          )}
+                        </div>
+                      </CardHeader>
+
+                      <CardContent>
+                        {club.description && (
+                          <p className="text-sm font-medium text-muted-foreground line-clamp-2">
+                            {club.description}
+                          </p>
+                        )}
+
+                        <div className="mt-4 text-xs text-muted-foreground">
+                          {club.member_count ? (
+                            <span>{club.member_count} members</span>
+                          ) : (
+                            <span>No members yet</span>
+                          )}
+                        </div>
+                      </CardContent>
+
+                      <CardFooter>
+                        <Link
+                          href={`/community/${community.slug}/club/${club.scope_type}/${club.scope_code}`}
+                          className="w-full"
+                        >
+                          <Button variant="outline" className="w-full">
+                            View Club
+                          </Button>
+                        </Link>
+                      </CardFooter>
+                    </Card>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              
+              {/* Navigation buttons with proper positioning */}
+              <CarouselPrevious 
+                className="absolute -left-5 top-1/2 -translate-y-1/2 hidden sm:flex" 
+              />
+              <CarouselNext 
+                className="absolute -right-5 top-1/2 -translate-y-1/2 hidden sm:flex" 
+              />
+            </Carousel>
           </div>
         ) : (
           <Card className="border-dashed">
             <CardHeader>
-              <CardTitle>Committees</CardTitle>
+              <CardTitle>Clubs</CardTitle>
               <CardDescription>
-                No committees have been published yet.
+                No clubs have been published yet.
               </CardDescription>
             </CardHeader>
             {isOwner && (
               <CardFooter>
-                <Link href={`/apply/community/${community.slug}/committee`}>
-                  <Button>Create First Committee</Button>
+                <Link href={`/apply/community/${community.slug}/club`}>
+                  <Button>Create First Club</Button>
                 </Link>
               </CardFooter>
             )}
@@ -324,7 +363,7 @@ export default function CommunityPage() {
         {/* MANAGE → only for owner */}
         {!authLoading && isOwner && (
           <Link
-            href={`/manage/community/${community.slug}`}
+            href={`/manage/${community.slug}`}
             className="inline-flex items-center justify-center rounded-md border bg-black text-white px-4 py-2 text-sm font-medium"
           >
             Manage Community

@@ -2,25 +2,10 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { FiMenu } from "react-icons/fi";
 
-import Logo from "components/ui/Logo";
+import Logo from "@/components/layout/Logo";
 import { useAuth } from "context/AuthContext";
 
 import { Button } from "@/components/ui/button";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Sheet,
   SheetContent,
@@ -28,6 +13,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -35,19 +27,21 @@ const NAV_ITEMS = [
     label: "Community",
     items: [
       {
-        title: "Search",
+        title: "Search for active communities",
         href: "/search/community",
-        description: "Search for active communities",
       },
       {
-        title: "Search",
-        href: "/search/committee",
-        description: "Search for active committees",
-      },
-      {
-        title: "Apply",
+        title: "Apply to register your community",
         href: "/apply/community",
-        description: "Apply to register your community",
+      },
+    ],
+  },
+  {
+    label: "Club",
+    items: [
+      {
+        title: "Search for active clubs",
+        href: "/search/club",
       },
     ],
   },
@@ -56,8 +50,7 @@ const NAV_ITEMS = [
     items: [
       {
         title: "Mumbai Metropolitan Region",
-        href: "/community/walkingproject/committee/region/MH-MMR",
-        description: "Explore wards and civic activity across MMR",
+        href: "/community/walkingproject/club/region/MH-MMR",
       },
     ],
   },
@@ -83,69 +76,66 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 z-50 w-full bg-gradient-to-br
-          from-indigo-500/10
-          to-purple-600/10">
+    <header className="fixed top-0 z-50 w-full lg:hidden bg-gradient-to-br from-indigo-500/10 to-purple-600/10">
       <div className="h-16 max-w-7xl mx-auto px-4 flex items-center justify-between">
-
         {/* BRAND */}
         <Logo />
 
         {/* RIGHT SIDE */}
         <div className="flex items-center gap-6">
-
-          {/* DESKTOP NAV */}
+          {/* DESKTOP: SINGLE NAVIGATION BUTTON WITH DROPDOWN */}
           <div className="hidden lg:flex">
-            <NavigationMenu>
-              <NavigationMenuList className="gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-transparent hover:bg-indigo-100 hover:text-indigo-700 border-indigo-300"
+                >
+                  <FiMenu className="mr-2" />
+                  Navigation
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                sideOffset={8}
+                className="w-64 p-3"
+              >
                 {NAV_ITEMS.map((nav) => (
-                  <NavigationMenuItem key={nav.label}>
-                    <NavigationMenuTrigger
-                      className="bg-transparent hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent"
-                    >
+                  <div key={nav.label} className="mb-3 last:mb-0">
+                    <p className="text-xs font-semibold text-muted-foreground mb-2 px-2">
                       {nav.label}
-                    </NavigationMenuTrigger>
-
-                    <NavigationMenuContent>
-                      <ul className="grid gap-3 p-4 w-[320px]">
-                        {nav.items.map((item) => (
-                          <li key={item.title}>
-                            <NavigationMenuLink asChild>
-                              <Link
-                                href={item.href}
-                                className={cn(
-                                  "block rounded-md p-3 no-underline transition-colors",
-                                  "hover:bg-muted focus:bg-muted"
-                                )}
-                              >
-                                <div className="text-sm font-medium">
-                                  {item.title}
-                                </div>
-                                <p className="text-sm text-muted-foreground">
-                                  {item.description}
-                                </p>
-                              </Link>
-                            </NavigationMenuLink>
-                          </li>
-                        ))}
-                      </ul>
-                    </NavigationMenuContent>
-                  </NavigationMenuItem>
+                    </p>
+                    <div className="space-y-1">
+                      {nav.items.map((item) => (
+                        <DropdownMenuItem
+                          key={item.title}
+                          onClick={() => router.push(item.href)}
+                          className="px-2 py-2 cursor-pointer rounded-md hover:bg-muted"
+                        >
+                          <div>
+                            <div className="font-medium">{item.title}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {item.description}
+                            </div>
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                    </div>
+                  </div>
                 ))}
-              </NavigationMenuList>
-            </NavigationMenu>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* AUTH AREA */}
           {!user ? (
-            // Changed from Link to Button with onClick handler
             <Button size="sm" onClick={handleLogin}>
               Login
             </Button>
           ) : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                {/* FIXED-SIZE WRAPPER prevents layout shift */}
                 <div className="w-9 h-9 flex items-center justify-center">
                   <button
                     className="rounded-full focus:outline-none"
@@ -167,11 +157,7 @@ export default function Header() {
                 </div>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent
-                align="end"
-                sideOffset={8}
-                className="w-40"
-              >
+              <DropdownMenuContent align="end" sideOffset={8} className="w-40">
                 <DropdownMenuItem onClick={() => router.push("/user/profile")}>
                   My Profile
                 </DropdownMenuItem>
@@ -182,7 +168,7 @@ export default function Header() {
             </DropdownMenu>
           )}
 
-          {/* MOBILE MENU */}
+          {/* MOBILE MENU - Keeps the same Sheet */}
           <div className="flex lg:hidden">
             <Sheet>
               <SheetTrigger asChild>
@@ -218,10 +204,7 @@ export default function Header() {
                   ))}
 
                   {!user ? (
-                    <Button
-                      className="w-full"
-                      onClick={handleLogin}
-                    >
+                    <Button className="w-full" onClick={handleLogin}>
                       Login
                     </Button>
                   ) : (
@@ -246,7 +229,6 @@ export default function Header() {
               </SheetContent>
             </Sheet>
           </div>
-
         </div>
       </div>
     </header>

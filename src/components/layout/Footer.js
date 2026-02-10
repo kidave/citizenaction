@@ -7,6 +7,7 @@ import {
   FaGithub,
 } from "react-icons/fa";
 import { FaBluesky, FaXTwitter } from "react-icons/fa6";
+import Link from "next/link";
 
 export default function Footer() {
   return (
@@ -46,10 +47,27 @@ export default function Footer() {
           </a>
         </div>
       </div>
+      <div className="flex justify-center gap-6 text-sm text-slate-300 pb-4">
+        <Link
+          href="/auth/privacy"
+          className="hover:underline underline-offset-4"
+        >
+          Privacy Policy
+        </Link>
+
+        <Link
+          href="/auth/privacy"
+          className="hover:underline underline-offset-4"
+        >
+          Terms of Service
+        </Link>
+      </div>
 
       <div className="text-center text-xs text-slate-400 border-t border-white/10 py-4">
         Mumbai Sustainability Centre © 2024
       </div>
+      
+
     </footer>
   );
 }

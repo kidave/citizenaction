@@ -7,10 +7,10 @@ export const communityKeys = {
 
   detail: (slug) => [...communityKeys.all, "detail", slug],
 
-  committee: (slug) => [
+  club: (slug) => [
     ...communityKeys.all,
     "detail",
     slug,
-    "committee",
+    "club",
   ],
 };

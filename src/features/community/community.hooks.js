@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { communityKeys } from "./community.keys";
 import {
   fetchCommunity,
-  fetchCommunityCommittee,
+  fetchCommunityClub,
 } from "./community.api";
 
 export function useCommunity(slug) {
@@ -15,10 +15,10 @@ export function useCommunity(slug) {
   });
 }
 
-export function useCommunityCommittee(slug) {
+export function useCommunityClub(slug) {
   return useQuery({
-    queryKey: communityKeys.committee(slug),
-    queryFn: () => fetchCommunityCommittee(slug),
+    queryKey: communityKeys.club(slug),
+    queryFn: () => fetchCommunityClub(slug),
     enabled: !!slug,
   });
 }

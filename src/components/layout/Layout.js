@@ -1,35 +1,56 @@
-// components/layout/Layout.js
-import Head from "next/head";
-import Header from "./Header";
-import Footer from "./Footer";
+"use client";
+
+import {
+  SidebarProvider,
+  SidebarTrigger,
+  SidebarInset,
+} from "@/components/ui/sidebar";
+
+import PageBreadcrumbs from "./PageBreadcrumbs";
+import { usePathname } from "next/navigation";
+import LeftSidebar from "./LeftSidebar";
 
 export default function Layout({ children }) {
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
+
   return (
-    <>
-      <Head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Citizen Action</title>
-      </Head>
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
 
-      <div className="min-h-screen overflow-x-hidden">
+        {/* LEFT SIDEBAR */}
+        <LeftSidebar />
 
-        {/* Fixed Header */}
-        <header className="fixed top-0 inset-x-0 z-50 h-[var(--header-height)]">
-          <Header />
-        </header>
+        {/* MAIN AREA */}
+        <SidebarInset className="flex flex-col flex-1 min-w-0">
+          
+          {isHomePage ? (
+            // Floating sidebar trigger for home page
+            <div className="relative">
+              <SidebarTrigger 
+                className="absolute top-4 left-4 z-10 h-8 w-8 bg-background border rounded-md shadow-sm flex items-center justify-center hover:bg-accent"
+                title="Toggle sidebar"
+              />
+              <main className="pt-4">
+                {children}
+              </main>
+            </div>
+          ) : (
+            // Regular layout for other pages
+            <>
+              <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                <SidebarTrigger className="-ml-1" />
+                <PageBreadcrumbs />
+              </header>
+              <main className="flex-1 overflow-y-auto">
+                {children}
+              </main>
+            </>
+          )}
 
-        {/* Page Content */}
-        <main
-          className="w-full"
-          style={{ paddingTop: "var(--header-height)" }}
-        >
-          {children}
-        </main>
-
-        {/* Footer (scroll-only, NOT part of viewport math) */}
-        <Footer />
+        </SidebarInset>
 
       </div>
-    </>
+    </SidebarProvider>
   );
 }

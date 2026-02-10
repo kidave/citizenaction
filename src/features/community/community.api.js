@@ -11,12 +11,12 @@ export async function fetchCommunity(slug) {
   return data;
 }
 
-export async function fetchCommunityCommittee(slug) {
-  const res = await fetch(`/api/community/${slug}/committee`);
+export async function fetchCommunityClub(slug) {
+  const res = await fetch(`/api/community/${slug}/club`);
   const data = await res.json();
 
   if (!res.ok) {
-    throw new Error(data.error || "Failed to load committee");
+    throw new Error(data.error || "Failed to load club");
   }
 
   return data;

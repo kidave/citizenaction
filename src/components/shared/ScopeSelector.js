@@ -1,6 +1,8 @@
 // components/ScopeSelector.js
 import { useState, useEffect } from "react";
+import { SCOPE_CONFIG, SCOPE_TYPES, COUNTRY_CODE } from "@/config/ScopeConfig";
 import { useGeographicScopes } from "@/hooks/useGeographicScopes";
+
 import {
   Select,
   SelectContent,
@@ -9,155 +11,96 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export default function ScopeSelector({ 
-  onScopeChange, 
-  defaultType = "city",
-  defaultCountry = "IN" 
-}) {
-  const [scopeType, setScopeType] = useState(defaultType);
-  const [selectedCountry, setSelectedCountry] = useState("");
-  const [selectedState, setSelectedState] = useState("");
-  const [selectedRegion, setSelectedRegion] = useState("");
+export default function ScopeSelector({ onScopeChange }) {
+  const [scopeType, setScopeType] = useState("city");
+
+  // selections
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedWard, setSelectedWard] = useState("");
+  const [selectedRegion, setSelectedRegion] = useState("");
 
-  // Fetch all geographic scopes
-  const { data: countries = [] } = useGeographicScopes("country");
-  const { data: states = [] } = useGeographicScopes("state", selectedCountry);
-  const { data: regions = [] } = useGeographicScopes("region", selectedState);
-  const { data: cities = [] } = useGeographicScopes("city", selectedRegion);
-  const { data: wards = [] } = useGeographicScopes("ward", selectedCity);
+  const config = SCOPE_CONFIG[scopeType];
 
-  // Initialize with defaults
+  // -----------------------------
+  // DATA FETCHING (CONFIG DRIVEN)
+  // -----------------------------
+
+  const cityQuery = useGeographicScopes({
+    type: "city",
+    enabled: scopeType === "city" || scopeType === "ward",
+  });
+
+  const wardQuery = useGeographicScopes({
+    type: "ward",
+    parentCode: selectedCity,
+    enabled: scopeType === "ward" && !!selectedCity,
+  });
+
+  const regionQuery = useGeographicScopes({
+    type: "region",
+    enabled: scopeType === "region",
+  });
+
+  // -----------------------------
+  // EFFECT: notify parent
+  // -----------------------------
+
   useEffect(() => {
-    if (countries.length > 0 && defaultCountry) {
-      const defaultCountryObj = countries.find(c => c.code === defaultCountry);
-      if (defaultCountryObj) {
-        setSelectedCountry(defaultCountry);
-        
-        // Auto-select scope if country scope type
-        if (scopeType === "country") {
-          notifyScopeChange("country", defaultCountry);
-        }
-      }
+    if (scopeType === "region" && regionQuery.data?.length) {
+      // wait for user selection
+      onScopeChange("", "");
     }
-  }, [countries, defaultCountry, scopeType]);
 
-  // Notify parent of scope change
-  const notifyScopeChange = (type, code) => {
-    onScopeChange(type, code);
-  };
+    if (scopeType === "city" && selectedCity) {
+      onScopeChange("city", selectedCity);
+    }
 
-  // Handle scope type change
+    if (scopeType === "ward" && selectedWard) {
+      onScopeChange("ward", selectedWard);
+    }
+  }, [scopeType, selectedCity, selectedWard]);
+
+  // -----------------------------
+  // RESET on scope change
+  // -----------------------------
+
   const handleScopeTypeChange = (type) => {
     setScopeType(type);
-    // Clear all selections
-    setSelectedState("");
-    setSelectedRegion("");
     setSelectedCity("");
     setSelectedWard("");
-    
-    // If country scope, notify immediately
-    if (type === "country" && selectedCountry) {
-      notifyScopeChange(type, selectedCountry);
-    } else {
-      // Clear the scope until user selects something
-      notifyScopeChange("", "");
-    }
+    onScopeChange("", "");
   };
 
-  // Handle country selection
-  const handleCountryChange = (countryCode) => {
-    setSelectedCountry(countryCode);
-    setSelectedState("");
-    setSelectedRegion("");
-    setSelectedCity("");
-    setSelectedWard("");
-    
-    if (scopeType === "country") {
-      notifyScopeChange("country", countryCode);
-    }
-  };
-
-  // Handle state selection
-  const handleStateChange = (stateCode) => {
-    setSelectedState(stateCode);
-    setSelectedRegion("");
-    setSelectedCity("");
-    setSelectedWard("");
-    
-    if (scopeType === "state") {
-      notifyScopeChange("state", stateCode);
-    }
-  };
-
-  // Handle region selection
-  const handleRegionChange = (regionCode) => {
-    setSelectedRegion(regionCode);
-    setSelectedCity("");
-    setSelectedWard("");
-    
-    if (scopeType === "region") {
-      notifyScopeChange("region", regionCode);
-    }
-  };
-
-  // Handle city selection
-  const handleCityChange = (cityCode) => {
-    setSelectedCity(cityCode);
-    setSelectedWard("");
-    
-    if (scopeType === "city") {
-      notifyScopeChange("city", cityCode);
-    }
-  };
-
-  // Handle ward selection
-  const handleWardChange = (wardCode) => {
-    setSelectedWard(wardCode);
-    
-    if (scopeType === "ward") {
-      notifyScopeChange("ward", wardCode);
-    }
-  };
-
-  // Determine which dropdowns to show
-  const showCountry = ["country", "state", "region", "city", "ward"].includes(scopeType);
-  const showState = ["state", "region", "city", "ward"].includes(scopeType);
-  const showRegion = ["region", "city", "ward"].includes(scopeType);
-  const showCity = ["city", "ward"].includes(scopeType);
-  const showWard = scopeType === "ward";
-
-  // Get current scope code based on type
   const getCurrentScopeCode = () => {
-    switch(scopeType) {
-      case "country": return selectedCountry;
-      case "state": return selectedState;
-      case "region": return selectedRegion;
-      case "city": return selectedCity;
-      case "ward": return selectedWard;
-      default: return "";
-    }
+    if (scopeType === "region") return selectedRegion;
+    if (scopeType === "city") return selectedCity;
+    if (scopeType === "ward") return selectedWard;
+    return "";
   };
 
-  // Validate if scope is complete
   const isScopeComplete = () => {
-    const code = getCurrentScopeCode();
-    return !!code;
+    return Boolean(getCurrentScopeCode());
   };
+
+
+  // -----------------------------
+  // RENDER
+  // -----------------------------
 
   return (
-    <div className="space-y-4">
-      {/* Scope Type Selector */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+      {/* SCOPE TYPE */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">Scope Type</label>
+        <label className="text-sm font-medium">
+          At what level does your club represent?
+        </label>
+
         <Select value={scopeType} onValueChange={handleScopeTypeChange}>
           <SelectTrigger>
-            <SelectValue placeholder="Select scope type" />
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="country">Country</SelectItem>
-            <SelectItem value="state">State</SelectItem>
             <SelectItem value="region">Region</SelectItem>
             <SelectItem value="city">City</SelectItem>
             <SelectItem value="ward">Ward</SelectItem>
@@ -165,67 +108,18 @@ export default function ScopeSelector({
         </Select>
       </div>
 
-      {/* Country Selector */}
-      {showCountry && (
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Country</label>
-          <Select 
-            value={selectedCountry} 
-            onValueChange={handleCountryChange}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select country" />
-            </SelectTrigger>
-            <SelectContent>
-              {countries.map((country) => (
-                <SelectItem key={country.code} value={country.code}>
-                  {country.name} ({country.code})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
-      {/* State Selector */}
-      {showState && (
-        <div className="space-y-2">
-          <label className="text-sm font-medium">State</label>
-          <Select 
-            value={selectedState} 
-            onValueChange={handleStateChange}
-            disabled={!selectedCountry}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={!selectedCountry ? "Select country first" : "Select state"} />
-            </SelectTrigger>
-            <SelectContent>
-              {states.map((state) => (
-                <SelectItem key={state.code} value={state.code}>
-                  {state.name} ({state.code})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
-      {/* Region Selector */}
-      {showRegion && (
+      {/* REGION */}
+      {scopeType === "region" && (
         <div className="space-y-2">
           <label className="text-sm font-medium">Region</label>
-          <Select 
-            value={selectedRegion} 
-            onValueChange={handleRegionChange}
-            disabled={!selectedState}
-          >
+          <Select onValueChange={(v) => onScopeChange("region", v)}>
             <SelectTrigger>
-              <SelectValue placeholder={!selectedState ? "Select state first" : "Select region"} />
+              <SelectValue placeholder="Select region" />
             </SelectTrigger>
             <SelectContent>
-              {regions.map((region) => (
-                <SelectItem key={region.code} value={region.code}>
-                  {region.name} ({region.code})
+              {regionQuery.data?.map((r) => (
+                <SelectItem key={r.code} value={r.code}>
+                  {r.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -233,22 +127,26 @@ export default function ScopeSelector({
         </div>
       )}
 
-      {/* City Selector */}
-      {showCity && (
+      {/* CITY */}
+      {(scopeType === "city" || scopeType === "ward") && (
         <div className="space-y-2">
           <label className="text-sm font-medium">City</label>
-          <Select 
-            value={selectedCity} 
-            onValueChange={handleCityChange}
-            disabled={!selectedRegion}
+          <Select
+            value={selectedCity}
+            onValueChange={(v) => {
+              setSelectedCity(v);
+              if (scopeType === "city") {
+                onScopeChange("city", v);
+              }
+            }}
           >
             <SelectTrigger>
-              <SelectValue placeholder={!selectedRegion ? "Select region first" : "Select city"} />
+              <SelectValue placeholder="Select city" />
             </SelectTrigger>
             <SelectContent>
-              {cities.map((city) => (
-                <SelectItem key={city.code} value={city.code}>
-                  {city.name} ({city.code})
+              {cityQuery.data?.map((c) => (
+                <SelectItem key={c.code} value={c.code}>
+                  {c.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -256,22 +154,25 @@ export default function ScopeSelector({
         </div>
       )}
 
-      {/* Ward Selector */}
-      {showWard && (
+      {/* WARD */}
+      {scopeType === "ward" && (
         <div className="space-y-2">
           <label className="text-sm font-medium">Ward</label>
-          <Select 
-            value={selectedWard} 
-            onValueChange={handleWardChange}
+          <Select
+            value={selectedWard}
             disabled={!selectedCity}
+            onValueChange={(v) => {
+              setSelectedWard(v);
+              onScopeChange("ward", v);
+            }}
           >
             <SelectTrigger>
-              <SelectValue placeholder={!selectedCity ? "Select city first" : "Select ward"} />
+              <SelectValue placeholder="Select ward" />
             </SelectTrigger>
             <SelectContent>
-              {wards.map((ward) => (
-                <SelectItem key={ward.code} value={ward.code}>
-                  {ward.name} ({ward.code})
+              {wardQuery.data?.map((w) => (
+                <SelectItem key={w.code} value={w.code}>
+                  {w.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -281,12 +182,12 @@ export default function ScopeSelector({
 
       {/* Validation Status */}
       <div className="p-3 bg-muted/30 rounded-md">
-        <p className="text-sm font-medium mb-1">Scope Status:</p>
+        <p className="text-sm font-medium mb-1">Location:</p>
         <p className="text-sm">
           {isScopeComplete() ? (
-            <span className="text-green-600">✓ Scope selected: {scopeType} ({getCurrentScopeCode()})</span>
+            <span className="text-green-600 capitalize">✓ {scopeType} ({getCurrentScopeCode()})</span>
           ) : (
-            <span className="text-amber-600">Please select all required scope fields</span>
+            <span className="text-amber-600">Please select all required fields</span>
           )}
         </p>
       </div>
