@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import PageHeaderSkeleton from "@/components/skeletons/PageHeaderSkeleton";
 import MetaCardsSkeleton from "@/components/skeletons/MetaCardsSkeleton";
-import { useClubPublic } from "@/hooks/useClubPublic";
+import { useClubs } from "@/hooks/useClubs";
 
 export default function ClubPage() {
   const router = useRouter();
@@ -31,13 +31,21 @@ export default function ClubPage() {
 
 
   const {
-    data: club,
-    isLoading,
+    data: clubs = [],
+    isLoading: clubLoading,
     error,
-  } = useClubPublic(community, scopeType, scopeCode);
+  } = useClubs({
+    communitySlug: community,
+    scopeType,
+    scopeCode,
+    enabled: !!community && !!scopeType && !!scopeCode,
+  });
+
+  const club = clubs?.[0];
+
 
   /* ---------------- LOADING ---------------- */
-  if (isLoading || !community || !scopeType || !scopeCode) {
+  if (clubLoading || !community || !scopeType || !scopeCode) {
     return (
       <div className="max-w-6xl mx-auto my-auto px-4 py-4 space-y-4">
         <PageHeaderSkeleton />

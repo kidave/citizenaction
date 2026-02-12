@@ -23,22 +23,15 @@ export default function Layout({ children }) {
 
         {/* MAIN AREA */}
         <SidebarInset className="flex flex-col flex-1 min-w-0">
-          
           {isHomePage ? (
-            // Floating sidebar trigger for home page
-            <div className="relative">
-              <SidebarTrigger 
-                className="absolute top-4 left-4 z-10 h-8 w-8 bg-background border rounded-md shadow-sm flex items-center justify-center hover:bg-accent"
-                title="Toggle sidebar"
-              />
-              <main className="pt-4">
-                {children}
-              </main>
-            </div>
+            // Home page - no header, just content
+            <main className="flex-1">
+              {children}
+            </main>
           ) : (
-            // Regular layout for other pages
+            // Other pages - with header and breadcrumbs
             <>
-              <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+              <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
                 <SidebarTrigger className="-ml-1" />
                 <PageBreadcrumbs />
               </header>
@@ -47,9 +40,8 @@ export default function Layout({ children }) {
               </main>
             </>
           )}
-
         </SidebarInset>
-
+        
       </div>
     </SidebarProvider>
   );

@@ -22,8 +22,23 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { LogIn } from "lucide-react";
 
 export function Profile() {
-  const { user, logout } = useAuth();
   const router = useRouter();
+  const { user, profile, logout } = useAuth();
+
+  const handleLogin = () => {
+    // Save current path before redirecting to login
+    if (typeof window !== "undefined") {
+      const currentPath = window.location.pathname + window.location.search;
+      if (currentPath !== "/auth/login") {
+        localStorage.setItem("returnTo", currentPath);
+      }
+    }
+    router.push("/auth/login");
+  };
+
+  const handleLogout = async () => {
+    await logout();
+  };
 
   if (!user) {
     return (
@@ -31,7 +46,7 @@ export function Profile() {
         <SidebarMenuItem>
           <SidebarMenuButton
             tooltip="Login"
-            onClick={() => router.push("/auth/login")}
+            onClick={handleLogin}
             className="w-full justify-start gap-2"
           >
             <LogIn className="h-4 w-4" />
@@ -77,7 +92,7 @@ export function Profile() {
             <DropdownMenuSeparator />
 
             <DropdownMenuItem
-              onClick={logout}
+              onClick={handleLogout}
               className="text-red-600 focus:text-red-600"
             >
               Logout

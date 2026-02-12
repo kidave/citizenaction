@@ -1,53 +1,61 @@
 import { supabase } from "./client";
 
 /**
- * Upload file to Supabase storage with proper error handling
+ * Upload file to post-attachments bucket
+ * @param {File} file - File to upload
+ * @param {string} userId - User ID for path organization
+ * @returns {Promise<{url: string, name: string, type: string, size: number}>}
  */
-export const uploadFile = async (bucket, path, file, options = {}) => {
-  const { data, error } = await supabase.storage
-    .from(bucket)
+export async function uploadPostAttachment(file, userId) {
+  // Create path: userId/timestamp-filename
+  const timestamp = Date.now();
+  const fileName = file.name.replace(/[^a-zA-Z0-9.]/g, '_'); // Sanitize filename
+  const path = `${userId}/${timestamp}-${fileName}`;
+
+  // Upload file
+  const { error: uploadError } = await supabase.storage
+    .from("post-attachments")
     .upload(path, file, { 
-      upsert: true,
-      ...options 
+      upsert: false,
+      cacheControl: '3600'
     });
 
-  if (error) throw error;
+  if (uploadError) throw uploadError;
 
+  // Get public URL
   const { data: { publicUrl } } = supabase.storage
-    .from(bucket)
+    .from("post-attachments")
     .getPublicUrl(path);
 
-  return publicUrl;
-};
+  return {
+    url: publicUrl,
+    name: file.name,
+    type: file.type,
+    size: file.size,
+    path // Store path for potential deletion
+  };
+}
 
 /**
- * Delete file from Supabase storage
+ * Delete attachment from storage
  */
-export const deleteFile = async (bucket, path) => {
+export async function deletePostAttachment(path) {
   const { error } = await supabase.storage
-    .from(bucket)
+    .from("post-attachments")
     .remove([path]);
 
   if (error) throw error;
-  
   return true;
-};
+}
 
 /**
- * Get public URL for a file
+ * Get file type category for display
  */
-export const getPublicUrl = (bucket, path) => {
-  const { data: { publicUrl } } = supabase.storage
-    .from(bucket)
-    .getPublicUrl(path);
-  
-  return publicUrl;
-};
-
-/**
- * Extract filename from storage URL
- */
-export const extractFileNameFromUrl = (url) => {
-  if (!url) return null;
-  return url.split('/').pop();
-};
+export function getFileCategory(mimeType) {
+  if (mimeType?.startsWith('image/')) return 'image';
+  if (mimeType === 'application/pdf') return 'pdf';
+  if (mimeType?.includes('word')) return 'document';
+  if (mimeType?.includes('spreadsheet')) return 'spreadsheet';
+  if (mimeType?.startsWith('text/')) return 'text';
+  return 'file';
+}

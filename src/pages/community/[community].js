@@ -26,11 +26,8 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 
-import {
-  useCommunity,
-  useCommunityClub,
-} from "@/features/community/community.hooks";
-
+import { useCommunities } from "@/hooks/useCommunities";
+import { useClubs } from "@/hooks/useClubs";
 
 export default function CommunityPage() {
   const { user, loading: authLoading } = useAuth();
@@ -41,12 +38,19 @@ export default function CommunityPage() {
     data: community,
     isLoading,
     error,
-  } = useCommunity(slug);
+  } = useCommunities({
+    slug,
+    enabled: !!slug,
+  });
 
   const {
     data: club = [],
     isLoading: clubLoading,
-  } = useCommunityClub(slug);
+  } = useClubs({
+    communitySlug: slug,
+    enabled: !!slug,
+  });
+
 
   /* ---------------- LOADING ---------------- */
   if (isLoading || clubLoading) {

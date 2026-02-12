@@ -1,22 +1,20 @@
-// hooks/useGeographicScopes.js
-import { useQuery } from "@tanstack/react-query";
-
-export function useGeographicScopes({ type, parentCode, enabled }) {
+export function useGeographicScopes({ type, parentCode, enabled = true }) {
   return useQuery({
     queryKey: ["geographic-scopes", type, parentCode],
-    enabled,
+    enabled: enabled && !!type,
     queryFn: async () => {
-      const params = new URLSearchParams();
-      params.append("type", type);
+      let query = supabase
+        .from("geographic_scope_hierarchy")
+        .select("*")
+        .order("name");
 
-      if (parentCode) {
-        params.append("parentCode", parentCode);
-      }
+      if (type) query = query.eq("type", type);
+      if (parentCode) query = query.eq("parent_code", parentCode);
 
-      const res = await fetch(`/api/geographic-scopes?${params.toString()}`);
-      if (!res.ok) throw new Error("Failed to fetch geographic scopes");
+      const { data, error } = await query;
+      if (error) throw error;
 
-      return res.json();
+      return data || [];
     },
   });
 }

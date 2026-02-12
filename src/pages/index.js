@@ -1,19 +1,29 @@
 import Feed from "@/components/layout/Feed";
 import RightSidebar from "@/components/layout/RightSidebar";
+import CreatePostTrigger from "@/components/feed/CreatePostTrigger";
 
 export default function Home() {
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
-      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6">
-
-        {/* MAIN FEED */}
-        <Feed />
-
-        {/* RIGHT SIDEBAR */}
-        <div className="hidden xl:block">
-          <RightSidebar />
+    <div className="flex justify-center w-full min-h-screen">
+      {/* CENTERED CONTENT AREA WITH FIXED WIDTH */}
+      <div className="flex w-full max-w-[1200px] px-4">
+        
+        {/* CENTERED CONTENT WRAPPER */}
+        <div className="flex w-full justify-center">
+          
+          {/* FEED - FIXED WIDTH */}
+          <div className="w-full max-w-[680px] pt-4">            
+            {/* FEED CONTENT */}
+            <Feed />
+          </div>
+          
+          {/* RIGHT SIDEBAR - FIXED WIDTH, ONLY ON LARGE SCREENS */}
+          <div className="hidden xl:block w-[320px] ml-4">
+            <RightSidebar />
+          </div>
+          
         </div>
-
+        
       </div>
     </div>
   );

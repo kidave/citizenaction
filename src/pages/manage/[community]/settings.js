@@ -14,23 +14,31 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ArrowLeft, Trash2, Upload, X, Save } from "lucide-react";
-import { useAuth } from "context/AuthContext";
+
+import { useAuth } from "@/context/AuthContext";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
-import { authFetch } from "@/lib/fetch";
+import { useCommunities } from "@/hooks/useCommunities";
 import { communityUpdateSchema } from "@/schemas/community";
 import { supabase } from "@/lib/supabase/client";
 
 export default function CommunitySettings() {
   const router = useRouter();
   const slug = router.query.community;
-  
-  // Require authentication for this page
+
   useRequireAuth();
-  const { session, loading: authLoading } = useAuth();
-  
-  const [loading, setLoading] = useState(true);
+  const { user, loading: authLoading } = useAuth();
+
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -40,252 +48,181 @@ export default function CommunitySettings() {
 
   const form = useForm({
     resolver: zodResolver(communityUpdateSchema),
-    defaultValues: {
-      name: undefined,
-      description: undefined,
-      email: undefined,
-      website: undefined,
-      contact_number: undefined,
-      primary_color: undefined,
-      logo_url: undefined,
-      cover_url: undefined,
-    }
+    defaultValues: {},
   });
 
-  // Load community data
+  /* ---------- LOAD COMMUNITY (PRIVATE MODE) ---------- */
+  const {
+    data: community,
+    isLoading,
+    error,
+  } = useCommunities({
+    slug,
+    privateAccess: true,
+    enabled: !!slug,
+  });
+
   useEffect(() => {
-    if (!slug || authLoading) return;
+    if (!community) return;
 
-    const loadCommunity = async () => {
-      try {
-        console.log("Loading community data for:", slug);
-        const data = await authFetch(`/api/community/${slug}/settings`);
-        
-        console.log("Loaded data:", data);
-        
-        form.reset({
-          name: data.name ?? undefined,
-          description: data.description ?? undefined,
-          email: data.email ?? undefined,
-          website: data.website ?? undefined,
-          contact_number: data.contact_number ?? undefined,
-          primary_color: data.primary_color ?? undefined,
-          logo_url: data.logo_url ?? undefined,
-          cover_url: data.cover_url ?? undefined,
-        });
-        
-        setLoading(false);
-      } catch (error) {
-        console.error("Failed to load community:", error);
-        toast.error(error.message || "Failed to load community");
-        setLoading(false);
-        router.push("/");
-      }
-    };
+    form.reset({
+      name: community.name ?? undefined,
+      description: community.description ?? undefined,
+      email: community.email ?? undefined,
+      website: community.website ?? undefined,
+      contact_number: community.contact_number ?? undefined,
+      primary_color: community.primary_color ?? undefined,
+      logo_url: community.logo_url ?? undefined,
+      cover_url: community.cover_url ?? undefined,
+    });
+  }, [community, form]);
 
-    loadCommunity();
-  }, [slug, form, router, authLoading]);
-
-  // Upload logo directly with Supabase
-  const uploadLogo = async (file) => {
-    if (!file || !slug) return;
-
-    setUploadingLogo(true);
-    try {
-      console.log("Starting logo upload for:", slug);
-      
-      // Get current session
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Not authenticated");
-
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${slug}/logo.${fileExt}`;
-      
-      console.log("Uploading to:", fileName);
-      
-      // Upload directly to Supabase storage
-      const { data, error } = await supabase.storage
-        .from('community-branding')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: true,
-          contentType: file.type
-        });
-
-      if (error) {
-        console.error("Storage upload error:", error);
-        throw new Error(`Storage upload failed: ${error.message}`);
-      }
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('community-branding')
-        .getPublicUrl(fileName);
-
-      console.log("Got public URL:", publicUrl);
-
-      // Update database via API (this will handle ownership check)
-      await authFetch(`/api/community/${slug}/settings`, {
-        method: "PUT",
-        body: JSON.stringify({ logo_url: publicUrl }),
-      });
-      
-      // Update form
-      form.setValue("logo_url", publicUrl, { shouldDirty: true });
-      toast.success("Logo updated successfully");
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error(`Upload failed: ${error.message}`);
-    } finally {
-      setUploadingLogo(false);
-    }
-  };
-
-  // Delete logo via API
-  const deleteLogo = async () => {
-    if (!confirm("Are you sure you want to delete the logo?")) return;
-    
-    try {
-      await authFetch(`/api/community/${slug}/settings`, {
-        method: "PUT",
-        body: JSON.stringify({ logo_url: null }),
-      });
-      
-      form.setValue("logo_url", null, { shouldDirty: true });
-      toast.success("Logo deleted");
-    } catch (error) {
-      toast.error(error.message);
-    }
-  };
-
-  // Upload cover directly with Supabase
-  const uploadCover = async (file) => {
-    if (!file || !slug) return;
-
-    setUploadingCover(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${slug}/cover.${fileExt}`;
-      
-      // Upload directly to Supabase storage
-      const { data, error } = await supabase.storage
-        .from('community-branding')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: true,
-          contentType: file.type
-        });
-
-      if (error) {
-        console.error("Storage upload error:", error);
-        throw new Error(`Storage upload failed: ${error.message}`);
-      }
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('community-branding')
-        .getPublicUrl(fileName);
-
-      // Update database via API
-      await authFetch(`/api/community/${slug}/settings`, {
-        method: "PUT",
-        body: JSON.stringify({ cover_url: publicUrl }),
-      });
-      
-      form.setValue("cover_url", publicUrl, { shouldDirty: true });
-      toast.success("Cover image updated");
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error(error.message);
-    } finally {
-      setUploadingCover(false);
-    }
-  };
-
-  // Delete cover via API
-  const deleteCover = async () => {
-    if (!confirm("Are you sure you want to delete the cover image?")) return;
-    
-    try {
-      const response = await authFetch(`/api/community/${slug}/settings`, {
-        method: "PUT",
-        body: JSON.stringify({ cover_url: null }),
-      });
-      
-      form.setValue("cover_url", null, { shouldDirty: true });
-      toast.success("Cover image deleted");
-    } catch (error) {
-      console.error("Delete cover error:", {
-        message: error.message,
-        details: error.details,
-        status: error.status
-      });
-      toast.error(`Failed to delete cover: ${error.message}`);
-    }
-  };
-
-  // Save changes with confirmation
   const handleSave = () => {
-    if (form.formState.isDirty) {
-      setShowSaveDialog(true);
-    } else {
-      toast.info("No changes to save");
-    }
+    setShowSaveDialog(true);
   };
-
+  
+  /* ---------- SAVE ---------- */
   const confirmSave = async () => {
     setSaving(true);
     try {
-      const values = form.formState.dirtyFields;
+      const values = form.getValues();
 
-      const payload = Object.fromEntries(
-        Object.keys(values).map((key) => [
-          key,
-          form.getValues(key),
-        ])
-      );
-      
-      await authFetch(`/api/community/${slug}/settings`, {
-        method: "PUT",
-        body: JSON.stringify(payload),
-      });
-      
+      const { data, error } = await supabase
+        .from("community")
+        .update(values)
+        .eq("slug", slug)
+        .select();
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        throw new Error("Update blocked (RLS or membership issue)");
+      }
+
       toast.success("Settings updated successfully");
+      form.reset(values);
       setShowSaveDialog(false);
-      form.reset(values); // Reset form state to mark as not dirty
       router.back();
-    } catch (error) {
-      console.error("Save error:", error);
-      toast.error(error.message || "Failed to save changes");
+    } catch (err) {
+      console.error("Update error:", err);
+      toast.error(err.message || "Failed to save changes");
     } finally {
       setSaving(false);
     }
   };
 
-  // Delete community with dialog
+
   const handleDelete = () => {
     setShowDeleteDialog(true);
   };
 
+  /* ---------- DELETE ---------- */
   const confirmDelete = async () => {
     setDeleting(true);
     try {
-      await authFetch(`/api/community/${slug}/settings`, {
-        method: "DELETE",
-      });
-      
-      toast.success("Community deleted successfully");
-      setShowDeleteDialog(false);
+      const { error } = await supabase
+        .from("community")
+        .delete()
+        .eq("slug", slug);
+
+      if (error) throw error;
+
+      toast.success("Community deleted");
       router.push("/");
-    } catch (error) {
-      console.error("Delete error:", error);
-      toast.error(error.message || "Failed to delete community");
+    } catch (err) {
+      toast.error(err.message);
     } finally {
       setDeleting(false);
     }
   };
 
-  if (authLoading || loading) {
+  /* ---------- LOGO UPLOAD ---------- */
+  const uploadLogo = async (file) => {
+    setUploadingLogo(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${slug}/logo.${fileExt}`;
+
+      const { error } = await supabase.storage
+        .from("community-branding")
+        .upload(fileName, file, {
+          upsert: true,
+          contentType: file.type,
+        });
+
+      if (error) throw error;
+
+      const { data } = supabase.storage
+        .from("community-branding")
+        .getPublicUrl(fileName);
+
+      await supabase
+        .from("community")
+        .update({ logo_url: data.publicUrl })
+        .eq("slug", slug);
+
+      form.setValue("logo_url", data.publicUrl, { shouldDirty: true });
+      toast.success("Logo updated");
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const deleteLogo = async () => {
+    await supabase
+      .from("community")
+      .update({ logo_url: null })
+      .eq("slug", slug);
+
+    form.setValue("logo_url", null, { shouldDirty: true });
+  };
+
+  /* ---------- COVER UPLOAD ---------- */
+  const uploadCover = async (file) => {
+    setUploadingCover(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${slug}/cover.${fileExt}`;
+
+      const { error } = await supabase.storage
+        .from("community-branding")
+        .upload(fileName, file, {
+          upsert: true,
+          contentType: file.type,
+        });
+
+      if (error) throw error;
+
+      const { data } = supabase.storage
+        .from("community-branding")
+        .getPublicUrl(fileName);
+
+      await supabase
+        .from("community")
+        .update({ cover_url: data.publicUrl })
+        .eq("slug", slug);
+
+      form.setValue("cover_url", data.publicUrl, { shouldDirty: true });
+      toast.success("Cover updated");
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
+  const deleteCover = async () => {
+    await supabase
+      .from("community")
+      .update({ cover_url: null })
+      .eq("slug", slug);
+
+    form.setValue("cover_url", null, { shouldDirty: true });
+  };
+
+  if (authLoading || isLoading) {
     return (
       <div className="max-w-3xl mx-auto py-10">
         {/* Header skeleton */}
@@ -368,9 +305,9 @@ export default function CommunitySettings() {
             </Link>
             <div>
               <h1 className="text-2xl font-semibold">Community Settings</h1>
-              {session?.user?.email && (
+              {user?.email && (
                 <p className="text-sm text-muted-foreground">
-                  Logged in as {session.user.email}
+                  Logged in as {user?.email}
                 </p>
               )}
             </div>

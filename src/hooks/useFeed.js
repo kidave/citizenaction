@@ -12,12 +12,9 @@ export function useFeed() {
   async function fetchFeed() {
     setLoading(true);
     const { data, error } = await supabase
-      .from("action_posts")
-      .select(`
-        *,
-        profile:author_id (name, avatar_url)
-      `)
-      .order("created_at", { ascending: false });
+      .from("public_action_posts_view")
+      .select("*")
+      .order("created_at", { ascending: false })
 
     if (!error) setData(data || []);
     setLoading(false);
