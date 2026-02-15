@@ -1,4 +1,4 @@
-// pages/api/club/[community]/[scopeType]/[scopeCode]/settings.js
+// pages/api/[community]/[scopeType]/[scopeCode].js
 import { createServerSupabase } from "@/lib/supabase/server";
 import { clubUpdateSchema } from "@/schemas/club";
 
@@ -16,7 +16,7 @@ async function verifyClubOwnership(supabase, community, scopeType, scopeCode, us
 
   // Then get club using community_id
   const { data: club, error } = await supabase
-    .from("community_committee")
+    .from("club")
     .select("id, created_by, logo_url, cover_url")
     .eq("community_id", communityData.id)
     .eq("scope_type", scopeType)
@@ -111,7 +111,7 @@ export default async function handler(req, res) {
 
       // Get club data from the public view
       const { data: club, error } = await supabase
-        .from("community_committee_public")
+        .from("club_view")
         .select("*")
         .eq("community_slug", community)
         .eq("scope_type", scopeType)
@@ -143,7 +143,7 @@ export default async function handler(req, res) {
         
         // Get current data for cleanup
         const { data: currentData } = await supabase
-          .from("community_committee")
+          .from("club")
           .select("logo_url, cover_url")
           .eq("id", ownershipCheck.club.id)
           .single();
@@ -154,7 +154,7 @@ export default async function handler(req, res) {
         
         // Update club
         const { error: updateError } = await supabase
-          .from("community_committee")
+          .from("club")
           .update(validatedData)
           .eq("id", ownershipCheck.club.id);
 
@@ -172,7 +172,7 @@ export default async function handler(req, res) {
         // Clean up all files before deleting
         try {
           const { data: currentData } = await supabase
-            .from("community_committee")
+            .from("club")
             .select("logo_url, cover_url")
             .eq("id", ownershipCheck.club.id)
             .single();
@@ -200,7 +200,7 @@ export default async function handler(req, res) {
 
         // Delete club
         const { error: deleteError } = await supabase
-          .from("community_committee")
+          .from("club")
           .delete()
           .eq("id", ownershipCheck.club.id);
 

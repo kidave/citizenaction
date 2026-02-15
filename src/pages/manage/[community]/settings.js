@@ -31,6 +31,8 @@ import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { useCommunities } from "@/hooks/useCommunities";
 import { communityUpdateSchema } from "@/schemas/community";
 import { supabase } from "@/lib/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+
 
 export default function CommunitySettings() {
   const router = useRouter();
@@ -38,7 +40,7 @@ export default function CommunitySettings() {
 
   useRequireAuth();
   const { user, loading: authLoading } = useAuth();
-
+  const queryClient = useQueryClient();
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -51,11 +53,10 @@ export default function CommunitySettings() {
     defaultValues: {},
   });
 
-  /* ---------- LOAD COMMUNITY (PRIVATE MODE) ---------- */
+  /* ---------- LOAD COMMUNITY ---------- */
   const {
     data: community,
     isLoading,
-    error,
   } = useCommunities({
     slug,
     privateAccess: true,
@@ -100,9 +101,20 @@ export default function CommunitySettings() {
       }
 
       toast.success("Settings updated successfully");
-      form.reset(values);
+      
+
+      queryClient.setQueryData(
+        ["communities", slug, undefined, true],
+        data
+      );
+
+      await queryClient.invalidateQueries({
+        queryKey: ["communities", slug],
+      });
+
+      form.reset(data);
       setShowSaveDialog(false);
-      router.back();
+
     } catch (err) {
       console.error("Update error:", err);
       toast.error(err.message || "Failed to save changes");
@@ -128,6 +140,11 @@ export default function CommunitySettings() {
       if (error) throw error;
 
       toast.success("Community deleted");
+
+      queryClient.removeQueries({
+        queryKey: ["communities", slug],
+      });
+
       router.push("/");
     } catch (err) {
       toast.error(err.message);

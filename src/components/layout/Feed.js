@@ -2,7 +2,6 @@
 
 import PostSkeleton from "@/components/skeletons/PostSkeleton";
 import PostCard from "@/components/feed/PostCard";
-import CreatePostTrigger from "@/components/feed/CreatePostTrigger";
 import { useFeed } from "@/hooks/useFeed";
 import { Card } from "@/components/ui/card";
 
@@ -11,7 +10,6 @@ export default function Feed() {
 
   return (
     <div className="flex flex-col w-full">
-      <CreatePostTrigger />
       
       {loading ? (
         <div className="space-y-4">

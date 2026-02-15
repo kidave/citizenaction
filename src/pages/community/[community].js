@@ -91,13 +91,13 @@ export default function CommunityPage() {
       <header className="space-y-4">
         <div className="flex items-center gap-4">
           {/* Back Button */}
-          <button
-            onClick={() => router.back()}
+          <Link
+            href="/"
             className="inline-flex items-center justify-center rounded-md border p-2 hover:bg-muted"
             aria-label="Go back"
           >
             <ArrowLeft className="h-4 w-4" />
-          </button>
+          </Link>
 
           {/* LOGO */}
           {community.logo_url && (
@@ -298,7 +298,7 @@ export default function CommunityPage() {
 
                       <CardFooter>
                         <Link
-                          href={`/community/${community.slug}/club/${club.scope_type}/${club.scope_code}`}
+                          href={`/community/${community.slug}/${club.scope_type}/${club.scope_code}`}
                           className="w-full"
                         >
                           <Button variant="outline" className="w-full">

@@ -1,3 +1,4 @@
+// pages/auth/callback.js
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "lib/supabase/client";
@@ -9,21 +10,17 @@ export default function Callback() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Get the session from the URL hash
-        const { data: { session }, error: sessionError } = 
-          await supabase.auth.getSession();
-        
-        if (sessionError) throw sessionError;
+        // IMPORTANT: Exchange the code for a session
+        const { data, error } =
+          await supabase.auth.exchangeCodeForSession(
+            window.location.href
+          );
 
-        if (session) {
-          // IMPORTANT: Wait a brief moment to ensure AuthContext has updated
-          await new Promise(resolve => setTimeout(resolve, 100));
-          
-          // Get the return URL
+        if (error) throw error;
+
+        if (data?.session) {
           const returnTo = localStorage.getItem("returnTo") || "/";
           localStorage.removeItem("returnTo");
-          
-          // Redirect
           router.replace(returnTo);
         } else {
           router.replace("/auth/login");
@@ -44,7 +41,9 @@ export default function Callback() {
         <div className="text-center">
           <h1 className="text-xl font-semibold text-red-600">Error</h1>
           <p className="mt-2">{error}</p>
-          <p className="mt-4 text-sm text-gray-500">Redirecting to login...</p>
+          <p className="mt-4 text-sm text-gray-500">
+            Redirecting to login...
+          </p>
         </div>
       </div>
     );

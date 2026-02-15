@@ -63,9 +63,9 @@ export default function CreatePostModal({ isOpen, onClose, initialContent = "" }
     try {
       await createPost({
         author_id: user.id,
-        geo_scope_type: "country",
-        geo_scope_code: "IN",
-        action_category: category,
+        scope_type: "country",
+        scope_code: "IN",
+        type: "action",
         summary: content.slice(0, 200),
         details: content,
         attachments,

@@ -299,7 +299,7 @@ function ClubCard({ club }) {
 
       <CardFooter>
         <Link
-          href={`/community/${club.community_slug}/club/${club.scope_type}/${club.scope_code}`}
+          href={`/community/${club.community_slug}/${club.scope_type}/${club.scope_code}`}
           className="w-full"
         >
           <Button variant="outline" className="w-full">

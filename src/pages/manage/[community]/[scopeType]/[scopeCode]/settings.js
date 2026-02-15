@@ -1,4 +1,4 @@
-// pages/manage/[community]/club/[scopeType]/[scopeCode]/settings.js
+// pages/manage/[community]/[scopeType]/[scopeCode]/settings.js
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -28,7 +28,7 @@ export default function ClubSettings() {
   const { community, scopeType, scopeCode } = router.query;
   
   useRequireAuth();
-  const { session, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   
   const [loading, setLoading] = useState(true);
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -58,7 +58,7 @@ export default function ClubSettings() {
 
     const loadClub = async () => {
       try {
-        const data = await authFetch(`/api/club/${community}/${scopeType}/${scopeCode}/settings`);
+        const data = await authFetch(`/api/club/${community}/${scopeType}/${scopeCode}`);
         
         form.reset({
           name: data.name ?? undefined,
@@ -116,7 +116,7 @@ export default function ClubSettings() {
         .getPublicUrl(fileName);
 
       // Update database via API
-      await authFetch(`/api/club/${community}/${scopeType}/${scopeCode}/settings`, {
+      await authFetch(`/api/club/${community}/${scopeType}/${scopeCode}`, {
         method: "PUT",
         body: JSON.stringify({ logo_url: publicUrl }),
       });
@@ -137,7 +137,7 @@ export default function ClubSettings() {
     if (!confirm("Are you sure you want to delete the logo?")) return;
     
     try {
-      await authFetch(`/api/club/${community}/${scopeType}/${scopeCode}/settings`, {
+      await authFetch(`/api/club/${community}/${scopeType}/${scopeCode}`, {
         method: "PUT",
         body: JSON.stringify({ logo_url: null }),
       });
@@ -178,7 +178,7 @@ export default function ClubSettings() {
         .getPublicUrl(fileName);
 
       // Update database via API
-      await authFetch(`/api/club/${community}/${scopeType}/${scopeCode}/settings`, {
+      await authFetch(`/api${community}/${scopeType}/${scopeCode}`, {
         method: "PUT",
         body: JSON.stringify({ cover_url: publicUrl }),
       });
@@ -198,7 +198,7 @@ export default function ClubSettings() {
     if (!confirm("Are you sure you want to delete the cover image?")) return;
     
     try {
-      const response = await authFetch(`/api/club/${community}/${scopeType}/${scopeCode}/settings`, {
+      const response = await authFetch(`/api/club/${community}/${scopeType}/${scopeCode}`, {
         method: "PUT",
         body: JSON.stringify({ cover_url: null }),
       });
@@ -239,7 +239,7 @@ export default function ClubSettings() {
       }
 
       await authFetch(
-        `/api/club/${community}/${scopeType}/${scopeCode}/settings`,
+        `/api/club/${community}/${scopeType}/${scopeCode}`,
         {
           method: "PUT",
           body: JSON.stringify(payload),
@@ -270,7 +270,7 @@ export default function ClubSettings() {
   const confirmDelete = async () => {
     setDeleting(true);
     try {
-      await authFetch(`/api/club/${community}/${scopeType}/${scopeCode}/settings`, {
+      await authFetch(`/api/club/${community}/${scopeType}/${scopeCode}`, {
         method: "DELETE",
       });
       
@@ -312,16 +312,18 @@ export default function ClubSettings() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link
-              href={`/community/${community}/club/${scopeType}/${scopeCode}`}
+              href={`/community/${community}${scopeType}/${scopeCode}`}
               className="inline-flex items-center justify-center rounded-md border p-2 hover:bg-muted"
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <div>
               <h1 className="text-2xl font-semibold">Club Settings</h1>
-              <p className="text-sm text-muted-foreground">
-                {scopeType}: {scopeCode} • {session?.user?.email && `Logged in as ${session.user.email}`}
-              </p>
+              {user?.email && (
+                <p className="text-sm text-muted-foreground">
+                  Logged in as {user?.email}
+                </p>
+              )}
             </div>
           </div>
           <Button

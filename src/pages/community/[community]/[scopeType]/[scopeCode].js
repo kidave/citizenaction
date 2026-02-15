@@ -1,4 +1,4 @@
-// pages/community/[community]/club/[scopeType]/[scopeCode].js
+// pages/community/[community]/[scopeType]/[scopeCode].js
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -87,13 +87,11 @@ export default function ClubPage() {
       <header className="space-y-4">
         <div className="flex items-center gap-4">
           {/* Back Button */}
-          <button
-            onClick={() => router.back()}
-            className="inline-flex items-center justify-center rounded-md border p-2 hover:bg-muted"
-            aria-label="Go back"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </button>
+          <Link href={`/community/${community}`}>
+            <div className="inline-flex items-center justify-center rounded-md border p-2 hover:bg-muted" aria-label="Go back">
+              <ArrowLeft className="h-4 w-4" />
+            </div>
+          </Link>
 
           {/* LOGO */}
           {club.logo_url && (
@@ -231,10 +229,15 @@ export default function ClubPage() {
         {/* JOIN / DONATE → only for non-owners */}
         {!authLoading && !isOwner && (
           <>
-            <Button variant="outline">Join Club</Button>
             <Link
-              href={`/community/${community}/club/${scopeType}/${scopeCode}/donate`}
+              href={`/apply/community/${community}/${scopeType}/${scopeCode}`}
               className="inline-flex items-center justify-center rounded-md border bg-black text-white px-4 py-2 text-sm font-medium"
+            >
+              Join Club
+            </Link>
+            <Link
+              href={`/community/${community}/${scopeType}/${scopeCode}/donate`}
+              className="inline-flex items-center justify-center rounded-md border bg-muted text-black px-4 py-2 text-sm font-medium"
             >
               Donate
             </Link>
@@ -244,7 +247,7 @@ export default function ClubPage() {
         {/* MANAGE → only for owner */}
         {!authLoading && isOwner && (
           <Link
-            href={`/manage/${community}/club/${scopeType}/${scopeCode}/settings`}
+            href={`/manage/${community}/${scopeType}/${scopeCode}`}
             className="inline-flex items-center justify-center rounded-md border bg-black text-white px-4 py-2 text-sm font-medium"
           >
             Manage Club

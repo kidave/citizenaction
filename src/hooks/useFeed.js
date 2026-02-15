@@ -12,7 +12,7 @@ export function useFeed() {
   async function fetchFeed() {
     setLoading(true);
     const { data, error } = await supabase
-      .from("public_action_posts_view")
+      .from("feed_view")
       .select("*")
       .order("created_at", { ascending: false })
 

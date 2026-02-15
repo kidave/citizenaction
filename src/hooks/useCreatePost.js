@@ -21,12 +21,12 @@ export function useCreatePost() {
 
       // Create post
       const { error } = await supabase
-        .from("action_posts")
+        .from("feed")
         .insert({
           author_id: postData.author_id,
-          geo_scope_type: postData.geo_scope_type,
-          geo_scope_code: postData.geo_scope_code,
-          action_category: postData.action_category,
+          scope_type: postData.scope_type,
+          scope_code: postData.scope_code,
+          type: postData.type,
           summary: postData.summary,
           details: postData.details,
           attachments: uploadedAttachments

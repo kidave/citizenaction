@@ -50,7 +50,7 @@ const NAV_ITEMS = [
     items: [
       {
         title: "Mumbai Metropolitan Region",
-        href: "/community/walkingproject/club/region/MH-MMR",
+        href: "/community/walkingproject/region/MH-MMR",
       },
     ],
   },

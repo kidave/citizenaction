@@ -20,7 +20,7 @@ export function useClubs({
     enabled,
     queryFn: async () => {
       let query = supabase
-        .from("community_committee_public")
+        .from("club_view")
         .select("*")
         .eq("is_active", true);
 

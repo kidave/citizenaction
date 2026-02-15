@@ -76,7 +76,7 @@ export function Navigation() {
           <SidebarMenuButton
             tooltip="Mumbai Region"
             onClick={() =>
-              router.push("/community/walkingproject/club/region/MH-MMR")
+              router.push("/community/walkingproject/region/MH-MMR")
             }
           >
             <MapPinned />

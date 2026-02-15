@@ -83,14 +83,14 @@ export default function ApplyCommunity() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-muted/30">
+    <div className="min-h-screen flex items-center justify-center my-4 px-4 bg-muted/30">
       <Card className="w-full max-w-3xl">
         <CardHeader>
           <h1 className="text-xl font-semibold">
             Apply to Create a Community
           </h1>
           <p className="text-sm text-muted-foreground">
-            Communities document civic action within a geographic scope.
+            Communities document civic action within a geographic area.
           </p>
           
           {/* ✅ Moved this INSIDE the return statement */}

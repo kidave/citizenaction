@@ -1,4 +1,4 @@
-// pages/api/community/[slug]/apply-club.js
+// pages/api/community/[slug]/club.js
 import { createServerSupabase } from "@/lib/supabase/server";
 
 export default async function handler(req, res) {
@@ -85,17 +85,17 @@ export default async function handler(req, res) {
 
     if (scopeError) {
       return res.status(400).json({ 
-        error: `Invalid scope: ${clubData.scope_type}:${clubData.scope_code} not found in geographic database`,
-        details: "Please select a valid geographic scope"
+        error: `Invalid location: ${clubData.scope_type}:${clubData.scope_code} not found in geographic database`,
+        details: "Please select a valid location for the club's scope"
       });
     }
 
     // Check if club already exists with same scope
-    // Try community_committee first, then fall back to club
+    // Try club first, then fall back to club
     let existingClub = null;
     
     const { data: existingCommunityClub } = await supabase
-      .from("community_committee")
+      .from("club")
       .select("id, name")
       .eq("community_id", community.id)
       .eq("scope_type", clubData.scope_type)
@@ -131,14 +131,14 @@ export default async function handler(req, res) {
       .eq("user_id", user.id)
       .single();
 
-    // Create club - try community_committee first, then fall back to club
+    // Create club - try club first, then fall back to club
     let newClub = null;
     let createError = null;
     let clubId = null;
 
-    // First try community_committee
+    // First try club
     const { data: communityClub, error: ccError } = await supabase
-      .from("community_committee")
+      .from("club")
       .insert({
         community_id: community.id,
         name: null,
@@ -154,8 +154,8 @@ export default async function handler(req, res) {
       .single();
 
     if (ccError) {
-      // If community_committee fails, try club table
-      console.log("community_committee insert failed, trying club table:", ccError.message);
+      // If club fails, try club table
+      console.log("club insert failed, trying club table:", ccError.message);
       
       const { data: regularClub, error: cError } = await supabase
         .from("club")

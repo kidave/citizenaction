@@ -111,7 +111,7 @@ export default function CreateClubPage() {
     setIsSubmitting(true);
 
     try {
-      await authFetch(`/api/community/${slug}/apply-club`, {
+      await authFetch(`/api/community/${slug}/club`, {
         method: "POST",
         body: JSON.stringify({
           ...values,
@@ -314,7 +314,7 @@ export default function CreateClubPage() {
                       {scopeName || "Selected Geographic Area"}
                     </p>
                     <p className="text-muted-foreground text-sm">
-                      Club name and branding are derived from the selected geographic scope.
+                      Club name and branding are derived from the selected geographic area.
                     </p>
                   </div>
                 </div>

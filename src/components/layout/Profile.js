@@ -85,7 +85,7 @@ export function Profile() {
             <DropdownMenuItem onClick={() => router.push("/user/profile")}>
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push("/user/settings")}>
+            <DropdownMenuItem onClick={() => router.push("/user")}>
               Settings
             </DropdownMenuItem>
 

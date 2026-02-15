@@ -12,7 +12,8 @@ export default function Home() {
         <div className="flex w-full justify-center">
           
           {/* FEED - FIXED WIDTH */}
-          <div className="w-full max-w-[680px] pt-4">            
+          <div className="w-full max-w-[680px] pt-4">  
+            <CreatePostTrigger />          
             {/* FEED CONTENT */}
             <Feed />
           </div>

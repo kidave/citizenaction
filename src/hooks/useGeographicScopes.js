@@ -1,3 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase/client";
+
 export function useGeographicScopes({ type, parentCode, enabled = true }) {
   return useQuery({
     queryKey: ["geographic-scopes", type, parentCode],
