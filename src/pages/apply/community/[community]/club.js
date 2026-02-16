@@ -9,7 +9,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
-import useProfile from "@/hooks/usePublicProfile";
+import { useMyProfile } from "@/hooks/useMyProfile";
 import { useGeographicScopes } from "@/hooks/useGeographicScopes";
 import { authFetch } from "@/lib/fetch";
 
@@ -51,7 +51,9 @@ export default function CreateClubPage() {
   const { user, loading: authLoading } = useAuth();
   useRequireAuth();
 
-  const { data: profile, isLoading: profileLoading } = useProfile();
+  const { data: profile, isLoading: profileLoading } = useMyProfile();
+
+
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -61,7 +63,7 @@ export default function CreateClubPage() {
       description: "",
       scope_type: "city",
       scope_code: "",
-      contact_email: user?.email || "",
+      contact_email: "",
       contact_phone: "",
     },
   });
