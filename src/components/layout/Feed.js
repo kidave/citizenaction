@@ -6,12 +6,12 @@ import { useFeed } from "@/hooks/useFeed";
 import { Card } from "@/components/ui/card";
 
 export default function Feed() {
-  const { data, loading } = useFeed();
+  const { data, isLoading } = useFeed();
 
   return (
     <div className="flex flex-col w-full">
       
-      {loading ? (
+      {isLoading ? (
         <div className="space-y-4">
           <PostSkeleton />
           <PostSkeleton />

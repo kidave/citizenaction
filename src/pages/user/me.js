@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { ArrowLeft } from "lucide-react";
 
 import { useAuth } from "context/AuthContext";
-import useProfile from "hooks/useProfile";
+import { useMyProfile } from "@/hooks/useMyProfile";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +21,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function Profile() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const { data: profile, isLoading: profileLoading } = useProfile();
+  const { data: profile, isLoading: profileLoading } = useMyProfile();
+
 
   // Redirect unauthenticated users
   useEffect(() => {
@@ -65,7 +66,6 @@ export default function Profile() {
               <AvatarImage
                 src={
                   profile.avatar_url ||
-                  user.user_metadata?.avatar_url ||
                   "/user1.png"
                 }
                 alt="Profile"

@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { formatDistanceToNow } from "date-fns";
 import { FileText, File, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { FocusCards } from "@/components/ui/focus-cards";
 import {
@@ -12,6 +10,7 @@ import {
   DialogContent,
 } from "@/components/ui/dialog";
 import Image from "next/image";
+import { UserIdentity } from "@/components/profile/UserIdentity";
 
 export default function PostCard({ post }) {
   const [viewerOpen, setViewerOpen] = useState(false);
@@ -48,31 +47,19 @@ export default function PostCard({ post }) {
     <>
       <Card className="p-5 space-y-4">
         {/* Header */}
-        <div className="flex items-start gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={post.author_avatar} />
-            <AvatarFallback>
-              {post.author_name?.charAt(0) || "U"}
-            </AvatarFallback>
-          </Avatar>
+        <div className="flex items-start justify-between">
+          <UserIdentity
+            username={post.author_username}
+            name={post.author_name}
+            avatar={post.author_avatar}
+            createdAt={post.created_at}
+          />
 
-          <div className="flex-1">
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-semibold">
-                {post.author_name || "Anonymous"}
-              </span>
-              <Badge variant="secondary" className="text-xs">
-                {post.type?.toUpperCase()}
-              </Badge>
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {formatDistanceToNow(
-                new Date(post.created_at)
-              )}{" "}
-              ago
-            </div>
-          </div>
+          <Badge variant="secondary" className="text-xs">
+            {post.type?.toUpperCase()}
+          </Badge>
         </div>
+
 
         {/* Content */}
         <p className="text-sm whitespace-pre-wrap">

@@ -145,7 +145,6 @@ export default function Header() {
                       <AvatarImage
                         src={
                           profile?.avatar_url ||
-                          user.user_metadata?.avatar_url ||
                           "/user1.png"
                         }
                       />

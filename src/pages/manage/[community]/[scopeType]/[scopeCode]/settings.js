@@ -312,7 +312,7 @@ export default function ClubSettings() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link
-              href={`/community/${community}${scopeType}/${scopeCode}`}
+              href={`/community/${community}/${scopeType}/${scopeCode}`}
               className="inline-flex items-center justify-center rounded-md border p-2 hover:bg-muted"
             >
               <ArrowLeft className="h-4 w-4" />

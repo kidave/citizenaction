@@ -1,4 +1,5 @@
 // pages/api/profile/getProfile.js
+
 import { createServerSupabase } from "lib/supabase/server";
 
 export default async function handler(req, res) {
@@ -7,6 +8,7 @@ export default async function handler(req, res) {
   }
 
   const token = req.headers.authorization?.replace("Bearer ", "");
+
   if (!token) {
     return res.status(401).json({ error: "Not authenticated" });
   }
@@ -24,11 +26,13 @@ export default async function handler(req, res) {
 
   const { data, error } = await supabase
     .from("profile")
-    .select("user_id, email, avatar_url, designation, locality, social, mobile, country_code, name, created_at")
+    .select("*")
     .eq("user_id", user.id)
     .single();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
 
-  res.status(200).json(data || {});
+  return res.status(200).json(data || {});
 }

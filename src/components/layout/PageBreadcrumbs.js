@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ChevronRight } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useCommunities } from "@/hooks/useCommunities";
+import { useClubs } from "@/hooks/useClubs";
 
 const STATIC_LABELS = {
   community: "Community",
@@ -9,28 +12,34 @@ const STATIC_LABELS = {
   manage: "Manage",
   search: "Search",
   apply: "Apply",
+  action: "Create Action",
+  about: "About",
+  settings: "Settings",
 };
 
 export default function PageBreadcrumbs() {
   const router = useRouter();
-  const queryClient = useQueryClient();
-
   const { community, scopeType, scopeCode } = router.query;
 
-  // 🔹 Pull cached data (NO new fetch)
-  const communityData = community
-    ? queryClient.getQueryData(["community", community])
-    : null;
+  /* ---------------- FETCH DYNAMIC DATA ---------------- */
 
-  const clubData =
-    community && scopeType && scopeCode
-      ? queryClient.getQueryData([
-          "club-public",
-          community,
-          scopeType,
-          scopeCode,
-        ])
-      : null;
+  const { data: communityData } = useCommunities({
+    slug: community,
+    enabled: !!community,
+  });
+
+  const { data: clubList } = useClubs({
+    communitySlug: community,
+    scopeType,
+    scopeCode,
+    enabled: !!community && !!scopeType && !!scopeCode,
+  });
+
+  const clubData = Array.isArray(clubList)
+    ? clubList?.[0]
+    : clubList;
+
+  /* ---------------- PATH SEGMENTS ---------------- */
 
   const segments = router.asPath
     .split("?")[0]
@@ -72,7 +81,7 @@ export default function PageBreadcrumbs() {
   );
 }
 
-/* ---------------- helpers ---------------- */
+/* ---------------- HELPERS ---------------- */
 
 function resolveDynamicLabel({
   seg,
@@ -81,12 +90,12 @@ function resolveDynamicLabel({
   communityData,
   clubData,
 }) {
-  // community slug → community name
+  // Replace community slug with community.name
   if (seg === community && communityData?.name) {
     return communityData.name;
   }
 
-  // club scopeCode → club name
+  // Replace scopeCode with club.name
   if (seg === scopeCode && clubData?.name) {
     return clubData.name;
   }

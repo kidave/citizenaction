@@ -23,18 +23,6 @@ export function AuthProvider({ children }) {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user || null);
       setLoading(false);
-
-      if (event === "SIGNED_IN" && session) {
-        if (typeof window !== "undefined") {
-          const returnTo = localStorage.getItem("returnTo");
-          if (returnTo && window.location.pathname === "/auth/callback") {
-            setTimeout(() => {
-              localStorage.removeItem("returnTo");
-              window.location.href = returnTo;
-            }, 100);
-          }
-        }
-      }
     });
 
     return () => subscription.unsubscribe();

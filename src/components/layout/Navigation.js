@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/router";
-import { Search, Users, Building2, MapPinned, ChevronRight } from "lucide-react";
+import { Search, CirclePlus, Users, Info, MapPinned, ChevronRight } from "lucide-react";
 
 import {
   SidebarGroup,
@@ -20,8 +20,15 @@ import {
   CollapsibleContent,
 } from "@/components/ui/collapsible";
 
+import { useCommunities } from "@/hooks/useCommunities";
+
 export function Navigation() {
   const router = useRouter();
+
+  const { data: communities = [], isLoading } = useCommunities({
+    enabled: true,
+  });
+
 
   return (
     <SidebarGroup>
@@ -36,6 +43,16 @@ export function Navigation() {
           >
             <Search />
             <span>Search</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            tooltip="Create Post"
+            onClick={() => router.push("/action")}
+          >
+            <CirclePlus />
+            <span>Create Post</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
 
@@ -55,32 +72,55 @@ export function Navigation() {
 
             <CollapsibleContent>
               <SidebarMenuSub>
-                <SidebarMenuSubItem>
-                  <SidebarMenuSubButton onClick={() => router.push("/community")}>
-                    <span>All Communities</span>
-                  </SidebarMenuSubButton>
-                </SidebarMenuSubItem>
 
-                <SidebarMenuSubItem>
-                  <SidebarMenuSubButton onClick={() => router.push("/club")}>
-                    <span>All Clubs</span>
-                  </SidebarMenuSubButton>
-                </SidebarMenuSubItem>
+                {isLoading && (
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton disabled>
+                      <span>Loading...</span>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                )}
+
+                {communities?.map((community) => (
+                  <SidebarMenuSubItem key={community.id}>
+                    <SidebarMenuSubButton
+                      onClick={() =>
+                        router.push(`/community/${community.slug}`)
+                      }
+                    >
+                      <span>{community.name}</span>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                ))}
+
               </SidebarMenuSub>
             </CollapsibleContent>
+
           </SidebarMenuItem>
         </Collapsible>
 
         {/* DIRECT REGION LINK */}
         <SidebarMenuItem>
           <SidebarMenuButton
-            tooltip="Mumbai Region"
+            tooltip="Mumbai Metropolitan Region"
             onClick={() =>
               router.push("/community/walkingproject/region/MH-MMR")
             }
           >
             <MapPinned />
-            <span>Mumbai Region</span>
+            <span>Mumbai Metropolitan Region</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            tooltip="About"
+            onClick={() => router.push("/about")}
+          >
+            <Info />
+            <span>About Us</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

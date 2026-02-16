@@ -1,25 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/router";
 import { useAuth } from "@/context/AuthContext";
-import useProfile from "@/hooks/useProfile";
+import { useMyProfile } from "@/hooks/useMyProfile";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import CreatePostModal from "./CreatePostModal";
 import { LoginModal } from "@/components/auth/LoginModal";
+import { useState } from "react";
 
 export default function CreatePostTrigger() {
+  const router = useRouter();
   const { user } = useAuth();
-  const { data: profile, isLoading } = useProfile();
-  
-  const [isPostOpen, setIsPostOpen] = useState(false);
+  const { data: profile } = useMyProfile();
+
   const [showLogin, setShowLogin] = useState(false);
 
   const handleClick = () => {
     if (!user) {
       setShowLogin(true);
     } else {
-      setIsPostOpen(true);
+      router.push("/action");
     }
   };
 
@@ -28,7 +28,6 @@ export default function CreatePostTrigger() {
       <Card className="mb-4 p-4">
         <div className="flex items-center gap-3">
           
-          {/* AVATAR */}
           <Avatar className="h-10 w-10">
             <AvatarImage src={profile?.avatar_url || undefined} />
             <AvatarFallback>
@@ -36,7 +35,6 @@ export default function CreatePostTrigger() {
             </AvatarFallback>
           </Avatar>
 
-          {/* TRIGGER */}
           <div
             className="flex-1 cursor-pointer"
             onClick={handleClick}
@@ -52,16 +50,6 @@ export default function CreatePostTrigger() {
         </div>
       </Card>
 
-      {/* Post Modal */}
-      {user && (
-        <CreatePostModal
-          isOpen={isPostOpen}
-          onClose={() => setIsPostOpen(false)}
-          initialContent=""
-        />
-      )}
-
-      {/* Login Modal */}
       <LoginModal
         open={showLogin}
         onOpenChange={setShowLogin}

@@ -1,18 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 
-export function useFeed() {
+export function usePublicProfile(username) {
   return useQuery({
-    queryKey: ["feed"],
+    queryKey: ["public-profile", username],
+    enabled: !!username,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("feed_view")
+        .from("public_profile")
         .select("*")
-        .order("created_at", { ascending: false });
+        .eq("username", username)
+        .single();
 
       if (error) throw error;
-      return data || [];
+      return data;
     },
-    staleTime: 1000 * 60 * 2, // 2 min
+    staleTime: 1000 * 60 * 5,
   });
 }
