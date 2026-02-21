@@ -7,6 +7,7 @@ import { Toaster } from "sonner";
 
 import ErrorBoundary from "components/system/ErrorBoundary";
 import RouteLoader from "components/system/RouteLoader";
+import MobileBottomBar from "components/layout/MobileBottomBar";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -42,6 +43,7 @@ function MyApp({ Component, pageProps }) {
 
             <ErrorBoundary>
               {getLayout(<Component {...pageProps} />)}
+              <MobileBottomBar />
             </ErrorBoundary>
 
             <Toaster richColors position="top-right" />

@@ -22,6 +22,11 @@ export default function ScopeSelector({ value, onChange }) {
   const [selectedCity, setSelectedCity] = useState("");
 
   // Fetch data
+  const stateQuery = useGeographicScopes({
+    type: "state",
+    enabled: scope_type === "state",
+  });
+
   const regionQuery = useGeographicScopes({
     type: "region",
     enabled: scope_type === "region",
@@ -43,9 +48,7 @@ export default function ScopeSelector({ value, onChange }) {
 
       {/* SCOPE TYPE */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">
-          At what level does your club represent?
-        </label>
+
 
         <Select
           value={scope_type}
@@ -55,7 +58,7 @@ export default function ScopeSelector({ value, onChange }) {
           }}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Select scope" />
+            <SelectValue placeholder="Select Administrative Level" />
           </SelectTrigger>
           <SelectContent>
             {Object.entries(SCOPE_CONFIG).map(([key, cfg]) => (
@@ -66,7 +69,7 @@ export default function ScopeSelector({ value, onChange }) {
           </SelectContent>
         </Select>
       </div>
-
+      
       {/* REGION */}
       {scope_type === "region" && (
         <LabeledSelect
@@ -116,7 +119,6 @@ export default function ScopeSelector({ value, onChange }) {
 function LabeledSelect({ label, data, value, onChange, disabled }) {
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium">{label}</label>
       <Select value={value} onValueChange={onChange} disabled={disabled}>
         <SelectTrigger>
           <SelectValue placeholder={`Select ${label.toLowerCase()}`} />

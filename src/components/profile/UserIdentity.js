@@ -10,6 +10,8 @@ export function UserIdentity({
   name,
   avatar,
   createdAt,
+  hideName = false,
+  hideTimestamp = false,
 }) {
   return (
     <UserHoverCard username={username}>
@@ -24,17 +26,20 @@ export function UserIdentity({
           </AvatarFallback>
         </Avatar>
 
-        <div className="flex flex-col leading-tight">
-          <span className="font-semibold group-hover:underline">
-            {name || "Anonymous"}
-          </span>
-
-          {createdAt && (
-            <span className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(createdAt))} ago
+        {/* 🔥 Only render text block if not hidden */}
+        {!hideName && (
+          <div className="flex flex-col leading-tight">
+            <span className="font-semibold group-hover:underline">
+              {name || "Anonymous"}
             </span>
-          )}
-        </div>
+
+            {!hideTimestamp && createdAt && (
+              <span className="text-xs text-muted-foreground">
+                {formatDistanceToNow(new Date(createdAt))} ago
+              </span>
+            )}
+          </div>
+        )}
       </Link>
     </UserHoverCard>
   );

@@ -115,7 +115,7 @@ export function Profile() {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent
-            side="right"
+            side="top"
             align="end"
             className="w-56"
           >

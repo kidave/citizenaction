@@ -7,6 +7,8 @@ import { Card } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function CreatePostTrigger() {
   const router = useRouter();
@@ -25,16 +27,39 @@ export default function CreatePostTrigger() {
 
   return (
     <>
-      <Card className="mb-4 p-4">
+      <Card className="hidden md:block mb-4 p-4">
         <div className="flex items-center gap-3">
-          
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={profile?.avatar_url || undefined} />
-            <AvatarFallback>
-              {profile?.name?.charAt(0) || "U"}
-            </AvatarFallback>
-          </Avatar>
 
+          {/* Logged In → Avatar links to profile */}
+          {user && profile ? (
+            <Link href={`/user/${profile.username}`}>
+              <Avatar className="h-10 w-10 cursor-pointer">
+                <AvatarImage src={profile.avatar_url || undefined} />
+                <AvatarFallback>
+                  {profile.name?.charAt(0) || "U"}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
+          ) : (
+            /* Not Logged In → Logo Avatar */
+            <Avatar
+              className="h-10 w-10 cursor-pointer"
+              onClick={() => setShowLogin(true)}
+            >
+              <AvatarFallback className="bg-background">
+                <div className="relative w-6 h-6">
+                  <Image
+                    src="/logo.png"
+                    alt="Citizen Action"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              </AvatarFallback>
+            </Avatar>
+          )}
+
+          {/* Input Trigger */}
           <div
             className="flex-1 cursor-pointer"
             onClick={handleClick}

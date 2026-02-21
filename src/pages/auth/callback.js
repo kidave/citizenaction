@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "lib/supabase/client";
+import { Loader2 } from "lucide-react";
 
 export default function Callback() {
   const router = useRouter();
@@ -26,7 +27,10 @@ export default function Callback() {
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <p>Completing sign in...</p>
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+        <p className="mt-4">Completing sign in...</p>
+      </div>
     </div>
   );
 }

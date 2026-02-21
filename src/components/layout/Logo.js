@@ -1,4 +1,4 @@
-// components/home/Logo.js
+// components/layout/Logo.js
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useState } from "react";

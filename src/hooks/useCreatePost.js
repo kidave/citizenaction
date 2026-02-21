@@ -29,7 +29,11 @@ export function useCreatePost() {
           type: postData.type,
           summary: postData.summary,
           details: postData.details,
-          attachments: uploadedAttachments
+          attachments: uploadedAttachments,
+          governance_entity_id: postData.governance_entity_id || null,
+          governance_entity_type: postData.governance_entity_type || null,
+          status: postData.status || null,
+          metadata: postData.metadata || null,
         });
 
       if (error) throw error;
