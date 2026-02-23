@@ -11,7 +11,7 @@ const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB per file
 const MAX_TOTAL_SIZE = 5 * 1024 * 1024; // 5MB total
 const MAX_IMAGES = 4; // Max 4 images
 const ALLOWED_TYPES = [
-  'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp','image/avif',
   'application/pdf',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',

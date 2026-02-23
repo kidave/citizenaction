@@ -29,6 +29,8 @@ import {
   AccordionContent,
 } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
+import ScrollToTop from "@/components/ui/ScrollToTop";
+import FeaturedCommunityCard from "@/components/shared/FeaturedCommunityCard";
 
 /* ===========================
    VIDEO MODAL (YouTube)
@@ -138,11 +140,11 @@ export default function AboutPage() {
           and collaborate to solve local issues.
         </motion.p>
 
-        <div className="mt-10">
-          <Link href="/apply/community">
+        <div className="mt-10 flex justify-center gap-6">
+          <Link href="/">
             <Button size="lg" className="gap-2 text-base">
-              Start Your Community
-              <ArrowRight size={18} />
+              Get Started
+              <ArrowRight />
             </Button>
           </Link>
         </div>
@@ -195,34 +197,104 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ================= COMMUNITY SHOWCASE ================= */}
+      {/* ================= FEATURED COMMUNITY (DYNAMIC) ================= */}
 
-      <section className="py-20 text-center">
-        <div className="mx-auto max-w-4xl px-4">
+      <section className="py-24 bg-muted/30">
+        <div className="mx-auto max-w-6xl px-6">
 
-          <Card>
-            <CardContent className="p-8">
-              <h3 className="text-xl font-semibold">
-                Walking Project
-              </h3>
-              <p className="text-muted-foreground mt-2">
-                A civic initiative focused on improving pedestrian
-                infrastructure and urban walkability.
+          <Badge variant="secondary">Featured Community</Badge>
+
+          <FeaturedCommunityCard />
+
+        </div>
+      </section>
+
+      {/* ================= CREATE COMMUNITY SECTION ================= */}
+
+      <section className="py-28 text-center">
+        <div className="mx-auto max-w-6xl px-6">
+
+          <Badge variant="outline">Create Your Own Community</Badge>
+
+          <h2 className="mt-6 text-4xl md:text-5xl font-bold">
+            Start Your Own Civic Movement
+          </h2>
+
+          <p className="mt-6 text-muted-foreground max-w-2xl mx-auto">
+            Create a structured digital space for your locality, ward, or cause.
+            Organize members, form committees, document actions, and track governance
+            transparently.
+          </p>
+
+          {/* Workflow Steps */}
+          <div className="mt-16 grid md:grid-cols-3 gap-10 text-left">
+
+            <div>
+              <h3 className="font-semibold text-lg">1. Apply</h3>
+              <p className="text-sm text-muted-foreground mt-2">
+                Submit your community application with geographic scope and purpose.
               </p>
-              <div className="gap-4 mt-6 flex justify-center">
-                <Button asChild className="mt-6">
-                  <Link href="/community/walkingproject">
-                    View Community
-                  </Link>
-                </Button>
-                <Button variant="outline" asChild className="mt-6">
-                  <Link href="/search">
-                    Explore Communities
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-lg">2. Organize</h3>
+              <p className="text-sm text-muted-foreground mt-2">
+                Add members, create committees, assign roles and responsibilities.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-lg">3. Act & Document</h3>
+              <p className="text-sm text-muted-foreground mt-2">
+                Create meetings, action reports, and link issues to authorities.
+              </p>
+            </div>
+
+          </div>
+
+          {/* Feature Highlights */}
+          <div className="mt-16 grid md:grid-cols-2 gap-10 text-left">
+
+            <div>
+              <h4 className="font-semibold">Structured Governance</h4>
+              <p className="text-sm text-muted-foreground mt-2">
+                Define hierarchy: Community → Committee → Action → Authority.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold">Transparent Documentation</h4>
+              <p className="text-sm text-muted-foreground mt-2">
+                Every civic step is recorded and publicly visible.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold">Geographic Organization</h4>
+              <p className="text-sm text-muted-foreground mt-2">
+                Structure communities by city, ward, region, or state.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold">Authority Tracking</h4>
+              <p className="text-sm text-muted-foreground mt-2">
+                Link actions to departments and responsible designations.
+              </p>
+            </div>
+
+          </div>
+
+          {/* CTA */}
+          <div className="mt-16">
+            <Link href="/apply/community">
+              <Button size="lg" className="gap-2 text-base">
+                Create Your Community
+                <ArrowRight />
+              </Button>
+            </Link>
+          </div>
+
         </div>
       </section>
 
@@ -301,7 +373,7 @@ export default function AboutPage() {
           
         </Button>
       </section>
-
+      <ScrollToTop />
     </div>
   );
 }

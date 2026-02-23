@@ -8,7 +8,11 @@ export function useCommunities({ slug, search, privateAccess = false, enabled = 
     enabled,
     queryFn: async () => {
       const table = privateAccess ? "community" : "community_public";
-      let query = supabase.from(table).select("*");
+      let query = supabase
+        .from(table)
+        .select("*")
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
 
       if (slug) {
         query = query.eq("slug", slug).single();

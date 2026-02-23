@@ -29,20 +29,13 @@ export default function AuthoritySearchModal({
   });
 
   const { data: directory = [], isLoading } =
-    useGovernanceDirectory(
-      scope.scope_type || null,
-      scope.scope_code || null
-    );
-
-  const filteredResults = useMemo(() => {
-    if (!search) return directory;
-
-    return directory.filter((item) =>
-      item.label
-        ?.toLowerCase()
-        .includes(search.toLowerCase())
-    );
-  }, [directory, search]);
+    useGovernanceDirectory({
+      scopeType: scope.scope_type || null,
+      scopeCode: scope.scope_code || null,
+      search,
+      entityType: "all",
+      enabled: true,
+    });
 
   const clearFilters = () => {
     setScope({
@@ -53,13 +46,13 @@ export default function AuthoritySearchModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl p-0">
+      <DialogContent className="max-w-2xl max-h-[90vh] p-0">
 
         <DialogHeader className="p-4 border-b">
           <DialogTitle>Select Authority</DialogTitle>
         </DialogHeader>
 
-        <div className="p-6 space-y-6">
+        <div className="px-4 space-y-2">
 
           {/* SEARCH */}
           <Input
@@ -97,7 +90,7 @@ export default function AuthoritySearchModal({
           </div>
 
           {/* RESULTS */}
-          <div className="space-y-3 max-h-[350px] overflow-y-auto">
+          <div className="space-y-3 max-h-[300px] overflow-y-auto">
 
             {isLoading && (
               <p className="text-sm text-muted-foreground">
@@ -106,13 +99,13 @@ export default function AuthoritySearchModal({
             )}
 
             {!isLoading &&
-              filteredResults.length === 0 && (
+              directory.length === 0 && (
                 <p className="text-sm text-muted-foreground">
                   No authorities found.
                 </p>
               )}
 
-            {filteredResults.map((item) => (
+            {directory.map((item) => (
               <Card
                 key={item.id}
                 className="p-3 cursor-pointer hover:bg-accent transition-colors"

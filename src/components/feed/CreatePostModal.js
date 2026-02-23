@@ -17,6 +17,7 @@ import { useFeed } from "@/hooks/useFeed";
 import AttachmentPicker from "./AttachmentPicker";
 import { toast } from "sonner";
 import Image from "next/image";
+import { X } from "lucide-react";
 
 export default function CreatePostModal({
   isOpen,
@@ -43,9 +44,7 @@ export default function CreatePostModal({
   const [authorityOpen,
     setAuthorityOpen] =
     useState(false);
-  const [selectedAuthority,
-    setSelectedAuthority] =
-    useState(null);
+  const [selectedAuthorities, setSelectedAuthorities] = useState([]);
 
   const [date, setDate] =
     useState("");
@@ -73,9 +72,9 @@ export default function CreatePostModal({
       details: content,
       attachments,
       governance_entity_id:
-        selectedAuthority?.id || null,
+        selectedAuthorities[0]?.id || null,
       governance_entity_type:
-        selectedAuthority?.entity_type || null,
+        selectedAuthorities[0]?.entity_type || null,
       status:
         type === "report"
           ? status
@@ -168,17 +167,39 @@ export default function CreatePostModal({
 
             {/* SINGLE LINE COMMON FIELDS */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <Button
-                variant="outline"
-                onClick={() =>
-                  setAuthorityOpen(true)
-                }
-                className="justify-start"
-              >
-                {selectedAuthority
-                  ? selectedAuthority.label
-                  : "Authority"}
-              </Button>
+              <div className="space-y-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setAuthorityOpen(true)}
+                  className="justify-start"
+                >
+                  Tag Authority
+                </Button>
+
+                {selectedAuthorities.length > 0 && (
+                  <div className="flex gap-2">
+                    {selectedAuthorities.map((entity) => (
+                      <div
+                        key={entity.id}
+                        className="flex items-center bg-muted text-xs overflow-hidden text-ellipsis whitespace-nowrap px-1 py-1"
+                      >
+                        
+                        <button
+                          onClick={() =>
+                            setSelectedAuthorities((prev) =>
+                              prev.filter((e) => e.id !== entity.id)
+                            )
+                          }
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          <X className="h-3 w-3 mr-1" />
+                        </button>
+                        {entity.label}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               <Input
                 type="date"
@@ -278,7 +299,12 @@ export default function CreatePostModal({
       <AuthoritySearchModal
         open={authorityOpen}
         onOpenChange={setAuthorityOpen}
-        onSelect={setSelectedAuthority}
+        onSelect={(entity) => {
+          setSelectedAuthorities((prev) => {
+            if (prev.find((e) => e.id === entity.id)) return prev;
+            return [...prev, entity];
+          });
+        }}
       />
 
     </>

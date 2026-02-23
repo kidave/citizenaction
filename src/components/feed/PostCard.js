@@ -54,11 +54,27 @@ export default function PostCard({ post }) {
             avatar={post.author_avatar}
             createdAt={post.created_at}
           />
-
-          <Badge variant="secondary" className="text-xs">
-            {post.type?.toUpperCase()}
-          </Badge>
+          <div className="flex flex-col gap-1 items-end">
+            <Badge variant="secondary" className="text-xs">
+              {post.type?.toUpperCase()}
+            </Badge>
+          </div>
         </div>
+
+        {/* Governance Info */}
+        {post.governance_label && (
+          <div className="text-xs text-muted-foreground">
+            Tag:{" "}
+            <span className="font-medium text-foreground">
+              {post.governance_label}
+            </span>
+            {post.governance_type && (
+              <Badge variant="outline" className="ml-2 text-[10px] px-2 py-0">
+                {post.governance_type.toUpperCase()}
+              </Badge>
+            )}
+          </div>
+        )}
 
 
         {/* Content */}
@@ -66,17 +82,87 @@ export default function PostCard({ post }) {
           {post.details || post.summary}
         </p>
 
-        {/* FocusCards Image Grid */}
+        {post.status && (
+          <Badge variant="outline" className="text-xs">
+            {post.status}
+          </Badge>
+        )}
+        {post.metadata && (
+          <div className="text-xs text-muted-foreground space-y-1">
+            {post.metadata.date && (
+              <div>Date: {post.metadata.date}</div>
+            )}
+            {post.metadata.time && (
+              <div>Time: {post.metadata.time}</div>
+            )}
+            {post.metadata.location && (
+              <div>Location: {post.metadata.location}</div>
+            )}
+            {post.metadata.mode && (
+              <div>Mode: {post.metadata.mode}</div>
+            )}
+          </div>
+        )}
+
+        {/* Images */}
         {images.length > 0 && (
-          <FocusCards
-            cards={images.map((img) => ({
-              src: img.url,
-            }))}
-            onCardClick={(index) => {
-              setActiveIndex(index);
-              setViewerOpen(true);
-            }}
-          />
+          <>
+            {/* ---------------- MOBILE (Twitter Style) ---------------- */}
+            <div className="md:hidden">
+              <div
+                className={`
+                  grid gap-1 rounded-xl overflow-hidden
+                  ${images.length === 1 ? "grid-cols-1" : "grid-cols-2"}
+                `}
+              >
+                {images.slice(0, 4).map((img, index) => {
+                  const isThreeLayout =
+                    images.length === 3 && index === 2;
+
+                  return (
+                    <div
+                      key={img.url || index}
+                      onClick={() => {
+                        setActiveIndex(index);
+                        setViewerOpen(true);
+                      }}
+                      className={`
+                        relative w-full cursor-pointer
+                        ${images.length === 1 ? "aspect-[16/9]" : "aspect-square"}
+                        ${isThreeLayout ? "col-span-2 aspect-[16/9]" : ""}
+                      `}
+                    >
+                      <Image
+                        src={img.url}
+                        alt=""
+                        fill
+                        className="object-cover hover:opacity-90 transition"
+                      />
+
+                      {images.length > 4 && index === 3 && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-lg font-semibold">
+                          +{images.length - 4}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ---------------- DESKTOP (FocusCards) ---------------- */}
+            <div className="hidden md:block">
+              <FocusCards
+                cards={images.map((img) => ({
+                  src: img.url,
+                }))}
+                onCardClick={(index) => {
+                  setActiveIndex(index);
+                  setViewerOpen(true);
+                }}
+              />
+            </div>
+          </>
         )}
 
         {/* File Attachments */}

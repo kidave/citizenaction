@@ -9,7 +9,7 @@ export default function Feed() {
   const { data, isLoading } = useFeed();
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col w-full mb-20">
       
       {isLoading ? (
         <div className="space-y-4">
