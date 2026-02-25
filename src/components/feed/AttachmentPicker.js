@@ -84,19 +84,32 @@ export default function AttachmentPicker({ attachments = [], onUpload, onRemove 
   };
 
   const getFilePreview = (file) => {
-    const isImage = file.type?.startsWith('image/');
-    
-    // Check if it's a File object (not already uploaded)
-    if (isImage && typeof file === 'object' && file.size && file.name) {
+    if (!file?.type?.startsWith("image/")) return null;
+
+    // 🟢 New uploaded file (real File)
+    const isRealFile =
+      typeof window !== "undefined" &&
+      typeof file === "object" &&
+      file !== null &&
+      typeof file.name === "string" &&
+      typeof file.size === "number" &&
+      typeof file.type === "string" &&
+      typeof file.arrayBuffer === "function";
+
+    if (isRealFile) {
       try {
-        const preview = URL.createObjectURL(file);
-        console.log("🖼️ Created preview for:", file.name, preview);
-        return preview;
+        return URL.createObjectURL(file);
       } catch (error) {
-        console.error("Error creating preview:", error);
+        console.error("Preview error:", error);
         return null;
       }
     }
+
+    // 🔵 Existing uploaded file from DB
+    if (file.url) {
+      return file.url;
+    }
+
     return null;
   };
 
@@ -165,7 +178,7 @@ export default function AttachmentPicker({ attachments = [], onUpload, onRemove 
           multiple
           className="hidden"
           onChange={handleFileSelect}
-          accept="image/*,.pdf,.doc,.docx,.txt"
+          accept="image/*, application/*,.pdf,.doc,.docx,.txt"
         />
 
         <span className="text-xs text-muted-foreground text-center sm:text-left">
@@ -195,11 +208,11 @@ export default function AttachmentPicker({ attachments = [], onUpload, onRemove 
                   <div className="aspect-square bg-muted">
                     {isImage && preview ? (
                       <div className="relative w-full h-full">
-                        <Image
+                        <img
                           src={preview}
                           alt={file.name}
                           fill
-                          className="object-cover"
+                          className="w-full h-full object-cover"
                           onLoad={() => {
                             console.log("🖼️ Image loaded:", file.name);
                             URL.revokeObjectURL(preview);

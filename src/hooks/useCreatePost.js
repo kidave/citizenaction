@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { uploadPostAttachment } from "@/lib/supabase/storage";
@@ -10,17 +12,17 @@ export function useCreatePost() {
     setIsLoading(true);
 
     try {
-      // Upload attachments if any
+      // 1️⃣ Upload attachments
       let uploadedAttachments = [];
       if (postData.attachments?.length > 0) {
-        const uploadPromises = postData.attachments.map(file => 
+        const uploadPromises = postData.attachments.map((file) =>
           uploadPostAttachment(file, postData.author_id)
         );
         uploadedAttachments = await Promise.all(uploadPromises);
       }
 
-      // Create post
-      const { error } = await supabase
+      // 2️⃣ Insert feed
+      const { data: feedRow, error } = await supabase
         .from("feed")
         .insert({
           author_id: postData.author_id,
@@ -30,13 +32,28 @@ export function useCreatePost() {
           summary: postData.summary,
           details: postData.details,
           attachments: uploadedAttachments,
-          governance_entity_id: postData.governance_entity_id || null,
-          governance_entity_type: postData.governance_entity_type || null,
           status: postData.status || null,
           metadata: postData.metadata || null,
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // 3️⃣ Insert governance relations
+      if (postData.governance_entities?.length > 0) {
+        const relations = postData.governance_entities.map((e) => ({
+          feed_id: feedRow.id,
+          governance_entity_id: e.id,
+          governance_entity_type: e.entity_type,
+        }));
+
+        const { error: relationError } = await supabase
+          .from("feed_governance_entities")
+          .insert(relations);
+
+        if (relationError) throw relationError;
+      }
 
       toast.success("Post published successfully!");
       return true;

@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-
+import { Avatar, AvatarFallback, AvatarGroup, AvatarImage } from "@/components/ui/avatar";
 import AuthoritySearchModal from "@/components/governance/AuthoritySearchModal";
 
 import { useAuth } from "@/context/AuthContext";
@@ -17,45 +18,28 @@ import { useFeed } from "@/hooks/useFeed";
 import AttachmentPicker from "./AttachmentPicker";
 import { toast } from "sonner";
 import Image from "next/image";
-import { X } from "lucide-react";
 
-export default function CreatePostModal({
-  isOpen,
-  onClose,
-}) {
+export default function CreatePostModal({ isOpen, onClose, initialData = null }) {
   const { user } = useAuth();
-  const { data: profile } =
-    useMyProfile();
-  const { createPost } =
-    useCreatePost();
-  const { refetch } =
-    useFeed();
+  const { data: profile } = useMyProfile();
+  const { createPost } = useCreatePost();
+  const { refetch } = useFeed();
 
   const scopeType = "country";
   const scopeCode = "IN";
 
-  const [type, setType] =
-    useState("action");
-  const [content, setContent] =
-    useState("");
-  const [attachments, setAttachments] =
-    useState([]);
-
-  const [authorityOpen,
-    setAuthorityOpen] =
-    useState(false);
-  const [selectedAuthorities, setSelectedAuthorities] = useState([]);
-
-  const [date, setDate] =
-    useState("");
-  const [time, setTime] =
-    useState("");
-  const [location, setLocation] =
-    useState("");
-  const [mode, setMode] =
-    useState("offline");
-  const [status, setStatus] =
-    useState("");
+  const [type, setType] = useState(initialData?.type || "action");
+  const [content, setContent] = useState(initialData?.details || "");
+  const [attachments, setAttachments] = useState(initialData?.attachments || []);
+  const [authorityOpen, setAuthorityOpen] = useState(false);
+  const [selectedAuthorities, setSelectedAuthorities] = useState(initialData?.governance_entities || []);
+  const [date, setDate] = useState(initialData?.metadata?.date || "");
+  const [time, setTime] = useState(initialData?.metadata?.time || "");
+  const [location, setLocation] = useState(initialData?.metadata?.location || "");
+  const [mode, setMode] = useState(initialData?.metadata?.mode || "offline");
+  const [status, setStatus] = useState(initialData?.status || "");
+  
+  if (!isOpen) return null;
 
   async function handleSubmit() {
     if (!content.trim()) {
@@ -63,38 +47,80 @@ export default function CreatePostModal({
       return;
     }
 
-    await createPost({
-      author_id: user.id,
-      scope_type: scopeType,
-      scope_code: scopeCode,
-      type,
-      summary: content.slice(0, 200),
-      details: content,
-      attachments,
-      governance_entity_id:
-        selectedAuthorities[0]?.id || null,
-      governance_entity_type:
-        selectedAuthorities[0]?.entity_type || null,
-      status:
-        type === "report"
-          ? status
-          : null,
-      metadata: {
-        date,
-        time,
-        location,
-        mode:
-          type === "meeting"
-            ? mode
-            : null,
-      },
-    });
+    try {
+      if (initialData) {
+        // UPDATE POST
+        await supabase
+          .from("feed")
+          .update({
+            type,
+            details: content,
+            summary: content.slice(0, 200),
+            attachments,
+            status: type === "report" ? status : null,
+            metadata: {
+              date,
+              time,
+              location,
+              mode: type === "meeting" ? mode : null,
+            },
+          })
+          .eq("id", initialData.id);
 
-    await refetch();
-    onClose();
+        // UPDATE GOVERNANCE RELATIONS
+        await supabase
+          .from("feed_governance_entities")
+          .delete()
+          .eq("feed_id", initialData.id);
+
+        if (selectedAuthorities.length > 0) {
+          await supabase
+            .from("feed_governance_entities")
+            .insert(
+              selectedAuthorities.map((e) => ({
+                feed_id: initialData.id,
+                governance_entity_id: e.id,
+                governance_entity_type: e.entity_type,
+              }))
+            );
+        }
+
+        toast.success("Post updated");
+      } else {
+        // CREATE POST
+        await createPost({
+          author_id: user.id,
+          scope_type: scopeType,
+          scope_code: scopeCode,
+          type,
+          summary: content.slice(0, 200),
+          details: content,
+          attachments,
+          governance_entities: selectedAuthorities,
+          status: type === "report" ? status : null,
+          metadata: {
+            date,
+            time,
+            location,
+            mode: type === "meeting" ? mode : null,
+          },
+        });
+
+        toast.success("Post created");
+      }
+
+      await refetch();
+      onClose();
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong");
+    }
   }
 
-  if (!isOpen) return null;
+  async function handleDelete(id) {
+    await supabase.from("feed").delete().eq("id", id);
+    refetch();
+  }
 
   return (
     <>
@@ -137,7 +163,7 @@ export default function CreatePostModal({
                   size="sm"
                   onClick={handleSubmit}
                 >
-                  Post
+                  {initialData ? "Update" : "Post"}
                 </Button>
               </div>
             </div>
@@ -177,31 +203,44 @@ export default function CreatePostModal({
                 </Button>
 
                 {selectedAuthorities.length > 0 && (
-                  <div className="flex gap-2">
-                    {selectedAuthorities.map((entity) => (
-                      <div
-                        key={entity.id}
-                        className="flex items-center bg-muted text-xs overflow-hidden text-ellipsis whitespace-nowrap px-1 py-1"
-                      >
-                        
-                        <button
-                          onClick={() =>
-                            setSelectedAuthorities((prev) =>
-                              prev.filter((e) => e.id !== entity.id)
-                            )
-                          }
-                          className="text-muted-foreground hover:text-foreground"
-                        >
-                          <X className="h-3 w-3 mr-1" />
-                        </button>
-                        {entity.label}
-                      </div>
-                    ))}
+                  <div className="flex items-center justify-between mt-2">
+
+                    <AvatarGroup>
+                      {selectedAuthorities
+                        .filter(
+                          (e) =>
+                            e.entity_type === "authority" ||
+                            e.entity_type === "department"
+                        )
+                        .map((e) => (
+                          <Avatar key={e.id}>
+                            <AvatarImage src={e.image_url} />
+                            <AvatarFallback>G</AvatarFallback>
+                          </Avatar>
+                        ))}
+                    </AvatarGroup>
+
+                    <AvatarGroup>
+                      {selectedAuthorities
+                        .filter(
+                          (e) =>
+                            e.entity_type === "designation" ||
+                            e.entity_type === "person"
+                        )
+                        .map((e) => (
+                          <Avatar key={e.id}>
+                            <AvatarImage src={e.image_url} />
+                            <AvatarFallback>P</AvatarFallback>
+                          </Avatar>
+                        ))}
+                    </AvatarGroup>
+
                   </div>
                 )}
               </div>
 
               <Input
+                placeholder="Date"
                 type="date"
                 value={date}
                 onChange={(e) =>
@@ -212,6 +251,7 @@ export default function CreatePostModal({
               />
 
               <Input
+                placeholder="Time"
                 type="time"
                 value={time}
                 onChange={(e) =>
@@ -299,12 +339,8 @@ export default function CreatePostModal({
       <AuthoritySearchModal
         open={authorityOpen}
         onOpenChange={setAuthorityOpen}
-        onSelect={(entity) => {
-          setSelectedAuthorities((prev) => {
-            if (prev.find((e) => e.id === entity.id)) return prev;
-            return [...prev, entity];
-          });
-        }}
+        selected={selectedAuthorities}
+        onChange={setSelectedAuthorities}
       />
 
     </>

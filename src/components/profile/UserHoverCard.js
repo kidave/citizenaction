@@ -13,45 +13,14 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
 
-/* ---------------------------
-   Geographic hierarchy priority
-   Lower number = higher scope
----------------------------- */
-const SCOPE_PRIORITY = {
-  country: 1,
-  state: 2,
-  region: 3,
-  city: 4,
-  ward: 5,
-};
-
 export function UserHoverCard({ username, children }) {
   const { data: profile, isLoading } =
     usePublicProfile(username);
 
   if (!username) return children;
 
-  /* ---------------------------
-     Sort clubs by hierarchy
-  ---------------------------- */
-  const sortedClubs = profile?.clubs
-    ? [...profile.clubs].sort(
-        (a, b) =>
-          (SCOPE_PRIORITY[a.scope_type] || 999) -
-          (SCOPE_PRIORITY[b.scope_type] || 999)
-      )
-    : [];
-
-  const highestClub = sortedClubs[0];
-
-  /* ---------------------------
-     Get matching community
-     based on highest club
-  ---------------------------- */
-  const primaryCommunity =
-    profile?.communities?.find(
-      (c) => c.id === highestClub?.community_id
-    );
+  const primaryClub = profile?.primary_club;
+  const primaryCommunity = profile?.primary_community;
 
   return (
     <HoverCard openDelay={200} closeDelay={150}>
@@ -86,33 +55,36 @@ export function UserHoverCard({ username, children }) {
                     {profile.name}
                   </div>
 
-                  {highestClub && (
-                    <div className="text-sm text-muted-foreground"> 
+                  {primaryClub && primaryCommunity && (
+                    <div className="text-sm text-muted-foreground">
                       <Link
-                        href={`/community/${highestClub.scope_type}/${highestClub.scope_code}`}
+                        href={`/community/${primaryCommunity.slug}/${primaryClub.scope_type}/${primaryClub.scope_code}`}
                       >
-                        {highestClub.name}{" "}
-                        {highestClub.geographic_name}
+                        {primaryClub.name}{" "}
+                        {primaryClub.geographic_name}
                       </Link>
                     </div>
                   )}
-
                 </div>
               </div>
 
-              {/* Primary Geographic Scope */}
               {primaryCommunity && (
                 <div>
                   <Link
                     href={`/community/${primaryCommunity.slug}`}
                   >
-                    <Badge variant="secondary" className="size-sm">{primaryCommunity.name}</Badge>
+                    <Badge variant="secondary">
+                      {primaryCommunity.name}
+                    </Badge>
                   </Link>
+
                   <Link
                     href={`/user/${profile.username}`}
                     className="justify-end flex"
                   >
-                    <Button variant="link" className="size-sm">View full profile</Button>
+                    <Button variant="link" size="sm">
+                      View full profile
+                    </Button>
                   </Link>
                 </div>
               )}

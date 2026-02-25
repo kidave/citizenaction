@@ -10,7 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-
+import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useMemo } from "react";
 import { useGovernanceDirectory } from "@/hooks/useGovernanceDirectory";
 import ScopeSelector from "@/components/shared/ScopeSelector";
@@ -19,7 +19,8 @@ import Image from "next/image";
 export default function AuthoritySearchModal({
   open,
   onOpenChange,
-  onSelect,
+  selected = [],
+  onChange = () => {},
 }) {
   const [search, setSearch] = useState("");
 
@@ -105,37 +106,55 @@ export default function AuthoritySearchModal({
                 </p>
               )}
 
-            {directory.map((item) => (
-              <Card
-                key={item.id}
-                className="p-3 cursor-pointer hover:bg-accent transition-colors"
-                onClick={() => {
-                  onSelect(item);
-                  onOpenChange(false);
-                }}
-              >
-                <div className="flex items-center gap-3">
+            {directory.map((item) => {
+              const isSelected = selected.find((e) => e.id === item.id);
 
-                  <Image
-                    src={
-                      item.authority_logo ||
-                      "/user1.png"
-                    }
-                    width={32}
-                    height={32}
-                    alt=""
-                    className="rounded"
-                  />
+              return (
+                <Card
+                  key={item.id}
+                  className={`p-3 cursor-pointer transition-colors border ${
+                    isSelected
+                      ? "border-primary bg-primary/5"
+                      : "hover:bg-accent"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
 
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">
-                      {item.label}
+                    {/* Checkbox indicator */}
+                    <Checkbox
+                      checked={!!isSelected}
+                      onCheckedChange={(checked) => {
+                        const exists = selected.find((e) => e.id === item.id);
+
+                        if (exists) {
+                          onChange(selected.filter((e) => e.id !== item.id));
+                        } else {
+                          onChange([...selected, item]);
+                        }
+                      }}
+                    />
+
+                    <Image
+                      src={item.image_url || "/user1.png"}
+                      width={32}
+                      height={32}
+                      alt=""
+                      className={`${
+                        item.entity_type === "person"
+                          ? "rounded-full"
+                          : "rounded-md"
+                      }`}
+                    />
+
+                    <div className="flex-1">
+                      <div className="font-medium text-sm">
+                        {item.label}
+                      </div>
                     </div>
                   </div>
-
-                </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
 
           </div>
 
