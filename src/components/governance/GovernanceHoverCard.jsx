@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  HoverCard,
-  HoverCardTrigger,
-  HoverCardContent,
-} from "@/components/ui/hover-card";
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import Link from "next/link";
@@ -36,10 +32,6 @@ export function GovernanceHoverCard({ entity, children }) {
             <div>
               <div className="font-semibold text-sm">
                 {entity.label}
-              </div>
-
-              <div className="text-xs text-muted-foreground">
-                {entity.entity_type.toUpperCase()}
               </div>
             </div>
           </div>

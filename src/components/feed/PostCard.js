@@ -135,31 +135,30 @@ export default function PostCard({ post, canEdit = false, onEdit, onDelete, }) {
                   )}
                 </AvatarGroup>
               )}
-
-              {/* EDIT / DELETE MENU */}
-              {canEdit && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="icon" variant="ghost">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={onEdit}>
-                      Edit
-                    </DropdownMenuItem>
-
-                    <DropdownMenuItem
-                      className="text-red-500"
-                      onClick={onDelete}
-                    >
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
             </div>
+          )}
+          {/* EDIT / DELETE MENU */}
+          {canEdit && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="ghost">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={onEdit}>
+                  Edit
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  className="text-red-500"
+                  onClick={onDelete}
+                >
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
 
