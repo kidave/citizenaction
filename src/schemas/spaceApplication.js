@@ -1,7 +1,7 @@
-// schemas/communityApplication.js
+// schemas/spaceApplication.js
 import { z } from "zod";
 
-export const communityApplicationSchema = z.object({
+export const spaceApplicationSchema = z.object({
   proposed_name: z.string().min(3),
 
   proposed_slug: z

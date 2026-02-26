@@ -24,15 +24,15 @@ import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   {
-    label: "Community",
+    label: "Space",
     items: [
       {
-        title: "Search for active communities",
-        href: "/search/community",
+        title: "Search for active spaces",
+        href: "/search/space",
       },
       {
-        title: "Apply to register your community",
-        href: "/apply/community",
+        title: "Apply to register your space",
+        href: "/apply/space",
       },
     ],
   },
@@ -50,7 +50,7 @@ const NAV_ITEMS = [
     items: [
       {
         title: "Mumbai Metropolitan Region",
-        href: "/community/walkingproject/region/MH-MMR",
+        href: "/space/walkingproject/region/MH-MMR",
       },
     ],
   },

@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
 import ScrollToTop from "@/components/ui/ScrollToTop";
-import FeaturedCommunityCard from "@/components/shared/FeaturedCommunityCard";
+import FeaturedSpaceCard from "@/components/shared/FeaturedSpaceCard";
 
 /* ===========================
    VIDEO MODAL (YouTube)
@@ -74,9 +74,9 @@ export default function AboutPage() {
     {
       id: "1",
       category: "getting-started",
-      title: "How do I join a community?",
+      title: "How do I join a space?",
       content:
-        "Sign in using Google, search for a community, and apply. Community admins review and approve applications.",
+        "Sign in using Google, search for a space, and apply. Space admins review and approve applications.",
     },
     {
       id: "2",
@@ -94,17 +94,17 @@ export default function AboutPage() {
     },
     {
       id: "4",
-      category: "communities",
+      category: "spaces",
       title: "Can I create my own civic group?",
       content:
-        "Yes. Any authenticated user can create a community and form committees within it.",
+        "Yes. Any authenticated user can create a space and form clubs within it.",
     },
     {
       id: "5",
       category: "transparency",
       title: "What makes this different from social media?",
       content:
-        "Citizen Action is structured governance infrastructure — not a social network. Posts are civic records linked to authorities and committees.",
+        "Citizen Action is structured governance infrastructure — not a social network. Posts are civic records linked to authorities and clubs.",
     },
   ];
 
@@ -136,7 +136,7 @@ export default function AboutPage() {
           className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto"
         >
           Citizen Action is a civic documentation movement that empowers
-          communities to organize digitally, track governance transparently,
+          spaces to organize digitally, track governance transparently,
           and collaborate to solve local issues.
         </motion.p>
 
@@ -171,7 +171,7 @@ export default function AboutPage() {
 
             <div>
               <Users className="mx-auto size-8" />
-              <h3 className="mt-4 font-semibold">Join or Create Community</h3>
+              <h3 className="mt-4 font-semibold">Join or Create Space</h3>
               <p className="text-sm text-muted-foreground mt-2">
                 Organize around your city, ward, or cause.
               </p>
@@ -202,9 +202,9 @@ export default function AboutPage() {
       <section className="py-24 bg-muted/30">
         <div className="mx-auto max-w-6xl px-6">
 
-          <Badge variant="secondary">Featured Community</Badge>
+          <Badge variant="secondary">Featured Space</Badge>
 
-          <FeaturedCommunityCard />
+          <FeaturedSpaceCard />
 
         </div>
       </section>
@@ -214,7 +214,7 @@ export default function AboutPage() {
       <section className="py-28 text-center">
         <div className="mx-auto max-w-6xl px-6">
 
-          <Badge variant="outline">Create Your Own Community</Badge>
+          <Badge variant="outline">Create Your Own Space</Badge>
 
           <h2 className="mt-6 text-4xl md:text-5xl font-bold">
             Start Your Own Civic Movement
@@ -222,7 +222,7 @@ export default function AboutPage() {
 
           <p className="mt-6 text-muted-foreground max-w-2xl mx-auto">
             Create a structured digital space for your locality, ward, or cause.
-            Organize members, form committees, document actions, and track governance
+            Organize members, form clubs, document actions, and track governance
             transparently.
           </p>
 
@@ -232,14 +232,14 @@ export default function AboutPage() {
             <div>
               <h3 className="font-semibold text-lg">1. Apply</h3>
               <p className="text-sm text-muted-foreground mt-2">
-                Submit your community application with geographic scope and purpose.
+                Submit your space application with geographic scope and purpose.
               </p>
             </div>
 
             <div>
               <h3 className="font-semibold text-lg">2. Organize</h3>
               <p className="text-sm text-muted-foreground mt-2">
-                Add members, create committees, assign roles and responsibilities.
+                Add members, create clubs, assign roles and responsibilities.
               </p>
             </div>
 
@@ -258,7 +258,7 @@ export default function AboutPage() {
             <div>
               <h4 className="font-semibold">Structured Governance</h4>
               <p className="text-sm text-muted-foreground mt-2">
-                Define hierarchy: Community → Committee → Action → Authority.
+                Define hierarchy: Space → Club → Action → Authority.
               </p>
             </div>
 
@@ -272,7 +272,7 @@ export default function AboutPage() {
             <div>
               <h4 className="font-semibold">Geographic Organization</h4>
               <p className="text-sm text-muted-foreground mt-2">
-                Structure communities by city, ward, region, or state.
+                Structure spaces by city, ward, region, or state.
               </p>
             </div>
 
@@ -287,9 +287,9 @@ export default function AboutPage() {
 
           {/* CTA */}
           <div className="mt-16">
-            <Link href="/apply/community">
+            <Link href="/apply/space">
               <Button size="lg" className="gap-2 text-base">
-                Create Your Community
+                Create Your Space
                 <ArrowRight />
               </Button>
             </Link>
@@ -322,7 +322,7 @@ export default function AboutPage() {
                     Civic Update #{i}
                   </h3>
                   <p className="text-sm text-muted-foreground mt-2">
-                    Learn how youth communities are creating structured civic impact.
+                    Learn how youth spaces are creating structured civic impact.
                   </p>
                 </CardContent>
               </Card>

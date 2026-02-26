@@ -1,4 +1,4 @@
-// pages/community/[community].js
+// pages/space/[space].js
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/router";
 import Link from "next/link";
@@ -26,19 +26,19 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 
-import { useCommunities } from "@/hooks/useCommunities";
+import { useSpaces } from "@/hooks/useSpaces";
 import { useClubs } from "@/hooks/useClubs";
 
-export default function CommunityPage() {
+export default function SpacePage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const slug = router.query.community;
+  const slug = router.query.space;
 
   const {
-    data: community,
+    data: space,
     isLoading,
     error,
-  } = useCommunities({
+  } = useSpaces({
     slug,
     enabled: !!slug,
   });
@@ -47,7 +47,7 @@ export default function CommunityPage() {
     data: club = [],
     isLoading: clubLoading,
   } = useClubs({
-    communitySlug: slug,
+    spaceSlug: slug,
     enabled: !!slug,
   });
 
@@ -64,26 +64,26 @@ export default function CommunityPage() {
   }
 
   /* ---------------- ERROR ---------------- */
-  if (error || !community) {
+  if (error || !space) {
     return (
       <div className="max-w-6xl mx-auto px-4 py-16 text-center">
-        <h2 className="text-xl font-semibold">Community not found</h2>
+        <h2 className="text-xl font-semibold">Space not found</h2>
         <p className="text-muted-foreground mt-2">
-          The requested community does not exist or is unavailable.
+          The requested space does not exist or is unavailable.
         </p>
       </div>
     );
   }
 
-  const isOwner = !!user && user.id === community.owner_id;
+  const isOwner = !!user && user.id === space.owner_id;
 
   /* ---------------- PAGE ---------------- */
   return (
     <div
       className="max-w-6xl mx-auto my-auto px-4 py-4 space-y-4"
       style={
-        community.primary_color
-          ? { "--community-primary": community.primary_color }
+        space.primary_color
+          ? { "--space-primary": space.primary_color }
           : undefined
       }
     >
@@ -100,10 +100,10 @@ export default function CommunityPage() {
           </Link>
 
           {/* LOGO */}
-          {community.logo_url && (
+          {space.logo_url && (
             <Image
-              src={community.logo_url}
-              alt={`${community.name} logo`}
+              src={space.logo_url}
+              alt={`${space.name} logo`}
               width={32} 
               height={32}
               className="h-14 w-14 rounded-md object-contain border"
@@ -112,13 +112,13 @@ export default function CommunityPage() {
 
           {/* NAME */}
           <h1 className="text-3xl font-semibold tracking-tight">
-            {community.name}
+            {space.name}
           </h1>
         </div>
 
-        {community.description && (
+        {space.description && (
           <p className="text-muted-foreground max-w-3xl">
-            {community.description}
+            {space.description}
           </p>
         )}
       </header>
@@ -126,9 +126,9 @@ export default function CommunityPage() {
       {/* ================= META CARDS ================= */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Owner */}
-        <Card className="border-l-4" style={{ borderLeftColor: "var(--community-primary)" }}>
+        <Card className="border-l-4" style={{ borderLeftColor: "var(--space-primary)" }}>
           <CardHeader>
-            <CardTitle>Community Owner</CardTitle>
+            <CardTitle>Space Owner</CardTitle>
             <CardDescription>
               Primary point of contact
             </CardDescription>
@@ -137,14 +137,14 @@ export default function CommunityPage() {
           <CardContent>
             <div className="flex items-center gap-3">
               <Image
-                src={community.avatar_url || "/user1.png"}
-                alt={community.owner_name || "Owner"}
+                src={space.avatar_url || "/user1.png"}
+                alt={space.owner_name || "Owner"}
                 width={32}
                 height={32}
                 className="h-10 w-10 rounded-full object-cover"
               />
               <span className="font-medium">
-                {community.owner_name || "Unnamed user"}
+                {space.owner_name || "Unnamed user"}
               </span>
             </div>
           </CardContent>
@@ -160,9 +160,9 @@ export default function CommunityPage() {
           </CardHeader>
 
           <CardContent className="space-y-1 text-sm">
-            {community.email && <div>{community.email}</div>}
-            {community.contact_number && <div>{community.contact_number}</div>}
-            {!community.email && !community.contact_number && (
+            {space.email && <div>{space.email}</div>}
+            {space.contact_number && <div>{space.contact_number}</div>}
+            {!space.email && !space.contact_number && (
               <span className="text-muted-foreground">Not provided</span>
             )}
           </CardContent>
@@ -178,13 +178,13 @@ export default function CommunityPage() {
           </CardHeader>
 
           <CardContent>
-            {community.website ? (
+            {space.website ? (
               <Link
-                href={community.website}
+                href={space.website}
                 target="_blank"
                 className="underline underline-offset-4 text-sm"
               >
-                {community.website}
+                {space.website}
               </Link>
             ) : (
               <span className="text-muted-foreground text-sm">
@@ -200,7 +200,7 @@ export default function CommunityPage() {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-semibold">Clubs</h2>
           {isOwner && (
-            <Link href={`/apply/community/${community.slug}/club`}>
+            <Link href={`/apply/space/${space.slug}/club`}>
               <Button>Create Club</Button>
             </Link>
           )}
@@ -298,7 +298,7 @@ export default function CommunityPage() {
 
                       <CardFooter>
                         <Link
-                          href={`/community/${community.slug}/${club.scope_type}/${club.scope_code}`}
+                          href={`/space/${space.slug}/${club.scope_type}/${club.scope_code}`}
                           className="w-full"
                         >
                           <Button variant="outline" className="w-full">
@@ -330,7 +330,7 @@ export default function CommunityPage() {
             </CardHeader>
             {isOwner && (
               <CardFooter>
-                <Link href={`/apply/community/${community.slug}/club`}>
+                <Link href={`/apply/space/${space.slug}/club`}>
                   <Button>Create First Club</Button>
                 </Link>
               </CardFooter>
@@ -357,7 +357,7 @@ export default function CommunityPage() {
         {/* DONATE → only for non-owners */}
         {!authLoading && !isOwner && (
           <Link
-            href={`/community/${community.slug}/donate`}
+            href={`/space/${space.slug}/donate`}
             className="inline-flex items-center justify-center rounded-md border bg-black text-white px-4 py-2 text-sm font-medium"
           >
             Donate
@@ -367,10 +367,10 @@ export default function CommunityPage() {
         {/* MANAGE → only for owner */}
         {!authLoading && isOwner && (
           <Link
-            href={`/manage/${community.slug}`}
+            href={`/manage/${space.slug}`}
             className="inline-flex items-center justify-center rounded-md border bg-black text-white px-4 py-2 text-sm font-medium"
           >
-            Manage Community
+            Manage Space
           </Link>
         )}
       </div>

@@ -28,15 +28,15 @@ import { ArrowLeft, Trash2, Upload, X, Save } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
-import { useCommunities } from "@/hooks/useCommunities";
-import { communityUpdateSchema } from "@/schemas/community";
+import { useSpaces } from "@/hooks/useSpaces";
+import { spaceUpdateSchema } from "@/schemas/space";
 import { supabase } from "@/lib/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 
-export default function CommunitySettings() {
+export default function SpaceSettings() {
   const router = useRouter();
-  const slug = router.query.community;
+  const slug = router.query.space;
 
   useRequireAuth();
   const { user, loading: authLoading } = useAuth();
@@ -49,34 +49,34 @@ export default function CommunitySettings() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const form = useForm({
-    resolver: zodResolver(communityUpdateSchema),
+    resolver: zodResolver(spaceUpdateSchema),
     defaultValues: {},
   });
 
   /* ---------- LOAD COMMUNITY ---------- */
   const {
-    data: community,
+    data: space,
     isLoading,
-  } = useCommunities({
+  } = useSpaces({
     slug,
     privateAccess: true,
     enabled: !!slug,
   });
 
   useEffect(() => {
-    if (!community) return;
+    if (!space) return;
 
     form.reset({
-      name: community.name ?? undefined,
-      description: community.description ?? undefined,
-      email: community.email ?? undefined,
-      website: community.website ?? undefined,
-      contact_number: community.contact_number ?? undefined,
-      primary_color: community.primary_color ?? undefined,
-      logo_url: community.logo_url ?? undefined,
-      cover_url: community.cover_url ?? undefined,
+      name: space.name ?? undefined,
+      description: space.description ?? undefined,
+      email: space.email ?? undefined,
+      website: space.website ?? undefined,
+      contact_number: space.contact_number ?? undefined,
+      primary_color: space.primary_color ?? undefined,
+      logo_url: space.logo_url ?? undefined,
+      cover_url: space.cover_url ?? undefined,
     });
-  }, [community, form]);
+  }, [space, form]);
 
   const handleSave = () => {
     setShowSaveDialog(true);
@@ -104,12 +104,12 @@ export default function CommunitySettings() {
       
 
       queryClient.setQueryData(
-        ["communities", slug, undefined, true],
+        ["spaces", slug, undefined, true],
         data
       );
 
       await queryClient.invalidateQueries({
-        queryKey: ["communities", slug],
+        queryKey: ["spaces", slug],
       });
 
       form.reset(data);
@@ -139,10 +139,10 @@ export default function CommunitySettings() {
 
       if (error) throw error;
 
-      toast.success("Community deleted");
+      toast.success("Space deleted");
 
       queryClient.removeQueries({
-        queryKey: ["communities", slug],
+        queryKey: ["spaces", slug],
       });
 
       router.push("/");
@@ -321,7 +321,7 @@ export default function CommunitySettings() {
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <div>
-              <h1 className="text-2xl font-semibold">Community Settings</h1>
+              <h1 className="text-2xl font-semibold">Space Settings</h1>
               {user?.email && (
                 <p className="text-sm text-muted-foreground">
                   Logged in as {user?.email}
@@ -339,7 +339,7 @@ export default function CommunitySettings() {
             ) : (
               <>
                 <Trash2 className="h-4 w-4 mr-2" />
-                Delete Community
+                Delete Space
               </>
             )}
           </Button>
@@ -353,7 +353,7 @@ export default function CommunitySettings() {
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <Input {...form.register("name")} placeholder="Community name" />
+                <Input {...form.register("name")} placeholder="Space name" />
                 {form.formState.errors.name && (
                   <p className="text-sm text-destructive mt-1">
                     {form.formState.errors.name.message}
@@ -428,7 +428,7 @@ export default function CommunitySettings() {
                     <div className="relative">
                       <Image
                         src={form.watch("logo_url")}
-                        alt="Community logo"
+                        alt="Space logo"
                         width={32}
                         height={32}
                         className="h-20 w-20 object-contain rounded-lg border"          
@@ -487,7 +487,7 @@ export default function CommunitySettings() {
                   <div className="relative h-40 w-full max-w-md rounded-lg border overflow-hidden">
                     <Image
                       src={form.watch("cover_url")}
-                      alt="Community cover"
+                      alt="Space cover"
                       fill
                       className="object-fit"
                       sizes="(max-width: 768px) 100vw, 400px"
@@ -539,7 +539,7 @@ export default function CommunitySettings() {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Choose a primary color for your community
+                  Choose a primary color for your space
                 </p>
               </div>
 
@@ -582,7 +582,7 @@ export default function CommunitySettings() {
           <AlertDialogHeader>
             <AlertDialogTitle>Save Changes?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to save these changes? This will update your community settings.
+              Are you sure you want to save these changes? This will update your space settings.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -598,9 +598,9 @@ export default function CommunitySettings() {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Community?</AlertDialogTitle>
+            <AlertDialogTitle>Delete Space?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your community
+              This action cannot be undone. This will permanently delete your space
               and all associated data including logo and cover images.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -611,7 +611,7 @@ export default function CommunitySettings() {
               disabled={deleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleting ? "Deleting..." : "Delete Community"}
+              {deleting ? "Deleting..." : "Delete Space"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

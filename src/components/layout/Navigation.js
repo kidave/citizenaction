@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/router";
-import { Search, CirclePlus, Users, Info, MapPinned, ChevronRight } from "lucide-react";
+import { Search, CirclePlus, Orbit, Sparkles, Info, MapPinned, ChevronRight } from "lucide-react";
 
 import {
   SidebarGroup,
@@ -19,13 +19,13 @@ import {
   CollapsibleTrigger,
   CollapsibleContent,
 } from "@/components/ui/collapsible";
-
-import { useCommunities } from "@/hooks/useCommunities";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useSpaces } from "@/hooks/useSpaces";
 
 export function Navigation() {
   const router = useRouter();
 
-  const { data: communities = [], isLoading } = useCommunities({
+  const { data: spaces = [], isLoading } = useSpaces({
     enabled: true,
   });
 
@@ -56,7 +56,17 @@ export function Navigation() {
           </SidebarMenuButton>
         </SidebarMenuItem>
 
-        {/* COMMUNITIES / CLUBS (collapsible, expanded only) */}
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            tooltip="Register Your Space"
+            onClick={() => router.push("/apply/space")}
+          >
+            <Sparkles />
+            <span>Register Space</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+
+        {/* (collapsible, expanded only) */}
         <Collapsible
           defaultOpen
           className="group/collapsible group-data-[collapsible=icon]:hidden"
@@ -64,8 +74,8 @@ export function Navigation() {
           <SidebarMenuItem>
             <CollapsibleTrigger asChild>
               <SidebarMenuButton>
-                <Users />
-                <span>Communities</span>
+                <Orbit />
+                <span>Space</span>
                 <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
               </SidebarMenuButton>
             </CollapsibleTrigger>
@@ -75,20 +85,20 @@ export function Navigation() {
 
                 {isLoading && (
                   <SidebarMenuSubItem>
-                    <SidebarMenuSubButton disabled>
-                      <span>Loading...</span>
+                    <SidebarMenuSubButton disabled className="flex items-center gap-2">
+                      <Skeleton className="h-4 w-24" />
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                 )}
 
-                {communities?.map((community) => (
-                  <SidebarMenuSubItem key={community.id}>
+                {spaces?.map((space) => (
+                  <SidebarMenuSubItem key={space.id}>
                     <SidebarMenuSubButton
                       onClick={() =>
-                        router.push(`/community/${community.slug}`)
+                        router.push(`/space/${space.slug}`)
                       }
                     >
-                      <span>{community.name}</span>
+                      <span>{space.name}</span>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                 ))}
@@ -104,7 +114,7 @@ export function Navigation() {
           <SidebarMenuButton
             tooltip="Mumbai Metropolitan Region"
             onClick={() =>
-              router.push("/community/walkingproject/region/MH-MMR")
+              router.push("/space/walkingproject/region/MH-MMR")
             }
           >
             <MapPinned />

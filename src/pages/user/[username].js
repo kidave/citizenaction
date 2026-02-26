@@ -78,18 +78,18 @@ export default function PublicProfilePage() {
               }
             />
 
-            {/* Communities */}
-            {profile.communities?.length > 0 && (
+            {/* Spaces */}
+            {profile.spaces?.length > 0 && (
               <>
                 <Separator />
                 <ProfileItem
-                  label="Communities"
+                  label="Spaces"
                   value={
                     <div className="flex flex-wrap gap-2 justify-end">
-                      {profile.communities.map((c) => (
+                      {profile.spaces.map((c) => (
                         <Link
                           key={c.id}
-                          href={`/community/${c.slug}`}
+                          href={`/space/${c.slug}`}
                         >
                           <Badge
                             className="cursor-pointer"
@@ -117,7 +117,7 @@ export default function PublicProfilePage() {
                     {profile.clubs.map((club) => (
                       <Link
                         key={club.id}
-                        href={`/community/${club.scope_type}/${club.scope_code}`}
+                        href={`/space/${club.scope_type}/${club.scope_code}`}
                       >
                         <Badge
                           variant="outline"

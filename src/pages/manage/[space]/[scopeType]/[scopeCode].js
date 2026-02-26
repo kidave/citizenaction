@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
 // 🔐 Later you can wrap this with AdminContext
-export default function ManageCommunity() {
+export default function ManageClub() {
   const { query } = useRouter();
-  const slug = query.community;
+  const slug = query.space;
+  const { scopeType, scopeCode } = query;
 
   if (!slug) return null;
 
@@ -16,28 +17,28 @@ export default function ManageCommunity() {
 
       <div className="flex items-center gap-3">
         <Link
-          href={`/community/${slug}`}
+          href={`/space/${slug}/${scopeType}/${scopeCode}`}
           className="inline-flex items-center justify-center rounded-md border p-2 hover:bg-muted"
-          aria-label="Back to community"
+          aria-label="Back to space"
         >
           <ArrowLeft className="h-4 w-4" />
         </Link>
 
         <h1 className="text-2xl font-semibold">
-          Manage Community
+          Manage Club
         </h1>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Community Settings</CardTitle>
+          <CardTitle>Club Settings</CardTitle>
         </CardHeader>
         <CardContent className="flex justify-between items-center">
           <span className="text-muted-foreground text-sm">
             Update details, branding, and contact information
           </span>
 
-          <Link href={`/manage/${slug}/settings`}>
+          <Link href={`/manage/${slug}/${scopeType}/${scopeCode}/settings`}>
             <Button>Edit Settings</Button>
           </Link>
         </CardContent>
@@ -45,11 +46,11 @@ export default function ManageCommunity() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Club Settings</CardTitle>
+          <CardTitle>Member Settings</CardTitle>
         </CardHeader>
         <CardContent>
           <span className="text-muted-foreground text-sm">
-            Create and manage clubs for your community
+            Manage your club members, roles, and permissions
           </span>
         </CardContent>
       </Card>

@@ -1,24 +1,24 @@
-// pages/api/[community]/[scopeType]/[scopeCode].js
+// pages/api/[space]/[scopeType]/[scopeCode].js
 import { createServerSupabase } from "@/lib/supabase/server";
 import { clubUpdateSchema } from "@/schemas/club";
 
-async function verifyClubOwnership(supabase, community, scopeType, scopeCode, userId) {
-  // First get community to get community_id
-  const { data: communityData, error: communityError } = await supabase
+async function verifyClubOwnership(supabase, space, scopeType, scopeCode, userId) {
+  // First get space to get community_id
+  const { data: spaceData, error: spaceError } = await supabase
     .from("community")
     .select("id")
     .eq("slug", community)
     .single();
 
-  if (communityError || !communityData) {
-    return { error: "Community not found", status: 404 };
+  if (spaceError || !spaceData) {
+    return { error: "Space not found", status: 404 };
   }
 
   // Then get club using community_id
   const { data: club, error } = await supabase
     .from("club")
     .select("id, created_by, logo_url, cover_url")
-    .eq("community_id", communityData.id)
+    .eq("community_id", spaceData.id)
     .eq("scope_type", scopeType)
     .eq("scope_code", scopeCode)
     .single();
@@ -34,7 +34,7 @@ async function verifyClubOwnership(supabase, community, scopeType, scopeCode, us
   return { club };
 }
 
-async function cleanupOldFiles(supabase, community, scopeType, scopeCode, newData, currentData) {
+async function cleanupOldFiles(supabase, space, scopeType, scopeCode, newData, currentData) {
   try {
     // Check if logo is being changed or removed
     if (newData.logo_url !== undefined) {
@@ -42,7 +42,7 @@ async function cleanupOldFiles(supabase, community, scopeType, scopeCode, newDat
         const logoFileName = currentData.logo_url.split('/').pop();
         await supabase.storage
           .from('committee-branding')
-          .remove([`${community}/${scopeType}/${scopeCode}/${logoFileName}`])
+          .remove([`${space}/${scopeType}/${scopeCode}/${logoFileName}`])
           .catch(err => console.log("Logo cleanup (non-critical):", err.message));
       }
     }
@@ -53,7 +53,7 @@ async function cleanupOldFiles(supabase, community, scopeType, scopeCode, newDat
         const coverFileName = currentData.cover_url.split('/').pop();
         await supabase.storage
           .from('committee-branding')
-          .remove([`${community}/${scopeType}/${scopeCode}/${coverFileName}`])
+          .remove([`${space}/${scopeType}/${scopeCode}/${coverFileName}`])
           .catch(err => console.log("Cover cleanup (non-critical):", err.message));
       }
     }
@@ -64,12 +64,12 @@ async function cleanupOldFiles(supabase, community, scopeType, scopeCode, newDat
 
 export default async function handler(req, res) {
   const { method } = req;
-  const { community, scopeType, scopeCode } = req.query;
+  const { space, scopeType, scopeCode } = req.query;
   
-  console.log("Club settings API called:", { community, scopeType, scopeCode, method });
+  console.log("Club settings API called:", { space, scopeType, scopeCode, method });
   
-  if (!community || !scopeType || !scopeCode) {
-    return res.status(400).json({ error: "Community, scope type, and scope code are required" });
+  if (!space || !scopeType || !scopeCode) {
+    return res.status(400).json({ error: "Space, scope type, and scope code are required" });
   }
 
   const token = req.headers.authorization?.replace("Bearer ", "");
@@ -91,22 +91,22 @@ export default async function handler(req, res) {
     console.log("Authenticated user:", user.id);
 
     if (method === "GET") {
-      const ownershipCheck = await verifyClubOwnership(supabase, community, scopeType, scopeCode, user.id);
+      const ownershipCheck = await verifyClubOwnership(supabase, space, scopeType, scopeCode, user.id);
       
       if (ownershipCheck.error) {
         console.error("Ownership check failed:", ownershipCheck.error);
         return res.status(ownershipCheck.status).json({ error: ownershipCheck.error });
       }
 
-      // Get community to get community_id
-      const { data: communityData, error: communityError } = await supabase
+      // Get space to get community_id
+      const { data: spaceData, error: spaceError } = await supabase
         .from("community")
         .select("id")
         .eq("slug", community)
         .single();
 
-      if (communityError || !communityData) {
-        return res.status(404).json({ error: "Community not found" });
+      if (spaceError || !spaceData) {
+        return res.status(404).json({ error: "Space not found" });
       }
 
       // Get club data from the public view
@@ -129,7 +129,7 @@ export default async function handler(req, res) {
     }
 
     if (method === "PUT" || method === "DELETE") {
-      const ownershipCheck = await verifyClubOwnership(supabase, community, scopeType, scopeCode, user.id);
+      const ownershipCheck = await verifyClubOwnership(supabase, space, scopeType, scopeCode, user.id);
       
       if (ownershipCheck.error) {
         console.error("Ownership check failed:", ownershipCheck.error);
@@ -149,7 +149,7 @@ export default async function handler(req, res) {
           .single();
 
         if (currentData) {
-          await cleanupOldFiles(supabase, community, scopeType, scopeCode, validatedData, currentData);
+          await cleanupOldFiles(supabase, space, scopeType, scopeCode, validatedData, currentData);
         }
         
         // Update club
@@ -182,7 +182,7 @@ export default async function handler(req, res) {
               const logoFileName = currentData.logo_url.split('/').pop();
               await supabase.storage
                 .from('committee-branding')
-                .remove([`${community}/${scopeType}/${scopeCode}/${logoFileName}`])
+                .remove([`${space}/${scopeType}/${scopeCode}/${logoFileName}`])
                 .catch(err => console.log("Logo deletion error:", err.message));
             }
             
@@ -190,7 +190,7 @@ export default async function handler(req, res) {
               const coverFileName = currentData.cover_url.split('/').pop();
               await supabase.storage
                 .from('committee-branding')
-                .remove([`${community}/${scopeType}/${scopeCode}/${coverFileName}`])
+                .remove([`${space}/${scopeType}/${scopeCode}/${coverFileName}`])
                 .catch(err => console.log("Cover deletion error:", err.message));
             }
           }

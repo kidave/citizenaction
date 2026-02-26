@@ -20,7 +20,7 @@ export function UserHoverCard({ username, children }) {
   if (!username) return children;
 
   const primaryClub = profile?.primary_club;
-  const primaryCommunity = profile?.primary_community;
+  const primarySpace = profile?.primary_community;
 
   return (
     <HoverCard openDelay={200} closeDelay={150}>
@@ -55,10 +55,10 @@ export function UserHoverCard({ username, children }) {
                     {profile.name}
                   </div>
 
-                  {primaryClub && primaryCommunity && (
+                  {primaryClub && primarySpace && (
                     <div className="text-sm text-muted-foreground">
                       <Link
-                        href={`/community/${primaryCommunity.slug}/${primaryClub.scope_type}/${primaryClub.scope_code}`}
+                        href={`/space/${primarySpace.slug}/${primaryClub.scope_type}/${primaryClub.scope_code}`}
                       >
                         {primaryClub.name}{" "}
                         {primaryClub.geographic_name}
@@ -68,13 +68,13 @@ export function UserHoverCard({ username, children }) {
                 </div>
               </div>
 
-              {primaryCommunity && (
+              {primarySpace && (
                 <div>
                   <Link
-                    href={`/community/${primaryCommunity.slug}`}
+                    href={`/space/${primarySpace.slug}`}
                   >
                     <Badge variant="secondary">
-                      {primaryCommunity.name}
+                      {primarySpace.name}
                     </Badge>
                   </Link>
 

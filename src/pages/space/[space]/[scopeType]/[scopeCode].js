@@ -1,4 +1,4 @@
-// pages/community/[community]/[scopeType]/[scopeCode].js
+// pages/space/[space]/[scopeType]/[scopeCode].js
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -20,7 +20,7 @@ import { useClubs } from "@/hooks/useClubs";
 
 export default function ClubPage() {
   const router = useRouter();
-  const { community, scopeType, scopeCode } = router.query;
+  const { space, scopeType, scopeCode } = router.query;
   const { user, loading: authLoading } = useAuth();
 
   const toTitleCase = (value = "") =>
@@ -35,17 +35,17 @@ export default function ClubPage() {
     isLoading: clubLoading,
     error,
   } = useClubs({
-    communitySlug: community,
+    spaceSlug: space,
     scopeType,
     scopeCode,
-    enabled: !!community && !!scopeType && !!scopeCode,
+    enabled: !!space && !!scopeType && !!scopeCode,
   });
 
   const club = clubs?.[0];
 
 
   /* ---------------- LOADING ---------------- */
-  if (clubLoading || !community || !scopeType || !scopeCode) {
+  if (clubLoading || !space || !scopeType || !scopeCode) {
     return (
       <div className="max-w-6xl mx-auto my-auto px-4 py-4 space-y-4">
         <PageHeaderSkeleton />
@@ -62,9 +62,9 @@ export default function ClubPage() {
         <p className="text-muted-foreground mt-2">
           The requested club does not exist or is unavailable.
         </p>
-        <Link href={`/community/${community}`}>
+        <Link href={`/space/${space}`}>
           <Button variant="outline" className="mt-4">
-            Back to Community
+            Back to Space
           </Button>
         </Link>
       </div>
@@ -87,7 +87,7 @@ export default function ClubPage() {
       <header className="space-y-4">
         <div className="flex items-center gap-4">
           {/* Back Button */}
-          <Link href={`/community/${community}`}>
+          <Link href={`/space/${space}`}>
             <div className="inline-flex items-center justify-center rounded-md border p-2 hover:bg-muted" aria-label="Go back">
               <ArrowLeft className="h-4 w-4" />
             </div>
@@ -230,13 +230,13 @@ export default function ClubPage() {
         {!authLoading && !isOwner && (
           <>
             <Link
-              href={`/apply/community/${community}/${scopeType}/${scopeCode}`}
+              href={`/apply/space/${space}/${scopeType}/${scopeCode}`}
               className="inline-flex items-center justify-center rounded-md border bg-black text-white px-4 py-2 text-sm font-medium"
             >
               Join Club
             </Link>
             <Link
-              href={`/community/${community}/${scopeType}/${scopeCode}/donate`}
+              href={`/space/${space}/${scopeType}/${scopeCode}/donate`}
               className="inline-flex items-center justify-center rounded-md border bg-muted text-black px-4 py-2 text-sm font-medium"
             >
               Donate
@@ -247,7 +247,7 @@ export default function ClubPage() {
         {/* MANAGE → only for owner */}
         {!authLoading && isOwner && (
           <Link
-            href={`/manage/${community}/${scopeType}/${scopeCode}`}
+            href={`/manage/${space}/${scopeType}/${scopeCode}`}
             className="inline-flex items-center justify-center rounded-md border bg-black text-white px-4 py-2 text-sm font-medium"
           >
             Manage Club

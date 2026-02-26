@@ -1,4 +1,4 @@
-// pages/api/community/[slug]/club.js
+// pages/api/space/[slug]/club.js
 import { createServerSupabase } from "@/lib/supabase/server";
 
 export default async function handler(req, res) {
@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   const clubData = req.body;
 
   if (!slug) {
-    return res.status(400).json({ error: "Missing community slug" });
+    return res.status(400).json({ error: "Missing space slug" });
   }
 
   try {
@@ -42,20 +42,20 @@ export default async function handler(req, res) {
 
     console.log("Authenticated user:", user.email);
 
-    // Get community
-    const { data: community, error: communityError } = await supabase
+    // Get space
+    const { data: space, error: spaceError } = await supabase
       .from("community")
       .select("id, owner_user_id, name")
       .eq("slug", slug)
       .single();
 
-    if (communityError || !community) {
-      console.error("Community error:", communityError);
-      return res.status(404).json({ error: "Community not found" });
+    if (spaceError || !space) {
+      console.error("Space error:", spaceError);
+      return res.status(404).json({ error: "Space not found" });
     }
 
-    // Check if user is the community owner
-    if (user.id !== community.owner_user_id) {
+    // Check if user is the space owner
+    if (user.id !== space.owner_user_id) {
       // Get user profile for better error message
       const { data: profile } = await supabase
         .from("profile")
@@ -64,8 +64,8 @@ export default async function handler(req, res) {
         .single();
       
       return res.status(403).json({ 
-        error: "Only community owners can create clubs",
-        details: `You (${profile?.name || user.email}) are not the owner of "${community.name}"`
+        error: "Only space owners can create clubs",
+        details: `You (${profile?.name || user.email}) are not the owner of "${space.name}"`
       });
     }
 
@@ -94,7 +94,7 @@ export default async function handler(req, res) {
     // Try club first, then fall back to club
     let existingClub = null;
     
-    const { data: existingCommunityClub } = await supabase
+    const { data: existingSpaceClub } = await supabase
       .from("club")
       .select("id, name")
       .eq("community_id", community.id)
@@ -102,8 +102,8 @@ export default async function handler(req, res) {
       .eq("scope_code", clubData.scope_code)
       .maybeSingle();
 
-    if (existingCommunityClub) {
-      existingClub = existingCommunityClub;
+    if (existingSpaceClub) {
+      existingClub = existingSpaceClub;
     } else {
       // Fallback to club table
       const { data: existingRegularClub } = await supabase
@@ -137,10 +137,10 @@ export default async function handler(req, res) {
     let clubId = null;
 
     // First try club
-    const { data: communityClub, error: ccError } = await supabase
+    const { data: spaceClub, error: ccError } = await supabase
       .from("club")
       .insert({
-        community_id: community.id,
+        community_id: space.id,
         name: null,
         description: clubData.description?.trim() || null,
         scope_type: clubData.scope_type,
@@ -160,7 +160,7 @@ export default async function handler(req, res) {
       const { data: regularClub, error: cError } = await supabase
         .from("club")
         .insert({
-          community_id: community.id,
+          community_id: space.id,
           name: null,
           description: clubData.description?.trim() || null,
           scope_type: clubData.scope_type,
@@ -180,8 +180,8 @@ export default async function handler(req, res) {
         clubId = regularClub.id;
       }
     } else {
-      newClub = communityClub;
-      clubId = communityClub.id;
+      newClub = spaceClub;
+      clubId = spaceClub.id;
     }
 
     if (createError) {
@@ -202,7 +202,7 @@ export default async function handler(req, res) {
           .insert({
             club_id: clubId,
             user_id: user.id,
-            role: 'chair', // Community owner becomes chair by default
+            role: 'chair', // Space owner becomes chair by default
             is_active: true,
           });
 

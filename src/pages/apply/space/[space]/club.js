@@ -46,7 +46,7 @@ import { clubCreateSchema } from "@/schemas/clubCreate";
 
 export default function CreateClubPage() {
   const router = useRouter();
-  const { community: slug } = router.query;
+  const { space: slug } = router.query;
 
   const { user, loading: authLoading } = useAuth();
   useRequireAuth();
@@ -113,7 +113,7 @@ export default function CreateClubPage() {
     setIsSubmitting(true);
 
     try {
-      await authFetch(`/api/community/${slug}/club`, {
+      await authFetch(`/api/space/${slug}/club`, {
         method: "POST",
         body: JSON.stringify({
           ...values,
@@ -122,7 +122,7 @@ export default function CreateClubPage() {
       });
 
       toast.success("Club created successfully!");
-      router.push(`/community/${slug}`);
+      router.push(`/space/${slug}`);
     } catch (error) {
       toast.error(error.message || "Failed to create club");
       console.error("Create club error:", error);
@@ -161,7 +161,7 @@ export default function CreateClubPage() {
   if (!slug) {
     return (
       <div className="flex justify-center items-center h-64">
-        Loading community…
+        Loading space…
       </div>
     );
   }
@@ -175,7 +175,7 @@ export default function CreateClubPage() {
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
         <Link
-          href={`/community/${slug}`}
+          href={`/space/${slug}`}
           className="inline-flex items-center justify-center rounded-md border p-2 hover:bg-muted"
         >
           <ArrowLeft className="h-4 w-4" />

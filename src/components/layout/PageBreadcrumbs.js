@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ChevronRight } from "lucide-react";
-import { useCommunities } from "@/hooks/useCommunities";
+import { useSpaces } from "@/hooks/useSpaces";
 import { useClubs } from "@/hooks/useClubs";
 
 const STATIC_LABELS = {
-  community: "Community",
+  space: "Space",
   club: "Club",
   manage: "Manage",
   search: "Search",
@@ -19,20 +19,20 @@ const STATIC_LABELS = {
 
 export default function PageBreadcrumbs() {
   const router = useRouter();
-  const { community, scopeType, scopeCode } = router.query;
+  const { space, scopeType, scopeCode } = router.query;
 
   /* ---------------- FETCH DYNAMIC DATA ---------------- */
 
-  const { data: communityData } = useCommunities({
-    slug: community,
-    enabled: !!community,
+  const { data: spaceData } = useSpaces({
+    slug: space,
+    enabled: !!space,
   });
 
   const { data: clubList } = useClubs({
-    communitySlug: community,
+    spaceSlug: space,
     scopeType,
     scopeCode,
-    enabled: !!community && !!scopeType && !!scopeCode,
+    enabled: !!space && !!scopeType && !!scopeCode,
   });
 
   const clubData = Array.isArray(clubList)
@@ -60,9 +60,9 @@ export default function PageBreadcrumbs() {
         const label =
           resolveDynamicLabel({
             seg,
-            community,
+            space,
             scopeCode,
-            communityData,
+            spaceData,
             clubData,
           }) ||
           STATIC_LABELS[seg] ||
@@ -85,14 +85,14 @@ export default function PageBreadcrumbs() {
 
 function resolveDynamicLabel({
   seg,
-  community,
+  space,
   scopeCode,
-  communityData,
+  spaceData,
   clubData,
 }) {
-  // Replace community slug with community.name
-  if (seg === community && communityData?.name) {
-    return communityData.name;
+  // Replace space slug with space.name
+  if (seg === space && spaceData?.name) {
+    return spaceData.name;
   }
 
   // Replace scopeCode with club.name

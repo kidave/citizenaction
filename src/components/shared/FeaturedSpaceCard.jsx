@@ -4,11 +4,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { useCommunities } from "@/hooks/useCommunities";
+import { useSpaces } from "@/hooks/useSpaces";
 
-export default function FeaturedCommunityCard() {
-  const { data: communities, isLoading } = useCommunities();
-  const community = communities?.[0];
+export default function FeaturedSpaceCard() {
+  const { data: spaces, isLoading } = useSpaces();
+  const space = spaces?.[0];
 
   if (isLoading) {
     return (
@@ -16,7 +16,7 @@ export default function FeaturedCommunityCard() {
     );
   }
 
-  if (!community) return null;
+  if (!space) return null;
 
   return (
     <motion.div
@@ -26,17 +26,17 @@ export default function FeaturedCommunityCard() {
       viewport={{ once: true }}
       className="mt-12 relative rounded-2xl overflow-hidden shadow-xl"
       style={
-        community.primary_color
-          ? { borderColor: community.primary_color }
+        space.primary_color
+          ? { borderColor: space.primary_color }
           : undefined
       }
     >
       {/* Cover */}
       <div className="relative h-56 md:h-72 overflow-hidden">
-        {community.cover_url ? (
+        {space.cover_url ? (
           <Image
-            src={community.cover_url}
-            alt={`${community.name} cover`}
+            src={space.cover_url}
+            alt={`${space.name} cover`}
             fill
             className="object-cover group-hover:scale-105 transition duration-500"
           />
@@ -50,10 +50,10 @@ export default function FeaturedCommunityCard() {
       <div className="relative -mt-14 px-8 pb-10">
 
         <div className="flex items-center gap-4">
-          {community.logo_url && (
+          {space.logo_url && (
             <Image
-              src={community.logo_url}
-              alt={`${community.name} logo`}
+              src={space.logo_url}
+              alt={`${space.name} logo`}
               width={80}
               height={80}
               className="rounded-xl border bg-background p-2 shadow"
@@ -62,20 +62,20 @@ export default function FeaturedCommunityCard() {
 
           <div>
             <h3 className="text-2xl font-bold text-white">
-              {community.name}
+              {space.name}
             </h3>
 
-            {community.description && (
+            {space.description && (
               <p className="text-sm text-muted-foreground line-clamp-2">
-                {community.description}
+                {space.description}
               </p>
             )}
           </div>
         </div>
 
         <div className="mt-6 flex gap-4">
-          <Link href={`/community/${community.slug}`}>
-            <Button>View Community</Button>
+          <Link href={`/space/${space.slug}`}>
+            <Button>View Space</Button>
           </Link>
 
           <Link href="/search">

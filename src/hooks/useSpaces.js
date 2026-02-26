@@ -1,13 +1,13 @@
-// hooks/useCommunities.js
+// hooks/useSpaces.js
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 
-export function useCommunities({ slug, search, privateAccess = false, enabled = true } = {}) {
+export function useSpaces({ slug, search, privateAccess = false, enabled = true } = {}) {
   return useQuery({
-    queryKey: ["communities", slug, search, privateAccess],
+    queryKey: ["spaces", slug, search, privateAccess],
     enabled,
     queryFn: async () => {
-      const table = privateAccess ? "community" : "community_public";
+      const table = privateAccess ? "space" : "community_public";
       let query = supabase
         .from(table)
         .select("*")

@@ -1,4 +1,4 @@
-// pages/manage/[community]/[scopeType]/[scopeCode]/settings.js
+// pages/manage/[space]/[scopeType]/[scopeCode]/settings.js
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -25,7 +25,7 @@ import { supabase } from "@/lib/supabase/client";
 
 export default function ClubSettings() {
   const router = useRouter();
-  const { community, scopeType, scopeCode } = router.query;
+  const { space, scopeType, scopeCode } = router.query;
   
   useRequireAuth();
   const { user, loading: authLoading } = useAuth();
@@ -54,11 +54,11 @@ export default function ClubSettings() {
 
   // Load club data
   useEffect(() => {
-    if (!community || !scopeType || !scopeCode || authLoading) return;
+    if (!space || !scopeType || !scopeCode || authLoading) return;
 
     const loadClub = async () => {
       try {
-        const data = await authFetch(`/api/club/${community}/${scopeType}/${scopeCode}`);
+        const data = await authFetch(`/api/club/${space}/${scopeType}/${scopeCode}`);
         
         form.reset({
           name: data.name ?? undefined,
@@ -76,16 +76,16 @@ export default function ClubSettings() {
         console.error("Failed to load club:", error);
         toast.error(error.message || "Failed to load club");
         setLoading(false);
-        router.push(`/community/${community}`);
+        router.push(`/space/${space}`);
       }
     };
 
     loadClub();
-  }, [community, scopeType, scopeCode, form, router, authLoading]);
+  }, [space, scopeType, scopeCode, form, router, authLoading]);
 
   // Upload logo directly with Supabase
   const uploadLogo = async (file) => {
-    if (!file || !community || !scopeType || !scopeCode) return;
+    if (!file || !space || !scopeType || !scopeCode) return;
 
     setUploadingLogo(true);
     try {
@@ -94,7 +94,7 @@ export default function ClubSettings() {
       if (!session) throw new Error("Not authenticated");
 
       const fileExt = file.name.split('.').pop();
-      const fileName = `${community}/${scopeType}/${scopeCode}/logo.${fileExt}`;
+      const fileName = `${space}/${scopeType}/${scopeCode}/logo.${fileExt}`;
       
       // Upload directly to Supabase storage (committee-branding bucket)
       const { data, error } = await supabase.storage
@@ -116,7 +116,7 @@ export default function ClubSettings() {
         .getPublicUrl(fileName);
 
       // Update database via API
-      await authFetch(`/api/club/${community}/${scopeType}/${scopeCode}`, {
+      await authFetch(`/api/club/${space}/${scopeType}/${scopeCode}`, {
         method: "PUT",
         body: JSON.stringify({ logo_url: publicUrl }),
       });
@@ -137,7 +137,7 @@ export default function ClubSettings() {
     if (!confirm("Are you sure you want to delete the logo?")) return;
     
     try {
-      await authFetch(`/api/club/${community}/${scopeType}/${scopeCode}`, {
+      await authFetch(`/api/club/${space}/${scopeType}/${scopeCode}`, {
         method: "PUT",
         body: JSON.stringify({ logo_url: null }),
       });
@@ -151,12 +151,12 @@ export default function ClubSettings() {
 
   // Upload cover directly with Supabase
   const uploadCover = async (file) => {
-    if (!file || !community || !scopeType || !scopeCode) return;
+    if (!file || !space || !scopeType || !scopeCode) return;
 
     setUploadingCover(true);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${community}/${scopeType}/${scopeCode}/cover.${fileExt}`;
+      const fileName = `${space}/${scopeType}/${scopeCode}/cover.${fileExt}`;
       
       // Upload directly to Supabase storage
       const { data, error } = await supabase.storage
@@ -178,7 +178,7 @@ export default function ClubSettings() {
         .getPublicUrl(fileName);
 
       // Update database via API
-      await authFetch(`/api${community}/${scopeType}/${scopeCode}`, {
+      await authFetch(`/api${space}/${scopeType}/${scopeCode}`, {
         method: "PUT",
         body: JSON.stringify({ cover_url: publicUrl }),
       });
@@ -198,7 +198,7 @@ export default function ClubSettings() {
     if (!confirm("Are you sure you want to delete the cover image?")) return;
     
     try {
-      const response = await authFetch(`/api/club/${community}/${scopeType}/${scopeCode}`, {
+      const response = await authFetch(`/api/club/${space}/${scopeType}/${scopeCode}`, {
         method: "PUT",
         body: JSON.stringify({ cover_url: null }),
       });
@@ -239,7 +239,7 @@ export default function ClubSettings() {
       }
 
       await authFetch(
-        `/api/club/${community}/${scopeType}/${scopeCode}`,
+        `/api/club/${space}/${scopeType}/${scopeCode}`,
         {
           method: "PUT",
           body: JSON.stringify(payload),
@@ -270,13 +270,13 @@ export default function ClubSettings() {
   const confirmDelete = async () => {
     setDeleting(true);
     try {
-      await authFetch(`/api/club/${community}/${scopeType}/${scopeCode}`, {
+      await authFetch(`/api/club/${space}/${scopeType}/${scopeCode}`, {
         method: "DELETE",
       });
       
       toast.success("Club deleted successfully");
       setShowDeleteDialog(false);
-      router.push(`/community/${community}`);
+      router.push(`/space/${space}`);
     } catch (error) {
       console.error("Delete error:", error);
       toast.error(error.message || "Failed to delete club");
@@ -300,7 +300,7 @@ export default function ClubSettings() {
           <div className="h-10 w-40 bg-muted animate-pulse rounded"></div>
         </div>
 
-        {/* Form skeleton - similar to community settings */}
+        {/* Form skeleton - similar to space settings */}
       </div>
     );
   }
@@ -312,7 +312,7 @@ export default function ClubSettings() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link
-              href={`/community/${community}/${scopeType}/${scopeCode}`}
+              href={`/space/${space}/${scopeType}/${scopeCode}`}
               className="inline-flex items-center justify-center rounded-md border p-2 hover:bg-muted"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -480,7 +480,7 @@ export default function ClubSettings() {
                   <div className="relative h-40 w-full max-w-md rounded-lg border overflow-hidden">
                     <Image
                       src={form.watch("cover_url")}
-                      alt="Community cover"
+                      alt="Space cover"
                       fill
                       className="object-fit"
                       sizes="(max-width: 768px) 100vw, 400px"

@@ -1,11 +1,11 @@
-// pages/apply/community.js
+// pages/apply/space.js
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { ProtectedButton } from "@/components/auth/ProtectedButton";
-import { communityApplicationSchema } from "@/schemas/communityApplication";
+import { spaceApplicationSchema } from "@/schemas/spaceApplication";
 import { supabase } from "@/lib/supabase/client";
 
 import {
@@ -23,12 +23,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 
-export default function ApplyCommunity() {
+export default function ApplySpace() {
   const { user, loading: authLoading } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
 
   const form = useForm({
-    resolver: zodResolver(communityApplicationSchema),
+    resolver: zodResolver(spaceApplicationSchema),
     defaultValues: {
       proposed_name: "",
       proposed_slug: "",
@@ -67,7 +67,7 @@ export default function ApplyCommunity() {
         return;
       }
 
-      toast.success("Community application submitted for review");
+      toast.success("Space application submitted for review");
       form.reset();
     } catch (err) {
       toast.error("Something went wrong");
@@ -87,10 +87,10 @@ export default function ApplyCommunity() {
       <Card className="w-full max-w-3xl">
         <CardHeader>
           <h1 className="text-xl font-semibold">
-            Apply to Create a Community
+            Apply to Create a Space
           </h1>
           <p className="text-sm text-muted-foreground">
-            Communities document civic action within a geographic area.
+            Spaces document civic action within a geographic area.
           </p>
           
           {/* ✅ Moved this INSIDE the return statement */}
@@ -112,13 +112,13 @@ export default function ApplyCommunity() {
               }}
               className="grid grid-cols-1 md:grid-cols-2 gap-5"
             >
-              {/* Community name */}
+              {/* Space name */}
               <FormField
                 control={form.control}
                 name="proposed_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Community Name</FormLabel>
+                    <FormLabel>Space Name</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -133,7 +133,7 @@ export default function ApplyCommunity() {
                 name="proposed_slug"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Community URL</FormLabel>
+                    <FormLabel>Space URL</FormLabel>
                     <FormControl>
                       <Input placeholder="walking-project" {...field} />
                     </FormControl>
@@ -149,7 +149,7 @@ export default function ApplyCommunity() {
                   <FormItem>
                     <FormLabel>Contact Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="contact@community.org" {...field} />
+                      <Input type="email" placeholder="contact@space.org" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -213,7 +213,7 @@ export default function ApplyCommunity() {
                 render={({ field }) => (
                   <FormItem className="md:col-span-2">
                     <FormLabel>
-                      Why should this community exist?
+                      Why should this space exist?
                     </FormLabel>
                     <FormControl>
                       <Textarea rows={4} {...field} />
@@ -227,7 +227,7 @@ export default function ApplyCommunity() {
                 type="submit"
                 className="md:col-span-2"
                 disabled={form.formState.isSubmitting}
-                loginMessage="You need to sign in to submit a community application"
+                loginMessage="You need to sign in to submit a space application"
               >
                 {form.formState.isSubmitting ? "Submitting..." : (user ? "Submit Application" : "Sign in to Submit")}
               </ProtectedButton>
@@ -239,8 +239,8 @@ export default function ApplyCommunity() {
       <LoginModal
         open={showLogin}
         onOpenChange={setShowLogin}
-        redirectPath="/apply/community"
-        message="You need to sign in to submit a community application"
+        redirectPath="/apply/space"
+        message="You need to sign in to submit a space application"
       />
     </div>
   );

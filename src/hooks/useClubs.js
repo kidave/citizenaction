@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 
 export function useClubs({
-  communitySlug,
+  spaceSlug,
   scopeType,
   scopeCode,
   search,
@@ -12,7 +12,7 @@ export function useClubs({
   return useQuery({
     queryKey: [
       "clubs",
-      communitySlug,
+      spaceSlug,
       scopeType,
       scopeCode,
       search,
@@ -24,8 +24,8 @@ export function useClubs({
         .select("*")
         .eq("is_active", true);
 
-      if (communitySlug && communitySlug !== "all") {
-        query = query.eq("community_slug", communitySlug);
+      if (spaceSlug && spaceSlug !== "all") {
+        query = query.eq("community_slug", spaceSlug);
       }
 
       if (scopeType && scopeType !== "all") {
