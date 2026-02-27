@@ -314,6 +314,7 @@ export default function AboutPage() {
                     src="/images/walkability-bg.avif"
                     alt="Blog"
                     fill
+                    sizes="(max-width: 768px) 100vw, 680px"
                     className="object-cover"
                   />
                 </div>

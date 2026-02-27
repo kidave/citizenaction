@@ -11,6 +11,7 @@ const nextConfig = {
       { protocol: "https", hostname: "*.sender.net" },
       { protocol: "https", hostname: "*.sendercdn.com" },
     ],
+    unoptimized: true,
   },
 
   async headers() {

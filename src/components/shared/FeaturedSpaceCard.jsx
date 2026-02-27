@@ -38,6 +38,7 @@ export default function FeaturedSpaceCard() {
             src={space.cover_url}
             alt={`${space.name} cover`}
             fill
+            sizes="(max-width: 768px) 100vw, 680px"
             className="object-cover group-hover:scale-105 transition duration-500"
           />
         ) : (

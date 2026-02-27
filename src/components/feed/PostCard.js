@@ -5,10 +5,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { FileText, File, Download, ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { FocusCards } from "@/components/ui/focus-cards";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import Image from "next/image";
+import AttachmentViewer from "@/components/ui/AttachmentViewer";
 import { UserIdentity } from "@/components/profile/UserIdentity";
 import { GovernanceHoverCard } from "@/components/governance/GovernanceHoverCard";
 import { Avatar, AvatarFallback, AvatarGroup, AvatarGroupCount, AvatarImage } from "@/components/ui/avatar";
@@ -33,30 +32,7 @@ export default function PostCard({ post, canEdit = false, onEdit, onDelete, }) {
         e.entity_type === "person"
     ) || [];
 
-  const getAttachmentIcon = (attachment) => {
-    if (attachment.type?.startsWith("image/")) return null;
-    if (attachment.type === "application/pdf")
-      return <FileText className="h-5 w-5 text-red-600" />;
-    return <File className="h-5 w-5 text-gray-600" />;
-  };
-
-  const formatFileSize = (bytes) => {
-    if (!bytes) return "";
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024)
-      return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
-  const images =
-    post.attachments?.filter((a) =>
-      a.type?.startsWith("image/")
-    ) || [];
-
-  const files =
-    post.attachments?.filter(
-      (a) => !a.type?.startsWith("image/")
-    ) || [];
+  const attachments = post.attachments || [];
 
   return (
     <>
@@ -190,145 +166,50 @@ export default function PostCard({ post, canEdit = false, onEdit, onDelete, }) {
           </div>
         )}
 
-        {/* Images */}
-        {images.length > 0 && (
-          <>
-            {/* ---------------- MOBILE (Twitter Style) ---------------- */}
-            <div className="md:hidden">
-              <div
-                className={`
-                  grid gap-1 rounded-xl overflow-hidden
-                  ${images.length === 1 ? "grid-cols-1" : "grid-cols-2"}
-                `}
-              >
-                {images.slice(0, 4).map((img, index) => {
-                  const isThreeLayout =
-                    images.length === 3 && index === 2;
-
-                  return (
-                    <div
-                      key={img.url || index}
-                      onClick={() => {
-                        setActiveIndex(index);
-                        setViewerOpen(true);
-                      }}
-                      className={`
-                        relative w-full cursor-pointer
-                        ${images.length === 1 ? "aspect-[16/9]" : "aspect-square"}
-                        ${isThreeLayout ? "col-span-2 aspect-[16/9]" : ""}
-                      `}
-                    >
-                      <Image
-                        src={img.url}
-                        alt=""
-                        fill
-                        className="object-cover hover:opacity-90 transition"
-                      />
-
-                      {images.length > 4 && index === 3 && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-lg font-semibold">
-                          +{images.length - 4}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* ---------------- DESKTOP (FocusCards) ---------------- */}
-            <div className="hidden md:block">
-              <FocusCards
-                cards={images.map((img) => ({
-                  src: img.url,
-                }))}
-                onCardClick={(index) => {
-                  setActiveIndex(index);
-                  setViewerOpen(true);
-                }}
-              />
-            </div>
-          </>
+        {/* Attachments Preview */}
+        {attachments.length > 0 && (
+          <FocusCards
+            images={attachments.filter((a) =>
+              a.type?.startsWith("image/")
+            )}
+            onCardClick={(index) => {
+              setActiveIndex(index);
+              setViewerOpen(true);
+            }}
+          />
         )}
 
-        {/* File Attachments */}
-        {files.length > 0 && (
-          <div className="space-y-2">
-            {files.map((file, i) => (
-              <a
-                key={file.url || i}
-                href={file.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-              >
-                {getAttachmentIcon(file)}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    {file.name || `Attachment ${i + 1}`}
-                  </p>
-                  {file.size && (
-                    <p className="text-xs text-muted-foreground">
-                      {formatFileSize(file.size)}
-                    </p>
-                  )}
-                </div>
-                <Download className="h-4 w-4 text-muted-foreground" />
-              </a>
-            ))}
-          </div>
-        )}
+        {/* Non-image files list */}
+        {attachments
+          .filter((a) => !a.type?.startsWith("image/"))
+          .map((file, i) => (
+            <div
+              key={file.url || i}
+              onClick={() => {
+                setActiveIndex(
+                  attachments.findIndex(
+                    (a) => a.url === file.url
+                  )
+                );
+                setViewerOpen(true);
+              }}
+              className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer"
+            >
+              <span className="text-sm font-medium">
+                {file.name || `Attachment ${i + 1}`}
+              </span>
+            </div>
+          ))
+        }
       </Card>
 
       {/* Fullscreen Viewer */}
-      <Dialog open={viewerOpen} onOpenChange={setViewerOpen}>
-        <DialogContent className="max-w-6xl p-0 bg-black border-none">
-          <div className="relative flex items-center justify-center">
-
-            {/* LEFT */}
-            {images.length > 1 && (
-              <button
-                onClick={() =>
-                  setActiveIndex((prev) =>
-                    prev === 0
-                      ? images.length - 1
-                      : prev - 1
-                  )
-                }
-                className="absolute left-4 z-10 bg-black/50 p-2 rounded-full text-white"
-              >
-                <ChevronLeft />
-              </button>
-            )}
-
-            {/* IMAGE */}
-            <div className="relative w-full h-[80vh]">
-              <Image
-                src={images[activeIndex]?.url}
-                alt=""
-                fill
-                className="object-contain"
-              />
-            </div>
-
-            {/* RIGHT */}
-            {images.length > 1 && (
-              <button
-                onClick={() =>
-                  setActiveIndex((prev) =>
-                    prev === images.length - 1
-                      ? 0
-                      : prev + 1
-                  )
-                }
-                className="absolute right-4 z-10 bg-black/50 p-2 rounded-full text-white"
-              >
-                <ChevronRight />
-              </button>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <AttachmentViewer
+        attachments={attachments}
+        open={viewerOpen}
+        onOpenChange={setViewerOpen}
+        activeIndex={activeIndex}
+      />
     </>
   );
 }

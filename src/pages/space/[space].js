@@ -235,6 +235,7 @@ export default function SpacePage() {
                             src={club.cover_url}
                             alt={`${club.name} cover`}
                             fill
+                            sizes="(max-width: 768px) 100vw, 680px"
                             className="object-cover"
                           />
 

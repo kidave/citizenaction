@@ -11,7 +11,6 @@ import PageBreadcrumbs from "./PageBreadcrumbs";
 import { usePathname } from "next/navigation";
 import LeftSidebar from "./LeftSidebar";
 import { motion } from "framer-motion";
-import NetworkStatusBanner from "@/components/system/NetworkStatusBanner";
 
 function LayoutContent({ children }) {
   const pathname = usePathname();
@@ -50,7 +49,6 @@ function LayoutContent({ children }) {
         )}
 
         <main className="flex-1 overflow-y-auto">
-          <NetworkStatusBanner />
           {children}
         </main>
 
