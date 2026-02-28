@@ -16,9 +16,11 @@ function LayoutContent({ children }) {
   const pathname = usePathname();
   const { state } = useSidebar();
 
-  const isAboutPage = pathname === "/about";
-  const isHomePage = pathname === "/";
-  const isPostPage = pathname.startsWith("/post/");
+  const safePathname = pathname ?? "";
+
+  const isAboutPage = safePathname === "/about";
+  const isHomePage = safePathname === "/";
+  const isPostPage = safePathname.startsWith("/post/");
   const hideHeader = isHomePage || isAboutPage || isPostPage;
 
   return (
