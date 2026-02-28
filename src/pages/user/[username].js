@@ -4,16 +4,8 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import { usePublicProfile } from "@/hooks/usePublicProfile";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card";
-import {
-  Avatar,
-  AvatarImage,
-  AvatarFallback,
-} from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
@@ -22,8 +14,10 @@ export default function PublicProfilePage() {
   const router = useRouter();
   const { username } = router.query;
 
-  const { data: profile, isLoading, error } =
-    usePublicProfile(username);
+  const { data: profile, isLoading, error } = usePublicProfile(username);
+  
+  const primaryClub = profile?.primary_club;
+  const primarySpace = profile?.primary_community;
 
   if (isLoading) return <ProfileSkeleton />;
 
@@ -114,19 +108,19 @@ export default function PublicProfilePage() {
                 label="Clubs"
                 value={
                   <div className="flex flex-wrap gap-2 justify-end">
-                    {profile.clubs.map((club) => (
+                    {primaryClub && primarySpace && (
                       <Link
-                        key={club.id}
-                        href={`/space/${club.scope_type}/${club.scope_code}`}
+                        href={`/space/${primarySpace.slug}/${primaryClub.scope_type}/${primaryClub.scope_code}`}
                       >
                         <Badge
                           variant="outline"
                           className="cursor-pointer"
                         >
-                          {club.geographic_name}
+                          {primaryClub.name}{" "}
+                          {primaryClub.geographic_name}
                         </Badge>
                       </Link>
-                    ))}
+                    )}
                   </div>
                 }
               />

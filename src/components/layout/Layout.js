@@ -18,7 +18,8 @@ function LayoutContent({ children }) {
 
   const isAboutPage = pathname === "/about";
   const isHomePage = pathname === "/";
-  const hideHeader = isHomePage || isAboutPage;
+  const isPostPage = pathname.startsWith("/post/");
+  const hideHeader = isHomePage || isAboutPage || isPostPage;
 
   return (
     <div className="flex min-h-screen w-full">
