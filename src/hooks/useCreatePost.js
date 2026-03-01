@@ -12,17 +12,23 @@ export function useCreatePost() {
     setIsLoading(true);
 
     try {
-      // 1️⃣ Upload attachments
+      /* ------------------------------------ */
+      /* 1️⃣ Upload Attachments               */
+      /* ------------------------------------ */
       let uploadedAttachments = [];
+
       if (postData.attachments?.length > 0) {
         const uploadPromises = postData.attachments.map((file) =>
           uploadPostAttachment(file, postData.author_id)
         );
+
         uploadedAttachments = await Promise.all(uploadPromises);
       }
 
-      // 2️⃣ Insert feed
-      const { data: feedRow, error } = await supabase
+      /* ------------------------------------ */
+      /* 2️⃣ Insert Feed Row                  */
+      /* ------------------------------------ */
+      const { data: feedRow, error: feedError } = await supabase
         .from("feed")
         .insert({
           author_id: postData.author_id,
@@ -38,14 +44,15 @@ export function useCreatePost() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (feedError) throw feedError;
 
-      // 3️⃣ Insert governance relations
+      /* ------------------------------------ */
+      /* 3️⃣ Insert Governance Tag Relations  */
+      /* ------------------------------------ */
       if (postData.governance_entities?.length > 0) {
-        const relations = postData.governance_entities.map((e) => ({
+        const relations = postData.governance_entities.map((entity) => ({
           feed_id: feedRow.id,
-          governance_entity_id: e.id,
-          governance_entity_type: e.entity_type,
+          governance_entity_id: entity.id, // ← Only ID needed now
         }));
 
         const { error: relationError } = await supabase
@@ -56,7 +63,7 @@ export function useCreatePost() {
       }
 
       toast.success("Post published successfully!");
-      return true;
+      return feedRow;
     } catch (error) {
       console.error("Create post error:", error);
       toast.error(error.message || "Failed to create post");

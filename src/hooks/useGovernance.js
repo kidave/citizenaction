@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 
-export function useGovernanceDirectory({
+export function useGovernance({
   scopeType,
   scopeCode,
   search,
@@ -19,7 +19,7 @@ export function useGovernanceDirectory({
     enabled,
     queryFn: async () => {
       let query = supabase
-        .from("governance_entities")
+        .from("governance_entity_view")
         .select("*")
         .order("label", { ascending: true });
 
@@ -34,17 +34,12 @@ export function useGovernanceDirectory({
       }
 
       if (search) {
-        query = query.or(`
-          label.ilike.%${search}%,
-          entity_type.ilike.%${search}%,
-          department.ilike.%${search}%,
-          designation.ilike.%${search}%
-        `);
+        query = query.ilike("label", `%${search}%`);
       }
 
       const { data, error } = await query;
-      if (error) throw error;
 
+      if (error) throw error;
       return data || [];
     },
   });

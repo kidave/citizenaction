@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useMemo } from "react";
-import { useGovernanceDirectory } from "@/hooks/useGovernanceDirectory";
+import { useGovernance } from "@/hooks/useGovernance";
 import ScopeSelector from "@/components/shared/ScopeSelector";
 import Image from "next/image";
 
@@ -30,7 +30,7 @@ export default function AuthoritySearchModal({
   });
 
   const { data: directory = [], isLoading } =
-    useGovernanceDirectory({
+    useGovernance({
       scopeType: scope.scope_type || null,
       scopeCode: scope.scope_code || null,
       search,

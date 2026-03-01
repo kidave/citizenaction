@@ -36,7 +36,6 @@ export default function CreatePostModal({ isOpen, onClose, initialData = null })
   const [date, setDate] = useState(initialData?.metadata?.date || "");
   const [time, setTime] = useState(initialData?.metadata?.time || "");
   const [location, setLocation] = useState(initialData?.metadata?.location || "");
-  const [mode, setMode] = useState(initialData?.metadata?.mode || "offline");
   const [status, setStatus] = useState(initialData?.status || "");
   
   if (!isOpen) return null;
@@ -49,45 +48,50 @@ export default function CreatePostModal({ isOpen, onClose, initialData = null })
 
     try {
       if (initialData) {
-        // UPDATE POST
-        await supabase
+        /* ================= UPDATE FEED ================= */
+
+        const { error: updateError } = await supabase
           .from("feed")
           .update({
             type,
             details: content,
             summary: content.slice(0, 200),
             attachments,
-            status: type === "report" ? status : null,
+            status,
             metadata: {
               date,
               time,
               location,
-              mode: type === "meeting" ? mode : null,
             },
           })
           .eq("id", initialData.id);
 
-        // UPDATE GOVERNANCE RELATIONS
+        if (updateError) throw updateError;
+
+        /* ================= REPLACE TAGS ================= */
+
         await supabase
           .from("feed_governance_entities")
           .delete()
           .eq("feed_id", initialData.id);
 
         if (selectedAuthorities.length > 0) {
-          await supabase
+          const relations = selectedAuthorities.map((e) => ({
+            feed_id: initialData.id,
+            governance_entity_id: e.id, // ← ONLY THIS NOW
+          }));
+
+          const { error: relationError } = await supabase
             .from("feed_governance_entities")
-            .insert(
-              selectedAuthorities.map((e) => ({
-                feed_id: initialData.id,
-                governance_entity_id: e.id,
-                governance_entity_type: e.entity_type,
-              }))
-            );
+            .insert(relations);
+
+          if (relationError) throw relationError;
         }
 
-        toast.success("Post updated");
+        toast.success("Post updated successfully");
       } else {
-        // CREATE POST
+        /* ================= CREATE POST ================= */
+
         await createPost({
           author_id: user.id,
           scope_type: scopeType,
@@ -97,23 +101,22 @@ export default function CreatePostModal({ isOpen, onClose, initialData = null })
           details: content,
           attachments,
           governance_entities: selectedAuthorities,
-          status: type === "report" ? status : null,
+          status,
           metadata: {
             date,
             time,
             location,
-            mode: type === "meeting" ? mode : null,
           },
         });
 
-        toast.success("Post created");
+        toast.success("Post created successfully");
       }
 
       await refetch();
       onClose();
     } catch (error) {
       console.error(error);
-      toast.error("Something went wrong");
+      toast.error(error.message || "Something went wrong");
     }
   }
 
@@ -133,7 +136,7 @@ export default function CreatePostModal({ isOpen, onClose, initialData = null })
         <Card className="w-full max-w-2xl max-h-[90vh] flex flex-col">
 
           {/* HEADER */}
-          <div className="p-4 border-b space-y-3">
+          <div className="border-b p-4 space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Image
@@ -168,77 +171,57 @@ export default function CreatePostModal({ isOpen, onClose, initialData = null })
               </div>
             </div>
 
-            <ToggleGroup
-              type="single"
-              value={type}
-              onValueChange={(v) =>
-                v && setType(v)
-              }
-              variant="outline"
-            >
-              <ToggleGroupItem value="action" className="rounded-none first:rounded-l-md last:rounded-r-md border-r-0 last:border-r">
-                Action
-              </ToggleGroupItem>
-              <ToggleGroupItem value="report" className="rounded-none border-r-0 last:border-r">
-                Report
-              </ToggleGroupItem>
-              <ToggleGroupItem value="meeting" className="rounded-none last:rounded-r-md">
-                Meeting
-              </ToggleGroupItem>
-            </ToggleGroup>
-          </div>
-
-          {/* BODY */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
-
-            {/* SINGLE LINE COMMON FIELDS */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
                 <Button
-                  variant="outline"
-                  onClick={() => setAuthorityOpen(true)}
-                  className="justify-start"
-                >
-                  Tag Authority
+                    variant="outline"
+                    onClick={() => setAuthorityOpen(true)}
+                    className="justify-start"
+                  >
+                    Tag Authority
                 </Button>
 
                 {selectedAuthorities.length > 0 && (
-                  <div className="flex items-center justify-between mt-2">
-
-                    <AvatarGroup>
-                      {selectedAuthorities
-                        .filter(
-                          (e) =>
-                            e.entity_type === "authority" ||
-                            e.entity_type === "department"
-                        )
-                        .map((e) => (
-                          <Avatar key={e.id}>
-                            <AvatarImage src={e.image_url} />
-                            <AvatarFallback>G</AvatarFallback>
-                          </Avatar>
-                        ))}
-                    </AvatarGroup>
-
-                    <AvatarGroup>
-                      {selectedAuthorities
-                        .filter(
-                          (e) =>
-                            e.entity_type === "designation" ||
-                            e.entity_type === "person"
-                        )
-                        .map((e) => (
-                          <Avatar key={e.id}>
-                            <AvatarImage src={e.image_url} />
-                            <AvatarFallback>P</AvatarFallback>
-                          </Avatar>
-                        ))}
-                    </AvatarGroup>
-
-                  </div>
+                  <AvatarGroup>
+                    {selectedAuthorities.map((e) => (
+                      <Avatar key={e.id} className="h-6 w-6">
+                        <AvatarImage src={e.image_url} />
+                        <AvatarFallback>
+                          {e.label?.charAt(0) || "G"}
+                        </AvatarFallback>
+                      </Avatar>
+                    ))}
+                  </AvatarGroup>
                 )}
               </div>
 
+              <div className="flex gap-2 justify-end">
+                <ToggleGroup
+                  type="single"
+                  value={type}
+                  onValueChange={(v) =>
+                    v && setType(v)
+                  }
+                  variant="outline"
+                >
+                  <ToggleGroupItem value="action" className="rounded-none first:rounded-l-md last:rounded-r-md border-r-0 last:border-r">
+                    Action
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="report" className="rounded-none border-r-0 last:border-r">
+                    Report
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="meeting" className="rounded-none last:rounded-r-md">
+                    Meeting
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
+            </div>
+          </div>
+
+          {/* BODY */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-2">
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
               <Input
                 placeholder="Date"
                 type="date"
@@ -270,6 +253,16 @@ export default function CreatePostModal({ isOpen, onClose, initialData = null })
                   )
                 }
               />
+
+              <Input
+                placeholder="Status"
+                value={status}
+                onChange={(e) =>
+                  setStatus(
+                    e.target.value
+                  )
+                }
+              />
             </div>
 
             {/* FIXED HEIGHT EXTRA SECTION */}
@@ -282,39 +275,6 @@ export default function CreatePostModal({ isOpen, onClose, initialData = null })
               }
               className="min-h-[120px]"
             />
-
-            <div className="min-h-[60px] space-y-3">
-
-              {type === "meeting" && (
-                <ToggleGroup
-                  type="single"
-                  value={mode}
-                  onValueChange={(v) =>
-                    v && setMode(v)
-                  }
-                  variant="outline"
-                >
-                  <ToggleGroupItem value="offline" className="rounded-none first:rounded-l-md last:rounded-r-md border-r-0 last:border-r">
-                    Offline
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="online" className="rounded-none last:rounded-r-md">
-                    Online
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              )}
-
-              {type === "report" && (
-                <Input
-                  placeholder="Status"
-                  value={status}
-                  onChange={(e) =>
-                    setStatus(
-                      e.target.value
-                    )
-                  }
-                />
-              )}
-            </div>
 
             <AttachmentPicker
               attachments={attachments}
@@ -342,7 +302,6 @@ export default function CreatePostModal({ isOpen, onClose, initialData = null })
         selected={selectedAuthorities}
         onChange={setSelectedAuthorities}
       />
-
     </>
   );
 }
