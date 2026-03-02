@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Avatar, AvatarFallback, AvatarGroup, AvatarImage } from "@/components/ui/avatar";
 import AuthoritySearchModal from "@/components/governance/AuthoritySearchModal";
+import FieldInfo from "@/components/ui/FieldInfo";
 
 import { useAuth } from "@/context/AuthContext";
 import { useMyProfile } from "@/hooks/useMyProfile";
@@ -180,6 +181,9 @@ export default function CreatePostModal({ isOpen, onClose, initialData = null })
                   >
                     Tag Authority
                 </Button>
+                <FieldInfo
+                  text="Tag the authority, department, designation, or person related to this action, report, or event. This links your post to the concerned authority."
+                />
 
                 {selectedAuthorities.length > 0 && (
                   <AvatarGroup>
@@ -210,10 +214,19 @@ export default function CreatePostModal({ isOpen, onClose, initialData = null })
                   <ToggleGroupItem value="report" className="rounded-none border-r-0 last:border-r">
                     Report
                   </ToggleGroupItem>
-                  <ToggleGroupItem value="meeting" className="rounded-none last:rounded-r-md">
-                    Meeting
+                  <ToggleGroupItem value="event" className="rounded-none last:rounded-r-md">
+                    Event
                   </ToggleGroupItem>
                 </ToggleGroup>
+                <FieldInfo
+                  text={
+                    type === "action"
+                      ? "Use Action to document civic initiatives, efforts taken, or actions implemented."
+                      : type === "report"
+                      ? "Use Report to document complaints, issues, proposals, policy recommendations, or suggestions submitted to authorities."
+                      : "Use Event to record meetings, workshops, student engagements, consultations, community walks, or civic gatherings."
+                  }
+                />
               </div>
             </div>
           </div>
@@ -222,47 +235,77 @@ export default function CreatePostModal({ isOpen, onClose, initialData = null })
           <div className="flex-1 overflow-y-auto p-4 space-y-2">
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-              <Input
-                placeholder="Date"
-                type="date"
-                value={date}
-                onChange={(e) =>
-                  setDate(
-                    e.target.value
-                  )
-                }
-              />
 
-              <Input
-                placeholder="Time"
-                type="time"
-                value={time}
-                onChange={(e) =>
-                  setTime(
-                    e.target.value
-                  )
-                }
-              />
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  Date
+                  <FieldInfo
+                    text={
+                      type === "event"
+                        ? "Date when the event was or will be conducted."
+                        : type === "report"
+                        ? "Date when the report was submitted or filed."
+                        : "Date relevant to this civic action."
+                    }
+                  />
+                </div>
+                <Input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
+              </div>
 
-              <Input
-                placeholder="Location"
-                value={location}
-                onChange={(e) =>
-                  setLocation(
-                    e.target.value
-                  )
-                }
-              />
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  Time
+                  <FieldInfo
+                    text={
+                      type === "event"
+                        ? "Time when the event was or will be conducted."
+                        : "Optional time relevant to this update."
+                    }
+                  />
+                </div>
+                <Input
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                />
+              </div>
 
-              <Input
-                placeholder="Status"
-                value={status}
-                onChange={(e) =>
-                  setStatus(
-                    e.target.value
-                  )
-                }
-              />
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  Location
+                  <FieldInfo
+                    text={
+                      type === "event"
+                        ? "Location where the event was or will be conducted."
+                        : type === "report"
+                        ? "Area or locality this report concerns."
+                        : "Area or locality this action focuses on."
+                    }
+                  />
+                </div>
+                <Input
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  Status
+                  <FieldInfo
+                    text="Current outcome or progress status of this action or report."
+                  />
+                </div>
+                <Input
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                />
+              </div>
+
             </div>
 
             {/* FIXED HEIGHT EXTRA SECTION */}
