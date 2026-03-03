@@ -4,7 +4,13 @@ import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { X, FileText, File, Paperclip, Image as ImageIcon } from "lucide-react";
+import {
+  X,
+  FileText,
+  File,
+  Paperclip,
+  Image as ImageIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
 
@@ -43,7 +49,7 @@ export default function AttachmentPicker({
       const validFiles = [];
 
       for (const file of acceptedFiles) {
-        // Image count validation
+        // Image limit
         if (file.type.startsWith("image/")) {
           const newImageCount =
             currentImageCount +
@@ -57,13 +63,13 @@ export default function AttachmentPicker({
           }
         }
 
-        // File size validation
+        // Individual size
         if (file.size > MAX_FILE_SIZE) {
-          toast.error(`${file.name} is too large (max 1MB)`);
+          toast.error(`${file.name} exceeds 1MB limit`);
           continue;
         }
 
-        // Total size validation
+        // Total size
         if (totalSize + file.size > MAX_TOTAL_SIZE) {
           toast.error(`Total attachments exceed 5MB`);
           continue;
@@ -99,12 +105,7 @@ export default function AttachmentPicker({
 
   const getFilePreview = (file) => {
     if (!file?.type?.startsWith("image/")) return null;
-
-    if (!file.url) {
-      return URL.createObjectURL(file);
-    }
-
-    return file.url;
+    return file.url || URL.createObjectURL(file);
   };
 
   const getFileIcon = (file) => {
@@ -114,7 +115,7 @@ export default function AttachmentPicker({
     if (file.type === "application/pdf") {
       return <FileText className="h-5 w-5 text-red-600" />;
     }
-    return <File className="h-5 w-5 text-gray-600" />;
+    return <File className="h-5 w-5 text-muted-foreground" />;
   };
 
   const formatFileSize = (bytes) => {
@@ -127,41 +128,52 @@ export default function AttachmentPicker({
 
   return (
     <div className="space-y-4">
-      {/* Dropzone Area */}
+
+      {/* Upload Area */}
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition ${
-          isDragActive
-            ? "border-primary bg-primary/10"
-            : "border-muted"
-        }`}
+        className={`
+          rounded-lg p-6 text-center cursor-pointer transition
+          bg-muted/30
+          sm:border-2 sm:border-dashed
+          ${
+            isDragActive
+              ? "border-primary bg-primary/10"
+              : "border-muted"
+          }
+        `}
       >
         <input {...getInputProps()} />
 
-        <Paperclip className="mx-auto h-6 w-6 mb-2 text-muted-foreground" />
+        <Paperclip className="mx-auto h-6 w-6 mb-3 text-muted-foreground" />
 
-        <p className="text-sm font-medium">
+        {/* Desktop Only */}
+        <p className="hidden sm:block text-sm font-medium">
           Drag & drop files here
         </p>
 
-        <p className="text-xs text-muted-foreground mt-1">
-          Images (max {MAX_IMAGES}), PDF, Docs (1MB each,
-          5MB total)
+        {/* Mobile */}
+        <p className="block sm:hidden text-sm font-medium">
+          Attach files
+        </p>
+
+        <p className="text-xs text-muted-foreground mt-2">
+          Max {MAX_IMAGES} images • 1MB each • 5MB total
         </p>
 
         <Button
           type="button"
           size="sm"
           variant="outline"
-          className="mt-3"
+          className="mt-4"
         >
           Browse Files
         </Button>
       </div>
 
-      {/* Attachment Grid */}
+      {/* Attachment Preview Grid */}
       {attachments.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {attachments.map((file, index) => {
             const isImage =
               file.type?.startsWith("image/");
@@ -172,30 +184,29 @@ export default function AttachmentPicker({
                 key={index}
                 className="relative group overflow-hidden"
               >
-                <div className="aspect-square bg-muted">
+                <div className="aspect-square bg-muted flex items-center justify-center">
+
                   {isImage && preview ? (
-                    <div className="relative w-full h-full">
-                      {preview.startsWith("blob:") ? (
-                        <img
-                          src={preview}
-                          alt={file.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <Image
-                          src={preview}
-                          alt={file.name}
-                          fill
-                          sizes="(max-width:768px) 50vw, 25vw"
-                          className="object-cover"
-                          unoptimized
-                        />
-                      )}
-                    </div>
+                    preview.startsWith("blob:") ? (
+                      <img
+                        src={preview}
+                        alt={file.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Image
+                        src={preview}
+                        alt={file.name}
+                        fill
+                        sizes="(max-width:768px) 50vw, 25vw"
+                        className="object-cover"
+                        unoptimized
+                      />
+                    )
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center p-4">
+                    <div className="flex flex-col items-center justify-center p-3 text-center">
                       {getFileIcon(file)}
-                      <p className="text-xs text-center mt-2 truncate w-full">
+                      <p className="text-xs mt-2 truncate w-full">
                         {file.name}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
@@ -203,12 +214,14 @@ export default function AttachmentPicker({
                       </p>
                     </div>
                   )}
+
                 </div>
 
+                {/* Delete Button (Always visible on mobile, hover on desktop) */}
                 <Button
                   variant="destructive"
                   size="icon"
-                  className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-2 right-2 h-7 w-7 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                   onClick={() => onRemove(index)}
                 >
                   <X className="h-3 w-3" />

@@ -57,7 +57,7 @@ export default function PostCard({
       <Card
         className="p-5 space-y-4 cursor-pointer transition-colors"
       >
-        {post.type === "event" && (
+        {post.type === "meeting" && (
           <Countdown
             date={post.metadata?.date}
             time={post.metadata?.time}

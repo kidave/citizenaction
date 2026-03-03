@@ -17,11 +17,11 @@ export default function PostMetadata({
   metadata,
   status,
   type,
-  title = "Event",
+  title = "Meeting",
   description = "",
   showCountdown = true,
 }) {
-  const [eventStatus, setEventStatus] = useState(null);
+  const [meetingStatus, setMeetingStatus] = useState(null);
   const [countdown, setCountdown] = useState(null);
 
   const userTimeZone =
@@ -50,25 +50,25 @@ export default function PostMetadata({
   /* ================= STATUS LOGIC ================= */
 
   useEffect(() => {
-    if (type !== "event") return;
+    if (type !== "meeting") return;
     if (!metadata?.date || !metadata?.time) return;
 
     const COUNTDOWN_THRESHOLD_MINUTES = 6 * 60; // 6 hours
 
     const updateStatus = () => {
-      const eventDate = new Date(
+      const meetingDate = new Date(
         `${metadata.date}T${metadata.time}`
       );
 
-      if (!isValid(eventDate)) return;
+      if (!isValid(meetingDate)) return;
 
       const now = new Date();
 
-      if (isAfter(eventDate, now)) {
-        setEventStatus("Upcoming");
+      if (isAfter(meetingDate, now)) {
+        setMeetingStatus("Upcoming");
 
         const minutesLeft = differenceInMinutes(
-          eventDate,
+          meetingDate,
           now
         );
 
@@ -82,11 +82,11 @@ export default function PostMetadata({
             setCountdown(null);
           }
         }
-      } else if (isBefore(eventDate, now)) {
-        setEventStatus("Completed");
+      } else if (isBefore(meetingDate, now)) {
+        setMeetingStatus("Completed");
         setCountdown(null);
       } else {
-        setEventStatus("Ongoing");
+        setMeetingStatus("Ongoing");
         setCountdown(null);
       }
     };
@@ -96,9 +96,9 @@ export default function PostMetadata({
     return () => clearInterval(interval);
   }, [metadata?.date, metadata?.time, type]);
 
-  const isUpcomingEvent =
-    type === "event" &&
-    eventStatus === "Upcoming" &&
+  const isUpcomingMeeting =
+    type === "meeting" &&
+    meetingStatus === "Upcoming" &&
     metadata?.date &&
     metadata?.time;
     
@@ -146,7 +146,7 @@ export default function PostMetadata({
     const icsContent = `
 BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//CitizenAction//Event//EN
+PRODID:-//CitizenAction//Meeting//EN
 BEGIN:VEVENT
 UID:${Date.now()}@citizenaction.app
 DTSTAMP:${formatICS(new Date())}
@@ -165,7 +165,7 @@ END:VCALENDAR
 
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "event.ics";
+    link.download = "meeting.ics";
     link.click();
   };
 
@@ -197,25 +197,25 @@ END:VCALENDAR
         </div>
       )}
 
-      {eventStatus && (
+      {meetingStatus && (
         <>
           <span className="opacity-40">•</span>
           <span
             className={`font-medium ${
-              eventStatus === "Upcoming"
+              meetingStatus === "Upcoming"
                 ? "text-blue-600"
-                : eventStatus === "Ongoing"
+                : meetingStatus === "Ongoing"
                 ? "text-green-600"
                 : "text-muted-foreground"
             }`}
           >
-            {eventStatus}
+            {meetingStatus}
           </span>
         </>
       )}
 
       {/* CALENDAR ACTIONS */}
-      {isUpcomingEvent && (
+      {isUpcomingMeeting && (
         <div className="flex gap-2">
           <Button
             size="sm"

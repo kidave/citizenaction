@@ -181,7 +181,7 @@ export default function AboutPage() {
               <FileText className="mx-auto size-8" />
               <h3 className="mt-4 font-semibold">Create Civic Actions</h3>
               <p className="text-sm text-muted-foreground mt-2">
-                Post events, reports, and initiatives.
+                Post meetings, reports, and initiatives.
               </p>
             </div>
 
@@ -246,7 +246,7 @@ export default function AboutPage() {
             <div>
               <h3 className="font-semibold text-lg">3. Act & Document</h3>
               <p className="text-sm text-muted-foreground mt-2">
-                Create events, action reports, and link issues to authorities.
+                Create meetings, action reports, and link issues to authorities.
               </p>
             </div>
 

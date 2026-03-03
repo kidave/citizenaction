@@ -25,16 +25,16 @@ export default function Countdown({
       thresholdHours * 60;
 
     const update = () => {
-      const eventDate = new Date(`${date}T${time}`);
-      if (!isValid(eventDate)) return;
+      const meetingDate = new Date(`${date}T${time}`);
+      if (!isValid(meetingDate)) return;
 
       const now = new Date();
 
-      if (isAfter(eventDate, now)) {
+      if (isAfter(meetingDate, now)) {
         setStatus("Upcoming");
 
         const minutesLeft = differenceInMinutes(
-          eventDate,
+          meetingDate,
           now
         );
 
@@ -49,7 +49,7 @@ export default function Countdown({
         } else {
           setCountdown(null);
         }
-      } else if (isBefore(eventDate, now)) {
+      } else if (isBefore(meetingDate, now)) {
         setStatus("Completed");
         setCountdown(null);
       } else {
@@ -91,12 +91,12 @@ export default function Countdown({
         <Clock className="h-4 w-4" />
         {countdown.hours > 0 ? (
           <span>
-            Event starts in {countdown.hours}h{" "}
+            Meeting starts in {countdown.hours}h{" "}
             {countdown.minutes}m
           </span>
         ) : (
           <span>
-            Event starts in {countdown.minutes}m
+            Meeting starts in {countdown.minutes}m
           </span>
         )}
       </div>

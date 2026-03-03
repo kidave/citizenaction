@@ -5,7 +5,7 @@ The Walking Project is a community-driven platform for:
 
 Ward clubs
 
-Events + projects + monthly updates
+Meetings + projects + monthly updates
 
 Road/junction evaluations
 
@@ -15,7 +15,7 @@ The homepage provides:
 
 Latest Projects
 
-Latest Events
+Latest Meetings
 
 Monthly Updates
 

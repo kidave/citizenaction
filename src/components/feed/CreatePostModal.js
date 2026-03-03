@@ -9,8 +9,10 @@ import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Avatar, AvatarFallback, AvatarGroup, AvatarImage } from "@/components/ui/avatar";
 import AuthoritySearchModal from "@/components/governance/AuthoritySearchModal";
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import FieldInfo from "@/components/ui/FieldInfo";
-
+import { DateTimePicker } from "@/components/ui/date-time";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { useAuth } from "@/context/AuthContext";
 import { useMyProfile } from "@/hooks/useMyProfile";
 import { useCreatePost } from "@/hooks/useCreatePost";
@@ -34,8 +36,10 @@ export default function CreatePostModal({ isOpen, onClose, initialData = null })
   const [attachments, setAttachments] = useState(initialData?.attachments || []);
   const [authorityOpen, setAuthorityOpen] = useState(false);
   const [selectedAuthorities, setSelectedAuthorities] = useState(initialData?.governance_entities || []);
+  const now = new Date();
+  const defaultTime = now.toTimeString().slice(0, 5); // HH:MM
   const [date, setDate] = useState(initialData?.metadata?.date || "");
-  const [time, setTime] = useState(initialData?.metadata?.time || "");
+  const [time, setTime] = useState(initialData?.metadata?.time || defaultTime);
   const [location, setLocation] = useState(initialData?.metadata?.location || "");
   const [status, setStatus] = useState(initialData?.status || "");
   
@@ -58,7 +62,7 @@ export default function CreatePostModal({ isOpen, onClose, initialData = null })
             details: content,
             summary: content.slice(0, 200),
             attachments,
-            status,
+            status: type === "meeting" ? null : status,
             metadata: {
               date,
               time,
@@ -135,6 +139,7 @@ export default function CreatePostModal({ isOpen, onClose, initialData = null })
 
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-2xl max-h-[90vh] flex flex-col">
+          
 
           {/* HEADER */}
           <div className="border-b p-4 space-y-2">
@@ -172,7 +177,7 @@ export default function CreatePostModal({ isOpen, onClose, initialData = null })
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div className="flex items-center gap-3">
                 <Button
                     variant="outline"
@@ -182,7 +187,7 @@ export default function CreatePostModal({ isOpen, onClose, initialData = null })
                     Tag Authority
                 </Button>
                 <FieldInfo
-                  text="Tag the authority, department, designation, or person related to this action, report, or event. This links your post to the concerned authority."
+                  text="Tag the authority, department, designation, or person related to this action, report, or meeting. This links your post to the concerned authority."
                 />
 
                 {selectedAuthorities.length > 0 && (
@@ -203,120 +208,146 @@ export default function CreatePostModal({ isOpen, onClose, initialData = null })
                 <ToggleGroup
                   type="single"
                   value={type}
-                  onValueChange={(v) =>
-                    v && setType(v)
-                  }
+                  onValueChange={(v) => v && setType(v)}
                   variant="outline"
                 >
-                  <ToggleGroupItem value="action" className="rounded-none first:rounded-l-md last:rounded-r-md border-r-0 last:border-r">
-                    Action
+
+                  {/* ACTION */}
+                  <ToggleGroupItem
+                    value="action"
+                    className="rounded-none first:rounded-l-md border-r-0"
+                  >
+                    <HoverCard openDelay={50} closeDelay={50}>
+                      <HoverCardTrigger asChild>
+                        <span className="cursor-pointer">
+                          Action
+                        </span>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-64 text-sm">
+                        Document civic initiatives, efforts taken or actions implemented.
+                      </HoverCardContent>
+                    </HoverCard>
                   </ToggleGroupItem>
-                  <ToggleGroupItem value="report" className="rounded-none border-r-0 last:border-r">
-                    Report
+
+                  {/* REPORT */}
+                  <ToggleGroupItem
+                    value="report"
+                    className="rounded-none border-r-0"
+                  >
+                    <HoverCard openDelay={50} closeDelay={50}>
+                      <HoverCardTrigger asChild>
+                        <span className="cursor-pointer">
+                          Report
+                        </span>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-64 text-sm">
+                        Document complaints, proposals or policy recommendations submitted to authorities.
+                      </HoverCardContent>
+                    </HoverCard>
                   </ToggleGroupItem>
-                  <ToggleGroupItem value="event" className="rounded-none last:rounded-r-md">
-                    Event
+
+                  {/* MEETING */}
+                  <ToggleGroupItem
+                    value="meeting"
+                    className="rounded-none last:rounded-r-md"
+                  >
+                    <HoverCard openDelay={50} closeDelay={50}>
+                      <HoverCardTrigger asChild>
+                        <span className="cursor-pointer">
+                          Meeting
+                        </span>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-64 text-sm">
+                        Record meetings with officials.
+                      </HoverCardContent>
+                    </HoverCard>
                   </ToggleGroupItem>
                 </ToggleGroup>
-                <FieldInfo
-                  text={
-                    type === "action"
-                      ? "Use Action to document civic initiatives, efforts taken, or actions implemented."
-                      : type === "report"
-                      ? "Use Report to document complaints, issues, proposals, policy recommendations, or suggestions submitted to authorities."
-                      : "Use Event to record meetings, workshops, student engagements, consultations, community walks, or civic gatherings."
-                  }
-                />
               </div>
             </div>
           </div>
 
-          {/* BODY */}
           <div className="flex-1 overflow-y-auto p-4 space-y-2">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  Date
+              {/* DATE + TIME */}
+              <Field className="col-span-2 lg:col-span-2">
+                <FieldLabel className="flex items-center gap-2">
+                  Date & Time
                   <FieldInfo
                     text={
-                      type === "event"
-                        ? "Date when the event was or will be conducted."
+                      type === "meeting"
+                        ? "Date and time of the meeting."
                         : type === "report"
-                        ? "Date when the report was submitted or filed."
+                        ? "Date when the report was submitted."
                         : "Date relevant to this civic action."
                     }
                   />
-                </div>
-                <Input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                />
-              </div>
+                </FieldLabel>
 
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  Time
-                  <FieldInfo
-                    text={
-                      type === "event"
-                        ? "Time when the event was or will be conducted."
-                        : "Optional time relevant to this update."
-                    }
-                  />
-                </div>
-                <Input
-                  type="time"
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
+                <DateTimePicker
+                  date={date}
+                  time={time}
+                  onDateChange={setDate}
+                  onTimeChange={setTime}
                 />
-              </div>
+              </Field>
 
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              {/* LOCATION */}
+              <Field>
+                <FieldLabel className="flex items-center gap-2">
                   Location
                   <FieldInfo
                     text={
-                      type === "event"
-                        ? "Location where the event was or will be conducted."
+                      type === "meeting"
+                        ? "Location of the meeting."
                         : type === "report"
                         ? "Area or locality this report concerns."
-                        : "Area or locality this action focuses on."
+                        : "Area where this civic action is focused."
                     }
                   />
-                </div>
+                </FieldLabel>
+
                 <Input
+                  placeholder="Enter location"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                 />
-              </div>
+              </Field>
 
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  Status
-                  <FieldInfo
-                    text="Current outcome or progress status of this action or report."
+              {/* STATUS */}
+              {type !== "meeting" && (
+                <Field>
+                  <FieldLabel className="flex items-center gap-2">
+                    Status
+                    <FieldInfo
+                      text={
+                        type === "report"
+                          ? "Outcome or progress update of the submitted report."
+                          : "Current progress or impact of this civic action."
+                      }
+                    />
+                  </FieldLabel>
+
+                  <Input
+                    placeholder="Current status"
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
                   />
-                </div>
-                <Input
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                />
-              </div>
-
+                </Field>
+              )}
             </div>
 
             {/* FIXED HEIGHT EXTRA SECTION */}
-            
             <Textarea
-              placeholder="Document your civic action..."
+              placeholder="Document your action."
               value={content}
-              onChange={(e) =>
+              onChange={(e) => {
                 setContent(e.target.value)
-              }
-              className="min-h-[120px]"
+                e.target.style.height = "auto"
+                e.target.style.height = e.target.scrollHeight + "px"
+              }}
+              className="min-h-[180px] md:min-h-[140px] resize-none overflow-hidden"
             />
 
             <AttachmentPicker
