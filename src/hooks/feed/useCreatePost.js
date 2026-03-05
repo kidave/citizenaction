@@ -1,20 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 import { uploadPostAttachment } from "@/lib/supabase/storage";
 import { toast } from "sonner";
 
 export function useCreatePost() {
-  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
 
-  const createPost = async (postData) => {
-    setIsLoading(true);
-
-    try {
+  const mutation = useMutation({
+    mutationFn: async (postData) => {
       /* ------------------------------------ */
       /* 1️⃣ Upload Attachments               */
       /* ------------------------------------ */
+
       let uploadedAttachments = [];
 
       if (postData.attachments?.length > 0) {
@@ -28,6 +27,7 @@ export function useCreatePost() {
       /* ------------------------------------ */
       /* 2️⃣ Insert Feed Row                  */
       /* ------------------------------------ */
+
       const { data: feedRow, error: feedError } = await supabase
         .from("feed")
         .insert({
@@ -38,8 +38,8 @@ export function useCreatePost() {
           summary: postData.summary,
           details: postData.details,
           attachments: uploadedAttachments,
-          status: postData.status || null,
           metadata: postData.metadata || null,
+          status: postData.status || null,
         })
         .select()
         .single();
@@ -47,12 +47,13 @@ export function useCreatePost() {
       if (feedError) throw feedError;
 
       /* ------------------------------------ */
-      /* 3️⃣ Insert Governance Tag Relations  */
+      /* 3️⃣ Insert Governance Relations      */
       /* ------------------------------------ */
+
       if (postData.governance_entities?.length > 0) {
         const relations = postData.governance_entities.map((entity) => ({
           feed_id: feedRow.id,
-          governance_entity_id: entity.id, // ← Only ID needed now
+          governance_entity_id: entity.id,
         }));
 
         const { error: relationError } = await supabase
@@ -62,16 +63,30 @@ export function useCreatePost() {
         if (relationError) throw relationError;
       }
 
-      toast.success("Post published successfully!");
       return feedRow;
-    } catch (error) {
+    },
+
+    /* ------------------------------------ */
+    /* Success                              */
+    /* ------------------------------------ */
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
+      toast.success("Post published successfully");
+    },
+
+    /* ------------------------------------ */
+    /* Error                                */
+    /* ------------------------------------ */
+
+    onError: (error) => {
       console.error("Create post error:", error);
       toast.error(error.message || "Failed to create post");
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+  });
 
-  return { createPost, isLoading };
+  return {
+    createPost: mutation.mutateAsync,
+    isCreating: mutation.isPending,
+  };
 }

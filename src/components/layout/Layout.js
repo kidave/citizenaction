@@ -45,16 +45,20 @@ function LayoutContent({ children }) {
 
         {/* Header only for internal pages */}
         {!hideHeader && (
-          <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-4 border-b bg-background px-4">
+          <header className="fixed top-0 left-0 right-0 z-40 flex h-16 items-center gap-4 border-b bg-background px-4">
             <SidebarTrigger />
             <PageBreadcrumbs />
           </header>
         )}
 
-        <main className="flex-1 overflow-y-auto">
+        <main
+          className={`flex-1  ${
+            !hideHeader ? "pt-16" : ""
+          }`}
+        >
           {children}
         </main>
-
+        
       </SidebarInset>
     </div>
   );

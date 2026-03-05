@@ -1,7 +1,7 @@
 // pages/action.js
 
 import { useRequireAuth } from "@/hooks/useRequireAuth";
-import CreatePostModal from "@/components/feed/CreatePostModal";
+import PostEditorModal from "@/components/feed/post-editor/PostEditorModal";
 
 export default function ActionPage() {
   const { user, loading } = useRequireAuth();
@@ -11,7 +11,7 @@ export default function ActionPage() {
 
   return (
     <div className="flex justify-center py-10">
-      <CreatePostModal
+      <PostEditorModal
         isOpen={true}
         onClose={() => window.history.back()}
       />

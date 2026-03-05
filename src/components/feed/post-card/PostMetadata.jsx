@@ -12,6 +12,7 @@ import {
 
 import { Calendar, Clock, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import getPostTypeConfig from "@/utils/posts/getPostTypeConfig";
 
 export default function PostMetadata({
   metadata,
@@ -22,6 +23,7 @@ export default function PostMetadata({
   showCountdown = true,
 }) {
   const [meetingStatus, setMeetingStatus] = useState(null);
+  const config = getPostTypeConfig(type);
   const [countdown, setCountdown] = useState(null);
 
   const userTimeZone =
@@ -188,12 +190,10 @@ END:VCALENDAR
         </div>
       )}
 
-      {metadata?.location && (
+      {config.showLocation && metadata?.location && (
         <div className="flex items-center gap-1">
           <MapPin className="h-3.5 w-3.5" />
-          <span className="truncate max-w-[150px]">
-            {metadata.location}
-          </span>
+          {metadata.location}
         </div>
       )}
 
@@ -235,12 +235,10 @@ END:VCALENDAR
         </div>
       )}
 
-      {status && (
+      {config.showStatus && status && (
         <>
           <span className="opacity-40">•</span>
-          <span className="font-medium text-foreground">
-            {status}
-          </span>
+          <span className="font-medium">{status}</span>
         </>
       )}
     </div>

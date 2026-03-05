@@ -1,4 +1,4 @@
-import Feed from "@/components/layout/Feed";
+import Feed from "@/components/feed/Feed";
 import RightSidebar from "@/components/layout/RightSidebar";
 import CreatePostTrigger from "@/components/feed/CreatePostTrigger";
 

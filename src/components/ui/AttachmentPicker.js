@@ -3,7 +3,6 @@
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
   X,
   FileText,
@@ -127,64 +126,47 @@ export default function AttachmentPicker({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
 
-      {/* Upload Area */}
+      {/* Compact Upload Bar */}
       <div
         {...getRootProps()}
         className={`
-          rounded-lg p-6 text-center cursor-pointer transition
-          bg-muted/30
-          sm:border-2 sm:border-dashed
-          ${
-            isDragActive
-              ? "border-primary bg-primary/10"
-              : "border-muted"
-          }
+          flex items-center justify-between gap-3
+          px-3 py-2 rounded-md border
+          cursor-pointer transition
+          ${isDragActive ? "border-primary bg-primary/10" : "border-muted"}
         `}
       >
         <input {...getInputProps()} />
 
-        <Paperclip className="mx-auto h-6 w-6 mb-3 text-muted-foreground" />
-
-        {/* Desktop Only */}
-        <p className="hidden sm:block text-sm font-medium">
-          Drag & drop files here
-        </p>
-
-        {/* Mobile */}
-        <p className="block sm:hidden text-sm font-medium">
-          Attach files
-        </p>
-
-        <p className="text-xs text-muted-foreground mt-2">
-          Max {MAX_IMAGES} images • 1MB each • 5MB total
-        </p>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Paperclip className="h-4 w-4" />
+          <span>Add attachments</span>
+        </div>
 
         <Button
           type="button"
           size="sm"
           variant="outline"
-          className="mt-4"
         >
-          Browse Files
+          Browse
         </Button>
       </div>
 
-      {/* Attachment Preview Grid */}
+      {/* Compact Preview Grid */}
       {attachments.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="flex flex-wrap gap-2">
           {attachments.map((file, index) => {
-            const isImage =
-              file.type?.startsWith("image/");
+            const isImage = file.type?.startsWith("image/");
             const preview = getFilePreview(file);
 
             return (
-              <Card
+              <div
                 key={index}
-                className="relative group overflow-hidden"
+                className="relative group"
               >
-                <div className="aspect-square bg-muted flex items-center justify-center">
+                <div className="h-20 w-20 rounded-md overflow-hidden bg-muted flex items-center justify-center">
 
                   {isImage && preview ? (
                     preview.startsWith("blob:") ? (
@@ -198,35 +180,28 @@ export default function AttachmentPicker({
                         src={preview}
                         alt={file.name}
                         fill
-                        sizes="(max-width:768px) 50vw, 25vw"
                         className="object-cover"
+                        sizes="80px"
                         unoptimized
                       />
                     )
                   ) : (
-                    <div className="flex flex-col items-center justify-center p-3 text-center">
+                    <div className="flex flex-col items-center justify-center text-center p-1">
                       {getFileIcon(file)}
-                      <p className="text-xs mt-2 truncate w-full">
-                        {file.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {formatFileSize(file.size)}
-                      </p>
                     </div>
                   )}
 
                 </div>
 
-                {/* Delete Button (Always visible on mobile, hover on desktop) */}
                 <Button
                   variant="destructive"
                   size="icon"
-                  className="absolute top-2 right-2 h-7 w-7 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                  className="absolute -top-2 -right-2 h-5 w-5 rounded-full sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                   onClick={() => onRemove(index)}
                 >
                   <X className="h-3 w-3" />
                 </Button>
-              </Card>
+              </div>
             );
           })}
         </div>

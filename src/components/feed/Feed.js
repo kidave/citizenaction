@@ -1,27 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/context/AuthContext";
-import { useFeed } from "@/hooks/useFeed";
+import { useFeed } from "@/hooks/feed/useFeed";
+import { useDeletePost } from "@/hooks/feed/useDeletePost";
+
 import PostSkeleton from "@/components/skeletons/PostSkeleton";
-import PostCard from "@/components/feed/PostCard";
-import CreatePostModal from "@/components/feed/CreatePostModal";
+import PostCard from "@/components/feed/post-card/PostCard";
+import PostEditorModal from "@/components/feed/post-editor/PostEditorModal";
+
 import { Card } from "@/components/ui/card";
 
 export default function Feed() {
+
   const { user } = useAuth();
-  const { data, isLoading, refetch } = useFeed();
+  const { data, isLoading } = useFeed();
+  const { deletePost } = useDeletePost();
 
   const [editingPost, setEditingPost] = useState(null);
-
-  async function handleDelete(id) {
-    const confirmDelete = confirm("Delete this post?");
-    if (!confirmDelete) return;
-
-    await supabase.from("feed").delete().eq("id", id);
-    await refetch();
-  }
 
   return (
     <div className="flex flex-col w-full mb-20">
@@ -40,29 +36,30 @@ export default function Feed() {
         </Card>
       ) : (
         <div className="space-y-4">
+
           {data?.map((post) => (
             <PostCard
               key={post.id}
               post={post}
               canEdit={user?.id === post.author_id}
               onEdit={() => setEditingPost(post)}
-              onDelete={() => handleDelete(post.id)}
+              onDelete={() => deletePost(post.id)}
             />
           ))}
+
         </div>
       )}
 
       {/* EDIT MODAL */}
+
       {editingPost && (
-        <CreatePostModal
+        <PostEditorModal
           isOpen={!!editingPost}
-          onClose={() => {
-            setEditingPost(null);
-            refetch();
-          }}
-          initialData={editingPost}
+          onClose={() => setEditingPost(null)}
+          post={editingPost}
         />
       )}
+
     </div>
   );
 }

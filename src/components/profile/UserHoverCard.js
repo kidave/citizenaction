@@ -1,17 +1,17 @@
 "use client";
 
-import {
-  HoverCard,
-  HoverCardTrigger,
-  HoverCardContent,
-} from "@/components/ui/hover-card";
+
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
+import { Card } from "@/components/ui/card";
+import { Row } from "@/components/layout/Row";
+import { Stack } from "@/components/layout/Stack";
 
 import { usePublicProfile } from "@/hooks/usePublicProfile";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+
 import Image from "next/image";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 export function UserHoverCard({ username, children }) {
   const { data: profile, isLoading } =
@@ -42,7 +42,7 @@ export function UserHoverCard({ username, children }) {
           ) : profile ? (
             <>
               {/* Header */}
-              <div className="flex items-center gap-4">
+              <Row className="gap-4">
                 <Image
                   src={profile.avatar_url || "/user1.png"}
                   width={56}
@@ -50,7 +50,7 @@ export function UserHoverCard({ username, children }) {
                   className="rounded-full"
                   alt=""
                 />
-                <div>
+                <Stack gap="gap-0">
                   <div className="font-semibold text-base">
                     {profile.name}
                   </div>
@@ -65,8 +65,8 @@ export function UserHoverCard({ username, children }) {
                       </Link>
                     </div>
                   )}
-                </div>
-              </div>
+                </Stack>
+              </Row>
 
               {primarySpace && (
                 <div>

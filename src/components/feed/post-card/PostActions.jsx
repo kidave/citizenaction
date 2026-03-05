@@ -6,10 +6,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
 
-export default function MenuButton({
+import { MoreHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+export default function PostActions({
   canEdit,
   onEdit,
   onDelete,
@@ -18,24 +19,28 @@ export default function MenuButton({
 
   return (
     <DropdownMenu>
+
       <DropdownMenuTrigger asChild>
-        <Button size="icon" variant="ghost">
-          <MoreHorizontal className="h-4 w-4" />
+        <Button variant="ghost" size="icon">
+          <MoreHorizontal className="w-4 h-4" />
         </Button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end">
+
         <DropdownMenuItem onClick={onEdit}>
           Edit
         </DropdownMenuItem>
 
         <DropdownMenuItem
-          className="text-red-500"
           onClick={onDelete}
+          className="text-red-500"
         >
           Delete
         </DropdownMenuItem>
+
       </DropdownMenuContent>
+
     </DropdownMenu>
   );
 }

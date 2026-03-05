@@ -2,6 +2,7 @@
 
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import { Card } from "@/components/ui/card";
+import { Row } from "@/components/layout/Row";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import Link from "next/link";
 
@@ -21,7 +22,7 @@ export function GovernanceHoverCard({ entity, children }) {
       >
         <Card className="p-4 space-y-3 border-none shadow-xl">
 
-          <div className="flex items-center gap-3">
+          <Row className="gap-3">
             <Avatar className="h-12 w-12">
               <AvatarImage src={entity.image_url} />
               <AvatarFallback>
@@ -34,7 +35,7 @@ export function GovernanceHoverCard({ entity, children }) {
                 {entity.label}
               </div>
             </div>
-          </div>
+          </Row>
 
           <Link
             href={`/governance/${entity.entity_type}/${entity.id}`}

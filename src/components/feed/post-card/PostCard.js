@@ -1,0 +1,61 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+
+import { Card } from "@/components/ui/card";
+import { Stack } from "@/components/layout/Stack";
+import PostHeader from "./PostHeader";
+import PostContent from "./PostContent";
+import PostMetadata from "./PostMetadata";
+import PostTimeline from "./PostTimeline";
+import PostAttachments from "./PostAttachments";
+
+export default function PostCard({
+  post,
+  canEdit = false,
+  onEdit,
+  onDelete,
+}) {
+  const router = useRouter();
+
+  if (!post) return null;
+
+  const handleNavigate = () => {
+    sessionStorage.setItem(
+      "feed-scroll",
+      window.scrollY.toString()
+    );
+
+    router.push(`/post/${post.id}`);
+  };
+
+  return (
+    <Card className="p-5 cursor-pointer transition-colors">
+      <Stack gap="gap-4">
+        <PostHeader
+          post={post}
+          canEdit={canEdit}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
+
+        <PostContent
+          post={post}
+          onNavigate={handleNavigate}
+        />
+
+        <PostMetadata
+          metadata={post.metadata}
+          status={post.status}
+          type={post.type}
+          title={post.summary}
+          description={post.details}
+        />
+
+        <PostTimeline post={post} />
+
+        <PostAttachments attachments={post.attachments} />
+      </Stack>
+    </Card>
+  );
+}

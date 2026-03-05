@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
+import normalizePost from "@/utils/posts/normalizePost";
 
 export function useFeed() {
   return useQuery({
@@ -11,8 +12,9 @@ export function useFeed() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data || [];
+
+      return (data || []).map(normalizePost);
     },
-    staleTime: 1000 * 60 * 2, // 2 min
+    staleTime: 1000 * 60 * 2, // 2 minutes
   });
 }

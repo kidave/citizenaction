@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
-import PostCard from "@/components/feed/PostCard";
+import PostCard from "@/components/feed/post-card/PostCard";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -40,7 +40,7 @@ export default function SinglePostPage() {
   if (isLoading || !data) return null;
 
   return (
-    <div className="flex flex-col w-full min-h-screen">
+    <div className="flex flex-col w-full min-h-screen mb-12">
 
       {/* 🔙 Back Button Header */}
       <div className="sticky top-0 z-40 bg-background border-b">

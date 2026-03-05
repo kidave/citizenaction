@@ -1,9 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { UserHoverCard } from "@/components/profile/UserHoverCard";
-import { formatDistanceToNow } from "date-fns";
+import Link from "next/link";
+import { Row } from "@/components/layout/Row";
+import { Stack } from "@/components/layout/Stack";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+
 
 export function UserIdentity({
   username,
@@ -17,29 +19,34 @@ export function UserIdentity({
     <UserHoverCard username={username}>
       <Link
         href={`/user/${username}`}
-        className="flex items-start gap-3 group"
+        className="group"
       >
-        <Avatar className="h-10 w-10 cursor-pointer">
-          <AvatarImage src={avatar || undefined} />
-          <AvatarFallback>
-            {name?.charAt(0) || "U"}
-          </AvatarFallback>
-        </Avatar>
+        <Row className="items-start gap-3">
 
-        {/* 🔥 Only render text block if not hidden */}
-        {!hideName && (
-          <div className="flex flex-col leading-tight">
-            <span className="font-semibold group-hover:underline">
-              {name || "Anonymous"}
-            </span>
+          <Avatar className="h-10 w-10 cursor-pointer">
+            <AvatarImage src={avatar || undefined} />
+            <AvatarFallback>
+              {name?.charAt(0) || "U"}
+            </AvatarFallback>
+          </Avatar>
 
-            {!hideTimestamp && createdAt && (
-              <span className="text-xs text-muted-foreground">
-                {formatDistanceToNow(new Date(createdAt))} ago
+          {!hideName && (
+            <Stack className="leading-tight" gap="gap-0">
+
+              <span className="font-semibold group-hover:underline">
+                {name || "Anonymous"}
               </span>
-            )}
-          </div>
-        )}
+
+              {!hideTimestamp && createdAt && (
+                <span className="text-xs text-muted-foreground">
+                  {createdAt}
+                </span>
+              )}
+
+            </Stack>
+          )}
+
+        </Row>
       </Link>
     </UserHoverCard>
   );
