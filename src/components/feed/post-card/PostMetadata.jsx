@@ -12,18 +12,17 @@ import {
 
 import { Calendar, Clock, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import getPostTypeConfig from "@/utils/posts/getPostTypeConfig";
 
 export default function PostMetadata({
-  metadata,
-  status,
+  date,
+  time,
+  location,
   type,
   title = "Meeting",
   description = "",
-  showCountdown = true,
 }) {
+
   const [meetingStatus, setMeetingStatus] = useState(null);
-  const config = getPostTypeConfig(type);
   const [countdown, setCountdown] = useState(null);
 
   const userTimeZone =
@@ -47,26 +46,24 @@ export default function PostMetadata({
     return format(parsed, "h:mm a");
   };
 
-  
-
-  /* ================= STATUS LOGIC ================= */
+  /* ================= MEETING STATUS (AUTO DERIVED) ================= */
 
   useEffect(() => {
-    if (type !== "meeting") return;
-    if (!metadata?.date || !metadata?.time) return;
 
-    const COUNTDOWN_THRESHOLD_MINUTES = 6 * 60; // 6 hours
+    if (type !== "meeting") return;
+    if (!date || !time) return;
+
+    const COUNTDOWN_THRESHOLD_MINUTES = 6 * 60;
 
     const updateStatus = () => {
-      const meetingDate = new Date(
-        `${metadata.date}T${metadata.time}`
-      );
 
+      const meetingDate = new Date(`${date}T${time}`);
       if (!isValid(meetingDate)) return;
 
       const now = new Date();
 
       if (isAfter(meetingDate, now)) {
+
         setMeetingStatus("Upcoming");
 
         const minutesLeft = differenceInMinutes(
@@ -74,76 +71,75 @@ export default function PostMetadata({
           now
         );
 
-        if (minutesLeft > 0) {
-          if (minutesLeft <= COUNTDOWN_THRESHOLD_MINUTES) {
-            const hours = Math.floor(minutesLeft / 60);
-            const minutes = minutesLeft % 60;
-
-            setCountdown({ hours, minutes });
-          } else {
-            setCountdown(null);
-          }
+        if (
+          minutesLeft > 0 &&
+          minutesLeft <= COUNTDOWN_THRESHOLD_MINUTES
+        ) {
+          const hours = Math.floor(minutesLeft / 60);
+          const minutes = minutesLeft % 60;
+          setCountdown({ hours, minutes });
+        } else {
+          setCountdown(null);
         }
+
       } else if (isBefore(meetingDate, now)) {
+
         setMeetingStatus("Completed");
         setCountdown(null);
+
       } else {
+
         setMeetingStatus("Ongoing");
         setCountdown(null);
+
       }
+
     };
 
     updateStatus();
     const interval = setInterval(updateStatus, 60000);
+
     return () => clearInterval(interval);
-  }, [metadata?.date, metadata?.time, type]);
+
+  }, [date, time, type]);
 
   const isUpcomingMeeting =
     type === "meeting" &&
     meetingStatus === "Upcoming" &&
-    metadata?.date &&
-    metadata?.time;
-    
+    date &&
+    time;
 
   /* ================= GOOGLE CALENDAR ================= */
 
   const handleGoogleCalendar = () => {
-    const start = new Date(
-      `${metadata.date}T${metadata.time}`
-    );
 
+    const start = new Date(`${date}T${time}`);
     const end = new Date(start.getTime() + 60 * 60 * 1000);
 
     const formatGoogleDate = (d) =>
       d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
 
-    const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
-      title
-    )}&details=${encodeURIComponent(
-      description
-    )}&location=${encodeURIComponent(
-      metadata.location || ""
-    )}&dates=${formatGoogleDate(start)}/${formatGoogleDate(
-      end
-    )}&ctz=${userTimeZone}`;
+    const url =
+      `https://calendar.google.com/calendar/render?action=TEMPLATE` +
+      `&text=${encodeURIComponent(title)}` +
+      `&details=${encodeURIComponent(description)}` +
+      `&location=${encodeURIComponent(location || "")}` +
+      `&dates=${formatGoogleDate(start)}/${formatGoogleDate(end)}` +
+      `&ctz=${userTimeZone}`;
 
     window.open(url, "_blank");
+
   };
 
-  /* ================= ICS FALLBACK ================= */
+  /* ================= ICS DOWNLOAD ================= */
 
   const handleICSDownload = () => {
-    const start = new Date(
-      `${metadata.date}T${metadata.time}`
-    );
 
+    const start = new Date(`${date}T${time}`);
     const end = new Date(start.getTime() + 60 * 60 * 1000);
 
     const formatICS = (date) =>
-      date
-        .toISOString()
-        .replace(/[-:]/g, "")
-        .split(".")[0] + "Z";
+      date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
 
     const icsContent = `
 BEGIN:VCALENDAR
@@ -156,7 +152,7 @@ DTSTART:${formatICS(start)}
 DTEND:${formatICS(end)}
 SUMMARY:${title}
 DESCRIPTION:${description}
-LOCATION:${metadata.location || ""}
+LOCATION:${location || ""}
 END:VEVENT
 END:VCALENDAR
 `;
@@ -169,52 +165,48 @@ END:VCALENDAR
     link.href = URL.createObjectURL(blob);
     link.download = "meeting.ics";
     link.click();
+
   };
 
-  if (!metadata && !status) return null;
+  /* ================= RENDER ================= */
+
+  if (!date && !location && type !== "meeting") return null;
 
   return (
     <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
 
-      {metadata?.date && (
+      {date && (
         <div className="flex items-center gap-1">
           <Calendar className="h-3.5 w-3.5" />
-          {formatDate(metadata.date)}
+          {formatDate(date)}
         </div>
       )}
 
-      {metadata?.time && (
+      {time && (
         <div className="flex items-center gap-1">
           <Clock className="h-3.5 w-3.5" />
-          {formatTime(metadata.date, metadata.time)}
+          {formatTime(date, time)}
         </div>
       )}
 
-      {config.showLocation && metadata?.location && (
+      {location && (
         <div className="flex items-center gap-1">
           <MapPin className="h-3.5 w-3.5" />
-          {metadata.location}
+          {location}
         </div>
       )}
 
-      {meetingStatus && (
+      {/* Meeting Derived Status */}
+      {type === "meeting" && meetingStatus && (
         <>
           <span className="opacity-40">•</span>
-          <span
-            className={`font-medium ${
-              meetingStatus === "Upcoming"
-                ? "text-blue-600"
-                : meetingStatus === "Ongoing"
-                ? "text-green-600"
-                : "text-muted-foreground"
-            }`}
-          >
+          <span className="font-medium">
             {meetingStatus}
           </span>
         </>
       )}
 
-      {/* CALENDAR ACTIONS */}
+      {/* Calendar buttons only for upcoming meetings */}
       {isUpcomingMeeting && (
         <div className="flex gap-2">
           <Button
@@ -235,12 +227,6 @@ END:VCALENDAR
         </div>
       )}
 
-      {config.showStatus && status && (
-        <>
-          <span className="opacity-40">•</span>
-          <span className="font-medium">{status}</span>
-        </>
-      )}
     </div>
   );
 }

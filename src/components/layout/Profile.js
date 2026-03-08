@@ -77,11 +77,10 @@ export function Profile() {
         <SidebarMenuItem>
           <SidebarMenuButton size="lg">
             <Avatar className="h-8 w-8 rounded-lg">
-              <AvatarFallback>...</AvatarFallback>
+              <AvatarFallback>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-r-transparent"></div>
+              </AvatarFallback>
             </Avatar>
-            <span className="ml-2 text-sm text-muted-foreground">
-              Loading...
-            </span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

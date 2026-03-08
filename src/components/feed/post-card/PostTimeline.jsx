@@ -9,9 +9,13 @@ import Timeline, {
 
 export default function PostTimeline({ post }) {
 
-  const history = post.metadata?.status_history || [];
+  const history = post?.timeline || [];
 
   if (!history.length) return null;
+
+  const sorted = [...history].sort(
+    (a, b) => new Date(a.at) - new Date(b.at)
+  );
 
   return (
     <div className="mt-4">
@@ -21,30 +25,51 @@ export default function PostTimeline({ post }) {
 
         <Timeline orientation="horizontal" noCards>
 
-          {history.map((item, idx) => (
+          {sorted.map((item, idx) => {
 
-            <TimelineItem
-              key={idx}
-              variant="outline"
-              hollow={idx !== history.length - 1}
-              className="text-center p-1"
-            >
+            const isLast = idx === sorted.length - 1;
 
-              <TimelineItemDate>
-                {new Date(item.at).toLocaleDateString()}
-              </TimelineItemDate>
+            let title = "";
+            let description = item.description;
 
-              <TimelineItemTitle>
-                {item.status.replaceAll("_", " ")}
-              </TimelineItemTitle>
+            /* authority response */
+            if (item.type === "authority_response") {
+              title = `Response from ${item.authority || "Authority"}`;
+            }
 
-              <TimelineItemDescription>
-                {item.description}
-              </TimelineItemDescription>
+            /* default status */
+            else {
+              title = item.title;
+            }
 
-            </TimelineItem>
+            return (
+              <TimelineItem
+                key={`${item.at}-${idx}`}
+                variant={item.variant || "outline"}
+                hollow={!isLast}
+                className="text-center p-1"
+              >
 
-          ))}
+                <TimelineItemDate>
+                  {item?.at
+                    ? new Date(item.at).toLocaleDateString()
+                    : ""}
+                </TimelineItemDate>
+
+                <TimelineItemTitle>
+                  {title}
+                </TimelineItemTitle>
+
+                {description && (
+                  <TimelineItemDescription>
+                    {description}
+                  </TimelineItemDescription>
+                )}
+
+              </TimelineItem>
+            );
+
+          })}
 
         </Timeline>
 
@@ -56,29 +81,50 @@ export default function PostTimeline({ post }) {
 
         <Timeline orientation="vertical" noCards>
 
-          {history.map((item, idx) => (
+          {sorted.map((item, idx) => {
 
-            <TimelineItem
-              key={idx}
-              variant="outline"
-              hollow={idx !== history.length - 1}
-            >
+            const isLast = idx === sorted.length - 1;
 
-              <TimelineItemDate>
-                {new Date(item.at).toLocaleDateString()}
-              </TimelineItemDate>
+            let title = "";
+            let description = item.description;
 
-              <TimelineItemTitle>
-                {item.status.replaceAll("_", " ")}
-              </TimelineItemTitle>
+            /* authority response */
+            if (item.type === "authority_response") {
+              title = `Response from ${item.authority || "Authority"}`;
+            }
 
-              <TimelineItemDescription>
-                {item.description}
-              </TimelineItemDescription>
+            /* default status */
+            else {
+              title = item.title;
+            }
 
-            </TimelineItem>
+            return (
+              <TimelineItem
+                key={`${item.at}-${idx}`}
+                variant={item.variant || "outline"}
+                hollow={!isLast}
+              >
 
-          ))}
+                <TimelineItemDate>
+                  {item?.at
+                    ? new Date(item.at).toLocaleDateString()
+                    : ""}
+                </TimelineItemDate>
+
+                <TimelineItemTitle>
+                  {title}
+                </TimelineItemTitle>
+
+                {item.description && (
+                  <TimelineItemDescription>
+                    {item.description}
+                  </TimelineItemDescription>
+                )}
+
+              </TimelineItem>
+            );
+
+          })}
 
         </Timeline>
 

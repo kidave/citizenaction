@@ -10,10 +10,8 @@ export function useCreatePost() {
 
   const mutation = useMutation({
     mutationFn: async (postData) => {
-      /* ------------------------------------ */
-      /* 1️⃣ Upload Attachments               */
-      /* ------------------------------------ */
 
+      /* 1️⃣ Upload Attachments */
       let uploadedAttachments = [];
 
       if (postData.attachments?.length > 0) {
@@ -24,11 +22,8 @@ export function useCreatePost() {
         uploadedAttachments = await Promise.all(uploadPromises);
       }
 
-      /* ------------------------------------ */
-      /* 2️⃣ Insert Feed Row                  */
-      /* ------------------------------------ */
-
-      const { data: feedRow, error: feedError } = await supabase
+      /* 2️⃣ Insert Feed Row */
+      const { data: feedRow, error } = await supabase
         .from("feed")
         .insert({
           author_id: postData.author_id,
@@ -39,17 +34,13 @@ export function useCreatePost() {
           details: postData.details,
           attachments: uploadedAttachments,
           metadata: postData.metadata || null,
-          status: postData.status || null,
         })
         .select()
         .single();
 
-      if (feedError) throw feedError;
+      if (error) throw error;
 
-      /* ------------------------------------ */
-      /* 3️⃣ Insert Governance Relations      */
-      /* ------------------------------------ */
-
+      /* 3️⃣ Governance Relations */
       if (postData.governance_entities?.length > 0) {
         const relations = postData.governance_entities.map((entity) => ({
           feed_id: feedRow.id,
@@ -66,18 +57,10 @@ export function useCreatePost() {
       return feedRow;
     },
 
-    /* ------------------------------------ */
-    /* Success                              */
-    /* ------------------------------------ */
-
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["feed"] });
       toast.success("Post published successfully");
     },
-
-    /* ------------------------------------ */
-    /* Error                                */
-    /* ------------------------------------ */
 
     onError: (error) => {
       console.error("Create post error:", error);

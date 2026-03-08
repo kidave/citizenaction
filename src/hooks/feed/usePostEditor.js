@@ -8,6 +8,8 @@ import { useCreatePost } from "@/hooks/feed/useCreatePost";
 import { useUpdatePost } from "@/hooks/feed/useUpdatePost";
 import { useDeletePost } from "@/hooks/feed/useDeletePost";
 
+import { postSchema } from "@/schemas/feed/postSchema";
+
 function extractContentMeta(text) {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const hashtagRegex = /#(\w+)/g;
@@ -19,7 +21,6 @@ function extractContentMeta(text) {
 }
 
 export function usePostEditor(post = null) {
-
   const { user } = useAuth();
 
   const { createPost } = useCreatePost();
@@ -29,22 +30,80 @@ export function usePostEditor(post = null) {
   const scopeType = "country";
   const scopeCode = "IN";
 
-  const now = new Date();
+  /* -------------------- */
+  /* Core State           */
+  /* -------------------- */
 
   const [type, setType] = useState(post?.type || "action");
   const [content, setContent] = useState(post?.details || "");
   const [attachments, setAttachments] = useState(post?.attachments || []);
-  const [selectedAuthorities, setSelectedAuthorities] = useState(post?.governance_entities || []);
+  const [selectedAuthorities, setSelectedAuthorities] =
+    useState(post?.governance_entities || []);
 
-  const [date, setDate] = useState(post?.metadata?.date || "");
-  const [time, setTime] = useState(post?.metadata?.time ?? null)
-  const [location, setLocation] = useState(post?.metadata?.location || "");
-  const [status, setStatus] = useState(post?.status || "");
+  /* -------------------- */
+  /* Metadata Fields      */
+  /* -------------------- */
+
+  const [date, setDate] = useState(post?.date || "");
+  const [time, setTime] = useState(post?.time ?? null);
+  const [location, setLocation] = useState(post?.location || "");
+
+  /* -------------------- */
+  /* Timeline State       */
+  /* -------------------- */
+
+  const [timeline, setTimeline] = useState(
+    post?.timeline || []
+  );
+
+  /* -------------------- */
+  /* Timeline Helpers     */
+  /* -------------------- */
+
+  function addTimelineEntry(entry, insertIndex = null) {
+    setTimeline((prev) => {
+      if (insertIndex === null) {
+        return [...prev, entry];
+      }
+
+      const copy = [...prev];
+      copy.splice(insertIndex, 0, entry);
+      return copy;
+    });
+  }
+
+  function updateTimelineEntry(index, updatedEntry) {
+    setTimeline((prev) =>
+      prev.map((item, i) =>
+        i === index ? { ...item, ...updatedEntry } : item
+      )
+    );
+  }
+
+  function removeTimelineEntry(index) {
+    setTimeline((prev) =>
+      prev.filter((_, i) => i !== index)
+    );
+  }
+
+  /* -------------------- */
+  /* Submit               */
+  /* -------------------- */
 
   async function submit(onSuccess) {
-
     if (!content.trim()) {
       toast.error("Enter content.");
+      return;
+    }
+
+    const result = postSchema.safeParse({
+      type,
+      date,
+      time,
+    });
+
+    if (!result.success) {
+      toast.error(result.error.errors[0].message);
       return;
     }
 
@@ -55,13 +114,14 @@ export function usePostEditor(post = null) {
       time,
       location,
       links,
-      hashtags
+      hashtags,
+      timeline: timeline.sort(
+        (a, b) => new Date(a.at) - new Date(b.at)
+      ),
     };
 
     try {
-
       if (post) {
-
         await updatePost({
           postId: post.id,
           postData: {
@@ -71,13 +131,10 @@ export function usePostEditor(post = null) {
             summary: content.slice(0, 200),
             attachments,
             metadata,
-            status,
-            governance_entities: selectedAuthorities
-          }
+            governance_entities: selectedAuthorities,
+          },
         });
-
       } else {
-
         await createPost({
           author_id: user.id,
           scope_type: scopeType,
@@ -88,13 +145,10 @@ export function usePostEditor(post = null) {
           attachments,
           governance_entities: selectedAuthorities,
           metadata,
-          status
         });
-
       }
 
       onSuccess?.();
-
     } catch (error) {
       console.error(error);
       toast.error(error.message || "Something went wrong");
@@ -102,50 +156,43 @@ export function usePostEditor(post = null) {
   }
 
   async function remove(onSuccess) {
-
     if (!post) return;
 
     try {
-
       await deletePost(post.id);
       onSuccess?.();
-
     } catch (error) {
       console.error(error);
     }
   }
 
   return {
-
     /* state */
-
     type,
     setType,
-
     content,
     setContent,
-
     attachments,
     setAttachments,
-
     selectedAuthorities,
     setSelectedAuthorities,
-
     date,
     setDate,
-
     time,
     setTime,
-
     location,
     setLocation,
 
-    status,
-    setStatus,
+    timeline,
+
+    /* timeline helpers */
+    addTimelineEntry,
+    updateTimelineEntry,
+    removeTimelineEntry,
+    setTimeline,
 
     /* actions */
-
     submit,
-    remove
+    remove,
   };
 }

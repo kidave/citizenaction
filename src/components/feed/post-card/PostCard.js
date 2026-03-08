@@ -45,8 +45,9 @@ export default function PostCard({
         />
 
         <PostMetadata
-          metadata={post.metadata}
-          status={post.status}
+          date={post.date}
+          time={post.time}
+          location={post.location}
           type={post.type}
           title={post.summary}
           description={post.details}

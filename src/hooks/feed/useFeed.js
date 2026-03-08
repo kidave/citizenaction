@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
-import normalizePost from "@/utils/posts/normalizePost";
 
 export function useFeed() {
   return useQuery({
@@ -13,8 +12,9 @@ export function useFeed() {
 
       if (error) throw error;
 
-      return (data || []).map(normalizePost);
+      return data || [];
     },
-    staleTime: 1000 * 60 * 2, // 2 minutes
+
+    staleTime: 1000 * 60 * 2,
   });
 }

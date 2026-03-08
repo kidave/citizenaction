@@ -11,36 +11,20 @@ export function useUpdatePost() {
   const mutation = useMutation({
     mutationFn: async ({ postId, postData }) => {
 
-      /* ------------------------------------ */
-      /* 1️⃣ Upload New Attachments           */
-      /* ------------------------------------ */
-
+      /* 1️⃣ Upload Attachments */
       let uploadedAttachments = [];
 
       if (postData.attachments?.length > 0) {
-
         const uploadPromises = postData.attachments.map(async (file) => {
-
-          // Already uploaded file (existing attachment)
-          if (file?.url) return file;
-
-          // New file → upload to storage
-          const uploaded = await uploadPostAttachment(
-            file,
-            postData.author_id
-          );
-
-          return uploaded;
+          if (file?.url) return file; // existing file
+          return await uploadPostAttachment(file, postData.author_id);
         });
 
         uploadedAttachments = await Promise.all(uploadPromises);
       }
 
-      /* ------------------------------------ */
-      /* 2️⃣ Update Feed Row                  */
-      /* ------------------------------------ */
-
-      const { error: updateError } = await supabase
+      /* 2️⃣ Update Feed Row */
+      const { error } = await supabase
         .from("feed")
         .update({
           type: postData.type,
@@ -48,16 +32,12 @@ export function useUpdatePost() {
           summary: postData.summary,
           attachments: uploadedAttachments,
           metadata: postData.metadata || null,
-          status: postData.status || null,
         })
         .eq("id", postId);
 
-      if (updateError) throw updateError;
+      if (error) throw error;
 
-      /* ------------------------------------ */
-      /* 3️⃣ Reset Governance Relations       */
-      /* ------------------------------------ */
-
+      /* 3️⃣ Reset Governance Relations */
       const { error: deleteError } = await supabase
         .from("feed_governance_entities")
         .delete()
@@ -65,12 +45,8 @@ export function useUpdatePost() {
 
       if (deleteError) throw deleteError;
 
-      /* ------------------------------------ */
-      /* 4️⃣ Insert Updated Relations         */
-      /* ------------------------------------ */
-
+      /* 4️⃣ Insert Updated Relations */
       if (postData.governance_entities?.length > 0) {
-
         const relations = postData.governance_entities.map((entity) => ({
           feed_id: postId,
           governance_entity_id: entity.id,
@@ -86,18 +62,10 @@ export function useUpdatePost() {
       return true;
     },
 
-    /* ------------------------------------ */
-    /* Success                              */
-    /* ------------------------------------ */
-
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["feed"] });
       toast.success("Post updated successfully");
     },
-
-    /* ------------------------------------ */
-    /* Error                                */
-    /* ------------------------------------ */
 
     onError: (error) => {
       console.error("Update post error:", error);

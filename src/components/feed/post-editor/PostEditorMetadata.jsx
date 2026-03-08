@@ -5,7 +5,7 @@ import FieldInfo from "@/components/ui/FieldInfo";
 import { DateTimePicker } from "@/components/ui/date-time";
 
 import PostLocationSelector from "./PostLocationSelector";
-import PostStatusSelector from "./PostStatusSelector";
+import PostEditorTimeline from "./PostEditorTimeline";
 
 export default function PostEditorMetadata({ editor }) {
 
@@ -42,7 +42,7 @@ export default function PostEditorMetadata({ editor }) {
       </Field>
 
       <PostLocationSelector editor={editor} />
-      <PostStatusSelector editor={editor} />
+      <PostEditorTimeline editor={editor} />
 
     </div>
   );
