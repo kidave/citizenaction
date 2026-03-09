@@ -31,6 +31,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import FeaturedSpaceCard from "@/components/shared/FeaturedSpaceCard";
+import { useFeed } from "@/hooks/feed/useFeed";
 
 /* ===========================
    VIDEO MODAL (YouTube)
@@ -113,6 +114,11 @@ export default function AboutPage() {
       ? faqs
       : faqs.filter((f) => f.category === activeCategory);
 
+  const { data: feed, isLoading } = useFeed();
+
+  const reports =
+    feed?.filter((item) => item.type === "report")?.slice(0, 3) || [];
+
   return (
     <div className="flex flex-col w-full">
 
@@ -124,9 +130,8 @@ export default function AboutPage() {
           transition={{ duration: 0.6 }}
           className="text-4xl md:text-6xl font-bold tracking-tight max-w-4xl mx-auto"
         >
-          Built by Citizens.  
+          Structured Civic Action.  
           Powered by Community.  
-          Driven by Transparency.
         </motion.h1>
 
         <motion.p
@@ -135,9 +140,9 @@ export default function AboutPage() {
           transition={{ delay: 0.2 }}
           className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto"
         >
-          Citizen Action is a civic documentation movement that empowers
-          spaces to organize digitally, track governance transparently,
-          and collaborate to solve local issues.
+          Citizen Action is a civic coordination platform that empowers spaces 
+          to transform ideas into structured actions, organize contributors, 
+          track progress transparently and improve local systems framework.
         </motion.p>
 
         <div className="mt-10 flex justify-center gap-6">
@@ -165,7 +170,7 @@ export default function AboutPage() {
               <Rocket className="mx-auto size-8" />
               <h3 className="mt-4 font-semibold">Sign In</h3>
               <p className="text-sm text-muted-foreground mt-2">
-                Login securely with Google OAuth.
+                Access your civic space securely and join your local community.
               </p>
             </div>
 
@@ -173,7 +178,7 @@ export default function AboutPage() {
               <Users className="mx-auto size-8" />
               <h3 className="mt-4 font-semibold">Join or Create Space</h3>
               <p className="text-sm text-muted-foreground mt-2">
-                Organize around your city, ward, or cause.
+                Structure your community by administration.
               </p>
             </div>
 
@@ -181,15 +186,7 @@ export default function AboutPage() {
               <FileText className="mx-auto size-8" />
               <h3 className="mt-4 font-semibold">Create Civic Actions</h3>
               <p className="text-sm text-muted-foreground mt-2">
-                Post meetings, reports, and initiatives.
-              </p>
-            </div>
-
-            <div>
-              <ShieldCheck className="mx-auto size-8" />
-              <h3 className="mt-4 font-semibold">Track Accountability</h3>
-              <p className="text-sm text-muted-foreground mt-2">
-                Link actions to authorities and monitor progress.
+                Create structured actions with clear goals and milestones.
               </p>
             </div>
 
@@ -197,7 +194,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ================= FEATURED COMMUNITY (DYNAMIC) ================= */}
+      {/* ================= FEATURED COMMUNITY ================= */}
 
       <section className="py-24 bg-muted/30">
         <div className="mx-auto max-w-6xl px-6">
@@ -221,9 +218,8 @@ export default function AboutPage() {
           </h2>
 
           <p className="mt-6 text-muted-foreground max-w-2xl mx-auto">
-            Create a structured digital space for your locality, ward, or cause.
-            Organize members, form clubs, document actions, and track governance
-            transparently.
+            Create a structured digital space for your locality or cause.
+            Organize members and define clear action plans.
           </p>
 
           {/* Workflow Steps */}
@@ -272,14 +268,7 @@ export default function AboutPage() {
             <div>
               <h4 className="font-semibold">Geographic Organization</h4>
               <p className="text-sm text-muted-foreground mt-2">
-                Structure spaces by city, ward, region, or state.
-              </p>
-            </div>
-
-            <div>
-              <h4 className="font-semibold">Authority Tracking</h4>
-              <p className="text-sm text-muted-foreground mt-2">
-                Link actions to departments and responsible designations.
+                Structure spaces by administrative boundaries.
               </p>
             </div>
 
@@ -303,31 +292,57 @@ export default function AboutPage() {
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4">
           <h2 className="text-3xl font-semibold text-center mb-12">
-            Latest Updates
+            Latest Reports
           </h2>
 
+          {isLoading && (
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          )}
+
+          {!isLoading && reports.length === 0 && (
+            <p className="text-center text-muted-foreground">
+              No reports available yet.
+            </p>
+          )}
+
           <div className="grid gap-6 md:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="overflow-hidden">
-                <div className="relative h-40">
-                  <Image
-                    src="/images/walkability-bg.avif"
-                    alt="Blog"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 680px"
-                    className="object-cover"
-                  />
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold text-lg">
-                    Civic Update #{i}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Learn how youth spaces are creating structured civic impact.
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
+            {reports.map((post) => {
+              const firstImage =
+                post.attachments?.find((a) =>
+                  a?.type?.startsWith("image")
+                )?.url;
+
+              const imageSrc =
+                firstImage || "/images/walkability-bg.avif";
+
+              return (
+                <Link
+                  key={post.id}
+                  href={`/post/${post.id}`}
+                  className="group"
+                >
+                  <Card className="overflow-hidden transition hover:shadow-md">
+
+                    <div className="relative h-40">
+                      <Image
+                        src={imageSrc}
+                        alt={post.summary}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 680px"
+                        className="object-cover transition"
+                      />
+                    </div>
+
+                    <CardContent className="p-4">
+                      <p className="text-sm text-muted-foreground mt-2 line-clamp-5">
+                        {post.details}
+                      </p>
+                    </CardContent>
+
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -360,11 +375,8 @@ export default function AboutPage() {
       <section className="py-24 text-center">
         <Badge variant="secondary">Join the Movement</Badge>
         <h2 className="mt-6 text-4xl font-bold">
-          Change starts with documentation.
+          Change starts with structured civic action.
         </h2>
-        <p className="text-muted-foreground mt-4">
-          Structured civic action empowers real accountability.
-        </p>
 
         <Button size="lg" className="rounded-full mt-8" asChild>
           <Link href="/action">
