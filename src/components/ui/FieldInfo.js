@@ -33,7 +33,7 @@ export default function FieldInfo({ text }) {
   // ---------- MOBILE → TAP DIALOG ----------
   if (isMobile) {
     return (
-      <>
+      <div>
         <button
           type="button"
           onClick={(e) => {
@@ -55,7 +55,7 @@ export default function FieldInfo({ text }) {
             </p>
           </DialogContent>
         </Dialog>
-      </>
+      </div>
     );
   }
 

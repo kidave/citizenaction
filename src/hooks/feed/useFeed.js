@@ -8,7 +8,7 @@ export function useFeed() {
       const { data, error } = await supabase
         .from("feed_view")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("sort_date", { ascending: false });
 
       if (error) throw error;
 

@@ -207,7 +207,7 @@ export default function Timeline({
   return (
     <div
       id="timeline-container"
-      className={cn("flex h-full w-full p-4", isVertical ? "flex-col" : "flex-row", className)}
+      className={cn("flex h-full w-full", isVertical ? "flex-col" : "flex-row", className)}
       role="list"
       aria-orientation={orientation}
       aria-label="Timeline"
@@ -218,15 +218,13 @@ export default function Timeline({
         style={
           isVertical
             ? {
-                gridAutoRows: `${vertItemSpacing}px`,
+                gridAutoRows: "auto",
                 // DYNAMIC GRID COLUMNS
                 gridTemplateColumns: alternating
                   ? "1fr 2rem 1fr" // Standard centered
                   : alignment === "top/left" // "Content Left"
                     ? "1fr 2rem" // remove right column
                     : "2rem 1fr", // remove left column (Line First)
-                paddingTop: `${verticalPadding.top}px`,
-                paddingBottom: `${verticalPadding.bottom}px`
               }
             : {
                 gridAutoColumns: `${horizItemSpacing}px`,
@@ -333,6 +331,7 @@ export function TimelineItem({
   variant,
   hollow = false,
   index = null,
+  onDotClick,
   ...props
 }) {
   if (index == null) {
@@ -407,9 +406,16 @@ export function TimelineItem({
           aria-hidden="true" />
 
         <div
-          className={cn(timelineDotVariants({ variant, hollow }))}
+          onClick={onDotClick}
+          className={cn(
+            timelineDotVariants({ variant, hollow }),
+            onDotClick && "cursor-pointer hover:scale-110 transition"
+          )}
           id={`timeline-item-${index}-dot`}
-          aria-hidden="true" />
+          role="button"
+          aria-label="Toggle timeline item"
+          tabIndex={0}
+        />
       </li>
     </>
   );
@@ -441,7 +447,7 @@ export function TimelineItemTitle({
   ...props
 }) {
   return (
-    <h3 className={cn("font-semibold", className)} {...props}>
+    <h3 className={cn("font-medium text-sm leading-snug", className)} {...props}>
       {children}
     </h3>
   );
@@ -454,7 +460,10 @@ export function TimelineItemDescription({
 }) {
   return (
     <p
-      className={cn("text-sm text-muted-foreground mt-2", className)}
+      className={cn(
+        "text-xs text-muted-foreground mt-1 leading-relaxed break-words whitespace-normal",
+        className
+      )}
       {...props}>
       {children}
     </p>

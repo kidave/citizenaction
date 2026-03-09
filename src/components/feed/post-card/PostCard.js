@@ -32,8 +32,8 @@ export default function PostCard({
   };
 
   return (
-    <Card className="p-5 cursor-pointer transition-colors">
-      <Stack gap="gap-4">
+    <Card className="p-5 cursor-pointer transition-colors overflow-hidden">
+      <Stack>
         <PostHeader
           post={post}
           canEdit={canEdit}
