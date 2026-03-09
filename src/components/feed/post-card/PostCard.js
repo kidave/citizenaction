@@ -9,12 +9,14 @@ import PostContent from "./PostContent";
 import PostMetadata from "./PostMetadata";
 import PostTimeline from "./PostTimeline";
 import PostAttachments from "./PostAttachments";
+import PostFooter from "./PostFooter";
 
 export default function PostCard({
   post,
   canEdit = false,
   onEdit,
   onDelete,
+  forceExpanded = false,
 }) {
   const router = useRouter();
 
@@ -42,6 +44,7 @@ export default function PostCard({
         <PostContent
           post={post}
           onNavigate={handleNavigate}
+          forceExpanded={forceExpanded}
         />
 
         <PostMetadata
@@ -56,6 +59,8 @@ export default function PostCard({
         <PostTimeline post={post} />
 
         <PostAttachments attachments={post.attachments} />
+
+        <PostFooter post={post} />
       </Stack>
     </Card>
   );

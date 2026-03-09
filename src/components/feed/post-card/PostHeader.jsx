@@ -31,25 +31,12 @@ export default function PostHeader({
           createdAt={formattedDate}
         />
 
-        <Badge
-          variant="secondary"
-          className="text-xs shrink-0 mt-2"
-        >
-          {post.type?.toUpperCase()}
-        </Badge>
-
       </Row>
 
       <Inline className="justify-end md:justify-start">
 
         <GovernanceAvatarGroups
           entities={post.governance_entities}
-        />
-
-        <PostShareButton
-          postId={post.id}
-          summary={post.summary}
-          details={post.details}
         />
 
         <MenuButton

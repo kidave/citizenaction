@@ -9,7 +9,7 @@ import {
   isBefore,
   differenceInMinutes,
 } from "date-fns";
-
+import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -174,6 +174,13 @@ END:VCALENDAR
 
   return (
     <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+
+      <Badge
+        variant="secondary"
+        className="text-xs shrink-0"
+      >
+        {type.toUpperCase()}
+      </Badge>
 
       {date && (
         <div className="flex items-center gap-1">
