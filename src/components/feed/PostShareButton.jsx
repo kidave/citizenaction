@@ -28,7 +28,7 @@ export default function PostShareButton({ postId, summary, details }) {
       variant="ghost"
       size="sm"
       onClick={handleShare}
-      className="gap-2"
+      className="gap-2 hover:bg-transparent transition"
     >
       <Share2 className="h-4 w-4" />
       Share
