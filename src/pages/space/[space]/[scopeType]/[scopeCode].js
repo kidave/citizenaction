@@ -31,7 +31,7 @@ import MetaCardsSkeleton from "@/components/skeletons/MetaCardsSkeleton";
 
 export default function ClubPage() {
   const router = useRouter();
-  const { space, scopeType, scopeCode } = router.query;
+  const { space, scopeType, scopeCode, tab } = router.query;
 
   const { user, loading: authLoading } = useAuth();
 
@@ -47,6 +47,10 @@ export default function ClubPage() {
   });
 
   const club = clubs?.[0];
+
+  const activeTab = tab || "overview";
+
+  const base = `/space/${space}/${scopeType}/${scopeCode}`;
 
   if (clubLoading || !space || !scopeType || !scopeCode) {
     return (
@@ -123,18 +127,42 @@ export default function ClubPage() {
 
       {/* TABS */}
 
-      <Tabs defaultValue="overview" className="space-y-6">
+      <Tabs value={activeTab} className="space-y-6">
 
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="meetings">Meetings</TabsTrigger>
-          <TabsTrigger value="members">Members</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
+
+          <TabsTrigger
+            value="overview"
+            onClick={() => router.push(base)}
+          >
+            Overview
+          </TabsTrigger>
+
+          <TabsTrigger
+            value="meetings"
+            onClick={() => router.push(`${base}?tab=meetings`)}
+          >
+            Meetings
+          </TabsTrigger>
+
+          <TabsTrigger
+            value="members"
+            onClick={() => router.push(`${base}?tab=members`)}
+          >
+            Members
+          </TabsTrigger>
+
+          <TabsTrigger
+            value="activity"
+            onClick={() => router.push(`${base}?tab=activity`)}
+          >
+            Activity
+          </TabsTrigger>
+
         </TabsList>
 
-        {/* OVERVIEW */}
-
         <TabsContent value="overview">
+
           <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
             <Card className="border-l-4" style={{ borderLeftColor: "var(--club-primary)" }}>
@@ -198,15 +226,12 @@ export default function ClubPage() {
             </Card>
 
           </section>
-        </TabsContent>
 
-        {/* MEETINGS */}
+        </TabsContent>
 
         <TabsContent value="meetings">
           <ClubMeetingTab clubId={club.id} />
         </TabsContent>
-
-        {/* MEMBERS */}
 
         <TabsContent value="members">
           <Card className="border-dashed">
@@ -218,8 +243,6 @@ export default function ClubPage() {
             </CardHeader>
           </Card>
         </TabsContent>
-
-        {/* ACTIVITY */}
 
         <TabsContent value="activity">
           <Card className="border-dashed">
