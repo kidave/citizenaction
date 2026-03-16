@@ -3,13 +3,13 @@
 import { Button } from "@/components/ui/button";
 import { Share2 } from "lucide-react";
 
-export default function PostShareButton({ postId, summary, details }) {
+export default function PostShareButton({ post }) {
   const handleShare = async (e) => {
     e.stopPropagation();
 
-    const url = `${window.location.origin}/post/${postId}`;
-    const title = summary || "Citizen Action Post";
-    const text = (details || "").slice(0, 120);
+    const url = `${window.location.origin}/post/${post.id}`;
+    const title = post.summary || "Citizen Action Post";
+    const text = (post.details || "").slice(0, 120);
 
     if (navigator.share) {
       try {
