@@ -9,7 +9,7 @@ export default function PostAttachments({ attachments = [] }) {
   const [viewerOpen, setViewerOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  if (!attachments.length) return null;
+  if (!attachments || attachments.length === 0) return null;
 
   return (
     <>

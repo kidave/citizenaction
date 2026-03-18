@@ -64,7 +64,7 @@ export default function ClubMeetingTab({ clubId }) {
               {meeting.title}
 
               <Badge variant="secondary">
-                {new Date(meeting.meeting_date).toLocaleDateString()}
+                {new Date(meeting.date || meeting.meeting_date).toLocaleDateString()}
               </Badge>
             </CardTitle>
 
@@ -72,6 +72,12 @@ export default function ClubMeetingTab({ clubId }) {
               <CardDescription>
                 {meeting.summary}
               </CardDescription>
+            )}
+
+            {meeting.attendees?.length > 0 && (
+              <div className="text-xs text-muted-foreground">
+                {meeting.attendees.length} attendees
+              </div>
             )}
           </CardHeader>
 
