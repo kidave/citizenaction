@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Card,
   CardHeader,
@@ -9,15 +11,22 @@ import {
 import { useRouter } from "next/navigation";
 import { UserIdentity } from "@/components/profile/UserIdentity";
 
-export default function ClubMeetingCard({ meeting }) {
+export default function ClubMeetingCard({
+  meeting,
+  clickable = true,
+}) {
   const router = useRouter();
 
   return (
     <Card>
 
       <CardHeader
-        className="cursor-pointer"
-        onClick={() => router.push(`/meeting/${meeting.id}`)}
+        className={clickable ? "cursor-pointer" : ""}
+        onClick={() => {
+          if (clickable) {
+            router.push(`/meeting/${meeting.id}`);
+          }
+        }}
       >
         <CardTitle className="hover:underline">
           {meeting.title}
@@ -27,6 +36,12 @@ export default function ClubMeetingCard({ meeting }) {
           <CardDescription>
             {meeting.summary}
           </CardDescription>
+        )}
+
+        {meeting.attendees?.length > 0 && (
+          <div className="text-xs text-muted-foreground">
+            {meeting.attendees.length} attendees
+          </div>
         )}
       </CardHeader>
 
@@ -47,9 +62,9 @@ export default function ClubMeetingCard({ meeting }) {
             {item.actions?.map((a, j) => (
               <div
                 key={j}
-                className="text-muted-foreground pl-6"
+                className="text-muted-foreground"
               >
-                • {a}
+                {a}
               </div>
             ))}
 

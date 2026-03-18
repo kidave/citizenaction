@@ -4,29 +4,17 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import ClubMeetingCard from "@/components/clubs/ClubMeetingCard";
-import { useMeeting } from "@/hooks/useMeeting";
+import { useMeetings } from "@/hooks/useMeetings";
+import MeetingSkeleton from "@/components/skeletons/MeetingSkeleton";
 
 export default function SingleMeetingPage() {
   const router = useRouter();
   const { id } = router.query;
 
-  const { data: meeting, isLoading } = useMeeting(id);
-
-  if (isLoading) {
-    return (
-      <div className="p-6 text-sm text-muted-foreground">
-        Loading meeting...
-      </div>
-    );
-  }
-
-  if (!meeting) {
-    return (
-      <div className="p-6 text-sm text-muted-foreground">
-        Meeting not found
-      </div>
-    );
-  }
+  const { data: meeting, isLoading } = useMeetings({
+    meetingId: id,
+    enabled: !!id,
+  });
 
   return (
     <div className="flex flex-col w-full min-h-screen mb-12">
@@ -52,12 +40,22 @@ export default function SingleMeetingPage() {
 
       {/* CONTENT */}
       <div className="flex justify-center w-full py-8">
-        <div className="w-full max-w-4xl px-4">
+        <div className="w-full max-w-4xl px-4 space-y-6">
 
-          <ClubMeetingCard
-            meeting={meeting}
-            forceExpanded={true}
-          />
+          {isLoading && <MeetingSkeleton />}
+
+          {!isLoading && !meeting && (
+            <div className="text-sm text-muted-foreground">
+              Meeting not found
+            </div>
+          )}
+
+          {!isLoading && meeting && (
+            <ClubMeetingCard
+              meeting={meeting}
+              clickable={false}
+            />
+          )}
 
         </div>
       </div>

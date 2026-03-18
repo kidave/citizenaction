@@ -21,7 +21,8 @@ function LayoutContent({ children }) {
   const isAboutPage = safePathname === "/about";
   const isHomePage = safePathname === "/";
   const isPostPage = safePathname.startsWith("/post/");
-  const hideHeader = isHomePage || isAboutPage || isPostPage;
+  const isMeetingPage = safePathname.startsWith("/meeting/");
+  const hideHeader = isHomePage || isAboutPage || isPostPage || isMeetingPage;
 
   return (
     <div className="flex min-h-screen w-full">
@@ -43,19 +44,8 @@ function LayoutContent({ children }) {
           </motion.div>
         )}
 
-        {/* Header only for internal pages */}
-        {!hideHeader && (
-          <header className="fixed top-0 left-0 right-0 z-40 flex h-16 items-center gap-4 border-b bg-background px-4">
-            <SidebarTrigger />
-            <PageBreadcrumbs />
-          </header>
-        )}
 
-        <main
-          className={`flex-1  ${
-            !hideHeader ? "pt-16" : ""
-          }`}
-        >
+        <main>
           {children}
         </main>
         
