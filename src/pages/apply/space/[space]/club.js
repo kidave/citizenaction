@@ -117,7 +117,7 @@ export default function CreateClubPage() {
         method: "POST",
         body: JSON.stringify({
           ...values,
-          name: null, // 👈 explicitly no custom name
+          name: null,
         }),
       });
 

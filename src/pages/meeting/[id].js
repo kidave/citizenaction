@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-import ClubMeetingCard from "@/components/clubs/ClubMeetingCard";
+import MeetingCard from "@/components/feed/post-meeting/MeetingCard";
 import { useMeetings } from "@/hooks/useMeetings";
 import MeetingSkeleton from "@/components/skeletons/MeetingSkeleton";
 
@@ -51,7 +51,7 @@ export default function SingleMeetingPage() {
           )}
 
           {!isLoading && meeting && (
-            <ClubMeetingCard
+            <MeetingCard
               meeting={meeting}
               clickable={false}
             />

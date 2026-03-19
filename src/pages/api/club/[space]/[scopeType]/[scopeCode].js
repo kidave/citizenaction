@@ -7,7 +7,7 @@ async function verifyClubOwnership(supabase, space, scopeType, scopeCode, userId
   const { data: spaceData, error: spaceError } = await supabase
     .from("community")
     .select("id")
-    .eq("slug", community)
+    .eq("slug", space)
     .single();
 
   if (spaceError || !spaceData) {
@@ -102,7 +102,7 @@ export default async function handler(req, res) {
       const { data: spaceData, error: spaceError } = await supabase
         .from("community")
         .select("id")
-        .eq("slug", community)
+        .eq("slug", space)
         .single();
 
       if (spaceError || !spaceData) {
@@ -113,7 +113,7 @@ export default async function handler(req, res) {
       const { data: club, error } = await supabase
         .from("club_view")
         .select("*")
-        .eq("community_slug", community)
+        .eq("community_slug", space)
         .eq("scope_type", scopeType)
         .eq("scope_code", scopeCode)
         .single();

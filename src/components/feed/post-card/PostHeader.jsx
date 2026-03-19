@@ -3,10 +3,8 @@
 
 import { Row } from "@/components/layout/Row";
 import { Inline } from "@/components/layout/Inline";
-import { Badge } from "@/components/ui/badge";
 import { UserIdentity } from "@/components/profile/UserIdentity";
 import GovernanceAvatarGroups from "@/components/governance/GovernanceAvatarGroups";
-import PostShareButton from "@/components/feed/PostShareButton";
 import MenuButton from "@/components/feed/MenuButton";
 import formatPostDate from "@/utils/posts/formatPostDate";
 

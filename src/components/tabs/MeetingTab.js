@@ -1,7 +1,7 @@
 "use client";
 
 import { useMeetings } from "@/hooks/useMeetings";
-import ClubMeetingCard from "@/components/clubs/ClubMeetingCard";
+import MeetingCard from "@/components/feed/post-meeting/MeetingCard";
 import MeetingSkeleton from "@/components/skeletons/MeetingSkeleton";
 
 import {
@@ -11,7 +11,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 
-export default function ClubMeetingTab({ clubId }) {
+export default function MeetingTab({ clubId }) {
 
   const { data: meetings = [], isLoading } = useMeetings({
     clubId,
@@ -44,7 +44,7 @@ export default function ClubMeetingTab({ clubId }) {
   return (
     <div className="space-y-6">
       {meetings.map((meeting) => (
-        <ClubMeetingCard
+        <MeetingCard
           key={meeting.id}
           meeting={meeting}
         />

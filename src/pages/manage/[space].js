@@ -4,7 +4,6 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
-// 🔐 Later you can wrap this with AdminContext
 export default function ManageSpace() {
   const { query } = useRouter();
   const slug = query.space;

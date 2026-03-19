@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useClubs } from "@/hooks/useClubs";
 
-import ClubMeetingTab from "@/components/clubs/ClubMeetingTab";
+import MeetingTab from "@/components/tabs/MeetingTab";
 
 import {
   Card,
@@ -203,34 +203,12 @@ export default function ClubPage() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Website</CardTitle>
-              </CardHeader>
-
-              <CardContent>
-                {club.website ? (
-                  <Link
-                    href={club.website}
-                    target="_blank"
-                    className="underline text-sm"
-                  >
-                    {club.website}
-                  </Link>
-                ) : (
-                  <span className="text-muted-foreground text-sm">
-                    Not provided
-                  </span>
-                )}
-              </CardContent>
-            </Card>
-
           </section>
 
         </TabsContent>
 
         <TabsContent value="meetings">
-          <ClubMeetingTab clubId={club.id} />
+          <MeetingTab clubId={club.id} />
         </TabsContent>
 
         <TabsContent value="members">
