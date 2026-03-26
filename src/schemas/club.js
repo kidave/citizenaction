@@ -17,7 +17,6 @@ export const clubUpdateSchema = createUpdateSchema({
   name: z.string().min(2).optional(),
   description: z.string().nullable().optional(),
   email: z.string().email().nullable().optional(),
-  website: z.string().url().nullable().optional(),
   contact_number: z.string().nullable().optional(),
   primary_color: hexColorOrNull,
   logo_url: urlOrNull,

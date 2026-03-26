@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { Row } from "@/components/layout/Row";
 import { Inline } from "@/components/layout/Inline";
 import { UserIdentity } from "@/components/profile/UserIdentity";
+import AttendeeAvatarGroup from "./AttendeeAvatarGroup";
 
 export default function MeetingCard({
   meeting,
@@ -44,9 +45,7 @@ export default function MeetingCard({
         )}
 
         {meeting.attendees?.length > 0 && (
-          <div className="text-xs text-muted-foreground">
-            {meeting.attendees.length} attendees
-          </div>
+          <AttendeeAvatarGroup attendees={meeting.attendees} />
         )}
       </CardHeader>
 

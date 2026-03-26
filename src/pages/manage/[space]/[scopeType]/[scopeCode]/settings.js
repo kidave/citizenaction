@@ -6,29 +6,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import Link from "next/link";
-
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
+import SettingsSkeleton from "@/components/skeletons/SettingsSkeleton";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ArrowLeft, Trash2, Save } from "lucide-react";
-
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { clubUpdateSchema } from "@/schemas/club";
 import { normalizeText } from "@/utils/normalize";
@@ -56,7 +40,6 @@ export default function ClubSettings() {
     },
   });
 
-  // 🔥 LOAD CLUB (DIRECT FROM SUPABASE)
   useEffect(() => {
     if (!space || !scopeType || !scopeCode) return;
 
@@ -90,7 +73,6 @@ export default function ClubSettings() {
     loadClub();
   }, [space, scopeType, scopeCode, form, router]);
 
-  // 🔥 SAVE
   const confirmSave = async () => {
     setSaving(true);
 
@@ -116,7 +98,7 @@ export default function ClubSettings() {
       }
 
       const { error } = await supabase
-        .from("club") // ⚠️ write to table
+        .from("club")
         .update(payload)
         .eq("community_slug", space)
         .eq("scope_type", scopeType)
@@ -136,7 +118,6 @@ export default function ClubSettings() {
     }
   };
 
-  // 🔥 DELETE
   const confirmDelete = async () => {
     setDeleting(true);
 
@@ -161,14 +142,7 @@ export default function ClubSettings() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-3xl mx-auto py-10">
-        <div className="h-6 w-40 bg-muted animate-pulse rounded mb-4" />
-        <div className="h-32 bg-muted animate-pulse rounded" />
-      </div>
-    );
-  }
+  if (loading) return <SettingsSkeleton />;
 
   return (
     <>
