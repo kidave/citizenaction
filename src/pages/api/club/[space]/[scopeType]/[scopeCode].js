@@ -3,9 +3,9 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { clubUpdateSchema } from "@/schemas/club";
 
 async function verifyClubOwnership(supabase, space, scopeType, scopeCode, userId) {
-  // First get space to get community_id
+  // First get space to get space_id
   const { data: spaceData, error: spaceError } = await supabase
-    .from("community")
+    .from("space")
     .select("id")
     .eq("slug", space)
     .single();
@@ -14,11 +14,11 @@ async function verifyClubOwnership(supabase, space, scopeType, scopeCode, userId
     return { error: "Space not found", status: 404 };
   }
 
-  // Then get club using community_id
+  // Then get club using space_id
   const { data: club, error } = await supabase
     .from("club")
     .select("id, created_by, logo_url, cover_url")
-    .eq("community_id", spaceData.id)
+    .eq("space_id", spaceData.id)
     .eq("scope_type", scopeType)
     .eq("scope_code", scopeCode)
     .single();
@@ -98,9 +98,9 @@ export default async function handler(req, res) {
         return res.status(ownershipCheck.status).json({ error: ownershipCheck.error });
       }
 
-      // Get space to get community_id
+      // Get space to get space_id
       const { data: spaceData, error: spaceError } = await supabase
-        .from("community")
+        .from("space")
         .select("id")
         .eq("slug", space)
         .single();
@@ -113,7 +113,7 @@ export default async function handler(req, res) {
       const { data: club, error } = await supabase
         .from("club_view")
         .select("*")
-        .eq("community_slug", space)
+        .eq("space_slug", space)
         .eq("scope_type", scopeType)
         .eq("scope_code", scopeCode)
         .single();

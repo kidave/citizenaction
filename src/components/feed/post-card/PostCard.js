@@ -28,8 +28,8 @@ export default function PostCard({
       window.scrollY.toString()
     );
 
-    if (post.type === "meeting" && post.meeting_id) {
-      router.push(`/meeting/${post.meeting_id}`);
+    if (post.type === "meeting") {
+      router.push(`/meeting/${post.id}`);
     } else {
       router.push(`/post/${post.id}`);
     }

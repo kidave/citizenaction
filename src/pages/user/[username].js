@@ -17,7 +17,7 @@ export default function PublicProfilePage() {
   const { data: profile, isLoading, error } = usePublicProfile(username);
   
   const primaryClub = profile?.primary_club;
-  const primarySpace = profile?.primary_community;
+  const primarySpace = profile?.primary_space;
 
   if (isLoading) return <ProfileSkeleton />;
 

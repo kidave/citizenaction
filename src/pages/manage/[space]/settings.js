@@ -89,7 +89,7 @@ export default function SpaceSettings() {
       const values = form.getValues();
 
       const { data, error } = await supabase
-        .from("community")
+        .from("space")
         .update(values)
         .eq("slug", slug)
         .select();
@@ -133,7 +133,7 @@ export default function SpaceSettings() {
     setDeleting(true);
     try {
       const { error } = await supabase
-        .from("community")
+        .from("space")
         .delete()
         .eq("slug", slug);
 
@@ -174,7 +174,7 @@ export default function SpaceSettings() {
         .getPublicUrl(fileName);
 
       await supabase
-        .from("community")
+        .from("space")
         .update({ logo_url: data.publicUrl })
         .eq("slug", slug);
 
@@ -189,7 +189,7 @@ export default function SpaceSettings() {
 
   const deleteLogo = async () => {
     await supabase
-      .from("community")
+      .from("space")
       .update({ logo_url: null })
       .eq("slug", slug);
 
@@ -217,7 +217,7 @@ export default function SpaceSettings() {
         .getPublicUrl(fileName);
 
       await supabase
-        .from("community")
+        .from("space")
         .update({ cover_url: data.publicUrl })
         .eq("slug", slug);
 
@@ -232,7 +232,7 @@ export default function SpaceSettings() {
 
   const deleteCover = async () => {
     await supabase
-      .from("community")
+      .from("space")
       .update({ cover_url: null })
       .eq("slug", slug);
 

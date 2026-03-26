@@ -14,7 +14,7 @@ export function useClub({ spaceSlug, scopeType, scopeCode, enabled = true }) {
       const { data, error } = await supabase
         .from("club_view")
         .select("*")
-        .eq("community_slug", spaceSlug)
+        .eq("space_slug", spaceSlug)
         .eq("scope_type", scopeType)
         .eq("scope_code", scopeCode)
         .single();
@@ -29,7 +29,7 @@ export function useClub({ spaceSlug, scopeType, scopeCode, enabled = true }) {
     const { error } = await supabase
       .from("club")
       .update(payload)
-      .eq("community_slug", spaceSlug)
+      .eq("space_slug", spaceSlug)
       .eq("scope_type", scopeType)
       .eq("scope_code", scopeCode);
 
@@ -44,7 +44,7 @@ export function useClub({ spaceSlug, scopeType, scopeCode, enabled = true }) {
     const { error } = await supabase
       .from("club")
       .delete()
-      .eq("community_slug", spaceSlug)
+      .eq("space_slug", spaceSlug)
       .eq("scope_type", scopeType)
       .eq("scope_code", scopeCode);
 

@@ -56,7 +56,7 @@ export default function ApplySpace() {
 
     try {
       const { error } = await supabase
-        .from("community_application")
+        .from("space_application")
         .insert({
           ...values,
           applicant_user_id: user.id,

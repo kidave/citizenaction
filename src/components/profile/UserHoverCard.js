@@ -20,7 +20,7 @@ export function UserHoverCard({ username, children }) {
   if (!username) return children;
 
   const primaryClub = profile?.primary_club;
-  const primarySpace = profile?.primary_community;
+  const primarySpace = profile?.primary_space;
 
   return (
     <HoverCard openDelay={200} closeDelay={150}>

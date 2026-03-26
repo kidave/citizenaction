@@ -7,7 +7,7 @@ export function useSpaces({ slug, search, privateAccess = false, enabled = true 
     queryKey: ["spaces", slug, search, privateAccess],
     enabled,
     queryFn: async () => {
-      const table = privateAccess ? "community" : "community_public";
+      const table = privateAccess ? "space" : "space_view";
       let query = supabase
         .from(table)
         .select("*")

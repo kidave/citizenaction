@@ -44,7 +44,7 @@ export default async function handler(req, res) {
 
     // Get space
     const { data: space, error: spaceError } = await supabase
-      .from("community")
+      .from("space")
       .select("id, owner_user_id, name")
       .eq("slug", slug)
       .single();
@@ -97,7 +97,7 @@ export default async function handler(req, res) {
     const { data: existingSpaceClub } = await supabase
       .from("club")
       .select("id, name")
-      .eq("community_id", community.id)
+      .eq("space_id", space.id)
       .eq("scope_type", clubData.scope_type)
       .eq("scope_code", clubData.scope_code)
       .maybeSingle();
@@ -109,7 +109,7 @@ export default async function handler(req, res) {
       const { data: existingRegularClub } = await supabase
         .from("club")
         .select("id, name")
-        .eq("community_id", community.id)
+        .eq("space_id", space.id)
         .eq("scope_type", clubData.scope_type)
         .eq("scope_code", clubData.scope_code)
         .maybeSingle();
@@ -140,7 +140,7 @@ export default async function handler(req, res) {
     const { data: spaceClub, error: ccError } = await supabase
       .from("club")
       .insert({
-        community_id: space.id,
+        space_id: space.id,
         name: null,
         description: clubData.description?.trim() || null,
         scope_type: clubData.scope_type,
@@ -160,7 +160,7 @@ export default async function handler(req, res) {
       const { data: regularClub, error: cError } = await supabase
         .from("club")
         .insert({
-          community_id: space.id,
+          space_id: space.id,
           name: null,
           description: clubData.description?.trim() || null,
           scope_type: clubData.scope_type,

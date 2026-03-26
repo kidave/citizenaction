@@ -8,10 +8,10 @@ export function useMeetings({
 }) {
   return useQuery({
     queryKey: ["meetings", clubId, meetingId],
-    enabled: enabled && (!!clubId || !!meetingId),
+    enabled: enabled,
     queryFn: async () => {
       let query = supabase
-        .from("meeting_full_view")
+        .from("meeting_view")
         .select("*");
 
       if (clubId) {
@@ -21,7 +21,7 @@ export function useMeetings({
       if (meetingId) {
         query = query.eq("id", meetingId).single();
       } else {
-        query = query.order("meeting_date", { ascending: false });
+        query = query.order("created_at", { ascending: false });
       }
 
       const { data, error } = await query;

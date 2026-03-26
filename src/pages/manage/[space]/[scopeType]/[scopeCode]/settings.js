@@ -48,7 +48,7 @@ export default function ClubSettings() {
         const { data, error } = await supabase
           .from("club_view")
           .select("*")
-          .eq("community_slug", space)
+          .eq("space_slug", space)
           .eq("scope_type", scopeType)
           .eq("scope_code", scopeCode)
           .single();
@@ -100,7 +100,7 @@ export default function ClubSettings() {
       const { error } = await supabase
         .from("club")
         .update(payload)
-        .eq("community_slug", space)
+        .eq("space_slug", space)
         .eq("scope_type", scopeType)
         .eq("scope_code", scopeCode);
 
@@ -125,7 +125,7 @@ export default function ClubSettings() {
       const { error } = await supabase
         .from("club")
         .delete()
-        .eq("community_slug", space)
+        .eq("space_slug", space)
         .eq("scope_type", scopeType)
         .eq("scope_code", scopeCode);
 

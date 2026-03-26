@@ -170,7 +170,7 @@ export default function AboutPage() {
               <Rocket className="mx-auto size-8" />
               <h3 className="mt-4 font-semibold">Sign In</h3>
               <p className="text-sm text-muted-foreground mt-2">
-                Access your civic space securely and join your local community.
+                Access your civic space securely and join your local space.
               </p>
             </div>
 
@@ -178,7 +178,7 @@ export default function AboutPage() {
               <Users className="mx-auto size-8" />
               <h3 className="mt-4 font-semibold">Join or Create Space</h3>
               <p className="text-sm text-muted-foreground mt-2">
-                Structure your community by administration.
+                Structure your space by administration.
               </p>
             </div>
 

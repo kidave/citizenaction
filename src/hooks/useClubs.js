@@ -25,7 +25,7 @@ export function useClubs({
         .eq("is_active", true);
 
       if (spaceSlug && spaceSlug !== "all") {
-        query = query.eq("community_slug", spaceSlug);
+        query = query.eq("space_slug", spaceSlug);
       }
 
       if (scopeType && scopeType !== "all") {

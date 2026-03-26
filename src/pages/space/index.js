@@ -46,7 +46,7 @@ export default function UnifiedSearchPage() {
   const isLoading = spacesLoading || clubsLoading;
 
   const scopeTypes = [...new Set(clubs.map((c) => c.scope_type))].filter(Boolean);
-  const spaceOptions = [...new Set(clubs.map((c) => c.community_slug))].filter(Boolean);
+  const spaceOptions = [...new Set(clubs.map((c) => c.space_slug))].filter(Boolean);
 
   if (isLoading) {
     return (
@@ -283,7 +283,7 @@ function ClubCard({ club }) {
         <div className="text-sm text-muted-foreground mb-2">
           Space:{" "}
           <Link
-            href={`/space/${club.community_slug}`}
+            href={`/space/${club.space_slug}`}
             className="font-medium hover:underline"
           >
             {club.space_name}
@@ -299,7 +299,7 @@ function ClubCard({ club }) {
 
       <CardFooter>
         <Link
-          href={`/space/${club.community_slug}/${club.scope_type}/${club.scope_code}`}
+          href={`/space/${club.space_slug}/${club.scope_type}/${club.scope_code}`}
           className="w-full"
         >
           <Button variant="outline" className="w-full">
