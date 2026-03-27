@@ -29,8 +29,7 @@ export default function MeetingItemEditorModal({
 
     await upsertMeetingItem({
       feed_id: meeting.id,
-      // 🔥 FIX: use selected user when editing
-      user_id: existingItem?.user_id || user.id,
+      user_id: user.id,
       notes,
     });
 

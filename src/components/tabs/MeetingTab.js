@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useMeetings } from "@/hooks/useMeetings";
-import MeetingCard from "@/components/feed/post-meeting/MeetingCard";
+import MeetingPreviewCard from "@/components/feed/post-meeting/MeetingPreviewCard";
 import MeetingSkeleton from "@/components/skeletons/MeetingSkeleton";
 
 import {
@@ -135,9 +135,9 @@ export default function MeetingTab({ clubId }) {
           </CardHeader>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredMeetings.map((meeting) => (
-            <MeetingCard key={meeting.id} meeting={meeting} />
+            <MeetingPreviewCard key={meeting.id} meeting={meeting} />
           ))}
         </div>
       )}

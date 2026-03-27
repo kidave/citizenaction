@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Card,
   CardHeader,
@@ -8,17 +9,27 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Row } from "@/components/layout/Row";
-import { Inline } from "@/components/layout/Inline";
 import { UserIdentity } from "@/components/profile/UserIdentity";
 import AttendeeAvatarGroup from "./AttendeeAvatarGroup";
 
-export default function MeetingCard({
-  meeting,
-  clickable = true,
-}) {
+import { useAuth } from "@/context/AuthContext";
+import PostActions from "@/components/feed/post-card/PostActions";
+
+import { useDeleteMeetingItem } from "@/hooks/meeting/useDeleteMeetingItem";
+import MeetingItemEditorModal from "@/components/feed/post-meeting/MeetingItemEditorModal";
+
+export default function MeetingCard({ meeting, clickable = true }) {
   const router = useRouter();
+  const { user } = useAuth();
+
+  const { deleteMeetingItem } = useDeleteMeetingItem();
+
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   const handleNavigate = () => {
     if (clickable) {
@@ -26,61 +37,134 @@ export default function MeetingCard({
     }
   };
 
+  const myItem = meeting.attendees?.find((p) => p.is_self);
+
+  async function handleDelete() {
+    if (!confirm("Delete your entry?")) return;
+
+    await deleteMeetingItem({
+      feed_id: meeting.id,
+      user_id: user.id,
+    });
+  }
+
   return (
-    <Card>
+    <>
+      <Card>
 
-      {/* HEADER */}
-      <CardHeader
-        className={clickable ? "cursor-pointer" : ""}
-        onClick={handleNavigate}
-      >
-        <CardTitle className="hover:underline">
-          {meeting.title}
-        </CardTitle>
+        {/* HEADER */}
+        <CardHeader
+          className={`space-y-2 relative ${clickable ? "cursor-pointer" : ""}`}
+          onClick={handleNavigate}
+        >
 
-        {meeting.summary && (
-          <CardDescription>
-            {meeting.summary}
-          </CardDescription>
-        )}
-
-        {meeting.attendees?.length > 0 && (
-          <AttendeeAvatarGroup attendees={meeting.attendees} />
-        )}
-      </CardHeader>
-
-      {/* CONTENT */}
-      <CardContent className="space-y-6">
-
-        {meeting.action_items?.map((item, i) => (
+          {/* TAGS */}
           <div
-            key={i}
-            className="border rounded-md p-3 text-sm space-y-2"
+            className="absolute top-4 right-4 flex flex-wrap gap-2 max-w-[60%] justify-end"
+            onClick={(e) => e.stopPropagation()}
           >
-            <Row className="items-center gap-2 w-fit">
-              <UserIdentity
-                username={item.username}
-                name={item.name || item.assignee_name}
-                avatar={item.avatar}
-              />
-            </Row>
+            {meeting.space_name && meeting.space_slug && (
+              <Link href={`/space/${meeting.space_slug}`}>
+                <Badge variant="outline">{meeting.space_name}</Badge>
+              </Link>
+            )}
 
-            <Inline className="flex-wrap gap-2">
-              {item.actions?.map((a, j) => (
-                <div
-                  key={j}
-                  className="text-muted-foreground"
-                >
-                  {a}
-                </div>
-              ))}
-            </Inline>
-
+            {meeting.club_name && meeting.space_slug && meeting.club_id && (
+              <Link
+                href={`/space/${meeting.space_slug}/${meeting.scope_type}/${meeting.scope_code}`}
+              >
+                <Badge variant="secondary">{meeting.club_name}</Badge>
+              </Link>
+            )}
           </div>
-        ))}
 
-      </CardContent>
+          {/* TITLE */}
+          <CardTitle className="pr-28 leading-snug">
+            {meeting.summary}
+          </CardTitle>
 
-    </Card>
+          {/* DESCRIPTION */}
+          {meeting.details && (
+            <CardDescription>
+              {meeting.details}
+            </CardDescription>
+          )}
+
+          {/* ATTENDEE AVATARS */}
+          {meeting.attendees?.length > 0 && (
+            <AttendeeAvatarGroup attendees={meeting.attendees} />
+          )}
+
+        </CardHeader>
+
+        {/* CONTENT */}
+        <CardContent className="space-y-4">
+
+          {meeting.attendees?.map((person, i) => {
+            const canEditThis = person.is_self;
+
+            return (
+              <div
+                key={i}
+                className="border rounded-md p-3 text-sm space-y-2"
+              >
+                <Row className="items-center justify-between">
+
+                  <UserIdentity
+                    username={person.username}
+                    name={person.name}
+                    avatar={person.avatar}
+                  />
+
+                  {canEditThis && (
+                    <PostActions
+                      canEdit
+                      onEdit={() => {
+                        setSelectedItem(myItem);
+                        setIsEditorOpen(true);
+                      }}
+                      onDelete={handleDelete}
+                    />
+                  )}
+
+                </Row>
+
+                {person.notes && (
+                  <div className="text-muted-foreground whitespace-pre-wrap">
+                    {person.notes}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* ADD INPUT */}
+          {!myItem && user && (
+            <button
+              onClick={() => {
+                setSelectedItem(null);
+                setIsEditorOpen(true);
+              }}
+              className="w-full border rounded-md py-2 text-sm hover:bg-muted transition-colors"
+            >
+              Add your input
+            </button>
+          )}
+
+        </CardContent>
+
+      </Card>
+
+      {/* MODAL */}
+      <MeetingItemEditorModal
+        isOpen={isEditorOpen}
+        onClose={() => {
+          setIsEditorOpen(false);
+          setSelectedItem(null);
+        }}
+        meeting={meeting}
+        existingItem={selectedItem}
+      />
+    </>
   );
 }
