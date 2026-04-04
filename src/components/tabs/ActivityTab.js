@@ -18,11 +18,11 @@ import {
 import { Button } from "@/components/ui/button";
 
 const months = [
-  "Jan","Feb","Mar","Apr","May","Jun",
-  "Jul","Aug","Sep","Oct","Nov","Dec"
+  "January","February","March","April","May","June",
+  "July","August","September","October","November","December"
 ];
 
-const types = ["all", "action", "meeting", "report", "event", "update"];
+const types = ["Select Type", "action", "meeting", "report", "event", "update"];
 
 export default function ActivityTab({ clubId }) {
   const { data: feed = [], isLoading } = useFeed();
@@ -70,7 +70,7 @@ export default function ActivityTab({ clubId }) {
     return uniqueYears.sort((a, b) => b - a);
   }, [filteredByClub, currentYear]);
 
-  const [year, setYear] = useState(String(currentYear));
+  const [year, setYear] = useState("");
   const [month, setMonth] = useState(null);
   const [type, setType] = useState("all");
 
@@ -116,7 +116,7 @@ export default function ActivityTab({ clubId }) {
         >
           {types.map((t) => (
             <option key={t} value={t}>
-              {t.toUpperCase()}
+              {t.charAt(0).toUpperCase() + t.slice(1)}
             </option>
           ))}
         </select>
@@ -129,7 +129,7 @@ export default function ActivityTab({ clubId }) {
           }}
           className="border rounded-md px-3 py-2 text-sm"
         >
-          <option value="">All years</option>
+          <option value="">Select Year</option>
           {years.map((y) => (
             <option key={y} value={String(y)}>
               {y}
@@ -145,7 +145,7 @@ export default function ActivityTab({ clubId }) {
           }}
           className="border rounded-md px-3 py-2 text-sm"
         >
-          <option value="">All months</option>
+          <option value="">Select Month</option>
           {months.map((m, i) => (
             <option key={i} value={i}>
               {m}
