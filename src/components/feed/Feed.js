@@ -41,7 +41,7 @@ export default function Feed() {
             <PostCard
               key={post.id}
               post={post}
-              canEdit={user?.id === post.author_id}
+              canEdit={post.can_manage}
               onEdit={() => setEditingPost(post)}
               onDelete={() => deletePost(post.id)}
             />

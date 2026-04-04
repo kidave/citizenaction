@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useClubs } from "@/hooks/useClubs";
 
-import MeetingTab from "@/components/tabs/MeetingTab";
+import ActivityTab from "@/components/tabs/ActivityTab";
 
 import {
   Card,
@@ -139,13 +139,6 @@ export default function ClubPage() {
           </TabsTrigger>
 
           <TabsTrigger
-            value="meetings"
-            onClick={() => router.push(`${base}?tab=meetings`)}
-          >
-            Meetings
-          </TabsTrigger>
-
-          <TabsTrigger
             value="members"
             onClick={() => router.push(`${base}?tab=members`)}
           >
@@ -207,10 +200,6 @@ export default function ClubPage() {
 
         </TabsContent>
 
-        <TabsContent value="meetings">
-          <MeetingTab clubId={club.id} />
-        </TabsContent>
-
         <TabsContent value="members">
           <Card className="border-dashed">
             <CardHeader>
@@ -223,11 +212,7 @@ export default function ClubPage() {
         </TabsContent>
 
         <TabsContent value="activity">
-          <Card className="border-dashed">
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-            </CardHeader>
-          </Card>
+          <ActivityTab clubId={club.id} />
         </TabsContent>
 
       </Tabs>

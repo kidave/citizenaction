@@ -24,14 +24,11 @@ import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 
 export default function MenuButton({
-  canEdit,
   onEdit,
   onDelete,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-
-  if (!canEdit) return null;
 
   return (
     <>

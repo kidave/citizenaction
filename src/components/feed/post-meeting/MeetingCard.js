@@ -39,12 +39,12 @@ export default function MeetingCard({ meeting, clickable = true }) {
 
   const myItem = meeting.attendees?.find((p) => p.is_self);
 
-  async function handleDelete() {
-    if (!confirm("Delete your entry?")) return;
+  async function handleDelete(person) {
+    if (!confirm("Delete this entry?")) return;
 
     await deleteMeetingItem({
       feed_id: meeting.id,
-      user_id: user.id,
+      user_id: person.user_id,
     });
   }
 
@@ -101,7 +101,7 @@ export default function MeetingCard({ meeting, clickable = true }) {
         <CardContent className="space-y-4">
 
           {meeting.attendees?.map((person, i) => {
-            const canEditThis = person.is_self;
+            const canEditThis = meeting.can_manage || person.is_self;
 
             return (
               <div
@@ -120,10 +120,10 @@ export default function MeetingCard({ meeting, clickable = true }) {
                     <PostActions
                       canEdit
                       onEdit={() => {
-                        setSelectedItem(myItem);
+                        setSelectedItem(person);
                         setIsEditorOpen(true);
                       }}
-                      onDelete={handleDelete}
+                      onDelete={() => handleDelete(person)}
                     />
                   )}
 

@@ -28,8 +28,8 @@ export default function MeetingItemEditorModal({
     if (!notes.trim()) return;
 
     await upsertMeetingItem({
+      item_id: existingItem?.id, // ✅ KEY CHANGE
       feed_id: meeting.id,
-      user_id: user.id,
       notes,
     });
 
@@ -59,11 +59,19 @@ export default function MeetingItemEditorModal({
             </div>
 
             <div className="flex gap-2">
-              <Button variant="ghost" size="sm" onClick={onClose}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+              >
                 Cancel
               </Button>
 
-              <Button size="sm" onClick={handleSave} disabled={isSaving}>
+              <Button
+                size="sm"
+                onClick={handleSave}
+                disabled={isSaving}
+              >
                 {existingItem ? "Update" : "Add"}
               </Button>
             </div>
@@ -77,7 +85,8 @@ export default function MeetingItemEditorModal({
               onChange={(e) => {
                 setNotes(e.target.value);
                 e.target.style.height = "auto";
-                e.target.style.height = e.target.scrollHeight + "px";
+                e.target.style.height =
+                  e.target.scrollHeight + "px";
               }}
               placeholder="Write your input..."
               className="min-h-[120px] resize-none overflow-hidden"
