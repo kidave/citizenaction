@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import truncateContent from "@/utils/posts/truncateContent";
+import Linkify from "linkify-react";
 
 export default function PostContent({
   post,
@@ -16,8 +17,9 @@ export default function PostContent({
     }
   }, [forceExpanded]);
 
-  const content = post.details || post.summary || "";
-
+  const title = post.summary || "";
+  const content = post.details || "";
+  
   const { text: truncatedText, isLong } =
     truncateContent(content, 280);
 
@@ -33,11 +35,29 @@ export default function PostContent({
       }}
       className={!forceExpanded ? "cursor-pointer" : ""}
     >
-      <div className="text-sm whitespace-pre-wrap">
-
-        {expanded || !isLong
-          ? content
-          : truncatedText}
+      <div className="text-sm whitespace-pre-wrap space-y-1">
+        {title && (
+          <div className="font-medium mb-2">
+            {title}
+          </div>
+        )}
+        <Linkify
+          options={{
+            target: "_blank",
+            rel: "noopener noreferrer",
+            className: "text-blue-600 hover:underline break-all",
+            render: ({ attributes, content }) => (
+              <a
+                {...attributes}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {content}
+              </a>
+            ),
+          }}
+        >
+          {expanded || !isLong ? content : truncatedText}
+        </Linkify>
 
         {!forceExpanded && isLong && (
           <span

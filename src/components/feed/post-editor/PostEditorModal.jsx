@@ -68,6 +68,8 @@ export default function PostEditorModal({ isOpen, onClose, post = null }) {
               <PostEditorMetadata editor={editor} />
 
               <PostEditorContent
+                title={editor.title}
+                setTitle={editor.setTitle}
                 content={editor.content}
                 setContent={editor.setContent}
               />

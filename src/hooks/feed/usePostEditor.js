@@ -35,6 +35,7 @@ export function usePostEditor(post = null) {
   /* -------------------- */
 
   const [type, setType] = useState(post?.type || "action");
+  const [title, setTitle] = useState(post?.summary || "");
   const [content, setContent] = useState(post?.details || "");
   const [attachments, setAttachments] = useState(post?.attachments || []);
   const [selectedAuthorities, setSelectedAuthorities] =
@@ -128,7 +129,7 @@ export function usePostEditor(post = null) {
             author_id: user.id,
             type,
             details: content,
-            summary: content.slice(0, 200),
+            summary: title || content.slice(0, 200),
             attachments,
             metadata,
             governance_entities: selectedAuthorities,
@@ -140,7 +141,7 @@ export function usePostEditor(post = null) {
           scope_type: scopeType,
           scope_code: scopeCode,
           type,
-          summary: content.slice(0, 200),
+          summary: title || content.slice(0, 200),
           details: content,
           attachments,
           governance_entities: selectedAuthorities,
@@ -170,6 +171,8 @@ export function usePostEditor(post = null) {
     /* state */
     type,
     setType,
+    title,
+    setTitle,
     content,
     setContent,
     attachments,
