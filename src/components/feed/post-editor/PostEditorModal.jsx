@@ -51,8 +51,9 @@ export default function PostEditorModal({ isOpen, onClose, post = null }) {
 
                 <div className="flex-1 min-w-[220px]">
                   <PostAuthoritySelector
-                    selectedAuthorities={editor.selectedAuthorities}
+                    governance_entities={editor.governance_entities}
                     setSelectedAuthorities={editor.setSelectedAuthorities}
+                    mode="editor"
                   />
                 </div>
 

@@ -11,8 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useState, useMemo } from "react";
+
+import { useState } from "react";
 import { useGovernance } from "@/hooks/useGovernance";
+
+import { UserIdentity } from "@/components/profile/UserIdentity";
+
 import ScopeSelector from "@/components/shared/ScopeSelector";
 import Image from "next/image";
 
@@ -21,6 +25,9 @@ export default function AuthoritySearchModal({
   onOpenChange,
   selected = [],
   onChange = () => {},
+  onSubmit = () => {},
+  existingIds = [],
+  existingEntities = [],
 }) {
   const [search, setSearch] = useState("");
 
@@ -29,69 +36,60 @@ export default function AuthoritySearchModal({
     scope_code: "",
   });
 
-  const { data: directory = [], isLoading } =
-    useGovernance({
-      scopeType: scope.scope_type || null,
-      scopeCode: scope.scope_code || null,
-      search,
-      entityType: "all",
-      enabled: true,
-    });
+  const { data: directory = [], isLoading } = useGovernance({
+    scopeType: scope.scope_type || null,
+    scopeCode: scope.scope_code || null,
+    search,
+    entityType: "all",
+    enabled: open,
+  });
 
-  const clearFilters = () => {
-    setScope({
-      scope_type: "",
-      scope_code: "",
-    });
-  };
+  function handleToggle(item) {
+    const exists = selected.find((e) => e.id === item.id);
+
+    if (exists) {
+      onChange([]);
+    } else {
+      onChange([item]); // 🔥 enforce single selection
+    }
+  }
+
+  // 🔥 helper: get first tagged user
+  function getTaggedUser(entityId) {
+    const found = existingEntities.find((e) => e.id === entityId);
+    if (!found || !found.tagged_by) return null;
+
+    return {
+      username: found.tagged_by_username,
+      name: found.tagged_by_name,
+      avatar: found.tagged_by_avatar,
+    };
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] p-0">
+      <DialogContent className="max-w-2xl max-h-[90vh] p-0 flex flex-col">
 
+        {/* HEADER */}
         <DialogHeader className="p-4 border-b">
-          <DialogTitle>Select Authority</DialogTitle>
+          <DialogTitle>Manage Authority</DialogTitle>
         </DialogHeader>
 
-        <div className="px-4 space-y-2">
+        {/* BODY */}
+        <div className="p-4 space-y-3 flex-1 overflow-y-auto">
 
           {/* SEARCH */}
           <Input
             placeholder="Search authority..."
             value={search}
-            onChange={(e) =>
-              setSearch(e.target.value)
-            }
+            onChange={(e) => setSearch(e.target.value)}
           />
 
-          {/* SCOPE FILTER */}
-          <div className="space-y-3">
-
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">
-                Filter by Jurisdiction
-              </span>
-
-              {(scope.scope_type ||
-                scope.scope_code) && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={clearFilters}
-                >
-                  Clear
-                </Button>
-              )}
-            </div>
-
-            <ScopeSelector
-              value={scope}
-              onChange={setScope}
-            />
-          </div>
+          {/* SCOPE */}
+          <ScopeSelector value={scope} onChange={setScope} />
 
           {/* RESULTS */}
-          <div className="space-y-3 max-h-[300px] overflow-y-auto">
+          <div className="space-y-2">
 
             {isLoading && (
               <p className="text-sm text-muted-foreground">
@@ -99,66 +97,90 @@ export default function AuthoritySearchModal({
               </p>
             )}
 
-            {!isLoading &&
-              directory.length === 0 && (
-                <p className="text-sm text-muted-foreground">
-                  No authorities found.
-                </p>
-              )}
+            {!isLoading && directory.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No authorities found.
+              </p>
+            )}
 
             {directory.map((item) => {
-              const isSelected = selected.find((e) => e.id === item.id);
+              const isSelected = selected.find(
+                (e) => e.id === item.id
+              );
+
+              const taggedUser = getTaggedUser(item.id);
 
               return (
                 <Card
                   key={item.id}
-                  className={`p-3 cursor-pointer transition-colors border ${
+                  className={`p-3 cursor-pointer border ${
                     isSelected
                       ? "border-primary bg-primary/5"
                       : "hover:bg-accent"
                   }`}
+                  onClick={() => handleToggle(item)}
                 >
                   <div className="flex items-center gap-3">
 
-                    {/* Checkbox indicator */}
-                    <Checkbox
-                      checked={!!isSelected}
-                      onCheckedChange={(checked) => {
-                        const exists = selected.find((e) => e.id === item.id);
-
-                        if (exists) {
-                          onChange(selected.filter((e) => e.id !== item.id));
-                        } else {
-                          onChange([...selected, item]);
-                        }
-                      }}
-                    />
+                    <Checkbox checked={!!isSelected} />
 
                     <Image
                       src={item.image_url || "/user1.png"}
                       width={32}
                       height={32}
                       alt=""
-                      className={`${
+                      className={
                         item.entity_type === "person"
                           ? "rounded-full"
                           : "rounded-md"
-                      }`}
+                      }
                     />
 
-                    <div className="flex-1">
-                      <div className="font-medium text-sm">
+                    <div className="flex-1 space-y-1">
+
+                      {/* LABEL */}
+                      <div className="text-sm font-medium">
                         {item.label}
                       </div>
+
+                      {/* 🔥 SINGLE USER */}
+                      {taggedUser && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">
+                            Tagged by
+                          </span>
+
+                          <UserIdentity
+                            {...taggedUser}
+                            size="sm"
+                            hideName
+                          />
+                        </div>
+                      )}
+
                     </div>
+
                   </div>
                 </Card>
               );
             })}
 
           </div>
-
         </div>
+
+        {/* FOOTER */}
+        <div className="p-4 border-t">
+          <Button
+            className="w-full"
+            onClick={() => {
+              onSubmit(selected.slice(0, 1));
+              onOpenChange(false);
+            }}
+          >
+            Save Changes
+          </Button>
+        </div>
+
       </DialogContent>
     </Dialog>
   );

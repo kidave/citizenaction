@@ -3,7 +3,6 @@
 import { Row } from "@/components/layout/Row";
 import { Inline } from "@/components/layout/Inline";
 import { UserIdentity } from "@/components/profile/UserIdentity";
-import GovernanceAvatarGroups from "@/components/governance/GovernanceAvatarGroups";
 import MenuButton from "@/components/feed/MenuButton";
 import formatPostDate from "@/utils/posts/formatPostDate";
 
@@ -28,9 +27,22 @@ export default function PostHeader({
       </Row>
 
       <Inline className="justify-end md:justify-start">
-        <GovernanceAvatarGroups
-          entities={post.governance_entities}
-        />
+        <div className="flex items-center gap-2">
+
+          {post.space_logo && (
+            <img
+              src={post.space_logo}
+              className="h-6 w-6 rounded-md"
+            />
+          )}
+
+          {post.scope_name && (
+            <span className="text-xs text-muted-foreground">
+              {post.scope_name}
+            </span>
+          )}
+
+        </div>
         
         {canEdit && (
           <MenuButton

@@ -7,14 +7,22 @@ import {
   AvatarFallback,
   AvatarGroup,
 } from "@/components/ui/avatar";
+
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
+
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+
 import { Card } from "@/components/ui/card";
-import { GovernanceHoverCard } from "./GovernanceHoverCard";
 
 export default function GovernanceAvatarGroups({
   entities = [],
@@ -24,102 +32,97 @@ export default function GovernanceAvatarGroups({
 
   if (!entities || entities.length === 0) return null;
 
-  /* ================= SPLIT TYPES ================= */
-
-  const organizationEntities = entities.filter(
-    (e) =>
-      e.entity_type === "authority" ||
-      e.entity_type === "department"
+  /* -------------------------
+     DEDUPE AUTHORITIES
+  ------------------------- */
+  const uniqueEntities = Array.from(
+    new Map(entities.map((e) => [e.id, e])).values()
   );
 
-  const personEntities = entities.filter(
-    (e) =>
-      e.entity_type === "designation" ||
-      e.entity_type === "person"
-  );
-
-  /* ================= RENDER GROUP ================= */
-
-  const renderGroup = (group) => {
-    if (!group.length) return null;
-
-    const visible = group.slice(0, maxVisible);
-    const hiddenCount = group.length - maxVisible;
-
-    return (
-      <AvatarGroup>
-        {visible.map((entity) => (
-          <GovernanceHoverCard key={entity.id} entity={entity}>
-            <Avatar
-              className="h-7 w-7 hover:z-20 transition-all hover:scale-110"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <AvatarImage src={entity.image_url} />
-              <AvatarFallback>
-                {entity.label?.charAt(0) || "G"}
-              </AvatarFallback>
-            </Avatar>
-          </GovernanceHoverCard>
-        ))}
-
-        {hiddenCount > 0 && (
-          <Avatar
-            className="h-7 w-7 bg-muted text-xs cursor-pointer"
-            onClick={(e) => {
-              e.stopPropagation();
-              setOpen(true);
-            }}
-          >
-            <AvatarFallback>
-              +{hiddenCount}
-            </AvatarFallback>
-          </Avatar>
-        )}
-      </AvatarGroup>
-    );
-  };
+  const visible = uniqueEntities.slice(0, maxVisible);
+  const hiddenCount = uniqueEntities.length - maxVisible;
 
   return (
-    <>
-      <div className="flex items-center gap-3">
-        {renderGroup(organizationEntities)}
-        {renderGroup(personEntities)}
-      </div>
+    <TooltipProvider>
+      <>
+        {/* ================= AVATAR GROUP ================= */}
+        <div className="flex items-center">
+          <AvatarGroup>
 
-      {/* ================= FULL TAG MODAL ================= */}
+            {visible.map((entity) => (
+              <Tooltip key={entity.id}>
+                <TooltipTrigger asChild>
+                  <Avatar
+                    className="h-7 w-7 hover:z-20 transition-all hover:scale-110"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <AvatarImage src={entity.image_url} />
+                    <AvatarFallback>
+                      {entity.label?.charAt(0) || "G"}
+                    </AvatarFallback>
+                  </Avatar>
+                </TooltipTrigger>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Tagged Governance Entities</DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-3 max-h-[400px] overflow-y-auto">
-            {entities.map((entity) => (
-              <Card
-                key={entity.id}
-                className="p-3 flex items-center gap-3"
-              >
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={entity.image_url} />
-                  <AvatarFallback>
-                    {entity.label?.charAt(0) || "G"}
-                  </AvatarFallback>
-                </Avatar>
-
-                <div className="flex-1">
-                  <div className="text-sm font-medium">
+                <TooltipContent>
+                  <div className="text-xs font-medium">
                     {entity.label}
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {entity.entity_type.toUpperCase()}
-                  </div>
-                </div>
-              </Card>
+                </TooltipContent>
+              </Tooltip>
             ))}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+
+            {/* +COUNT */}
+            {hiddenCount > 0 && (
+              <Avatar
+                className="h-7 w-7 bg-muted text-xs cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpen(true);
+                }}
+              >
+                <AvatarFallback>
+                  +{hiddenCount}
+                </AvatarFallback>
+              </Avatar>
+            )}
+
+          </AvatarGroup>
+        </div>
+
+        {/* ================= FULL LIST MODAL ================= */}
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Tagged Authorities</DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-3 max-h-[400px] overflow-y-auto">
+              {uniqueEntities.map((entity) => (
+                <Card
+                  key={entity.id}
+                  className="p-3 flex items-center gap-3"
+                >
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={entity.image_url} />
+                    <AvatarFallback>
+                      {entity.label?.charAt(0) || "G"}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div className="flex-1">
+                    <div className="text-sm font-medium">
+                      {entity.label}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {entity.entity_type?.toUpperCase()}
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+      </>
+    </TooltipProvider>
   );
 }

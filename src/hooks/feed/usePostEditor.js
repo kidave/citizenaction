@@ -9,6 +9,7 @@ import { useUpdatePost } from "@/hooks/feed/useUpdatePost";
 import { useDeletePost } from "@/hooks/feed/useDeletePost";
 
 import { postSchema } from "@/schemas/feed/postSchema";
+import { set } from "date-fns";
 
 function extractContentMeta(text) {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -38,7 +39,7 @@ export function usePostEditor(post = null) {
   const [title, setTitle] = useState(post?.summary || "");
   const [content, setContent] = useState(post?.details || "");
   const [attachments, setAttachments] = useState(post?.attachments || []);
-  const [selectedAuthorities, setSelectedAuthorities] =
+  const [governance_entities, setSelectedAuthorities] =
     useState(post?.governance_entities || []);
 
   /* -------------------- */
@@ -48,6 +49,8 @@ export function usePostEditor(post = null) {
   const [date, setDate] = useState(post?.date || "");
   const [time, setTime] = useState(post?.time ?? null);
   const [location, setLocation] = useState(post?.location || "");
+  const [scope_type, setScopeType] = useState(post?.scope_type || "");
+  const [scope_code, setScopeCode] = useState(post?.scope_code || "");
 
   /* -------------------- */
   /* Timeline State       */
@@ -132,7 +135,7 @@ export function usePostEditor(post = null) {
             summary: title || content.slice(0, 200),
             attachments,
             metadata,
-            governance_entities: selectedAuthorities,
+            governance_entities: governance_entities,
           },
         });
       } else {
@@ -144,7 +147,7 @@ export function usePostEditor(post = null) {
           summary: title || content.slice(0, 200),
           details: content,
           attachments,
-          governance_entities: selectedAuthorities,
+          governance_entities: governance_entities,
           metadata,
         });
       }
@@ -177,7 +180,7 @@ export function usePostEditor(post = null) {
     setContent,
     attachments,
     setAttachments,
-    selectedAuthorities,
+    governance_entities,
     setSelectedAuthorities,
     date,
     setDate,
@@ -185,6 +188,10 @@ export function usePostEditor(post = null) {
     setTime,
     location,
     setLocation,
+    scope_type,
+    setScopeType,
+    scope_code,
+    setScopeCode,
 
     timeline,
 

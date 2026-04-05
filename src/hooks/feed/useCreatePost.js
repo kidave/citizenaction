@@ -40,18 +40,30 @@ export function useCreatePost() {
 
       if (error) throw error;
 
-      /* 3️⃣ Governance Relations */
-      if (postData.governance_entities?.length > 0) {
-        const relations = postData.governance_entities.map((entity) => ({
-          feed_id: feedRow.id,
-          governance_entity_id: entity.id,
-        }));
+      /* 🔥 3️⃣ REPLACE AUTHORITIES (SIMPLIFIED) */
+      if (postData.governance_entities) {
 
-        const { error: relationError } = await supabase
-          .from("feed_governance_entities")
-          .insert(relations);
+        // remove my existing (safe even for new post)
+        await supabase
+          .from("action_escalate")
+          .delete()
+          .eq("action_id", feedRow.id)
+          .eq("escalated_by", postData.author_id);
 
-        if (relationError) throw relationError;
+        // insert new
+        if (postData.governance_entities.length > 0) {
+          const { error: escalateError } = await supabase
+            .from("action_escalate")
+            .insert(
+              postData.governance_entities.map((a) => ({
+                action_id: feedRow.id,
+                governance_entity_id: a.id,
+                escalated_by: postData.author_id,
+              }))
+            );
+
+          if (escalateError) throw escalateError;
+        }
       }
 
       return feedRow;

@@ -11,6 +11,8 @@ import PostTimeline from "./PostTimeline";
 import PostAttachments from "./PostAttachments";
 import PostFooter from "./PostFooter";
 
+import PostMeeting from "@/components/feed/post-meeting/PostMeeting";
+
 export default function PostCard({
   post,
   canEdit = false,
@@ -28,11 +30,7 @@ export default function PostCard({
       window.scrollY.toString()
     );
 
-    if (post.type === "meeting") {
-      router.push(`/meeting/${post.id}`);
-    } else {
-      router.push(`/post/${post.id}`);
-    }
+    router.push(`/post/${post.id}`);
   };
 
   return (
@@ -63,6 +61,10 @@ export default function PostCard({
         <PostTimeline post={post} />
 
         <PostAttachments attachments={post.attachments} />
+
+        {post.type === "meeting" && post.meeting_attendees && forceExpanded && (
+          <PostMeeting meeting={post} />
+        )}
 
         <PostFooter post={post} />
       </Stack>

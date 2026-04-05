@@ -10,21 +10,6 @@ export function useDeletePost() {
   const mutation = useMutation({
     mutationFn: async (postId) => {
 
-      /* ------------------------------------ */
-      /* Delete Governance Relations          */
-      /* ------------------------------------ */
-
-      const { error: relationError } = await supabase
-        .from("feed_governance_entities")
-        .delete()
-        .eq("feed_id", postId);
-
-      if (relationError) throw relationError;
-
-      /* ------------------------------------ */
-      /* Delete Post                          */
-      /* ------------------------------------ */
-
       const { error } = await supabase
         .from("feed")
         .delete()

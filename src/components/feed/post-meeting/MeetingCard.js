@@ -52,45 +52,87 @@ export default function MeetingCard({ meeting, clickable = true }) {
     <>
       <Card>
 
-        {/* HEADER */}
         <CardHeader
-          className={`space-y-2 relative ${clickable ? "cursor-pointer" : ""}`}
+          className={`space-y-2 ${clickable ? "cursor-pointer" : ""}`}
           onClick={handleNavigate}
         >
 
-          {/* TAGS */}
+          {/* MOBILE TAGS */}
           <div
-            className="absolute top-4 right-4 flex flex-wrap gap-2 max-w-[60%] justify-end"
+            className="flex items-center gap-2 flex-wrap sm:hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            {meeting.space_name && meeting.space_slug && (
+            {/* SPACE LOGO */}
+            {meeting.space_slug && meeting.space_logo && (
               <Link href={`/space/${meeting.space_slug}`}>
-                <Badge variant="outline">{meeting.space_name}</Badge>
+                <img
+                  src={meeting.space_logo}
+                  alt=""
+                  className="h-6 w-6 rounded-md border"
+                />
               </Link>
             )}
 
-            {meeting.club_name && meeting.space_slug && meeting.club_id && (
-              <Link
-                href={`/space/${meeting.space_slug}/${meeting.scope_type}/${meeting.scope_code}`}
-              >
-                <Badge variant="secondary">{meeting.club_name}</Badge>
-              </Link>
-            )}
+            {/* CLUB BADGE */}
+            {meeting.club_name &&
+              meeting.scope_type &&
+              meeting.scope_code && (
+                <Link
+                  href={`/space/${meeting.space_slug}/${meeting.scope_type}/${meeting.scope_code}`}
+                >
+                  <Badge variant="secondary">
+                    {meeting.club_name}
+                  </Badge>
+                </Link>
+              )}
           </div>
 
-          {/* TITLE */}
-          <CardTitle className="pr-28 leading-snug">
-            {meeting.summary}
-          </CardTitle>
+          {/* TITLE + DESKTOP TAGS */}
+          <div className="flex items-start justify-between gap-3">
+
+            {/* TITLE */}
+            <CardTitle className="leading-snug break-words">
+              {meeting.summary}
+            </CardTitle>
+
+            {/* DESKTOP TAGS */}
+            <div
+              className="hidden sm:flex items-center gap-2 flex-shrink-0"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {meeting.space_slug && meeting.space_logo && (
+                <Link href={`/space/${meeting.space_slug}`}>
+                  <img
+                    src={meeting.space_logo}
+                    alt=""
+                    className="h-6 w-6 rounded-md border"
+                  />
+                </Link>
+              )}
+
+              {meeting.club_name &&
+                meeting.scope_type &&
+                meeting.scope_code && (
+                  <Link
+                    href={`/space/${meeting.space_slug}/${meeting.scope_type}/${meeting.scope_code}`}
+                  >
+                    <Badge variant="secondary">
+                      {meeting.club_name}
+                    </Badge>
+                  </Link>
+                )}
+            </div>
+
+          </div>
 
           {/* DESCRIPTION */}
           {meeting.details && (
-            <CardDescription>
+            <CardDescription className="break-words">
               {meeting.details}
             </CardDescription>
           )}
 
-          {/* ATTENDEE AVATARS */}
+          {/* ATTENDEES */}
           {meeting.attendees?.length > 0 && (
             <AttendeeAvatarGroup attendees={meeting.attendees} />
           )}
