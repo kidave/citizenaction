@@ -26,7 +26,6 @@ export default function AuthoritySearchModal({
   selected = [],
   onChange = () => {},
   onSubmit = () => {},
-  existingIds = [],
   existingEntities = [],
 }) {
   const [search, setSearch] = useState("");
@@ -50,11 +49,10 @@ export default function AuthoritySearchModal({
     if (exists) {
       onChange([]);
     } else {
-      onChange([item]); // 🔥 enforce single selection
+      onChange([item]);
     }
   }
 
-  // 🔥 helper: get first tagged user
   function getTaggedUser(entityId) {
     const found = existingEntities.find((e) => e.id === entityId);
     if (!found || !found.tagged_by) return null;
@@ -143,7 +141,6 @@ export default function AuthoritySearchModal({
                         {item.label}
                       </div>
 
-                      {/* 🔥 SINGLE USER */}
                       {taggedUser && (
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-muted-foreground">

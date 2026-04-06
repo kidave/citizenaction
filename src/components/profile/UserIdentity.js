@@ -12,21 +12,6 @@ import {
   AvatarFallback,
 } from "@/components/ui/avatar";
 
-/**
- * 🔥 Universal User Identity Component
- *
- * Use everywhere:
- * - Post header
- * - Tooltips
- * - Avatar groups
- * - Comments
- *
- * Supports:
- * - Hover profile preview
- * - Different sizes
- * - Optional name / timestamp
- */
-
 export function UserIdentity({
   username,
   name,

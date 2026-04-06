@@ -8,7 +8,7 @@ import {
   AvatarImage,
   AvatarFallback,
 } from "@/components/ui/avatar";
-import AuthoritySearchModal from "@/components/governance/AuthoritySearchModal";
+import AuthoritySelectorModal from "@/components/governance/AuthoritySelectorModal";
 
 export default function PostAuthoritySelector({
   governance_entities,
@@ -44,7 +44,7 @@ export default function PostAuthoritySelector({
 
       </div>
 
-      <AuthoritySearchModal
+      <AuthoritySelectorModal
         open={authorityOpen}
         onOpenChange={setAuthorityOpen}
         selected={governance_entities}

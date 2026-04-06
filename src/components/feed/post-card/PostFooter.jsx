@@ -1,20 +1,15 @@
 "use client";
 
 import { Orbit, Handshake, ArrowBigUpDash } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 import { useAuth } from "@/context/AuthContext";
 import { usePostFooter } from "@/hooks/feed/usePostFooter";
 import { useAuthorityActions } from "@/hooks/feed/useAuthorityActions";
+
 import GovernanceAvatarGroups from "@/components/governance/GovernanceAvatarGroups";
 import PostShareButton from "@/components/feed/PostShareButton";
-import AuthoritySearchModal from "@/components/governance/AuthoritySearchModal";
-
-import {
-  Avatar,
-  AvatarImage,
-  AvatarFallback,
-} from "@/components/ui/avatar";
+import AuthoritySelectorModal from "@/components/governance/AuthoritySelectorModal";
 
 import {
   Tooltip,
@@ -38,37 +33,63 @@ export default function PostFooter({ post }) {
 
   const { updateAuthorities } = useAuthorityActions(post.id, user);
 
-  const [authorities, setAuthorities] = useState(
-    post.governance_entities || []
-  );
+  /* -------------------------
+     🔹 MY AUTHORITIES (FROM DB)
+  ------------------------- */
+  const myAuthorities = useMemo(() => {
+    return (post.governance_entities || [])
+      .filter((e) => e.tagged_by === user?.id)
+      .map((e) => ({
+        id: e.id,
+        label: e.label,
+        image_url: e.image_url,
+      }));
+  }, [post.governance_entities, user?.id]);
 
   /* -------------------------
-     SYNC WITH POST
+     🔹 LOCAL STATE (OPTIMISTIC)
   ------------------------- */
+  const [selectedAuthorities, setSelectedAuthorities] =
+    useState(myAuthorities);
+
   useEffect(() => {
-    setAuthorities(post.governance_entities || []);
-  }, [post.governance_entities]);
+    setSelectedAuthorities(myAuthorities);
+  }, [myAuthorities]);
 
   /* -------------------------
-     DEDUPE FOR DISPLAY
+     🔹 OPTIMISTIC DISPLAY (KEY FIX)
   ------------------------- */
-  const uniqueAuthorities = Array.from(
-    new Map((authorities || []).map((a) => [a.id, a])).values()
-  );
+  const displayAuthorities = useMemo(() => {
+    const others = (post.governance_entities || []).filter(
+      (e) => e.tagged_by !== user?.id
+    );
+
+    const mine = selectedAuthorities.map((e) => ({
+      ...e,
+      tagged_by: user?.id,
+      tagged_by_name: "You",
+      tagged_by_avatar: null,
+    }));
+
+    return [...others, ...mine];
+  }, [post.governance_entities, selectedAuthorities, user?.id]);
 
   /* -------------------------
-     SUBMIT (SINGLE AUTHORITY)
+     🔹 SUBMIT (OPTIMISTIC)
   ------------------------- */
   async function handleAuthoritySubmit(selected) {
-    const single = selected?.slice(0, 1); // enforce 1
+    const prev = selectedAuthorities;
 
-    const prev = authorities;
-    setAuthorities(single);
+    // ✅ instant UI update
+    setSelectedAuthorities(selected);
 
     try {
-      await updateAuthorities(single);
-    } catch {
-      setAuthorities(prev);
+      await updateAuthorities(selected);
+    } catch (err) {
+      console.error(err);
+
+      // ❌ rollback if failed
+      setSelectedAuthorities(prev);
     }
   }
 
@@ -79,7 +100,6 @@ export default function PostFooter({ post }) {
         {/* ================= LEFT ================= */}
         <div className="flex items-center gap-3">
 
-          {/* BUTTON */}
           {user && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -93,14 +113,12 @@ export default function PostFooter({ post }) {
                   <Orbit className="w-5 h-5" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent>
-                Tag authority
-              </TooltipContent>
+              <TooltipContent>Tag authority</TooltipContent>
             </Tooltip>
           )}
 
-          {/* GOVERNANCE AVATARS */}
-          <GovernanceAvatarGroups entities={authorities} />
+          {/* 🔥 THIS NOW UPDATES INSTANTLY */}
+          <GovernanceAvatarGroups entities={displayAuthorities} />
 
         </div>
 
@@ -113,9 +131,7 @@ export default function PostFooter({ post }) {
               <button
                 onClick={handleSupport}
                 className={`flex items-center gap-2 transition ${
-                  supported
-                    ? "text-primary font-medium"
-                    : "hover:text-foreground"
+                  supported ? "text-primary font-medium" : "hover:text-foreground"
                 }`}
               >
                 <ArrowBigUpDash className="w-4 h-4" />
@@ -123,7 +139,7 @@ export default function PostFooter({ post }) {
               </button>
             </TooltipTrigger>
             <TooltipContent>
-              {supported ? "Remove support" : "Support this action"}
+              {supported ? "Remove support" : "Support"}
             </TooltipContent>
           </Tooltip>
 
@@ -133,9 +149,7 @@ export default function PostFooter({ post }) {
               <button
                 onClick={handleContribute}
                 className={`flex items-center gap-2 transition ${
-                  contributing
-                    ? "text-primary font-medium"
-                    : "hover:text-foreground"
+                  contributing ? "text-primary font-medium" : "hover:text-foreground"
                 }`}
               >
                 <Handshake className="w-4 h-4" />
@@ -143,9 +157,7 @@ export default function PostFooter({ post }) {
               </button>
             </TooltipTrigger>
             <TooltipContent>
-              {contributing
-                ? "Withdraw contribution"
-                : "Contribute to this action"}
+              {contributing ? "Withdraw" : "Contribute"}
             </TooltipContent>
           </Tooltip>
 
@@ -155,14 +167,12 @@ export default function PostFooter({ post }) {
       </div>
 
       {/* ================= MODAL ================= */}
-      <AuthoritySearchModal
+      <AuthoritySelectorModal
         open={authorityOpen}
         onOpenChange={setAuthorityOpen}
-        selected={uniqueAuthorities.slice(0, 1)} // enforce single
-        onChange={(list) => setAuthorities(list.slice(0, 1))}
+        selected={selectedAuthorities}
+        onChange={setSelectedAuthorities}
         onSubmit={handleAuthoritySubmit}
-        existingIds={uniqueAuthorities.map((e) => e.id)}
-        existingEntities={authorities}
       />
     </TooltipProvider>
   );

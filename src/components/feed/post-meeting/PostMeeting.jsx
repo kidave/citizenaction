@@ -48,7 +48,7 @@ export default function PostMeeting({ meeting }) {
             >
               <Row className="items-center justify-between">
                 <UserIdentity
-                  username={person.username}
+                  username={person.username || person.name}
                   name={person.name}
                   avatar={person.avatar}
                 />

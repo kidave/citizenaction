@@ -10,12 +10,19 @@ export function useAuthorityActions(postId, user) {
   async function updateAuthorities(selected = []) {
     if (!user) return;
 
-    // 🔥 enforce single authority
-    const authority = selected?.[0] || null;
-
     try {
       /* -------------------------
-         DELETE ONLY MY OLD TAG
+         CLEAN UNIQUE (FRONTEND SAFE)
+      ------------------------- */
+      const uniqueMap = new Map();
+      selected.forEach((a) => {
+        uniqueMap.set(a.id, a);
+      });
+
+      const uniqueSelected = Array.from(uniqueMap.values());
+
+      /* -------------------------
+         DELETE MY OLD TAGS
       ------------------------- */
       const { error: deleteError } = await supabase
         .from("action_escalate")
@@ -26,26 +33,25 @@ export function useAuthorityActions(postId, user) {
       if (deleteError) throw deleteError;
 
       /* -------------------------
-         INSERT NEW (IF EXISTS)
+         INSERT MULTIPLE
       ------------------------- */
-      if (authority) {
+      if (uniqueSelected.length > 0) {
+        const rows = uniqueSelected.map((a) => ({
+          action_id: postId,
+          governance_entity_id: a.id,
+          escalated_by: user.id,
+        }));
+
         const { error: insertError } = await supabase
           .from("action_escalate")
-          .insert({
-            action_id: postId,
-            governance_entity_id: authority.id,
-            escalated_by: user.id,
-          });
+          .insert(rows);
 
         if (insertError) throw insertError;
       }
 
-      /* -------------------------
-         REFRESH FEED
-      ------------------------- */
       queryClient.invalidateQueries({ queryKey: ["feed"] });
 
-      toast.success("Authority updated");
+      toast.success("Authorities updated");
     } catch (err) {
       console.error(err);
       toast.error("Failed to update authority");
@@ -53,7 +59,5 @@ export function useAuthorityActions(postId, user) {
     }
   }
 
-  return {
-    updateAuthorities,
-  };
+  return { updateAuthorities };
 }

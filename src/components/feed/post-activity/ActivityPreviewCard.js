@@ -1,14 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { motion } from "framer-motion";
+
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-
+import AutoImageCarousel from "@/components/ui/AutoImageCarousel";
 import GovernanceAvatarGroups from "@/components/governance/GovernanceAvatarGroups";
 import formatPostDate from "@/utils/posts/formatPostDate";
 
-// ✅ ADD THIS
 const typeStyles = {
   action: "border-l-4 border-red-500 bg-red-50/30",
   report: "border-l-4 border-blue-500 bg-blue-50/30",
@@ -18,34 +19,16 @@ const typeStyles = {
 
 export default function ActivityPreviewCard({ post }) {
   const router = useRouter();
+  const [isHovered, setIsHovered] = useState(false);
 
   const handleNavigate = () => {
     sessionStorage.setItem(
       "feed-scroll",
       window.scrollY.toString()
     );
-
-    if (post.type === "meeting") {
-      router.push(`/meeting/${post.id}`);
-    } else {
-      router.push(`/post/${post.id}`);
-    }
+    router.push(`/post/${post.id}`);
   };
 
-  // ✅ SAFE image extraction
-  let image = null;
-
-  if (Array.isArray(post.attachments) && post.attachments.length > 0) {
-    const first = post.attachments[0];
-
-    if (typeof first === "string") {
-      image = first;
-    } else if (typeof first === "object" && first?.url) {
-      image = first.url;
-    }
-  }
-
-  // ✅ date
   const dateString =
     post.metadata_date || post.sort_date;
 
@@ -54,31 +37,30 @@ export default function ActivityPreviewCard({ post }) {
     "absolute"
   );
 
-  // ✅ APPLY STYLE
   const style = typeStyles[post.type] || "";
 
   return (
     <Card
       onClick={handleNavigate}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       className={`group cursor-pointer overflow-hidden hover:shadow-lg transition ${style}`}
     >
-      {/* IMAGE */}
+      {/* ================= IMAGE AREA ================= */}
       <div className="relative h-40 bg-muted overflow-hidden">
-        {image ? (
-          <>
-            <Image
-              src={image}
-              alt="activity"
-              fill
-              sizes="(max-width: 768px) 100vw, 33vw"
-              className="object-cover"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-              }}
-            />
+
+        {/* IMAGE LAYER */}
+        {post.attachments?.length > 0 && (
+          <motion.div
+            animate={{ opacity: isHovered ? 0 : 1 }}
+            transition={{ duration: 0.25 }}
+            className="absolute inset-0"
+          >
+            <AutoImageCarousel attachments={post.attachments} />
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
 
+            {/* TITLE ON IMAGE */}
             <div className="absolute bottom-2 left-2 right-2 text-white text-sm font-medium line-clamp-2">
               {post.summary || "Untitled"}
             </div>
@@ -86,26 +68,48 @@ export default function ActivityPreviewCard({ post }) {
             <div className="absolute top-2 right-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded">
               {post.type?.toUpperCase()}
             </div>
-          </>
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
-            {post.type?.toUpperCase() || "POST"}
-          </div>
+          </motion.div>
         )}
+
+        {/* HOVER CONTENT (REPLACES IMAGE) */}
+        <motion.div
+          initial={false}
+          animate={{
+            opacity: isHovered ? 1 : 0,
+          }}
+          transition={{ duration: 0.25 }}
+          className="absolute inset-0 p-3 flex flex-col bg-background"
+        >
+          {/* TITLE moves to top */}
+          <div className="text-sm font-semibold line-clamp-2">
+            {post.summary || "Untitled"}
+          </div>
+
+          {/* DETAILS expand inside fixed height */}
+          <div className="text-xs text-muted-foreground mt-1 overflow-hidden">
+            <div className="line-clamp-7">
+              {post.details}
+            </div>
+          </div>
+        </motion.div>
       </div>
 
-      {/* CONTENT */}
-      <CardHeader className="space-y-1">
-        {(post.details || post.summary) && (
-          <div className="text-sm font-medium line-clamp-2">
-            {post.details || post.summary}
-          </div>
-        )}
-      </CardHeader>
+      {/* ================= CONTENT (unchanged) ================= */}
+      <motion.div
+        animate={{ opacity: isHovered ? 0 : 1 }}
+        transition={{ duration: 0.2 }}
+      >
+        <CardHeader className="space-y-1">
+          {(post.details || post.summary) && (
+            <div className="text-xs text-muted-foreground line-clamp-2">
+              {post.details || post.summary}
+            </div>
+          )}
+        </CardHeader>
+      </motion.div>
 
-      {/* FOOTER */}
+      {/* ================= FOOTER ================= */}
       <CardContent className="flex items-center justify-between">
-
         <div className="flex items-center gap-2">
           <Avatar className="h-7 w-7">
             <AvatarImage src={post.author_avatar} />
@@ -118,14 +122,12 @@ export default function ActivityPreviewCard({ post }) {
         <GovernanceAvatarGroups
           entities={post.governance_entities}
         />
-
       </CardContent>
 
       {/* DATE */}
       <div className="px-4 pb-3 text-xs text-muted-foreground">
         {formattedDate}
       </div>
-
     </Card>
   );
 }

@@ -4,7 +4,7 @@ import { UserIdentity } from "@/components/profile/UserIdentity";
 
 export default function UserAvatarGroup({
   users = [],
-  max = 4,
+  max = 5,
 }) {
   if (!users?.length) return null;
 
