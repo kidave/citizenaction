@@ -40,30 +40,25 @@ export function useCreatePost() {
 
       if (error) throw error;
 
-      /* 🔥 3️⃣ REPLACE AUTHORITIES (SIMPLIFIED) */
-      if (postData.governance_entities) {
+      /* 🔥 INSERT TAGGED AUTHORITIES (CORRECT TABLE) */
+      if (postData.governance_entities?.length > 0) {
+        const uniqueMap = new Map();
+        postData.governance_entities.forEach((a) => {
+          uniqueMap.set(a.id, a);
+        });
 
-        // remove my existing (safe even for new post)
-        await supabase
-          .from("action_escalate")
-          .delete()
-          .eq("action_id", feedRow.id)
-          .eq("escalated_by", postData.author_id);
+        const uniqueEntities = Array.from(uniqueMap.values());
 
-        // insert new
-        if (postData.governance_entities.length > 0) {
-          const { error: escalateError } = await supabase
-            .from("action_escalate")
-            .insert(
-              postData.governance_entities.map((a) => ({
-                action_id: feedRow.id,
-                governance_entity_id: a.id,
-                escalated_by: postData.author_id,
-              }))
-            );
+        const { error: tagError } = await supabase
+          .from("feed_governance_entities")
+          .insert(
+            uniqueEntities.map((a) => ({
+              feed_id: feedRow.id,
+              governance_entity_id: a.id,
+            }))
+          );
 
-          if (escalateError) throw escalateError;
-        }
+        if (tagError) throw tagError;
       }
 
       return feedRow;

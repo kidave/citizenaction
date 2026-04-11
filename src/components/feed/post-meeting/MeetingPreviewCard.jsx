@@ -82,7 +82,7 @@ export default function MeetingPreviewCard({ meeting }) {
           </div>
 
           <div className="text-xs text-muted-foreground mt-1 overflow-hidden">
-            <div className="line-clamp-7">
+            <div className="line-clamp-6">
               {meeting.details}
             </div>
           </div>

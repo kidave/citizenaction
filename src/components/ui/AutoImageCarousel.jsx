@@ -15,14 +15,12 @@ export default function AutoImageCarousel({ attachments = [] }) {
   const [isHovered, setIsHovered] = useState(false);
   const intervalRef = useRef(null);
 
-  // ⏱️ Slower + controlled autoplay
   useEffect(() => {
     if (images.length <= 1 || isHovered) return;
 
     intervalRef.current = setInterval(() => {
       setIndex((prev) => (prev + 1) % images.length);
-    }, 4000); // 🔥 slower (4 sec)
-
+    }, 4000);
     return () => clearInterval(intervalRef.current);
   }, [images.length, isHovered]);
 

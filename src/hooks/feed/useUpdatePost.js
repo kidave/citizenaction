@@ -33,29 +33,34 @@ export function useUpdatePost() {
         })
         .eq("id", postId);
 
-      /* 🔥 REPLACE AUTHORITIES (SIMPLIFIED) */
+      /* 🔥 UPDATE TAGGED AUTHORITIES */
       if (postData.governance_entities) {
-
-        // delete ONLY my tags
+        // 1. delete old tags
         await supabase
-          .from("action_escalate")
+          .from("feed_governance_entities")
           .delete()
-          .eq("action_id", postId)
-          .eq("escalated_by", postData.author_id);
+          .eq("feed_id", postId);
 
-        // insert new
-        if (postData.governance_entities.length > 0) {
-          const { error: escalateError } = await supabase
-            .from("action_escalate")
+        // 2. deduplicate
+        const uniqueMap = new Map();
+        postData.governance_entities.forEach((a) => {
+          uniqueMap.set(a.id, a);
+        });
+
+        const uniqueEntities = Array.from(uniqueMap.values());
+
+        // 3. insert new
+        if (uniqueEntities.length > 0) {
+          const { error: tagError } = await supabase
+            .from("feed_governance_entities")
             .insert(
-              postData.governance_entities.map((a) => ({
-                action_id: postId,
+              uniqueEntities.map((a) => ({
+                feed_id: postId,
                 governance_entity_id: a.id,
-                escalated_by: postData.author_id,
               }))
             );
 
-          if (escalateError) throw escalateError;
+          if (tagError) throw tagError;
         }
       }
 

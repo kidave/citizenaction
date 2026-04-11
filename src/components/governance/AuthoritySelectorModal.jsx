@@ -22,7 +22,7 @@ export default function AuthoritySelectorModal({
       <DialogContent className="max-w-2xl">
 
         <DialogHeader>
-          <DialogTitle>Select Authority</DialogTitle>
+          <DialogTitle>Tag Authority</DialogTitle>
         </DialogHeader>
 
         <AuthorityExplorer
