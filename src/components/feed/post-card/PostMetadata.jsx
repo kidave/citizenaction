@@ -20,7 +20,6 @@ export default function PostMetadata({
   type,
   title = "Meeting",
   description = "",
-  content,
 }) {
 
   const [meetingStatus, setMeetingStatus] = useState(null);
@@ -196,20 +195,6 @@ END:VCALENDAR
     link.click();
 
   };
-
-  useEffect(() => {
-    if (!content) return;
-
-    // only auto-fill if user hasn't manually set
-    if (date && time) return;
-
-    const parsed = parseNaturalDate(content);
-
-    if (parsed) {
-      setDate(parsed.date);
-      setTime(parsed.time);
-    }
-  }, [content]);
 
   /* ================= RENDER ================= */
 
