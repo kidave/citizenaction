@@ -10,13 +10,6 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 
-/**
- * PROPS
- * value: { scope_type, scope_code }
- * onChange: ({ scope_type, scope_code }) => void
- * allowedTypes: ['city','ward'] etc
- * allowClear: boolean
- */
 export default function ScopeSelector({
   value,
   onChange,
@@ -59,7 +52,7 @@ export default function ScopeSelector({
   });
 
   /* -------------------------
-     RESET
+     HANDLERS
   ------------------------- */
 
   function handleTypeChange(type) {
@@ -95,54 +88,60 @@ export default function ScopeSelector({
         </SelectContent>
       </Select>
 
-      {/* COUNTRY */}
-      {scope_type === "country" && (
-        <Dropdown
-          data={countryQuery.data}
-          value={scope_code}
-          onChange={handleChange}
-        />
-      )}
+      {/* 🔥 GRID START */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
 
-      {/* STATE */}
-      {scope_type === "state" && (
-        <Dropdown
-          data={stateQuery.data}
-          value={scope_code}
-          onChange={handleChange}
-        />
-      )}
+        {/* COUNTRY */}
+        {scope_type === "country" && (
+          <Dropdown
+            data={countryQuery.data}
+            value={scope_code}
+            onChange={handleChange}
+          />
+        )}
 
-      {/* REGION */}
-      {scope_type === "region" && (
-        <Dropdown
-          data={regionQuery.data}
-          value={scope_code}
-          onChange={handleChange}
-        />
-      )}
+        {/* STATE */}
+        {scope_type === "state" && (
+          <Dropdown
+            data={stateQuery.data}
+            value={scope_code}
+            onChange={handleChange}
+          />
+        )}
 
-      {/* CITY */}
-      {(scope_type === "city" || scope_type === "ward") && (
-        <Dropdown
-          data={cityQuery.data}
-          value={scope_type === "city" ? scope_code : parentCode}
-          onChange={(v) => {
-            setParentCode(v);
-            if (scope_type === "city") handleChange(v);
-          }}
-        />
-      )}
+        {/* REGION */}
+        {scope_type === "region" && (
+          <Dropdown
+            data={regionQuery.data}
+            value={scope_code}
+            onChange={handleChange}
+          />
+        )}
 
-      {/* WARD */}
-      {scope_type === "ward" && (
-        <Dropdown
-          data={wardQuery.data}
-          value={scope_code}
-          disabled={!parentCode}
-          onChange={handleChange}
-        />
-      )}
+        {/* CITY */}
+        {(scope_type === "city" || scope_type === "ward") && (
+          <Dropdown
+            data={cityQuery.data}
+            value={scope_type === "city" ? scope_code : parentCode}
+            onChange={(v) => {
+              setParentCode(v);
+              if (scope_type === "city") handleChange(v);
+            }}
+          />
+        )}
+
+        {/* WARD */}
+        {scope_type === "ward" && (
+          <Dropdown
+            data={wardQuery.data}
+            value={scope_code}
+            disabled={!parentCode}
+            onChange={handleChange}
+          />
+        )}
+
+      </div>
+      {/* 🔥 GRID END */}
 
       {/* CLEAR */}
       {allowClear && (

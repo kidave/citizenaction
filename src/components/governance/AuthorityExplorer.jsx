@@ -8,7 +8,6 @@ import EntityTypeSelector from "@/components/governance/EntityTypeSelector";
 
 import { useAuthorityExplorer } from "@/hooks/governance/useAuthorityExplorer";
 import { useGovernanceTree } from "@/hooks/governance/useGovernanceTree";
-import { getEntityHierarchy } from "@/utils/governance/getEntityHierarchy";
 
 export default function AuthorityExplorer({
   selected = [],
@@ -27,38 +26,44 @@ export default function AuthorityExplorer({
   } = useAuthorityExplorer();
 
   /* -------------------------
-     DERIVE SCOPE
+     ✅ FIX: CURRENT PARENT
+  ------------------------- */
+  const currentParent = stack[stack.length - 1] || null;
+
+  /* -------------------------
+     ✅ DERIVE SCOPE (SAFE)
+  ------------------------- */
+  const effectiveScope =
+    scope.city
+      ? { type: "city", code: scope.city }
+      : scope.region
+      ? { type: "region", code: scope.region }
+      : scope.state
+      ? { type: "state", code: scope.state }
+      : { type: "country", code: scope.country };
+
+  /* -------------------------
+     DATA
   ------------------------- */
   const { data = [], isLoading } = useGovernanceTree({
     parentId: search ? null : currentParent?.id,
-    scopeType: scope.scope_type,
-    scopeCode: scope.scope_code,
+    scopeType: effectiveScope.type,
+    scopeCode: effectiveScope.code,
     search,
     entityType,
   });
 
   /* -------------------------
-     TOGGLE (AUTO HIERARCHY)
+     ✅ TOGGLE (NO HIERARCHY)
   ------------------------- */
   function toggle(entity) {
     const exists = selected.find((e) => e.id === entity.id);
 
     if (exists) {
       onChange(selected.filter((e) => e.id !== entity.id));
-      return;
+    } else {
+      onChange([...selected, entity]);
     }
-
-    const hierarchy = getEntityHierarchy(entity, data);
-
-    const updated = [...selected];
-
-    hierarchy.forEach((item) => {
-      if (!updated.find((e) => e.id === item.id)) {
-        updated.push(item);
-      }
-    });
-
-    onChange(updated);
   }
 
   /* -------------------------
@@ -88,7 +93,7 @@ export default function AuthorityExplorer({
   return (
     <div className="space-y-3">
 
-      {/* TOP */}
+      {/* ================= TOP ================= */}
       <div className="space-y-2">
 
         <div className="flex gap-2 items-center">
@@ -108,12 +113,11 @@ export default function AuthorityExplorer({
         <ScopeSelector
           value={scope}
           onChange={setScope}
-          allowClear
         />
 
       </div>
 
-      {/* SELECTED */}
+      {/* ================= SELECTED ================= */}
       {selectedItems.length > 0 && (
         <div className="space-y-1">
 
@@ -132,10 +136,12 @@ export default function AuthorityExplorer({
         </div>
       )}
 
-      {/* LIST */}
-      <div className="grid gap-2 overflow-y-auto
+      {/* ================= LIST ================= */}
+      <div
+        className="grid gap-2 overflow-y-auto
         max-h-[calc(100vh-260px)]
-        grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+        grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
+      >
 
         {isLoading && (
           <p className="text-sm text-muted-foreground col-span-full">
@@ -161,7 +167,7 @@ export default function AuthorityExplorer({
 
       </div>
 
-      {/* RESET */}
+      {/* ================= RESET ================= */}
       <div className="flex justify-end">
         <button
           onClick={reset}
