@@ -30,6 +30,9 @@ export default function PostEditorMetadata({ editor }) {
       <Field className="col-span-2">
         <FieldLabel className="flex items-center gap-2">
           Date & Time
+          <span className="text-xs text-muted-foreground">
+            (defaults to now)
+          </span>
           <FieldInfo text={infoText} />
         </FieldLabel>
 

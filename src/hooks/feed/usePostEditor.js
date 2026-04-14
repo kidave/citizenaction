@@ -46,11 +46,58 @@ export function usePostEditor(post = null) {
   /* Metadata Fields      */
   /* -------------------- */
 
-  const [date, setDate] = useState(post?.date || "");
-  const [time, setTime] = useState(post?.time ?? null);
+  const now = new Date();
+  const [date, setDate] = useState(post?.date || now.toISOString().split("T")[0]);
+  const [time, setTime] = useState(post?.time || now.toTimeString().slice(0, 5));
   const [location, setLocation] = useState(post?.location || "");
   const [scope_type, setScopeType] = useState(post?.scope_type || "");
   const [scope_code, setScopeCode] = useState(post?.scope_code || "");
+  const [lat, setLat] = useState(post?.lat || null);
+  const [lng, setLng] = useState(post?.lng || null);
+  const [address, setAddress] = useState(post?.address || null);
+  const [place_id, setPlaceId] = useState(post?.place_id || null);
+
+  function parseNaturalDate(input) {
+  if (!input) return null;
+
+  const now = new Date();
+  const text = input.toLowerCase();
+
+  let date = new Date(now);
+
+  if (text.includes("tomorrow")) {
+    date.setDate(now.getDate() + 1);
+  }
+
+  if (text.includes("today")) {
+    date = now;
+  }
+
+  if (text.includes("next monday")) {
+    const day = now.getDay();
+    const diff = (8 - day) % 7 || 7;
+    date.setDate(now.getDate() + diff);
+  }
+
+  // extract time (5pm, 17:30 etc)
+  const timeMatch = text.match(/(\d{1,2})(:(\d{2}))?\s*(am|pm)?/);
+
+    if (timeMatch) {
+      let hours = parseInt(timeMatch[1]);
+      const minutes = parseInt(timeMatch[3] || "0");
+
+      if (timeMatch[4] === "pm" && hours < 12) hours += 12;
+      if (timeMatch[4] === "am" && hours === 12) hours = 0;
+
+      date.setHours(hours);
+      date.setMinutes(minutes);
+    }
+
+    return {
+      date: date.toISOString().split("T")[0],
+      time: date.toTimeString().slice(0, 5),
+    };
+  }
 
   /* -------------------- */
   /* Timeline State       */
@@ -117,6 +164,10 @@ export function usePostEditor(post = null) {
       date,
       time,
       location,
+      lat,
+      lng,
+      place_id,
+      address,
       links,
       hashtags,
       timeline: timeline.sort(
@@ -188,6 +239,14 @@ export function usePostEditor(post = null) {
     setTime,
     location,
     setLocation,
+    lat,
+    setLat,
+    lng,
+    setLng,
+    address,
+    setAddress,
+    place_id,
+    setPlaceId,
     scope_type,
     setScopeType,
     scope_code,

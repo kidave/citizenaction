@@ -15,6 +15,7 @@
     "@editorjs/table": "^2.4.5",
     "@editorjs/warning": "^1.4.1",
     "@hookform/resolvers": "^5.2.2",
+    "@mapbox/search-js-react": "^1.5.1",
     "@mapbox/vector-tile": "^2.0.4",
     "@picocss/pico": "^2.1.1",
     "@radix-ui/react-accordion": "^1.2.12",

@@ -29,21 +29,10 @@ export default function AuthorityExplorer({
   /* -------------------------
      DERIVE SCOPE
   ------------------------- */
-  const effectiveScope =
-    scope.city
-      ? { type: "city", code: scope.city }
-      : scope.region
-      ? { type: "region", code: scope.region }
-      : scope.state
-      ? { type: "state", code: scope.state }
-      : { type: "country", code: scope.country };
-
-  const currentParent = stack[stack.length - 1];
-
   const { data = [], isLoading } = useGovernanceTree({
     parentId: search ? null : currentParent?.id,
-    scopeType: effectiveScope.type,
-    scopeCode: effectiveScope.code,
+    scopeType: scope.scope_type,
+    scopeCode: scope.scope_code,
     search,
     entityType,
   });

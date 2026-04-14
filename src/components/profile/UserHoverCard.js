@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Row } from "@/components/layout/Row";
 import { Stack } from "@/components/layout/Stack";
 
-import { usePublicProfile } from "@/hooks/usePublicProfile";
+import { usePublicProfile } from "@/hooks/user/usePublicProfile";
 
 import Image from "next/image";
 import Link from "next/link";

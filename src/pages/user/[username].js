@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { usePublicProfile } from "@/hooks/usePublicProfile";
+import { usePublicProfile } from "@/hooks/user/usePublicProfile";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";

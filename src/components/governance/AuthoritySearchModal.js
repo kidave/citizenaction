@@ -13,7 +13,7 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { useState } from "react";
-import { useGovernance } from "@/hooks/useGovernance";
+import { useGovernance } from "@/hooks/governance/useGovernance";
 
 import { UserIdentity } from "@/components/profile/UserIdentity";
 

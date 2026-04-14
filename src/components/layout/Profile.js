@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/router";
 import { useAuth } from "@/context/AuthContext";
-import { useMyProfile } from "@/hooks/useMyProfile";
+import { useMyProfile } from "@/hooks/user/useMyProfile";
 
 import {
   SidebarMenu,

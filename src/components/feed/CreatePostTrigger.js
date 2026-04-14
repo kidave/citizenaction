@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/router";
 import { useAuth } from "@/context/AuthContext";
-import { useMyProfile } from "@/hooks/useMyProfile";
+import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { LoginModal } from "@/components/auth/LoginModal";

@@ -40,22 +40,32 @@ export function useCreatePost() {
 
       if (error) throw error;
 
-      /* 🔥 INSERT TAGGED AUTHORITIES (CORRECT TABLE) */
+      /* 🔥 INSERT TAGGED AUTHORITIES (FINAL SAFE VERSION) */
       if (postData.governance_entities?.length > 0) {
+
+        // 1️⃣ STRICT DEDUP
         const uniqueMap = new Map();
+
         postData.governance_entities.forEach((a) => {
-          uniqueMap.set(a.id, a);
+          if (a?.id) {
+            uniqueMap.set(a.id, a);
+          }
         });
 
         const uniqueEntities = Array.from(uniqueMap.values());
 
+        // 2️⃣ UPSERT
         const { error: tagError } = await supabase
           .from("feed_governance_entities")
-          .insert(
+          .upsert(
             uniqueEntities.map((a) => ({
               feed_id: feedRow.id,
               governance_entity_id: a.id,
-            }))
+            })),
+            {
+              onConflict: "feed_id,governance_entity_id",
+              ignoreDuplicates: true,
+            }
           );
 
         if (tagError) throw tagError;

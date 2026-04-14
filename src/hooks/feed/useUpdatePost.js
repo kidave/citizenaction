@@ -33,31 +33,41 @@ export function useUpdatePost() {
         })
         .eq("id", postId);
 
-      /* 🔥 UPDATE TAGGED AUTHORITIES */
+      /* 🔥 UPDATE TAGGED AUTHORITIES (FINAL SAFE VERSION) */
       if (postData.governance_entities) {
-        // 1. delete old tags
-        await supabase
+
+        // 1️⃣ DELETE OLD TAGS
+        const { error: deleteError } = await supabase
           .from("feed_governance_entities")
           .delete()
           .eq("feed_id", postId);
 
-        // 2. deduplicate
+        if (deleteError) throw deleteError;
+
+        // 2️⃣ STRICT DEDUP (IMPORTANT)
         const uniqueMap = new Map();
+
         postData.governance_entities.forEach((a) => {
-          uniqueMap.set(a.id, a);
+          if (a?.id) {
+            uniqueMap.set(a.id, a);
+          }
         });
 
         const uniqueEntities = Array.from(uniqueMap.values());
 
-        // 3. insert new
+        // 3️⃣ UPSERT (KEY FIX)
         if (uniqueEntities.length > 0) {
           const { error: tagError } = await supabase
             .from("feed_governance_entities")
-            .insert(
+            .upsert(
               uniqueEntities.map((a) => ({
                 feed_id: postId,
                 governance_entity_id: a.id,
-              }))
+              })),
+              {
+                onConflict: "feed_id,governance_entity_id",
+                ignoreDuplicates: true,
+              }
             );
 
           if (tagError) throw tagError;

@@ -1,128 +1,76 @@
 "use client";
 
-import { useGeographicScopes } from "@/hooks/useGeographicScopes";
-import { COUNTRY_CODE } from "@/config/scopeConfig";
-
+import { useState } from "react";
+import { useGeographicScopes } from "@/hooks/geography/useGeographicScopes";
 import {
   Select,
-  SelectContent,
-  SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectContent,
+  SelectItem,
 } from "@/components/ui/select";
 
+/**
+ * PROPS
+ * value: { scope_type, scope_code }
+ * onChange: ({ scope_type, scope_code }) => void
+ * allowedTypes: ['city','ward'] etc
+ * allowClear: boolean
+ */
 export default function ScopeSelector({
   value,
   onChange,
+  allowedTypes = ["country", "state", "region", "city", "ward"],
+  allowClear = false,
 }) {
-  /* -------------------------
-     SAFE VALUE (INDIA DEFAULT)
-  ------------------------- */
-  const safeValue = value || {
-    country: COUNTRY_CODE, // always IN
-    state: "",
-    region: "",
-    city: "",
-  };
+  const { scope_type, scope_code } = value || {};
+
+  const [parentCode, setParentCode] = useState(null);
 
   /* -------------------------
-     QUERIES
+     FETCH DATA
   ------------------------- */
+
+  const countryQuery = useGeographicScopes({
+    type: "country",
+    enabled: allowedTypes.includes("country"),
+  });
 
   const stateQuery = useGeographicScopes({
     type: "state",
+    enabled: allowedTypes.includes("state"),
   });
 
-  // ✅ region works even without state
   const regionQuery = useGeographicScopes({
     type: "region",
-    parentCode: safeValue.state || null,
-    enabled: true,
+    enabled: allowedTypes.includes("region"),
   });
 
   const cityQuery = useGeographicScopes({
     type: "city",
-    parentCode: safeValue.region || safeValue.state || null,
-    enabled: true,
+    enabled:
+      allowedTypes.includes("city") || allowedTypes.includes("ward"),
+  });
+
+  const wardQuery = useGeographicScopes({
+    type: "ward",
+    parentCode,
+    enabled: scope_type === "ward" && !!parentCode,
   });
 
   /* -------------------------
-     UPDATE HELPER
+     RESET
   ------------------------- */
-  function update(next) {
+
+  function handleTypeChange(type) {
+    setParentCode(null);
+    onChange({ scope_type: type, scope_code: "" });
+  }
+
+  function handleChange(code) {
     onChange({
-      country: COUNTRY_CODE,
-      state: next.state ?? safeValue.state,
-      region: next.region ?? safeValue.region,
-      city: next.city ?? safeValue.city,
-    });
-  }
-
-  /* -------------------------
-     BACKSPACE LOGIC 🔥
-  ------------------------- */
-  function handleKeyDown(e) {
-    if (e.key !== "Backspace") return;
-
-    if (safeValue.city) {
-      update({ city: "" });
-    } else if (safeValue.region) {
-      update({ region: "", city: "" });
-    } else if (safeValue.state) {
-      update({ state: "", region: "", city: "" });
-    }
-  }
-
-  /* -------------------------
-     CHANGE HANDLERS
-  ------------------------- */
-
-  function handleStateChange(code) {
-    update({
-      state: code,
-      region: "",
-      city: "",
-    });
-  }
-
-  function handleRegionChange(code) {
-    const region = regionQuery.data?.find((r) => r.code === code);
-    if (!region) return;
-
-    update({
-      state: region.parent_code, // always state
-      region: code,
-      city: "",
-    });
-  }
-
-  function handleCityChange(code) {
-    const city = cityQuery.data?.find((c) => c.code === code);
-    if (!city) return;
-
-    let nextState = safeValue.state;
-    let nextRegion = "";
-
-    /* -------------------------
-       city → region → state
-    ------------------------- */
-    if (city.grandparent_code) {
-      nextRegion = city.parent_code;
-      nextState = city.grandparent_code;
-    }
-
-    /* -------------------------
-       city → state
-    ------------------------- */
-    else if (city.parent_code) {
-      nextState = city.parent_code;
-      nextRegion = "";
-    }
-
-    update({
-      state: nextState,
-      region: nextRegion,
-      city: code,
+      scope_type,
+      scope_code: code,
     });
   }
 
@@ -131,67 +79,101 @@ export default function ScopeSelector({
   ------------------------- */
 
   return (
-    <div
-      className="flex flex-wrap gap-2 items-center"
-      tabIndex={0} // needed for backspace
-      onKeyDown={handleKeyDown}
-      onClick={(e) => e.currentTarget.focus()} // auto-focus
-    >
+    <div className="space-y-2">
+
+      {/* TYPE */}
+      <Select value={scope_type || ""} onValueChange={handleTypeChange}>
+        <SelectTrigger>
+          <SelectValue placeholder="Select level" />
+        </SelectTrigger>
+        <SelectContent>
+          {allowedTypes.map((t) => (
+            <SelectItem key={t} value={t}>
+              {t.toUpperCase()}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* COUNTRY */}
+      {scope_type === "country" && (
+        <Dropdown
+          data={countryQuery.data}
+          value={scope_code}
+          onChange={handleChange}
+        />
+      )}
 
       {/* STATE */}
-      <Select
-        value={safeValue.state}
-        onValueChange={handleStateChange}
-      >
-        <SelectTrigger className="w-[150px]">
-          <SelectValue placeholder="State" />
-        </SelectTrigger>
-
-        <SelectContent>
-          {stateQuery.data?.map((item) => (
-            <SelectItem key={item.code} value={item.code}>
-              {item.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {scope_type === "state" && (
+        <Dropdown
+          data={stateQuery.data}
+          value={scope_code}
+          onChange={handleChange}
+        />
+      )}
 
       {/* REGION */}
-      <Select
-        value={safeValue.region}
-        onValueChange={handleRegionChange}
-      >
-        <SelectTrigger className="w-[150px]">
-          <SelectValue placeholder="Region" />
-        </SelectTrigger>
-
-        <SelectContent>
-          {regionQuery.data?.map((item) => (
-            <SelectItem key={item.code} value={item.code}>
-              {item.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {scope_type === "region" && (
+        <Dropdown
+          data={regionQuery.data}
+          value={scope_code}
+          onChange={handleChange}
+        />
+      )}
 
       {/* CITY */}
-      <Select
-        value={safeValue.city}
-        onValueChange={handleCityChange}
-      >
-        <SelectTrigger className="w-[150px]">
-          <SelectValue placeholder="City" />
-        </SelectTrigger>
+      {(scope_type === "city" || scope_type === "ward") && (
+        <Dropdown
+          data={cityQuery.data}
+          value={scope_type === "city" ? scope_code : parentCode}
+          onChange={(v) => {
+            setParentCode(v);
+            if (scope_type === "city") handleChange(v);
+          }}
+        />
+      )}
 
-        <SelectContent>
-          {cityQuery.data?.map((item) => (
-            <SelectItem key={item.code} value={item.code}>
-              {item.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {/* WARD */}
+      {scope_type === "ward" && (
+        <Dropdown
+          data={wardQuery.data}
+          value={scope_code}
+          disabled={!parentCode}
+          onChange={handleChange}
+        />
+      )}
 
+      {/* CLEAR */}
+      {allowClear && (
+        <button
+          className="text-xs text-muted-foreground"
+          onClick={() =>
+            onChange({ scope_type: "", scope_code: "" })
+          }
+        >
+          Clear
+        </button>
+      )}
     </div>
+  );
+}
+
+/* ---------------------------------- */
+
+function Dropdown({ data, value, onChange, disabled }) {
+  return (
+    <Select value={value || ""} onValueChange={onChange} disabled={disabled}>
+      <SelectTrigger>
+        <SelectValue placeholder="Select" />
+      </SelectTrigger>
+      <SelectContent>
+        {data?.map((item) => (
+          <SelectItem key={item.code} value={item.code}>
+            {item.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

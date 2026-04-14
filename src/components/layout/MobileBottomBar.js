@@ -3,7 +3,7 @@
 import { useRouter } from "next/router";
 import { Home, CirclePlus, Menu } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
-import { useMyProfile } from "@/hooks/useMyProfile";
+import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { useAuth } from "@/context/AuthContext";
 
 import {

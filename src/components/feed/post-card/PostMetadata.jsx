@@ -20,6 +20,7 @@ export default function PostMetadata({
   type,
   title = "Meeting",
   description = "",
+  content,
 }) {
 
   const [meetingStatus, setMeetingStatus] = useState(null);
@@ -46,6 +47,10 @@ export default function PostMetadata({
     return format(parsed, "h:mm a");
   };
 
+  function isUrl(str) {
+    return str?.startsWith("http");
+  }
+
   /* ================= MEETING STATUS (AUTO DERIVED) ================= */
 
   useEffect(() => {
@@ -56,25 +61,25 @@ export default function PostMetadata({
     const COUNTDOWN_THRESHOLD_MINUTES = 6 * 60;
 
     const updateStatus = () => {
+      const meetingStart = new Date(`${date}T${time}`);
+      if (!isValid(meetingStart)) return;
 
-      const meetingDate = new Date(`${date}T${time}`);
-      if (!isValid(meetingDate)) return;
+      const meetingEnd = new Date(
+        meetingStart.getTime() + 60 * 60 * 1000 // 1 hour duration
+      );
 
       const now = new Date();
 
-      if (isAfter(meetingDate, now)) {
-
+      // BEFORE START
+      if (isBefore(now, meetingStart)) {
         setMeetingStatus("Upcoming");
 
         const minutesLeft = differenceInMinutes(
-          meetingDate,
+          meetingStart,
           now
         );
 
-        if (
-          minutesLeft > 0 &&
-          minutesLeft <= COUNTDOWN_THRESHOLD_MINUTES
-        ) {
+        if (minutesLeft > 0 && minutesLeft <= 6 * 60) {
           const hours = Math.floor(minutesLeft / 60);
           const minutes = minutesLeft % 60;
           setCountdown({ hours, minutes });
@@ -82,18 +87,22 @@ export default function PostMetadata({
           setCountdown(null);
         }
 
-      } else if (isBefore(meetingDate, now)) {
-
-        setMeetingStatus("Completed");
-        setCountdown(null);
-
-      } else {
-
-        setMeetingStatus("Ongoing");
-        setCountdown(null);
-
+        return;
       }
 
+      // ONGOING (within 1 hour)
+      if (isAfter(now, meetingStart) && isBefore(now, meetingEnd)) {
+        setMeetingStatus("Ongoing");
+        setCountdown(null);
+        return;
+      }
+
+      // COMPLETED (after 1 hour)
+      if (isAfter(now, meetingEnd)) {
+        setMeetingStatus("Completed");
+        setCountdown(null);
+        return;
+      }
     };
 
     updateStatus();
@@ -103,11 +112,31 @@ export default function PostMetadata({
 
   }, [date, time, type]);
 
+  function canJoinMeeting(type, meetingStatus) {
+    if (type !== "meeting") return true;
+
+    return (
+      meetingStatus === "Upcoming" ||
+      meetingStatus === "Ongoing"
+    );
+  }
+
   const isUpcomingMeeting =
     type === "meeting" &&
     meetingStatus === "Upcoming" &&
     date &&
     time;
+
+  function getJoinButtonStyle(status) {
+    switch (status) {
+      case "Ongoing":
+        return "bg-green-500 animate-pulse";
+      case "Upcoming":
+        return "bg-blue-500";
+      default:
+        return "bg-muted";
+    }
+  }
 
   /* ================= GOOGLE CALENDAR ================= */
 
@@ -168,6 +197,20 @@ END:VCALENDAR
 
   };
 
+  useEffect(() => {
+    if (!content) return;
+
+    // only auto-fill if user hasn't manually set
+    if (date && time) return;
+
+    const parsed = parseNaturalDate(content);
+
+    if (parsed) {
+      setDate(parsed.date);
+      setTime(parsed.time);
+    }
+  }, [content]);
+
   /* ================= RENDER ================= */
 
   if (!date && !location && type !== "meeting") return null;
@@ -198,19 +241,38 @@ END:VCALENDAR
 
       {location && (
         <div className="flex items-center gap-1">
-          <MapPin className="h-3.5 w-3.5" />
-          {location}
-        </div>
-      )}
 
-      {/* Meeting Derived Status */}
-      {type === "meeting" && meetingStatus && (
-        <>
-          <span className="opacity-40">•</span>
-          <span className="font-medium">
-            {meetingStatus}
-          </span>
-        </>
+          {isUrl(location) ? (
+            meetingStatus === "Completed" ? (
+              <span className="text-muted-foreground">
+                Meeting Closed
+              </span>
+            ) : (
+              <a
+                href={location}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`px-3 py-1.5 rounded text-white text-xs transition ${
+                  getJoinButtonStyle(meetingStatus)
+                }`}
+              >
+                Join Meeting
+              </a>
+            )
+          ) : (
+            <button
+              onClick={() => {
+                const url = `https://www.google.com/maps?q=${encodeURIComponent(location)}`;
+                window.open(url, "_blank");
+              }}
+              className="flex items-center gap-1 hover:underline"
+            >
+              <MapPin className="h-3.5 w-3.5" />
+              {location}
+            </button>
+          )}
+
+        </div>
       )}
 
       {/* Calendar buttons only for upcoming meetings */}

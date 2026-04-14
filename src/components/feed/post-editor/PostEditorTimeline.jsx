@@ -15,7 +15,12 @@ export default function PostEditorTimeline({ editor }) {
     <>
       <Field>
 
-          <FieldLabel>Timeline</FieldLabel>
+          <FieldLabel className="flex items-center gap-2">
+            Timeline
+            <span className="text-xs text-muted-foreground">
+            (optional)
+            </span>
+          </FieldLabel>
 
           <Button variant="outline" onClick={() => setOpen(true)}>
             Manage Timeline

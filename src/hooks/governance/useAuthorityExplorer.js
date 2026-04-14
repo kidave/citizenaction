@@ -4,10 +4,8 @@ export function useAuthorityExplorer() {
   const [search, setSearch] = useState("");
 
   const [scope, setScope] = useState({
-    country: "",
-    state: "",
-    region: "",
-    city: "",
+    scope_type: "country",
+    scope_code: "IN",
   });
 
   const [entityType, setEntityType] = useState("all");
@@ -15,7 +13,7 @@ export function useAuthorityExplorer() {
 
   function reset() {
     setSearch("");
-    setScope({ state: "", region: "", city: "" });
+    setScope({ scope_type: "country", scope_code: "IN" });
     setEntityType("all");
     setStack([]);
   }

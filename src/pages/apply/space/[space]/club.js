@@ -9,8 +9,8 @@ import { ArrowLeft } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
-import { useMyProfile } from "@/hooks/useMyProfile";
-import { useGeographicScopes } from "@/hooks/useGeographicScopes";
+import { useMyProfile } from "@/hooks/user/useMyProfile";
+import { useGeographicScopes } from "@/hooks/geography/useGeographicScopes";
 import { authFetch } from "@/lib/fetch";
 
 import {

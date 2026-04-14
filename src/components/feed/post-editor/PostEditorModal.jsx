@@ -1,7 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { useMyProfile } from "@/hooks/useMyProfile";
+import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { usePostEditor } from "@/hooks/feed/usePostEditor";
 
 import { Stack } from "@/components/layout/Stack";

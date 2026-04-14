@@ -5,7 +5,7 @@ import { FloatingDock } from "@/components/ui/floating-dock";
 import { IconHome, IconSearch, IconPlus } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import { useSidebar } from "@/components/ui/sidebar";
-import { useMyProfile } from "@/hooks/useMyProfile";
+import { useMyProfile } from "@/hooks/user/useMyProfile";
 import Image from "next/image";
 
 export default function MobileFloatingDock() {

@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import MeetingCard from "@/components/feed/post-meeting/MeetingCard";
-import { useMeetings } from "@/hooks/useMeetings";
+import { useMeetings } from "@/hooks/meeting/useMeetings";
 import MeetingSkeleton from "@/components/skeletons/MeetingSkeleton";
 
 export default function SingleMeetingPage() {
