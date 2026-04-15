@@ -10,8 +10,16 @@ export function useCreatePost() {
 
   const mutation = useMutation({
     mutationFn: async (postData) => {
+      /* -------------------------
+         VALIDATION
+      ------------------------- */
+      if (!postData.club_id || !postData.space_id) {
+        throw new Error("Post must belong to a club and space");
+      }
 
-      /* 1️⃣ Upload Attachments */
+      /* -------------------------
+         1️⃣ Upload Attachments
+      ------------------------- */
       let uploadedAttachments = [];
 
       if (postData.attachments?.length > 0) {
@@ -22,11 +30,15 @@ export function useCreatePost() {
         uploadedAttachments = await Promise.all(uploadPromises);
       }
 
-      /* 2️⃣ Insert Feed Row */
+      /* -------------------------
+         2️⃣ Insert Feed Row
+      ------------------------- */
       const { data: feedRow, error } = await supabase
         .from("feed")
         .insert({
           author_id: postData.author_id,
+          club_id: postData.club_id,
+          space_id: postData.space_id,
           scope_type: postData.scope_type,
           scope_code: postData.scope_code,
           type: postData.type,
@@ -40,35 +52,42 @@ export function useCreatePost() {
 
       if (error) throw error;
 
-      /* 🔥 INSERT TAGGED AUTHORITIES (FINAL SAFE VERSION) */
-      if (postData.governance_entities?.length > 0) {
+      /* -------------------------
+         3️⃣ Insert Authorities (SAFE)
+      ------------------------- */
+      try {
+        const validEntities = postData.governance_entities?.filter(
+          (a) => a?.id
+        );
 
-        // 1️⃣ STRICT DEDUP
-        const uniqueMap = new Map();
+        if (validEntities?.length > 0) {
+          const uniqueMap = new Map();
 
-        postData.governance_entities.forEach((a) => {
-          if (a?.id) {
+          validEntities.forEach((a) => {
             uniqueMap.set(a.id, a);
-          }
-        });
+          });
 
-        const uniqueEntities = Array.from(uniqueMap.values());
+          const uniqueEntities = Array.from(uniqueMap.values());
 
-        // 2️⃣ UPSERT
-        const { error: tagError } = await supabase
-          .from("feed_governance_entities")
-          .upsert(
-            uniqueEntities.map((a) => ({
-              feed_id: feedRow.id,
-              governance_entity_id: a.id,
-            })),
-            {
-              onConflict: "feed_id,governance_entity_id",
-              ignoreDuplicates: true,
-            }
-          );
+          const { error: tagError } = await supabase
+            .from("feed_governance_entities")
+            .upsert(
+              uniqueEntities.map((a) => ({
+                feed_id: feedRow.id,
+                governance_entity_id: a.id,
+              })),
+              {
+                onConflict: "feed_id,governance_entity_id",
+                ignoreDuplicates: true,
+              }
+            );
 
-        if (tagError) throw tagError;
+          if (tagError) throw tagError;
+        }
+      } catch (err) {
+        // 🔥 rollback
+        await supabase.from("feed").delete().eq("id", feedRow.id);
+        throw err;
       }
 
       return feedRow;

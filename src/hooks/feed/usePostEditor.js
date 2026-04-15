@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+
+import { supabase } from "@/lib/supabase/client";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/context/AuthContext";
@@ -9,7 +11,10 @@ import { useUpdatePost } from "@/hooks/feed/useUpdatePost";
 import { useDeletePost } from "@/hooks/feed/useDeletePost";
 
 import { postSchema } from "@/schemas/feed/postSchema";
-import { set } from "date-fns";
+
+/* -------------------- */
+/* Helpers              */
+/* -------------------- */
 
 function extractContentMeta(text) {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -21,15 +26,48 @@ function extractContentMeta(text) {
   return { links, hashtags };
 }
 
-export function usePostEditor(post = null) {
+/* -------------------- */
+/* Hook                 */
+/* -------------------- */
+
+export function usePostEditor(post = null, profile = null) {
   const { user } = useAuth();
 
   const { createPost } = useCreatePost();
   const { updatePost } = useUpdatePost();
   const { deletePost } = useDeletePost();
 
-  const scopeType = "country";
-  const scopeCode = "IN";
+  /* -------------------- */
+  /* 🔥 SPACE + CLUB STATE */
+  /* -------------------- */
+
+  const [space_id, setSpaceId] = useState(null);
+  const [club_id, setClubId] = useState(null);
+
+  // 🔥 INITIALIZE FROM POST OR PROFILE
+
+  useEffect(() => {
+    if (!profile) return;
+
+    // 🟢 EDIT MODE → use post values
+    if (post) {
+      setSpaceId(post.space_id);
+      setClubId(post.club_id);
+      return;
+    }
+
+    // 🔵 CREATE MODE → fallback defaults
+    setSpaceId((prev) => {
+      if (prev) return prev;
+      return profile.primary_space?.id || null;
+    });
+
+    setClubId((prev) => {
+      if (prev) return prev;
+      return profile.primary_club?.id || null;
+    });
+  }, [profile, post]);
+
 
   /* -------------------- */
   /* Core State           */
@@ -47,40 +85,48 @@ export function usePostEditor(post = null) {
   /* -------------------- */
 
   const now = new Date();
-  const [date, setDate] = useState(post?.date || now.toISOString().split("T")[0]);
-  const [time, setTime] = useState(post?.time || now.toTimeString().slice(0, 5));
+
+  const [date, setDate] = useState(
+    post?.date || now.toISOString().split("T")[0]
+  );
+
+  const [time, setTime] = useState(
+    post?.time || now.toTimeString().slice(0, 5)
+  );
+
   const [location, setLocation] = useState(post?.location || "");
-  const [scope_type, setScopeType] = useState(post?.scope_type || "");
-  const [scope_code, setScopeCode] = useState(post?.scope_code || "");
   const [lat, setLat] = useState(post?.lat || null);
   const [lng, setLng] = useState(post?.lng || null);
   const [address, setAddress] = useState(post?.address || null);
   const [place_id, setPlaceId] = useState(post?.place_id || null);
 
+  /* -------------------- */
+  /* 🧠 NATURAL LANGUAGE  */
+  /* -------------------- */
+
   function parseNaturalDate(input) {
-  if (!input) return null;
+    if (!input) return null;
 
-  const now = new Date();
-  const text = input.toLowerCase();
+    const now = new Date();
+    const text = input.toLowerCase();
 
-  let date = new Date(now);
+    let date = new Date(now);
 
-  if (text.includes("tomorrow")) {
-    date.setDate(now.getDate() + 1);
-  }
+    if (text.includes("tomorrow")) {
+      date.setDate(now.getDate() + 1);
+    }
 
-  if (text.includes("today")) {
-    date = now;
-  }
+    if (text.includes("today")) {
+      date = now;
+    }
 
-  if (text.includes("next monday")) {
-    const day = now.getDay();
-    const diff = (8 - day) % 7 || 7;
-    date.setDate(now.getDate() + diff);
-  }
+    if (text.includes("next monday")) {
+      const day = now.getDay();
+      const diff = (8 - day) % 7 || 7;
+      date.setDate(now.getDate() + diff);
+    }
 
-  // extract time (5pm, 17:30 etc)
-  const timeMatch = text.match(/(\d{1,2})(:(\d{2}))?\s*(am|pm)?/);
+    const timeMatch = text.match(/(\d{1,2})(:(\d{2}))?\s*(am|pm)?/);
 
     if (timeMatch) {
       let hours = parseInt(timeMatch[1]);
@@ -100,23 +146,14 @@ export function usePostEditor(post = null) {
   }
 
   /* -------------------- */
-  /* Timeline State       */
+  /* Timeline             */
   /* -------------------- */
 
-  const [timeline, setTimeline] = useState(
-    post?.timeline || []
-  );
-
-  /* -------------------- */
-  /* Timeline Helpers     */
-  /* -------------------- */
+  const [timeline, setTimeline] = useState(post?.timeline || []);
 
   function addTimelineEntry(entry, insertIndex = null) {
     setTimeline((prev) => {
-      if (insertIndex === null) {
-        return [...prev, entry];
-      }
-
+      if (insertIndex === null) return [...prev, entry];
       const copy = [...prev];
       copy.splice(insertIndex, 0, entry);
       return copy;
@@ -132,9 +169,7 @@ export function usePostEditor(post = null) {
   }
 
   function removeTimelineEntry(index) {
-    setTimeline((prev) =>
-      prev.filter((_, i) => i !== index)
-    );
+    setTimeline((prev) => prev.filter((_, i) => i !== index));
   }
 
   /* -------------------- */
@@ -147,16 +182,29 @@ export function usePostEditor(post = null) {
       return;
     }
 
-    const result = postSchema.safeParse({
-      type,
-      date,
-      time,
-    });
+    if (!club_id || !space_id) {
+      toast.error("Select space and club.");
+      return;
+    }
+
+    const result = postSchema.safeParse({ type, date, time });
 
     if (!result.success) {
       toast.error(result.error.errors[0].message);
       return;
     }
+
+    const { data: club, error } = await supabase
+      .from("club")
+      .select("id, scope_type, scope_code")
+      .eq("id", club_id)
+      .single();
+
+    if (error || !club) {
+      toast.error("Invalid club selected");
+      return;
+    }
+
 
     const { links, hashtags } = extractContentMeta(content);
 
@@ -181,24 +229,30 @@ export function usePostEditor(post = null) {
           postId: post.id,
           postData: {
             author_id: user.id,
+            club_id,
+            space_id,
+            scope_type: club.scope_type,
+            scope_code: club.scope_code,
             type,
             details: content,
             summary: title || content.slice(0, 200),
             attachments,
             metadata,
-            governance_entities: governance_entities,
+            governance_entities,
           },
         });
       } else {
         await createPost({
           author_id: user.id,
-          scope_type: scopeType,
-          scope_code: scopeCode,
+          club_id,
+          space_id,
+          scope_type: club.scope_type,
+          scope_code: club.scope_code,
           type,
           summary: title || content.slice(0, 200),
           details: content,
           attachments,
-          governance_entities: governance_entities,
+          governance_entities,
           metadata,
         });
       }
@@ -222,7 +276,6 @@ export function usePostEditor(post = null) {
   }
 
   return {
-    /* state */
     type,
     setType,
     title,
@@ -233,6 +286,7 @@ export function usePostEditor(post = null) {
     setAttachments,
     governance_entities,
     setSelectedAuthorities,
+
     date,
     setDate,
     time,
@@ -247,20 +301,22 @@ export function usePostEditor(post = null) {
     setAddress,
     place_id,
     setPlaceId,
-    scope_type,
-    setScopeType,
-    scope_code,
-    setScopeCode,
+
+    /* 🔥 NEW */
+    club_id,
+    setClubId,
+    space_id,
+    setSpaceId,
 
     timeline,
-
-    /* timeline helpers */
     addTimelineEntry,
     updateTimelineEntry,
     removeTimelineEntry,
     setTimeline,
 
-    /* actions */
+    /* 🔥 expose parser */
+    parseNaturalDate,
+
     submit,
     remove,
   };

@@ -21,14 +21,7 @@ export default function PostAuthoritySelector({
   return (
     <>
       <div className="flex items-center gap-3">
-
-        <Button
-          variant="outline"
-          onClick={() => setAuthorityOpen(true)}
-        >
-          Tag Authority
-        </Button>
-
+        
         {governance_entities.length > 0 && (
           <AvatarGroup>
             {governance_entities.map((e) => (
@@ -41,6 +34,13 @@ export default function PostAuthoritySelector({
             ))}
           </AvatarGroup>
         )}
+
+        <Button
+          variant="outline"
+          onClick={() => setAuthorityOpen(true)}
+        >
+          Tag Authority
+        </Button>
 
       </div>
 

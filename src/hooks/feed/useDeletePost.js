@@ -9,7 +9,19 @@ export function useDeletePost() {
 
   const mutation = useMutation({
     mutationFn: async (postId) => {
+      /* -------------------------
+         1️⃣ Delete Authorities
+      ------------------------- */
+      const { error: tagError } = await supabase
+        .from("feed_governance_entities")
+        .delete()
+        .eq("feed_id", postId);
 
+      if (tagError) throw tagError;
+
+      /* -------------------------
+         2️⃣ Delete Post
+      ------------------------- */
       const { error } = await supabase
         .from("feed")
         .delete()

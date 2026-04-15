@@ -5,8 +5,7 @@ import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { usePostEditor } from "@/hooks/feed/usePostEditor";
 
 import { Stack } from "@/components/layout/Stack";
-import { Inline } from "@/components/layout/Inline";
-
+import PostContextBar from "./PostContextBar";
 import PostEditorHeader from "./PostEditorHeader";
 import PostAuthoritySelector from "./PostAuthoritySelector";
 import PostTypeSelector from "./PostTypeSelector";
@@ -37,6 +36,7 @@ export default function PostEditorModal({ isOpen, onClose, post = null }) {
           <PostEditorHeader
             profile={profile}
             post={post}
+            editor={editor}
             onClose={onClose}
             onSubmit={() => editor.submit(onClose)}
             onDelete={() => editor.remove(onClose)}
@@ -45,26 +45,20 @@ export default function PostEditorModal({ isOpen, onClose, post = null }) {
           <div className="flex-1 overflow-y-auto p-4">
 
             <Stack gap="gap-4">
+              <PostContextBar profile={profile} editor={editor} />
 
-              {/* Authority + Type */}
-              <Inline gap="gap-4">
+              <div className="flex gap-4 justify-between">
+                  <PostTypeSelector
+                    type={editor.type}
+                    setType={editor.setType}
+                  />                  
 
-                <div className="flex-1 min-w-[220px]">
                   <PostAuthoritySelector
                     governance_entities={editor.governance_entities}
                     setSelectedAuthorities={editor.setSelectedAuthorities}
                     mode="editor"
                   />
-                </div>
-
-                <div className="flex-1 min-w-[200px]">
-                  <PostTypeSelector
-                    type={editor.type}
-                    setType={editor.setType}
-                  />
-                </div>
-
-              </Inline>
+              </div>
 
               <PostEditorMetadata editor={editor} />
 

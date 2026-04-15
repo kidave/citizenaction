@@ -1,3 +1,5 @@
+"use client";
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/context/AuthContext";
@@ -10,14 +12,14 @@ export function useMyProfile() {
     enabled: !!user && !loading,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("profile")
+        .from("public_profile")
         .select("*")
-        .eq("user_id", user.id)
-        .single();
+        .eq("user_id", user.id);
 
       if (error) throw error;
-      return data;
+
+      // 🔥 IMPORTANT FIX
+      return data?.[0] || null;
     },
-    staleTime: 1000 * 60 * 5,
   });
 }

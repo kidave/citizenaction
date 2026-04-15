@@ -5,7 +5,7 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import LocationSearchInput from "@/components/shared/LocationSearchInput";
 import LocationMapPreview from "@/components/shared/LocationMapPreview";
-import { supabase } from "@/lib/supabase/client";
+
 import {
   Tooltip,
   TooltipContent,
@@ -19,15 +19,12 @@ export default function PostLocationSelector({ editor }) {
     setLocation,
     setLat,
     setLng,
-    setScopeType,
-    setScopeCode,
     location,
   } = editor;
 
   const [open, setOpen] = useState(false);
 
-  // 🔥 NEW
-  const [mode, setMode] = useState("offline"); // offline | online
+  const [mode, setMode] = useState("offline");
   const [onlineLink, setOnlineLink] = useState("");
 
   const [searchValue, setSearchValue] = useState("");
@@ -124,8 +121,6 @@ export default function PostLocationSelector({ editor }) {
       setLocation(onlineLink);
       setLat(null);
       setLng(null);
-      setScopeType(null);
-      setScopeCode(null);
 
       setOpen(false);
       return;
@@ -136,22 +131,6 @@ export default function PostLocationSelector({ editor }) {
     setLocation(tempLocation);
     setLat(tempLat);
     setLng(tempLng);
-
-    const { data } = await supabase.rpc(
-      "get_scope_hierarchy_from_lat_lng",
-      {
-        lat: tempLat,
-        lng: tempLng,
-      }
-    );
-
-    if (data?.length) {
-      const ward = data.find((s) => s.type === "ward");
-      if (ward) {
-        setScopeType(ward.type);
-        setScopeCode(ward.code);
-      }
-    }
 
     setOpen(false);
   }
@@ -197,7 +176,6 @@ export default function PostLocationSelector({ editor }) {
             {/* LEFT */}
             <div className="w-1/2 p-4 flex flex-col gap-3">
 
-              {/* 🔥 MODE TOGGLE */}
               <div className="flex gap-2">
                 <Button
                   variant={mode === "offline" ? "default" : "outline"}
