@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { ArrowLeft } from "lucide-react";
 
-import { useAuth } from "context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
 
 import { Button } from "@/components/ui/button";

@@ -1,7 +1,7 @@
 // hooks/useRequireAuth.js
 import { useEffect } from "react";
 import { useRouter } from "next/router";
-import { useAuth } from "context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 
 export function useRequireAuth(redirectTo = "/auth/login") {
   const { user, loading } = useAuth();

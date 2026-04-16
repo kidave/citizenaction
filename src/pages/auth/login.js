@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import Image from "next/image";
-import { useAuth } from "context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

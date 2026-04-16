@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { FiMenu } from "react-icons/fi";
 
 import Logo from "@/components/layout/Logo";
-import { useAuth } from "context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 
 import { Button } from "@/components/ui/button";
 import {

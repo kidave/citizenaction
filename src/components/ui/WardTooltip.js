@@ -2,7 +2,7 @@
 "use client";
 
 import * as Tooltip from "@radix-ui/react-tooltip";
-import styles from "styles/components/ui/Tooltip.module.css";
+import styles from "@/styles/components/ui/Tooltip.module.css";
 
 export default function WardTooltip({ ward, children }) {
   return (

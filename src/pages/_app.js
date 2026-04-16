@@ -1,13 +1,13 @@
 import Head from "next/head";
-import "styles/main.css";
+import "@/styles/main.css";
 
-import { AuthProvider } from "context/AuthContext";
-import Layout from "components/layout/Layout";
+import { AuthProvider } from "@/context/AuthContext";
+import Layout from "@/components/layout/Layout";
 import { Toaster } from "sonner";
 
-import ErrorBoundary from "components/system/ErrorBoundary";
-import RouteLoader from "components/system/RouteLoader";
-import MobileBottomBar from "components/layout/MobileBottomBar";
+import ErrorBoundary from "@/components/system/ErrorBoundary";
+import RouteLoader from "@/components/system/RouteLoader";
+import MobileBottomBar from "@/components/layout/MobileBottomBar";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 

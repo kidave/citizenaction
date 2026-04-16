@@ -1,7 +1,7 @@
 // pages/auth/callback.js
 import { useEffect } from "react";
 import { useRouter } from "next/router";
-import { supabase } from "lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 import { Loader2 } from "lucide-react";
 
 export default function Callback() {

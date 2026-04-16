@@ -67,7 +67,7 @@ export default function CreatePostTrigger() {
             <div className="border border-input rounded-lg px-4 py-3 hover:bg-accent/50 transition-colors">
               <div className="text-muted-foreground text-sm">
                 {user
-                  ? "Document your action!"
+                  ? "Document your action"
                   : "Login to document your action"}
               </div>
             </div>

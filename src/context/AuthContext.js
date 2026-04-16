@@ -1,6 +1,6 @@
 // context/AuthContext.js
 import { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 const AuthContext = createContext();
