@@ -15,7 +15,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ArrowLeft, Trash2, Save } from "lucide-react";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { clubUpdateSchema } from "@/schemas/club";
-import { normalizeText } from "@/utils/normalize";
+import { normalizeText } from "@/utils/text/normalize";
 import { supabase } from "@/lib/supabase/client";
 
 export default function ClubSettings() {

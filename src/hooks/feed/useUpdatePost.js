@@ -10,9 +10,11 @@ export function useUpdatePost() {
 
   const mutation = useMutation({
     mutationFn: async ({ postId, postData }) => {
-      /* -------------------------
-         1️⃣ Upload Attachments
-      ------------------------- */
+
+      if (!postData.space_id && !postData.scope_code && !postData.is_global) {
+        throw new Error("Invalid post context");
+      }
+
       let uploadedAttachments = [];
 
       if (postData.attachments?.length > 0) {
@@ -24,9 +26,6 @@ export function useUpdatePost() {
         uploadedAttachments = await Promise.all(uploadPromises);
       }
 
-      /* -------------------------
-         2️⃣ Update Feed
-      ------------------------- */
       const { error } = await supabase
         .from("feed")
         .update({
@@ -35,62 +34,34 @@ export function useUpdatePost() {
           summary: postData.summary,
           attachments: uploadedAttachments,
           metadata: postData.metadata || null,
-
-          // 🔥 allow update (optional)
-          club_id: postData.club_id,
-          space_id: postData.space_id,
-          scope_type: postData.scope_type,
-          scope_code: postData.scope_code,
+          space_id: postData.space_id || null,
+          scope_type: postData.scope_type || null,
+          scope_code: postData.scope_code || null,
+          is_global: !!postData.is_global,
         })
         .eq("id", postId);
 
       if (error) throw error;
 
-      /* -------------------------
-         3️⃣ Replace Authorities
-      ------------------------- */
-      try {
-        if (postData.governance_entities) {
-          // delete old
-          const { error: deleteError } = await supabase
-            .from("feed_governance_entities")
-            .delete()
-            .eq("feed_id", postId);
+      const { error: deleteError } = await supabase
+        .from("feed_governance_entities")
+        .delete()
+        .eq("feed_id", postId);
 
-          if (deleteError) throw deleteError;
+      if (deleteError) throw deleteError;
 
-          // clean + dedup
-          const validEntities = postData.governance_entities.filter(
-            (a) => a?.id
-          );
 
-          const uniqueMap = new Map();
-          validEntities.forEach((a) => {
-            uniqueMap.set(a.id, a);
-          });
+      if (postData.governance_entities?.length > 0) {
+        const rows = postData.governance_entities.map((e) => ({
+          feed_id: postId,
+          governance_entity_id: e.id,
+        }));
 
-          const uniqueEntities = Array.from(uniqueMap.values());
+        const { error: insertError } = await supabase
+          .from("feed_governance_entities")
+          .insert(rows);
 
-          // insert new
-          if (uniqueEntities.length > 0) {
-            const { error: tagError } = await supabase
-              .from("feed_governance_entities")
-              .upsert(
-                uniqueEntities.map((a) => ({
-                  feed_id: postId,
-                  governance_entity_id: a.id,
-                })),
-                {
-                  onConflict: "feed_id,governance_entity_id",
-                  ignoreDuplicates: true,
-                }
-              );
-
-            if (tagError) throw tagError;
-          }
-        }
-      } catch (err) {
-        throw err;
+        if (insertError) throw insertError;
       }
 
       return true;
@@ -102,7 +73,7 @@ export function useUpdatePost() {
     },
 
     onError: (error) => {
-      console.error("Update post error:", error);
+      console.error(error);
       toast.error(error.message || "Failed to update post");
     },
   });

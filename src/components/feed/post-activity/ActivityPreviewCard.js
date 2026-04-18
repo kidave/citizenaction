@@ -8,7 +8,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import AutoImageCarousel from "@/components/ui/AutoImageCarousel";
 import GovernanceAvatarGroups from "@/components/governance/GovernanceAvatarGroups";
-import formatPostDate from "@/utils/posts/formatPostDate";
+import formatDate from "@/utils/date/formatDate";
 
 const typeStyles = {
   action: "border-l-4 border-red-500 bg-red-50/30",
@@ -32,7 +32,7 @@ export default function ActivityPreviewCard({ post }) {
   const dateString =
     post.metadata_date || post.sort_date;
 
-  const formattedDate = formatPostDate(
+  const formattedDate = formatDate(
     dateString,
     "absolute"
   );

@@ -16,6 +16,7 @@ export default function AuthoritySelectorModal({
   selected,
   onChange,
   onSubmit,
+  context,
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -28,12 +29,13 @@ export default function AuthoritySelectorModal({
         <AuthorityExplorer
           selected={selected}
           onChange={onChange}
+          context={context}
         />
 
         <Button
           className="w-full mt-4"
           onClick={() => {
-            onSubmit(selected);
+            onSubmit?.(selected); // optional safety
             onOpenChange(false);
           }}
         >

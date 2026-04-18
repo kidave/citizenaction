@@ -1,20 +1,24 @@
+"use client";
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 
-export function useGeographicScopes({ type, parentCode, enabled = true }) {
+export function useGeographicScopes({ type, enabled = true }) {
   return useQuery({
-    queryKey: ["geographic-scopes", type, parentCode],
+    queryKey: ["geo", type],
     enabled: enabled && !!type,
+
     queryFn: async () => {
-      let query = supabase
+      console.log("Fetching scopes for:", type);
+
+      const { data, error } = await supabase
         .from("geographic_scope_hierarchy")
-        .select("*")
+        .select("code,name,type,logo_url,metadata")
+        .ilike("type", type)
         .order("name");
 
-      if (type) query = query.eq("type", type);
-      if (parentCode) query = query.eq("parent_code", parentCode);
+      console.log("Scopes result:", data, error);
 
-      const { data, error } = await query;
       if (error) throw error;
 
       return data || [];

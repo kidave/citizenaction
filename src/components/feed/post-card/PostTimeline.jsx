@@ -8,7 +8,7 @@ import Timeline, {
   TimelineItemDescription
 } from "@/components/ui/timeline";
 import FieldInfo from "@/components/ui/FieldInfo";
-import formatPostDate from "@/utils/posts/formatPostDate";
+import formatDate from "@/utils/date/formatDate";
 
 export default function PostTimeline({ post }) {
   const [expandedIndex, setExpandedIndex] = useState(null);
@@ -57,7 +57,7 @@ export default function PostTimeline({ post }) {
               >
 
                 <TimelineItemDate>
-                  {formatPostDate(item.at, "absolute")}
+                  {formatDate(item.at, "absolute")}
                 </TimelineItemDate>
 
                 <TimelineItemTitle>
@@ -123,7 +123,7 @@ export default function PostTimeline({ post }) {
                 }
               >
                 <TimelineItemDate>
-                  {formatPostDate(item.at, "absolute")}
+                  {formatDate(item.at, "absolute")}
                 </TimelineItemDate>
 
                 <TimelineItemTitle>

@@ -10,16 +10,11 @@ export function useCreatePost() {
 
   const mutation = useMutation({
     mutationFn: async (postData) => {
-      /* -------------------------
-         VALIDATION
-      ------------------------- */
-      if (!postData.club_id || !postData.space_id) {
-        throw new Error("Post must belong to a club and space");
+
+      if (!postData.space_id && !postData.scope_code && !postData.is_global) {
+        throw new Error("Select space, location or mark as global");
       }
 
-      /* -------------------------
-         1️⃣ Upload Attachments
-      ------------------------- */
       let uploadedAttachments = [];
 
       if (postData.attachments?.length > 0) {
@@ -30,67 +25,39 @@ export function useCreatePost() {
         uploadedAttachments = await Promise.all(uploadPromises);
       }
 
-      /* -------------------------
-         2️⃣ Insert Feed Row
-      ------------------------- */
-      const { data: feedRow, error } = await supabase
+      const { data, error } = await supabase
         .from("feed")
         .insert({
           author_id: postData.author_id,
-          club_id: postData.club_id,
-          space_id: postData.space_id,
-          scope_type: postData.scope_type,
-          scope_code: postData.scope_code,
+          space_id: postData.space_id || null,
+          scope_type: postData.scope_type || null,
+          scope_code: postData.scope_code || null,
+          is_global: !!postData.is_global,
           type: postData.type,
           summary: postData.summary,
           details: postData.details,
-          attachments: uploadedAttachments,
           metadata: postData.metadata || null,
+          attachments: uploadedAttachments,
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      /* -------------------------
-         3️⃣ Insert Authorities (SAFE)
-      ------------------------- */
-      try {
-        const validEntities = postData.governance_entities?.filter(
-          (a) => a?.id
-        );
+      if (postData.governance_entities?.length > 0) {
+        const rows = postData.governance_entities.map((e) => ({
+          feed_id: data.id,
+          governance_entity_id: e.id,
+        }));
 
-        if (validEntities?.length > 0) {
-          const uniqueMap = new Map();
+        const { error: tagError } = await supabase
+          .from("feed_governance_entities")
+          .insert(rows);
 
-          validEntities.forEach((a) => {
-            uniqueMap.set(a.id, a);
-          });
-
-          const uniqueEntities = Array.from(uniqueMap.values());
-
-          const { error: tagError } = await supabase
-            .from("feed_governance_entities")
-            .upsert(
-              uniqueEntities.map((a) => ({
-                feed_id: feedRow.id,
-                governance_entity_id: a.id,
-              })),
-              {
-                onConflict: "feed_id,governance_entity_id",
-                ignoreDuplicates: true,
-              }
-            );
-
-          if (tagError) throw tagError;
-        }
-      } catch (err) {
-        // 🔥 rollback
-        await supabase.from("feed").delete().eq("id", feedRow.id);
-        throw err;
+        if (tagError) throw tagError;
       }
 
-      return feedRow;
+      return data;
     },
 
     onSuccess: () => {
@@ -99,7 +66,7 @@ export function useCreatePost() {
     },
 
     onError: (error) => {
-      console.error("Create post error:", error);
+      console.error(error);
       toast.error(error.message || "Failed to create post");
     },
   });

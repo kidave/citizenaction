@@ -8,13 +8,13 @@ import {
   AvatarImage,
   AvatarFallback,
 } from "@/components/ui/avatar";
+
 import AuthoritySelectorModal from "@/components/governance/AuthoritySelectorModal";
 
 export default function PostAuthoritySelector({
   governance_entities,
   setSelectedAuthorities,
-  onSubmit,
-  mode = "editor"
+  context,
 }) {
   const [authorityOpen, setAuthorityOpen] = useState(false);
 
@@ -22,6 +22,13 @@ export default function PostAuthoritySelector({
     <>
       <div className="flex items-center gap-3">
         
+        <Button
+          variant="outline"
+          onClick={() => setAuthorityOpen(true)}
+        >
+          Tag Authority
+        </Button>
+
         {governance_entities.length > 0 && (
           <AvatarGroup>
             {governance_entities.map((e) => (
@@ -35,13 +42,6 @@ export default function PostAuthoritySelector({
           </AvatarGroup>
         )}
 
-        <Button
-          variant="outline"
-          onClick={() => setAuthorityOpen(true)}
-        >
-          Tag Authority
-        </Button>
-
       </div>
 
       <AuthoritySelectorModal
@@ -49,7 +49,7 @@ export default function PostAuthoritySelector({
         onOpenChange={setAuthorityOpen}
         selected={governance_entities}
         onChange={setSelectedAuthorities}
-        mode="editor"
+        context={context}
       />
     </>
   );

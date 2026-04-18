@@ -4,7 +4,7 @@ import "@/styles/main.css";
 import { AuthProvider } from "@/context/AuthContext";
 import Layout from "@/components/layout/Layout";
 import { Toaster } from "sonner";
-
+import { MediaProvider } from "@/context/MediaContext";
 import ErrorBoundary from "@/components/system/ErrorBoundary";
 import RouteLoader from "@/components/system/RouteLoader";
 import MobileBottomBar from "@/components/layout/MobileBottomBar";
@@ -38,16 +38,18 @@ function MyApp({ Component, pageProps }) {
 
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <Layout>
-            <RouteLoader />
+          <MediaProvider>
+            <Layout>
+              <RouteLoader />
 
-            <ErrorBoundary>
-              {getLayout(<Component {...pageProps} />)}
-              <MobileBottomBar />
-            </ErrorBoundary>
+              <ErrorBoundary>
+                {getLayout(<Component {...pageProps} />)}
+                <MobileBottomBar />
+              </ErrorBoundary>
 
-            <Toaster richColors position="top-right" />
-          </Layout>
+              <Toaster richColors position="top-right" />
+            </Layout>
+          </MediaProvider>
         </AuthProvider>
       </QueryClientProvider>
     </>

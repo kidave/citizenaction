@@ -1,23 +1,16 @@
+"use client";
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 
 export function useGovernanceTree({
   parentId = null,
-  scopeType,
-  scopeCode,
+  scopes = [],
   search,
-  entityType,
   enabled = true,
 }) {
   return useQuery({
-    queryKey: [
-      "governance-tree",
-      parentId,
-      scopeType,
-      scopeCode,
-      search,
-      entityType,
-    ],
+    queryKey: ["governance-tree", parentId, scopes, search],
     enabled,
     queryFn: async () => {
       let query = supabase
@@ -25,31 +18,41 @@ export function useGovernanceTree({
         .select("*")
         .order("label");
 
-      // 🔹 hierarchy
+      /* -------------------------
+         HIERARCHY
+      ------------------------- */
       if (parentId) {
         query = query.eq("parent_id", parentId);
       } else {
         query = query.is("parent_id", null);
       }
 
-      // 🔹 scope
-      if (scopeType && scopeCode) {
-        query = query
-            .eq("geo_scope_type", scopeType)
-            .eq("geo_scope_code", scopeCode);
-      } else {
-        query = query
-            .eq("geo_scope_type", "country")
-            .eq("geo_scope_code", "IN");
+      /* -------------------------
+         SCOPES (NEW LOGIC)
+      ------------------------- */
+      if (scopes?.length > 0) {
+        const conditions = scopes.map((s) => {
+          /* -------------------------
+            ALL STATES CASE
+          ------------------------- */
+          if (s.type === "state" && !s.code) {
+            return `geo_scope_type.eq.state`;
+          }
+
+          /* -------------------------
+            NORMAL
+          ------------------------- */
+          return `and(geo_scope_type.eq.${s.type},geo_scope_code.eq.${s.code})`;
+        });
+
+        query = query.or(conditions.join(","));
       }
 
-      // 🔹 search overrides hierarchy
+      /* -------------------------
+         SEARCH
+      ------------------------- */
       if (search) {
         query = query.ilike("label", `%${search}%`);
-      }
-
-      if (entityType && entityType !== "all") {
-        query = query.eq("entity_type", entityType);
       }
 
       const { data, error } = await query;

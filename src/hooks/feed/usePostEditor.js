@@ -1,7 +1,5 @@
 "use client";
 
-
-import { supabase } from "@/lib/supabase/client";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -11,10 +9,6 @@ import { useUpdatePost } from "@/hooks/feed/useUpdatePost";
 import { useDeletePost } from "@/hooks/feed/useDeletePost";
 
 import { postSchema } from "@/schemas/feed/postSchema";
-
-/* -------------------- */
-/* Helpers              */
-/* -------------------- */
 
 function extractContentMeta(text) {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -26,10 +20,6 @@ function extractContentMeta(text) {
   return { links, hashtags };
 }
 
-/* -------------------- */
-/* Hook                 */
-/* -------------------- */
-
 export function usePostEditor(post = null, profile = null) {
   const { user } = useAuth();
 
@@ -37,52 +27,35 @@ export function usePostEditor(post = null, profile = null) {
   const { updatePost } = useUpdatePost();
   const { deletePost } = useDeletePost();
 
-  /* -------------------- */
-  /* 🔥 SPACE + CLUB STATE */
-  /* -------------------- */
-
   const [space_id, setSpaceId] = useState(null);
-  const [club_id, setClubId] = useState(null);
 
-  // 🔥 INITIALIZE FROM POST OR PROFILE
+  const [scope_type, setScopeType] = useState(null);
+  const [scope_code, setScopeCode] = useState(null);
+  const [scope_name, setScopeName] = useState(null);
+
+  const [isGlobal, setIsGlobal] = useState(false);
+
 
   useEffect(() => {
-    if (!profile) return;
-
-    // 🟢 EDIT MODE → use post values
     if (post) {
-      setSpaceId(post.space_id);
-      setClubId(post.club_id);
+      setSpaceId(post.space_id || null);
+      setScopeType(post.scope_type || null);
+      setScopeCode(post.scope_code || null);
+      setScopeName(post.scope_name || null);
+      setIsGlobal(post.is_global || false);
       return;
     }
 
-    // 🔵 CREATE MODE → fallback defaults
-    setSpaceId((prev) => {
-      if (prev) return prev;
-      return profile.primary_space?.id || null;
-    });
+    if (profile) {
+      setSpaceId(profile?.primary_space?.id || null);
+    }
+  }, [post, profile]);
 
-    setClubId((prev) => {
-      if (prev) return prev;
-      return profile.primary_club?.id || null;
-    });
-  }, [profile, post]);
-
-
-  /* -------------------- */
-  /* Core State           */
-  /* -------------------- */
-
+  const [governance_entities, setSelectedAuthorities] = useState(post?.governance_entities || []);
   const [type, setType] = useState(post?.type || "action");
   const [title, setTitle] = useState(post?.summary || "");
   const [content, setContent] = useState(post?.details || "");
   const [attachments, setAttachments] = useState(post?.attachments || []);
-  const [governance_entities, setSelectedAuthorities] =
-    useState(post?.governance_entities || []);
-
-  /* -------------------- */
-  /* Metadata Fields      */
-  /* -------------------- */
 
   const now = new Date();
 
@@ -99,55 +72,6 @@ export function usePostEditor(post = null, profile = null) {
   const [lng, setLng] = useState(post?.lng || null);
   const [address, setAddress] = useState(post?.address || null);
   const [place_id, setPlaceId] = useState(post?.place_id || null);
-
-  /* -------------------- */
-  /* 🧠 NATURAL LANGUAGE  */
-  /* -------------------- */
-
-  function parseNaturalDate(input) {
-    if (!input) return null;
-
-    const now = new Date();
-    const text = input.toLowerCase();
-
-    let date = new Date(now);
-
-    if (text.includes("tomorrow")) {
-      date.setDate(now.getDate() + 1);
-    }
-
-    if (text.includes("today")) {
-      date = now;
-    }
-
-    if (text.includes("next monday")) {
-      const day = now.getDay();
-      const diff = (8 - day) % 7 || 7;
-      date.setDate(now.getDate() + diff);
-    }
-
-    const timeMatch = text.match(/(\d{1,2})(:(\d{2}))?\s*(am|pm)?/);
-
-    if (timeMatch) {
-      let hours = parseInt(timeMatch[1]);
-      const minutes = parseInt(timeMatch[3] || "0");
-
-      if (timeMatch[4] === "pm" && hours < 12) hours += 12;
-      if (timeMatch[4] === "am" && hours === 12) hours = 0;
-
-      date.setHours(hours);
-      date.setMinutes(minutes);
-    }
-
-    return {
-      date: date.toISOString().split("T")[0],
-      time: date.toTimeString().slice(0, 5),
-    };
-  }
-
-  /* -------------------- */
-  /* Timeline             */
-  /* -------------------- */
 
   const [timeline, setTimeline] = useState(post?.timeline || []);
 
@@ -172,18 +96,14 @@ export function usePostEditor(post = null, profile = null) {
     setTimeline((prev) => prev.filter((_, i) => i !== index));
   }
 
-  /* -------------------- */
-  /* Submit               */
-  /* -------------------- */
-
   async function submit(onSuccess) {
     if (!content.trim()) {
       toast.error("Enter content.");
       return;
     }
 
-    if (!club_id || !space_id) {
-      toast.error("Select space and club.");
+    if (!space_id && !scope_code && !isGlobal) {
+      toast.error("Select location, space or mark as global");
       return;
     }
 
@@ -193,18 +113,6 @@ export function usePostEditor(post = null, profile = null) {
       toast.error(result.error.errors[0].message);
       return;
     }
-
-    const { data: club, error } = await supabase
-      .from("club")
-      .select("id, scope_type, scope_code")
-      .eq("id", club_id)
-      .single();
-
-    if (error || !club) {
-      toast.error("Invalid club selected");
-      return;
-    }
-
 
     const { links, hashtags } = extractContentMeta(content);
 
@@ -224,37 +132,30 @@ export function usePostEditor(post = null, profile = null) {
     };
 
     try {
+      const payload = {
+        author_id: user.id,
+        space_id: space_id || null,
+
+        scope_type: scope_type || null,
+        scope_code: scope_code || null,
+        scope_name: scope_name || null,
+
+        is_global: isGlobal,
+        governance_entities,
+        type,
+        summary: title || content.slice(0, 200),
+        details: content,
+        attachments,
+        metadata,
+      };
+
       if (post) {
         await updatePost({
           postId: post.id,
-          postData: {
-            author_id: user.id,
-            club_id,
-            space_id,
-            scope_type: club.scope_type,
-            scope_code: club.scope_code,
-            type,
-            details: content,
-            summary: title || content.slice(0, 200),
-            attachments,
-            metadata,
-            governance_entities,
-          },
+          postData: payload,
         });
       } else {
-        await createPost({
-          author_id: user.id,
-          club_id,
-          space_id,
-          scope_type: club.scope_type,
-          scope_code: club.scope_code,
-          type,
-          summary: title || content.slice(0, 200),
-          details: content,
-          attachments,
-          governance_entities,
-          metadata,
-        });
+        await createPost(payload);
       }
 
       onSuccess?.();
@@ -284,8 +185,6 @@ export function usePostEditor(post = null, profile = null) {
     setContent,
     attachments,
     setAttachments,
-    governance_entities,
-    setSelectedAuthorities,
 
     date,
     setDate,
@@ -302,20 +201,27 @@ export function usePostEditor(post = null, profile = null) {
     place_id,
     setPlaceId,
 
-    /* 🔥 NEW */
-    club_id,
-    setClubId,
-    space_id,
-    setSpaceId,
-
     timeline,
     addTimelineEntry,
     updateTimelineEntry,
     removeTimelineEntry,
     setTimeline,
 
-    /* 🔥 expose parser */
-    parseNaturalDate,
+    space_id,
+    setSpaceId,
+
+    scope_type,
+    setScopeType,
+    scope_code,
+    setScopeCode,
+    scope_name,
+    setScopeName,
+
+    isGlobal,
+    setIsGlobal,
+
+    governance_entities,
+    setSelectedAuthorities,
 
     submit,
     remove,

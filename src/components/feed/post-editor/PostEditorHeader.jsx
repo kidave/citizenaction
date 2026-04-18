@@ -1,11 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import Image from "next/image";
 
 export default function PostEditorHeader({
   profile,
   post,
+  isGlobal,
+  setIsGlobal,
   onClose,
   onSubmit,
   onDelete
@@ -16,8 +19,8 @@ export default function PostEditorHeader({
 
       <div className="flex items-center justify-between">
 
+        {/* USER */}
         <div className="flex items-center gap-3">
-
           <Image
             src={profile?.avatar_url || "/user1.png"}
             width={32}
@@ -29,10 +32,21 @@ export default function PostEditorHeader({
           <div className="text-sm font-medium">
             {profile?.name}
           </div>
-
         </div>
 
-        <div className="flex gap-2">
+        {/* ACTIONS */}
+        <div className="flex items-center gap-4">
+
+          {/* GLOBAL SWITCH */}
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={isGlobal}
+              onCheckedChange={setIsGlobal}
+            />
+            <span className="text-xs text-muted-foreground">
+              Global
+            </span>
+          </div>
 
           <Button
             variant="ghost"

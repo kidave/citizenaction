@@ -9,7 +9,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import AttendeeAvatarGroup from "./AttendeeAvatarGroup";
 import GovernanceAvatarGroups from "@/components/governance/GovernanceAvatarGroups";
 import AutoImageCarousel from "@/components/ui/AutoImageCarousel";
-import formatPostDate from "@/utils/posts/formatPostDate";
+import formatDate from "@/utils/date/formatDate";
 
 const meetingStyle =
   "border-l-4 border-yellow-500 bg-yellow-50/30";
@@ -25,7 +25,7 @@ export default function MeetingPreviewCard({ meeting }) {
   const dateString =
     meeting.metadata_date || meeting.sort_date;
 
-  const formattedDate = formatPostDate(
+  const formattedDate = formatDate(
     dateString,
     "absolute"
   );

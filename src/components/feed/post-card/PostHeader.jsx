@@ -4,7 +4,7 @@ import { Row } from "@/components/layout/Row";
 import { Inline } from "@/components/layout/Inline";
 import { UserIdentity } from "@/components/profile/UserIdentity";
 import MenuButton from "@/components/feed/MenuButton";
-import formatPostDate from "@/utils/posts/formatPostDate";
+import formatDate from "@/utils/date/formatDate";
 
 export default function PostHeader({
   post,
@@ -12,7 +12,7 @@ export default function PostHeader({
   onEdit,
   onDelete,
 }) {
-  const formattedDate = formatPostDate(post.created_at);
+  const formattedDate = formatDate(post.created_at);
 
   return (
     <Row className="flex-col md:flex-row justify-between gap-2">

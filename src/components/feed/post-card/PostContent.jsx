@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import truncateContent from "@/utils/posts/truncateContent";
+import truncateContent from "@/utils/text/truncateContent";
 import Linkify from "linkify-react";
 
 export default function PostContent({

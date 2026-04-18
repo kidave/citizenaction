@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useGeographicScopes } from "@/hooks/geography/useGeographicScopes";
+
 import {
   Select,
   SelectTrigger,
@@ -13,143 +15,149 @@ import {
 export default function ScopeSelector({
   value,
   onChange,
-  allowedTypes = ["country", "state", "region", "city", "ward"],
-  allowClear = false,
+  parent = "region", // future-ready
 }) {
-  const { scope_type, scope_code } = value || {};
+  const [region, setRegion] = useState(null);
+  const [city, setCity] = useState(null);
+  const [ward, setWard] = useState(null);
 
-  const [parentCode, setParentCode] = useState(null);
+  /* ---------------- FETCH ---------------- */
 
-  /* -------------------------
-     FETCH DATA
-  ------------------------- */
-
-  const countryQuery = useGeographicScopes({
-    type: "country",
-    enabled: allowedTypes.includes("country"),
-  });
-
-  const stateQuery = useGeographicScopes({
-    type: "state",
-    enabled: allowedTypes.includes("state"),
-  });
-
-  const regionQuery = useGeographicScopes({
+  const { data: regions = [] } = useGeographicScopes({
     type: "region",
-    enabled: allowedTypes.includes("region"),
+    enabled: parent === "region" || parent === "state",
   });
 
-  const cityQuery = useGeographicScopes({
+  const { data: cities = [] } = useGeographicScopes({
     type: "city",
-    enabled:
-      allowedTypes.includes("city") || allowedTypes.includes("ward"),
+    parentCode: region,
+    enabled: !!region,
   });
 
-  const wardQuery = useGeographicScopes({
+  const { data: wards = [] } = useGeographicScopes({
     type: "ward",
-    parentCode,
-    enabled: scope_type === "ward" && !!parentCode,
+    parentCode: city,
+    enabled: !!city,
   });
 
-  /* -------------------------
-     HANDLERS
-  ------------------------- */
+  /* ---------------- SYNC FROM VALUE ---------------- */
 
-  function handleTypeChange(type) {
-    setParentCode(null);
-    onChange({ scope_type: type, scope_code: "" });
+  useEffect(() => {
+    if (!value?.scope_code) {
+      setRegion(null);
+      setCity(null);
+      setWard(null);
+      return;
+    }
+
+    if (value.scope_type === "region") {
+      setRegion(value.scope_code);
+      setCity(null);
+      setWard(null);
+    }
+
+    if (value.scope_type === "city") {
+      setCity(value.scope_code);
+      setWard(null);
+    }
+
+    if (value.scope_type === "ward") {
+      setWard(value.scope_code);
+    }
+  }, [value]);
+
+  /* ---------------- UPDATE ---------------- */
+
+  function updateFromSelection(r, c, w) {
+    if (w) return onChange?.({ scope_type: "ward", scope_code: w });
+    if (c) return onChange?.({ scope_type: "city", scope_code: c });
+    if (r) return onChange?.({ scope_type: "region", scope_code: r });
+
+    return onChange?.({ scope_type: null, scope_code: null });
   }
 
-  function handleChange(code) {
-    onChange({
-      scope_type,
-      scope_code: code,
-    });
+  /* ---------------- HANDLERS ---------------- */
+
+  function selectRegion(code) {
+    setRegion(code);
+    setCity(null);
+    setWard(null);
+    updateFromSelection(code, null, null);
   }
 
-  /* -------------------------
-     UI
-  ------------------------- */
+  function selectCity(code) {
+    setCity(code);
+    setWard(null);
+    updateFromSelection(region, code, null);
+  }
+
+  function selectWard(code) {
+    setWard(code);
+    updateFromSelection(region, city, code);
+  }
+
+  function clearAll() {
+    setRegion(null);
+    setCity(null);
+    setWard(null);
+    updateFromSelection(null, null, null);
+  }
+
+  /* ---------------- BACKSPACE UX (IMPORTANT) ---------------- */
+
+  function handleKeyDown(e) {
+    if (e.key !== "Backspace") return;
+
+    if (ward) {
+      setWard(null);
+      updateFromSelection(region, city, null);
+    } else if (city) {
+      setCity(null);
+      updateFromSelection(region, null, null);
+    } else if (region) {
+      clearAll();
+    }
+  }
+
+  /* ---------------- UI ---------------- */
 
   return (
-    <div className="space-y-2">
+    <div
+      className="flex items-center gap-2 w-full overflow-x-auto scrollbar-hide"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+    >
+      {/* REGION */}
+      <Dropdown
+        data={regions}
+        value={region}
+        onChange={selectRegion}
+        placeholder="Region"
+      />
 
-      {/* TYPE */}
-      <Select value={scope_type || ""} onValueChange={handleTypeChange}>
-        <SelectTrigger>
-          <SelectValue placeholder="Select level" />
-        </SelectTrigger>
-        <SelectContent>
-          {allowedTypes.map((t) => (
-            <SelectItem key={t} value={t}>
-              {t.toUpperCase()}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {/* CITY */}
+      <Dropdown
+        data={cities}
+        value={city}
+        onChange={selectCity}
+        placeholder="City"
+        disabled={!region}
+      />
 
-      {/* 🔥 GRID START */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-
-        {/* COUNTRY */}
-        {scope_type === "country" && (
-          <Dropdown
-            data={countryQuery.data}
-            value={scope_code}
-            onChange={handleChange}
-          />
-        )}
-
-        {/* STATE */}
-        {scope_type === "state" && (
-          <Dropdown
-            data={stateQuery.data}
-            value={scope_code}
-            onChange={handleChange}
-          />
-        )}
-
-        {/* REGION */}
-        {scope_type === "region" && (
-          <Dropdown
-            data={regionQuery.data}
-            value={scope_code}
-            onChange={handleChange}
-          />
-        )}
-
-        {/* CITY */}
-        {(scope_type === "city" || scope_type === "ward") && (
-          <Dropdown
-            data={cityQuery.data}
-            value={scope_type === "city" ? scope_code : parentCode}
-            onChange={(v) => {
-              setParentCode(v);
-              if (scope_type === "city") handleChange(v);
-            }}
-          />
-        )}
-
-        {/* WARD */}
-        {scope_type === "ward" && (
-          <Dropdown
-            data={wardQuery.data}
-            value={scope_code}
-            disabled={!parentCode}
-            onChange={handleChange}
-          />
-        )}
-
-      </div>
-      {/* 🔥 GRID END */}
+      {/* WARD */}
+      <Dropdown
+        data={wards}
+        value={ward}
+        onChange={selectWard}
+        placeholder="Ward"
+        disabled={!city}
+      />
 
       {/* CLEAR */}
-      {allowClear && (
+      {(region || city || ward) && (
         <button
-          className="text-xs text-muted-foreground"
-          onClick={() =>
-            onChange({ scope_type: "", scope_code: "" })
-          }
+          onClick={clearAll}
+          className="text-xs text-muted-foreground hover:underline whitespace-nowrap"
         >
           Clear
         </button>
@@ -158,18 +166,55 @@ export default function ScopeSelector({
   );
 }
 
-/* ---------------------------------- */
+/* ---------------- DROPDOWN ---------------- */
 
-function Dropdown({ data, value, onChange, disabled }) {
+function Dropdown({ data, value, onChange, placeholder, disabled }) {
+  const selected = data?.find((d) => d.code === value);
+
   return (
-    <Select value={value || ""} onValueChange={onChange} disabled={disabled}>
-      <SelectTrigger>
-        <SelectValue placeholder="Select" />
+    <Select value={value ?? ""} onValueChange={onChange} disabled={disabled}>
+      <SelectTrigger className="h-9 text-xs min-w-[120px] max-w-[180px]">
+
+        {selected ? (
+          <div className="flex items-center gap-2 w-full overflow-hidden">
+            {selected.logo_url && (
+              <Image
+                src={selected.logo_url}
+                alt={selected.name}
+                width={16}
+                height={16}
+                className="shrink-0 rounded-sm"
+              />
+            )}
+
+            {/* 🔥 FIX: prevent overflow */}
+            <span className="truncate">
+              {selected.name}
+            </span>
+          </div>
+        ) : (
+          <SelectValue placeholder={placeholder} />
+        )}
+
       </SelectTrigger>
+
       <SelectContent>
         {data?.map((item) => (
           <SelectItem key={item.code} value={item.code}>
-            {item.name}
+            <div className="flex items-center gap-2">
+              {item.logo_url && (
+                <Image
+                  src={item.logo_url}
+                  alt={item.name}
+                  width={16}
+                  height={16}
+                  className="rounded-sm"
+                />
+              )}
+              <span className="truncate">
+                {item.name}
+              </span>
+            </div>
           </SelectItem>
         ))}
       </SelectContent>

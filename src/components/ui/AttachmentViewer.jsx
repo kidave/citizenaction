@@ -16,6 +16,7 @@ export default function AttachmentViewer({
 
   const isImage = activeFile?.type?.startsWith("image/");
   const isPDF = activeFile?.type === "application/pdf";
+  const isVideo = activeFile.type === "video/link";
 
   /* ================= IMAGE HANDLING ================= */
 
@@ -43,6 +44,18 @@ export default function AttachmentViewer({
         <Dialog open={open} onOpenChange={onOpenChange}>
           <DialogContent className="max-w-6xl p-0">
             <PDFViewer fileUrl={activeFile.url} />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {isVideo && (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+          <DialogContent className="max-w-4xl p-0 bg-black">
+            <iframe
+              src={activeFile.embed || activeFile.url}
+              className="w-full aspect-video"
+              allowFullScreen
+            />
           </DialogContent>
         </Dialog>
       )}
