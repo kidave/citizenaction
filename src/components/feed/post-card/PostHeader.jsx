@@ -5,6 +5,8 @@ import { Inline } from "@/components/layout/Inline";
 import { UserIdentity } from "@/components/profile/UserIdentity";
 import MenuButton from "@/components/feed/MenuButton";
 import formatDate from "@/utils/date/formatDate";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function PostHeader({
   post,
@@ -29,17 +31,25 @@ export default function PostHeader({
       <Inline className="justify-end md:justify-start">
         <div className="flex items-center gap-2">
 
-          {post.space_logo && (
-            <img
-              src={post.space_logo}
-              className="h-6 w-6 rounded-md"
-            />
+          {post.space_logo && post.space_slug && (
+            <Link href={`/space/${post.space_slug}`}>
+              <Image
+                src={post.space_logo}
+                alt="space logo"
+                width={24}
+                height={24}
+                className="h-6 w-6 rounded-md cursor-pointer hover:opacity-80"
+              />
+            </Link>
           )}
 
-          {post.scope_name && (
-            <span className="text-xs text-muted-foreground">
+          {post.scope_name && post.space_slug && post.scope_type && post.scope_code && (
+            <Link
+              href={`/space/${post.space_slug}/${post.scope_type}/${post.scope_code}`}
+              className="text-xs text-muted-foreground hover:underline"
+            >
               {post.scope_name}
-            </span>
+            </Link>
           )}
 
         </div>
