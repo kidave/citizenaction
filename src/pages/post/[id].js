@@ -1,11 +1,10 @@
-"use client";
-
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
 import { createServerSupabase } from "@/lib/supabase/server";
 import { usePost } from "@/hooks/feed/usePost";
+import { useAuth } from "@/context/AuthContext";
 
 import PostCard from "@/components/feed/post-card/PostCard";
 import PostEditorModal from "@/components/feed/post-editor/PostEditorModal";
@@ -37,7 +36,17 @@ export async function getServerSideProps({ params }) {
 function getImage(attachments) {
   if (!attachments) return null;
 
-  const img = attachments.find(
+  let parsed = attachments;
+
+  if (typeof attachments === "string") {
+    try {
+      parsed = JSON.parse(attachments);
+    } catch {
+      return null;
+    }
+  }
+
+  const img = parsed.find(
     (a) => a.type && a.type.startsWith("image")
   );
 
@@ -53,24 +62,20 @@ function getDescription(post) {
 export default function SinglePostPage({ post: ssrPost }) {
   const router = useRouter();
   const { deletePost } = useDeletePost();
+  const { user } = useAuth();
 
-  // 🔥 CLIENT FETCH (THIS FIXES EDIT ISSUE)
+  // 🔥 Client fetch (auth-aware)
   const { data: clientPost } = usePost(ssrPost?.id);
 
-  // 🔥 FINAL POST (client overrides SSR)
+  // final post
   const post = clientPost ?? ssrPost;
-
-  console.log("SSR:", ssrPost?.can_manage);
-  console.log("CLIENT:", clientPost?.can_manage);
-
 
   const [editingPost, setEditingPost] = useState(null);
 
   if (!post) return null;
 
-  /* ===== OG (always use SSR for safety) ===== */
+  /* ===== OG DATA (STRICTLY SSR) ===== */
   const title = ssrPost.summary || "Citizen Action";
-
   const description = getDescription(ssrPost);
 
   const image =
@@ -79,21 +84,29 @@ export default function SinglePostPage({ post: ssrPost }) {
 
   const url = `https://citizenaction.in/post/${ssrPost.id}`;
 
+  /* ===== CAN EDIT ===== */
+  const canEdit =
+    post?.can_manage || post?.author_id === user?.id;
+
   return (
     <>
       <Head>
-        <title>{title}</title>
+        <title key="title">{title}</title>
 
         {/* ===== Open Graph ===== */}
-        <meta property="og:type" content="article" />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:image" content={image} />
-        <meta property="og:url" content={url} />
+        <meta property="og:type" content="article" key="og:type" />
+        <meta property="og:title" content={title} key="og:title" />
+        <meta
+          property="og:description"
+          content={description}
+          key="og:description"
+        />
+        <meta property="og:image" content={image} key="og:image" />
+        <meta property="og:url" content={url} key="og:url" />
 
-        {/* WhatsApp stability */}
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
+        <meta property="og:image:type" content="image/jpeg" />
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
@@ -127,7 +140,7 @@ export default function SinglePostPage({ post: ssrPost }) {
           <div className="w-full max-w-4xl px-4">
             <PostCard
               post={post}
-              canEdit={post.can_manage}
+              canEdit={canEdit}
               onEdit={() => setEditingPost(post)}
               onDelete={() => deletePost(post.id)}
               forceExpanded
