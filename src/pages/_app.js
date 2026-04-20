@@ -29,11 +29,29 @@ function MyApp({ Component, pageProps }) {
     <>
       <Head>
         <title>Citizen Action - Mumbai Sustainability Center</title>
-        <meta
-          name="google-site-verification"
-          content="xFeTRB7..."
-        />
+
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Citizen Action" />
+        <meta
+          property="og:description"
+          content="To ensure that every citizen have safe, convenient and enjoyable living."
+        />
+        <meta property="og:image" content="https://citizenaction.in/logo.png" />
+        <meta property="og:url" content="https://citizenaction.in/" />
+
+        {/* ===== Twitter ===== */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Citizen Action" />
+        <meta
+          name="twitter:description"
+          content="To ensure that every citizen have safe, convenient and enjoyable living."
+        />
+        <meta name="twitter:image" content="https://citizenaction.in/logo.png" />
+
+        {/* Optional */}
+        <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <QueryClientProvider client={queryClient}>
