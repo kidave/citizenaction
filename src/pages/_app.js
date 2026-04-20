@@ -28,29 +28,44 @@ function MyApp({ Component, pageProps }) {
   return (
     <>
       <Head>
-        <title>Citizen Action - Mumbai Sustainability Center</title>
+        <title key="title">Citizen Action - Mumbai Sustainability Center</title>
 
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content="Citizen Action" />
+        {/* ===== Open Graph (fallback only) ===== */}
+        <meta property="og:type" content="website" key="og:type" />
+        <meta property="og:title" content="Citizen Action" key="og:title" />
         <meta
           property="og:description"
           content="To ensure that every citizen have safe, convenient and enjoyable living."
+          key="og:description"
         />
-        <meta property="og:image" content="https://citizenaction.in/logo.png" />
-        <meta property="og:url" content="https://citizenaction.in/" />
+        <meta
+          property="og:image"
+          content="https://citizenaction.in/logo.png"
+          key="og:image"
+        />
+        <meta
+          property="og:url"
+          content="https://citizenaction.in/"
+          key="og:url"
+        />
 
         {/* ===== Twitter ===== */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Citizen Action" />
+        <meta name="twitter:card" content="summary_large_image" key="twitter:card" />
+        <meta name="twitter:title" content="Citizen Action" key="twitter:title" />
         <meta
           name="twitter:description"
           content="To ensure that every citizen have safe, convenient and enjoyable living."
+          key="twitter:description"
         />
-        <meta name="twitter:image" content="https://citizenaction.in/logo.png" />
+        <meta
+          name="twitter:image"
+          content="https://citizenaction.in/logo.png"
+          key="twitter:image"
+        />
 
-        {/* Optional */}
+        {/* Favicon */}
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
