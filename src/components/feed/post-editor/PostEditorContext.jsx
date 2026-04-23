@@ -4,10 +4,8 @@ import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 
 import SpaceSelector from "@/components/shared/SpaceSelector";
-import ScopeSelectorModal from "@/components/shared/ScopeSelectorModal";
 
 export default function PostEditorContext({ editor, spaces = [] }) {
-  /* ❗ ALWAYS declare hooks first */
 
   const [openScope, setOpenScope] = useState(false);
 
@@ -26,7 +24,6 @@ export default function PostEditorContext({ editor, spaces = [] }) {
     setScopeName,
   } = safeEditor;
 
-  /* ✅ useMemo must NOT be conditional */
   const mergedSpaces = useMemo(() => {
     if (!space_id) return spaces;
 
@@ -67,7 +64,6 @@ export default function PostEditorContext({ editor, spaces = [] }) {
     setScopeName?.(val?.scope_name || null);
   }
 
-  /* ❗ SAFE RETURN AFTER HOOKS */
 
   if (!editor) return null;
   if (mode === "global") return null;
