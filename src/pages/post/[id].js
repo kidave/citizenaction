@@ -120,7 +120,7 @@ export default function SinglePostPage({ post: ssrPost }) {
 
         {/* HEADER */}
         <div className="sticky top-0 z-40 bg-background border-b">
-          <div className="flex items-center h-16 px-4 max-w-4xl mx-auto">
+          <div className="flex items-center h-14 px-3 sm:h-16 sm:px-4 max-w-4xl mx-auto">
             <Button
               variant="ghost"
               size="icon"
@@ -136,8 +136,8 @@ export default function SinglePostPage({ post: ssrPost }) {
         </div>
 
         {/* CONTENT */}
-        <div className="flex justify-center w-full py-8">
-          <div className="w-full max-w-4xl px-4">
+        <div className="flex justify-center w-full sm:py-8">
+          <div className="w-full max-w-4xl px-0 sm:px-4">
             <PostCard
               post={post}
               canEdit={canEdit}

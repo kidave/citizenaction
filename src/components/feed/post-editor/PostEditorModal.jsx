@@ -12,6 +12,7 @@ import PostTypeSelector from "./PostTypeSelector";
 import PostEditorMetadata from "./PostEditorMetadata";
 import PostEditorContent from "./PostEditorContent";
 import PostEditorAttachments from "./PostEditorAttachments";
+import { Row } from "@/components/layout/Row";
 
 export default function PostEditorModal({ isOpen, onClose, post = null }) {
 
@@ -25,22 +26,26 @@ export default function PostEditorModal({ isOpen, onClose, post = null }) {
     <>
       {/* Overlay */}
       <div
-        className="fixed inset-0 bg-black/50 z-50"
+        className="fixed inset-0 bg-black/50 z-50 hidden sm:block"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 flex sm:items-center sm:justify-center">
 
-        <Card className="w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <Card
+          className="
+            w-full h-full rounded-none
+            sm:max-w-2xl sm:max-h-[90vh] sm:rounded-lg
+            flex flex-col
+          "
+        >
 
           {/* HEADER */}
           <PostEditorHeader
             profile={profile}
             post={post}
             editor={editor}
-            isGlobal={editor.isGlobal}
-            setIsGlobal={editor.setIsGlobal}
             onClose={onClose}
             onSubmit={() => editor.submit(onClose)}
             onDelete={() => editor.remove(onClose)}
@@ -50,36 +55,19 @@ export default function PostEditorModal({ isOpen, onClose, post = null }) {
           <div className="flex-1 overflow-y-auto p-4">
 
             <Stack gap="gap-4">
-
-              <PostEditorContext
-                space_id={editor.space_id}
-                setSpaceId={editor.setSpaceId}
-                scope_type={editor.scope_type}
-                setScopeType={editor.setScopeType}
-                scope_code={editor.scope_code}
-                setScopeCode={editor.setScopeCode}
-                isGlobal={editor.isGlobal}
-                setIsGlobal={editor.setIsGlobal}
-                spaces={profile?.spaces || []}
-                governance_entities={editor.governance_entities}
-                setSelectedAuthorities={editor.setSelectedAuthorities}
-              />
-
-              {/* TYPE + AUTHORITY */}
-              <div className="flex gap-4 justify-between">
-                <PostTypeSelector
-                  type={editor.type}
-                  setType={editor.setType}
+              <Row className="flex-col md:flex-row md:items-center gap-3">
+                {/* TYPE + AUTHORITY */}
+                <div className="flex gap-4 justify-between">
+                  <PostTypeSelector
+                    type={editor.type}
+                    setType={editor.setType}
+                  />
+                </div>
+                <PostEditorContext
+                  editor={editor}
+                  spaces={profile?.spaces || []}
                 />
-
-                {/*
-                <PostAuthoritySelector
-                  governance_entities={editor.governance_entities}
-                  setSelectedAuthorities={editor.setSelectedAuthorities}
-                  mode="editor"
-                />
-                */}
-              </div>
+              </Row>
 
               {/* METADATA */}
               <PostEditorMetadata editor={editor} />
@@ -92,10 +80,9 @@ export default function PostEditorModal({ isOpen, onClose, post = null }) {
                 setContent={editor.setContent}
               />
 
-              <div className="flex gap-3">
+              <div className="w-full">
 
-                {/* AUTHORITY */}
-                <div className="flex-1">
+                {/* AUTHORITY 
                   <PostAuthoritySelector
                     governance_entities={editor.governance_entities}
                     setSelectedAuthorities={editor.setSelectedAuthorities}
@@ -103,18 +90,14 @@ export default function PostEditorModal({ isOpen, onClose, post = null }) {
                       space_id: editor.space_id,
                       scope_type: editor.scope_type,
                       scope_code: editor.scope_code,
-                      isGlobal: editor.isGlobal,
                     }}
                   />
-                </div>
-
+                */}
                 {/* ATTACHMENTS */}
-                <div className="flex-1">
                   <PostEditorAttachments
                     attachments={editor.attachments}
                     setAttachments={editor.setAttachments}
                   />
-                </div>
 
               </div>
 

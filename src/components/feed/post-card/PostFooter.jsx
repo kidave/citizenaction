@@ -47,7 +47,7 @@ export default function PostFooter({ post }) {
             <TooltipTrigger asChild>
               <button
                 onClick={handleSupport}
-                className={`flex items-center gap-2 ${
+                className={`flex items-center gap-2 hover:text-primary ${
                   supported ? "text-primary font-medium" : ""
                 }`}
               >
@@ -64,7 +64,7 @@ export default function PostFooter({ post }) {
             <TooltipTrigger asChild>
               <button
                 onClick={handleContribute}
-                className={`flex items-center gap-2 ${
+                className={`flex items-center gap-2 hover:text-primary ${
                   contributing ? "text-primary font-medium" : ""
                 }`}
               >

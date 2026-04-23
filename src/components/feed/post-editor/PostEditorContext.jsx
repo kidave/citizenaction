@@ -1,37 +1,32 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo, useState } from "react";
+import { Search } from "lucide-react";
 
-import ScopeSelector from "@/components/shared/ScopeSelector";
 import SpaceSelector from "@/components/shared/SpaceSelector";
+import ScopeSelectorModal from "@/components/shared/ScopeSelectorModal";
 
-export default function PostEditorContext({
-  space_id,
-  setSpaceId,
+export default function PostEditorContext({ editor, spaces = [] }) {
+  /* ❗ ALWAYS declare hooks first */
 
-  scope_type,
-  setScopeType,
-  scope_code,
-  setScopeCode,
+  const [openScope, setOpenScope] = useState(false);
 
-  isGlobal,
+  const safeEditor = editor || {};
 
-  spaces = [],
-}) {
-  /* -------------------------
-     HANDLE GLOBAL
-  ------------------------- */
-  useEffect(() => {
-    if (isGlobal) {
-      setSpaceId(null);
-      setScopeType(null);
-      setScopeCode(null);
-    }
-  }, [isGlobal, setSpaceId, setScopeType, setScopeCode]);
+  const {
+    mode,
+    setMode,
+    space_id,
+    setSpaceId,
+    scope_type,
+    setScopeType,
+    scope_code,
+    setScopeCode,
+    scope_name,
+    setScopeName,
+  } = safeEditor;
 
-  /* -------------------------
-     MERGE SPACES
-  ------------------------- */
+  /* ✅ useMemo must NOT be conditional */
   const mergedSpaces = useMemo(() => {
     if (!space_id) return spaces;
 
@@ -42,60 +37,79 @@ export default function PostEditorContext({
     if (exists) return spaces;
 
     return [
-      ...spaces,
       {
         id: space_id,
         name: "Selected Space",
         logo_url: null,
       },
+      ...spaces,
     ];
   }, [spaces, space_id]);
 
-  /* -------------------------
-     HANDLERS
-  ------------------------- */
-  function handleScopeChange(val) {
-    setScopeType(val?.scope_type || null);
-    setScopeCode(val?.scope_code || null);
-  }
+  /* ================= HANDLERS ================= */
 
   function handleSpaceChange(val) {
-    setSpaceId(val || null);
+    if (!setMode) return;
+
+    const parsed = val ? String(val) : null;
+
+    setMode("space");
+    setSpaceId?.(parsed);
+
+    setScopeType?.(null);
+    setScopeCode?.(null);
+    setScopeName?.(null);
   }
 
-  /* -------------------------
-     UI
-  ------------------------- */
-  if (isGlobal) return null;
+  function handleScopeSave(val) {
+    setScopeType?.(val?.scope_type || null);
+    setScopeCode?.(val?.scope_code || null);
+    setScopeName?.(val?.scope_name || null);
+  }
+
+  /* ❗ SAFE RETURN AFTER HOOKS */
+
+  if (!editor) return null;
+  if (mode === "global") return null;
 
   return (
-    <div className="space-y-3">
+    <>
+      <div className="flex items-center gap-2 w-full">
 
-      {/* 🔥 Responsive Layout */}
-      <div className="flex flex-col gap-3 md:flex-row">
-
-        {/* SPACE */}
-        <div className="w-full md:w-[30%]">
+        <div >
           <SpaceSelector
-            value={space_id}
+            value={space_id || null}
             onChange={handleSpaceChange}
             spaces={mergedSpaces}
           />
         </div>
-
-        {/* SCOPE */}
-        <div className="w-full md:flex-1 min-w-0">
-          <ScopeSelector
-            value={{
-              scope_type,
-              scope_code,
-            }}
-            onChange={handleScopeChange}
-          />
-        </div>
-
+        {/* 
+        {space_id && (
+          <button
+            onClick={() => setOpenScope(true)}
+            className="flex items-center gap-2 border rounded-md px-3 py-2 text-sm w-full"
+          >
+            <Search size={14} />
+            <span className="truncate">
+              {scope_name || "Search location"}
+            </span>
+          </button>
+        )}
+        */}
       </div>
-
-    </div>
+      
+      {/* Scope Selector Modal 
+      <ScopeSelectorModal
+        open={openScope}
+        onClose={() => setOpenScope(false)}
+        value={{
+          scope_type,
+          scope_code,
+          scope_name,
+        }}
+        onSave={handleScopeSave}
+      />
+      */}
+    </>
   );
 }

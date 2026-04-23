@@ -27,6 +27,9 @@ export function usePostEditor(post = null, profile = null) {
   const { updatePost } = useUpdatePost();
   const { deletePost } = useDeletePost();
 
+  const [initialized, setInitialized] = useState(false);
+  const [mode, setMode] = useState("global");
+
   const [space_id, setSpaceId] = useState(null);
 
   const [scope_type, setScopeType] = useState(null);
@@ -35,21 +38,55 @@ export function usePostEditor(post = null, profile = null) {
 
   const [isGlobal, setIsGlobal] = useState(false);
 
-
   useEffect(() => {
     if (post) {
       setSpaceId(post.space_id || null);
       setScopeType(post.scope_type || null);
       setScopeCode(post.scope_code || null);
       setScopeName(post.scope_name || null);
-      setIsGlobal(post.is_global || false);
+
+      const global = post.is_global || false;
+      setIsGlobal(global);
+      setMode(global ? "global" : "space");
+
+      setInitialized(true);
       return;
     }
 
-    if (profile) {
-      setSpaceId(profile?.primary_space?.id || null);
+    if (profile?.primary_space?.id) {
+      setSpaceId(profile.primary_space.id);
+      setMode("space");
+      setIsGlobal(false);
+    } else {
+      setMode("global");
+      setIsGlobal(true);
+      setSpaceId(null);
     }
+    setInitialized(true);
   }, [post, profile]);
+
+  useEffect(() => {
+    if (!initialized) return;
+
+    if (mode === "global") {
+      setIsGlobal(true);
+      setSpaceId(null);
+
+      setScopeType(null);
+      setScopeCode(null);
+      setScopeName(null);
+    } else {
+      setIsGlobal(false);
+    }
+  }, [mode, initialized]);
+
+  useEffect(() => {
+    if (!space_id) {
+      setScopeType(null);
+      setScopeCode(null);
+      setScopeName(null);
+    }
+  }, [space_id]);
 
   const [governance_entities, setSelectedAuthorities] = useState(post?.governance_entities || []);
   const [type, setType] = useState(post?.type || "action");
@@ -103,7 +140,12 @@ export function usePostEditor(post = null, profile = null) {
     }
 
     if (!space_id && !scope_code && !isGlobal) {
-      toast.error("Select location, space or mark as global");
+      toast.error("Select space or mark as global");
+      return;
+    }
+
+    if (scope_code && !space_id) {
+      toast.error("Select space before location");
       return;
     }
 
@@ -177,6 +219,9 @@ export function usePostEditor(post = null, profile = null) {
   }
 
   return {
+    mode,
+    setMode,
+
     type,
     setType,
     title,

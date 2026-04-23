@@ -8,63 +8,46 @@ import {
 } from "@/components/ui/tooltip";
 
 const TYPES = [
-  {
-    value: "action",
-    label: "Action",
-    desc: "Document civic initiatives and actions taken.",
-  },
-  {
-    value: "report",
-    label: "Report",
-    desc: "Document complaints, suggestions or policy proposals.",
-  },
-  {
-    value: "update",
-    label: "Update",
-    desc: "Document major updates or announcements.",
-  },
-  {
-    value: "event",
-    label: "Event",
-    desc: "Post event details and media.",
-  },
-  {
-    value: "meeting",
-    label: "Meeting",
-    desc: "Record meetings with officials.",
-  },
+  { value: "action", label: "Action", desc: "Document civic initiatives and actions taken." },
+  { value: "report", label: "Report", desc: "Document complaints, suggestions or policy proposals." },
+  { value: "update", label: "Update", desc: "Document major updates or announcements." },
+  { value: "event", label: "Event", desc: "Post event details and media." },
+  { value: "meeting", label: "Meeting", desc: "Record meetings with officials." },
 ];
 
 export default function PostTypeSelector({ type, setType }) {
   return (
-    <div className="flex justify-end">
+    <div className="w-full sm:w-auto">
 
       <ToggleGroup
         type="single"
         value={type}
         onValueChange={(v) => v && setType(v)}
         variant="outline"
+        className="flex w-full sm:w-auto"
       >
 
         {TYPES.map((t, i) => (
           <ToggleGroupItem
             key={t.value}
             value={t.value}
-            className={`rounded-none ${
-              i === 0 ? "rounded-l-md" : ""
-            } ${
-              i === TYPES.length - 1 ? "rounded-r-md" : "border-r-0"
-            }`}
+            className={`
+              flex text-center text-xs sm:text-sm
+              px-2 py-1
+              rounded-none
+              ${i === 0 ? "rounded-l-md" : ""}
+              ${i === TYPES.length - 1 ? "rounded-r-md" : "border-r-0"}
+            `}
           >
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="cursor-pointer">
+                <span className="truncate">
                   {t.label}
                 </span>
               </TooltipTrigger>
 
               <TooltipContent>
-                <p className="text-xs max-w-[200px]">
+                <p className="text-xs max-w-auto">
                   {t.desc}
                 </p>
               </TooltipContent>

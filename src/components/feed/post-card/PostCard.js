@@ -33,8 +33,23 @@ export default function PostCard({
     router.push(`/post/${post.id}`);
   };
 
+  const typeStyles = {
+    action: "sm:border-l-4 sm:border-red-500 bg-red-50/30",
+    report: "sm:border-l-4 sm:border-blue-500 bg-blue-50/30",
+    event: "sm:border-l-4 sm:border-green-500 bg-green-50/40",
+    update: "sm:border-l-4 sm:border-pink-500 bg-pink-50/40",
+    meeting: "sm:border-l-4 sm:border-yellow-500 bg-yellow-50/30",
+  };
+
   return (
-    <Card className="p-5 cursor-pointer transition-colors overflow-hidden">
+    <Card
+      className={`
+        cursor-pointer overflow-
+        p-3 sm:p-5
+        rounded-none sm:rounded-lg
+        ${typeStyles[post.type] || ""}
+      `}
+    >
       <Stack>
         <PostHeader
           post={post}

@@ -6,13 +6,13 @@ export default function Home() {
   return (
     <div className="flex justify-center w-full min-h-screen">
       {/* CENTERED CONTENT AREA WITH FIXED WIDTH */}
-      <div className="flex w-full max-w-[1200px] px-4">
+      <div className="flex w-full max-w-[1200px] px-0 sm:px-4">
         
         {/* CENTERED CONTENT WRAPPER */}
         <div className="flex w-full justify-center">
           
           {/* FEED - FIXED WIDTH */}
-          <div className="w-full max-w-[680px] pt-4">  
+          <div className="w-full max-w-[680px] pt-0 sm:pt-4">
             <CreatePostTrigger />          
             {/* FEED CONTENT */}
             <Feed />

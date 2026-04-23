@@ -35,7 +35,7 @@ export default function Feed() {
           </p>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-0 sm:space-y-4">
 
           {data?.map((post) => (
             <PostCard

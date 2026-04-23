@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import truncateContent from "@/utils/text/truncateContent";
 import Linkify from "linkify-react";
+import { Badge } from "@/components/ui/badge";
+import { Row } from "@/components/layout/Row";
 
 export default function PostContent({
   post,
@@ -17,8 +19,17 @@ export default function PostContent({
     }
   }, [forceExpanded]);
 
+  const type = post.type || "action";
   const title = post.summary || "";
   const content = post.details || "";
+
+  const typeStyles = {
+    action: "bg-red-100 text-red-700 border-red-200",
+    report: "bg-blue-100 text-blue-700 border-blue-200",
+    event: "bg-green-100 text-green-700 border-green-200",
+    update: "bg-pink-100 text-pink-700 border-pink-200",
+    meeting: "bg-yellow-100 text-yellow-700 border-yellow-200",
+  };
   
   const { text: truncatedText, isLong } =
     truncateContent(content, 280);
@@ -36,11 +47,21 @@ export default function PostContent({
       className={!forceExpanded ? "cursor-pointer" : ""}
     >
       <div className="text-sm whitespace-pre-wrap space-y-1">
-        {title && (
-          <div className="font-medium mb-2">
-            {title}
-          </div>
-        )}
+        <Row className="gap-2 mb-2">
+          <Badge
+            variant="secondary"
+            className={`text-xs shrink-0 ${typeStyles[type] || ""}`}
+          >
+            {type.toUpperCase()}
+          </Badge>
+          
+          {title && (
+            <div className="font-medium items-center">
+              {title}
+            </div>
+          )}
+        </Row>
+        
         <Linkify
           options={{
             target: "_blank",
