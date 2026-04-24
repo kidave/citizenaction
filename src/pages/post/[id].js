@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 /* ================= SERVER ================= */
 export async function getServerSideProps({ params }) {
   const supabase = createServerSupabase();
+
   const { id } = params;
 
   const { data } = await supabase
@@ -31,56 +32,26 @@ export async function getServerSideProps({ params }) {
   };
 }
 
-/* ================= HELPERS ================= */
-
-// remove links + clean
-function cleanText(text) {
-  if (!text) return "";
-
-  return text
-    .replace(/https?:\/\/\S+/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-// description (short + clean)
-function getDescription(post) {
-  const clean = cleanText(post.details);
-
-  if (!clean) return "";
-
-  return clean.length > 140
-    ? clean.slice(0, 140) + "..."
-    : clean;
-}
-
-// 🔥 IMPORTANT: stable image selector
 function getImage(attachments) {
   if (!attachments) return null;
 
-  try {
-    const parsed =
-      typeof attachments === "string"
-        ? JSON.parse(attachments)
-        : attachments;
+  let parsed = attachments;
 
-    if (!Array.isArray(parsed)) return null;
-
-    // pick FIRST valid image (critical for OG bots)
-    const img = parsed.find(
-      (a) =>
-        a?.url &&
-        a?.type?.startsWith("image") &&
-        a.url.startsWith("http")
-    );
-
-    return img?.url || null;
-  } catch {
-    return null;
+  if (typeof attachments === "string") {
+    try {
+      parsed = JSON.parse(attachments);
+    } catch {
+      return null;
+    }
   }
+
+  const img = parsed.find(
+    (a) => a.type && a.type.startsWith("image")
+  );
+
+  return img?.url || null;
 }
 
-/* ================= PAGE ================= */
 
 export default function SinglePostPage({ post: ssrPost }) {
   const router = useRouter();
@@ -88,19 +59,15 @@ export default function SinglePostPage({ post: ssrPost }) {
   const { user } = useAuth();
 
   const { data: clientPost } = usePost(ssrPost?.id);
+
   const post = clientPost ?? ssrPost;
 
   const [editingPost, setEditingPost] = useState(null);
 
   if (!post) return null;
 
-  /* ===== OG DATA ===== */
-
   const title = ssrPost.summary || "Citizen Action";
-
-  const description =
-    getDescription(ssrPost) ||
-    "View this post on Citizen Action";
+  const description = ssrPost.details || "Citizen Action";
 
   const image =
     getImage(ssrPost.attachments) ||
@@ -108,32 +75,31 @@ export default function SinglePostPage({ post: ssrPost }) {
 
   const url = `https://citizenaction.in/post/${ssrPost.id}`;
 
-  /* ===== PERMISSIONS ===== */
-
+  /* ===== CAN EDIT ===== */
   const canEdit =
     post?.can_manage || post?.author_id === user?.id;
 
   return (
     <>
       <Head>
-        <title>{title}</title>
+        <title key="title">{title}</title>
 
         {/* ===== Open Graph ===== */}
-        <meta property="og:type" content="article" />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
+        <meta property="og:type" content="article" key="og:type" />
+        <meta property="og:title" content={title} key="og:title" />
+        <meta
+          property="og:description"
+          content={description}
+          key="og:description"
+        />
+        <meta property="og:image" content={image} key="og:image" />
+        <meta property="og:url" content={url} key="og:url" />
 
-        {/* 🔥 CRITICAL */}
-        <meta property="og:image" content={image} />
-        <meta property="og:image:secure_url" content={image} />
-        <meta property="og:image:type" content="image/jpeg" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
+        <meta property="og:image:type" content="image/jpeg" />
 
-        <meta property="og:url" content={url} />
-        <meta property="og:site_name" content="Citizen Action" />
-
-        {/* ===== Twitter ===== */}
+        {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
