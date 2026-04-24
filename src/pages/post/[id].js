@@ -33,43 +33,51 @@ export async function getServerSideProps({ params }) {
 
 /* ================= HELPERS ================= */
 
+// remove links + clean
 function cleanText(text) {
   if (!text) return "";
 
   return text
-    .replace(/https?:\/\/\S+/g, "") // remove URLs
+    .replace(/https?:\/\/\S+/g, "")
     .replace(/\s+/g, " ")
     .trim();
 }
 
+// description (short + clean)
 function getDescription(post) {
   const clean = cleanText(post.details);
 
   if (!clean) return "";
 
-  return clean.length > 160
-    ? clean.slice(0, 160) + "..."
+  return clean.length > 140
+    ? clean.slice(0, 140) + "..."
     : clean;
 }
 
+// 🔥 IMPORTANT: stable image selector
 function getImage(attachments) {
   if (!attachments) return null;
 
-  let parsed = attachments;
+  try {
+    const parsed =
+      typeof attachments === "string"
+        ? JSON.parse(attachments)
+        : attachments;
 
-  if (typeof attachments === "string") {
-    try {
-      parsed = JSON.parse(attachments);
-    } catch {
-      return null;
-    }
+    if (!Array.isArray(parsed)) return null;
+
+    // pick FIRST valid image (critical for OG bots)
+    const img = parsed.find(
+      (a) =>
+        a?.url &&
+        a?.type?.startsWith("image") &&
+        a.url.startsWith("http")
+    );
+
+    return img?.url || null;
+  } catch {
+    return null;
   }
-
-  const img = parsed.find(
-    (a) => a.type && a.type.startsWith("image")
-  );
-
-  return img?.url || null;
 }
 
 /* ================= PAGE ================= */
@@ -94,7 +102,6 @@ export default function SinglePostPage({ post: ssrPost }) {
     getDescription(ssrPost) ||
     "View this post on Citizen Action";
 
-  // ✅ SAFE IMAGE (WORKS 100%)
   const image =
     getImage(ssrPost.attachments) ||
     "https://citizenaction.in/logo.png";
@@ -109,18 +116,22 @@ export default function SinglePostPage({ post: ssrPost }) {
   return (
     <>
       <Head>
-        <title key="title">{title}</title>
+        <title>{title}</title>
 
         {/* ===== Open Graph ===== */}
         <meta property="og:type" content="article" />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
-        <meta property="og:image" content={image} />
-        <meta property="og:url" content={url} />
-        <meta property="og:site_name" content="Citizen Action" />
 
+        {/* 🔥 CRITICAL */}
+        <meta property="og:image" content={image} />
+        <meta property="og:image:secure_url" content={image} />
+        <meta property="og:image:type" content="image/jpeg" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
+
+        <meta property="og:url" content={url} />
+        <meta property="og:site_name" content="Citizen Action" />
 
         {/* ===== Twitter ===== */}
         <meta name="twitter:card" content="summary_large_image" />
