@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button";
 /* ================= SERVER ================= */
 export async function getServerSideProps({ params }) {
   const supabase = createServerSupabase();
-
   const { id } = params;
 
   const { data } = await supabase
@@ -34,17 +33,15 @@ export async function getServerSideProps({ params }) {
 
 /* ================= HELPERS ================= */
 
-// remove links + trim
 function cleanText(text) {
   if (!text) return "";
 
   return text
     .replace(/https?:\/\/\S+/g, "") // remove URLs
-    .replace(/\s+/g, " ")           // normalize spaces
+    .replace(/\s+/g, " ")
     .trim();
 }
 
-// generate preview description
 function getDescription(post) {
   const clean = cleanText(post.details);
 
@@ -55,7 +52,6 @@ function getDescription(post) {
     : clean;
 }
 
-// get first image
 function getImage(attachments) {
   if (!attachments) return null;
 
@@ -84,7 +80,6 @@ export default function SinglePostPage({ post: ssrPost }) {
   const { user } = useAuth();
 
   const { data: clientPost } = usePost(ssrPost?.id);
-
   const post = clientPost ?? ssrPost;
 
   const [editingPost, setEditingPost] = useState(null);
@@ -99,7 +94,10 @@ export default function SinglePostPage({ post: ssrPost }) {
     getDescription(ssrPost) ||
     "View this post on Citizen Action";
 
-  const image = `https://citizenaction.in/api/og/post?id=${ssrPost.id}`;
+  // ✅ SAFE IMAGE (WORKS 100%)
+  const image =
+    getImage(ssrPost.attachments) ||
+    "https://citizenaction.in/logo.png";
 
   const url = `https://citizenaction.in/post/${ssrPost.id}`;
 
@@ -119,6 +117,7 @@ export default function SinglePostPage({ post: ssrPost }) {
         <meta property="og:description" content={description} />
         <meta property="og:image" content={image} />
         <meta property="og:url" content={url} />
+        <meta property="og:site_name" content="Citizen Action" />
 
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
