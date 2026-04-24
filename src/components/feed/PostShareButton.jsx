@@ -9,11 +9,10 @@ export default function PostShareButton({ post }) {
 
     const url = `${window.location.origin}/post/${post.id}`;
     const title = post.summary || "Citizen Action Post";
-    const text = (post.details || "").slice(0, 120);
 
     if (navigator.share) {
       try {
-        await navigator.share({ title, text, url });
+        await navigator.share({ title, url });
       } catch (err) {
         console.log("Share cancelled");
       }
