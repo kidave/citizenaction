@@ -33,6 +33,29 @@ export async function getServerSideProps({ params }) {
 }
 
 /* ================= HELPERS ================= */
+
+// remove links + trim
+function cleanText(text) {
+  if (!text) return "";
+
+  return text
+    .replace(/https?:\/\/\S+/g, "") // remove URLs
+    .replace(/\s+/g, " ")           // normalize spaces
+    .trim();
+}
+
+// generate preview description
+function getDescription(post) {
+  const clean = cleanText(post.details);
+
+  if (!clean) return "";
+
+  return clean.length > 160
+    ? clean.slice(0, 160) + "..."
+    : clean;
+}
+
+// get first image
 function getImage(attachments) {
   if (!attachments) return null;
 
@@ -53,38 +76,35 @@ function getImage(attachments) {
   return img?.url || null;
 }
 
-function getDescription(post) {
-  const text = post.summary || post.details || "";
-  return text.length > 160 ? text.slice(0, 160) + "..." : text;
-}
-
 /* ================= PAGE ================= */
+
 export default function SinglePostPage({ post: ssrPost }) {
   const router = useRouter();
   const { deletePost } = useDeletePost();
   const { user } = useAuth();
 
-  // 🔥 Client fetch (auth-aware)
   const { data: clientPost } = usePost(ssrPost?.id);
 
-  // final post
   const post = clientPost ?? ssrPost;
 
   const [editingPost, setEditingPost] = useState(null);
 
   if (!post) return null;
 
-  /* ===== OG DATA (STRICTLY SSR) ===== */
-  const title = ssrPost.summary || "Citizen Action";
-  const description = getDescription(ssrPost);
+  /* ===== OG DATA ===== */
 
-  const image =
-    getImage(ssrPost.attachments) ||
-    "https://citizenaction.in/logo.png";
+  const title = ssrPost.summary || "Citizen Action";
+
+  const description =
+    getDescription(ssrPost) ||
+    "View this post on Citizen Action";
+
+  const image = `https://citizenaction.in/api/og/post?id=${ssrPost.id}`;
 
   const url = `https://citizenaction.in/post/${ssrPost.id}`;
 
-  /* ===== CAN EDIT ===== */
+  /* ===== PERMISSIONS ===== */
+
   const canEdit =
     post?.can_manage || post?.author_id === user?.id;
 
@@ -94,21 +114,16 @@ export default function SinglePostPage({ post: ssrPost }) {
         <title key="title">{title}</title>
 
         {/* ===== Open Graph ===== */}
-        <meta property="og:type" content="article" key="og:type" />
-        <meta property="og:title" content={title} key="og:title" />
-        <meta
-          property="og:description"
-          content={description}
-          key="og:description"
-        />
-        <meta property="og:image" content={image} key="og:image" />
-        <meta property="og:url" content={url} key="og:url" />
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:image" content={image} />
+        <meta property="og:url" content={url} />
 
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:image:type" content="image/jpeg" />
 
-        {/* Twitter */}
+        {/* ===== Twitter ===== */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />

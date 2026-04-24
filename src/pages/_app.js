@@ -28,7 +28,9 @@ function MyApp({ Component, pageProps }) {
   return (
     <>
       <Head>
-        <title key="title">Citizen Action - Mumbai Sustainability Center</title>
+        <title key="title">
+          Citizen Action - Mumbai Sustainability Center
+        </title>
 
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
@@ -45,14 +47,13 @@ function MyApp({ Component, pageProps }) {
           content="https://citizenaction.in/logo.png"
           key="og:image"
         />
-        <meta
-          property="og:url"
-          content="https://citizenaction.in/"
-          key="og:url"
-        />
 
         {/* ===== Twitter ===== */}
-        <meta name="twitter:card" content="summary_large_image" key="twitter:card" />
+        <meta
+          name="twitter:card"
+          content="summary_large_image"
+          key="twitter:card"
+        />
         <meta name="twitter:title" content="Citizen Action" key="twitter:title" />
         <meta
           name="twitter:description"
@@ -65,7 +66,6 @@ function MyApp({ Component, pageProps }) {
           key="twitter:image"
         />
 
-        {/* Favicon */}
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
