@@ -2,31 +2,34 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Field, FieldLabel } from "@/components/ui/field";
+import { Field } from "@/components/ui/field";
+import { Route } from "lucide-react";
 
 import PostTimelineModal from "./PostTimelineModal";
 
 export default function PostEditorTimeline({ editor }) {
-  const { timeline } = editor;
+  const { type, timeline } = editor;
+
+  const showTimeline = ["event", "report", "update"].includes(type);
 
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <Field>
-
-          <FieldLabel className="flex items-center gap-2">
+        <div
+            className={`flex items-center gap-2 w-[160px] ${
+              !showTimeline ? "opacity-0 pointer-events-none" : ""
+            }`}
+        >
+          <Button
+            variant="outline"
+            onClick={() => setOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Route />
             Timeline
-            <span className="text-xs text-muted-foreground">
-            (optional)
-            </span>
-          </FieldLabel>
-
-          <Button variant="outline" onClick={() => setOpen(true)}>
-            Manage Timeline
           </Button>
-
-      </Field>
+        </div>
 
       <PostTimelineModal
         open={open}

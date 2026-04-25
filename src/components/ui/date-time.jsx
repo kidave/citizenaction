@@ -1,77 +1,74 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { FieldGroup } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+import { useState } from "react";
+import { format } from "date-fns";
+
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-import { format } from "date-fns"
-import { ChevronDownIcon } from "lucide-react"
+} from "@/components/ui/popover";
 
 export function DateTimePicker({
-  date,
-  time,
+  value,
   onDateChange,
-  onTimeChange,
+  mode = "date",
 }) {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = useState(false);
 
-  const parsedDate = date ? new Date(date) : undefined
+  const handleSelect = (selected) => {
+    if (!selected) return;
+
+    onDateChange(selected); // ✅ ALWAYS return Date object
+    setOpen(false);
+  };
 
   return (
-    <FieldGroup className="flex-row w-full gap-2">
-
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-
-          <Button
-            variant="outline"
-            className="w-full justify-between font-normal"
-          >
-            {parsedDate
-              ? format(parsedDate, "PPP")
-              : "Select Date"}
-
-            <ChevronDownIcon className="h-4 w-4 opacity-60" />
-          </Button>
-
-        </PopoverTrigger>
-
-        <PopoverContent
-          className="w-auto overflow-hidden p-0"
-          align="start"
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className="w-full justify-start text-left"
         >
+          {value
+            ? mode === "date"
+              ? format(value, "PPP")
+              : format(value, "HH:mm")
+            : mode === "date"
+            ? "Pick a date"
+            : "Pick time"}
+        </Button>
+      </PopoverTrigger>
 
+      <PopoverContent className="w-auto p-0">
+        {mode === "date" ? (
           <Calendar
             mode="single"
-            selected={parsedDate}
-            captionLayout="dropdown"
-            defaultMonth={parsedDate}
-            onSelect={(selected) => {
-              if (!selected) return
-
-              onDateChange(format(selected, "yyyy-MM-dd"))
-              setOpen(false)
+            selected={value}
+            onSelect={handleSelect}
+            initialFocus
+          />
+        ) : (
+          <input
+            type="time"
+            className="p-2 border rounded-md"
+            value={
+              value
+                ? format(value, "HH:mm")
+                : ""
+            }
+            onChange={(e) => {
+              const [h, m] = e.target.value.split(":");
+              const newDate = new Date();
+              newDate.setHours(h);
+              newDate.setMinutes(m);
+              onDateChange(newDate);
             }}
           />
-
-        </PopoverContent>
-      </Popover>
-
-      <Input
-        type="time"
-        value={time ?? ""}
-        onChange={(e) =>
-          onTimeChange(e.target.value || null)
-        }
-        step="60"
-      />
-
-    </FieldGroup>
-  )
+        )}
+      </PopoverContent>
+    </Popover>
+  );
 }

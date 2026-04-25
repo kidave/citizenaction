@@ -7,6 +7,7 @@ import { usePostEditor } from "@/hooks/feed/usePostEditor";
 import { Stack } from "@/components/layout/Stack";
 import PostEditorContext from "./PostEditorContext";
 import PostEditorHeader from "./PostEditorHeader";
+import PostLocationSelector from "./PostLocationSelector";
 import PostAuthoritySelector from "./PostAuthoritySelector";
 import PostTypeSelector from "./PostTypeSelector";
 import PostEditorMetadata from "./PostEditorMetadata";
@@ -55,19 +56,25 @@ export default function PostEditorModal({ isOpen, onClose, post = null }) {
           <div className="flex-1 overflow-y-auto p-4">
 
             <Stack gap="gap-4">
-              <Row className="flex-col md:flex-row md:items-center gap-3">
-                {/* TYPE + AUTHORITY */}
-                <div className="flex gap-4 justify-between">
+              <div className="flex flex-wrap items-center gap-2">
+
+                {/* TYPE */}
+                <div className="flex-shrink-0">
                   <PostTypeSelector
                     type={editor.type}
                     setType={editor.setType}
                   />
                 </div>
-                <PostEditorContext
-                  editor={editor}
-                  spaces={profile?.spaces || []}
-                />
-              </Row>
+
+                {/* SPACE */}
+                <div className="flex-shrink-0">
+                  <PostEditorContext
+                    editor={editor}
+                    spaces={profile?.spaces || []}
+                  />
+                </div>
+
+              </div>
 
               {/* METADATA */}
               <PostEditorMetadata editor={editor} />

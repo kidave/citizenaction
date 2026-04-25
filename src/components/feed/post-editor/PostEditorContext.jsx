@@ -79,6 +79,7 @@ export default function PostEditorContext({ editor, spaces = [] }) {
             spaces={mergedSpaces}
           />
         </div>
+        
         {/* 
         {space_id && (
           <button

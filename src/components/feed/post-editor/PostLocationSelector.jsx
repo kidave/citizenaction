@@ -136,11 +136,7 @@ export default function PostLocationSelector({ editor }) {
   }
 
   return (
-    <Field>
-      <FieldLabel className="flex items-center gap-2">
-        Location
-      </FieldLabel>
-
+    <>
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -150,13 +146,13 @@ export default function PostLocationSelector({ editor }) {
               className="flex items-center gap-2"
             >
               {location?.startsWith("http") ? (
-                <Link2 className="w-4 h-4" />
+                <Link2 />
               ) : (
-                <MapPin className="w-4 h-4" />
+                <MapPin />
               )}
 
-              <span className="truncate max-w-[220px]">
-                {location || "Select Location"}
+              <span className="truncate max-w-[100px]">
+                {location || "Location"}
               </span>
             </Button>
           </TooltipTrigger>
@@ -182,7 +178,7 @@ export default function PostLocationSelector({ editor }) {
                   onClick={() => setMode("offline")}
                   className="flex-1"
                 >
-                  <LocateFixed className="w-4 h-4" />
+                  <LocateFixed />
                   Offline
                 </Button>
 
@@ -191,7 +187,7 @@ export default function PostLocationSelector({ editor }) {
                   onClick={() => setMode("online")}
                   className="flex-1"
                 >
-                  <Link2 className="w-4 h-4" />
+                  <Link2 />
                   Online
                 </Button>
               </div>
@@ -253,6 +249,6 @@ export default function PostLocationSelector({ editor }) {
           </div>
         </div>
       )}
-    </Field>
+    </>
   );
 }
