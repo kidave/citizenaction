@@ -1,276 +1,315 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+
+import {
+  CalendarDays,
+  Clock3,
+  MapPin,
+  Video,
+  Radio,
+} from "lucide-react";
+
 import {
   format,
-  parseISO,
-  isValid,
-  isAfter,
-  isBefore,
-  differenceInMinutes,
+  formatDistanceToNowStrict,
+  isSameYear,
 } from "date-fns";
-import { Calendar, Clock, MapPin } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
+import { Badge } from "@/components/ui/badge";
+
+import getPostTypeConfig
+from "@/utils/feed/getPostTypeConfig";
+
+import getPostStatus
+from "@/utils/feed/getPostStatus";
 
 export default function PostMetadata({
-  date,
-  time,
-  location,
-  type,
-  title = "Meeting",
-  description = "",
+  post,
+  forceExpanded = false,
 }) {
-
-  const [meetingStatus, setMeetingStatus] = useState(null);
-  const [countdown, setCountdown] = useState(null);
-
-  const userTimeZone =
-    typeof window !== "undefined"
-      ? Intl.DateTimeFormat().resolvedOptions().timeZone
-      : "UTC";
-
-  /* ================= DATE FORMATTERS ================= */
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const parsed = parseISO(dateString);
-    if (!isValid(parsed)) return "";
-    return format(parsed, "d MMMM yyyy");
-  };
-
-  const formatTime = (date, time) => {
-    if (!date || !time) return "";
-    const parsed = new Date(`${date}T${time}`);
-    if (!isValid(parsed)) return "";
-    return format(parsed, "h:mm a");
-  };
-
-  function isUrl(str) {
-    return str?.startsWith("http");
+  if (!post?.start_at) {
+    return null;
   }
 
-  /* ================= MEETING STATUS (AUTO DERIVED) ================= */
+  const config =
+    getPostTypeConfig(post.type);
 
-  useEffect(() => {
+  const status =
+    getPostStatus(post);
+  
+  const statusUI = config.statuses?.[ status?.key ];
 
-    if (type !== "meeting") return;
-    if (!date || !time) return;
+  const start =
+    new Date(post.start_at);
 
-    const COUNTDOWN_THRESHOLD_MINUTES = 6 * 60;
+  const end = post.end_at
+    ? new Date(post.end_at)
+    : null;
 
-    const updateStatus = () => {
-      const meetingStart = new Date(`${date}T${time}`);
-      if (!isValid(meetingStart)) return;
+  // =====================================================
+  // COMPACT FEED MODE
+  // =====================================================
 
-      const meetingEnd = new Date(
-        meetingStart.getTime() + 60 * 60 * 1000 // 1 hour duration
-      );
-
-      const now = new Date();
-
-      // BEFORE START
-      if (isBefore(now, meetingStart)) {
-        setMeetingStatus("Upcoming");
-
-        const minutesLeft = differenceInMinutes(
-          meetingStart,
-          now
-        );
-
-        if (minutesLeft > 0 && minutesLeft <= 6 * 60) {
-          const hours = Math.floor(minutesLeft / 60);
-          const minutes = minutesLeft % 60;
-          setCountdown({ hours, minutes });
-        } else {
-          setCountdown(null);
-        }
-
-        return;
-      }
-
-      // ONGOING (within 1 hour)
-      if (isAfter(now, meetingStart) && isBefore(now, meetingEnd)) {
-        setMeetingStatus("Ongoing");
-        setCountdown(null);
-        return;
-      }
-
-      // COMPLETED (after 1 hour)
-      if (isAfter(now, meetingEnd)) {
-        setMeetingStatus("Completed");
-        setCountdown(null);
-        return;
-      }
-    };
-
-    updateStatus();
-    const interval = setInterval(updateStatus, 60000);
-
-    return () => clearInterval(interval);
-
-  }, [date, time, type]);
-
-  function canJoinMeeting(type, meetingStatus) {
-    if (type !== "meeting") return true;
-
+  if (!forceExpanded) {
     return (
-      meetingStatus === "Upcoming" ||
-      meetingStatus === "Ongoing"
+      <div className="flex items-center gap-2 flex-wrap">
+
+        {/* COUNTDOWN */}
+        {statusUI &&
+        !statusUI.hidden && (
+          <Badge
+            variant="secondary"
+            className={
+              statusUI.className
+            }
+          >
+            {status?.key ===
+              "live" && (
+              <Radio className="h-3 w-3 mr-1" />
+            )}
+      
+          {statusUI.label}
+      
+        </Badge>
+      )}
+
+        {config.showCountdown &&
+        status?.key === "upcoming" &&
+        post.start_at && (
+
+          <div
+            className="
+              inline-flex
+              items-center
+              gap-1.5
+
+              text-xs
+              font-medium
+
+              text-blue-700
+              bg-blue-50
+
+              px-2.5
+              py-1
+
+              rounded-full
+
+              border
+              border-blue-100
+            "
+          >
+
+          <div
+            className="
+              h-2
+              w-2
+              rounded-full
+              bg-blue-500
+            "
+          />
+
+          <span>
+
+            Starts in{" "}
+            {formatDistanceToNowStrict(
+              new Date(
+                post.start_at
+              )
+            )}
+
+          </span>
+
+        </div>
+      )}
+
+      </div>
     );
   }
 
-  const isUpcomingMeeting =
-    type === "meeting" &&
-    meetingStatus === "Upcoming" &&
-    date &&
-    time;
-
-  function getJoinButtonStyle(status) {
-    switch (status) {
-      case "Ongoing":
-        return "bg-green-500 animate-pulse";
-      case "Upcoming":
-        return "bg-blue-500";
-      default:
-        return "bg-muted";
-    }
-  }
-
-  /* ================= GOOGLE CALENDAR ================= */
-
-  const handleGoogleCalendar = () => {
-
-    const start = new Date(`${date}T${time}`);
-    const end = new Date(start.getTime() + 60 * 60 * 1000);
-
-    const formatGoogleDate = (d) =>
-      d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-
-    const url =
-      `https://calendar.google.com/calendar/render?action=TEMPLATE` +
-      `&text=${encodeURIComponent(title)}` +
-      `&details=${encodeURIComponent(description)}` +
-      `&location=${encodeURIComponent(location || "")}` +
-      `&dates=${formatGoogleDate(start)}/${formatGoogleDate(end)}` +
-      `&ctz=${userTimeZone}`;
-
-    window.open(url, "_blank");
-
-  };
-
-  /* ================= ICS DOWNLOAD ================= */
-
-  const handleICSDownload = () => {
-
-    const start = new Date(`${date}T${time}`);
-    const end = new Date(start.getTime() + 60 * 60 * 1000);
-
-    const formatICS = (date) =>
-      date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-
-    const icsContent = `
-BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//CitizenAction//Meeting//EN
-BEGIN:VEVENT
-UID:${Date.now()}@citizenaction.app
-DTSTAMP:${formatICS(new Date())}
-DTSTART:${formatICS(start)}
-DTEND:${formatICS(end)}
-SUMMARY:${title}
-DESCRIPTION:${description}
-LOCATION:${location || ""}
-END:VEVENT
-END:VCALENDAR
-`;
-
-    const blob = new Blob([icsContent], {
-      type: "text/calendar;charset=utf-8;",
-    });
-
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "meeting.ics";
-    link.click();
-
-  };
-
-  /* ================= RENDER ================= */
-
-  if (!date && !location && type !== "meeting") return null;
+  // =====================================================
+  // EXPANDED MODE
+  // =====================================================
 
   return (
-    <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+    <div className="space-y-3">
 
-      {date && (
-        <div className="flex items-center gap-1">
-          <Calendar className="h-3.5 w-3.5" />
-          {formatDate(date)}
-        </div>
-      )}
-
-      {time && (
-        <div className="flex items-center gap-1">
-          <Clock className="h-3.5 w-3.5" />
-          {formatTime(date, time)}
-        </div>
-      )}
-
-      {location && (
-        <div className="flex items-center gap-1">
-
-          {isUrl(location) ? (
-            meetingStatus === "Completed" ? (
-              <span className="text-muted-foreground">
-                Meeting Closed
-              </span>
-            ) : (
-              <a
-                href={location}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`px-3 py-1.5 rounded text-white text-xs transition ${
-                  getJoinButtonStyle(meetingStatus)
-                }`}
-              >
-                Join Meeting
-              </a>
-            )
-          ) : (
-            <button
-              onClick={() => {
-                const url = `https://www.google.com/maps?q=${encodeURIComponent(location)}`;
-                window.open(url, "_blank");
-              }}
-              className="flex items-center gap-1 hover:underline"
-            >
-              {location}
-            </button>
-          )}
-
-        </div>
-      )}
-
-      {/* Calendar buttons only for upcoming meetings */}
-      {isUpcomingMeeting && (
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleGoogleCalendar}
+      {statusUI &&
+        !statusUI.hidden && (
+          <Badge
+            variant="secondary"
+            className={
+              statusUI.className
+            }
           >
-            Add to Calendar
-          </Button>
+            {status?.key ===
+              "live" && (
+              <Radio className="h-3 w-3 mr-1" />
+            )}
+      
+          {statusUI.label}
+      
+        </Badge>
+      )}
 
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleICSDownload}
+      {config.showCountdown &&
+        status?.key === "upcoming" &&
+        post.start_at && (
+
+          <div
+            className="
+              inline-flex
+              items-center
+              gap-1.5
+
+              text-xs
+              font-medium
+
+              text-blue-700
+              bg-blue-50
+
+              px-2.5
+              py-1
+
+              rounded-full
+
+              border
+              border-blue-100
+            "
           >
-            Download .ics
-          </Button>
+
+          <div
+            className="
+              h-2
+              w-2
+              rounded-full
+              bg-blue-500
+            "
+          />
+
+          <span>
+
+            Starts in{" "}
+            {formatDistanceToNowStrict(
+              new Date(
+                post.start_at
+              )
+            )}
+
+          </span>
+
         </div>
       )}
+
+      {/* DATE */}
+
+      <div className="space-y-2 text-sm text-muted-foreground">
+
+        <div className="flex items-center gap-2">
+
+          <CalendarDays className="h-4 w-4" />
+
+          <span>
+
+            {format(
+              start,
+              isSameYear(
+                start,
+                new Date()
+              )
+                ? "d MMM"
+                : "d MMM yyyy"
+            )}
+
+          </span>
+
+        </div>
+
+        {/* TIME */}
+
+        {config.showTime && (
+          <div className="flex items-center gap-2">
+
+            <Clock3 className="h-4 w-4" />
+
+            <span>
+
+              {format(
+                start,
+                "h:mm a"
+              )}
+
+              {end && (
+                <>
+                  {" "}
+                  -{" "}
+                  {format(
+                    end,
+                    "h:mm a"
+                  )}
+                </>
+              )}
+
+            </span>
+
+          </div>
+        )}
+
+      </div>
+
+      {/* ADDRESS */}
+
+      {config.showAddress &&
+        post.address && (
+          <div className="flex items-start gap-2 text-sm text-muted-foreground">
+
+            <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
+
+            <span>
+              {post.address}
+            </span>
+
+          </div>
+        )}
+
+      {/* JOIN */}
+
+      {config.showJoin &&
+        post.meeting_link &&
+        status?.key !==
+          "ended" && (
+          <Link
+            href={post.meeting_link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="
+              inline-flex
+              items-center
+              gap-2
+              rounded-lg
+              px-4
+              py-2
+              text-sm
+              font-medium
+              bg-primary
+              text-primary-foreground
+              hover:opacity-90
+              transition
+            "
+          >
+
+            <Video className="h-4 w-4" />
+
+            {status?.key ===
+            "live"
+              ? "Join Now"
+              : post.type ===
+                "event"
+              ? "Join Event"
+              : "Join Meeting"}
+
+          </Link>
+        )}
 
     </div>
   );

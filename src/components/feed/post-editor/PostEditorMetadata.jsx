@@ -1,60 +1,134 @@
 "use client";
 
-import { DateTimePicker } from "@/components/ui/date-time";
-import PostEditorTimeline from "./PostEditorTimeline";
-import PostLocationSelector from "./PostLocationSelector";
+import { useMemo } from "react";
 
-export default function PostEditorMetadata({ editor }) {
+import { DateTimePicker }
+from "@/components/ui/date-time";
+
+import PostLocationSelector
+from "./PostLocationSelector";
+
+import PostTypeSelector
+from "./PostTypeSelector";
+
+import getPostTypeConfig
+from "@/utils/feed/getPostTypeConfig";
+
+export default function PostEditorMetadata({
+  editor,
+}) {
   const {
     type,
-    date,
-    time,
-    setDate,
-    setTime,
+    setType,
+
+    start_at,
+    setStartAt,
+
+    end_at,
+    setEndAt,
   } = editor;
 
-  const showTime = ["event", "meeting"].includes(type);
+  const config =
+    getPostTypeConfig(type);
 
-  const dateObj = date ? new Date(date) : null;
+  // =====================================================
+  // STABLE DATE OBJECTS
+  // =====================================================
 
-  const timeObj = time
-    ? new Date(`1970-01-01T${time}`)
-    : null;
+  const startDate =
+    useMemo(() => {
+      return start_at
+        ? new Date(start_at)
+        : null;
+    }, [start_at]);
+
+  const endDate =
+    useMemo(() => {
+      return end_at
+        ? new Date(end_at)
+        : null;
+    }, [end_at]);
+
+  // =====================================================
+  // UPDATE START
+  // =====================================================
+
+  function handleStartChange(
+    value
+  ) {
+    if (!value) {
+      setStartAt(null);
+      return;
+    }
+
+    setStartAt(
+      value.toISOString()
+    );
+  }
+
+  // =====================================================
+  // UPDATE END
+  // =====================================================
+
+  function handleEndChange(
+    value
+  ) {
+    if (!value) {
+      setEndAt(null);
+      return;
+    }
+
+    setEndAt(
+      value.toISOString()
+    );
+  }
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {/* DATE (always) */}
-      <div className="flex-shrink-0">
-        <DateTimePicker
-          value={dateObj}
-          onDateChange={(d) =>
-            setDate(d ? d.toISOString().split("T")[0] : "")
-          }
-          mode="date"
-        />
-      </div>
 
-      {/* TIME (event / meeting only) */}
-      {["event", "meeting"].includes(type) && (
-        <div className="flex-shrink-0">
-          <DateTimePicker
-            value={timeObj}
-            onDateChange={(d) =>
-              setTime(d ? d.toTimeString().slice(0, 5) : "")
-            }
-            mode="time"
-          />
-        </div>
+      {/* TYPE */}
+
+      <PostTypeSelector
+        type={type}
+        setType={setType}
+      />
+
+      {/* START */}
+
+      <DateTimePicker
+        value={startDate}
+        onDateChange={
+          handleStartChange
+        }
+        mode={
+          config.showTime
+            ? "datetime"
+            : "date"
+        }
+      />
+
+      {/* END */}
+
+      {config.lifecycle && (
+        <DateTimePicker
+          value={endDate}
+          onDateChange={
+            handleEndChange
+          }
+          mode={
+            config.showTime
+              ? "datetime"
+              : "date"
+          }
+        />
       )}
 
-      <div className="flex-shrink-0">
-        <PostLocationSelector editor={editor} />
-      </div>
+      {/* LOCATION */}
 
-      {["report", "update", "event"].includes(type) && (
-        <div className="flex-shrink-0">
-          <PostEditorTimeline editor={editor} />
-        </div>
+      {config.showAddress && (
+        <PostLocationSelector
+          editor={editor}
+        />
       )}
 
     </div>

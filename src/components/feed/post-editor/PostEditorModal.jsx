@@ -56,26 +56,6 @@ export default function PostEditorModal({ isOpen, onClose, post = null }) {
           <div className="flex-1 overflow-y-auto p-4">
 
             <Stack gap="gap-4">
-              <div className="flex flex-wrap items-center gap-2">
-
-                {/* TYPE */}
-                <div className="flex-shrink-0">
-                  <PostTypeSelector
-                    type={editor.type}
-                    setType={editor.setType}
-                  />
-                </div>
-
-                {/* SPACE */}
-                <div className="flex-shrink-0">
-                  <PostEditorContext
-                    editor={editor}
-                    spaces={profile?.spaces || []}
-                  />
-                </div>
-
-              </div>
-
               {/* METADATA */}
               <PostEditorMetadata editor={editor} />
 

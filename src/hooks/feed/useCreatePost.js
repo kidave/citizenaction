@@ -36,6 +36,14 @@ export function useCreatePost() {
           type: postData.type,
           summary: postData.summary,
           details: postData.details,
+          start_at: postData.start_at ?? null,
+          end_at: postData.end_at ?? null,
+          lat: postData.lat ?? null,
+          lng: postData.lng ?? null,
+          address: postData.address ?? null,
+          meeting_link: postData.meeting_link ?? null,
+          mode: postData.mode ?? "offline",
+
           metadata: postData.metadata || null,
           attachments: uploadedAttachments,
         })

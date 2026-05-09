@@ -61,7 +61,7 @@ export function useUpsertMeetingItem() {
     },
 
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["meetings"] });
+      queryClient.invalidateQueries({ queryKey: ["post-meeting", feed_id] });
       toast.success("Saved successfully");
     },
 

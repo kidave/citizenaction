@@ -72,13 +72,11 @@ export default function PostEditorContext({ editor, spaces = [] }) {
     <>
       <div className="flex items-center gap-2 w-full">
 
-        <div >
-          <SpaceSelector
-            value={space_id || null}
-            onChange={handleSpaceChange}
-            spaces={mergedSpaces}
-          />
-        </div>
+        <SpaceSelector
+          value={space_id || null}
+          onChange={handleSpaceChange}
+          spaces={mergedSpaces}
+        />
         
         {/* 
         {space_id && (

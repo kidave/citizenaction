@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import Image from "next/image";
 import { Save } from "lucide-react";
+import PostEditorContext from "./PostEditorContext";
 
 export default function PostEditorHeader({
   profile,
@@ -65,10 +66,15 @@ export default function PostEditorHeader({
               onCheckedChange={handleGlobalToggle}
             />
           </div>
+          
         </div>
 
         {/* ACTIONS */}
         <div className="flex gap-2 justify-end w-full sm:w-auto">
+          <PostEditorContext
+            editor={editor}
+            spaces={profile?.spaces || []}
+          />
 
           <Button
             variant="outline"

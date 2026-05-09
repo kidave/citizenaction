@@ -5,6 +5,10 @@ import truncateContent from "@/utils/text/truncateContent";
 import Linkify from "linkify-react";
 import { Badge } from "@/components/ui/badge";
 import { Row } from "@/components/layout/Row";
+import { Radio } from "lucide-react";
+import getPostStatus from "@/utils/feed/getPostStatus";
+import getPostTypeConfig from "@/utils/feed/getPostTypeConfig";
+import { formatDistanceToNowStrict } from "date-fns";
 
 export default function PostContent({
   post,
@@ -34,6 +38,12 @@ export default function PostContent({
   const { text: truncatedText, isLong } =
     truncateContent(content, 280);
 
+  const status = getPostStatus(post);
+
+  const config = getPostTypeConfig(post.type);
+
+  const statusUI = config.statuses?.[ status?.key ];
+
   return (
     <div
       onClick={!forceExpanded ? onNavigate : undefined}
@@ -48,18 +58,22 @@ export default function PostContent({
     >
       <div className="text-sm whitespace-pre-wrap space-y-1">
         <Row className="gap-2 mb-2">
-          <Badge
-            variant="secondary"
-            className={`text-xs shrink-0 ${typeStyles[type] || ""}`}
-          >
-            {type.toUpperCase()}
-          </Badge>
+          <div className="flex items-center gap-2 flex-wrap">
           
-          {title && (
-            <div className="font-medium items-center">
-              {title}
-            </div>
-          )}
+            <Badge
+              variant="secondary"
+              className={`text-xs shrink-0 ${typeStyles[type] || ""}`}
+            >
+              {type.toUpperCase()}
+            </Badge>
+            
+            {title && (
+              <div className="font-medium items-center">
+                {title}
+              </div>
+            )}
+
+          </div>
         </Row>
         
         <Linkify

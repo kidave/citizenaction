@@ -4,53 +4,64 @@ import { useState } from "react";
 import { Row } from "@/components/layout/Row";
 import { UserIdentity } from "@/components/profile/UserIdentity";
 import PostActions from "@/components/feed/post-card/PostActions";
-import AttendeeAvatarGroup from "./AttendeeAvatarGroup";
 import { useAuth } from "@/context/AuthContext";
 import { useDeleteMeetingItem } from "@/hooks/meeting/useDeleteMeetingItem";
 import MeetingItemEditorModal from "./MeetingItemEditorModal";
+import { usePostMeeting } from "@/hooks/feed/usePostMeeting";
 
-export default function PostMeeting({ meeting }) {
+export default function PostMeeting({ post }) {
   const { user } = useAuth();
   const { deleteMeetingItem } = useDeleteMeetingItem();
+
+  const postId = post?.id;
+
+  const { data: attendees = [], isLoading } = usePostMeeting(postId);
 
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
 
-  const attendees = meeting.meeting_attendees || [];
+  if (!postId) return null;
 
-  const myItem = attendees.find((p) => p.is_self);
+  const myItem = attendees.find((p) => p.user_id === user?.id);
 
   async function handleDelete(person) {
     if (!confirm("Delete this entry?")) return;
 
     await deleteMeetingItem({
-      feed_id: meeting.id,
+      feed_id: postId,
       user_id: person.user_id,
     });
   }
 
+  if (isLoading) {
+    return (
+      <div className="text-sm text-muted-foreground">
+        Loading attendees...
+      </div>
+    );
+  }
+
   return (
     <>
-      {/* ATTENDEES */}
-      {attendees.length > 0 && (
-        <AttendeeAvatarGroup attendees={attendees} />
-      )}
 
       {/* ITEMS */}
       <div className="space-y-3">
-        {attendees.map((person, i) => {
-          const canEditThis = meeting.can_manage || person.is_self;
+        {attendees.map((person) => {
+          const p = person.profile;
+
+          const canEditThis =
+            post.can_manage || person.user_id === user?.id;
 
           return (
             <div
-              key={i}
+              key={person.id}
               className="border rounded-md p-3 text-sm space-y-2"
             >
               <Row className="items-center justify-between">
                 <UserIdentity
-                  username={person.username || person.name}
-                  name={person.name}
-                  avatar={person.avatar}
+                  username={p?.username || person.guest_name}
+                  name={p?.name || person.guest_name}
+                  avatar={p?.avatar_url}
                 />
 
                 {canEditThis && (
@@ -65,7 +76,7 @@ export default function PostMeeting({ meeting }) {
                 )}
               </Row>
 
-              {person.notes && (
+              {(person.notes || person.guest_designation) && (
                 <div className="text-muted-foreground whitespace-pre-wrap">
                   {person.notes}
                 </div>
@@ -95,7 +106,7 @@ export default function PostMeeting({ meeting }) {
           setIsEditorOpen(false);
           setSelectedItem(null);
         }}
-        meeting={meeting}
+        meeting={post}
         existingItem={selectedItem}
       />
     </>

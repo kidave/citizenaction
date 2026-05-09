@@ -9,16 +9,7 @@ import { useUpdatePost } from "@/hooks/feed/useUpdatePost";
 import { useDeletePost } from "@/hooks/feed/useDeletePost";
 
 import { postSchema } from "@/schemas/feed/postSchema";
-
-function extractContentMeta(text) {
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
-  const hashtagRegex = /#(\w+)/g;
-
-  const links = text.match(urlRegex) || [];
-  const hashtags = [...text.matchAll(hashtagRegex)].map((m) => m[1]);
-
-  return { links, hashtags };
-}
+import { extractContentMeta } from "@/utils/text/contentMeta";
 
 export function usePostEditor(post = null, profile = null) {
   const { user } = useAuth();
@@ -27,16 +18,38 @@ export function usePostEditor(post = null, profile = null) {
   const { updatePost } = useUpdatePost();
   const { deletePost } = useDeletePost();
 
-  const [initialized, setInitialized] = useState(false);
-  const [mode, setMode] = useState("global");
-
   const [space_id, setSpaceId] = useState(null);
 
   const [scope_type, setScopeType] = useState(null);
   const [scope_code, setScopeCode] = useState(null);
   const [scope_name, setScopeName] = useState(null);
 
-  const [isGlobal, setIsGlobal] = useState(false);
+  const [governance_entities, setSelectedAuthorities] = useState(
+    post?.governance_entities || []
+  );
+
+  const [type, setType] = useState(post?.type || "action");
+  const [title, setTitle] = useState(post?.summary || "");
+  const [content, setContent] = useState(post?.details || "");
+  const [attachments, setAttachments] = useState(post?.attachments || []);
+  
+  const [start_at, setStartAt] = useState(
+    post?.start_at || null
+  );
+
+  const [end_at, setEndAt] = useState(
+    post?.end_at || null
+  );
+  const [mode, setMode] = useState(post?.mode || "offline");
+
+  const [lat, setLat] = useState(post?.lat || null);
+  const [lng, setLng] = useState(post?.lng || null);
+  const [address, setAddress] = useState(post?.address || null);
+  const [meeting_link, setMeetingLink] = useState(
+    post?.meeting_link || ""
+  );
+
+  const [timeline, setTimeline] = useState(post?.timeline || []);
 
   useEffect(() => {
     if (post) {
@@ -44,94 +57,15 @@ export function usePostEditor(post = null, profile = null) {
       setScopeType(post.scope_type || null);
       setScopeCode(post.scope_code || null);
       setScopeName(post.scope_name || null);
-
-      const global = post.is_global || false;
-      setIsGlobal(global);
-      setMode(global ? "global" : "space");
-
-      setInitialized(true);
-      return;
-    }
-
-    if (profile?.primary_space?.id) {
+    } else if (profile?.primary_space?.id) {
       setSpaceId(profile.primary_space.id);
-      setMode("space");
-      setIsGlobal(false);
     } else {
-      setMode("global");
-      setIsGlobal(true);
       setSpaceId(null);
     }
-    setInitialized(true);
   }, [post, profile]);
 
-  useEffect(() => {
-    if (!initialized) return;
+  const isGlobal = !space_id;
 
-    if (mode === "global") {
-      setIsGlobal(true);
-      setSpaceId(null);
-
-      setScopeType(null);
-      setScopeCode(null);
-      setScopeName(null);
-    } else {
-      setIsGlobal(false);
-    }
-  }, [mode, initialized]);
-
-  useEffect(() => {
-    if (!space_id) {
-      setScopeType(null);
-      setScopeCode(null);
-      setScopeName(null);
-    }
-  }, [space_id]);
-
-  const [governance_entities, setSelectedAuthorities] = useState(post?.governance_entities || []);
-  const [type, setType] = useState(post?.type || "action");
-  const [title, setTitle] = useState(post?.summary || "");
-  const [content, setContent] = useState(post?.details || "");
-  const [attachments, setAttachments] = useState(post?.attachments || []);
-
-  const now = new Date();
-
-  const [date, setDate] = useState(
-    post?.date || now.toISOString().split("T")[0]
-  );
-
-  const [time, setTime] = useState(
-    post?.time || now.toTimeString().slice(0, 5)
-  );
-
-  const [location, setLocation] = useState(post?.location || "");
-  const [lat, setLat] = useState(post?.lat || null);
-  const [lng, setLng] = useState(post?.lng || null);
-  const [address, setAddress] = useState(post?.address || null);
-  const [place_id, setPlaceId] = useState(post?.place_id || null);
-
-  const [timeline, setTimeline] = useState(post?.timeline || []);
-
-  function addTimelineEntry(entry, insertIndex = null) {
-    setTimeline((prev) => {
-      if (insertIndex === null) return [...prev, entry];
-      const copy = [...prev];
-      copy.splice(insertIndex, 0, entry);
-      return copy;
-    });
-  }
-
-  function updateTimelineEntry(index, updatedEntry) {
-    setTimeline((prev) =>
-      prev.map((item, i) =>
-        i === index ? { ...item, ...updatedEntry } : item
-      )
-    );
-  }
-
-  function removeTimelineEntry(index) {
-    setTimeline((prev) => prev.filter((_, i) => i !== index));
-  }
 
   async function submit(onSuccess) {
     if (!content.trim()) {
@@ -139,17 +73,7 @@ export function usePostEditor(post = null, profile = null) {
       return;
     }
 
-    if (!space_id && !scope_code && !isGlobal) {
-      toast.error("Select space or mark as global");
-      return;
-    }
-
-    if (scope_code && !space_id) {
-      toast.error("Select space before location");
-      return;
-    }
-
-    const result = postSchema.safeParse({ type, date, time });
+    const result = postSchema.safeParse({ type, start_at, end_at });
 
     if (!result.success) {
       toast.error(result.error.errors[0].message);
@@ -159,16 +83,9 @@ export function usePostEditor(post = null, profile = null) {
     const { links, hashtags } = extractContentMeta(content);
 
     const metadata = {
-      date,
-      time,
-      location,
-      lat,
-      lng,
-      place_id,
-      address,
       links,
       hashtags,
-      timeline: timeline.sort(
+      timeline: [...timeline].sort(
         (a, b) => new Date(a.at) - new Date(b.at)
       ),
     };
@@ -176,18 +93,29 @@ export function usePostEditor(post = null, profile = null) {
     try {
       const payload = {
         author_id: user.id,
-        space_id: space_id || null,
 
-        scope_type: scope_type || null,
-        scope_code: scope_code || null,
-        scope_name: scope_name || null,
+        space_id: space_id ?? null,
+        is_global: !space_id,
 
-        is_global: isGlobal,
+        scope_type: scope_type ?? null,
+        scope_code: scope_code ?? null,
+
         governance_entities,
+
         type,
         summary: title || content.slice(0, 200),
         details: content,
         attachments,
+
+        start_at: start_at ?? null,
+        end_at: end_at ?? null,
+        lat: lat ?? null,
+        lng: lng ?? null,
+        address: address ?? null,
+
+        meeting_link: meeting_link || null,
+        mode: mode || "offline",
+
         metadata,
       };
 
@@ -196,8 +124,13 @@ export function usePostEditor(post = null, profile = null) {
           postId: post.id,
           postData: payload,
         });
+
+        window.location.reload();
+
       } else {
         await createPost(payload);
+
+        onSuccess?.();
       }
 
       onSuccess?.();
@@ -219,9 +152,6 @@ export function usePostEditor(post = null, profile = null) {
   }
 
   return {
-    mode,
-    setMode,
-
     type,
     setType,
     title,
@@ -231,25 +161,22 @@ export function usePostEditor(post = null, profile = null) {
     attachments,
     setAttachments,
 
-    date,
-    setDate,
-    time,
-    setTime,
-    location,
-    setLocation,
+    start_at,
+    setStartAt,
+    end_at,
+    setEndAt,
+    mode,
+    setMode,
     lat,
     setLat,
     lng,
     setLng,
     address,
     setAddress,
-    place_id,
-    setPlaceId,
+    meeting_link,
+    setMeetingLink,
 
     timeline,
-    addTimelineEntry,
-    updateTimelineEntry,
-    removeTimelineEntry,
     setTimeline,
 
     space_id,
@@ -261,9 +188,6 @@ export function usePostEditor(post = null, profile = null) {
     setScopeCode,
     scope_name,
     setScopeName,
-
-    isGlobal,
-    setIsGlobal,
 
     governance_entities,
     setSelectedAuthorities,

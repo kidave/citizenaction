@@ -38,6 +38,13 @@ export function useUpdatePost() {
           scope_type: postData.scope_type || null,
           scope_code: postData.scope_code || null,
           is_global: !!postData.is_global,
+          start_at: postData.start_at ?? null,
+          end_at: postData.end_at ?? null,
+          lat: postData.lat ?? null,
+          lng: postData.lng ?? null,
+          address: postData.address ?? null,
+          meeting_link: postData.meeting_link ?? null,
+          mode: postData.mode ?? "offline",
         })
         .eq("id", postId);
 

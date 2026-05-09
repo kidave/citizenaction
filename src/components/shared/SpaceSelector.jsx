@@ -72,12 +72,12 @@ export default function SpaceSelector({
               <Image
                 src={selected.logo_url}
                 alt={selected.name}
-                width={18}
-                height={18}
+                width={16}
+                height={16}
                 className="rounded-sm"
               />
             ) : (
-              <div className="w-4 h-4 rounded-sm bg-muted flex items-center justify-center text-[10px]">
+              <div className="rounded-sm bg-muted flex items-center justify-center text-[10px]">
                 {selected.name?.[0]}
               </div>
             )}
@@ -96,12 +96,12 @@ export default function SpaceSelector({
                 <Image
                   src={space.logo_url}
                   alt={space.name}
-                  width={18}
-                  height={18}
+                  width={16}
+                  height={16}
                   className="rounded-sm"
                 />
               ) : (
-                <div className="w-4 h-4 rounded-sm bg-muted flex items-center justify-center text-[10px]">
+                <div className="rounded-sm bg-muted flex items-center justify-center text-[10px]">
                   {space.name?.[0]}
                 </div>
               )}

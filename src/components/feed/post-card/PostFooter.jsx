@@ -3,10 +3,19 @@
 import { Orbit, ArrowBigUpDash } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
-import { usePostFooter } from "@/hooks/feed/usePostFooter";
+import { usePostStats } from "@/hooks/feed/usePostStats";
+
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase/client";
+
+import AttendeeAvatarGroup from "@/components/feed/post-meeting/AttendeeAvatarGroup";
 
 import GovernanceAvatarGroups from "@/components/governance/GovernanceAvatarGroups";
+
 import PostShareButton from "@/components/feed/PostShareButton";
+
+import { usePostMeeting } from "@/hooks/feed/usePostMeeting";
+import { usePostGovernance } from "@/hooks/feed/usePostGovernance";
 
 import {
   Tooltip,
@@ -18,14 +27,133 @@ import {
 export default function PostFooter({ post }) {
   const { user } = useAuth();
 
-  const {
-    supportCount,
-    contributeCount,
-    supported,
-    contributing,
-    handleSupport,
-    handleContribute,
-  } = usePostFooter(post, user);
+  const queryClient = useQueryClient();
+
+  /* -------------------------
+     STATS
+  ------------------------- */
+
+  const { data } = usePostStats(post.id, user?.id);
+
+  const supportCount = data?.support_count || 0;
+  const contributeCount = data?.contribute_count || 0;
+
+  const supported = data?.is_supported || false;
+  const contributing = data?.is_contributing || false;
+
+  /* -------------------------
+     MEETING ATTENDEES
+  ------------------------- */
+
+  const { data: attendees = [] } =
+    usePostMeeting(post?.id);
+
+  /* -------------------------
+     GOVERNANCE
+  ------------------------- */
+
+  const { data: governance = [] } =
+    usePostGovernance(post?.id);
+
+  /* -------------------------
+     SUPPORT
+  ------------------------- */
+
+  async function handleSupport(e) {
+    e?.stopPropagation();
+
+    if (!user) return;
+
+    queryClient.setQueryData(
+      ["post-stats", post.id, user?.id],
+      (old) => {
+        if (!old) return old;
+
+        return {
+          ...old,
+
+          support_count: supported
+            ? old.support_count - 1
+            : old.support_count + 1,
+
+          is_supported: !supported,
+        };
+      }
+    );
+
+    try {
+      if (supported) {
+        await supabase
+          .from("action_support")
+          .delete()
+          .eq("action_id", post.id)
+          .eq("user_id", user.id);
+      } else {
+        await supabase
+          .from("action_support")
+          .insert({
+            action_id: post.id,
+            user_id: user.id,
+          });
+      }
+    } catch (err) {
+      console.error(err);
+
+      queryClient.invalidateQueries({
+        queryKey: ["post-stats", post.id],
+      });
+    }
+  }
+
+  /* -------------------------
+     CONTRIBUTE
+  ------------------------- */
+
+  async function handleContribute(e) {
+    e?.stopPropagation();
+
+    if (!user) return;
+
+    queryClient.setQueryData(
+      ["post-stats", post.id, user?.id],
+      (old) => {
+        if (!old) return old;
+
+        return {
+          ...old,
+
+          contribute_count: contributing
+            ? old.contribute_count - 1
+            : old.contribute_count + 1,
+
+          is_contributing: !contributing,
+        };
+      }
+    );
+
+    try {
+      if (contributing) {
+        await supabase
+          .from("action_contribute")
+          .delete()
+          .eq("action_id", post.id)
+          .eq("user_id", user.id);
+      } else {
+        await supabase
+          .from("action_contribute")
+          .insert({
+            action_id: post.id,
+            user_id: user.id,
+          });
+      }
+    } catch (err) {
+      console.error(err);
+
+      queryClient.invalidateQueries({
+        queryKey: ["post-stats", post.id],
+      });
+    }
+  }
 
   return (
     <TooltipProvider>
@@ -34,49 +162,70 @@ export default function PostFooter({ post }) {
         {/* LEFT */}
         <div className="flex items-center gap-3">
 
+          {/* GOVERNANCE */}
           <GovernanceAvatarGroups
-            entities={post.governance_entities || []}
+            entities={governance}
           />
+
+          {/* ATTENDEES */}
+          {post.type === "meeting" && (
+            <AttendeeAvatarGroup
+              attendees={attendees}
+            />
+          )}
 
         </div>
 
         {/* RIGHT */}
         <div className="flex items-center gap-6">
 
+          {/* SUPPORT */}
           <Tooltip>
             <TooltipTrigger asChild>
               <button
                 onClick={handleSupport}
                 className={`flex items-center gap-2 hover:text-primary ${
-                  supported ? "text-primary font-medium" : ""
+                  supported
+                    ? "text-primary font-medium"
+                    : ""
                 }`}
               >
                 <ArrowBigUpDash className="w-4 h-4" />
                 {supportCount}
               </button>
             </TooltipTrigger>
+
             <TooltipContent>
-              {supported ? "Remove support" : "Support"}
+              {supported
+                ? "Remove support"
+                : "Support"}
             </TooltipContent>
           </Tooltip>
 
+          {/* CONTRIBUTE */}
           <Tooltip>
             <TooltipTrigger asChild>
               <button
                 onClick={handleContribute}
                 className={`flex items-center gap-2 hover:text-primary ${
-                  contributing ? "text-primary font-medium" : ""
+                  contributing
+                    ? "text-primary font-medium"
+                    : ""
                 }`}
               >
                 <Orbit className="w-4 h-4" />
                 {contributeCount}
               </button>
             </TooltipTrigger>
+
             <TooltipContent>
-              {contributing ? "Withdraw" : "Contribute"}
+              {contributing
+                ? "Withdraw"
+                : "Contribute"}
             </TooltipContent>
           </Tooltip>
 
+          {/* SHARE */}
           <PostShareButton post={post} />
 
         </div>

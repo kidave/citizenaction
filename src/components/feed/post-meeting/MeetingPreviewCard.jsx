@@ -12,7 +12,7 @@ import AutoImageCarousel from "@/components/ui/AutoImageCarousel";
 import formatDate from "@/utils/date/formatDate";
 
 const meetingStyle =
-  "border-l-4 border-yellow-500 bg-yellow-50/30";
+  "bg-yellow-50";
 
 export default function MeetingPreviewCard({ meeting }) {
   const router = useRouter();

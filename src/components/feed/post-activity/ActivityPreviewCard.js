@@ -11,10 +11,10 @@ import GovernanceAvatarGroups from "@/components/governance/GovernanceAvatarGrou
 import formatDate from "@/utils/date/formatDate";
 
 const typeStyles = {
-  action: "border-l-4 border-red-500 bg-red-50/30",
-  report: "border-l-4 border-blue-500 bg-blue-50/30",
-  event: "border-l-4 border-green-500 bg-green-50/30",
-  update: "border-l-4 border-pink-500 bg-pink-50/30",
+  action: "bg-red-50",
+  report: "bg-blue-50",
+  event: "bg-green-50",
+  update: "bg-pink-50",
 };
 
 export default function ActivityPreviewCard({ post }) {

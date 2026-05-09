@@ -7,7 +7,7 @@ import {
 
 export default function formatDate(
   dateString,
-  mode = "relative" // "relative" | "absolute"
+  mode = "relative"
 ) {
   if (!dateString) return "";
 
@@ -17,7 +17,6 @@ export default function formatDate(
 
     if (mode === "absolute") {
       return format(parsed, "d MMMM yyyy");
-      // Example: 17 February 2026
     }
 
     return formatDistanceToNow(parsed, {

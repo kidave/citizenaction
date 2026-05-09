@@ -1,38 +1,50 @@
 // pages/space/[space].js
+
+"use client";
+
+import { useState } from "react";
+
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/router";
+
 import Link from "next/link";
 import Image from "next/image";
+
 import { ArrowLeft } from "lucide-react";
+
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
-  CardFooter,
 } from "@/components/ui/card";
+
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@/components/ui/tabs";
 
 import PageHeaderSkeleton from "@/components/skeletons/PageHeaderSkeleton";
 import MetaCardsSkeleton from "@/components/skeletons/MetaCardsSkeleton";
-import CarouselSkeleton from "@/components/skeletons/CarouselSkeleton";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 
 import { useSpaces } from "@/hooks/useSpaces";
-import { useClubs } from "@/hooks/useClubs";
+
+import ActivityTab from "@/components/tabs/ActivityTab";
 
 export default function SpacePage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } =
+    useAuth();
+
   const router = useRouter();
-  const slug = router.query.space;
+
+  const { space: slug, tab } =
+    router.query;
 
   const {
     data: space,
@@ -43,60 +55,85 @@ export default function SpacePage() {
     enabled: !!slug,
   });
 
-  const {
-    data: club = [],
-    isLoading: clubLoading,
-  } = useClubs({
-    spaceSlug: slug,
-    enabled: !!slug,
-  });
+  const activeTab =
+    tab || "overview";
 
+  const base = `/space/${slug}`;
 
   /* ---------------- LOADING ---------------- */
-  if (isLoading || clubLoading) {
+
+  if (isLoading) {
     return (
       <div className="max-w-6xl mx-auto my-auto px-4 py-4 space-y-4">
         <PageHeaderSkeleton />
         <MetaCardsSkeleton />
-        <CarouselSkeleton />
       </div>
     );
   }
 
   /* ---------------- ERROR ---------------- */
+
   if (error || !space) {
     return (
       <div className="max-w-6xl mx-auto px-4 py-16 text-center">
-        <h2 className="text-xl font-semibold">Space not found</h2>
+        <h2 className="text-xl font-semibold">
+          Space not found
+        </h2>
+
         <p className="text-muted-foreground mt-2">
-          The requested space does not exist or is unavailable.
+          The requested space does not
+          exist or is unavailable.
         </p>
       </div>
     );
   }
 
-  const isOwner = !!user && user.id === space.owner_id;
+  const isOwner =
+    !!user &&
+    user.id ===
+      space.owner_user_id;
 
-  /* ---------------- PAGE ---------------- */
   return (
     <div
-      className="max-w-6xl mx-auto my-auto px-4 py-4 space-y-4"
+      className="
+        max-w-6xl
+        mx-auto
+        my-auto
+        px-4
+        py-4
+        space-y-6
+      "
       style={
         space.primary_color
-          ? { "--space-primary": space.primary_color }
+          ? {
+              "--space-primary":
+                space.primary_color,
+            }
           : undefined
       }
     >
+
       {/* ================= HEADER ================= */}
+
       <header className="space-y-4">
+
         <div className="flex items-center gap-4">
-          {/* Back Button */}
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center rounded-md border p-2 hover:bg-muted"
-            aria-label="Go back"
-          >
-            <ArrowLeft className="h-4 w-4" />
+
+          {/* BACK */}
+          <Link href="/">
+            <div
+              className="
+                inline-flex
+                items-center
+                justify-center
+                rounded-md
+                border
+                p-2
+                hover:bg-muted
+              "
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </div>
           </Link>
 
           {/* LOGO */}
@@ -104,277 +141,294 @@ export default function SpacePage() {
             <Image
               src={space.logo_url}
               alt={`${space.name} logo`}
-              width={32} 
-              height={32}
-              className="h-14 w-14 rounded-md object-contain border"
+              width={56}
+              height={56}
+              className="
+                rounded-md
+                border
+                object-contain
+              "
             />
           )}
 
           {/* NAME */}
-          <h1 className="text-3xl font-semibold tracking-tight">
-            {space.name}
-          </h1>
+          <div className="flex items-center gap-3">
+
+            <h1 className="text-3xl font-semibold">
+              {space.name}
+            </h1>
+
+            {space.scope_type && (
+              <Badge>
+                {space.scope_type.toUpperCase()}
+              </Badge>
+            )}
+
+          </div>
+
         </div>
 
+        {/* DESCRIPTION */}
         {space.description && (
-          <p className="text-muted-foreground max-w-3xl">
+          <p className="
+            text-muted-foreground
+            max-w-3xl
+          ">
             {space.description}
           </p>
         )}
+
       </header>
 
-      {/* ================= META CARDS ================= */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Owner */}
-        <Card className="border-l-4" style={{ borderLeftColor: "var(--space-primary)" }}>
-          <CardHeader>
-            <CardTitle>Space Owner</CardTitle>
-            <CardDescription>
-              Primary point of contact
-            </CardDescription>
-          </CardHeader>
+      {/* ================= TABS ================= */}
 
-          <CardContent>
-            <div className="flex items-center gap-3">
-              <Image
-                src={space.avatar_url || "/user1.png"}
-                alt={space.owner_name || "Owner"}
-                width={32}
-                height={32}
-                className="h-10 w-10 rounded-full object-cover"
-              />
-              <span className="font-medium">
-                {space.owner_name || "Unnamed user"}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+      <Tabs
+        value={activeTab}
+        className="space-y-6"
+      >
 
-        {/* Contact */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Contact</CardTitle>
-            <CardDescription>
-              Official communication details
-            </CardDescription>
-          </CardHeader>
+        <TabsList>
 
-          <CardContent className="space-y-1 text-sm">
-            {space.email && <div>{space.email}</div>}
-            {space.contact_number && <div>{space.contact_number}</div>}
-            {!space.email && !space.contact_number && (
-              <span className="text-muted-foreground">Not provided</span>
-            )}
-          </CardContent>
-        </Card>
+          <TabsTrigger
+            value="overview"
+            onClick={() =>
+              router.push(base)
+            }
+          >
+            Overview
+          </TabsTrigger>
 
-        {/* Website */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Website</CardTitle>
-            <CardDescription>
-              External link
-            </CardDescription>
-          </CardHeader>
+          <TabsTrigger
+            value="members"
+            onClick={() =>
+              router.push(
+                `${base}?tab=members`
+              )
+            }
+          >
+            Members
+          </TabsTrigger>
 
-          <CardContent>
-            {space.website ? (
-              <Link
-                href={space.website}
-                target="_blank"
-                className="underline underline-offset-4 text-sm"
-              >
-                {space.website}
-              </Link>
-            ) : (
-              <span className="text-muted-foreground text-sm">
-                Not provided
-              </span>
-            )}
-          </CardContent>
-        </Card>
-      </section>
+          <TabsTrigger
+            value="activity"
+            onClick={() =>
+              router.push(
+                `${base}?tab=activity`
+              )
+            }
+          >
+            Activity
+          </TabsTrigger>
 
-      {/* ================= CLUBS SECTION ================= */}
-      <section>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-semibold">Clubs</h2>
-          {isOwner && (
-            <Link href={`/apply/space/${space.slug}/club`}>
-              <Button>Create Club</Button>
-            </Link>
-          )}
-        </div>
+        </TabsList>
 
-        {clubLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <CarouselSkeleton className="h-40 w-full" />
-            <CarouselSkeleton className="h-40 w-full" />
-          </div>
-        ) : club.length > 0 ? (
-          <div className="relative px-4">
-            <Carousel
-              opts={{
-                align: "start",
-                slidesToScroll: 1,
+        {/* ================= OVERVIEW ================= */}
+
+        <TabsContent value="overview">
+
+          <section
+            className="
+              grid
+              grid-cols-1
+              sm:grid-cols-2
+              lg:grid-cols-3
+              gap-6
+            "
+          >
+
+            {/* OWNER */}
+            <Card
+              className="border-l-4"
+              style={{
+                borderLeftColor:
+                  "var(--space-primary)",
               }}
-              className="w-full"
             >
-              <CarouselContent className="-ml-4">
-                {club.map((club) => (
-                  <CarouselItem 
-                    key={club.id} 
-                    className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3"
+
+              <CardHeader>
+
+                <CardTitle>
+                  Space Owner
+                </CardTitle>
+
+                <CardDescription>
+                  Primary point of contact
+                </CardDescription>
+
+              </CardHeader>
+
+              <CardContent>
+
+                <div className="flex items-center gap-3">
+
+                  <Image
+                    src={
+                      space.avatar_url ||
+                      "/user1.png"
+                    }
+                    alt=""
+                    width={40}
+                    height={40}
+                    className="
+                      rounded-full
+                      object-cover
+                    "
+                  />
+
+                  <span className="font-medium">
+                    {space.owner_name ||
+                      "Unnamed user"}
+                  </span>
+
+                </div>
+
+              </CardContent>
+
+            </Card>
+
+            {/* CONTACT */}
+            <Card>
+
+              <CardHeader>
+
+                <CardTitle>
+                  Contact
+                </CardTitle>
+
+                <CardDescription>
+                  Official communication
+                  details
+                </CardDescription>
+
+              </CardHeader>
+
+              <CardContent className="space-y-1 text-sm">
+
+                {space.email && (
+                  <div>
+                    {space.email}
+                  </div>
+                )}
+
+                {space.contact_number && (
+                  <div>
+                    {
+                      space.contact_number
+                    }
+                  </div>
+                )}
+
+                {!space.email &&
+                  !space.contact_number && (
+                    <span className="text-muted-foreground">
+                      Not provided
+                    </span>
+                  )}
+
+              </CardContent>
+
+            </Card>
+
+            {/* WEBSITE */}
+            <Card>
+
+              <CardHeader>
+
+                <CardTitle>
+                  Website
+                </CardTitle>
+
+                <CardDescription>
+                  External link
+                </CardDescription>
+
+              </CardHeader>
+
+              <CardContent>
+
+                {space.website ? (
+                  <Link
+                    href={space.website}
+                    target="_blank"
+                    className="
+                      underline
+                      underline-offset-4
+                      text-sm
+                    "
                   >
-                    <Card className="group relative overflow-hidden transition-all hover:shadow-lg h-full">
-                      {/* ===== COVER IMAGE (same as search page) ===== */}
-                      {club.cover_url ? (
-                        <div className="relative h-40 overflow-hidden">
-                          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent z-10" />
-                          <Image
-                            src={club.cover_url}
-                            alt={`${club.name} cover`}
-                            fill
-                            sizes="(max-width: 768px) 100vw, 680px"
-                            className="object-cover"
-                          />
+                    {space.website}
+                  </Link>
+                ) : (
+                  <span
+                    className="
+                      text-muted-foreground
+                      text-sm
+                    "
+                  >
+                    Not provided
+                  </span>
+                )}
 
-                          {/* Logo on cover */}
-                          {club.logo_url && (
-                            <div className="absolute bottom-3 left-3 z-20">
-                              <Image
-                                src={club.logo_url}
-                                alt={`${club.name} logo`}
-                                width={32}
-                                height={32}
-                                className="h-10 w-10 rounded-md border bg-background object-contain shadow-sm"
-                              />
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="relative h-40 bg-muted/50 flex items-center justify-center">
-                          {club.logo_url && (
-                            <Image
-                              src={club.logo_url}
-                              alt={`${club.name} logo`}
-                              width={32}
-                              height={32}
-                              className="h-14 w-14 rounded-md object-contain"
-                            />
-                          )}
-                        </div>
-                      )}
+              </CardContent>
 
-                      {/* ===== CARD BODY ===== */}
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <CardTitle className="text-lg line-clamp-1">
-                            {club.name}
-                          </CardTitle>
+            </Card>
 
-                          {club.scope_type && (
-                            <Badge variant="outline" className="shrink-0">
-                              {club.scope_type.toUpperCase()}
-                            </Badge>
-                          )}
-                        </div>
-                      </CardHeader>
+          </section>
 
-                      <CardContent>
-                        {club.description && (
-                          <p className="text-sm font-medium text-muted-foreground line-clamp-2">
-                            {club.description}
-                          </p>
-                        )}
+        </TabsContent>
 
-                        <div className="mt-4 text-xs text-muted-foreground">
-                          {club.member_count ? (
-                            <span>{club.member_count} members</span>
-                          ) : (
-                            <span>No members yet</span>
-                          )}
-                        </div>
-                      </CardContent>
+        {/* ================= MEMBERS ================= */}
 
-                      <CardFooter>
-                        <Link
-                          href={`/space/${space.slug}/${club.scope_type}/${club.scope_code}`}
-                          className="w-full"
-                        >
-                          <Button variant="outline" className="w-full">
-                            View Club
-                          </Button>
-                        </Link>
-                      </CardFooter>
-                    </Card>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              
-              {/* Navigation buttons with proper positioning */}
-              <CarouselPrevious 
-                className="absolute -left-5 top-1/2 -translate-y-1/2 hidden sm:flex" 
-              />
-              <CarouselNext 
-                className="absolute -right-5 top-1/2 -translate-y-1/2 hidden sm:flex" 
-              />
-            </Carousel>
-          </div>
-        ) : (
+        <TabsContent value="members">
+
           <Card className="border-dashed">
-            <CardHeader>
-              <CardTitle>Clubs</CardTitle>
-              <CardDescription>
-                No clubs have been published yet.
-              </CardDescription>
-            </CardHeader>
-            {isOwner && (
-              <CardFooter>
-                <Link href={`/apply/space/${space.slug}/club`}>
-                  <Button>Create First Club</Button>
-                </Link>
-              </CardFooter>
-            )}
-          </Card>
-        )}
-      </section>
 
-      {/* ================= RECENT ACTIVITY ================= */}
-      <section>
-        <h2 className="text-2xl font-semibold mb-6">Recent Activity</h2>
-        <Card className="border-dashed">
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>
-              Actions and updates will appear here.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </section>
+            <CardHeader>
+
+              <CardTitle>
+                Members
+              </CardTitle>
+
+              <CardDescription>
+                Space members will appear
+                here.
+              </CardDescription>
+
+            </CardHeader>
+
+          </Card>
+
+        </TabsContent>
+
+        {/* ================= ACTIVITY ================= */}
+
+        <TabsContent value="activity">
+
+          <ActivityTab
+            spaceId={space.id}
+          />
+
+        </TabsContent>
+
+      </Tabs>
 
       {/* ================= ACTIONS ================= */}
-      <div className="flex gap-3 pt-2">
-        {/* DONATE → only for non-owners */}
-        {!authLoading && !isOwner && (
-          <Link
-            href={`/space/${space.slug}/donate`}
-            className="inline-flex items-center justify-center rounded-md border bg-black text-white px-4 py-2 text-sm font-medium"
-          >
-            Donate
-          </Link>
+
+      {!authLoading &&
+        isOwner && (
+          <div className="flex gap-3 pt-2">
+
+            <Link
+              href={`/manage/${space.slug}`}
+            >
+              <Button>
+                Manage Space
+              </Button>
+            </Link>
+
+          </div>
         )}
 
-        {/* MANAGE → only for owner */}
-        {!authLoading && isOwner && (
-          <Link
-            href={`/manage/${space.slug}`}
-            className="inline-flex items-center justify-center rounded-md border bg-black text-white px-4 py-2 text-sm font-medium"
-          >
-            Manage Space
-          </Link>
-        )}
-      </div>
     </div>
   );
 }

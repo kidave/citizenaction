@@ -1,9 +1,13 @@
+// components/feed/post-card/PostCard.js
+
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 import { Card } from "@/components/ui/card";
 import { Stack } from "@/components/layout/Stack";
+
 import PostHeader from "./PostHeader";
 import PostContent from "./PostContent";
 import PostMetadata from "./PostMetadata";
@@ -13,16 +17,23 @@ import PostFooter from "./PostFooter";
 
 import PostMeeting from "@/components/feed/post-meeting/PostMeeting";
 
+import { usePostPermissions } from "@/hooks/feed/usePostPermissions";
+
 export default function PostCard({
   post,
-  canEdit = false,
   onEdit,
   onDelete,
   forceExpanded = false,
 }) {
   const router = useRouter();
+  const { user } = useAuth();
+
+  const { data: permissions } = usePostPermissions(post?.id);
 
   if (!post) return null;
+
+  const canEdit =
+    permissions?.can_manage || post.author_id === user?.id;
 
   const handleNavigate = () => {
     sessionStorage.setItem(
@@ -34,23 +45,24 @@ export default function PostCard({
   };
 
   const typeStyles = {
-    action: "sm:border-l-4 sm:border-red-500 bg-red-50/30",
-    report: "sm:border-l-4 sm:border-blue-500 bg-blue-50/30",
-    event: "sm:border-l-4 sm:border-green-500 bg-green-50/40",
-    update: "sm:border-l-4 sm:border-pink-500 bg-pink-50/40",
-    meeting: "sm:border-l-4 sm:border-yellow-500 bg-yellow-50/30",
+    action: "bg-red-50",
+    report: "bg-blue-50",
+    event: "bg-green-50",
+    update: "bg-pink-50",
+    meeting: "bg-yellow-50",
   };
 
   return (
     <Card
       className={`
-        cursor-pointer overflow-
+        cursor-pointer overflow-hidden
         p-3 sm:p-5
         rounded-none sm:rounded-lg
         ${typeStyles[post.type] || ""}
       `}
     >
       <Stack>
+
         <PostHeader
           post={post}
           canEdit={canEdit}
@@ -65,23 +77,20 @@ export default function PostCard({
         />
 
         <PostMetadata
-          date={post.date}
-          time={post.time}
-          location={post.location}
-          type={post.type}
-          title={post.summary}
-          description={post.details}
+          post={post}
+          forceExpanded={forceExpanded}
         />
 
         <PostTimeline post={post} />
 
         <PostAttachments attachments={post.attachments} />
 
-        {post.type === "meeting" && post.meeting_attendees && forceExpanded && (
-          <PostMeeting meeting={post} />
+        <PostFooter post={post} />
+
+        {post.type === "meeting" && forceExpanded && (
+          <PostMeeting post={post} />
         )}
 
-        <PostFooter post={post} />
       </Stack>
     </Card>
   );

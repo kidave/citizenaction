@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Field, FieldLabel } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import LocationSearchInput from "@/components/shared/LocationSearchInput";
 import LocationMapPreview from "@/components/shared/LocationMapPreview";
@@ -12,32 +11,42 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
 import { MapPin, Link2, LocateFixed } from "lucide-react";
 
 export default function PostLocationSelector({ editor }) {
   const {
-    setLocation,
     setLat,
     setLng,
-    location,
+    setAddress,
+    setMeetingLink,
+    setMode,
+
+    lat,
+    lng,
+    address,
+    meeting_link,
+    mode: initialMode,
   } = editor;
 
   const [open, setOpen] = useState(false);
 
-  const [mode, setMode] = useState("offline");
-  const [onlineLink, setOnlineLink] = useState("");
+  const [mode, setLocalMode] = useState(initialMode || "offline");
+  const [onlineLink, setOnlineLink] = useState(meeting_link || "");
 
-  const [searchValue, setSearchValue] = useState("");
+  const [searchValue, setSearchValue] = useState(address || "");
   const [loadingGPS, setLoadingGPS] = useState(false);
 
-  const [tempLat, setTempLat] = useState(null);
-  const [tempLng, setTempLng] = useState(null);
-  const [tempLocation, setTempLocation] = useState("");
+  const [tempLat, setTempLat] = useState(lat);
+  const [tempLng, setTempLng] = useState(lng);
+  const [tempAddress, setTempAddress] = useState(address || "");
 
   const debounceRef = useRef(null);
   const abortRef = useRef(null);
 
-  /* 🔁 Reverse geocode */
+  /* -------------------------
+     REVERSE GEOCODE
+  ------------------------- */
   async function reverseGeocode(lat, lng) {
     try {
       const res = await fetch(`/api/osm-reverse?lat=${lat}&lng=${lng}`);
@@ -48,15 +57,19 @@ export default function PostLocationSelector({ editor }) {
     }
   }
 
-  /* SELECT */
+  /* -------------------------
+     SELECT
+  ------------------------- */
   function handleSelect(loc) {
     setTempLat(loc.lat);
     setTempLng(loc.lng);
-    setTempLocation(loc.name);
+    setTempAddress(loc.name);
     setSearchValue(loc.name);
   }
 
-  /* MAP CHANGE */
+  /* -------------------------
+     MAP CHANGE
+  ------------------------- */
   async function handleMapChange(lat, lng) {
     setTempLat(lat);
     setTempLng(lng);
@@ -79,7 +92,7 @@ export default function PostLocationSelector({ editor }) {
         const data = await res.json();
 
         if (data?.display_name) {
-          setTempLocation(data.display_name);
+          setTempAddress(data.display_name);
           setSearchValue(data.display_name);
         }
       } catch (err) {
@@ -90,7 +103,9 @@ export default function PostLocationSelector({ editor }) {
     }, 500);
   }
 
-  /* GPS */
+  /* -------------------------
+     GPS
+  ------------------------- */
   async function handleUseCurrentLocation() {
     if (!navigator.geolocation) return;
 
@@ -105,7 +120,7 @@ export default function PostLocationSelector({ editor }) {
       if (data?.display_name) {
         setTempLat(latitude);
         setTempLng(longitude);
-        setTempLocation(data.display_name);
+        setTempAddress(data.display_name);
         setSearchValue(data.display_name);
       }
 
@@ -113,27 +128,38 @@ export default function PostLocationSelector({ editor }) {
     });
   }
 
-  /* SAVE */
-  async function handleSave() {
+  /* -------------------------
+     SAVE
+  ------------------------- */
+  function handleSave() {
+    setMode(mode);
+
     if (mode === "online") {
       if (!onlineLink) return;
 
-      setLocation(onlineLink);
+      setMeetingLink(onlineLink);
       setLat(null);
       setLng(null);
+      setAddress(null);
+    } else {
+      if (!tempLat || !tempLng) return;
 
-      setOpen(false);
-      return;
+      setLat(tempLat);
+      setLng(tempLng);
+      setAddress(tempAddress);
+      setMeetingLink(null);
     }
-
-    if (!tempLat || !tempLng) return;
-
-    setLocation(tempLocation);
-    setLat(tempLat);
-    setLng(tempLng);
 
     setOpen(false);
   }
+
+  /* -------------------------
+     DISPLAY VALUE
+  ------------------------- */
+  const displayValue =
+    mode === "online"
+      ? meeting_link
+      : address;
 
   return (
     <>
@@ -145,21 +171,17 @@ export default function PostLocationSelector({ editor }) {
               onClick={() => setOpen(true)}
               className="flex items-center gap-2"
             >
-              {location?.startsWith("http") ? (
-                <Link2 />
-              ) : (
-                <MapPin />
-              )}
+              {mode === "online" ? <Link2 /> : <MapPin />}
 
-              <span className="truncate max-w-[100px]">
-                {location || "Location"}
+              <span className="truncate max-w-[120px]">
+                {displayValue || "Location"}
               </span>
             </Button>
           </TooltipTrigger>
 
-          {location && (
+          {displayValue && (
             <TooltipContent>
-              <p className="max-w-xs text-xs">{location}</p>
+              <p className="max-w-xs text-xs">{displayValue}</p>
             </TooltipContent>
           )}
         </Tooltip>
@@ -175,7 +197,7 @@ export default function PostLocationSelector({ editor }) {
               <div className="flex gap-2">
                 <Button
                   variant={mode === "offline" ? "default" : "outline"}
-                  onClick={() => setMode("offline")}
+                  onClick={() => setLocalMode("offline")}
                   className="flex-1"
                 >
                   <LocateFixed />
@@ -184,7 +206,7 @@ export default function PostLocationSelector({ editor }) {
 
                 <Button
                   variant={mode === "online" ? "default" : "outline"}
-                  onClick={() => setMode("online")}
+                  onClick={() => setLocalMode("online")}
                   className="flex-1"
                 >
                   <Link2 />
@@ -203,7 +225,7 @@ export default function PostLocationSelector({ editor }) {
               ) : (
                 <input
                   type="url"
-                  placeholder="Paste meeting link (Zoom / Meet)"
+                  placeholder="Paste meeting link"
                   value={onlineLink}
                   onChange={(e) => setOnlineLink(e.target.value)}
                   className="border rounded-md px-3 py-2 text-sm"
@@ -225,7 +247,7 @@ export default function PostLocationSelector({ editor }) {
                   </div>
 
                   <div className="px-3 py-2 text-xs text-muted-foreground border-t">
-                    {tempLocation || "Click map or search location"}
+                    {tempAddress || "Click map or search location"}
                   </div>
                 </>
               ) : (

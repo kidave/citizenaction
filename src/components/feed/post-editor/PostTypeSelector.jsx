@@ -1,61 +1,60 @@
 "use client";
 
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@/components/ui/tooltip";
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+
+import {
+  Zap,
+  FileText,
+  RefreshCw,
+  Calendar,
+  Users,
+} from "lucide-react";
 
 const TYPES = [
-  { value: "action", label: "Action", desc: "Document civic initiatives and actions taken." },
-  { value: "report", label: "Report", desc: "Document complaints, suggestions or policy proposals." },
-  { value: "update", label: "Update", desc: "Document major updates or announcements." },
-  { value: "event", label: "Event", desc: "Post event details and media." },
-  { value: "meeting", label: "Meeting", desc: "Record meetings with officials." },
+  { value: "action", label: "Action", icon: Zap },
+  { value: "report", label: "Report", icon: FileText },
+  { value: "update", label: "Update", icon: RefreshCw },
+  { value: "event", label: "Event", icon: Calendar },
+  { value: "meeting", label: "Meeting", icon: Users },
 ];
 
 export default function PostTypeSelector({ type, setType }) {
+  const selected = TYPES.find((t) => t.value === type);
+  const SelectedIcon = selected?.icon;
+
   return (
-    <div className="w-full sm:w-auto">
+    <div className="flex-shrink-0">
 
-      <ToggleGroup
-        type="single"
-        value={type}
-        onValueChange={(v) => v && setType(v)}
-        variant="outline"
-        className="flex w-full sm:w-auto"
-      >
+      <Select value={type} onValueChange={setType}>
+        <SelectTrigger className="w-[140px] flex items-center gap-2">
 
-        {TYPES.map((t, i) => (
-          <ToggleGroupItem
-            key={t.value}
-            value={t.value}
-            className={`
-              flex text-center text-xs sm:text-sm
-              px-2 py-1
-              rounded-none
-              ${i === 0 ? "rounded-l-md" : ""}
-              ${i === TYPES.length - 1 ? "rounded-r-md" : "border-r-0"}
-            `}
-          >
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="truncate">
+          {/* Selected value with icon */}
+
+          <SelectValue placeholder="Type" />
+
+        </SelectTrigger>
+
+        <SelectContent>
+          {TYPES.map((t) => {
+            const Icon = t.icon;
+
+            return (
+              <SelectItem key={t.value} value={t.value}>
+                <div className="flex items-center gap-2">
+                  <Icon className="h-4 w-4 text-muted-foreground" />
                   {t.label}
-                </span>
-              </TooltipTrigger>
-
-              <TooltipContent>
-                <p className="text-xs max-w-auto">
-                  {t.desc}
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </ToggleGroupItem>
-        ))}
-
-      </ToggleGroup>
+                </div>
+              </SelectItem>
+            );
+          })}
+        </SelectContent>
+      </Select>
 
     </div>
   );

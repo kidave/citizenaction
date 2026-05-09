@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+
 import { useFeed } from "@/hooks/feed/useFeed";
 import { useMeetings } from "@/hooks/meeting/useMeetings";
 
@@ -18,21 +19,40 @@ import {
 import { Button } from "@/components/ui/button";
 
 const months = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December"
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
-const types = ["Select Type", "action", "meeting", "report", "event", "update"];
+const activityTypes = [
+  "all",
+  "action",
+  "meeting",
+  "report",
+  "event",
+  "update",
+];
 
-export default function ActivityTab({ clubId }) {
+export default function ActivityTab({
+  spaceId,
+  defaultScopeType = null,
+  defaultScopeId = null,
+}) {
   const { data: feed = [], isLoading } = useFeed();
 
-  // ✅ Fetch ALL meetings (for attendees)
   const { data: meetings = [] } = useMeetings({
     enabled: true,
   });
 
-  // ✅ Map meetings by ID
   const meetingMap = useMemo(() => {
     return new Map(
       meetings.map((m) => [m.id, m])
@@ -41,23 +61,40 @@ export default function ActivityTab({ clubId }) {
 
   const currentYear = new Date().getFullYear();
 
-  // ✅ Filter by club OR community
-  const filteredByClub = useMemo(() => {
-    return feed.filter((f) =>
-      f.club_id === clubId || f.club_id === null
-    );
-  }, [feed, clubId]);
+  const [year, setYear] = useState("");
+  const [month, setMonth] = useState(null);
 
-  // ✅ Date helper
+  const [type, setType] = useState("all");
+
+  const [scopeType, setScopeType] =
+    useState(defaultScopeType || "");
+
+  const [scopeId, setScopeId] =
+    useState(defaultScopeId || "");
+
+  // BASE FILTER
+  const filteredFeed = useMemo(() => {
+    return feed.filter((f) => {
+      return spaceId
+        ? f.space_id === spaceId
+        : true;
+    });
+  }, [feed, spaceId]);
+
+  // DATE HELPER
   const getDate = (m) => {
-    if (m.metadata_date) return new Date(m.metadata_date);
-    if (m.date) return new Date(m.date);
-    return new Date(m.sort_date);
+    if (m.metadata_date)
+      return new Date(m.metadata_date);
+
+    if (m.date)
+      return new Date(m.date);
+
+    return new Date(m.created_at);
   };
 
-  // ✅ derive years
+  // YEARS
   const years = useMemo(() => {
-    const allYears = filteredByClub.map((m) =>
+    const allYears = filteredFeed.map((m) =>
       getDate(m).getFullYear()
     );
 
@@ -68,37 +105,95 @@ export default function ActivityTab({ clubId }) {
     }
 
     return uniqueYears.sort((a, b) => b - a);
-  }, [filteredByClub, currentYear]);
+  }, [filteredFeed, currentYear]);
 
-  const [year, setYear] = useState("");
-  const [month, setMonth] = useState(null);
-  const [type, setType] = useState("all");
+  // SCOPE TYPES
+  const scopeTypes = useMemo(() => {
+    return [
+      ...new Set(
+        filteredFeed
+          .map((f) => f.scope_type)
+          .filter(Boolean)
+      ),
+    ];
+  }, [filteredFeed]);
 
-  // ✅ final filtering
+  // SCOPE IDS
+  const scopeIds = useMemo(() => {
+    return [
+      ...new Set(
+        filteredFeed
+          .filter((f) =>
+            scopeType
+              ? f.scope_type === scopeType
+              : true
+          )
+          .map((f) => f.scope_id)
+          .filter(Boolean)
+      ),
+    ];
+  }, [filteredFeed, scopeType]);
+
+  // FINAL FILTERING
   const finalFeed = useMemo(() => {
-    return filteredByClub.filter((m) => {
-      const d = getDate(m);
+    return filteredFeed
+      .filter((m) => {
+        const d = getDate(m);
 
-      const matchYear = year
-        ? d.getFullYear() === Number(year)
-        : true;
+        const matchYear = year
+          ? d.getFullYear() === Number(year)
+          : true;
 
-      const matchMonth =
-        month !== null ? d.getMonth() === month : true;
+        const matchMonth =
+          month !== null
+            ? d.getMonth() === month
+            : true;
 
-      const matchType =
-        type === "all" ? true : m.type === type;
+        const matchType =
+          type === "all"
+            ? true
+            : m.type === type;
 
-      return matchYear && matchMonth && matchType;
-    });
-  }, [filteredByClub, year, month, type]);
+        const matchScopeType =
+          scopeType
+            ? m.scope_type === scopeType
+            : true;
+
+        const matchScopeId =
+          scopeId
+            ? m.scope_id === scopeId
+            : true;
+
+        return (
+          matchYear &&
+          matchMonth &&
+          matchType &&
+          matchScopeType &&
+          matchScopeId
+        );
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.created_at) -
+          new Date(a.created_at)
+      );
+  }, [
+    filteredFeed,
+    year,
+    month,
+    type,
+    scopeType,
+    scopeId,
+  ]);
 
   if (isLoading) {
     return (
       <div className="space-y-6">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <MeetingSkeleton key={i} />
-        ))}
+        {Array.from({ length: 3 }).map(
+          (_, i) => (
+            <MeetingSkeleton key={i} />
+          )
+        )}
       </div>
     );
   }
@@ -106,21 +201,52 @@ export default function ActivityTab({ clubId }) {
   return (
     <div className="space-y-6">
 
-      {/* FILTER BAR */}
+      {/* FILTERS */}
       <div className="flex flex-wrap items-center gap-3">
 
+        {/* TYPE */}
         <select
-          value={type}
-          onChange={(e) => setType(e.target.value)}
-          className="border rounded-md px-3 py-2 text-sm"
+          value={activityTypes}
+          onChange={(e) =>
+            setSelectedType(
+              e.target.value
+            )
+          }
+          className="
+            border
+            rounded-md
+            px-3
+            py-2
+            text-sm
+            bg-background
+          "
         >
-          {types.map((t) => (
-            <option key={t} value={t}>
-              {t.charAt(0).toUpperCase() + t.slice(1)}
+            <option value="all">
+              All Types
             </option>
-          ))}
+
+            <option value="action">
+              Action
+            </option>
+
+            <option value="meeting">
+              Meeting
+            </option>
+
+            <option value="report">
+              Report
+            </option>
+
+            <option value="event">
+              Event
+            </option>
+
+            <option value="update">
+              Update
+          </option>
         </select>
 
+        {/* YEAR */}
         <select
           value={year}
           onChange={(e) => {
@@ -129,23 +255,38 @@ export default function ActivityTab({ clubId }) {
           }}
           className="border rounded-md px-3 py-2 text-sm"
         >
-          <option value="">Select Year</option>
+          <option value="">
+            Select Year
+          </option>
+
           {years.map((y) => (
-            <option key={y} value={String(y)}>
+            <option
+              key={y}
+              value={String(y)}
+            >
               {y}
             </option>
           ))}
         </select>
 
+        {/* MONTH */}
         <select
           value={month ?? ""}
           onChange={(e) => {
             const val = e.target.value;
-            setMonth(val === "" ? null : Number(val));
+
+            setMonth(
+              val === ""
+                ? null
+                : Number(val)
+            );
           }}
           className="border rounded-md px-3 py-2 text-sm"
         >
-          <option value="">Select Month</option>
+          <option value="">
+            Select Month
+          </option>
+
           {months.map((m, i) => (
             <option key={i} value={i}>
               {m}
@@ -153,49 +294,53 @@ export default function ActivityTab({ clubId }) {
           ))}
         </select>
 
-        {month !== null && (
-          <Button size="sm" variant="ghost" onClick={() => setMonth(null)}>
-            Clear
-          </Button>
-        )}
-                <div className="flex items-center gap-2 ml-auto flex-wrap text-xs">
+        {/* SCOPE TYPE */}
+        <select
+          value={scopeType}
+          onChange={(e) => {
+            setScopeType(e.target.value);
+            setScopeId("");
+          }}
+          className="border rounded-md px-3 py-2 text-sm"
+        >
+          <option value="">
+            Area
+          </option>
 
-        <div className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-sm bg-red-500"></span>
-            Action
-        </div>
+          {scopeTypes.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
 
-        <div className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-sm bg-blue-500"></span>
-            Report
-        </div>
-
-        <div className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-sm bg-green-500"></span>
-            Event
-        </div>
-
-        <div className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-sm bg-pink-500"></span>
-            Update
-        </div>
-
-        <div className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-sm bg-yellow-500"></span>
-            Meeting
-        </div>
-
-        </div>
+        {/* CLEAR */}
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => {
+            setMonth(null);
+            setYear("");
+            setType("all");
+            setScopeType("");
+            setScopeId("");
+          }}
+        >
+          Clear
+        </Button>
       </div>
-
 
       {/* CONTENT */}
       {!finalFeed.length ? (
         <Card className="border-dashed">
           <CardHeader>
-            <CardTitle>No activity</CardTitle>
+            <CardTitle>
+              No activity
+            </CardTitle>
+
             <CardDescription>
-              No activity found for selected filters.
+              No activity found for selected
+              filters.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -205,14 +350,17 @@ export default function ActivityTab({ clubId }) {
           {finalFeed.map((post) => {
 
             if (post.type === "meeting") {
-              const fullMeeting = meetingMap.get(post.id);
+              const fullMeeting =
+                meetingMap.get(post.id);
 
               return (
                 <MeetingPreviewCard
                   key={post.id}
                   meeting={{
                     ...post,
-                    attendees: fullMeeting?.attendees || [],
+                    attendees:
+                      fullMeeting?.attendees ||
+                      [],
                   }}
                 />
               );
@@ -228,7 +376,6 @@ export default function ActivityTab({ clubId }) {
 
         </div>
       )}
-
     </div>
   );
 }

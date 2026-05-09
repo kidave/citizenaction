@@ -19,7 +19,7 @@ export function useDeleteMeetingItem() {
     },
 
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["meetings"] });
+      queryClient.invalidateQueries({ queryKey: ["post-meeting", feed_id] });
       toast.success("Deleted successfully");
     },
 
