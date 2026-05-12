@@ -5,7 +5,8 @@ import {
 
 export default function getDerivedPostStatus(
   post,
-  config
+  config,
+  now = null
 ) {
   if (
     !config.lifecycle ||
@@ -14,7 +15,10 @@ export default function getDerivedPostStatus(
     return null;
   }
 
-  const now = new Date();
+  // Prevent SSR hydration mismatch
+  if (!now) {
+    return null;
+  }
 
   const start =
     new Date(post.start_at);
@@ -60,8 +64,14 @@ export default function getDerivedPostStatus(
     return "ended";
   }
 
+  const joinWindow =
+    new Date(
+      start.getTime() -
+        15 * 60 * 1000
+    );
+
   if (
-    isAfter(now, start) &&
+    isAfter(now, joinWindow) &&
     (!end ||
       isBefore(now, end))
   ) {

@@ -5,10 +5,6 @@ import truncateContent from "@/utils/text/truncateContent";
 import Linkify from "linkify-react";
 import { Badge } from "@/components/ui/badge";
 import { Row } from "@/components/layout/Row";
-import { Radio } from "lucide-react";
-import getPostStatus from "@/utils/feed/getPostStatus";
-import getPostTypeConfig from "@/utils/feed/getPostTypeConfig";
-import { formatDistanceToNowStrict } from "date-fns";
 
 export default function PostContent({
   post,
@@ -37,12 +33,6 @@ export default function PostContent({
   
   const { text: truncatedText, isLong } =
     truncateContent(content, 280);
-
-  const status = getPostStatus(post);
-
-  const config = getPostTypeConfig(post.type);
-
-  const statusUI = config.statuses?.[ status?.key ];
 
   return (
     <div

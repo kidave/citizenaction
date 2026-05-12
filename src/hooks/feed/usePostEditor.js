@@ -18,11 +18,10 @@ export function usePostEditor(post = null, profile = null) {
   const { updatePost } = useUpdatePost();
   const { deletePost } = useDeletePost();
 
-  const [space_id, setSpaceId] = useState(null);
-
-  const [scope_type, setScopeType] = useState(null);
-  const [scope_code, setScopeCode] = useState(null);
-  const [scope_name, setScopeName] = useState(null);
+  const [spaces, setSpaces] = useState([]);
+  const [is_global, setIsGlobal] = useState(
+    post?.is_global || false
+  );
 
   const [governance_entities, setSelectedAuthorities] = useState(
     post?.governance_entities || []
@@ -40,7 +39,6 @@ export function usePostEditor(post = null, profile = null) {
   const [end_at, setEndAt] = useState(
     post?.end_at || null
   );
-  const [mode, setMode] = useState(post?.mode || "offline");
 
   const [lat, setLat] = useState(post?.lat || null);
   const [lng, setLng] = useState(post?.lng || null);
@@ -51,21 +49,16 @@ export function usePostEditor(post = null, profile = null) {
 
   const [timeline, setTimeline] = useState(post?.timeline || []);
 
-  useEffect(() => {
-    if (post) {
-      setSpaceId(post.space_id || null);
-      setScopeType(post.scope_type || null);
-      setScopeCode(post.scope_code || null);
-      setScopeName(post.scope_name || null);
-    } else if (profile?.primary_space?.id) {
-      setSpaceId(profile.primary_space.id);
-    } else {
-      setSpaceId(null);
-    }
-  }, [post, profile]);
+  if (post) {
 
-  const isGlobal = !space_id;
+    setSpaces(
+      post.spaces || []
+    );
 
+    setIsGlobal(
+      !!post.is_global
+    );
+  }
 
   async function submit(onSuccess) {
     if (!content.trim()) {
@@ -94,11 +87,8 @@ export function usePostEditor(post = null, profile = null) {
       const payload = {
         author_id: user.id,
 
-        space_id: space_id ?? null,
-        is_global: !space_id,
-
-        scope_type: scope_type ?? null,
-        scope_code: scope_code ?? null,
+        spaces,
+        is_global,
 
         governance_entities,
 
@@ -114,7 +104,6 @@ export function usePostEditor(post = null, profile = null) {
         address: address ?? null,
 
         meeting_link: meeting_link || null,
-        mode: mode || "offline",
 
         metadata,
       };
@@ -160,13 +149,10 @@ export function usePostEditor(post = null, profile = null) {
     setContent,
     attachments,
     setAttachments,
-
     start_at,
     setStartAt,
     end_at,
     setEndAt,
-    mode,
-    setMode,
     lat,
     setLat,
     lng,
@@ -175,23 +161,14 @@ export function usePostEditor(post = null, profile = null) {
     setAddress,
     meeting_link,
     setMeetingLink,
-
     timeline,
     setTimeline,
-
-    space_id,
-    setSpaceId,
-
-    scope_type,
-    setScopeType,
-    scope_code,
-    setScopeCode,
-    scope_name,
-    setScopeName,
-
+    spaces,
+    setSpaces,
+    is_global,
+    setIsGlobal,
     governance_entities,
     setSelectedAuthorities,
-
     submit,
     remove,
   };

@@ -3,42 +3,134 @@
 import Link from "next/link";
 
 import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import {
   CalendarDays,
   Clock3,
   MapPin,
   Video,
-  Radio,
 } from "lucide-react";
 
-import {
-  format,
-  formatDistanceToNowStrict,
-  isSameYear,
-} from "date-fns";
+import { format, formatDistanceToNowStrict } from "date-fns";
 
-import { Badge } from "@/components/ui/badge";
+import PostCalendarActions from "@/components/shared/PostCalendarActions";
 
-import getPostTypeConfig
-from "@/utils/feed/getPostTypeConfig";
+import getPostTypeConfig from "@/utils/feed/getPostTypeConfig";
 
-import getPostStatus
-from "@/utils/feed/getPostStatus";
+import getPostStatus from "@/utils/feed/getPostStatus";
+
+const pillStyles = {
+  live: `
+    text-red-700
+    bg-red-50
+    border-red-200
+  `,
+
+  countdown: `
+    text-blue-700
+    bg-blue-50
+    border-blue-100
+  `,
+};
+
+function StatusPill({
+  type,
+  children,
+  pulse = false,
+}) {
+  return (
+    <div
+      className={`
+        inline-flex items-center gap-1.5
+        text-xs font-medium
+        px-2.5 py-1
+        rounded-full border
+        ${pillStyles[type]}
+      `}
+    >
+      <div
+        className={`
+          h-2 w-2 rounded-full
+          ${
+            type === "live"
+              ? "bg-red-500"
+              : "bg-blue-500"
+          }
+          ${
+            pulse
+              ? "animate-pulse"
+              : ""
+          }
+        `}
+      />
+
+      <span>{children}</span>
+    </div>
+  );
+}
 
 export default function PostMetadata({
   post,
   forceExpanded = false,
 }) {
+  const [mounted, setMounted] =
+    useState(false);
+
+  const [now, setNow] =
+    useState(new Date());
+
+  useEffect(() => {
+    setMounted(true);
+
+    const interval =
+      setInterval(() => {
+        setNow(new Date());
+      }, 1000);
+
+    return () =>
+      clearInterval(interval);
+  }, []);
+
+  // =====================================================
+  // CONFIG
+  // =====================================================
+
+  const config =
+    getPostTypeConfig(
+      post.type
+    );
+
+  // =====================================================
+  // STATUS
+  // =====================================================
+
+  const status = useMemo(
+    () =>
+      getPostStatus(
+        post,
+        mounted
+          ? now
+          : null
+      ),
+
+    [post, now, mounted]
+  );
+
+  // =====================================================
+  // GUARDS
+  // =====================================================
+
   if (!post?.start_at) {
     return null;
   }
 
-  const config =
-    getPostTypeConfig(post.type);
-
-  const status =
-    getPostStatus(post);
-  
-  const statusUI = config.statuses?.[ status?.key ];
+  // =====================================================
+  // DATES
+  // =====================================================
 
   const start =
     new Date(post.start_at);
@@ -48,268 +140,180 @@ export default function PostMetadata({
     : null;
 
   // =====================================================
-  // COMPACT FEED MODE
+  // UI FLAGS
   // =====================================================
 
-  if (!forceExpanded) {
-    return (
-      <div className="flex items-center gap-2 flex-wrap">
+  const compactMode =
+    !forceExpanded;
 
-        {/* COUNTDOWN */}
-        {statusUI &&
-        !statusUI.hidden && (
-          <Badge
-            variant="secondary"
-            className={
-              statusUI.className
-            }
-          >
-            {status?.key ===
-              "live" && (
-              <Radio className="h-3 w-3 mr-1" />
-            )}
-      
-          {statusUI.label}
-      
-        </Badge>
-      )}
-
-        {config.showCountdown &&
-        status?.key === "upcoming" &&
-        post.start_at && (
-
-          <div
-            className="
-              inline-flex
-              items-center
-              gap-1.5
-
-              text-xs
-              font-medium
-
-              text-blue-700
-              bg-blue-50
-
-              px-2.5
-              py-1
-
-              rounded-full
-
-              border
-              border-blue-100
-            "
-          >
-
-          <div
-            className="
-              h-2
-              w-2
-              rounded-full
-              bg-blue-500
-            "
-          />
-
-          <span>
-
-            Starts in{" "}
-            {formatDistanceToNowStrict(
-              new Date(
-                post.start_at
-              )
-            )}
-
-          </span>
-
-        </div>
-      )}
-
-      </div>
-    );
-  }
+  const showCountdown =
+    mounted &&
+    status?.key ===
+      "upcoming" &&
+    status?.countdown;
 
   // =====================================================
-  // EXPANDED MODE
+  // UI
   // =====================================================
 
   return (
     <div className="space-y-3">
 
-      {statusUI &&
-        !statusUI.hidden && (
-          <Badge
-            variant="secondary"
-            className={
-              statusUI.className
-            }
+      {/* STATUS */}
+
+      <div className="flex flex-wrap items-center gap-2">
+        {post.status &&
+          !config.lifecycle && (
+            <StatusPill type="countdown">
+
+              {post.status}
+
+            </StatusPill>
+        )}
+        
+        {status?.key ===
+          "live" && (
+          <StatusPill
+            type="live"
+            pulse
           >
-            {status?.key ===
-              "live" && (
-              <Radio className="h-3 w-3 mr-1" />
-            )}
-      
-          {statusUI.label}
-      
-        </Badge>
-      )}
+            LIVE NOW
+          </StatusPill>
+        )}
 
-      {config.showCountdown &&
-        status?.key === "upcoming" &&
-        post.start_at && (
-
-          <div
-            className="
-              inline-flex
-              items-center
-              gap-1.5
-
-              text-xs
-              font-medium
-
-              text-blue-700
-              bg-blue-50
-
-              px-2.5
-              py-1
-
-              rounded-full
-
-              border
-              border-blue-100
-            "
-          >
-
-          <div
-            className="
-              h-2
-              w-2
-              rounded-full
-              bg-blue-500
-            "
-          />
-
-          <span>
+        {showCountdown && (
+          <StatusPill type="countdown">
 
             Starts in{" "}
+
             {formatDistanceToNowStrict(
-              new Date(
-                post.start_at
-              )
+              start
             )}
 
-          </span>
-
-        </div>
-      )}
-
-      {/* DATE */}
-
-      <div className="space-y-2 text-sm text-muted-foreground">
-
-        <div className="flex items-center gap-2">
-
-          <CalendarDays className="h-4 w-4" />
-
-          <span>
-
-            {format(
-              start,
-              isSameYear(
-                start,
-                new Date()
-              )
-                ? "d MMM"
-                : "d MMM yyyy"
-            )}
-
-          </span>
-
-        </div>
-
-        {/* TIME */}
-
-        {config.showTime && (
-          <div className="flex items-center gap-2">
-
-            <Clock3 className="h-4 w-4" />
-
-            <span>
-
-              {format(
-                start,
-                "h:mm a"
-              )}
-
-              {end && (
-                <>
-                  {" "}
-                  -{" "}
-                  {format(
-                    end,
-                    "h:mm a"
-                  )}
-                </>
-              )}
-
-            </span>
-
-          </div>
+          </StatusPill>
         )}
 
       </div>
 
-      {/* ADDRESS */}
+      {/* FEED MODE */}
 
-      {config.showAddress &&
-        post.address && (
-          <div className="flex items-start gap-2 text-sm text-muted-foreground">
+      {compactMode && null}
 
-            <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
+      {/* EXPANDED MODE */}
 
-            <span>
-              {post.address}
-            </span>
+      {!compactMode && (
+        <>
+          {/* DATE/TIME */}
+
+          <div className="space-y-2 text-sm text-muted-foreground">
+
+            <div className="flex items-center gap-2">
+
+              <CalendarDays className="h-4 w-4" />
+
+              <span>
+                {format(
+                  start,
+                  "d MMM yyyy"
+                )}
+              </span>
+
+            </div>
+
+            {config.showTime && (
+              <div className="flex items-center gap-2">
+
+                <Clock3 className="h-4 w-4" />
+
+                <span>
+
+                  {format(
+                    start,
+                    "h:mm a"
+                  )}
+
+                  {end && (
+                    <>
+                      {" "}
+                      -{" "}
+                      {format(
+                        end,
+                        "h:mm a"
+                      )}
+                    </>
+                  )}
+
+                </span>
+
+              </div>
+            )}
 
           </div>
-        )}
 
-      {/* JOIN */}
+          {/* ADDRESS */}
 
-      {config.showJoin &&
-        post.meeting_link &&
-        status?.key !==
-          "ended" && (
-          <Link
-            href={post.meeting_link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="
-              inline-flex
-              items-center
-              gap-2
-              rounded-lg
-              px-4
-              py-2
-              text-sm
-              font-medium
-              bg-primary
-              text-primary-foreground
-              hover:opacity-90
-              transition
-            "
-          >
+          {config.showAddress &&
+            post.address && (
+              <div className="flex items-start gap-2 text-sm text-muted-foreground">
 
-            <Video className="h-4 w-4" />
+                <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
 
-            {status?.key ===
-            "live"
-              ? "Join Now"
-              : post.type ===
-                "event"
-              ? "Join Event"
-              : "Join Meeting"}
+                <span>
+                  {post.address}
+                </span>
 
-          </Link>
-        )}
+              </div>
+            )}
+
+          {/* JOIN */}
+
+          {config.showJoin &&
+            post.meeting_link &&
+            status?.key ===
+              "live" && (
+              <Link
+                href={
+                  post.meeting_link
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="
+                  inline-flex
+                  items-center
+                  gap-2
+
+                  rounded-lg
+
+                  px-4
+                  py-2
+
+                  text-sm
+                  font-medium
+
+                  bg-primary
+                  text-primary-foreground
+
+                  hover:opacity-90
+                  transition
+                "
+              >
+
+                <Video className="h-4 w-4" />
+
+                Join Now
+
+              </Link>
+            )}
+
+          {/* CALENDAR */}
+
+          {showCountdown && (
+            <PostCalendarActions
+              post={post}
+            />
+          )}
+        </>
+      )}
 
     </div>
   );

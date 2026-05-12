@@ -1,3 +1,5 @@
+import dayjs from "dayjs";
+
 import getPostTypeConfig
 from "./getPostTypeConfig";
 
@@ -5,7 +7,8 @@ import getDerivedPostStatus
 from "./getDerivedPostStatus";
 
 export default function getPostStatus(
-  post
+  post,
+  now = null
 ) {
   const config =
     getPostTypeConfig(
@@ -13,7 +16,7 @@ export default function getPostStatus(
     );
 
   // =====================================================
-  // MANUAL OVERRIDE
+  // MANUAL STATUS
   // =====================================================
 
   if (post.status) {
@@ -26,18 +29,76 @@ export default function getPostStatus(
         ] || null,
 
       derived: false,
+
+      countdown: null,
     };
   }
 
   // =====================================================
-  // AUTOMATIC
+  // DERIVED STATUS
   // =====================================================
 
   const derived =
     getDerivedPostStatus(
       post,
-      config
+      config,
+      now
     );
+
+  // =====================================================
+  // COUNTDOWN
+  // =====================================================
+
+  let countdown = null;
+
+  if (
+    now &&
+    config.showCountdown &&
+    derived === "upcoming" &&
+    post.start_at
+  ) {
+    const diffSeconds =
+      dayjs(post.start_at).diff(
+        dayjs(now),
+        "second"
+      );
+
+    if (diffSeconds > 0) {
+      const days =
+        Math.floor(
+          diffSeconds /
+            86400
+        );
+
+      const hours =
+        Math.floor(
+          (diffSeconds %
+            86400) /
+            3600
+        );
+
+      const minutes =
+        Math.floor(
+          (diffSeconds %
+            3600) /
+            60
+        );
+
+      const seconds =
+        diffSeconds % 60;
+
+      countdown = {
+        days,
+        hours,
+        minutes,
+        seconds,
+      };
+    }
+  }
+
+  // =====================================================
+  // RETURN
+  // =====================================================
 
   return {
     key: derived,
@@ -48,5 +109,7 @@ export default function getPostStatus(
       ] || null,
 
     derived: true,
+
+    countdown,
   };
 }

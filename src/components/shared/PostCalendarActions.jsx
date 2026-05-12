@@ -1,30 +1,81 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { CalendarPlus, Download } from "lucide-react";
 
-export default function PostCalendarActions({ post }) {
-  if (!post?.date || !post?.time) return null;
+import {
+  CalendarPlus,
+  Download,
+} from "lucide-react";
 
-  const start = new Date(`${post.date}T${post.time}:00`);
-  const end = new Date(start.getTime() + 60 * 60 * 1000);
+export default function PostCalendarActions({
+  post,
+}) {
+  if (!post?.start_at) {
+    return null;
+  }
 
-  const format = (d) =>
-    d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+  // =====================================================
+  // DATES
+  // =====================================================
 
-  const locationValue =
-    post.mode === "online" ? post.meeting_link : post.address;
+  const start =
+    new Date(post.start_at);
+
+  const end = post.end_at
+    ? new Date(post.end_at)
+    : new Date(
+        start.getTime() +
+          60 * 60 * 1000
+      );
+
+  // =====================================================
+  // FORMAT
+  // =====================================================
+
+  const formatDate = (d) =>
+    d
+      .toISOString()
+      .replace(/[-:]/g, "")
+      .split(".")[0] + "Z";
+
+  // =====================================================
+  // LOCATION
+  // =====================================================
+
+  const locationValue = [
+    post.address,
+    post.meeting_link,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  // =====================================================
+  // GOOGLE CALENDAR
+  // =====================================================
 
   function handleGoogleCalendar() {
     const url =
       `https://calendar.google.com/calendar/render?action=TEMPLATE` +
-      `&text=${encodeURIComponent(post.summary || "Meeting/Event")}` +
-      `&details=${encodeURIComponent(post.details || "")}` +
-      `&location=${encodeURIComponent(locationValue || "")}` +
-      `&dates=${format(start)}/${format(end)}`;
+      `&text=${encodeURIComponent(
+        post.summary ||
+          "Meeting/Event"
+      )}` +
+      `&details=${encodeURIComponent(
+        post.details || ""
+      )}` +
+      `&location=${encodeURIComponent(
+        locationValue || ""
+      )}` +
+      `&dates=${formatDate(
+        start
+      )}/${formatDate(end)}`;
 
     window.open(url, "_blank");
   }
+
+  // =====================================================
+  // ICS DOWNLOAD
+  // =====================================================
 
   function handleICSDownload() {
     const ics = `
@@ -32,46 +83,81 @@ BEGIN:VCALENDAR
 VERSION:2.0
 BEGIN:VEVENT
 UID:${Date.now()}@citizenaction
-DTSTAMP:${format(new Date())}
-DTSTART:${format(start)}
-DTEND:${format(end)}
+DTSTAMP:${formatDate(
+      new Date()
+    )}
+DTSTART:${formatDate(start)}
+DTEND:${formatDate(end)}
 SUMMARY:${post.summary || "Meeting/Event"}
 DESCRIPTION:${post.details || ""}
 LOCATION:${locationValue || ""}
 END:VEVENT
 END:VCALENDAR`;
 
-    const blob = new Blob([ics], {
-      type: "text/calendar;charset=utf-8;",
-    });
+    const blob = new Blob(
+      [ics],
+      {
+        type: "text/calendar;charset=utf-8;",
+      }
+    );
 
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "meeting.ics";
+    const link =
+      document.createElement(
+        "a"
+      );
+
+    link.href =
+      URL.createObjectURL(
+        blob
+      );
+
+    link.download =
+      "event.ics";
+
     link.click();
   }
 
+  // =====================================================
+  // UI
+  // =====================================================
+
   return (
-    <div className="flex gap-2 mb-3">
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={handleGoogleCalendar}
-        className="flex items-center gap-1"
-      >
-        <CalendarPlus className="h-4 w-4" />
-        Add to Calendar
-      </Button>
+    <div className="flex gap-2 flex-wrap">
+
+      {/* GOOGLE */}
 
       <Button
         size="sm"
         variant="outline"
-        onClick={handleICSDownload}
+        onClick={
+          handleGoogleCalendar
+        }
         className="flex items-center gap-1"
       >
-        <Download className="h-4 w-4" />
-        .ics
+
+        <CalendarPlus className="h-4 w-4" />
+
+        Add to Calendar
+
       </Button>
+
+      {/* ICS */}
+
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={
+          handleICSDownload
+        }
+        className="flex items-center gap-1"
+      >
+
+        <Download className="h-4 w-4" />
+
+        .ics
+
+      </Button>
+
     </div>
   );
 }

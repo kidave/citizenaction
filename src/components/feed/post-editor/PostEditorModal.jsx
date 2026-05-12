@@ -1,100 +1,151 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
+
 import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { usePostEditor } from "@/hooks/feed/usePostEditor";
+import { useSpaces } from "@/hooks/useSpaces";
 
 import { Stack } from "@/components/layout/Stack";
-import PostEditorContext from "./PostEditorContext";
+
 import PostEditorHeader from "./PostEditorHeader";
-import PostLocationSelector from "./PostLocationSelector";
-import PostAuthoritySelector from "./PostAuthoritySelector";
-import PostTypeSelector from "./PostTypeSelector";
-import PostEditorMetadata from "./PostEditorMetadata";
 import PostEditorContent from "./PostEditorContent";
 import PostEditorAttachments from "./PostEditorAttachments";
-import { Row } from "@/components/layout/Row";
+import PostContextDrawer from "./PostContextDrawer";
 
-export default function PostEditorModal({ isOpen, onClose, post = null }) {
+export default function PostEditorModal({
+  isOpen,
+  onClose,
+  post = null,
+}) {
 
-  const { data: profile } = useMyProfile();
+  const { data: profile } =
+    useMyProfile();
 
-  const editor = usePostEditor(post, profile);
+  const {
+    data: spaces = [],
+  } = useSpaces();
 
-  if (!isOpen) return null;
+  const editor =
+    usePostEditor(
+      post,
+      profile
+    );
 
   return (
-    <>
-      {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black/50 z-50 hidden sm:block"
-        onClick={onClose}
-      />
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose();
+        }
+      }}
+    >
 
-      {/* Modal */}
-      <div className="fixed inset-0 z-50 flex sm:items-center sm:justify-center">
+      <DialogContent
+        className="
+          p-0
+          gap-0
+          w-full
+          h-full
+          max-w-none
+          rounded-none
 
-        <Card
-          className="
-            w-full h-full rounded-none
-            sm:max-w-2xl sm:max-h-[90vh] sm:rounded-lg
-            flex flex-col
-          "
-        >
+          sm:max-w-2xl
+          sm:h-[90vh]
+          sm:rounded-lg
 
-          {/* HEADER */}
-          <PostEditorHeader
-            profile={profile}
-            post={post}
-            editor={editor}
-            onClose={onClose}
-            onSubmit={() => editor.submit(onClose)}
-            onDelete={() => editor.remove(onClose)}
-          />
+          flex
+          flex-col
+          overflow-hidden
+        "
+      >
 
-          {/* BODY */}
-          <div className="flex-1 overflow-y-auto p-4">
+        {/* HEADER */}
+        <PostEditorHeader
+          profile={profile}
+          post={post}
+          editor={editor}
+          spaces={spaces}
+          onClose={onClose}
+          onSubmit={() =>
+            editor.submit(onClose)
+          }
+          onDelete={() =>
+            editor.remove(onClose)
+          }
+        />
 
-            <Stack gap="gap-4">
-              {/* METADATA */}
-              <PostEditorMetadata editor={editor} />
+        {/* BODY */}
+        <div className="flex-1 overflow-y-auto p-4">
 
-              {/* CONTENT */}
-              <PostEditorContent
-                title={editor.title}
-                setTitle={editor.setTitle}
-                content={editor.content}
-                setContent={editor.setContent}
-              />
+          <Stack gap="gap-4">            
 
-              <div className="w-full">
+            {/* CONTENT */}
+            <PostEditorContent
+              title={editor.title}
+              setTitle={editor.setTitle}
+              content={editor.content}
+              setContent={editor.setContent}
+            />
 
-                {/* AUTHORITY 
-                  <PostAuthoritySelector
-                    governance_entities={editor.governance_entities}
-                    setSelectedAuthorities={editor.setSelectedAuthorities}
-                    context={{
-                      space_id: editor.space_id,
-                      scope_type: editor.scope_type,
-                      scope_code: editor.scope_code,
-                    }}
-                  />
-                */}
-                {/* ATTACHMENTS */}
-                  <PostEditorAttachments
-                    attachments={editor.attachments}
-                    setAttachments={editor.setAttachments}
-                  />
+            {/* ATTACHMENTS */}
+            {/* =====================================================
+                COMPOSER ACTIONS
+            ===================================================== */}
+
+            <div
+              className="
+                flex
+                items-center
+                justify-between
+                gap-3
+              "
+            >
+
+              {/* ATTACHMENTS */}
+              <div
+                className="
+                  flex-1
+                  min-w-0
+                "
+              >
+
+                <PostEditorAttachments
+                  attachments={
+                    editor.attachments
+                  }
+                  setAttachments={
+                    editor.setAttachments
+                  }
+                />
 
               </div>
 
-            </Stack>
+              {/* CONTEXT */}
+              <div
+                className="
+                  shrink-0
+                "
+              >
 
-          </div>
+                <PostContextDrawer
+                  editor={editor}
+                />
 
-        </Card>
+              </div>
 
-      </div>
-    </>
+            </div>
+
+          </Stack>
+
+        </div>
+
+      </DialogContent>
+
+    </Dialog>
   );
 }
