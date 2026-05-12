@@ -49,16 +49,15 @@ export function usePostEditor(post = null, profile = null) {
 
   const [timeline, setTimeline] = useState(post?.timeline || []);
 
-  if (post) {
-
+  useEffect(() => {
+    if (!post) return;
     setSpaces(
       post.spaces || []
     );
-
     setIsGlobal(
       !!post.is_global
     );
-  }
+  }, [post]);
 
   async function submit(onSuccess) {
     if (!content.trim()) {
@@ -113,8 +112,6 @@ export function usePostEditor(post = null, profile = null) {
           postId: post.id,
           postData: payload,
         });
-
-        window.location.reload();
 
       } else {
         await createPost(payload);

@@ -93,10 +93,6 @@ export default function PostEditorModal({
             />
 
             {/* ATTACHMENTS */}
-            {/* =====================================================
-                COMPOSER ACTIONS
-            ===================================================== */}
-
             <div
               className="
                 flex
