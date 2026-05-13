@@ -2,6 +2,6 @@ import { z } from "zod";
 
 export const postSchema = z.object({
   type: z.string(),
-  date: z.string().optional(),
-  time: z.string().optional(),
+  start_at: z.string().nullable().optional(),
+  end_at: z.string().nullable().optional(),
 });

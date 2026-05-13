@@ -1,6 +1,18 @@
 "use client";
 
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  Megaphone,
+  FileWarning,
+  Bell,
+  CalendarDays,
+  Users,
+} from "lucide-react";
+
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@/components/ui/toggle-group";
+
 import {
   Tooltip,
   TooltipTrigger,
@@ -11,69 +23,99 @@ const TYPES = [
   {
     value: "action",
     label: "Action",
+    icon: Megaphone,
     desc: "Document civic initiatives and actions taken.",
   },
   {
     value: "report",
     label: "Report",
+    icon: FileWarning,
     desc: "Document complaints, suggestions or policy proposals.",
   },
   {
     value: "update",
     label: "Update",
+    icon: Bell,
     desc: "Document major updates or announcements.",
   },
   {
     value: "event",
     label: "Event",
+    icon: CalendarDays,
     desc: "Post event details and media.",
   },
   {
     value: "meeting",
     label: "Meeting",
+    icon: Users,
     desc: "Record meetings with officials.",
   },
 ];
 
-export default function PostTypeSelector({ type, setType }) {
+export default function PostTypeSelector({
+  type,
+  setType,
+}) {
   return (
-    <div>
-
       <ToggleGroup
         type="single"
         value={type}
-        onValueChange={(v) => v && setType(v)}
+        onValueChange={(v) =>
+          v && setType(v)
+        }
         variant="outline"
+        className="w-max min-w-full justify-start"
       >
+        {TYPES.map((t, i) => {
+          const Icon = t.icon;
 
-        {TYPES.map((t, i) => (
-          <ToggleGroupItem
-            key={t.value}
-            value={t.value}
-            className={`rounded-none ${
-              i === 0 ? "rounded-l-md" : ""
-            } ${
-              i === TYPES.length - 1 ? "rounded-r-md" : "border-r-0"
-            }`}
-          >
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="cursor-pointer">
-                  {t.label}
-                </span>
-              </TooltipTrigger>
+          return (
+            <ToggleGroupItem
+              key={t.value}
+              value={t.value}
+              className={`
+                rounded-none
+                gap-2
+                shrink-0
+                ${
+                  i === 0
+                    ? "rounded-l-md"
+                    : ""
+                }
+                ${
+                  i === TYPES.length - 1
+                    ? "rounded-r-md"
+                    : "border-r-0"
+                }
+              `}
+            >
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    className="
+                      flex
+                      items-center
+                      gap-2
+                      cursor-pointer
+                    "
+                  >
+                    <Icon className="h-4 w-4" />
 
-              <TooltipContent>
-                <p className="text-xs max-w-[200px]">
-                  {t.desc}
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </ToggleGroupItem>
-        ))}
+                    <span>
+                      {t.label}
+                    </span>
+                  </span>
+                </TooltipTrigger>
 
+                <TooltipContent>
+                  <p className="text-xs max-w-[200px]">
+                    {t.desc}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </ToggleGroupItem>
+          );
+        })}
       </ToggleGroup>
-
-    </div>
   );
 }

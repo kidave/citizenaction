@@ -1,11 +1,6 @@
 "use client";
 
 import Image from "next/image";
-
-import { Save } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-
 import PostVisibilitySelector from "@/components/space/PostVisibilitySelector";
 
 export default function PostEditorHeader({
@@ -13,8 +8,6 @@ export default function PostEditorHeader({
   post,
   editor,
   spaces = [],
-  onClose,
-  onSubmit,
 }) {
 
   return (
@@ -82,18 +75,7 @@ export default function PostEditorHeader({
           />
 
         </div>
-
-        <Button
-          size="sm"
-          onClick={onSubmit}
-        >
-          <Save className="w-4 h-4" />
-          {post
-            ? "Update"
-            : "Post"}
-          </Button>
       </div>
-
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useState,
 } from "react";
 
@@ -27,23 +28,33 @@ import {
 export default function InlineLinkInput({
   value,
   onChange,
+  placeholder = "https://...",
 }) {
-
   const [open, setOpen] =
     useState(false);
 
   const [draft, setDraft] =
     useState(value || "");
 
+  useEffect(() => {
+    setDraft(value || "");
+  }, [value]);
+
+  // =====================================================
+  // SAVE
+  // =====================================================
+
   function handleSave() {
 
-    onChange(draft);
+    onChange(
+      draft.trim()
+    );
 
     setOpen(false);
   }
 
   // =====================================================
-  // ENTER SAVE
+  // ENTER
   // =====================================================
 
   function handleKeyDown(
@@ -69,13 +80,34 @@ export default function InlineLinkInput({
     return (
       <div
         className="
-          flex-1
           flex
           items-center
           gap-2
         "
       >
 
+        {/* ICON */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="
+            shrink-0
+          "
+          onClick={() =>
+            setOpen(false)
+          }
+        >
+
+          <Link2
+            className="
+              w-5
+              h-5
+            "
+          />
+
+        </Button>
+
+        {/* INPUT */}
         <Input
           autoFocus
           value={draft}
@@ -87,12 +119,13 @@ export default function InlineLinkInput({
           onKeyDown={
             handleKeyDown
           }
-          placeholder="https://..."
-          className="
-            h-10
-          "
+          placeholder={
+            placeholder
+          }
+          className="h-8"
         />
 
+        {/* SAVE */}
         <Button
           size="icon"
           onClick={
@@ -127,17 +160,8 @@ export default function InlineLinkInput({
         >
 
           <Button
-            variant={
-              value
-                ? "default"
-                : "outline"
-            }
+            variant="ghost"
             size="icon"
-            className="
-              h-10
-              w-10
-              rounded-xl
-            "
             onClick={() =>
               setOpen(true)
             }
@@ -145,8 +169,8 @@ export default function InlineLinkInput({
 
             <Link2
               className="
-                w-4
-                h-4
+                w-5
+                h-5
               "
             />
 

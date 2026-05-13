@@ -1,10 +1,8 @@
 "use client";
 
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
-
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Save } from "lucide-react";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { usePostEditor } from "@/hooks/feed/usePostEditor";
 import { useSpaces } from "@/hooks/useSpaces";
@@ -14,20 +12,23 @@ import { Stack } from "@/components/layout/Stack";
 import PostEditorHeader from "./PostEditorHeader";
 import PostEditorContent from "./PostEditorContent";
 import PostEditorAttachments from "./PostEditorAttachments";
-import PostContextDrawer from "./PostContextDrawer";
+import PostDateTime from "./PostDateTime";
+import PostAddress from "./PostAddress";
+import PostTypeSelector from "./PostTypeSelector";
+
+import InlineLinkInput
+from "@/components/ui/InlineLinkInput";
 
 export default function PostEditorModal({
   isOpen,
   onClose,
   post = null,
 }) {
-
   const { data: profile } =
     useMyProfile();
 
-  const {
-    data: spaces = [],
-  } = useSpaces();
+  const { data: spaces = [] } =
+    useSpaces();
 
   const editor =
     usePostEditor(
@@ -38,53 +39,40 @@ export default function PostEditorModal({
   return (
     <Dialog
       open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) {
-          onClose();
-        }
-      }}
+      onOpenChange={(open) =>
+        !open && onClose()
+      }
     >
-
       <DialogContent
         className="
-          p-0
-          gap-0
-          w-full
-          h-full
-          max-w-none
-          rounded-none
-
-          sm:max-w-2xl
-          sm:h-[90vh]
+          p-0 gap-0 w-full h-full
+          max-w-none rounded-none
+          sm:max-w-2xl sm:h-[90vh]
           sm:rounded-lg
-
-          flex
-          flex-col
-          overflow-hidden
+          flex flex-col overflow-hidden
         "
       >
 
-        {/* HEADER */}
         <PostEditorHeader
           profile={profile}
           post={post}
           editor={editor}
           spaces={spaces}
           onClose={onClose}
-          onSubmit={() =>
-            editor.submit(onClose)
-          }
           onDelete={() =>
             editor.remove(onClose)
           }
         />
 
-        {/* BODY */}
         <div className="flex-1 overflow-y-auto p-4">
 
-          <Stack gap="gap-4">            
+          <Stack gap="gap-4">
 
-            {/* CONTENT */}
+            <PostTypeSelector
+              type={editor.type}
+              setType={editor.setType}
+            />
+
             <PostEditorContent
               title={editor.title}
               setTitle={editor.setTitle}
@@ -92,56 +80,56 @@ export default function PostEditorModal({
               setContent={editor.setContent}
             />
 
-            {/* ATTACHMENTS */}
-            <div
-              className="
-                flex
-                items-center
-                justify-between
-                gap-3
-              "
-            >
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-1">
 
-              {/* ATTACHMENTS */}
-              <div
-                className="
-                  flex-1
-                  min-w-0
-                "
-              >
-
-                <PostEditorAttachments
-                  attachments={
-                    editor.attachments
-                  }
-                  setAttachments={
-                    editor.setAttachments
-                  }
-                />
-
-              </div>
-
-              {/* CONTEXT */}
-              <div
-                className="
-                  shrink-0
-                "
-              >
-
-                <PostContextDrawer
+                <PostDateTime
                   editor={editor}
                 />
 
+                <PostAddress
+                  editor={editor}
+                />
+
+                <InlineLinkInput
+                  value={
+                    editor.meeting_link
+                  }
+                  onChange={
+                    editor.setMeetingLink
+                  }
+                />
+
               </div>
 
+              <Button
+                onClick={() =>
+                  editor.submit(onClose)
+                }
+                className="shrink-0"
+              >
+                <Save className="w-4 h-4" />
+                {post
+                  ? "Update"
+                  : "Post"}
+              </Button>
+
             </div>
+
+            <PostEditorAttachments
+              attachments={
+                editor.attachments
+              }
+              setAttachments={
+                editor.setAttachments
+              }
+            />
 
           </Stack>
 
         </div>
 
       </DialogContent>
-
     </Dialog>
   );
 }

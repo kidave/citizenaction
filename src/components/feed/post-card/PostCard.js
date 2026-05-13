@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+
 import { useAuth } from "@/context/AuthContext";
 
 import { Card } from "@/components/ui/card";
@@ -17,6 +18,7 @@ import PostFooter from "./PostFooter";
 import PostMeeting from "@/components/feed/post-meeting/PostMeeting";
 
 import { usePostPermissions } from "@/hooks/feed/usePostPermissions";
+import { usePostSpaces } from "@/hooks/feed/usePostSpaces";
 
 import getPostStatus from "@/utils/feed/getPostStatus";
 
@@ -26,78 +28,52 @@ export default function PostCard({
   onDelete,
   forceExpanded = false,
 }) {
+
   const router = useRouter();
 
   const { user } = useAuth();
 
-  // =====================================================
-  // HOOKS
-  // =====================================================
-
-  const [mounted, setMounted] =
-    useState(false);
-
-  const [now, setNow] =
-    useState(new Date());
+  const [mounted, setMounted] = useState(false);
+  const [now, setNow] = useState(new Date());
 
   useEffect(() => {
+
     setMounted(true);
 
-    const interval =
-      setInterval(() => {
-        setNow(new Date());
-      }, 1000);
+    const interval = setInterval(() => {
+      setNow(new Date());
+    }, 1000);
 
-    return () =>
-      clearInterval(interval);
+    return () => clearInterval(interval);
+
   }, []);
 
   const { data: permissions } =
     usePostPermissions(post?.id);
 
-  // =====================================================
-  // GUARDS
-  // =====================================================
+  const { data: spaces = [] } =
+    usePostSpaces(post?.id);
 
   if (!post) return null;
-
-  // =====================================================
-  // PERMISSIONS
-  // =====================================================
 
   const canEdit =
     permissions?.can_manage ||
     post.author_id === user?.id;
 
-  // =====================================================
-  // STATUS
-  // =====================================================
-
   const status = getPostStatus(
     post,
-    mounted
-      ? new Date()
-      : null
+    mounted ? now : null
   );
 
-  // =====================================================
-  // NAVIGATION
-  // =====================================================
-
   const handleNavigate = () => {
+
     sessionStorage.setItem(
       "feed-scroll",
       window.scrollY.toString()
     );
 
-    router.push(
-      `/post/${post.id}`
-    );
+    router.push(`/post/${post.id}`);
   };
-
-  // =====================================================
-  // STYLES
-  // =====================================================
 
   const typeStyles = {
     action: "bg-red-50",
@@ -107,14 +83,10 @@ export default function PostCard({
     meeting: "bg-yellow-50",
   };
 
-  // =====================================================
-  // UI
-  // =====================================================
-
   return (
     <Card
       className={`
-        cursor-pointer overflow-hidden
+        overflow-hidden
         p-3 sm:p-5
         rounded-none sm:rounded-lg
         ${
@@ -124,58 +96,79 @@ export default function PostCard({
         }
       `}
     >
+
       <Stack>
 
         <PostHeader
-          post={post}
+          post={{
+            ...post,
+            spaces,
+          }}
           status={status}
           canEdit={canEdit}
           onEdit={onEdit}
           onDelete={onDelete}
         />
 
-        <PostContent
-          post={post}
-          status={status}
-          onNavigate={
-            handleNavigate
-          }
-          forceExpanded={
-            forceExpanded
-          }
-        />
+        <div
+          className="cursor-pointer"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleNavigate();
+          }}
+        >
 
-        <PostMetadata
-          post={post}
-          status={status}
-          forceExpanded={
-            forceExpanded
-          }
-        />
+          <PostContent
+            post={{
+              ...post,
+              spaces,
+            }}
+            status={status}
+            forceExpanded={forceExpanded}
+          />
 
-        <PostTimeline
-          post={post}
-        />
+          <PostMetadata
+            post={{
+              ...post,
+              spaces,
+            }}
+            status={status}
+            forceExpanded={forceExpanded}
+          />
 
-        <PostAttachments
-          attachments={
-            post.attachments
-          }
-        />
+          <PostTimeline
+            post={{
+              ...post,
+              spaces,
+            }}
+          />
+
+          <PostAttachments
+            attachments={post.attachments}
+          />
+
+        </div>
 
         <PostFooter
-          post={post}
+          post={{
+            ...post,
+            spaces,
+          }}
         />
 
-        {post.type ===
-          "meeting" &&
+        {post.type === "meeting" &&
           forceExpanded && (
             <PostMeeting
-              post={post}
+              post={{
+                ...post,
+                spaces,
+              }}
             />
           )}
 
       </Stack>
+
     </Card>
   );
 }

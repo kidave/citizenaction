@@ -1,103 +1,237 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
 import { Input } from "@/components/ui/input";
-import { MapPin, LocateFixed, Loader2 } from "lucide-react";
+
+import {
+  MapPin,
+  LocateFixed,
+  Loader2,
+} from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 
 export default function LocationSearchInput({
   onSelect,
   onUseCurrentLocation,
-  loadingGPS,
+  loadingGPS = false,
   value,
   onChange,
 }) {
-  const [query, setQuery] = useState(value || "");
-  const [results, setResults] = useState([]);
+  const [query, setQuery] =
+    useState(value || "");
+
+  const [results, setResults] =
+    useState([]);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  // =====================================================
+  // SYNC
+  // =====================================================
 
   useEffect(() => {
     setQuery(value || "");
   }, [value]);
 
+  // =====================================================
+  // SEARCH
+  // =====================================================
+
   useEffect(() => {
+
     if (query.length < 3) {
       setResults([]);
       return;
     }
 
-    const delay = setTimeout(async () => {
-      try {
-        const res = await fetch(`/api/osm?q=${query}`);
-        const data = await res.json();
-        setResults(data || []);
-      } catch (err) {
-        console.error(err);
-      }
-    }, 400);
+    const delay =
+      setTimeout(async () => {
 
-    return () => clearTimeout(delay);
+        try {
+
+          setLoading(true);
+
+          const res =
+            await fetch(
+              `/api/osm?q=${encodeURIComponent(query)}`
+            );
+
+          const data =
+            await res.json();
+
+          setResults(
+            data || []
+          );
+
+        } catch (err) {
+
+          console.error(err);
+
+        } finally {
+
+          setLoading(false);
+
+        }
+
+      }, 400);
+
+    return () =>
+      clearTimeout(delay);
+
   }, [query]);
 
   return (
     <div className="flex flex-col h-full">
 
-      {/* 🔥 SEARCH BAR */}
+      {/* SEARCH BAR */}
       <div className="flex items-center gap-2 mb-2">
 
         <Button
+          type="button"
           variant="outline"
           size="icon"
-          onClick={onUseCurrentLocation}
+          onClick={
+            onUseCurrentLocation
+          }
         >
+
           {loadingGPS ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
             <LocateFixed className="w-4 h-4" />
           )}
+
         </Button>
 
-        <Input
-          placeholder="Search location"
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            onChange?.(e.target.value);
-          }}
-        />
+        <div className="relative flex-1">
+
+          <Input
+            placeholder="Search location"
+            value={query}
+            onChange={(e) => {
+
+              const val =
+                e.target.value;
+
+              setQuery(val);
+
+              onChange?.(val);
+
+            }}
+            className="pr-9"
+          />
+
+          {loading && (
+            <Loader2
+              className="
+                absolute
+                right-3
+                top-1/2
+                -translate-y-1/2
+
+                w-4
+                h-4
+                animate-spin
+                text-muted-foreground
+              "
+            />
+          )}
+
+        </div>
 
       </div>
 
-      {/* 🔽 RESULTS */}
-      <div className="flex-1 min-h-0 overflow-auto border rounded-md bg-background">
+      {/* RESULTS */}
+      <div
+        className="
+          flex-1
+          min-h-0
+          overflow-auto
+
+          rounded-md
+          border
+          bg-background
+        "
+      >
 
         {results.map((place) => (
-          <div
-            key={place.place_id}
+
+          <button
+            key={`${place.lat}-${place.lon}`}
+            type="button"
             onClick={() =>
               onSelect({
-                name: place.display_name,
-                lat: parseFloat(place.lat),
-                lng: parseFloat(place.lon),
-                address: place.address,
-                place_id: place.place_id,
+                name:
+                  place.display_name,
+                lat: parseFloat(
+                  place.lat
+                ),
+                lng: parseFloat(
+                  place.lon
+                ),
+                address:
+                  place.display_name,
               })
             }
-            className="flex items-start gap-2 p-2 hover:bg-muted cursor-pointer"
+            className="
+              w-full
+              flex
+              items-start
+              gap-3
+
+              p-3
+
+              text-left
+
+              hover:bg-muted
+              transition-colors
+            "
           >
-            <MapPin className="w-4 h-4 mt-1" />
-            <div className="text-sm">
+
+            <MapPin
+              className="
+                w-4
+                h-4
+                mt-0.5
+                shrink-0
+              "
+            />
+
+            <div
+              className="
+                text-sm
+                text-muted-foreground
+              "
+            >
               {place.display_name}
             </div>
-          </div>
+
+          </button>
+
         ))}
 
-        {results.length === 0 && query.length >= 3 && (
-          <div className="p-2 text-xs text-muted-foreground">
-            No results found
-          </div>
-        )}
+        {!loading &&
+          results.length === 0 &&
+          query.length >= 3 && (
+            <div
+              className="
+                p-3
+                text-xs
+                text-muted-foreground
+              "
+            >
+              No results found
+            </div>
+          )}
 
       </div>
+
     </div>
   );
 }

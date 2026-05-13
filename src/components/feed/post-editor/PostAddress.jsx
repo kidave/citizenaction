@@ -1,8 +1,9 @@
 "use client";
 
 import {
-  useState,
+  useMemo,
   useRef,
+  useState,
 } from "react";
 
 import {
@@ -11,8 +12,13 @@ import {
 } from "@/components/ui/dialog";
 
 import {
-  Button,
-} from "@/components/ui/button";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+import { Button } from "@/components/ui/button";
 
 import {
   MapPin,
@@ -25,36 +31,53 @@ from "@/components/shared/LocationSearchInput";
 import LocationMapPreview
 from "@/components/shared/LocationMapPreview";
 
-export default function LocationPickerModal({
+export default function PostAddress({
   editor,
-  children,
 }) {
-
   const [open, setOpen] =
     useState(false);
 
-  const [tempLat, setTempLat] =
-    useState(
-      editor.lat || 19.076
-    );
-
-  const [tempLng, setTempLng] =
-    useState(
-      editor.lng || 72.8777
-    );
-
-  const [tempAddress, setTempAddress] =
-    useState(
-      editor.address || ""
-    );
-
-  const [searchValue, setSearchValue] =
-    useState(
-      editor.address || ""
-    );
+  const [loadingGPS, setLoadingGPS] =
+    useState(false);
 
   const debounceRef =
     useRef(null);
+
+  const summary =
+    useMemo(() => {
+      return editor.address
+        ? [editor.address]
+        : ["Set location"];
+    }, [editor.address]);
+
+  // =====================================================
+  // REVERSE GEOCODE
+  // =====================================================
+
+  async function reverseGeocode(
+    lat,
+    lng
+  ) {
+    try {
+
+      const res =
+        await fetch(
+          `/api/osm-reverse?lat=${lat}&lng=${lng}`
+        );
+
+      const data =
+        await res.json();
+
+      if (
+        data?.display_name
+      ) {
+        editor.setAddress(
+          data.display_name
+        );
+      }
+
+    } catch {}
+  }
 
   // =====================================================
   // MAP CHANGE
@@ -64,10 +87,8 @@ export default function LocationPickerModal({
     lat,
     lng
   ) {
-
-    setTempLat(lat);
-
-    setTempLng(lng);
+    editor.setLat(lat);
+    editor.setLng(lng);
 
     if (debounceRef.current) {
       clearTimeout(
@@ -76,91 +97,113 @@ export default function LocationPickerModal({
     }
 
     debounceRef.current =
-      setTimeout(
-        async () => {
-
-          try {
-
-            const res =
-              await fetch(
-                `/api/osm-reverse?lat=${lat}&lng=${lng}`
-              );
-
-            const data =
-              await res.json();
-
-            if (
-              data?.display_name
-            ) {
-
-              setTempAddress(
-                data.display_name
-              );
-
-              setSearchValue(
-                data.display_name
-              );
-            }
-
-          } catch {}
-
-        },
-        400
-      );
+      setTimeout(() => {
+        reverseGeocode(
+          lat,
+          lng
+        );
+      }, 400);
   }
 
   // =====================================================
-  // SELECT SEARCH
+  // SEARCH SELECT
   // =====================================================
 
   function handleSelect(
     loc
   ) {
+    editor.setLat(loc.lat);
+    editor.setLng(loc.lng);
 
-    setTempLat(loc.lat);
-
-    setTempLng(loc.lng);
-
-    setTempAddress(
-      loc.name
-    );
-
-    setSearchValue(
-      loc.name
+    editor.setAddress(
+      loc.address
     );
   }
 
   // =====================================================
-  // SAVE
+  // GPS
   // =====================================================
 
-  function handleSave() {
+  function handleUseCurrentLocation() {
 
-    editor.setLat(
-      tempLat
+    if (
+      !navigator.geolocation
+    ) return;
+
+    setLoadingGPS(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+
+        const lat =
+          position.coords.latitude;
+
+        const lng =
+          position.coords.longitude;
+
+        editor.setLat(lat);
+        editor.setLng(lng);
+
+        await reverseGeocode(
+          lat,
+          lng
+        );
+
+        setLoadingGPS(false);
+
+      },
+      (error) => {
+
+        console.error(error);
+
+        setLoadingGPS(false);
+
+      },
+      {
+        enableHighAccuracy: true,
+      }
     );
-
-    editor.setLng(
-      tempLng
-    );
-
-    editor.setAddress(
-      tempAddress
-    );
-
-    setOpen(false);
   }
 
   return (
     <>
       {/* TRIGGER */}
-      <div
-        onClick={() =>
-          setOpen(true)
-        }
-      >
-        {children}
-      </div>
+      <TooltipProvider>
+        <Tooltip>
+
+          <TooltipTrigger asChild>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() =>
+                setOpen(true)
+              }
+            >
+              <MapPin className="h-5 w-5" />
+            </Button>
+
+          </TooltipTrigger>
+
+          <TooltipContent
+            side="bottom"
+            align="start"
+          >
+            <div className="space-y-1 text-xs">
+
+              {summary.map(
+                (item, i) => (
+                  <div key={i}>
+                    {item}
+                  </div>
+                )
+              )}
+
+            </div>
+          </TooltipContent>
+
+        </Tooltip>
+      </TooltipProvider>
 
       {/* MODAL */}
       <Dialog
@@ -171,35 +214,32 @@ export default function LocationPickerModal({
         <DialogContent
           className="
             p-0
-
             w-screen
             h-screen
             max-w-none
-
             rounded-none
-
             overflow-hidden
           "
         >
 
-          <div
-            className="
-              relative
-              w-full
-              h-full
-            "
-          >
+          <div className="relative w-full h-full">
 
             {/* MAP */}
             <LocationMapPreview
-              lat={tempLat}
-              lng={tempLng}
+              lat={
+                editor.lat ||
+                19.076
+              }
+              lng={
+                editor.lng ||
+                72.8777
+              }
               onChange={
                 handleMapChange
               }
             />
 
-            {/* TOP SEARCH */}
+            {/* SEARCH */}
             <div
               className="
                 absolute
@@ -223,14 +263,21 @@ export default function LocationPickerModal({
               >
 
                 <LocationSearchInput
+                  value={
+                    editor.address ||
+                    ""
+                  }
+                  onChange={
+                    editor.setAddress
+                  }
                   onSelect={
                     handleSelect
                   }
-                  value={
-                    searchValue
+                  loadingGPS={
+                    loadingGPS
                   }
-                  onChange={
-                    setSearchValue
+                  onUseCurrentLocation={
+                    handleUseCurrentLocation
                   }
                 />
 
@@ -263,45 +310,26 @@ export default function LocationPickerModal({
                 "
               >
 
-                {/* ADDRESS */}
                 <div
                   className="
                     p-4
-                    border-b
                     flex
                     items-start
                     gap-3
                   "
                 >
 
-                  <div
+                  <MapPin
                     className="
+                      w-4
+                      h-4
                       mt-0.5
                     "
-                  >
+                  />
 
-                    <MapPin
-                      className="
-                        w-4
-                        h-4
-                      "
-                    />
+                  <div className="min-w-0">
 
-                  </div>
-
-                  <div
-                    className="
-                      flex-1
-                      min-w-0
-                    "
-                  >
-
-                    <div
-                      className="
-                        text-sm
-                        font-medium
-                      "
-                    >
+                    <div className="text-sm font-medium">
                       Selected Location
                     </div>
 
@@ -312,7 +340,7 @@ export default function LocationPickerModal({
                         break-words
                       "
                     >
-                      {tempAddress ||
+                      {editor.address ||
                         "Move map or search"}
                     </div>
 
@@ -320,16 +348,15 @@ export default function LocationPickerModal({
 
                 </div>
 
-                {/* ACTIONS */}
                 <div
                   className="
+                    border-t
                     p-3
                     flex
                     justify-end
                     gap-2
                   "
                 >
-
                   <Button
                     variant="outline"
                     onClick={() =>
@@ -340,11 +367,11 @@ export default function LocationPickerModal({
                   </Button>
 
                   <Button
-                    onClick={
-                      handleSave
+                    onClick={() =>
+                      setOpen(false)
                     }
                   >
-                    Save Location
+                    Done
                   </Button>
 
                 </div>
@@ -352,29 +379,6 @@ export default function LocationPickerModal({
               </div>
 
             </div>
-
-            {/* GPS BUTTON */}
-            <Button
-              size="icon"
-              className="
-                absolute
-                bottom-6
-                right-6
-                z-[1000]
-
-                rounded-full
-                shadow-lg
-              "
-            >
-
-              <LocateFixed
-                className="
-                  w-5
-                  h-5
-                "
-              />
-
-            </Button>
 
           </div>
 
