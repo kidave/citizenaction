@@ -230,15 +230,17 @@ export default function SinglePostPage({
   ===================================== */
 
   const title =
-    post.summary ||
+    initialPost?.summary ||
     "Citizen Action";
 
   const description =
-    getDescription(post);
+    getDescription(
+      initialPost
+    );
 
   const image =
     getImage(
-      post.attachments
+      initialPost?.attachments
     );
 
   const url =
