@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 export async function getServerSideProps({
   params,
 }) {
+
   const supabase =
     createServerSupabase();
 
@@ -88,53 +89,98 @@ export async function getServerSideProps({
    HELPERS
 ===================================================== */
 
-// remove URLs from description
 function cleanText(text) {
+
   if (!text) return "";
 
   return text
-    .replace(/https?:\/\/\S+/g, "")
+    .replace(
+      /https?:\/\/\S+/g,
+      ""
+    )
     .replace(/\s+/g, " ")
     .trim();
 }
 
-// short clean preview description
 function getDescription(post) {
+
   const clean =
     cleanText(post.details);
 
-  if (!clean) return "";
+  if (!clean) {
+    return "Citizen Action";
+  }
 
   return clean.length > 140
     ? clean.slice(0, 140) + "..."
     : clean;
 }
 
-// extract first image
 function getImage(attachments) {
-  if (!attachments) return null;
+
+  const fallback =
+    "https://citizenaction.in/logo.png";
+
+  if (!attachments) {
+    return fallback;
+  }
 
   try {
+
     const parsed =
       typeof attachments ===
       "string"
-        ? JSON.parse(attachments)
+        ? JSON.parse(
+            attachments
+          )
         : attachments;
 
-    if (!Array.isArray(parsed))
-      return null;
+    if (
+      !Array.isArray(parsed)
+    ) {
+      return fallback;
+    }
 
-    const image = parsed.find(
-      (a) =>
-        a?.url &&
-        a?.type?.startsWith(
-          "image"
-        )
-    );
+    /* =====================================
+       FIRST IMAGE
+    ===================================== */
 
-    return image?.url || null;
+    const image =
+      parsed.find(
+        (a) =>
+          a?.url &&
+          a?.type?.startsWith(
+            "image/"
+          )
+      );
+
+    if (image?.url) {
+      return image.url;
+    }
+
+    /* =====================================
+       PDF THUMBNAIL
+    ===================================== */
+
+    const pdf =
+      parsed.find(
+        (a) =>
+          a?.type ===
+          "application/pdf"
+      );
+
+    if (
+      pdf?.thumbnail_url
+    ) {
+      return pdf.thumbnail_url;
+    }
+
+    return fallback;
+
   } catch {
-    return null;
+
+    return fallback;
+
   }
 }
 
@@ -146,19 +192,23 @@ export default function SinglePostPage({
   postId,
   initialPost,
 }) {
+
   const router = useRouter();
 
   const { deletePost } =
     useDeletePost();
 
-  const { user } = useAuth();
+  const { user } =
+    useAuth();
 
-  const [editingPost, setEditingPost] =
-    useState(null);
+  const [
+    editingPost,
+    setEditingPost,
+  ] = useState(null);
 
-  // =====================================================
-  // POST
-  // =====================================================
+  /* =====================================
+     POST
+  ===================================== */
 
   const {
     data: post,
@@ -168,50 +218,77 @@ export default function SinglePostPage({
     initialPost
   );
 
-  if (isLoading || !post) {
+  if (
+    isLoading ||
+    !post
+  ) {
     return null;
   }
 
-  // =====================================================
-  // SEO
-  // =====================================================
+  /* =====================================
+     SEO
+  ===================================== */
 
   const title =
     post.summary ||
     "Citizen Action";
 
   const description =
-    getDescription(post) ||
-    "Citizen Action";
+    getDescription(post);
 
   const image =
-    getImage(post.attachments) ||
-    "https://citizenaction.in/logo.png";
+    getImage(
+      post.attachments
+    );
 
-  const url = `https://citizenaction.in/post/${post.id}`;
+  const url =
+    `https://citizenaction.in/post/${post.id}`;
 
-  // =====================================================
-  // PERMISSIONS
-  // =====================================================
+  /* =====================================
+     PERMISSIONS
+  ===================================== */
 
   const canEdit =
     post?.can_manage ||
-    post?.author_id === user?.id;
+    post?.author_id ===
+      user?.id;
 
   return (
     <>
       <Head>
+
+        {/* =====================================
+            BASIC SEO
+        ===================================== */}
+
         <title key="title">
           {title}
         </title>
 
-        {/* =====================================================
+        <meta
+          name="description"
+          content={
+            description
+          }
+        />
+
+        <link
+          rel="canonical"
+          href={url}
+        />
+
+        {/* =====================================
             OPEN GRAPH
-        ===================================================== */}
+        ===================================== */}
 
         <meta
           property="og:type"
           content="article"
+        />
+
+        <meta
+          property="og:site_name"
+          content="Citizen Action"
         />
 
         <meta
@@ -221,7 +298,14 @@ export default function SinglePostPage({
 
         <meta
           property="og:description"
-          content={description}
+          content={
+            description
+          }
+        />
+
+        <meta
+          property="og:url"
+          content={url}
         />
 
         <meta
@@ -235,11 +319,6 @@ export default function SinglePostPage({
         />
 
         <meta
-          property="og:image:type"
-          content="image/jpeg"
-        />
-
-        <meta
           property="og:image:width"
           content="1200"
         />
@@ -250,18 +329,13 @@ export default function SinglePostPage({
         />
 
         <meta
-          property="og:url"
-          content={url}
+          property="og:image:type"
+          content="image/jpeg"
         />
 
-        <meta
-          property="og:site_name"
-          content="Citizen Action"
-        />
-
-        {/* =====================================================
+        {/* =====================================
             TWITTER
-        ===================================================== */}
+        ===================================== */}
 
         <meta
           name="twitter:card"
@@ -275,20 +349,28 @@ export default function SinglePostPage({
 
         <meta
           name="twitter:description"
-          content={description}
+          content={
+            description
+          }
         />
 
         <meta
           name="twitter:image"
           content={image}
         />
+
+        <meta
+          name="twitter:url"
+          content={url}
+        />
+
       </Head>
 
-      {/* =====================================================
+      {/* =====================================
           UI
-      ===================================================== */}
+      ===================================== */}
 
-      <div className="flex flex-col w-full min-h-screen mb-12">
+      <div className="flex flex-col w-full min-h-screen">
 
         {/* HEADER */}
 
@@ -322,12 +404,18 @@ export default function SinglePostPage({
 
             <PostCard
               post={post}
-              canEdit={canEdit}
+              canEdit={
+                canEdit
+              }
               onEdit={() =>
-                setEditingPost(post)
+                setEditingPost(
+                  post
+                )
               }
               onDelete={() =>
-                deletePost(post.id)
+                deletePost(
+                  post.id
+                )
               }
               forceExpanded
             />
@@ -340,11 +428,17 @@ export default function SinglePostPage({
 
         {editingPost && (
           <PostEditorModal
-            isOpen={!!editingPost}
-            onClose={() =>
-              setEditingPost(null)
+            isOpen={
+              !!editingPost
             }
-            post={editingPost}
+            onClose={() =>
+              setEditingPost(
+                null
+              )
+            }
+            post={
+              editingPost
+            }
           />
         )}
 

@@ -20,7 +20,7 @@ export default function Feed() {
   const [editingPost, setEditingPost] = useState(null);
 
   return (
-    <div className="flex flex-col w-full mb-20">
+    <div className="flex flex-col w-full">
 
       {isLoading ? (
         <div className="space-y-4">
