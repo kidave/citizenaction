@@ -34,38 +34,6 @@ function MyApp({ Component, pageProps }) {
 
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-        {/* ===== Open Graph (fallback only) ===== */}
-        <meta property="og:type" content="website" key="og:type" />
-        <meta property="og:title" content="Citizen Action" key="og:title" />
-        <meta
-          property="og:description"
-          content="To ensure that every citizen have safe, convenient and enjoyable living."
-          key="og:description"
-        />
-        <meta
-          property="og:image"
-          content="https://citizenaction.in/logo.png"
-          key="og:image"
-        />
-
-        {/* ===== Twitter ===== */}
-        <meta
-          name="twitter:card"
-          content="summary_large_image"
-          key="twitter:card"
-        />
-        <meta name="twitter:title" content="Citizen Action" key="twitter:title" />
-        <meta
-          name="twitter:description"
-          content="To ensure that every citizen have safe, convenient and enjoyable living."
-          key="twitter:description"
-        />
-        <meta
-          name="twitter:image"
-          content="https://citizenaction.in/logo.png"
-          key="twitter:image"
-        />
-
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
