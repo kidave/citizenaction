@@ -1,8 +1,12 @@
 "use client";
 
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import ImageViewer from "./ImageViewer";
 import PDFViewer from "./PDFViewer";
+
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
 
 export default function AttachmentViewer({
   attachments = [],
@@ -10,55 +14,69 @@ export default function AttachmentViewer({
   onOpenChange,
   activeIndex = 0,
 }) {
-  if (!attachments.length || !open) return null;
+  const activeAttachment =
+    attachments[activeIndex];
 
-  const activeFile = attachments[activeIndex];
+  if (!activeAttachment) {
+    return null;
+  }
 
-  const isImage = activeFile?.type?.startsWith("image/");
-  const isPDF = activeFile?.type === "application/pdf";
-  const isVideo = activeFile.type === "video/link";
+  /* =========================================
+     IMAGE VIEWER
+  ========================================= */
 
-  /* ================= IMAGE HANDLING ================= */
+  if (activeAttachment.isImage) {
 
-  const imageAttachments = attachments.filter((a) =>
-    a.type?.startsWith("image/")
-  );
+    const imageAttachments =
+      attachments.filter(
+        (a) => a.isImage
+      );
 
-  // Map attachment index → image index
-  const imageIndex = imageAttachments.findIndex(
-    (img) => img.url === activeFile?.url
-  );
+    const imageIndex =
+      imageAttachments.findIndex(
+        (a) =>
+          a.url ===
+          activeAttachment.url
+      );
 
-  return (
-    <>
-      {isImage && (
-        <ImageViewer
-          open={open}
-          onClose={() => onOpenChange(false)}
-          images={imageAttachments}
-          startIndex={imageIndex >= 0 ? imageIndex : 0}
-        />
-      )}
+    return (
+      <ImageViewer
+        open={open}
+        onClose={() =>
+          onOpenChange(false)
+        }
+        images={imageAttachments}
+        startIndex={imageIndex}
+      />
+    );
+  }
 
-      {isPDF && (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-          <DialogContent className="max-w-6xl p-0">
-            <PDFViewer fileUrl={activeFile.url} />
-          </DialogContent>
-        </Dialog>
-      )}
+  /* =========================================
+     PDF VIEWER
+  ========================================= */
 
-      {isVideo && (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-          <DialogContent className="max-w-4xl p-0 bg-black">
-            <iframe
-              src={activeFile.embed || activeFile.url}
-              className="w-full aspect-video"
-              allowFullScreen
-            />
-          </DialogContent>
-        </Dialog>
-      )}
-    </>
-  );
+  if (activeAttachment.isPdf) {
+    return (
+      <Dialog
+        open={open}
+        onOpenChange={
+          onOpenChange
+        }
+      >
+
+        <DialogContent className="max-w-5xl h-[90vh] p-0 overflow-hidden">
+
+          <PDFViewer
+            fileUrl={
+              activeAttachment.url
+            }
+          />
+
+        </DialogContent>
+
+      </Dialog>
+    );
+  }
+
+  return null;
 }

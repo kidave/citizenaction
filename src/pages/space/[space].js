@@ -30,6 +30,7 @@ import MetaCardsSkeleton from "@/components/skeletons/MetaCardsSkeleton";
 import { useSpaces } from "@/hooks/useSpaces";
 import MembersTab from "@/components/tabs/MembersTab";
 import ActivityTab from "@/components/tabs/ActivityTab";
+import OverviewTab from "@/components/tabs/OverviewTab";
 
 export default function SpacePage() {
   const { user, loading: authLoading } =
@@ -220,154 +221,9 @@ export default function SpacePage() {
 
         <TabsContent value="overview">
 
-          <section
-            className="
-              grid
-              grid-cols-1
-              sm:grid-cols-2
-              lg:grid-cols-3
-              gap-6
-            "
-          >
-
-            {/* OWNER */}
-            <Card
-              className="border-l-4"
-              style={{
-                borderLeftColor:
-                  "var(--space-primary)",
-              }}
-            >
-
-              <CardHeader>
-
-                <CardTitle>
-                  Space Owner
-                </CardTitle>
-
-                <CardDescription>
-                  Primary point of contact
-                </CardDescription>
-
-              </CardHeader>
-
-              <CardContent>
-
-                <div className="flex items-center gap-3">
-
-                  <Image
-                    src={
-                      space.avatar_url ||
-                      "/user1.png"
-                    }
-                    alt=""
-                    width={40}
-                    height={40}
-                    className="
-                      rounded-full
-                      object-cover
-                    "
-                  />
-
-                  <span className="font-medium">
-                    {space.owner_name ||
-                      "Unnamed user"}
-                  </span>
-
-                </div>
-
-              </CardContent>
-
-            </Card>
-
-            {/* CONTACT */}
-            <Card>
-
-              <CardHeader>
-
-                <CardTitle>
-                  Contact
-                </CardTitle>
-
-                <CardDescription>
-                  Official communication
-                  details
-                </CardDescription>
-
-              </CardHeader>
-
-              <CardContent className="space-y-1 text-sm">
-
-                {space.email && (
-                  <div>
-                    {space.email}
-                  </div>
-                )}
-
-                {space.contact_number && (
-                  <div>
-                    {
-                      space.contact_number
-                    }
-                  </div>
-                )}
-
-                {!space.email &&
-                  !space.contact_number && (
-                    <span className="text-muted-foreground">
-                      Not provided
-                    </span>
-                  )}
-
-              </CardContent>
-
-            </Card>
-
-            {/* WEBSITE */}
-            <Card>
-
-              <CardHeader>
-
-                <CardTitle>
-                  Website
-                </CardTitle>
-
-                <CardDescription>
-                  External link
-                </CardDescription>
-
-              </CardHeader>
-
-              <CardContent>
-
-                {space.website ? (
-                  <Link
-                    href={space.website}
-                    target="_blank"
-                    className="
-                      underline
-                      underline-offset-4
-                      text-sm
-                    "
-                  >
-                    {space.website}
-                  </Link>
-                ) : (
-                  <span
-                    className="
-                      text-muted-foreground
-                      text-sm
-                    "
-                  >
-                    Not provided
-                  </span>
-                )}
-
-              </CardContent>
-
-            </Card>
-
-          </section>
+          <OverviewTab
+            space={space}
+          />
 
         </TabsContent>
 

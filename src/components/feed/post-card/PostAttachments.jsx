@@ -1,28 +1,56 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-import Attachments from "@/components/ui/Attachments";
+import { FocusCards } from "@/components/ui/focus-cards";
+
 import AttachmentViewer from "@/components/ui/AttachmentViewer";
 
-export default function PostAttachments({ attachments = [] }) {
-  const [viewerOpen, setViewerOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
+export default function PostAttachments({
+  attachments = [],
+}) {
+  const [viewerOpen, setViewerOpen] =
+    useState(false);
 
-  if (!attachments || attachments.length === 0) return null;
+  const [activeIndex, setActiveIndex] =
+    useState(0);
+
+  const normalizedAttachments =
+    useMemo(() => {
+      return attachments.map(
+        (attachment) => ({
+          ...attachment,
+
+          isImage:
+            attachment.type?.startsWith(
+              "image/"
+            ),
+
+          isPdf:
+            attachment.type ===
+            "application/pdf",
+        })
+      );
+    }, [attachments]);
+
+  if (!normalizedAttachments.length) {
+    return null;
+  }
 
   return (
     <>
-      <Attachments
-        attachments={attachments}
-        onOpen={(index) => {
+      <FocusCards
+        images={normalizedAttachments}
+        onCardClick={(index) => {
           setActiveIndex(index);
           setViewerOpen(true);
         }}
       />
 
       <AttachmentViewer
-        attachments={attachments}
+        attachments={
+          normalizedAttachments
+        }
         open={viewerOpen}
         onOpenChange={setViewerOpen}
         activeIndex={activeIndex}

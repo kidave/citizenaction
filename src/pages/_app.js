@@ -76,7 +76,10 @@ function MyApp({ Component, pageProps }) {
               <RouteLoader />
 
               <ErrorBoundary>
-                {getLayout(<Component {...pageProps} />)}
+                <main className="pb-20 md:pb-0">
+                  {getLayout(<Component {...pageProps} />)}
+                </main>
+
                 <MobileBottomBar />
               </ErrorBoundary>
 

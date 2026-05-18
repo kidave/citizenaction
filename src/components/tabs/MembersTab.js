@@ -128,22 +128,6 @@ export default function MembersTab({
 
   return (
     <div className="space-y-6">
-
-      {/* HEADER */}
-
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-
-        <Users className="h-4 w-4" />
-
-        <span>
-          {members.length} member
-          {members.length !== 1
-            ? "s"
-            : ""}
-        </span>
-
-      </div>
-
       {/* GRID */}
 
       <div
@@ -174,8 +158,6 @@ export default function MembersTab({
                 className="
                   h-full
                   transition
-                  hover:shadow-md
-                  hover:border-primary/30
                   cursor-pointer
                 "
               >
@@ -218,48 +200,7 @@ export default function MembersTab({
                       </div>
 
                     </div>
-
-                    <Badge
-                      variant="outline"
-                      className={roleStyle}
-                    >
-
-                      <Shield className="h-3 w-3 mr-1" />
-
-                      {member.role}
-
-                    </Badge>
-
                   </div>
-
-                  {/* DESIGNATION */}
-
-                  {member.designation && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-
-                      <Briefcase className="h-4 w-4 shrink-0" />
-
-                      <span className="line-clamp-1">
-                        {member.designation}
-                      </span>
-
-                    </div>
-                  )}
-
-                  {/* LOCALITY */}
-
-                  {member.locality && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-
-                      <MapPin className="h-4 w-4 shrink-0" />
-
-                      <span className="line-clamp-1">
-                        {member.locality}
-                      </span>
-
-                    </div>
-                  )}
-
                 </CardContent>
 
               </Card>

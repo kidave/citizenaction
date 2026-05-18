@@ -338,6 +338,12 @@ export default function ActivityTab({
         </div>
 
         <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-sm bg-yellow-500"></span>
+
+          <span>Meeting</span>
+        </div>
+
+        <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-sm bg-blue-500"></span>
 
           <span>Report</span>
@@ -353,12 +359,6 @@ export default function ActivityTab({
           <span className="w-3 h-3 rounded-sm bg-pink-500"></span>
 
           <span>Update</span>
-        </div>
-
-        <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-sm bg-yellow-500"></span>
-
-          <span>Meeting</span>
         </div>
 
       </div>

@@ -4,7 +4,7 @@ import * as pdfjsLib from "pdfjs-dist";
 
 // 🔥 REQUIRED (very important)
 pdfjsLib.GlobalWorkerOptions.workerSrc =
-  `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+  "/pdf.worker.min.js";
 
 export async function getPdfThumbnail(url) {
   try {

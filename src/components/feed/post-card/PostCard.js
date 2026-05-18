@@ -110,45 +110,49 @@ export default function PostCard({
           onDelete={onDelete}
         />
 
-        <div
-          className="cursor-pointer"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            handleNavigate();
-          }}
-        >
+          <div>
 
-          <PostContent
-            post={{
-              ...post,
-              spaces,
+          <div
+            className="cursor-pointer"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleNavigate();
             }}
-            status={status}
-            forceExpanded={forceExpanded}
-          />
+          >
 
-          <PostMetadata
-            post={{
-              ...post,
-              spaces,
-            }}
-            status={status}
-            forceExpanded={forceExpanded}
-          />
+            <PostContent
+              post={{
+                ...post,
+                spaces,
+              }}
+              status={status}
+              forceExpanded={forceExpanded}
+            />
 
-          <PostTimeline
-            post={{
-              ...post,
-              spaces,
-            }}
-          />
+            <PostMetadata
+              post={{
+                ...post,
+                spaces,
+              }}
+              status={status}
+              forceExpanded={forceExpanded}
+            />
 
-          <PostAttachments
-            attachments={post.attachments}
-          />
+            <PostTimeline
+              post={{
+                ...post,
+                spaces,
+              }}
+            />
 
-        </div>
+          </div>
+
+        <PostAttachments
+          attachments={post.attachments}
+        />
+
+      </div>
 
         <PostFooter
           post={{

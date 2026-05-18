@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  Megaphone,
+  Orbit,
   FileWarning,
   Bell,
   CalendarDays,
-  Users,
+  Presentation,
 } from "lucide-react";
 
 import {
@@ -23,7 +23,7 @@ const TYPES = [
   {
     value: "action",
     label: "Action",
-    icon: Megaphone,
+    icon: Orbit,
     desc: "Document civic initiatives and actions taken.",
   },
   {
@@ -47,7 +47,7 @@ const TYPES = [
   {
     value: "meeting",
     label: "Meeting",
-    icon: Users,
+    icon: Presentation,
     desc: "Record meetings with officials.",
   },
 ];

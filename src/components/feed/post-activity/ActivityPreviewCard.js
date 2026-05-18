@@ -158,7 +158,7 @@ export default function ActivityPreviewCard({
         }}
       >
 
-        <CardHeader className="space-y-3">
+        <CardHeader className="space-y-2">
 
           {(post.details ||
             post.summary) && (
@@ -272,7 +272,7 @@ export default function ActivityPreviewCard({
 
         {/* FOOTER */}
 
-        <div className="px-4 pb-4 flex items-center justify-between">
+        <CardContent className="flex items-center justify-between">
 
           {/* AUTHOR */}
 
@@ -302,7 +302,7 @@ export default function ActivityPreviewCard({
             postId={post.id}
           />
 
-        </div>
+        </CardContent>
 
       </motion.div>
 
