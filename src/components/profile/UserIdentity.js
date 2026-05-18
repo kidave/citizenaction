@@ -1,6 +1,5 @@
 "use client";
 
-import { UserHoverCard } from "@/components/profile/UserHoverCard";
 import Link from "next/link";
 
 import { Row } from "@/components/layout/Row";
@@ -21,13 +20,10 @@ export function UserIdentity({
   hideName = false,
   hideTimestamp = false,
 
-  size = "md", // "sm" | "md" | "lg"
+  size = "md",
 }) {
   if (!username) return null;
 
-  /* -------------------------
-     SIZE SYSTEM
-  ------------------------- */
   const sizeMap = {
     sm: "h-6 w-6",
     md: "h-10 w-10",
@@ -36,43 +32,38 @@ export function UserIdentity({
 
   const avatarSize = sizeMap[size] || sizeMap.md;
 
-  /* -------------------------
-     UI
-  ------------------------- */
   return (
-    <UserHoverCard username={username}>
-      <Link href={`/user/${username}`} className="group block">
+    <Link
+      href={`/user/${username}`}
+      className="group block"
+    >
+      <Row className="items-center gap-2">
 
-        <Row className="items-center gap-2">
+        <Avatar className={avatarSize}>
+          <AvatarImage src={avatar || undefined} />
 
-          {/* AVATAR */}
-          <Avatar className={`${avatarSize} cursor-pointer`}>
-            <AvatarImage src={avatar || undefined} />
-            <AvatarFallback>
-              {name?.charAt(0) || "U"}
-            </AvatarFallback>
-          </Avatar>
+          <AvatarFallback>
+            {name?.charAt(0) || "U"}
+          </AvatarFallback>
+        </Avatar>
 
-          {/* NAME + META */}
-          {!hideName && (
-            <Stack className="leading-tight" gap="gap-0">
+        {!hideName && (
+          <Stack className="leading-tight" gap="gap-0">
 
-              <span className="font-medium text-sm group-hover:underline">
-                {name || "Anonymous"}
+            <span className="font-medium text-sm group-hover:underline">
+              {name || "Anonymous"}
+            </span>
+
+            {!hideTimestamp && createdAt && (
+              <span className="text-xs text-muted-foreground">
+                {createdAt}
               </span>
+            )}
 
-              {!hideTimestamp && createdAt && (
-                <span className="text-xs text-muted-foreground">
-                  {createdAt}
-                </span>
-              )}
+          </Stack>
+        )}
 
-            </Stack>
-          )}
-
-        </Row>
-
-      </Link>
-    </UserHoverCard>
+      </Row>
+    </Link>
   );
 }

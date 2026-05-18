@@ -118,20 +118,12 @@ export function Profile() {
             align="end"
             className="w-56"
           >
-            {/* Public Profile */}
             <DropdownMenuItem
               onClick={() =>
                 router.push(`/user/${profile.username}`)
               }
             >
-              Public Profile
-            </DropdownMenuItem>
-
-            {/* Private Profile Settings */}
-            <DropdownMenuItem
-              onClick={() => router.push("/user/me")}
-            >
-              Edit Profile
+              Profile
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />

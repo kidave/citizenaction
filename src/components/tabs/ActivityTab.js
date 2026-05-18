@@ -3,10 +3,9 @@
 import { useState, useMemo } from "react";
 
 import { useFeed } from "@/hooks/feed/useFeed";
-import { useMeetings } from "@/hooks/meeting/useMeetings";
 
 import ActivityPreviewCard from "@/components/feed/post-activity/ActivityPreviewCard";
-import MeetingPreviewCard from "@/components/feed/post-meeting/MeetingPreviewCard";
+
 import MeetingSkeleton from "@/components/skeletons/MeetingSkeleton";
 
 import {
@@ -44,35 +43,28 @@ const activityTypes = [
 
 export default function ActivityTab({
   spaceId,
-  defaultScopeType = null,
-  defaultScopeId = null,
 }) {
-  const { data: feed = [], isLoading } = useFeed();
+  const {
+    data: feed = [],
+    isLoading,
+  } = useFeed();
 
-  const { data: meetings = [] } = useMeetings({
-    enabled: true,
-  });
+  const currentYear =
+    new Date().getFullYear();
 
-  const meetingMap = useMemo(() => {
-    return new Map(
-      meetings.map((m) => [m.id, m])
-    );
-  }, [meetings]);
+  const [year, setYear] =
+    useState("");
 
-  const currentYear = new Date().getFullYear();
+  const [month, setMonth] =
+    useState(null);
 
-  const [year, setYear] = useState("");
-  const [month, setMonth] = useState(null);
+  const [type, setType] =
+    useState("all");
 
-  const [type, setType] = useState("all");
+  /* =====================================================
+     BASE FILTER
+  ===================================================== */
 
-  const [scopeType, setScopeType] =
-    useState(defaultScopeType || "");
-
-  const [scopeId, setScopeId] =
-    useState(defaultScopeId || "");
-
-  // BASE FILTER
   const filteredFeed = useMemo(() => {
     return feed.filter((f) => {
       return spaceId
@@ -81,10 +73,13 @@ export default function ActivityTab({
     });
   }, [feed, spaceId]);
 
-  // DATE HELPER
+  /* =====================================================
+     DATE HELPER
+  ===================================================== */
+
   const getDate = (m) => {
-    if (m.metadata_date)
-      return new Date(m.metadata_date);
+    if (m.start_at)
+      return new Date(m.start_at);
 
     if (m.date)
       return new Date(m.date);
@@ -92,56 +87,45 @@ export default function ActivityTab({
     return new Date(m.created_at);
   };
 
-  // YEARS
+  /* =====================================================
+     YEARS
+  ===================================================== */
+
   const years = useMemo(() => {
-    const allYears = filteredFeed.map((m) =>
-      getDate(m).getFullYear()
-    );
+    const allYears =
+      filteredFeed.map((m) =>
+        getDate(m).getFullYear()
+      );
 
-    const uniqueYears = [...new Set(allYears)];
+    const uniqueYears = [
+      ...new Set(allYears),
+    ];
 
-    if (!uniqueYears.includes(currentYear)) {
+    if (
+      !uniqueYears.includes(
+        currentYear
+      )
+    ) {
       uniqueYears.push(currentYear);
     }
 
-    return uniqueYears.sort((a, b) => b - a);
+    return uniqueYears.sort(
+      (a, b) => b - a
+    );
   }, [filteredFeed, currentYear]);
 
-  // SCOPE TYPES
-  const scopeTypes = useMemo(() => {
-    return [
-      ...new Set(
-        filteredFeed
-          .map((f) => f.scope_type)
-          .filter(Boolean)
-      ),
-    ];
-  }, [filteredFeed]);
+  /* =====================================================
+     FINAL FILTERING
+  ===================================================== */
 
-  // SCOPE IDS
-  const scopeIds = useMemo(() => {
-    return [
-      ...new Set(
-        filteredFeed
-          .filter((f) =>
-            scopeType
-              ? f.scope_type === scopeType
-              : true
-          )
-          .map((f) => f.scope_id)
-          .filter(Boolean)
-      ),
-    ];
-  }, [filteredFeed, scopeType]);
-
-  // FINAL FILTERING
   const finalFeed = useMemo(() => {
     return filteredFeed
       .filter((m) => {
         const d = getDate(m);
 
         const matchYear = year
-          ? d.getFullYear() === Number(year)
+          ? d.getFullYear() ===
+            Number(year)
           : true;
 
         const matchMonth =
@@ -154,22 +138,10 @@ export default function ActivityTab({
             ? true
             : m.type === type;
 
-        const matchScopeType =
-          scopeType
-            ? m.scope_type === scopeType
-            : true;
-
-        const matchScopeId =
-          scopeId
-            ? m.scope_id === scopeId
-            : true;
-
         return (
           matchYear &&
           matchMonth &&
-          matchType &&
-          matchScopeType &&
-          matchScopeId
+          matchType
         );
       })
       .sort(
@@ -182,33 +154,43 @@ export default function ActivityTab({
     year,
     month,
     type,
-    scopeType,
-    scopeId,
   ]);
+
+  /* =====================================================
+     LOADING
+  ===================================================== */
 
   if (isLoading) {
     return (
       <div className="space-y-6">
-        {Array.from({ length: 3 }).map(
-          (_, i) => (
-            <MeetingSkeleton key={i} />
-          )
-        )}
+        {Array.from({
+          length: 3,
+        }).map((_, i) => (
+          <MeetingSkeleton key={i} />
+        ))}
       </div>
     );
   }
 
+  /* =====================================================
+     UI
+  ===================================================== */
+
   return (
     <div className="space-y-6">
 
-      {/* FILTERS */}
+      {/* =====================================================
+          FILTERS
+      ===================================================== */}
+
       <div className="flex flex-wrap items-center gap-3">
 
         {/* TYPE */}
+
         <select
-          value={activityTypes}
+          value={type}
           onChange={(e) =>
-            setSelectedType(
+            setType(
               e.target.value
             )
           }
@@ -221,40 +203,43 @@ export default function ActivityTab({
             bg-background
           "
         >
-            <option value="all">
-              All Types
-            </option>
 
-            <option value="action">
-              Action
+          {activityTypes.map((t) => (
+            <option
+              key={t}
+              value={t}
+            >
+              {t === "all"
+                ? "All Types"
+                : t
+                    .charAt(0)
+                    .toUpperCase() +
+                  t.slice(1)}
             </option>
+          ))}
 
-            <option value="meeting">
-              Meeting
-            </option>
-
-            <option value="report">
-              Report
-            </option>
-
-            <option value="event">
-              Event
-            </option>
-
-            <option value="update">
-              Update
-          </option>
         </select>
 
         {/* YEAR */}
+
         <select
           value={year}
           onChange={(e) => {
-            setYear(e.target.value);
+            setYear(
+              e.target.value
+            );
+
             setMonth(null);
           }}
-          className="border rounded-md px-3 py-2 text-sm"
+          className="
+            border
+            rounded-md
+            px-3
+            py-2
+            text-sm
+          "
         >
+
           <option value="">
             Select Year
           </option>
@@ -267,13 +252,16 @@ export default function ActivityTab({
               {y}
             </option>
           ))}
+
         </select>
 
         {/* MONTH */}
+
         <select
           value={month ?? ""}
           onChange={(e) => {
-            const val = e.target.value;
+            const val =
+              e.target.value;
 
             setMonth(
               val === ""
@@ -281,101 +269,142 @@ export default function ActivityTab({
                 : Number(val)
             );
           }}
-          className="border rounded-md px-3 py-2 text-sm"
+          className="
+            border
+            rounded-md
+            px-3
+            py-2
+            text-sm
+          "
         >
+
           <option value="">
             Select Month
           </option>
 
           {months.map((m, i) => (
-            <option key={i} value={i}>
+            <option
+              key={i}
+              value={i}
+            >
               {m}
             </option>
           ))}
-        </select>
 
-        {/* SCOPE TYPE */}
-        <select
-          value={scopeType}
-          onChange={(e) => {
-            setScopeType(e.target.value);
-            setScopeId("");
-          }}
-          className="border rounded-md px-3 py-2 text-sm"
-        >
-          <option value="">
-            Area
-          </option>
-
-          {scopeTypes.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
         </select>
 
         {/* CLEAR */}
+
         <Button
           size="sm"
           variant="ghost"
           onClick={() => {
             setMonth(null);
+
             setYear("");
+
             setType("all");
-            setScopeType("");
-            setScopeId("");
+
           }}
         >
           Clear
         </Button>
+
       </div>
 
-      {/* CONTENT */}
+      {/* =====================================================
+          LEGEND
+      ===================================================== */}
+
+      <div
+        className="
+          flex
+          flex-wrap
+          items-center
+          gap-x-4
+          gap-y-2
+
+          text-xs
+          text-muted-foreground
+
+          px-1
+        "
+      >
+
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-sm bg-red-500"></span>
+
+          <span>Action</span>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-sm bg-blue-500"></span>
+
+          <span>Report</span>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-sm bg-green-500"></span>
+
+          <span>Event</span>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-sm bg-pink-500"></span>
+
+          <span>Update</span>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-sm bg-yellow-500"></span>
+
+          <span>Meeting</span>
+        </div>
+
+      </div>
+
+      {/* =====================================================
+          CONTENT
+      ===================================================== */}
+
       {!finalFeed.length ? (
         <Card className="border-dashed">
+
           <CardHeader>
+
             <CardTitle>
               No activity
             </CardTitle>
 
             <CardDescription>
-              No activity found for selected
-              filters.
+              No activity found for
+              selected filters.
             </CardDescription>
+
           </CardHeader>
+
         </Card>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div
+          className="
+            grid
+            grid-cols-1
+            sm:grid-cols-2
+            lg:grid-cols-3
+            gap-4
+          "
+        >
 
-          {finalFeed.map((post) => {
-
-            if (post.type === "meeting") {
-              const fullMeeting =
-                meetingMap.get(post.id);
-
-              return (
-                <MeetingPreviewCard
-                  key={post.id}
-                  meeting={{
-                    ...post,
-                    attendees:
-                      fullMeeting?.attendees ||
-                      [],
-                  }}
-                />
-              );
-            }
-
-            return (
-              <ActivityPreviewCard
-                key={post.id}
-                post={post}
-              />
-            );
-          })}
+          {finalFeed.map((post) => (
+            <ActivityPreviewCard
+              key={post.id}
+              post={post}
+            />
+          ))}
 
         </div>
       )}
+
     </div>
   );
 }

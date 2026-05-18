@@ -1,9 +1,17 @@
 "use client";
 
+import { useState } from "react";
+
 import { useRouter } from "next/router";
 import Link from "next/link";
 
-import { ArrowLeft, MoreVertical } from "lucide-react";
+import {
+  ArrowLeft,
+  MoreVertical,
+  AlertTriangle,
+} from "lucide-react";
+
+import { supabase } from "@/lib/supabase/client";
 
 import { usePublicProfile } from "@/hooks/user/usePublicProfile";
 
@@ -26,20 +34,64 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
 import { Button } from "@/components/ui/button";
+
 import { Skeleton } from "@/components/ui/skeleton";
+
 import { Separator } from "@/components/ui/separator";
+
+import { toast } from "sonner";
 
 export default function PublicProfilePage() {
   const router = useRouter();
 
   const { username } = router.query;
 
+  const [deleteOpen, setDeleteOpen] =
+    useState(false);
+
+  const [submitting, setSubmitting] =
+    useState(false);
+
   const {
     data: profile,
     isLoading,
     error,
   } = usePublicProfile(username);
+
+  const handleDeleteRequest = async () => {
+    try {
+      setSubmitting(true);
+
+      const { error } = await supabase
+        .from("delete_account_requests")
+        .insert({
+          username: profile.username,
+          user_id: profile.user_id,
+        });
+
+      if (error) throw error;
+
+      toast.success(
+        "Account deletion request submitted"
+      );
+
+      setDeleteOpen(false);
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (isLoading) {
     return <ProfileSkeleton />;
@@ -54,117 +106,194 @@ export default function PublicProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 px-4 py-10 flex justify-center">
-      <div className="w-full max-w-lg">
+    <>
+      <div className="min-h-screen bg-muted/30 px-4 py-10 flex justify-center">
+        <div className="w-full max-w-lg">
 
-        {/* Header */}
-        <div className="mb-4 flex items-center justify-between">
+          {/* Header */}
+          <div className="mb-4 flex items-center justify-between">
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.back()}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.back()}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
 
-          {profile.is_self && (
-            <DropdownMenu>
+            {profile.is_self && (
+              <DropdownMenu>
 
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end">
 
-                <DropdownMenuItem asChild>
-                  <Link href="/settings/profile">
-                    Edit Profile
-                  </Link>
-                </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings/profile">
+                      Edit Profile
+                    </Link>
+                  </DropdownMenuItem>
 
-              </DropdownMenuContent>
+                  <DropdownMenuItem
+                    className="text-red-600 focus:text-red-600"
+                    onClick={() =>
+                      setDeleteOpen(true)
+                    }
+                  >
+                    Request Account Deletion
+                  </DropdownMenuItem>
 
-            </DropdownMenu>
-          )}
+                </DropdownMenuContent>
 
-        </div>
+              </DropdownMenu>
+            )}
 
-        <Card>
-
-          {/* Avatar */}
-          <div className="flex justify-center pt-8">
-            <Avatar className="h-24 w-24">
-              <AvatarImage
-                src={profile.avatar_url || undefined}
-              />
-
-              <AvatarFallback>
-                {profile.name?.[0]?.toUpperCase() || "U"}
-              </AvatarFallback>
-            </Avatar>
           </div>
 
-          {/* Identity */}
-          <CardHeader className="text-center pt-4 pb-2 space-y-1">
+          <Card>
 
-            <h2 className="text-lg font-semibold">
-              {profile.name}
-            </h2>
+            {/* Avatar */}
+            <div className="flex justify-center pt-8">
+              <Avatar className="h-24 w-24">
+                <AvatarImage
+                  src={
+                    profile.avatar_url ||
+                    undefined
+                  }
+                />
 
-            <p className="text-sm text-muted-foreground">
-              @{profile.username}
-            </p>
+                <AvatarFallback>
+                  {profile.name?.[0]?.toUpperCase() ||
+                    "U"}
+                </AvatarFallback>
+              </Avatar>
+            </div>
 
-          </CardHeader>
+            {/* Identity */}
+            <CardHeader className="text-center pt-4 pb-2 space-y-1">
 
-          <Separator />
+              <h2 className="text-lg font-semibold">
+                {profile.name}
+              </h2>
 
-          <CardContent className="pt-6 space-y-4">
+              <p className="text-sm text-muted-foreground">
+                @{profile.username}
+              </p>
 
-            {profile.email && (
-              <ProfileItem
-                label="Email"
-                value={profile.email}
-              />
-            )}
-
-            {profile.mobile && (
-              <ProfileItem
-                label="Phone"
-                value={`+${profile.mobile}`}
-              />
-            )}
-
-            <ProfileItem
-              label="Designation"
-              value={profile.designation || "N/A"}
-            />
-
-            <ProfileItem
-              label="Locality"
-              value={profile.locality || "N/A"}
-            />
+            </CardHeader>
 
             <Separator />
 
-            <ProfileItem
-              label="Member Since"
-              value={new Date(
-                profile.created_at
-              ).toLocaleDateString()}
-            />
+            <CardContent className="pt-6 space-y-4">
 
-          </CardContent>
+              {profile.email && (
+                <ProfileItem
+                  label="Email"
+                  value={profile.email}
+                />
+              )}
 
-        </Card>
+              {profile.mobile && (
+                <ProfileItem
+                  label="Phone"
+                  value={`+${profile.mobile}`}
+                />
+              )}
+
+              <ProfileItem
+                label="Designation"
+                value={
+                  profile.designation ||
+                  "N/A"
+                }
+              />
+
+              <ProfileItem
+                label="Locality"
+                value={
+                  profile.locality || "N/A"
+                }
+              />
+
+              <Separator />
+
+              <ProfileItem
+                label="Member Since"
+                value={new Date(
+                  profile.created_at
+                ).toLocaleDateString()}
+              />
+
+            </CardContent>
+
+          </Card>
+        </div>
       </div>
-    </div>
+
+      {/* DELETE REQUEST DIALOG */}
+      <Dialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+      >
+        <DialogContent className="sm:max-w-md">
+
+          <DialogHeader>
+
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+              <AlertTriangle className="h-6 w-6 text-red-600" />
+            </div>
+
+            <DialogTitle className="text-center">
+              Request Account Deletion
+            </DialogTitle>
+
+            <DialogDescription className="text-center">
+              This will submit a request to
+              permanently delete your account
+              and associated data.
+            </DialogDescription>
+
+          </DialogHeader>
+
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            This action cannot be undone once
+            processed.
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+
+            <Button
+              variant="outline"
+              onClick={() =>
+                setDeleteOpen(false)
+              }
+              disabled={submitting}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              variant="destructive"
+              onClick={handleDeleteRequest}
+              disabled={submitting}
+            >
+              {submitting
+                ? "Submitting..."
+                : "Submit Request"}
+            </Button>
+
+          </DialogFooter>
+
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

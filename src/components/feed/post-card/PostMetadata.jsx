@@ -157,7 +157,7 @@ export default function PostMetadata({
   // =====================================================
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2 mb-2 gap-2">
 
       {/* STATUS */}
 
@@ -205,41 +205,34 @@ export default function PostMetadata({
         <>
           {/* DATE/TIME */}
 
-          <div className="space-y-2 text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
 
+            {/* DATE */}
             <div className="flex items-center gap-2">
 
-              <CalendarDays className="h-4 w-4" />
+              <CalendarDays className="h-4 w-4 shrink-0" />
 
               <span>
-                {format(
-                  start,
-                  "d MMM yyyy"
-                )}
+                {format(start, "d MMMM yyyy")}
               </span>
 
             </div>
 
+            {/* TIME */}
             {config.showTime && (
               <div className="flex items-center gap-2">
 
-                <Clock3 className="h-4 w-4" />
+                <Clock3 className="h-4 w-4 shrink-0" />
 
                 <span>
 
-                  {format(
-                    start,
-                    "h:mm a"
-                  )}
+                  {format(start, "h:mm a")}
 
                   {end && (
                     <>
                       {" "}
                       -{" "}
-                      {format(
-                        end,
-                        "h:mm a"
-                      )}
+                      {format(end, "h:mm a")}
                     </>
                   )}
 

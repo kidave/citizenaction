@@ -87,6 +87,8 @@ export default function ProfileSettingsPage() {
     try {
       setSaving(true);
 
+      const oldUsername = profile.username;
+
       const { error } = await supabase
         .from("profile")
         .update({
@@ -105,9 +107,24 @@ export default function ProfileSettingsPage() {
 
       if (error) throw error;
 
+      await refetch();
+
       toast.success("Profile updated");
 
-      await refetch();
+      if (
+        oldUsername !== form.username &&
+        form.username
+      ) {
+        router.replace(
+          `/user/${form.username}`
+        );
+
+        return;
+      }
+
+      router.replace(
+        `/user/${profile.username}`
+      );
     } catch (err) {
       toast.error(err.message);
     } finally {

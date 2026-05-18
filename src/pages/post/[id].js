@@ -2,64 +2,149 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
-import { usePost } from "@/hooks/feed/usePost";
+import { createServerSupabase } from "@/lib/supabase/server";
 
+import { usePost } from "@/hooks/feed/usePost";
 import { useAuth } from "@/context/AuthContext";
 
 import PostCard from "@/components/feed/post-card/PostCard";
-
 import PostEditorModal from "@/components/feed/post-editor/PostEditorModal";
 
 import { useDeletePost } from "@/hooks/feed/useDeletePost";
 
 import { ArrowLeft } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 
-/* ================= SERVER ================= */
+/* =====================================================
+   SERVER
+===================================================== */
 
 export async function getServerSideProps({
   params,
 }) {
+  const supabase =
+    createServerSupabase();
+
+  const { id } = params;
+
+  const { data } =
+    await supabase
+      .from("feed_light_view")
+      .select(`
+        id,
+
+        type,
+        summary,
+        details,
+
+        attachments,
+
+        created_at,
+        updated_at,
+
+        author_id,
+        author_name,
+        author_username,
+        author_avatar,
+
+        date,
+        time,
+
+        start_at,
+        end_at,
+
+        start_year,
+        start_month,
+
+        lifecycle_status,
+
+        lat,
+        lng,
+        address,
+
+        meeting_link,
+
+        scope_type,
+        scope_code,
+
+        space_name,
+        space_slug,
+        space_logo,
+
+        scope_name
+      `)
+      .eq("id", id)
+      .single();
+
   return {
     props: {
-      postId: params.id,
+      initialPost: data || null,
+      postId: id,
     },
   };
 }
 
-/* ================= HELPERS ================= */
+/* =====================================================
+   HELPERS
+===================================================== */
 
+// remove URLs from description
+function cleanText(text) {
+  if (!text) return "";
+
+  return text
+    .replace(/https?:\/\/\S+/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// short clean preview description
+function getDescription(post) {
+  const clean =
+    cleanText(post.details);
+
+  if (!clean) return "";
+
+  return clean.length > 140
+    ? clean.slice(0, 140) + "..."
+    : clean;
+}
+
+// extract first image
 function getImage(attachments) {
   if (!attachments) return null;
 
-  let parsed = attachments;
+  try {
+    const parsed =
+      typeof attachments ===
+      "string"
+        ? JSON.parse(attachments)
+        : attachments;
 
-  if (
-    typeof attachments ===
-    "string"
-  ) {
-    try {
-      parsed =
-        JSON.parse(attachments);
-    } catch {
+    if (!Array.isArray(parsed))
       return null;
-    }
+
+    const image = parsed.find(
+      (a) =>
+        a?.url &&
+        a?.type?.startsWith(
+          "image"
+        )
+    );
+
+    return image?.url || null;
+  } catch {
+    return null;
   }
-
-  const img = parsed.find(
-    (a) =>
-      a.type &&
-      a.type.startsWith("image")
-  );
-
-  return img?.url || null;
 }
 
-/* ================= PAGE ================= */
+/* =====================================================
+   PAGE
+===================================================== */
 
 export default function SinglePostPage({
   postId,
+  initialPost,
 }) {
   const router = useRouter();
 
@@ -78,7 +163,10 @@ export default function SinglePostPage({
   const {
     data: post,
     isLoading,
-  } = usePost(postId);
+  } = usePost(
+    postId,
+    initialPost
+  );
 
   if (isLoading || !post) {
     return null;
@@ -93,7 +181,7 @@ export default function SinglePostPage({
     "Citizen Action";
 
   const description =
-    post.details ||
+    getDescription(post) ||
     "Citizen Action";
 
   const image =
@@ -117,38 +205,38 @@ export default function SinglePostPage({
           {title}
         </title>
 
-        {/* Open Graph */}
+        {/* =====================================================
+            OPEN GRAPH
+        ===================================================== */}
 
         <meta
           property="og:type"
           content="article"
-          key="og:type"
         />
 
         <meta
           property="og:title"
           content={title}
-          key="og:title"
         />
 
         <meta
           property="og:description"
-          content={
-            description
-          }
-          key="og:description"
+          content={description}
         />
 
         <meta
           property="og:image"
           content={image}
-          key="og:image"
         />
 
         <meta
-          property="og:url"
-          content={url}
-          key="og:url"
+          property="og:image:secure_url"
+          content={image}
+        />
+
+        <meta
+          property="og:image:type"
+          content="image/jpeg"
         />
 
         <meta
@@ -162,11 +250,18 @@ export default function SinglePostPage({
         />
 
         <meta
-          property="og:image:type"
-          content="image/jpeg"
+          property="og:url"
+          content={url}
         />
 
-        {/* Twitter */}
+        <meta
+          property="og:site_name"
+          content="Citizen Action"
+        />
+
+        {/* =====================================================
+            TWITTER
+        ===================================================== */}
 
         <meta
           name="twitter:card"
@@ -180,9 +275,7 @@ export default function SinglePostPage({
 
         <meta
           name="twitter:description"
-          content={
-            description
-          }
+          content={description}
         />
 
         <meta
@@ -191,9 +284,9 @@ export default function SinglePostPage({
         />
       </Head>
 
-      {/* ===================================================== */}
-      {/* UI */}
-      {/* ===================================================== */}
+      {/* =====================================================
+          UI
+      ===================================================== */}
 
       <div className="flex flex-col w-full min-h-screen mb-12">
 

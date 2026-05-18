@@ -62,8 +62,8 @@ export function getPostDateState(post) {
             start,
             now
           )
-            ? "d MMM"
-            : "d MMM yyyy"
+            ? "d MMMM"
+            : "d MMMM yyyy"
         ),
 
       time:
@@ -118,7 +118,7 @@ export function getPostDateState(post) {
         ? "Tomorrow"
         : format(
             start,
-            "EEE, d MMM"
+            "EEE, d MMMM"
           ),
 
     startTime:

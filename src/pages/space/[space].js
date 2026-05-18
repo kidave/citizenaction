@@ -6,10 +6,8 @@ import { useState } from "react";
 
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/router";
-
 import Link from "next/link";
 import Image from "next/image";
-
 import { ArrowLeft } from "lucide-react";
 
 import {
@@ -19,22 +17,18 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-
 import {
   Tabs,
   TabsList,
   TabsTrigger,
   TabsContent,
 } from "@/components/ui/tabs";
-
 import PageHeaderSkeleton from "@/components/skeletons/PageHeaderSkeleton";
 import MetaCardsSkeleton from "@/components/skeletons/MetaCardsSkeleton";
-
 import { useSpaces } from "@/hooks/useSpaces";
-
+import MembersTab from "@/components/tabs/MembersTab";
 import ActivityTab from "@/components/tabs/ActivityTab";
 
 export default function SpacePage() {
@@ -378,27 +372,13 @@ export default function SpacePage() {
         </TabsContent>
 
         {/* ================= MEMBERS ================= */}
-
         <TabsContent value="members">
 
-          <Card className="border-dashed">
+          <MembersTab
+            spaceId={space.id}
+          />
 
-            <CardHeader>
-
-              <CardTitle>
-                Members
-              </CardTitle>
-
-              <CardDescription>
-                Space members will appear
-                here.
-              </CardDescription>
-
-            </CardHeader>
-
-          </Card>
-
-        </TabsContent>
+        </TabsContent>  
 
         {/* ================= ACTIVITY ================= */}
 
