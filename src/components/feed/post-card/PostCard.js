@@ -76,19 +76,40 @@ export default function PostCard({
   };
 
   const typeStyles = {
-    action: "bg-red-50",
-    report: "bg-blue-50",
-    event: "bg-green-50",
-    update: "bg-pink-50",
-    meeting: "bg-yellow-50",
+    action:
+      "bg-gradient-to-br from-red-100 to-red-50",
+
+    report:
+      "bg-gradient-to-br from-blue-100 to-blue-50",
+
+    event:
+      "bg-gradient-to-br from-green-100 to-green-50",
+
+    update:
+      "bg-gradient-to-br from-pink-100 to-pink-50",
+
+    meeting:
+      "bg-gradient-to-br from-yellow-100 to-yellow-50",
   };
 
   return (
     <Card
       className={`
+        relative
+
         overflow-hidden
-        p-3 sm:p-5
-        rounded-none sm:rounded-lg
+
+        rounded-[28px]
+
+        border-4
+
+        bg-background
+
+        transition-all
+        duration-300
+        
+        shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]
+
         ${
           typeStyles[
             post.type
@@ -97,49 +118,197 @@ export default function PostCard({
       `}
     >
 
-      <Stack>
+      {/* =====================================================
+          FLOATING BACKGROUND SHAPES
+      ===================================================== */}
 
-        <PostHeader
-          post={{
-            ...post,
-            spaces,
-          }}
-          status={status}
-          canEdit={canEdit}
-          onEdit={onEdit}
-          onDelete={onDelete}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+
+        {/* PINK */}
+
+        <div
+          className="
+            absolute
+
+            -top-10
+            -right-10
+
+            w-40
+            h-40
+
+            rounded-full
+
+            bg-pink-300/20
+
+            blur-3xl
+          "
         />
+
+        {/* BLUE */}
+
+        <div
+          className="
+            absolute
+
+            bottom-0
+            left-0
+
+            w-32
+            h-32
+
+            rounded-full
+
+            bg-blue-300/20
+
+            blur-3xl
+          "
+        />
+
+      </div>
+
+      {/* =====================================================
+          CONTENT
+      ===================================================== */}
+
+      <div className="relative z-10 p-4 sm:p-6">
+
+        <Stack>
+
+          {/* =====================================================
+              HEADER
+          ===================================================== */}
+
+          <PostHeader
+            post={{
+              ...post,
+              spaces,
+            }}
+            status={status}
+            canEdit={canEdit}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
+
+          {/* =====================================================
+              MAIN CONTENT
+          ===================================================== */}
 
           <div>
 
+            <div
+              className="
+                cursor-pointer
+
+                transition-opacity
+
+                hover:opacity-90
+              "
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleNavigate();
+              }}
+            >
+
+              {/* =====================================================
+                  CONTENT WRAPPER
+              ===================================================== */}
+
+              <div
+                className="
+                  mt-2
+
+                  rounded-3xl
+
+                  border-2
+
+                  bg-white/70
+
+                  backdrop-blur-sm
+
+                  p-4
+
+                  shadow-sm
+                "
+              >
+
+                <PostContent
+                  post={{
+                    ...post,
+                    spaces,
+                  }}
+                  status={status}
+                  forceExpanded={forceExpanded}
+                />
+
+                <PostMetadata
+                  post={{
+                    ...post,
+                    spaces,
+                  }}
+                  status={status}
+                  forceExpanded={forceExpanded}
+                />
+
+                <PostTimeline
+                  post={{
+                    ...post,
+                    spaces,
+                  }}
+                />
+
+              </div>
+
+            </div>
+
+            {/* =====================================================
+                ATTACHMENTS
+            ===================================================== */}
+
+            {post.attachments?.length >
+              0 && (
+              <div className="mt-4">
+
+                <div
+                  className="
+                    overflow-hidden
+
+                    rounded-3xl
+                  "
+                >
+
+                  <PostAttachments
+                    attachments={
+                      post.attachments
+                    }
+                  />
+
+                </div>
+
+              </div>
+            )}
+
+          </div>
+
+          {/* =====================================================
+              FOOTER
+          ===================================================== */}
+
           <div
-            className="cursor-pointer"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleNavigate();
-            }}
+            className="
+              rounded-3xl
+
+              border-2
+
+              bg-white/70
+
+              backdrop-blur-sm
+
+              p-2
+            "
           >
 
-            <PostContent
-              post={{
-                ...post,
-                spaces,
-              }}
-              status={status}
-              forceExpanded={forceExpanded}
-            />
-
-            <PostMetadata
-              post={{
-                ...post,
-                spaces,
-              }}
-              status={status}
-              forceExpanded={forceExpanded}
-            />
-
-            <PostTimeline
+            <PostFooter
               post={{
                 ...post,
                 spaces,
@@ -148,30 +317,39 @@ export default function PostCard({
 
           </div>
 
-        <PostAttachments
-          attachments={post.attachments}
-        />
+          {/* =====================================================
+              MEETING
+          ===================================================== */}
+
+          {post.type === "meeting" &&
+            forceExpanded && (
+              <div
+                className="
+                  rounded-3xl
+
+                  border-2
+
+                  bg-yellow-100/70
+
+                  backdrop-blur-sm
+
+                  p-4
+                "
+              >
+
+                <PostMeeting
+                  post={{
+                    ...post,
+                    spaces,
+                  }}
+                />
+
+              </div>
+            )}
+
+        </Stack>
 
       </div>
-
-        <PostFooter
-          post={{
-            ...post,
-            spaces,
-          }}
-        />
-
-        {post.type === "meeting" &&
-          forceExpanded && (
-            <PostMeeting
-              post={{
-                ...post,
-                spaces,
-              }}
-            />
-          )}
-
-      </Stack>
 
     </Card>
   );
