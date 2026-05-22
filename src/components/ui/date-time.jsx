@@ -188,12 +188,23 @@ export function DateTimePicker({
                 type="time"
                 className="
                   w-full
+
+                  min-h-12
+
                   rounded-md
                   border
+
                   bg-background
+
                   px-3
                   py-2
-                  text-sm
+
+                  text-base
+
+                  appearance-none
+
+                  [&::-webkit-calendar-picker-indicator]:opacity-100
+                  [&::-webkit-calendar-picker-indicator]:cursor-pointer
                 "
                 value={
                   value

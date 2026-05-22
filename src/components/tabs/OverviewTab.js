@@ -188,7 +188,7 @@ export default function OverviewTab({
 
           {/* GOVERNANCE */}
 
-          <Card>
+          <Card className="rounded-[32px] border-4 overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
 
             <CardHeader>
               <Link
@@ -264,7 +264,7 @@ export default function OverviewTab({
 
           {/* SPACE INFO */}
 
-          <Card>
+          <Card className="rounded-[32px] border-4 overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
 
             <CardHeader>
 
@@ -366,25 +366,29 @@ function MetricCard({
   value,
 }) {
   return (
-    <Card>
+    <Card className="rounded-[28px] border-4 bg-gradient-to-br from-background to-muted/40 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition hover:-translate-y-1">
 
       <CardContent className="p-5">
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
 
           <div>
 
-            <div className="text-2xl font-semibold">
-              {value}
+            <div className="text-xs font-black uppercase tracking-wider text-muted-foreground">
+              {label}
             </div>
 
-            <div className="text-sm text-muted-foreground">
-              {label}
+            <div className="mt-2 text-4xl font-black leading-none">
+              {value}
             </div>
 
           </div>
 
-          <Icon className="h-5 w-5 text-muted-foreground" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border-2 bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+
+            <Icon className="h-5 w-5" />
+
+          </div>
 
         </div>
 

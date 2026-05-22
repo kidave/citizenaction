@@ -31,15 +31,15 @@ import GovernanceAvatarGroups from "@/components/governance/GovernanceAvatarGrou
 import { usePostGovernance } from "@/hooks/feed/usePostGovernance";
 
 const typeStyles = {
-  action: "bg-red-50",
+  action: "bg-gradient-to-br from-red-100 to-red-50",
 
-  report: "bg-blue-50",
+  report: "bg-gradient-to-br from-blue-100 to-blue-50",
 
-  event: "bg-green-50",
+  event: "bg-gradient-to-br from-green-100 to-green-50",
 
-  update: "bg-pink-50",
+  update: "bg-gradient-to-br from-pink-100 to-pink-50",
 
-  meeting: "bg-yellow-50",
+  meeting: "bg-gradient-to-br from-yellow-100 to-yellow-50",
 };
 
 export default function ActivityPreviewCard({
@@ -81,8 +81,15 @@ export default function ActivityPreviewCard({
         group
         cursor-pointer
         overflow-hidden
-        hover:shadow-lg
-        transition
+
+        rounded-[28px]
+
+        border-4
+
+        transition-all
+        duration-300
+
+        shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
 
         ${style}
       `}
@@ -162,7 +169,7 @@ export default function ActivityPreviewCard({
 
           {(post.details ||
             post.summary) && (
-            <div className="text-xs text-muted-foreground line-clamp-2">
+            <div className="text-sm leading-relaxed text-muted-foreground line-clamp-2">
               {post.details ||
                 post.summary}
             </div>
@@ -170,7 +177,7 @@ export default function ActivityPreviewCard({
 
           {/* DATE */}
 
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
 
             <CalendarDays className="h-3.5 w-3.5 shrink-0" />
 
@@ -255,7 +262,7 @@ export default function ActivityPreviewCard({
               "Untitled"}
           </div>
 
-          <div className="text-xs text-muted-foreground mt-3">
+          <div className="mt-4 text-sm leading-relaxed text-muted-foreground">
 
             <div className="line-clamp-[12]">
               {post.details ||

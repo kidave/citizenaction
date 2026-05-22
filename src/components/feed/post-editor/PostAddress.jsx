@@ -222,9 +222,17 @@ export default function PostAddress({
           "
         >
 
-          <div className="relative w-full h-full overflow-hidden">
+          <div
+            className="
+              relative
+              w-full
+              h-full
+              overflow-hidden
+            "
+          >
 
             {/* MAP */}
+
             <LocationMapPreview
               lat={
                 editor.lat ||
@@ -239,147 +247,173 @@ export default function PostAddress({
               }
             />
 
-            {/* SEARCH */}
+            {/* OVERLAY LAYOUT */}
+
             <div
               className="
                 absolute
-                top-2
-                left-2
-                right-2
-                sm:left-12
-                sm:right-auto
-
+                inset-0
                 z-[1000]
 
-                sm:w-[380px]
+                pointer-events-none
+
+                flex
+                flex-col
+                justify-between
+
+                p-2
+                sm:p-4
               "
             >
 
-              <div
-                className="
-                  rounded-xl
-                  border
-                  bg-background
-                  shadow-lg
-                  p-2
-                "
-              >
-
-                <LocationSearchInput
-                  value={
-                    editor.address ||
-                    ""
-                  }
-                  onChange={
-                    editor.setAddress
-                  }
-                  onSelect={
-                    handleSelect
-                  }
-                  loadingGPS={
-                    loadingGPS
-                  }
-                  onUseCurrentLocation={
-                    handleUseCurrentLocation
-                  }
-                />
-
-              </div>
-
-            </div>
-
-            {/* BOTTOM CARD */}
-            <div
-              className="
-                absolute
-                bottom-4
-                left-2
-                right-2
-                sm:left-1/2
-                sm:right-auto
-                sm:-translate-x-1/2
-
-                z-[1000]
-
-                sm:w-[520px]
-              "
-            >
+              {/* =====================================================
+                  TOP SEARCH
+              ===================================================== */}
 
               <div
                 className="
-                  rounded-2xl
-                  border
-                  bg-background
-                  shadow-xl
-                  overflow-hidden
+                  pointer-events-auto
+
+                  w-full
+                  sm:w-[380px]
+
+                  pt-14
+                  sm:pt-0
+                  sm:ml-12
                 "
               >
 
                 <div
                   className="
-                    p-4
-                    flex
-                    items-start
-                    gap-3
+                    rounded-xl
+                    border
+                    bg-background
+                    shadow-lg
+                    p-2
                   "
                 >
 
-                  <MapPin
-                    className="
-                      w-4
-                      h-4
-                      mt-0.5
-                    "
+                  <LocationSearchInput
+                    value={
+                      editor.address ||
+                      ""
+                    }
+                    onChange={
+                      editor.setAddress
+                    }
+                    onSelect={
+                      handleSelect
+                    }
+                    loadingGPS={
+                      loadingGPS
+                    }
+                    onUseCurrentLocation={
+                      handleUseCurrentLocation
+                    }
                   />
 
-                  <div className="min-w-0">
+                </div>
 
-                    <div className="text-sm font-medium">
-                      Selected Location
-                    </div>
+              </div>
 
-                    <div
+              {/* =====================================================
+                  BOTTOM CARD
+              ===================================================== */}
+
+              <div
+                className="
+                  pointer-events-auto
+                  w-full
+                  sm:max-w-[520px]
+                  sm:mx-auto
+                "
+              >
+
+                <div
+                  className="
+                    rounded-2xl
+                    border
+                    bg-background
+                    shadow-xl
+                    overflow-hidden
+                    backdrop-blur
+                  "
+                >
+
+                  <div
+                    className="
+                      p-4
+                      flex
+                      items-start
+                      gap-3
+                    "
+                  >
+
+                    <MapPin
                       className="
-                        text-sm
-                        text-muted-foreground
-                        break-words
+                        w-4
+                        h-4
+                        mt-0.5
+                        shrink-0
                       "
-                    >
-                      {editor.address ||
-                        "Move map or search"}
+                    />
+
+                    <div className="min-w-0">
+
+                      <div className="text-sm font-medium">
+                        Selected Location
+                      </div>
+
+                      <div
+                        className="
+                          text-sm
+                          text-muted-foreground
+                          break-words
+                          line-clamp-2
+                        "
+                      >
+
+                        {editor.address ||
+                          "Move map or search"}
+
+                      </div>
+
                     </div>
 
                   </div>
 
-                </div>
+                  <div
+                    className="
+                      border-t
+                      p-3
 
-                <div
-                  className="
-                    border-t
-                    p-3
-                    flex
-                    flex-col-reverse
-                    sm:flex-row
-                    justify-end
-                    gap-2
-                  "
-                >
-                  <Button
-                    variant="outline"
-                    onClick={() =>
-                      setOpen(false)
-                    }
-                  >
-                    Cancel
-                  </Button>
+                      flex
+                      flex-col-reverse
+                      sm:flex-row
 
-                  <Button
-                    onClick={() =>
-                      setOpen(false)
-                    }
+                      justify-end
+                      gap-2
+                    "
                   >
-                    Done
-                  </Button>
+
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        setOpen(false)
+                      }
+                    >
+                      Cancel
+                    </Button>
+
+                    <Button
+                      onClick={() =>
+                        setOpen(false)
+                      }
+                    >
+                      Done
+                    </Button>
+
+                  </div>
 
                 </div>
 
