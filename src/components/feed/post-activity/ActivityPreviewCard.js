@@ -239,13 +239,9 @@ export default function ActivityPreviewCard({
         className="
           absolute
           inset-0
-
           flex
           flex-col
-
-          bg-background/95
-          backdrop-blur-sm
-
+          bg-background/100
           pointer-events-none
         "
       >

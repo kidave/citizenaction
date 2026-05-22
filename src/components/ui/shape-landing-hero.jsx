@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 
 export function HeroGeometric({
   badge = "Citizen Action",
-  title1 = "Fix your",
-  title2 = "neighborhood together",
+  title1 = "Support",
+  title2 = "your cause.",
   description = "Organize civic action with your community.",
   className,
 }) {

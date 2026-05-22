@@ -1,28 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import { useSpaces } from "@/hooks/useSpaces";
+
 import { motion } from "framer-motion";
 
 import {
   ArrowRight,
-  Users,
   MapPinned,
+  Users,
   Megaphone,
   Sparkles,
   Building2,
   HeartHandshake,
   SendIcon,
-  Play,
-  CalendarDays,
-  FileText,
-  BellRing,
 } from "lucide-react";
 
 import { HeroGeometric } from "@/components/ui/shape-landing-hero";
-
-import { useFeed } from "@/hooks/feed/useFeed";
 
 import { Button } from "@/components/ui/button";
 
@@ -40,6 +33,8 @@ import {
 
 import ScrollToTop from "@/components/ui/ScrollToTop";
 
+import LiveSpaceShowcase from "@/components/layout/LiveSpaceShowcase";
+
 /* =====================================================
    BOLDKIT BADGE
 ===================================================== */
@@ -53,22 +48,15 @@ function FancyBadge({
       className={`
         inline-flex
         items-center
-
         rounded-full
-
         border-4
         border-black
-
         bg-yellow-300
-
         px-5
         py-2
-
         text-sm
         font-black
-
         shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-
         ${className}
       `}
     >
@@ -84,7 +72,9 @@ function FancyBadge({
 const features = [
   {
     icon: MapPinned,
-    title: "Fix local issues",
+
+    title:
+      "Fix local issues",
 
     desc:
       "Track roads, footpaths, drainage, safety and public infrastructure together.",
@@ -190,49 +180,6 @@ const faqs = [
 ];
 
 export default function AboutPage() {
-  const {
-    data: feed = [],
-  } = useFeed();
-
-  const {
-    data: spaces = [],
-  } = useSpaces();
-
-  const featuredSpaces =
-    spaces.slice(0, 3);
-
-  const getSpaceFeed = (
-    spaceId,
-    type
-  ) => {
-    return feed.find(
-      (f) =>
-        f.space_id === spaceId &&
-        f.type === type
-    );
-  };
-
-  const reports =
-    feed
-      ?.filter(
-        (f) => f.type === "report"
-      )
-      ?.slice(0, 3) || [];
-
-  const meetings =
-    feed
-      ?.filter(
-        (f) => f.type === "meeting"
-      )
-      ?.slice(0, 2) || [];
-
-  const updates =
-    feed
-      ?.filter(
-        (f) => f.type === "update"
-      )
-      ?.slice(0, 2) || [];
-
   return (
     <div className="relative overflow-hidden bg-background">
 
@@ -240,11 +187,7 @@ export default function AboutPage() {
           HERO
       ===================================================== */}
 
-      <HeroGeometric
-        badge="Citizen Action"
-        title1="Fix your"
-        title2="neighborhood together"
-      />
+      <HeroGeometric />
 
       {/* =====================================================
           INTRO
@@ -278,12 +221,9 @@ export default function AboutPage() {
             <h2
               className="
                 mt-6
-
                 text-4xl
                 md:text-6xl
-
                 font-black
-
                 tracking-tight
               "
             >
@@ -296,20 +236,14 @@ export default function AboutPage() {
             <p
               className="
                 mt-6
-
                 text-lg
-
                 text-muted-foreground
-
                 max-w-3xl
                 mx-auto
               "
             >
 
-              Citizen Action helps communities
-              organize real-world improvements
-              together — from cleaner streets
-              to safer walking infrastructure.
+              Citizen Action is a collaborative platform for documenting civic participation, local initiatives, and community progress.
 
             </p>
 
@@ -325,19 +259,7 @@ export default function AboutPage() {
 
       <section className="pb-28">
 
-        <div
-          className="
-            mx-auto
-            max-w-7xl
-            px-6
-
-            grid
-            grid-cols-1
-            md:grid-cols-2
-
-            gap-6
-          "
-        >
+        <div className="mx-auto max-w-7xl px-6 grid grid-cols-1 md:grid-cols-2 gap-6">
 
           {features.map(
             (
@@ -372,14 +294,10 @@ export default function AboutPage() {
                   <Card
                     className="
                       rounded-3xl
-
                       border-4
-
                       shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]
-
                       hover:-translate-y-1
                       transition
-
                       overflow-hidden
                     "
                   >
@@ -396,11 +314,9 @@ export default function AboutPage() {
                           w-16
                           h-16
                           rounded-2xl
-
                           flex
                           items-center
                           justify-center
-
                           ${feature.color}
                         `}
                       >
@@ -472,341 +388,7 @@ export default function AboutPage() {
           COMMUNITY SPACES
       ===================================================== */}
 
-      {featuredSpaces.length > 0 && (
-
-      <section className="pb-32">
-
-        <div className="mx-auto max-w-7xl px-6">
-
-          <div className="text-center">
-
-            <FancyBadge>
-              Live Community Showcase
-            </FancyBadge>
-
-            <h2
-              className="
-                mt-6
-
-                text-4xl
-                md:text-6xl
-
-                font-black
-              "
-            >
-
-              Communities documenting
-              collaborative progress.
-
-            </h2>
-
-            <p
-              className="
-                mt-6
-
-                text-muted-foreground
-
-                max-w-3xl
-                mx-auto
-
-                text-lg
-              "
-            >
-
-              Citizen Action helps organizations,
-              institutions and communities share
-              updates, meetings, initiatives and
-              visible civic collaboration.
-
-            </p>
-
-          </div>
-
-          {/* =====================================================
-              SPACE ROWS
-          ===================================================== */}
-
-          <div className="mt-20 space-y-8">
-
-            {featuredSpaces.map(
-              (space, index) => {
-
-                const update =
-                  getSpaceFeed(
-                    space.id,
-                    "update"
-                  );
-
-                const meeting =
-                  getSpaceFeed(
-                    space.id,
-                    "meeting"
-                  );
-
-                const report =
-                  getSpaceFeed(
-                    space.id,
-                    "report"
-                  );
-
-                const event =
-                  getSpaceFeed(
-                    space.id,
-                    "event"
-                  );
-
-                return (
-                  <motion.div
-                    key={space.id}
-                    initial={{
-                      opacity: 0,
-                      y: 40,
-                    }}
-                    whileInView={{
-                      opacity: 1,
-                      y: 0,
-                    }}
-                    viewport={{
-                      once: true,
-                    }}
-                    transition={{
-                      delay:
-                        index * 0.1,
-                    }}
-                  >
-
-                    <Card
-                      className="
-                        rounded-[32px]
-
-                        border-4
-
-                        overflow-hidden
-
-                        shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]
-
-                        hover:-translate-y-1
-
-                        transition-all
-                      "
-                    >
-
-                      <CardContent
-                        className="
-                          p-8
-
-                          flex
-                          flex-col
-                          xl:flex-row
-
-                          gap-8
-                        "
-                      >
-
-                        {/* =====================================================
-                            SPACE INFO
-                        ===================================================== */}
-
-                        <div
-                          className="
-                            xl:w-[340px]
-
-                            flex-shrink-0
-                          "
-                        >
-
-                          {/* LOGO */}
-
-                          <div
-                            className="
-                              h-24
-                              w-24
-
-                              rounded-3xl
-
-                              overflow-hidden
-
-                              border-4
-
-                              bg-muted
-                            "
-                          >
-
-                            {space.logo_url ? (
-                              <Image
-                                src={
-                                  space.logo_url
-                                }
-                                alt={
-                                  space.name
-                                }
-                                width={96}
-                                height={96}
-                                className="
-                                  h-full
-                                  w-full
-                                  object-cover
-                                "
-                              />
-                            ) : (
-                              <div
-                                className="
-                                  h-full
-                                  w-full
-
-                                  flex
-                                  items-center
-                                  justify-center
-
-                                  text-3xl
-                                  font-black
-                                "
-                              >
-
-                                {space.name?.[0]}
-
-                              </div>
-                            )}
-
-                          </div>
-
-                          {/* TITLE */}
-
-                          <h3
-                            className="
-                              mt-6
-
-                              text-3xl
-
-                              font-black
-                            "
-                          >
-
-                            {space.name}
-
-                          </h3>
-
-                          {/* DESC */}
-
-                          <p
-                            className="
-                              mt-4
-
-                              text-muted-foreground
-
-                              leading-relaxed
-                            "
-                          >
-
-                            {space.description}
-
-                          </p>
-
-                          {/* BADGES */}
-
-                          <div className="mt-6 flex flex-wrap gap-3">
-
-                            <FancyBadge className="bg-pink-200">
-                              {space.scope_type ||
-                                "Community"}
-                            </FancyBadge>
-
-                            {space.scope_code && (
-                              <FancyBadge className="bg-blue-200">
-                                {space.scope_code}
-                              </FancyBadge>
-                            )}
-
-                          </div>
-
-                          {/* CTA */}
-
-                          <Button
-                            className="
-                              mt-8
-
-                              rounded-2xl
-
-                              font-black
-                            "
-                            asChild
-                          >
-
-                            <Link
-                              href={`/space/${space.slug}`}
-                            >
-
-                              View Space
-
-                              <ArrowRight className="ml-2 h-4 w-4" />
-
-                            </Link>
-
-                          </Button>
-
-                        </div>
-
-                        {/* =====================================================
-                            FEED ROW
-                        ===================================================== */}
-
-                        <div
-                          className="
-                            flex-1
-
-                            grid
-                            grid-cols-1
-                            md:grid-cols-2
-
-                            gap-4
-                          "
-                        >
-
-                          
-
-                          {update && (
-                            <FeedPreview
-                              color="bg-pink-100"
-                              title="Recent Update"
-                              icon={
-                                <BellRing className="h-4 w-4" />
-                              }
-                              item={update}
-                            />
-                          )}
-
-                          {(report ||
-                            event) && (
-                            <FeedPreview
-                              color="bg-blue-100"
-                              title="Latest Documentation"
-                              icon={
-                                <FileText className="h-4 w-4" />
-                              }
-                              item={
-                                report || event
-                              }
-                            />
-                          )}
-
-                        </div>
-
-                      </CardContent>
-
-                    </Card>
-
-                  </motion.div>
-                );
-              }
-            )}
-
-          </div>
-
-        </div>
-
-      </section>
-
-      )}
+      <LiveSpaceShowcase />
 
       {/* =====================================================
           BIG CTA
@@ -819,18 +401,12 @@ export default function AboutPage() {
           <div
             className="
               relative
-
               overflow-hidden
-
               rounded-[40px]
-
               border-4
-
               bg-yellow-300
-
               p-12
               md:p-20
-
               shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]
             "
           >
@@ -866,27 +442,22 @@ export default function AboutPage() {
             <h2
               className="
                 mt-6
-
                 text-4xl
                 md:text-6xl
-
                 font-black
-
                 max-w-3xl
               "
             >
 
               Create a civic space
-              for your neighborhood.
+              for your cause.
 
             </h2>
 
             <p
               className="
                 mt-6
-
                 text-lg
-
                 max-w-2xl
               "
             >
@@ -1001,10 +572,8 @@ export default function AboutPage() {
           <h2
             className="
               mt-6
-
               text-4xl
               md:text-6xl
-
               font-black
             "
           >
@@ -1039,147 +608,6 @@ export default function AboutPage() {
       </section>
 
       <ScrollToTop />
-
-    </div>
-  );
-}
-
-function FeedPreview({
-  color,
-  title,
-  icon,
-  item,
-}) {
-  const attachment =
-    item.attachments?.[0];
-
-  const isImage =
-    attachment?.type?.startsWith(
-      "image"
-    );
-
-  const isPdf =
-    attachment?.type?.includes(
-      "pdf"
-    );
-
-  return (
-    <div
-      className={`
-        rounded-3xl
-
-        border-2
-
-        overflow-hidden
-
-        ${color}
-      `}
-    >
-
-      {/* PREVIEW */}
-
-      {attachment?.url && (
-        <div className="relative h-40">
-
-          {isImage ? (
-            <Image
-              src={attachment.url}
-              alt={item.summary}
-              fill
-              className="object-cover"
-            />
-          ) : isPdf ? (
-            <div
-              className="
-                h-full
-                w-full
-
-                flex
-                items-center
-                justify-center
-
-                bg-white
-
-                text-sm
-                font-semibold
-              "
-            >
-
-              PDF Document
-
-            </div>
-          ) : (
-            <div
-              className="
-                h-full
-                w-full
-
-                flex
-                items-center
-                justify-center
-
-                bg-white
-
-                text-sm
-                font-semibold
-              "
-            >
-
-              Attachment
-
-            </div>
-          )}
-
-        </div>
-      )}
-
-      {/* CONTENT */}
-
-      <div className="p-4">
-
-        <div className="flex items-center gap-2">
-
-          {icon}
-
-          <div className="font-black text-sm">
-            {title}
-          </div>
-
-        </div>
-
-        <div
-          className="
-            mt-3
-
-            font-semibold
-
-            line-clamp-2
-          "
-        >
-
-          {item.summary}
-
-        </div>
-
-        {item.details && (
-          <div
-            className="
-              mt-2
-
-              text-sm
-
-              text-muted-foreground
-
-              line-clamp-3
-            "
-          >
-
-            {item.details}
-
-          </div>
-        )}
-
-      </div>
 
     </div>
   );

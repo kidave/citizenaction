@@ -57,6 +57,14 @@ export default function PostTypeSelector({
   setType,
 }) {
   return (
+    <div
+      className="
+        w-full
+        overflow-x-auto
+        scrollbar-hide
+      "
+    >
+
       <ToggleGroup
         type="single"
         value={type}
@@ -64,8 +72,14 @@ export default function PostTypeSelector({
           v && setType(v)
         }
         variant="outline"
-        className="w-max min-w-full justify-start"
+        className="
+          w-max
+          min-w-max
+          justify-start
+          flex-nowrap
+        "
       >
+
         {TYPES.map((t, i) => {
           const Icon = t.icon;
 
@@ -77,11 +91,13 @@ export default function PostTypeSelector({
                 rounded-none
                 gap-2
                 shrink-0
+
                 ${
                   i === 0
                     ? "rounded-l-md"
                     : ""
                 }
+
                 ${
                   i === TYPES.length - 1
                     ? "rounded-r-md"
@@ -89,33 +105,47 @@ export default function PostTypeSelector({
                 }
               `}
             >
+
               <Tooltip>
+
                 <TooltipTrigger asChild>
+
                   <span
                     className="
                       flex
                       items-center
                       gap-2
                       cursor-pointer
+                      whitespace-nowrap
                     "
                   >
-                    <Icon className="h-4 w-4" />
+
+                    <Icon className="h-4 w-4 shrink-0" />
 
                     <span>
                       {t.label}
                     </span>
+
                   </span>
+
                 </TooltipTrigger>
 
                 <TooltipContent>
+
                   <p className="text-xs max-w-[200px]">
                     {t.desc}
                   </p>
+
                 </TooltipContent>
+
               </Tooltip>
+
             </ToggleGroupItem>
           );
         })}
+
       </ToggleGroup>
+
+    </div>
   );
 }

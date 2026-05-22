@@ -222,7 +222,7 @@ export default function PostAddress({
           "
         >
 
-          <div className="relative w-full h-full">
+          <div className="relative w-full h-full overflow-hidden">
 
             {/* MAP */}
             <LocationMapPreview
@@ -244,11 +244,14 @@ export default function PostAddress({
               className="
                 absolute
                 top-2
-                left-12
+                left-2
+                right-2
+                sm:left-12
+                sm:right-auto
+
                 z-[1000]
 
-                w-[380px]
-                max-w-[calc(100vw-2rem)]
+                sm:w-[380px]
               "
             >
 
@@ -290,13 +293,15 @@ export default function PostAddress({
               className="
                 absolute
                 bottom-4
-                left-1/2
-                -translate-x-1/2
+                left-2
+                right-2
+                sm:left-1/2
+                sm:right-auto
+                sm:-translate-x-1/2
 
                 z-[1000]
 
-                w-[520px]
-                max-w-[calc(100vw-2rem)]
+                sm:w-[520px]
               "
             >
 
@@ -353,6 +358,8 @@ export default function PostAddress({
                     border-t
                     p-3
                     flex
+                    flex-col-reverse
+                    sm:flex-row
                     justify-end
                     gap-2
                   "
