@@ -44,7 +44,7 @@ function MyApp({ Component, pageProps }) {
               <RouteLoader />
 
               <ErrorBoundary>
-                <main className="md:pb-0">
+                <main className="pb-20 md:pb-0">
                   {getLayout(<Component {...pageProps} />)}
                 </main>
 

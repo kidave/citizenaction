@@ -88,10 +88,7 @@
   display: none;
 }
 
-html {
+html,
+body {
   overflow-x: hidden;
-}
-
-* {
-  min-width: 0;
 }

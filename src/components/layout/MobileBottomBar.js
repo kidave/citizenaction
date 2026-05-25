@@ -19,23 +19,8 @@ export default function MobileBottomBar() {
   const { data: profile } = useMyProfile();
 
   return (
-    <div
-      className="
-        fixed
-        inset-x-0
-        bottom-0
-        z-40
-        flex
-        items-center
-        justify-around
-        border-t
-        border-border/50
-        bg-background/80
-        backdrop-blur-xl
-        supports-[backdrop-filter]:bg-background/60
-        md:hidden
-      "
-    >
+    <div className="fixed bottom-0 left-0 right-0 z-40 flex h-16 items-center justify-around border-t bg-background md:hidden">
+
       {/* HOME */}
       <button
         onClick={() => router.push("/")}
