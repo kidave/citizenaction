@@ -26,7 +26,6 @@ export default function MobileBottomBar() {
         bottom-0
         z-40
         flex
-        h-[calc(64px+env(safe-area-inset-bottom))]
         items-center
         justify-around
         border-t
@@ -34,7 +33,6 @@ export default function MobileBottomBar() {
         bg-background/80
         backdrop-blur-xl
         supports-[backdrop-filter]:bg-background/60
-        pb-[env(safe-area-inset-bottom)]
         md:hidden
       "
     >
