@@ -77,7 +77,7 @@ export default function CreatePostTrigger() {
             from-background
             to-muted/40
 
-            shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]
+            shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
           "
         >
 
@@ -146,11 +146,7 @@ export default function CreatePostTrigger() {
                     className="
                       h-12
                       w-12
-
-                      border-4
-
-                      shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-
+                      border-2
                       cursor-pointer
                     "
                   >
@@ -186,7 +182,7 @@ export default function CreatePostTrigger() {
                     h-12
                     w-12
 
-                    border-4
+                    border-2
 
                     shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
 
@@ -235,7 +231,7 @@ export default function CreatePostTrigger() {
 
                     rounded-2xl
 
-                    border-4
+                    border-2
 
                     bg-white/80
 
@@ -246,8 +242,6 @@ export default function CreatePostTrigger() {
 
                     transition-all
                     duration-300
-
-                    shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]
                   "
                 >
 
@@ -322,21 +316,13 @@ export default function CreatePostTrigger() {
                         flex
                         items-center
                         justify-center
-
                         h-10
                         w-10
-
                         shrink-0
-
                         rounded-full
-
                         border-4
-
                         bg-black
-
                         text-white
-
-                        shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
                       "
                     >
 

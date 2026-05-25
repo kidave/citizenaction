@@ -1,181 +1,89 @@
 "use client";
 
 import Link from "next/link";
-
 import { motion } from "framer-motion";
-
-import {
-  ArrowRight,
-  MapPinned,
-  Users,
-  Megaphone,
-  Sparkles,
-  Building2,
-  HeartHandshake,
-  SendIcon,
-} from "lucide-react";
-
+import { ArrowRight, MapPinned, Users, Megaphone, Sparkles, Building2, HeartHandshake, SendIcon } from "lucide-react";
 import { HeroGeometric } from "@/components/ui/shape-landing-hero";
-
 import { Button } from "@/components/ui/button";
-
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
-
-import ScrollToTop from "@/components/ui/ScrollToTop";
-
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Card, CardContent } from "@/components/ui/card";
+import FancyBadge from "@/components/ui/FancyBadge";
 import LiveSpaceShowcase from "@/components/layout/LiveSpaceShowcase";
-
-/* =====================================================
-   BOLDKIT BADGE
-===================================================== */
-
-function FancyBadge({
-  children,
-  className = "",
-}) {
-  return (
-    <div
-      className={`
-        inline-flex
-        items-center
-        rounded-full
-        border-4
-        border-black
-        bg-yellow-300
-        px-5
-        py-2
-        text-sm
-        font-black
-        shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-        ${className}
-      `}
-    >
-      {children}
-    </div>
-  );
-}
-
-/* =====================================================
-   FEATURES
-===================================================== */
+import ScrollButton from "@/components/ui/ScrollButton";
 
 const features = [
   {
     icon: MapPinned,
-
     title:
       "Fix local issues",
-
     desc:
       "Track roads, footpaths, drainage, safety and public infrastructure together.",
-
     color:
       "bg-pink-100",
   },
 
   {
     icon: Users,
-
     title:
       "Build real communities",
-
     desc:
       "Create spaces for buildings, neighborhoods, wards and civic groups.",
-
     color:
       "bg-blue-100",
   },
 
   {
     icon: Megaphone,
-
     title:
       "Make voices visible",
-
     desc:
       "Document meetings, updates and civic actions publicly.",
-
     color:
       "bg-yellow-100",
   },
 
   {
     icon: Building2,
-
     title:
       "Coordinate better",
-
     desc:
       "Organize members, responsibilities and local initiatives clearly.",
-
     color:
       "bg-green-100",
   },
 ];
 
-/* =====================================================
-   FAQ
-===================================================== */
-
 const faqs = [
   {
     id: "1",
-
     title:
-      "Do I need to be a politician?",
-
+      "Do I need to be an expert?",
     content:
       "No. Anyone can join and help improve their neighborhood.",
   },
 
   {
     id: "2",
-
     title:
-      "Can I create my own community?",
-
+      "Can I create my own Space?",
     content:
-      "Yes. You can create spaces for buildings, streets, localities or causes.",
+      "Yes. You can create spaces for your cause.",
   },
 
   {
     id: "3",
-
     title:
       "What can people do here?",
-
     content:
-      "People can organize meetings, report problems, share updates and coordinate civic work.",
+      "People can organize events and meetings, document reports, share updates and coordinate actions.",
   },
 
   {
     id: "4",
-
     title:
       "Is this like social media?",
-
     content:
-      "Not really. Citizen Action focuses on real civic coordination instead of likes and followers.",
-  },
-
-  {
-    id: "5",
-
-    title:
-      "Can NGOs and local groups join?",
-
-    content:
-      "Yes. Resident groups, NGOs and civic volunteers can all create spaces.",
+      "No. Citizen Action focuses on documenting actions and coordination. It's not for sharing personal updates or photos.",
   },
 ];
 
@@ -295,7 +203,7 @@ export default function AboutPage() {
                     className="
                       rounded-3xl
                       border-4
-                      shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]
+                      shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]
                       hover:-translate-y-1
                       transition
                       overflow-hidden
@@ -407,7 +315,7 @@ export default function AboutPage() {
               bg-yellow-300
               p-12
               md:p-20
-              shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]
+              shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]
             "
           >
 
@@ -607,7 +515,8 @@ export default function AboutPage() {
 
       </section>
 
-      <ScrollToTop />
+
+      <ScrollButton />
 
     </div>
   );

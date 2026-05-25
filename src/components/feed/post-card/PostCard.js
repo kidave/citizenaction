@@ -108,7 +108,7 @@ export default function PostCard({
         transition-all
         duration-300
         
-        shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]
+        shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]
 
         ${
           typeStyles[
