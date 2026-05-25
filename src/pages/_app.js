@@ -1,57 +1,107 @@
 import Head from "next/head";
+
 import "@/styles/main.css";
 
+import {
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
+
 import { AuthProvider } from "@/context/AuthContext";
-import Layout from "@/components/layout/Layout";
-import { Toaster } from "sonner";
+
 import { MediaProvider } from "@/context/MediaContext";
+
+import Layout from "@/components/layout/Layout";
+
 import ErrorBoundary from "@/components/system/ErrorBoundary";
+
 import RouteLoader from "@/components/system/RouteLoader";
+
 import MobileBottomBar from "@/components/layout/MobileBottomBar";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "sonner";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000,
-      cacheTime: 30 * 60 * 1000,
-      refetchOnWindowFocus: false,
-      retry: 1,
+const queryClient =
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime:
+          5 * 60 * 1000,
+
+        cacheTime:
+          30 * 60 * 1000,
+
+        refetchOnWindowFocus:
+          false,
+
+        retry: 1,
+      },
     },
-  },
-});
+  });
 
-function MyApp({ Component, pageProps }) {
-  const getLayout = Component.getLayout || ((page) => page);
+function MyApp({
+  Component,
+  pageProps,
+}) {
+  const getLayout =
+    Component.getLayout ||
+    ((page) => page);
 
   return (
     <>
       <Head>
         <title key="title">
-          Citizen Action - Mumbai Sustainability Center
+          Citizen Action -
+          Mumbai Sustainability
+          Center
         </title>
 
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta
+          name="viewport"
+          content="
+            width=device-width,
+            initial-scale=1,
+            viewport-fit=cover
+          "
+        />
 
-        <link rel="icon" href="/favicon.ico" />
+        <link
+          rel="icon"
+          href="/favicon.ico"
+        />
       </Head>
 
-      <QueryClientProvider client={queryClient}>
+      <QueryClientProvider
+        client={queryClient}
+      >
         <AuthProvider>
           <MediaProvider>
             <Layout>
               <RouteLoader />
 
               <ErrorBoundary>
-                <main className="pb-20 md:pb-0">
-                  {getLayout(<Component {...pageProps} />)}
+                <main
+                  className="
+                    w-full
+                    min-w-0
+                    pb-24
+                    md:pb-0
+                  "
+                >
+                  {getLayout(
+                    <Component
+                      {...pageProps}
+                    />
+                  )}
                 </main>
 
                 <MobileBottomBar />
               </ErrorBoundary>
 
-              <Toaster richColors position="top-right" />
+              <Toaster
+                richColors
+                position="top-right"
+              />
             </Layout>
           </MediaProvider>
         </AuthProvider>

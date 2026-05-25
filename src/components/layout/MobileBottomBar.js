@@ -1,72 +1,202 @@
 "use client";
 
+import { motion } from "framer-motion";
+
 import { useRouter } from "next/router";
-import { Home, CirclePlus, Menu } from "lucide-react";
+
+import {
+  Home,
+  CirclePlus,
+  Menu,
+} from "lucide-react";
+
 import { useSidebar } from "@/components/ui/sidebar";
-import { useMyProfile } from "@/hooks/user/useMyProfile";
-import { useAuth } from "@/context/AuthContext";
 
 import {
   Avatar,
-  AvatarImage,
   AvatarFallback,
+  AvatarImage,
 } from "@/components/ui/avatar";
+
+import { useAuth } from "@/context/AuthContext";
+
+import { useMyProfile } from "@/hooks/user/useMyProfile";
 
 export default function MobileBottomBar() {
   const router = useRouter();
-  const { toggleSidebar } = useSidebar();
+
+  const { toggleSidebar } =
+    useSidebar();
+
   const { user } = useAuth();
-  const { data: profile } = useMyProfile();
+
+  const { data: profile } =
+    useMyProfile();
+
+  const pathname =
+    router.pathname;
+
+  const dockItem = (
+    active = false
+  ) => `
+    relative
+    flex
+    h-12
+    w-12
+    items-center
+    justify-center
+    rounded-2xl
+    transition-all
+    duration-300
+    ${
+      active
+        ? `
+          bg-white/20
+          text-foreground
+          shadow-md
+        `
+        : `
+          text-muted-foreground
+          hover:bg-white/10
+          hover:text-foreground
+        `
+    }
+  `;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 flex h-16 items-center justify-around border-t bg-background md:hidden">
-
+    <motion.div
+      initial={{
+        opacity: 0,
+        y: 100,
+      }}
+      animate={{
+        opacity: 1,
+        y: 0,
+      }}
+      transition={{
+        type: "spring",
+        stiffness: 260,
+        damping: 22,
+      }}
+      className="
+        fixed
+        bottom-4
+        inset-x-0
+        mx-auto
+        z-50
+        flex
+        h-[72px]
+        w-[260px]
+        items-center
+        justify-between
+        rounded-[32px]
+        border
+        border-white/20
+        bg-background/60
+        px-4
+        shadow-[0_8px_32px_rgba(0,0,0,0.12)]
+        backdrop-blur-2xl
+        backdrop-saturate-150
+        supports-[backdrop-filter]:bg-background/40
+        md:hidden
+      "
+    >
       {/* HOME */}
-      <button
-        onClick={() => router.push("/")}
-        className="flex flex-col items-center text-muted-foreground"
+      <motion.button
+        whileTap={{
+          scale: 0.9,
+        }}
+        whileHover={{
+          scale: 1.05,
+        }}
+        onClick={() =>
+          router.push("/")
+        }
+        className={dockItem(
+          pathname === "/"
+        )}
       >
         <Home className="h-5 w-5" />
-        <span className="text-xs">Home</span>
-      </button>
+      </motion.button>
 
-      {/* CREATE POST (Center Floating Button) */}
-      <button
+      {/* CREATE */}
+      <motion.button
+        whileTap={{
+          scale: 0.92,
+        }}
+        whileHover={{
+          scale: 1.08,
+        }}
         onClick={() =>
           user
-            ? router.push("/action")
-            : router.push("/auth/login")
+            ? router.push(
+                "/action"
+              )
+            : router.push(
+                "/auth/login"
+              )
         }
-        className="relative -mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg"
+        className="
+          relative
+          flex
+          h-14
+          w-14
+          items-center
+          justify-center
+          rounded-[20px]
+          border
+          border-white/30
+          bg-white/20
+          text-foreground
+          shadow-[0_4px_20px_rgba(255,255,255,0.15)]
+          backdrop-blur-xl
+        "
       >
-        <CirclePlus className="h-6 w-6" />
-      </button>
+        {/* Glow */}
+        <div
+          className="
+            absolute
+            inset-0
+            rounded-[20px]
+            bg-white/10
+            blur-xl
+          "
+        />
 
-      {/* RIGHT SIDE */}
-      {user ? (
-        // Logged In → Show Avatar
-        <button
-          onClick={toggleSidebar}
-          className="flex flex-col items-center"
-        >
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={profile?.avatar_url || undefined} />
+        <CirclePlus className="relative z-10 h-6 w-6" />
+      </motion.button>
+
+      {/* PROFILE / MENU */}
+      <motion.button
+        whileTap={{
+          scale: 0.9,
+        }}
+        whileHover={{
+          scale: 1.05,
+        }}
+        onClick={
+          toggleSidebar
+        }
+        className={dockItem()}
+      >
+        {user ? (
+          <Avatar className="h-12 w-12 border border-white/20">
+            <AvatarImage
+              src={
+                profile?.avatar_url ||
+                undefined
+              }
+            />
+
             <AvatarFallback>
-              {profile?.name?.[0] || "U"}
+              {profile?.name?.[0] ||
+                "U"}
             </AvatarFallback>
           </Avatar>
-        </button>
-      ) : (
-        // Not Logged In → Show Menu Icon
-        <button
-          onClick={toggleSidebar}
-          className="flex flex-col items-center text-muted-foreground"
-        >
-          <Menu className="h-6 w-6" />
-          <span className="text-xs">Menu</span>
-        </button>
-      )}
-
-    </div>
+        ) : (
+          <Menu className="h-5 w-5" />
+        )}
+      </motion.button>
+    </motion.div>
   );
 }

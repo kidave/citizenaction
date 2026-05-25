@@ -4,27 +4,43 @@ import CreatePostTrigger from "@/components/feed/CreatePostTrigger";
 
 export default function Home() {
   return (
-    <div className="flex justify-center w-full min-h-screen">
-      {/* CENTERED CONTENT AREA WITH FIXED WIDTH */}
-      <div className="flex w-full max-w-[1200px] px-0 sm:px-4">
-        
-        {/* CENTERED CONTENT WRAPPER */}
-        <div className="flex w-full justify-center">
-          
-          {/* FEED - FIXED WIDTH */}
-          <div className="w-full max-w-[680px] pt-0 sm:pt-4">
-            <CreatePostTrigger />          
-            {/* FEED CONTENT */}
-            <Feed />
-          </div>
-          
-          {/* RIGHT SIDEBAR - FIXED WIDTH, ONLY ON LARGE SCREENS */}
-          <div className="hidden xl:block w-[320px] ml-4">
-            <RightSidebar />
-          </div>
-          
-        </div>
-        
+    <div
+      className="
+        mx-auto
+        flex
+        w-full
+        max-w-[1200px]
+        min-w-0
+        justify-center
+        px-2
+        sm:px-4
+      "
+    >
+      {/* FEED */}
+      <div
+        className="
+          w-full
+          max-w-[680px]
+          min-w-0
+          pt-0
+          sm:pt-4
+        "
+      >
+        <CreatePostTrigger />
+
+        <Feed />
+      </div>
+
+      {/* RIGHT SIDEBAR */}
+      <div
+        className="
+          ml-4
+          hidden
+          w-[320px]
+          xl:block
+        "
+      >
+        <RightSidebar />
       </div>
     </div>
   );
