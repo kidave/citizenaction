@@ -12,15 +12,7 @@ import {
 
 import { useSidebar } from "@/components/ui/sidebar";
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar";
-
 import { useAuth } from "@/context/AuthContext";
-
-import { useMyProfile } from "@/hooks/user/useMyProfile";
 
 export default function MobileBottomBar() {
   const router = useRouter();
@@ -29,9 +21,6 @@ export default function MobileBottomBar() {
     useSidebar();
 
   const { user } = useAuth();
-
-  const { data: profile } =
-    useMyProfile();
 
   const pathname =
     router.pathname;
@@ -80,10 +69,9 @@ export default function MobileBottomBar() {
       }}
       className="
         fixed
-        bottom-4
         inset-x-0
-        mx-auto
         z-50
+        mx-auto
         flex
         h-[72px]
         w-[260px]
@@ -100,6 +88,10 @@ export default function MobileBottomBar() {
         supports-[backdrop-filter]:bg-background/40
         md:hidden
       "
+      style={{
+        bottom:
+          "max(12px, env(safe-area-inset-bottom))",
+      }}
     >
       {/* HOME */}
       <motion.button
@@ -152,7 +144,7 @@ export default function MobileBottomBar() {
           backdrop-blur-xl
         "
       >
-        {/* Glow */}
+        {/* GLOW */}
         <div
           className="
             absolute
@@ -166,7 +158,7 @@ export default function MobileBottomBar() {
         <CirclePlus className="relative z-10 h-6 w-6" />
       </motion.button>
 
-      {/* PROFILE / MENU */}
+      {/* SIDEBAR */}
       <motion.button
         whileTap={{
           scale: 0.9,
@@ -179,23 +171,7 @@ export default function MobileBottomBar() {
         }
         className={dockItem()}
       >
-        {user ? (
-          <Avatar className="h-12 w-12 border border-white/20">
-            <AvatarImage
-              src={
-                profile?.avatar_url ||
-                undefined
-              }
-            />
-
-            <AvatarFallback>
-              {profile?.name?.[0] ||
-                "U"}
-            </AvatarFallback>
-          </Avatar>
-        ) : (
-          <Menu className="h-5 w-5" />
-        )}
+        <Menu className="h-5 w-5" />
       </motion.button>
     </motion.div>
   );
