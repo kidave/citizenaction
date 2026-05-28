@@ -1,19 +1,13 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
-
 import { createServerSupabase } from "@/lib/supabase/server";
-
 import { usePost } from "@/hooks/feed/usePost";
 import { useAuth } from "@/context/AuthContext";
-
 import PostCard from "@/components/feed/post-card/PostCard";
 import PostEditorModal from "@/components/feed/post-editor/PostEditorModal";
-
 import { useDeletePost } from "@/hooks/feed/useDeletePost";
-
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import BackButton from "@/components/ui/back-button";
 
 /* =====================================================
    SERVER
@@ -248,9 +242,7 @@ export default function SinglePostPage({ postId, initialPost }) {
 
         <div className="sticky top-0 z-40 border-b bg-background">
           <div className="mx-auto flex h-14 max-w-4xl items-center px-3 sm:h-16 sm:px-4">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+            <BackButton />
 
             <span className="ml-3 font-medium">Post</span>
           </div>

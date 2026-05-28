@@ -1,15 +1,12 @@
 // pages/space/[space].js
-
 "use client";
 
 import { useState } from "react";
-
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
-
 import {
   Card,
   CardHeader,
@@ -18,6 +15,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import BackButton from "@/components/ui/back-button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PageHeaderSkeleton from "@/components/skeletons/PageHeaderSkeleton";
@@ -90,11 +88,7 @@ export default function SpacePage() {
       <header className="space-y-4">
         <div className="flex items-center gap-4">
           {/* BACK */}
-          <Link href="/">
-            <div className="inline-flex items-center justify-center rounded-md border p-2 hover:bg-muted">
-              <ArrowLeft className="h-4 w-4" />
-            </div>
-          </Link>
+          <BackButton />
 
           {/* LOGO */}
           {space.logo_url && (

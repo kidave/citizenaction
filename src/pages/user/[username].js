@@ -4,24 +4,18 @@ import { useState } from "react";
 
 import { useRouter } from "next/router";
 import Link from "next/link";
-
-import { ArrowLeft, MoreVertical, AlertTriangle } from "lucide-react";
-
+import BackButton from "@/components/ui/back-button";
+import { MoreVertical, AlertTriangle } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
-
 import { usePublicProfile } from "@/hooks/user/usePublicProfile";
-
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
 import {
   Dialog,
   DialogContent,
@@ -30,13 +24,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
 import { Button } from "@/components/ui/button";
-
 import { Skeleton } from "@/components/ui/skeleton";
-
 import { Separator } from "@/components/ui/separator";
-
 import { toast } from "sonner";
 
 export default function PublicProfilePage() {
@@ -89,9 +79,7 @@ export default function PublicProfilePage() {
         <div className="w-full max-w-lg">
           {/* Header */}
           <div className="mb-4 flex items-center justify-between">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
+            <BackButton label="Back" />
 
             {profile.is_self && (
               <DropdownMenu>

@@ -1,24 +1,33 @@
-// schemas/spaceApplication.js
 import { z } from "zod";
 
 export const spaceApplicationSchema = z.object({
-  proposed_name: z.string().min(3),
+  proposed_name: z.string().min(3, "Organization name is required"),
 
   proposed_slug: z
     .string()
     .min(3)
     .regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers and hyphens"),
 
+  category: z.string().optional(),
+
   email: z.string().email("Invalid email address"),
+
+  contact_number: z.string().min(7),
+
+  address: z.string().optional(),
 
   website: z.string().url("Invalid website URL").optional().or(z.literal("")),
 
-  contact_number: z
-    .string()
-    .regex(/^[0-9+\-\s]{7,15}$/, "Invalid contact number")
-    .or(z.literal("")),
+  description: z.string().min(20, "Please add a short description"),
 
-  description: z.string().optional(),
+  justification: z.string().min(20, "Tell us why this space should exist"),
 
-  justification: z.string().min(20),
+  social_links: z
+    .array(
+      z.object({
+        platform: z.string(),
+        value: z.string(),
+      }),
+    )
+    .optional(),
 });
