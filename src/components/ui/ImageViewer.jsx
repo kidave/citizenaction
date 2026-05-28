@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 import Lightbox from "yet-another-react-lightbox";
 
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
@@ -15,61 +13,37 @@ export default function ImageViewer({
   startIndex = 0,
 }) {
 
-  const [currentIndex, setCurrentIndex] =
-    useState(startIndex);
-
   /* =========================================
-     RESET INDEX ONLY WHEN OPENING
+     SAFETY
   ========================================= */
 
-  useEffect(() => {
+  if (!images?.length) {
+    return null;
+  }
 
-    if (open) {
-      setCurrentIndex(startIndex);
-    }
-
-  }, [open, startIndex]);
+  const safeIndex = Math.min(
+    Math.max(startIndex, 0),
+    images.length - 1
+  );
 
   return (
     <Lightbox
+      key={safeIndex}
       open={open}
-
-      close={onClose}
-
-      index={currentIndex}
-
+      close={() => {
+        onClose?.();
+      }}
       slides={images.map((img) => ({
         src: img.url,
       }))}
-
+      index={safeIndex}
       plugins={[Zoom]}
-
       carousel={{
         finite: false,
       }}
-
-      controller={{
-        closeOnBackdropClick: true,
+      animation={{
+        swipe: 250,
       }}
-
-      on={{
-        view: ({ index }) => {
-          setCurrentIndex(index);
-        },
-      }}
-
-      render={{
-        buttonPrev:
-          images.length <= 1
-            ? () => null
-            : undefined,
-
-        buttonNext:
-          images.length <= 1
-            ? () => null
-            : undefined,
-      }}
-
       zoom={{
         maxZoomPixelRatio: 3,
         zoomInMultiplier: 2,
