@@ -5,12 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -33,7 +28,6 @@ import { spaceUpdateSchema } from "@/schemas/space";
 import { supabase } from "@/lib/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
-
 export default function SpaceSettings() {
   const router = useRouter();
   const slug = router.query.space;
@@ -54,10 +48,7 @@ export default function SpaceSettings() {
   });
 
   /* ---------- LOAD COMMUNITY ---------- */
-  const {
-    data: space,
-    isLoading,
-  } = useSpaces({
+  const { data: space, isLoading } = useSpaces({
     slug,
     privateAccess: true,
     enabled: !!slug,
@@ -81,7 +72,7 @@ export default function SpaceSettings() {
   const handleSave = () => {
     setShowSaveDialog(true);
   };
-  
+
   /* ---------- SAVE ---------- */
   const confirmSave = async () => {
     setSaving(true);
@@ -101,12 +92,8 @@ export default function SpaceSettings() {
       }
 
       toast.success("Settings updated successfully");
-      
 
-      queryClient.setQueryData(
-        ["spaces", slug, undefined, true],
-        data
-      );
+      queryClient.setQueryData(["spaces", slug, undefined, true], data);
 
       await queryClient.invalidateQueries({
         queryKey: ["spaces", slug],
@@ -114,7 +101,6 @@ export default function SpaceSettings() {
 
       form.reset(data);
       setShowSaveDialog(false);
-
     } catch (err) {
       console.error("Update error:", err);
       toast.error(err.message || "Failed to save changes");
@@ -122,7 +108,6 @@ export default function SpaceSettings() {
       setSaving(false);
     }
   };
-
 
   const handleDelete = () => {
     setShowDeleteDialog(true);
@@ -132,10 +117,7 @@ export default function SpaceSettings() {
   const confirmDelete = async () => {
     setDeleting(true);
     try {
-      const { error } = await supabase
-        .from("space")
-        .delete()
-        .eq("slug", slug);
+      const { error } = await supabase.from("space").delete().eq("slug", slug);
 
       if (error) throw error;
 
@@ -188,10 +170,7 @@ export default function SpaceSettings() {
   };
 
   const deleteLogo = async () => {
-    await supabase
-      .from("space")
-      .update({ logo_url: null })
-      .eq("slug", slug);
+    await supabase.from("space").update({ logo_url: null }).eq("slug", slug);
 
     form.setValue("logo_url", null, { shouldDirty: true });
   };
@@ -231,27 +210,24 @@ export default function SpaceSettings() {
   };
 
   const deleteCover = async () => {
-    await supabase
-      .from("space")
-      .update({ cover_url: null })
-      .eq("slug", slug);
+    await supabase.from("space").update({ cover_url: null }).eq("slug", slug);
 
     form.setValue("cover_url", null, { shouldDirty: true });
   };
 
   if (authLoading || isLoading) {
     return (
-      <div className="max-w-3xl mx-auto py-10">
+      <div className="mx-auto max-w-3xl py-10">
         {/* Header skeleton */}
-        <div className="flex items-center justify-between gap-3 mb-6">
+        <div className="mb-6 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-muted animate-pulse rounded-md"></div>
+            <div className="h-10 w-10 animate-pulse rounded-md bg-muted"></div>
             <div>
-              <div className="h-7 w-48 bg-muted animate-pulse rounded mb-2"></div>
-              <div className="h-4 w-32 bg-muted/50 animate-pulse rounded"></div>
+              <div className="mb-2 h-7 w-48 animate-pulse rounded bg-muted"></div>
+              <div className="h-4 w-32 animate-pulse rounded bg-muted/50"></div>
             </div>
           </div>
-          <div className="h-10 w-40 bg-muted animate-pulse rounded"></div>
+          <div className="h-10 w-40 animate-pulse rounded bg-muted"></div>
         </div>
 
         {/* Form skeleton */}
@@ -259,49 +235,49 @@ export default function SpaceSettings() {
           {/* Basic Info Card Skeleton */}
           <Card>
             <CardHeader>
-              <div className="h-5 w-32 bg-muted animate-pulse rounded"></div>
+              <div className="h-5 w-32 animate-pulse rounded bg-muted"></div>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="h-10 bg-muted animate-pulse rounded"></div>
-              <div className="h-24 bg-muted animate-pulse rounded"></div>
+              <div className="h-10 animate-pulse rounded bg-muted"></div>
+              <div className="h-24 animate-pulse rounded bg-muted"></div>
             </CardContent>
           </Card>
 
           {/* Contact Card Skeleton */}
           <Card>
             <CardHeader>
-              <div className="h-5 w-36 bg-muted animate-pulse rounded"></div>
+              <div className="h-5 w-36 animate-pulse rounded bg-muted"></div>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="h-10 bg-muted animate-pulse rounded"></div>
-              <div className="h-10 bg-muted animate-pulse rounded"></div>
-              <div className="h-10 bg-muted animate-pulse rounded"></div>
+              <div className="h-10 animate-pulse rounded bg-muted"></div>
+              <div className="h-10 animate-pulse rounded bg-muted"></div>
+              <div className="h-10 animate-pulse rounded bg-muted"></div>
             </CardContent>
           </Card>
 
           {/* Branding Card Skeleton */}
           <Card>
             <CardHeader>
-              <div className="h-5 w-24 bg-muted animate-pulse rounded"></div>
+              <div className="h-5 w-24 animate-pulse rounded bg-muted"></div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <div className="h-4 w-16 bg-muted animate-pulse rounded"></div>
-                <div className="h-16 w-16 bg-muted animate-pulse rounded"></div>
-                <div className="h-10 bg-muted animate-pulse rounded"></div>
+                <div className="h-4 w-16 animate-pulse rounded bg-muted"></div>
+                <div className="h-16 w-16 animate-pulse rounded bg-muted"></div>
+                <div className="h-10 animate-pulse rounded bg-muted"></div>
               </div>
               <div className="space-y-2">
-                <div className="h-4 w-24 bg-muted animate-pulse rounded"></div>
-                <div className="h-32 w-full bg-muted animate-pulse rounded"></div>
-                <div className="h-10 bg-muted animate-pulse rounded"></div>
+                <div className="h-4 w-24 animate-pulse rounded bg-muted"></div>
+                <div className="h-32 w-full animate-pulse rounded bg-muted"></div>
+                <div className="h-10 animate-pulse rounded bg-muted"></div>
               </div>
             </CardContent>
           </Card>
 
           {/* Button area skeleton */}
           <div className="flex justify-between">
-            <div className="h-10 w-24 bg-muted animate-pulse rounded"></div>
-            <div className="h-10 w-32 bg-muted animate-pulse rounded"></div>
+            <div className="h-10 w-24 animate-pulse rounded bg-muted"></div>
+            <div className="h-10 w-32 animate-pulse rounded bg-muted"></div>
           </div>
         </div>
       </div>
@@ -310,7 +286,7 @@ export default function SpaceSettings() {
 
   return (
     <>
-      <div className="max-w-3xl mx-auto py-10 space-y-6">
+      <div className="mx-auto max-w-3xl space-y-6 py-10">
         {/* Page header */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -338,7 +314,7 @@ export default function SpaceSettings() {
               "Deleting..."
             ) : (
               <>
-                <Trash2 className="h-4 w-4 mr-2" />
+                <Trash2 className="mr-2 h-4 w-4" />
                 Delete Space
               </>
             )}
@@ -355,7 +331,7 @@ export default function SpaceSettings() {
               <div>
                 <Input {...form.register("name")} placeholder="Space name" />
                 {form.formState.errors.name && (
-                  <p className="text-sm text-destructive mt-1">
+                  <p className="mt-1 text-sm text-destructive">
                     {form.formState.errors.name.message}
                   </p>
                 )}
@@ -367,7 +343,7 @@ export default function SpaceSettings() {
                   rows={4}
                 />
                 {form.formState.errors.description && (
-                  <p className="text-sm text-destructive mt-1">
+                  <p className="mt-1 text-sm text-destructive">
                     {form.formState.errors.description.message}
                   </p>
                 )}
@@ -381,14 +357,14 @@ export default function SpaceSettings() {
               <CardTitle>Contact Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Input 
-                {...form.register("email")} 
-                placeholder="Email" 
+              <Input
+                {...form.register("email")}
+                placeholder="Email"
                 type="email"
               />
-              <Input 
-                {...form.register("website")} 
-                placeholder="Website" 
+              <Input
+                {...form.register("website")}
+                placeholder="Website"
                 type="url"
               />
               <Input
@@ -404,7 +380,6 @@ export default function SpaceSettings() {
               <CardTitle>Branding</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-
               {/* Logo Section */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -417,12 +392,12 @@ export default function SpaceSettings() {
                       onClick={deleteLogo}
                       className="h-7 px-2 text-xs text-destructive hover:text-destructive"
                     >
-                      <X className="h-3 w-3 mr-1" />
+                      <X className="mr-1 h-3 w-3" />
                       Remove
                     </Button>
                   )}
                 </div>
-                
+
                 {form.watch("logo_url") ? (
                   <div className="flex items-center gap-4">
                     <div className="relative">
@@ -431,7 +406,7 @@ export default function SpaceSettings() {
                         alt="Space logo"
                         width={32}
                         height={32}
-                        className="h-20 w-20 object-contain rounded-lg border"          
+                        className="h-20 w-20 rounded-lg border object-contain"
                       />
                     </div>
                     <div className="text-sm text-muted-foreground">
@@ -439,11 +414,11 @@ export default function SpaceSettings() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center h-20 border-2 border-dashed rounded-lg">
+                  <div className="flex h-20 items-center justify-center rounded-lg border-2 border-dashed">
                     <Upload className="h-8 w-8 text-muted-foreground" />
                   </div>
                 )}
-                
+
                 <div className="flex items-center gap-2">
                   <Input
                     type="file"
@@ -477,14 +452,14 @@ export default function SpaceSettings() {
                       onClick={deleteCover}
                       className="h-7 px-2 text-xs text-destructive hover:text-destructive"
                     >
-                      <X className="h-3 w-3 mr-1" />
+                      <X className="mr-1 h-3 w-3" />
                       Remove
                     </Button>
                   )}
                 </div>
-                
+
                 {form.watch("cover_url") ? (
-                  <div className="relative h-40 w-full max-w-md rounded-lg border overflow-hidden">
+                  <div className="relative h-40 w-full max-w-md overflow-hidden rounded-lg border">
                     <Image
                       src={form.watch("cover_url")}
                       alt="Space cover"
@@ -492,16 +467,16 @@ export default function SpaceSettings() {
                       className="object-fit"
                       sizes="(max-width: 768px) 100vw, 400px"
                     />
-                    <p className="text-sm text-muted-foreground mt-2">
+                    <p className="mt-2 text-sm text-muted-foreground">
                       Current cover image. Upload a new one to replace.
                     </p>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center h-40 border-2 border-dashed rounded-lg">
+                  <div className="flex h-40 items-center justify-center rounded-lg border-2 border-dashed">
                     <Upload className="h-12 w-12 text-muted-foreground" />
                   </div>
                 )}
-                
+
                 <div className="flex items-center gap-2">
                   <Input
                     type="file"
@@ -530,7 +505,7 @@ export default function SpaceSettings() {
                   <Input
                     type="color"
                     {...form.register("primary_color")}
-                    className="w-16 h-10 p-1 cursor-pointer"
+                    className="h-10 w-16 cursor-pointer p-1"
                   />
                   <Input
                     {...form.register("primary_color")}
@@ -542,33 +517,28 @@ export default function SpaceSettings() {
                   Choose a primary color for your space
                 </p>
               </div>
-
             </CardContent>
           </Card>
         </form>
 
         <div className="flex justify-between pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-          >
+          <Button type="button" variant="outline" onClick={() => router.back()}>
             Cancel
           </Button>
-          
-          <Button 
+
+          <Button
             type="button"
             onClick={handleSave}
             disabled={!form.formState.isDirty || saving}
           >
             {saving ? (
               <>
-                <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-r-transparent"></div>
+                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-r-transparent"></div>
                 Saving...
               </>
             ) : (
               <>
-                <Save className="h-4 w-4 mr-2" />
+                <Save className="mr-2 h-4 w-4" />
                 Save Changes
               </>
             )}
@@ -582,7 +552,8 @@ export default function SpaceSettings() {
           <AlertDialogHeader>
             <AlertDialogTitle>Save Changes?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to save these changes? This will update your space settings.
+              Are you sure you want to save these changes? This will update your
+              space settings.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -600,14 +571,14 @@ export default function SpaceSettings() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Space?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your space
-              and all associated data including logo and cover images.
+              This action cannot be undone. This will permanently delete your
+              space and all associated data including logo and cover images.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={confirmDelete} 
+            <AlertDialogAction
+              onClick={confirmDelete}
               disabled={deleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >

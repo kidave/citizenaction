@@ -7,83 +7,47 @@ import { usePostMeeting } from "./usePostMeeting";
 import { usePostPermissions } from "./usePostPermissions";
 import { usePostSpaces } from "./usePostSpaces";
 
-export function usePost(
-  id,
-  initialData
-) {
+export function usePost(id, initialData) {
+  const core = usePostCore(id, initialData);
 
-  const core =
-    usePostCore(
-      id,
-      initialData
-    );
+  const governance = usePostGovernance(id);
 
-  const governance =
-    usePostGovernance(id);
+  const spaces = usePostSpaces(id);
 
-  const spaces =
-    usePostSpaces(id);
+  const stats = usePostStats(id);
 
-  const stats =
-    usePostStats(id);
+  const meeting = usePostMeeting(id);
 
-  const meeting =
-    usePostMeeting(id);
+  const permissions = usePostPermissions(id);
 
-  const permissions =
-    usePostPermissions(id);
-
-  const isLoading =
-    core.isLoading ||
-    governance.isLoading ||
-    spaces.isLoading;
+  const isLoading = core.isLoading || governance.isLoading || spaces.isLoading;
 
   const post = core.data
     ? {
         ...core.data,
 
         // SPACES
-        spaces:
-          spaces.data || [],
+        spaces: spaces.data || [],
 
         // GOVERNANCE
-        governance_entities:
-          governance.data ||
-          [],
+        governance_entities: governance.data || [],
 
-        governance:
-          governance.data ||
-          [],
+        governance: governance.data || [],
 
         // STATS
-        support_count:
-          stats.data
-            ?.support_count ||
-          0,
+        support_count: stats.data?.support_count || 0,
 
-        contribute_count:
-          stats.data
-            ?.contribute_count ||
-          0,
+        contribute_count: stats.data?.contribute_count || 0,
 
-        is_supported:
-          stats.data
-            ?.is_supported ||
-          false,
+        is_supported: stats.data?.is_supported || false,
 
-        is_contributing:
-          stats.data
-            ?.is_contributing ||
-          false,
+        is_contributing: stats.data?.is_contributing || false,
 
         // MEETING
-        meeting_attendees:
-          meeting.data || [],
+        meeting_attendees: meeting.data || [],
 
         // PERMISSIONS
-        can_manage:
-          permissions.data
-            ?.can_manage,
+        can_manage: permissions.data?.can_manage,
       }
     : null;
 

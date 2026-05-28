@@ -1,18 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 
-export function useMeetings({
-  clubId,
-  meetingId,
-  enabled = true,
-}) {
+export function useMeetings({ clubId, meetingId, enabled = true }) {
   return useQuery({
     queryKey: ["meetings", clubId, meetingId],
     enabled: enabled,
     queryFn: async () => {
-      let query = supabase
-        .from("meeting_view")
-        .select("*");
+      let query = supabase.from("meeting_view").select("*");
 
       if (clubId) {
         query = query.eq("club_id", clubId);

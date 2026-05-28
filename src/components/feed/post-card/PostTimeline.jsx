@@ -5,7 +5,7 @@ import Timeline, {
   TimelineItem,
   TimelineItemDate,
   TimelineItemTitle,
-  TimelineItemDescription
+  TimelineItemDescription,
 } from "@/components/ui/timeline";
 import FieldInfo from "@/components/ui/FieldInfo";
 import formatDate from "@/utils/date/formatDate";
@@ -16,18 +16,13 @@ export default function PostTimeline({ post }) {
 
   if (!history.length) return null;
 
-  const sorted = [...history].sort(
-    (a, b) => new Date(a.at) - new Date(b.at)
-  );
+  const sorted = [...history].sort((a, b) => new Date(a.at) - new Date(b.at));
 
   return (
     <div>
-
       {/* Desktop */}
       <div className="hidden md:block">
         <Timeline orientation="horizontal" noCards>
-          
-
           {sorted.map((item, idx) => {
             const isLast = idx === sorted.length - 1;
             const isExpanded = expandedIndex === idx;
@@ -38,10 +33,9 @@ export default function PostTimeline({ post }) {
             /* authority response */
             if (item.type === "authority_response") {
               title = `Response from ${item.authority || "Authority"}`;
-            }
+            } else {
 
             /* default status */
-            else {
               title = item.title;
             }
 
@@ -52,17 +46,14 @@ export default function PostTimeline({ post }) {
                 hollow={!isLast}
                 className="text-center"
                 onDotClick={() =>
-                  setExpandedIndex(expandedIndex === idx ?null : idx)
+                  setExpandedIndex(expandedIndex === idx ? null : idx)
                 }
               >
-
                 <TimelineItemDate>
                   {formatDate(item.at, "absolute")}
                 </TimelineItemDate>
 
-                <TimelineItemTitle>
-                  {title}
-                </TimelineItemTitle>
+                <TimelineItemTitle>{title}</TimelineItemTitle>
 
                 {description && (
                   <TimelineItemDescription
@@ -71,19 +62,15 @@ export default function PostTimeline({ post }) {
                     {item.description}
                   </TimelineItemDescription>
                 )}
-
               </TimelineItem>
             );
-
           })}
-
         </Timeline>
-
       </div>
 
       {/* Mobile */}
 
-      <div className="md:hidden overflow-hidden">
+      <div className="overflow-hidden md:hidden">
         <Timeline
           orientation="vertical"
           noCards
@@ -92,10 +79,7 @@ export default function PostTimeline({ post }) {
           vertItemMaxWidth={240}
           vertItemSpacing={90}
         >
-          
-
           {sorted.map((item, idx) => {
-
             const isLast = idx === sorted.length - 1;
             const isExpanded = expandedIndex === idx;
 
@@ -105,10 +89,9 @@ export default function PostTimeline({ post }) {
             /* authority response */
             if (item.type === "authority_response") {
               title = `Response from ${item.authority || "Authority"}`;
-            }
+            } else {
 
             /* default status */
-            else {
               title = item.title;
             }
 
@@ -117,18 +100,14 @@ export default function PostTimeline({ post }) {
                 key={`${item.at}-${idx}`}
                 variant={item.variant || "outline"}
                 hollow={!isLast}
-                className="break-words max-w-full"
-                onDotClick={() =>
-                  setExpandedIndex(isExpanded ? null : idx)
-                }
+                className="max-w-full break-words"
+                onDotClick={() => setExpandedIndex(isExpanded ? null : idx)}
               >
                 <TimelineItemDate>
                   {formatDate(item.at, "absolute")}
                 </TimelineItemDate>
 
-                <TimelineItemTitle>
-                  {title}
-                </TimelineItemTitle>
+                <TimelineItemTitle>{title}</TimelineItemTitle>
 
                 {item.description && (
                   <TimelineItemDescription
@@ -137,16 +116,11 @@ export default function PostTimeline({ post }) {
                     {item.description}
                   </TimelineItemDescription>
                 )}
-
               </TimelineItem>
             );
-
           })}
-
         </Timeline>
-
       </div>
-
     </div>
   );
 }

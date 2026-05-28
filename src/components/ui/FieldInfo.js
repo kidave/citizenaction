@@ -19,13 +19,11 @@ export default function FieldInfo({ text }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const checkMobile = () =>
-      setIsMobile(window.innerWidth < 768);
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
 
     checkMobile();
     window.addEventListener("resize", checkMobile);
-    return () =>
-      window.removeEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   if (!text) return null;
@@ -40,7 +38,7 @@ export default function FieldInfo({ text }) {
             e.stopPropagation();
             setOpen(true);
           }}
-          className="text-muted-foreground hover:text-foreground transition"
+          className="text-muted-foreground transition hover:text-foreground"
         >
           <Info className="h-4 w-4" />
         </button>
@@ -50,9 +48,7 @@ export default function FieldInfo({ text }) {
             <DialogHeader>
               <DialogTitle>Information</DialogTitle>
             </DialogHeader>
-            <p className="text-sm text-muted-foreground">
-              {text}
-            </p>
+            <p className="text-sm text-muted-foreground">{text}</p>
           </DialogContent>
         </Dialog>
       </div>
@@ -65,7 +61,7 @@ export default function FieldInfo({ text }) {
       <HoverCardTrigger asChild>
         <button
           type="button"
-          className="text-muted-foreground hover:text-foreground transition"
+          className="text-muted-foreground transition hover:text-foreground"
           onClick={(e) => e.stopPropagation()}
         >
           <Info className="h-4 w-4" />

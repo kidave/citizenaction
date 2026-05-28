@@ -15,7 +15,6 @@ import RightSidebar from "./RightSidebar";
 export default function LeftSidebar() {
   return (
     <Sidebar collapsible="offcanvas" className="border-r">
-
       <SidebarHeader>
         <LogoSwitcher />
       </SidebarHeader>
@@ -24,7 +23,7 @@ export default function LeftSidebar() {
         <Navigation />
 
         {/* Extra content on mobile */}
-        <div className="md:hidden mt-6 px-4">
+        <div className="mt-6 px-4 md:hidden">
           <RightSidebar />
         </div>
       </SidebarContent>
@@ -32,7 +31,6 @@ export default function LeftSidebar() {
       <SidebarFooter>
         <Profile />
       </SidebarFooter>
-
     </Sidebar>
   );
 }

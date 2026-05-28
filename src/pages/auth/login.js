@@ -53,9 +53,9 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-muted/30">
+    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="relative text-center space-y-2">
+        <CardHeader className="relative space-y-2 text-center">
           <Button
             variant="ghost"
             size="icon"
@@ -85,7 +85,7 @@ export default function Auth() {
 
         <CardContent className="space-y-4">
           {error && (
-            <div className="rounded-md bg-destructive/10 text-destructive text-sm px-3 py-2">
+            <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {error}
             </div>
           )}
@@ -110,7 +110,7 @@ export default function Auth() {
             <Button
               onClick={handleLogin}
               disabled={loading}
-              className="w-full flex items-center gap-2"
+              className="flex w-full items-center gap-2"
               variant="outline"
             >
               <FcGoogle size={20} />
@@ -118,7 +118,7 @@ export default function Auth() {
             </Button>
           )}
 
-          <p className="text-xs text-muted-foreground text-center">
+          <p className="text-center text-xs text-muted-foreground">
             By continuing, you agree to our{" "}
             <Link href="/auth/privacy" className="underline">
               Privacy Policy

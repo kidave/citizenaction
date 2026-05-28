@@ -8,11 +8,7 @@ import { z } from "zod";
  * - undefined (not provided)
  */
 export const urlOrNull = z
-  .union([
-    z.string().url(),
-    z.literal("").transform(() => null),
-    z.null(),
-  ])
+  .union([z.string().url(), z.literal("").transform(() => null), z.null()])
   .optional();
 
 /**

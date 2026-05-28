@@ -14,7 +14,7 @@ export default function MeetingSkeleton() {
 
       <CardContent className="space-y-4">
         {Array.from({ length: 2 }).map((_, i) => (
-          <div key={i} className="border rounded-md p-3 space-y-2">
+          <div key={i} className="space-y-2 rounded-md border p-3">
             <div className="flex items-center gap-2">
               <Skeleton className="h-6 w-6 rounded-full" />
               <Skeleton className="h-4 w-32" />

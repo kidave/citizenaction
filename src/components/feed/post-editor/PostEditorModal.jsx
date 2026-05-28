@@ -16,62 +16,30 @@ import PostDateTime from "./PostDateTime";
 import PostAddress from "./PostAddress";
 import PostTypeSelector from "./PostTypeSelector";
 
-import InlineLinkInput
-from "@/components/ui/InlineLinkInput";
+import InlineLinkInput from "@/components/ui/InlineLinkInput";
 
-export default function PostEditorModal({
-  isOpen,
-  onClose,
-  post = null,
-}) {
-  const { data: profile } =
-    useMyProfile();
+export default function PostEditorModal({ isOpen, onClose, post = null }) {
+  const { data: profile } = useMyProfile();
 
-  const { data: spaces = [] } =
-    useSpaces();
+  const { data: spaces = [] } = useSpaces();
 
-  const editor =
-    usePostEditor(
-      post,
-      profile
-    );
+  const editor = usePostEditor(post, profile);
 
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={(open) =>
-        !open && onClose()
-      }
-    >
-      <DialogContent
-        className="
-          p-0 gap-0 w-full h-full
-          max-w-none rounded-none
-          sm:max-w-2xl sm:h-[90vh]
-          sm:rounded-lg
-          flex flex-col overflow-hidden
-        "
-      >
-
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="flex h-full w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-2xl sm:rounded-lg">
         <PostEditorHeader
           profile={profile}
           post={post}
           editor={editor}
           spaces={spaces}
           onClose={onClose}
-          onDelete={() =>
-            editor.remove(onClose)
-          }
+          onDelete={() => editor.remove(onClose)}
         />
 
         <div className="flex-1 overflow-y-auto p-4">
-
           <Stack gap="gap-4">
-
-            <PostTypeSelector
-              type={editor.type}
-              setType={editor.setType}
-            />
+            <PostTypeSelector type={editor.type} setType={editor.setType} />
 
             <PostEditorContent
               title={editor.title}
@@ -82,53 +50,31 @@ export default function PostEditorModal({
 
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-1">
+                <PostDateTime editor={editor} />
 
-                <PostDateTime
-                  editor={editor}
-                />
-
-                <PostAddress
-                  editor={editor}
-                />
+                <PostAddress editor={editor} />
 
                 <InlineLinkInput
-                  value={
-                    editor.meeting_link
-                  }
-                  onChange={
-                    editor.setMeetingLink
-                  }
+                  value={editor.meeting_link}
+                  onChange={editor.setMeetingLink}
                 />
-
               </div>
 
               <Button
-                onClick={() =>
-                  editor.submit(onClose)
-                }
+                onClick={() => editor.submit(onClose)}
                 className="shrink-0"
               >
-                <Save className="w-4 h-4" />
-                {post
-                  ? "Update"
-                  : "Post"}
+                <Save className="h-4 w-4" />
+                {post ? "Update" : "Post"}
               </Button>
-
             </div>
 
             <PostEditorAttachments
-              attachments={
-                editor.attachments
-              }
-              setAttachments={
-                editor.setAttachments
-              }
+              attachments={editor.attachments}
+              setAttachments={editor.setAttachments}
             />
-
           </Stack>
-
         </div>
-
       </DialogContent>
     </Dialog>
   );

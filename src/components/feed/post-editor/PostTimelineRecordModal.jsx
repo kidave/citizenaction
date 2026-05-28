@@ -62,7 +62,6 @@ export default function PostTimelineRecordModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-
         <DialogHeader>
           <DialogTitle>
             {existing ? "Edit Timeline Record" : "Add Timeline Record"}
@@ -70,7 +69,6 @@ export default function PostTimelineRecordModal({
         </DialogHeader>
 
         <div className="space-y-4">
-
           <Field>
             <FieldLabel>Date & Time</FieldLabel>
             <DateTimePicker
@@ -100,20 +98,13 @@ export default function PostTimelineRecordModal({
           </Field>
 
           <div className="flex justify-end gap-2">
-            <Button
-              variant="ghost"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button variant="ghost" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
 
-            <Button onClick={handleSubmit}>
-              Save
-            </Button>
+            <Button onClick={handleSubmit}>Save</Button>
           </div>
-
         </div>
-
       </DialogContent>
     </Dialog>
   );

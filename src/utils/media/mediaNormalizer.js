@@ -6,8 +6,8 @@ export function normalizeMedia(attachments = [], links = []) {
     type: file.type?.startsWith("image/")
       ? "image"
       : file.type === "application/pdf"
-      ? "pdf"
-      : "file",
+        ? "pdf"
+        : "file",
     source: "attachment",
     original: file,
   }));

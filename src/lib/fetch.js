@@ -5,8 +5,10 @@ import { supabase } from "@/lib/supabase/client";
  * Automatically adds JWT token
  */
 export async function authFetch(url, options = {}) {
-  const { data: { session } } = await supabase.auth.getSession();
-  
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
   if (!session) {
     throw new Error("Not authenticated");
   }
@@ -23,7 +25,7 @@ export async function authFetch(url, options = {}) {
     method: options.method || "GET",
     headers,
     body: options.body,
-    options
+    options,
   });
 
   const response = await fetch(url, { ...options, headers });
@@ -31,7 +33,7 @@ export async function authFetch(url, options = {}) {
   console.log("authFetch response:", {
     status: response.status,
     statusText: response.statusText,
-    ok: response.ok
+    ok: response.ok,
   });
 
   if (response.status === 401) {
@@ -47,7 +49,7 @@ export async function authFetch(url, options = {}) {
   if (!response.ok) {
     let errorMessage = "Request failed";
     let errorDetails = null;
-    
+
     try {
       const errorData = await response.json();
       errorMessage = errorData.error || errorData.message || errorMessage;
@@ -57,7 +59,7 @@ export async function authFetch(url, options = {}) {
       const text = await response.text();
       if (text) errorMessage = text;
     }
-    
+
     // Create a more detailed error
     const error = new Error(errorMessage);
     error.details = errorDetails;
@@ -72,8 +74,10 @@ export async function authFetch(url, options = {}) {
  * Upload files with authentication
  */
 export async function authUpload(url, file, type) {
-  const { data: { session } } = await supabase.auth.getSession();
-  
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
   if (!session) {
     throw new Error("Not authenticated");
   }

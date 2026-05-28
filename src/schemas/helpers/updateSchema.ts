@@ -15,12 +15,9 @@ export function createUpdateSchema<T extends ZodRawShape>(shape: T) {
   return z
     .object(shape)
     .refine(
-      (data) =>
-        Object.values(data).some(
-          (value) => value !== undefined
-        ),
+      (data) => Object.values(data).some((value) => value !== undefined),
       {
         message: "At least one field must be provided for update",
-      }
+      },
     );
 }

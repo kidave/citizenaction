@@ -11,7 +11,16 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ArrowLeft, Trash2, Save } from "lucide-react";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { clubUpdateSchema } from "@/schemas/club";
@@ -83,12 +92,14 @@ export default function ClubSettings() {
         Object.keys(dirty).map((key) => {
           let value = form.getValues(key);
 
-          if (["name", "description", "email", "contact_number"].includes(key)) {
+          if (
+            ["name", "description", "email", "contact_number"].includes(key)
+          ) {
             value = normalizeText(value);
           }
 
           return [key, value];
-        })
+        }),
       );
 
       if (Object.keys(payload).length === 0) {
@@ -146,13 +157,13 @@ export default function ClubSettings() {
 
   return (
     <>
-      <div className="max-w-3xl mx-auto py-10 space-y-6">
+      <div className="mx-auto max-w-3xl space-y-6 py-10">
         {/* HEADER */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
               href={`/space/${space}/${scopeType}/${scopeCode}`}
-              className="p-2 border rounded-md hover:bg-muted"
+              className="rounded-md border p-2 hover:bg-muted"
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
@@ -163,7 +174,7 @@ export default function ClubSettings() {
             variant="destructive"
             onClick={() => setShowDeleteDialog(true)}
           >
-            <Trash2 className="h-4 w-4 mr-2" />
+            <Trash2 className="mr-2 h-4 w-4" />
             Delete
           </Button>
         </div>
@@ -207,7 +218,7 @@ export default function ClubSettings() {
             onClick={() => setShowSaveDialog(true)}
             disabled={!form.formState.isDirty}
           >
-            <Save className="h-4 w-4 mr-2" />
+            <Save className="mr-2 h-4 w-4" />
             Save
           </Button>
         </div>
@@ -223,9 +234,7 @@ export default function ClubSettings() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={saving}>
-              Cancel
-            </AlertDialogCancel>
+            <AlertDialogCancel disabled={saving}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmSave} disabled={saving}>
               {saving ? "Saving..." : "Save"}
             </AlertDialogAction>
@@ -243,9 +252,7 @@ export default function ClubSettings() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>
-              Cancel
-            </AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} disabled={deleting}>
               {deleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>

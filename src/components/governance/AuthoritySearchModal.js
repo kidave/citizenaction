@@ -66,16 +66,14 @@ export default function AuthoritySearchModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] p-0 flex flex-col">
-
+      <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col p-0">
         {/* HEADER */}
-        <DialogHeader className="p-4 border-b">
+        <DialogHeader className="border-b p-4">
           <DialogTitle>Manage Authority</DialogTitle>
         </DialogHeader>
 
         {/* BODY */}
-        <div className="p-4 space-y-3 flex-1 overflow-y-auto">
-
+        <div className="flex-1 space-y-3 overflow-y-auto p-4">
           {/* SEARCH */}
           <Input
             placeholder="Search authority..."
@@ -88,11 +86,8 @@ export default function AuthoritySearchModal({
 
           {/* RESULTS */}
           <div className="space-y-2">
-
             {isLoading && (
-              <p className="text-sm text-muted-foreground">
-                Loading...
-              </p>
+              <p className="text-sm text-muted-foreground">Loading...</p>
             )}
 
             {!isLoading && directory.length === 0 && (
@@ -102,16 +97,14 @@ export default function AuthoritySearchModal({
             )}
 
             {directory.map((item) => {
-              const isSelected = selected.find(
-                (e) => e.id === item.id
-              );
+              const isSelected = selected.find((e) => e.id === item.id);
 
               const taggedUser = getTaggedUser(item.id);
 
               return (
                 <Card
                   key={item.id}
-                  className={`p-3 cursor-pointer border ${
+                  className={`cursor-pointer border p-3 ${
                     isSelected
                       ? "border-primary bg-primary/5"
                       : "hover:bg-accent"
@@ -119,7 +112,6 @@ export default function AuthoritySearchModal({
                   onClick={() => handleToggle(item)}
                 >
                   <div className="flex items-center gap-3">
-
                     <Checkbox checked={!!isSelected} />
 
                     <Image
@@ -135,11 +127,8 @@ export default function AuthoritySearchModal({
                     />
 
                     <div className="flex-1 space-y-1">
-
                       {/* LABEL */}
-                      <div className="text-sm font-medium">
-                        {item.label}
-                      </div>
+                      <div className="text-sm font-medium">{item.label}</div>
 
                       {taggedUser && (
                         <div className="flex items-center gap-2">
@@ -147,26 +136,19 @@ export default function AuthoritySearchModal({
                             Tagged by
                           </span>
 
-                          <UserIdentity
-                            {...taggedUser}
-                            size="sm"
-                            hideName
-                          />
+                          <UserIdentity {...taggedUser} size="sm" hideName />
                         </div>
                       )}
-
                     </div>
-
                   </div>
                 </Card>
               );
             })}
-
           </div>
         </div>
 
         {/* FOOTER */}
-        <div className="p-4 border-t">
+        <div className="border-t p-4">
           <Button
             className="w-full"
             onClick={() => {
@@ -177,7 +159,6 @@ export default function AuthoritySearchModal({
             Save Changes
           </Button>
         </div>
-
       </DialogContent>
     </Dialog>
   );

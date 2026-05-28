@@ -18,11 +18,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
-import {
-  Avatar,
-  AvatarImage,
-  AvatarFallback,
-} from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 import { LogIn } from "lucide-react";
 
@@ -31,11 +27,9 @@ export function Profile() {
   const { user, logout } = useAuth();
   const { data: profile, isLoading } = useMyProfile();
 
-
   const handleLogin = () => {
     if (typeof window !== "undefined") {
-      const currentPath =
-        window.location.pathname + window.location.search;
+      const currentPath = window.location.pathname + window.location.search;
 
       if (currentPath !== "/auth/login") {
         localStorage.setItem("returnTo", currentPath);
@@ -113,15 +107,9 @@ export function Profile() {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent
-            side="top"
-            align="end"
-            className="w-56"
-          >
+          <DropdownMenuContent side="top" align="end" className="w-56">
             <DropdownMenuItem
-              onClick={() =>
-                router.push(`/user/${profile.username}`)
-              }
+              onClick={() => router.push(`/user/${profile.username}`)}
             >
               Profile
             </DropdownMenuItem>

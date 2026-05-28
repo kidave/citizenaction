@@ -42,7 +42,7 @@ export default function ApplySpace() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
       </div>
     );
@@ -55,12 +55,10 @@ export default function ApplySpace() {
     }
 
     try {
-      const { error } = await supabase
-        .from("space_application")
-        .insert({
-          ...values,
-          applicant_user_id: user.id,
-        });
+      const { error } = await supabase.from("space_application").insert({
+        ...values,
+        applicant_user_id: user.id,
+      });
 
       if (error) {
         toast.error(error.message);
@@ -83,20 +81,18 @@ export default function ApplySpace() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center my-4 px-4 bg-muted/30">
+    <div className="my-4 flex min-h-screen items-center justify-center bg-muted/30 px-4">
       <Card className="w-full max-w-3xl">
         <CardHeader>
-          <h1 className="text-xl font-semibold">
-            Apply to Create a Space
-          </h1>
+          <h1 className="text-xl font-semibold">Apply to Create a Space</h1>
           <p className="text-sm text-muted-foreground">
             Spaces document civic action within a geographic area.
           </p>
-          
+
           {/* ✅ Moved this INSIDE the return statement */}
           {!user && (
-            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
-              <p className="text-amber-800 text-sm">
+            <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3">
+              <p className="text-sm text-amber-800">
                 You need to sign in to submit an application
               </p>
             </div>
@@ -110,7 +106,7 @@ export default function ApplySpace() {
                 e.preventDefault();
                 handleSubmitClick();
               }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-5"
+              className="grid grid-cols-1 gap-5 md:grid-cols-2"
             >
               {/* Space name */}
               <FormField
@@ -149,7 +145,11 @@ export default function ApplySpace() {
                   <FormItem>
                     <FormLabel>Contact Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="contact@space.org" {...field} />
+                      <Input
+                        type="email"
+                        placeholder="contact@space.org"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -212,9 +212,7 @@ export default function ApplySpace() {
                 name="justification"
                 render={({ field }) => (
                   <FormItem className="md:col-span-2">
-                    <FormLabel>
-                      Why should this space exist?
-                    </FormLabel>
+                    <FormLabel>Why should this space exist?</FormLabel>
                     <FormControl>
                       <Textarea rows={4} {...field} />
                     </FormControl>
@@ -229,13 +227,17 @@ export default function ApplySpace() {
                 disabled={form.formState.isSubmitting}
                 loginMessage="You need to sign in to submit a space application"
               >
-                {form.formState.isSubmitting ? "Submitting..." : (user ? "Submit Application" : "Sign in to Submit")}
+                {form.formState.isSubmitting
+                  ? "Submitting..."
+                  : user
+                    ? "Submit Application"
+                    : "Sign in to Submit"}
               </ProtectedButton>
             </form>
           </Form>
         </CardContent>
       </Card>
-      
+
       <LoginModal
         open={showLogin}
         onOpenChange={setShowLogin}

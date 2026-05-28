@@ -4,33 +4,22 @@ import { useEffect, useState } from "react";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function ScrollButton({
-  showAfter = 300,
-}) {
-  const [isAtTop, setIsAtTop] =
-    useState(true);
+export default function ScrollButton({ showAfter = 300 }) {
+  const [isAtTop, setIsAtTop] = useState(true);
 
-  const [isAtBottom, setIsAtBottom] =
-    useState(false);
+  const [isAtBottom, setIsAtBottom] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
 
-      const pageHeight =
-        document.body.scrollHeight;
+      const pageHeight = document.body.scrollHeight;
 
-      const windowHeight =
-        window.innerHeight;
+      const windowHeight = window.innerHeight;
 
-      const atTop =
-        scrollTop <= showAfter;
+      const atTop = scrollTop <= showAfter;
 
-      const atBottom =
-        scrollTop >=
-        pageHeight -
-          windowHeight -
-          showAfter;
+      const atBottom = scrollTop >= pageHeight - windowHeight - showAfter;
 
       setIsAtTop(atTop);
       setIsAtBottom(atBottom);
@@ -38,16 +27,10 @@ export default function ScrollButton({
 
     handleScroll();
 
-    window.addEventListener(
-      "scroll",
-      handleScroll
-    );
+    window.addEventListener("scroll", handleScroll);
 
     return () => {
-      window.removeEventListener(
-        "scroll",
-        handleScroll
-      );
+      window.removeEventListener("scroll", handleScroll);
     };
   }, [showAfter]);
 
@@ -71,14 +54,7 @@ export default function ScrollButton({
         <Button
           size="icon"
           variant="outline"
-          className="
-            rounded-full
-            shadow-lg
-            backdrop-blur
-            bg-background/80
-            hover:scale-105
-            transition-all
-          "
+          className="rounded-full bg-background/80 shadow-lg backdrop-blur transition-all hover:scale-105"
           onClick={scrollToBottom}
         >
           <ArrowDown className="h-5 w-5" />
@@ -87,14 +63,7 @@ export default function ScrollButton({
         <Button
           size="icon"
           variant="outline"
-          className="
-            rounded-full
-            shadow-lg
-            backdrop-blur
-            bg-background/80
-            hover:scale-105
-            transition-all
-          "
+          className="rounded-full bg-background/80 shadow-lg backdrop-blur transition-all hover:scale-105"
           onClick={scrollToTop}
         >
           <ArrowUp className="h-5 w-5" />

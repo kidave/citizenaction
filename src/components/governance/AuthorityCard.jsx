@@ -18,17 +18,13 @@ export default function AuthorityCard({
 }) {
   return (
     <Tooltip>
-
       <TooltipTrigger asChild>
         <Card
-          className={`p-3 flex items-center gap-3 cursor-pointer border ${
-            isSelected
-              ? "border-primary bg-primary/5"
-              : "hover:bg-accent"
+          className={`flex cursor-pointer items-center gap-3 border p-3 ${
+            isSelected ? "border-primary bg-primary/5" : "hover:bg-accent"
           }`}
           onClick={() => onOpen(entity)}
         >
-
           <Checkbox
             checked={isSelected}
             onCheckedChange={() => onToggle(entity)}
@@ -41,23 +37,17 @@ export default function AuthorityCard({
             height={32}
             alt=""
             className={
-              entity.entity_type === "person"
-                ? "rounded-full"
-                : "rounded-md"
+              entity.entity_type === "person" ? "rounded-full" : "rounded-md"
             }
           />
 
-          <div className="flex-1 text-sm truncate">
+          <div className="flex-1 truncate text-sm">
             {entity.short_name || entity.label}
           </div>
-
         </Card>
       </TooltipTrigger>
 
-      <TooltipContent>
-        {entity.label}
-      </TooltipContent>
-
+      <TooltipContent>{entity.label}</TooltipContent>
     </Tooltip>
   );
 }

@@ -9,71 +9,26 @@ export default function PostEditorHeader({
   editor,
   spaces = [],
 }) {
-
   return (
     <div className="border-b p-4">
-
-      <div
-        className="
-          flex
-          items-center
-          justify-between
-          gap-3
-        "
-      >
-
+      <div className="flex items-center justify-between gap-3">
         {/* LEFT */}
-        <div
-          className="
-            flex
-            items-center
-            gap-3
-            min-w-0
-          "
-        >
-
+        <div className="flex min-w-0 items-center gap-3">
           {/* USER */}
-          <div
-            className="
-              flex
-              items-center
-              gap-3
-              min-w-0
-            "
-          >
-
+          <div className="flex min-w-0 items-center gap-3">
             <Image
-              src={
-                profile?.avatar_url ||
-                "/user1.png"
-              }
+              src={profile?.avatar_url || "/user1.png"}
               width={34}
               height={34}
-              className="
-                rounded-full
-                shrink-0
-              "
+              className="shrink-0 rounded-full"
               alt=""
             />
 
-            <div
-              className="
-                text-sm
-                font-medium
-                truncate
-              "
-            >
-              {profile?.name}
-            </div>
-
+            <div className="truncate text-sm font-medium">{profile?.name}</div>
           </div>
 
           {/* VISIBILITY */}
-          <PostVisibilitySelector
-            editor={editor}
-            spaces={spaces}
-          />
-
+          <PostVisibilitySelector editor={editor} spaces={spaces} />
         </div>
       </div>
     </div>

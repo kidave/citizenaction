@@ -16,9 +16,7 @@ export function useGeographicScopes({
     queryFn: async () => {
       let query = supabase
         .from("geographic_scope_hierarchy")
-        .select(
-          "code,name,type,logo_url,parent_code,grandparent_code"
-        )
+        .select("code,name,type,logo_url,parent_code,grandparent_code")
         .order("name");
 
       if (type) {

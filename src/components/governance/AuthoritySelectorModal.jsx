@@ -21,7 +21,6 @@ export default function AuthoritySelectorModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
-
         <DialogHeader>
           <DialogTitle>Tag Authority</DialogTitle>
         </DialogHeader>
@@ -33,7 +32,7 @@ export default function AuthoritySelectorModal({
         />
 
         <Button
-          className="w-full mt-4"
+          className="mt-4 w-full"
           onClick={() => {
             onSubmit?.(selected); // optional safety
             onOpenChange(false);
@@ -41,7 +40,6 @@ export default function AuthoritySelectorModal({
         >
           Save
         </Button>
-
       </DialogContent>
     </Dialog>
   );

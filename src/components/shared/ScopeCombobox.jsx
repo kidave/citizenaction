@@ -40,10 +40,7 @@ export default function ScopeCombobox({
           size="sm"
           role="combobox"
           disabled={disabled}
-          className={cn(
-            "justify-between w-full min-w-[160px]",
-            className
-          )}
+          className={cn("w-full min-w-[160px] justify-between", className)}
         >
           {selected ? (
             <div className="flex items-center gap-2 truncate">
@@ -53,10 +50,10 @@ export default function ScopeCombobox({
                   alt={selected.name}
                   width={16}
                   height={16}
-                  className="rounded-sm shrink-0"
+                  className="shrink-0 rounded-sm"
                 />
               ) : (
-                <div className="w-4 h-4 bg-muted rounded-sm flex items-center justify-center text-[10px] shrink-0">
+                <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm bg-muted text-[10px]">
                   {selected.name?.[0]}
                 </div>
               )}
@@ -64,18 +61,18 @@ export default function ScopeCombobox({
               <span className="truncate">{selected.name}</span>
             </div>
           ) : (
-            <span className="text-muted-foreground truncate">
+            <span className="truncate text-muted-foreground">
               {placeholder}
             </span>
           )}
 
-          <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50 shrink-0" />
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
 
       <PopoverContent
         align="start"
-        className="p-0 w-[var(--radix-popover-trigger-width)]"
+        className="w-[var(--radix-popover-trigger-width)] p-0"
       >
         <Command>
           <CommandInput placeholder={`Search ${placeholder}`} />
@@ -94,18 +91,17 @@ export default function ScopeCombobox({
                     setOpen(false);
                   }}
                 >
-                  <div className="flex items-center gap-2 w-full">
-
+                  <div className="flex w-full items-center gap-2">
                     {item.logo_url ? (
                       <Image
                         src={item.logo_url}
                         alt={item.name}
                         width={16}
                         height={16}
-                        className="rounded-sm shrink-0"
+                        className="shrink-0 rounded-sm"
                       />
                     ) : (
-                      <div className="w-4 h-4 bg-muted rounded-sm flex items-center justify-center text-[10px] shrink-0">
+                      <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm bg-muted text-[10px]">
                         {item.name?.[0]}
                       </div>
                     )}
@@ -115,7 +111,7 @@ export default function ScopeCombobox({
                     <Check
                       className={cn(
                         "ml-auto h-4 w-4",
-                        isSelected ? "opacity-100" : "opacity-0"
+                        isSelected ? "opacity-100" : "opacity-0",
                       )}
                     />
                   </div>

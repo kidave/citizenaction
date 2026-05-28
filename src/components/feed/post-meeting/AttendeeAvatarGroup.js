@@ -13,7 +13,7 @@ export default function AttendeeAvatarGroup({ attendees = [] }) {
   if (!attendees || attendees.length === 0) return null;
 
   const users = attendees.filter(
-    (a) => (a?.avatar || a?.avatar_url) && a?.username
+    (a) => (a?.avatar || a?.avatar_url) && a?.username,
   );
 
   const maxVisible = 5;
@@ -24,8 +24,7 @@ export default function AttendeeAvatarGroup({ attendees = [] }) {
       {visibleUsers.length > 0 && (
         <AvatarGroup>
           {visibleUsers.map((a, i) => {
-            const avatarSrc =
-              a.avatar || a.avatar_url;
+            const avatarSrc = a.avatar || a.avatar_url;
 
             return (
               <Link

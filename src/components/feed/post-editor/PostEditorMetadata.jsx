@@ -2,21 +2,15 @@
 
 import { useMemo } from "react";
 
-import { DateTimePicker }
-from "@/components/ui/date-time";
+import { DateTimePicker } from "@/components/ui/date-time";
 
-import PostLocationSelector
-from "./PostLocationSelector";
+import PostLocationSelector from "./PostLocationSelector";
 
-import PostTypeSelector
-from "./PostTypeSelector";
+import PostTypeSelector from "./PostTypeSelector";
 
-import getPostTypeConfig
-from "@/utils/feed/getPostTypeConfig";
+import getPostTypeConfig from "@/utils/feed/getPostTypeConfig";
 
-export default function PostEditorMetadata({
-  editor,
-}) {
+export default function PostEditorMetadata({ editor }) {
   const {
     type,
     setType,
@@ -28,83 +22,58 @@ export default function PostEditorMetadata({
     setEndAt,
   } = editor;
 
-  const config =
-    getPostTypeConfig(type);
+  const config = getPostTypeConfig(type);
 
   // =====================================================
   // STABLE DATE OBJECTS
   // =====================================================
 
-  const startDate =
-    useMemo(() => {
-      return start_at
-        ? new Date(start_at)
-        : null;
-    }, [start_at]);
+  const startDate = useMemo(() => {
+    return start_at ? new Date(start_at) : null;
+  }, [start_at]);
 
-  const endDate =
-    useMemo(() => {
-      return end_at
-        ? new Date(end_at)
-        : null;
-    }, [end_at]);
+  const endDate = useMemo(() => {
+    return end_at ? new Date(end_at) : null;
+  }, [end_at]);
 
   // =====================================================
   // UPDATE START
   // =====================================================
 
-  function handleStartChange(
-    value
-  ) {
+  function handleStartChange(value) {
     if (!value) {
       setStartAt(null);
       return;
     }
 
-    setStartAt(
-      value.toISOString()
-    );
+    setStartAt(value.toISOString());
   }
 
   // =====================================================
   // UPDATE END
   // =====================================================
 
-  function handleEndChange(
-    value
-  ) {
+  function handleEndChange(value) {
     if (!value) {
       setEndAt(null);
       return;
     }
 
-    setEndAt(
-      value.toISOString()
-    );
+    setEndAt(value.toISOString());
   }
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-
       {/* TYPE */}
 
-      <PostTypeSelector
-        type={type}
-        setType={setType}
-      />
+      <PostTypeSelector type={type} setType={setType} />
 
       {/* START */}
 
       <DateTimePicker
         value={startDate}
-        onDateChange={
-          handleStartChange
-        }
-        mode={
-          config.showTime
-            ? "datetime"
-            : "date"
-        }
+        onDateChange={handleStartChange}
+        mode={config.showTime ? "datetime" : "date"}
       />
 
       {/* END */}
@@ -112,25 +81,14 @@ export default function PostEditorMetadata({
       {config.lifecycle && (
         <DateTimePicker
           value={endDate}
-          onDateChange={
-            handleEndChange
-          }
-          mode={
-            config.showTime
-              ? "datetime"
-              : "date"
-          }
+          onDateChange={handleEndChange}
+          mode={config.showTime ? "datetime" : "date"}
         />
       )}
 
       {/* LOCATION */}
 
-      {config.showAddress && (
-        <PostLocationSelector
-          editor={editor}
-        />
-      )}
-
+      {config.showAddress && <PostLocationSelector editor={editor} />}
     </div>
   );
 }

@@ -4,14 +4,14 @@ import { Button } from "@/components/ui/button";
 import { LoginModal } from "./LoginModal";
 import { useAuth } from "@/context/AuthContext";
 
-export function ProtectedButton({ 
-  children, 
-  onClick, 
+export function ProtectedButton({
+  children,
+  onClick,
   className = "",
   variant = "default",
   size = "default",
   disabled = false,
-  loginMessage = "You need to be signed in to perform this action"
+  loginMessage = "You need to be signed in to perform this action",
 }) {
   const { user } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
@@ -36,11 +36,13 @@ export function ProtectedButton({
       >
         {children}
       </Button>
-      
+
       <LoginModal
         open={showLogin}
         onOpenChange={setShowLogin}
-        redirectPath={typeof window !== 'undefined' ? window.location.pathname : '/'}
+        redirectPath={
+          typeof window !== "undefined" ? window.location.pathname : "/"
+        }
         message={loginMessage}
       />
     </>

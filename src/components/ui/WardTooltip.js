@@ -9,9 +9,7 @@ export default function WardTooltip({ ward, children }) {
     <Tooltip.Provider delayDuration={200}>
       <Tooltip.Root>
         {/* Trigger = whatever you wrap (ward button/link) */}
-        <Tooltip.Trigger asChild>
-          {children}
-        </Tooltip.Trigger>
+        <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
 
         <Tooltip.Portal>
           <Tooltip.Content
@@ -23,9 +21,7 @@ export default function WardTooltip({ ward, children }) {
             collisionPadding={12}
             sticky="partial"
           >
-            <div className={styles.tooltipTitle}>
-              Ward {ward.name}
-            </div>
+            <div className={styles.tooltipTitle}>Ward {ward.name}</div>
 
             <div className={styles.tooltipBody}>
               {ward.description && (

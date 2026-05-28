@@ -12,7 +12,7 @@ export default function FeaturedSpaceCard() {
 
   if (isLoading) {
     return (
-      <div className="mt-12 h-72 rounded-2xl border bg-muted animate-pulse" />
+      <div className="mt-12 h-72 animate-pulse rounded-2xl border bg-muted" />
     );
   }
 
@@ -24,22 +24,20 @@ export default function FeaturedSpaceCard() {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
       viewport={{ once: true }}
-      className="mt-12 relative rounded-2xl overflow-hidden shadow-xl"
+      className="relative mt-12 overflow-hidden rounded-2xl shadow-xl"
       style={
-        space.primary_color
-          ? { borderColor: space.primary_color }
-          : undefined
+        space.primary_color ? { borderColor: space.primary_color } : undefined
       }
     >
       {/* Cover */}
-      <div className="relative h-56 md:h-72 overflow-hidden">
+      <div className="relative h-56 overflow-hidden md:h-72">
         {space.cover_url ? (
           <Image
             src={space.cover_url}
             alt={`${space.name} cover`}
             fill
             sizes="(max-width: 768px) 100vw, 680px"
-            className="object-cover group-hover:scale-105 transition duration-500"
+            className="object-cover transition duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="h-full w-full bg-muted" />
@@ -49,7 +47,6 @@ export default function FeaturedSpaceCard() {
 
       {/* Content */}
       <div className="relative -mt-14 px-8 pb-10">
-
         <div className="flex items-center gap-4">
           {space.logo_url && (
             <Image
@@ -62,12 +59,10 @@ export default function FeaturedSpaceCard() {
           )}
 
           <div>
-            <h3 className="text-2xl font-bold text-white">
-              {space.name}
-            </h3>
+            <h3 className="text-2xl font-bold text-white">{space.name}</h3>
 
             {space.description && (
-              <p className="text-sm text-muted-foreground line-clamp-2">
+              <p className="line-clamp-2 text-sm text-muted-foreground">
                 {space.description}
               </p>
             )}
@@ -83,7 +78,6 @@ export default function FeaturedSpaceCard() {
             <Button variant="outline">Explore More</Button>
           </Link>
         </div>
-
       </div>
     </motion.div>
   );

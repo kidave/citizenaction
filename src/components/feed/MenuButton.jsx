@@ -23,10 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 
-export default function MenuButton({
-  onEdit,
-  onDelete,
-}) {
+export default function MenuButton({ onEdit, onDelete }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -66,18 +63,15 @@ export default function MenuButton({
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              Delete this post?
-            </AlertDialogTitle>
+            <AlertDialogTitle>Delete this post?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. The post and related data will be permanently removed.
+              This action cannot be undone. The post and related data will be
+              permanently removed.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <AlertDialogFooter>
-            <AlertDialogCancel>
-              Cancel
-            </AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
 
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

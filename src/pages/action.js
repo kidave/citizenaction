@@ -11,10 +11,7 @@ export default function ActionPage() {
 
   return (
     <div className="flex justify-center py-10">
-      <PostEditorModal
-        isOpen={true}
-        onClose={() => window.history.back()}
-      />
+      <PostEditorModal isOpen={true} onClose={() => window.history.back()} />
     </div>
   );
 }

@@ -23,11 +23,7 @@ export function convertLinksToAttachments(links = []) {
       }
 
       /* 🎥 VIDEO (FIXED) */
-      if (
-        l.type === "youtube" ||
-        l.type === "vimeo" ||
-        l.type === "video"
-      ) {
+      if (l.type === "youtube" || l.type === "vimeo" || l.type === "video") {
         return {
           url: l.url,
           embed: l.embed || l.url, // 🔥 fallback fix

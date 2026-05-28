@@ -1,19 +1,11 @@
 import dayjs from "dayjs";
 
-import getPostTypeConfig
-from "./getPostTypeConfig";
+import getPostTypeConfig from "./getPostTypeConfig";
 
-import getDerivedPostStatus
-from "./getDerivedPostStatus";
+import getDerivedPostStatus from "./getDerivedPostStatus";
 
-export default function getPostStatus(
-  post,
-  now = null
-) {
-  const config =
-    getPostTypeConfig(
-      post.type
-    );
+export default function getPostStatus(post, now = null) {
+  const config = getPostTypeConfig(post.type);
 
   // =====================================================
   // MANUAL STATUS
@@ -23,10 +15,7 @@ export default function getPostStatus(
     return {
       key: post.status,
 
-      config:
-        config.statuses?.[
-          post.status
-        ] || null,
+      config: config.statuses?.[post.status] || null,
 
       derived: false,
 
@@ -38,12 +27,7 @@ export default function getPostStatus(
   // DERIVED STATUS
   // =====================================================
 
-  const derived =
-    getDerivedPostStatus(
-      post,
-      config,
-      now
-    );
+  const derived = getDerivedPostStatus(post, config, now);
 
   // =====================================================
   // COUNTDOWN
@@ -51,41 +35,17 @@ export default function getPostStatus(
 
   let countdown = null;
 
-  if (
-    now &&
-    config.showCountdown &&
-    derived === "upcoming" &&
-    post.start_at
-  ) {
-    const diffSeconds =
-      dayjs(post.start_at).diff(
-        dayjs(now),
-        "second"
-      );
+  if (now && config.showCountdown && derived === "upcoming" && post.start_at) {
+    const diffSeconds = dayjs(post.start_at).diff(dayjs(now), "second");
 
     if (diffSeconds > 0) {
-      const days =
-        Math.floor(
-          diffSeconds /
-            86400
-        );
+      const days = Math.floor(diffSeconds / 86400);
 
-      const hours =
-        Math.floor(
-          (diffSeconds %
-            86400) /
-            3600
-        );
+      const hours = Math.floor((diffSeconds % 86400) / 3600);
 
-      const minutes =
-        Math.floor(
-          (diffSeconds %
-            3600) /
-            60
-        );
+      const minutes = Math.floor((diffSeconds % 3600) / 60);
 
-      const seconds =
-        diffSeconds % 60;
+      const seconds = diffSeconds % 60;
 
       countdown = {
         days,
@@ -103,10 +63,7 @@ export default function getPostStatus(
   return {
     key: derived,
 
-    config:
-      config.statuses?.[
-        derived
-      ] || null,
+    config: config.statuses?.[derived] || null,
 
     derived: true,
 

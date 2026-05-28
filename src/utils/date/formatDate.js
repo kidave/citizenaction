@@ -1,14 +1,6 @@
-import { 
-  formatDistanceToNow, 
-  parseISO, 
-  isValid, 
-  format 
-} from "date-fns";
+import { formatDistanceToNow, parseISO, isValid, format } from "date-fns";
 
-export default function formatDate(
-  dateString,
-  mode = "relative"
-) {
+export default function formatDate(dateString, mode = "relative") {
   if (!dateString) return "";
 
   try {
@@ -22,7 +14,6 @@ export default function formatDate(
     return formatDistanceToNow(parsed, {
       addSuffix: true,
     });
-
   } catch {
     return "";
   }

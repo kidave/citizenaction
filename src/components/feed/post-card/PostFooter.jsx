@@ -45,15 +45,13 @@ export default function PostFooter({ post }) {
      MEETING ATTENDEES
   ------------------------- */
 
-  const { data: attendees = [] } =
-    usePostMeeting(post?.id);
+  const { data: attendees = [] } = usePostMeeting(post?.id);
 
   /* -------------------------
      GOVERNANCE
   ------------------------- */
 
-  const { data: governance = [] } =
-    usePostGovernance(post?.id);
+  const { data: governance = [] } = usePostGovernance(post?.id);
 
   /* -------------------------
      SUPPORT
@@ -64,22 +62,19 @@ export default function PostFooter({ post }) {
 
     if (!user) return;
 
-    queryClient.setQueryData(
-      ["post-stats", post.id, user?.id],
-      (old) => {
-        if (!old) return old;
+    queryClient.setQueryData(["post-stats", post.id, user?.id], (old) => {
+      if (!old) return old;
 
-        return {
-          ...old,
+      return {
+        ...old,
 
-          support_count: supported
-            ? old.support_count - 1
-            : old.support_count + 1,
+        support_count: supported
+          ? old.support_count - 1
+          : old.support_count + 1,
 
-          is_supported: !supported,
-        };
-      }
-    );
+        is_supported: !supported,
+      };
+    });
 
     try {
       if (supported) {
@@ -89,12 +84,10 @@ export default function PostFooter({ post }) {
           .eq("action_id", post.id)
           .eq("user_id", user.id);
       } else {
-        await supabase
-          .from("action_support")
-          .insert({
-            action_id: post.id,
-            user_id: user.id,
-          });
+        await supabase.from("action_support").insert({
+          action_id: post.id,
+          user_id: user.id,
+        });
       }
     } catch (err) {
       console.error(err);
@@ -114,22 +107,19 @@ export default function PostFooter({ post }) {
 
     if (!user) return;
 
-    queryClient.setQueryData(
-      ["post-stats", post.id, user?.id],
-      (old) => {
-        if (!old) return old;
+    queryClient.setQueryData(["post-stats", post.id, user?.id], (old) => {
+      if (!old) return old;
 
-        return {
-          ...old,
+      return {
+        ...old,
 
-          contribute_count: contributing
-            ? old.contribute_count - 1
-            : old.contribute_count + 1,
+        contribute_count: contributing
+          ? old.contribute_count - 1
+          : old.contribute_count + 1,
 
-          is_contributing: !contributing,
-        };
-      }
-    );
+        is_contributing: !contributing,
+      };
+    });
 
     try {
       if (contributing) {
@@ -139,12 +129,10 @@ export default function PostFooter({ post }) {
           .eq("action_id", post.id)
           .eq("user_id", user.id);
       } else {
-        await supabase
-          .from("action_contribute")
-          .insert({
-            action_id: post.id,
-            user_id: user.id,
-          });
+        await supabase.from("action_contribute").insert({
+          action_id: post.id,
+          user_id: user.id,
+        });
       }
     } catch (err) {
       console.error(err);
@@ -158,47 +146,35 @@ export default function PostFooter({ post }) {
   return (
     <TooltipProvider>
       <div className="flex items-center justify-between text-sm text-muted-foreground">
-
         {/* LEFT */}
         <div className="flex items-center gap-3">
-
           {/* GOVERNANCE */}
-          <GovernanceAvatarGroups
-            entities={governance}
-          />
+          <GovernanceAvatarGroups entities={governance} />
 
           {/* ATTENDEES */}
           {post.type === "meeting" && (
-            <AttendeeAvatarGroup
-              attendees={attendees}
-            />
+            <AttendeeAvatarGroup attendees={attendees} />
           )}
-
         </div>
 
         {/* RIGHT */}
         <div className="flex items-center gap-6">
-
           {/* SUPPORT */}
           <Tooltip>
             <TooltipTrigger asChild>
               <button
                 onClick={handleSupport}
                 className={`flex items-center gap-2 hover:text-primary ${
-                  supported
-                    ? "text-primary font-medium"
-                    : ""
+                  supported ? "font-medium text-primary" : ""
                 }`}
               >
-                <ArrowBigUpDash className="w-4 h-4" />
+                <ArrowBigUpDash className="h-4 w-4" />
                 {supportCount}
               </button>
             </TooltipTrigger>
 
             <TooltipContent>
-              {supported
-                ? "Remove support"
-                : "Support"}
+              {supported ? "Remove support" : "Support"}
             </TooltipContent>
           </Tooltip>
 
@@ -208,26 +184,21 @@ export default function PostFooter({ post }) {
               <button
                 onClick={handleContribute}
                 className={`flex items-center gap-2 hover:text-primary ${
-                  contributing
-                    ? "text-primary font-medium"
-                    : ""
+                  contributing ? "font-medium text-primary" : ""
                 }`}
               >
-                <Orbit className="w-4 h-4" />
+                <Orbit className="h-4 w-4" />
                 {contributeCount}
               </button>
             </TooltipTrigger>
 
             <TooltipContent>
-              {contributing
-                ? "Withdraw"
-                : "Contribute"}
+              {contributing ? "Withdraw" : "Contribute"}
             </TooltipContent>
           </Tooltip>
 
           {/* SHARE */}
           <PostShareButton post={post} />
-
         </div>
       </div>
     </TooltipProvider>

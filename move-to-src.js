@@ -50,27 +50,25 @@ function rewriteSpecifier(spec, filePath) {
   return spec;
 }
 
-
 function rewriteCodeImports(code, filePath) {
   return code
     .replace(
       /(from\s+['"])([^'"]+)(['"])/g,
-      (_, a, spec, c) => a + rewriteSpecifier(spec, filePath) + c
+      (_, a, spec, c) => a + rewriteSpecifier(spec, filePath) + c,
     )
     .replace(
       /(export\s+[^;]*\sfrom\s+['"])([^'"]+)(['"])/g,
-      (_, a, spec, c) => a + rewriteSpecifier(spec, filePath) + c
+      (_, a, spec, c) => a + rewriteSpecifier(spec, filePath) + c,
     )
     .replace(
       /(require\(\s*['"])([^'"]+)(['"]\s*\))/g,
-      (_, a, spec, c) => a + rewriteSpecifier(spec, filePath) + c
+      (_, a, spec, c) => a + rewriteSpecifier(spec, filePath) + c,
     )
     .replace(
       /(import\(\s*['"])([^'"]+)(['"]\s*\))/g,
-      (_, a, spec, c) => a + rewriteSpecifier(spec, filePath) + c
+      (_, a, spec, c) => a + rewriteSpecifier(spec, filePath) + c,
     );
 }
-
 
 // --- Step 1: Move target folders ---
 foldersToMove.forEach((folder) => {

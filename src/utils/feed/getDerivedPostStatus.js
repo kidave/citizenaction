@@ -1,17 +1,7 @@
-import {
-  isAfter,
-  isBefore,
-} from "date-fns";
+import { isAfter, isBefore } from "date-fns";
 
-export default function getDerivedPostStatus(
-  post,
-  config,
-  now = null
-) {
-  if (
-    !config.lifecycle ||
-    !post?.start_at
-  ) {
+export default function getDerivedPostStatus(post, config, now = null) {
+  if (!config.lifecycle || !post?.start_at) {
     return null;
   }
 
@@ -20,33 +10,20 @@ export default function getDerivedPostStatus(
     return null;
   }
 
-  const start =
-    new Date(post.start_at);
+  const start = new Date(post.start_at);
 
-  const end = post.end_at
-    ? new Date(post.end_at)
-    : null;
+  const end = post.end_at ? new Date(post.end_at) : null;
 
   // =====================================================
   // RANGE TYPE
   // =====================================================
 
-  if (
-    config.displayMode ===
-    "range"
-  ) {
-    if (
-      end &&
-      isAfter(now, end)
-    ) {
+  if (config.displayMode === "range") {
+    if (end && isAfter(now, end)) {
       return "completed";
     }
 
-    if (
-      isAfter(now, start) &&
-      (!end ||
-        isBefore(now, end))
-    ) {
+    if (isAfter(now, start) && (!end || isBefore(now, end))) {
       return "ongoing";
     }
 
@@ -57,24 +34,13 @@ export default function getDerivedPostStatus(
   // LIFECYCLE TYPE
   // =====================================================
 
-  if (
-    end &&
-    isAfter(now, end)
-  ) {
+  if (end && isAfter(now, end)) {
     return "ended";
   }
 
-  const joinWindow =
-    new Date(
-      start.getTime() -
-        15 * 60 * 1000
-    );
+  const joinWindow = new Date(start.getTime() - 15 * 60 * 1000);
 
-  if (
-    isAfter(now, joinWindow) &&
-    (!end ||
-      isBefore(now, end))
-  ) {
+  if (isAfter(now, joinWindow) && (!end || isBefore(now, end))) {
     return "live";
   }
 

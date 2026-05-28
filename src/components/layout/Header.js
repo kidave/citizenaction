@@ -76,8 +76,8 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 z-50 w-full lg:hidden bg-gradient-to-br from-indigo-500/10 to-purple-600/10">
-      <div className="h-16 max-w-7xl mx-auto px-4 flex items-center justify-between">
+    <header className="fixed top-0 z-50 w-full bg-gradient-to-br from-indigo-500/10 to-purple-600/10 lg:hidden">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         {/* BRAND */}
         <Logo />
 
@@ -90,7 +90,7 @@ export default function Header() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="bg-transparent hover:bg-indigo-100 hover:text-indigo-700 border-indigo-300"
+                  className="border-indigo-300 bg-transparent hover:bg-indigo-100 hover:text-indigo-700"
                 >
                   <FiMenu className="mr-2" />
                   Navigation
@@ -103,7 +103,7 @@ export default function Header() {
               >
                 {NAV_ITEMS.map((nav) => (
                   <div key={nav.label} className="mb-3 last:mb-0">
-                    <p className="text-xs font-semibold text-muted-foreground mb-2 px-2">
+                    <p className="mb-2 px-2 text-xs font-semibold text-muted-foreground">
                       {nav.label}
                     </p>
                     <div className="space-y-1">
@@ -111,7 +111,7 @@ export default function Header() {
                         <DropdownMenuItem
                           key={item.title}
                           onClick={() => router.push(item.href)}
-                          className="px-2 py-2 cursor-pointer rounded-md hover:bg-muted"
+                          className="cursor-pointer rounded-md px-2 py-2 hover:bg-muted"
                         >
                           <div>
                             <div className="font-medium">{item.title}</div>
@@ -136,18 +136,13 @@ export default function Header() {
           ) : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <div className="w-9 h-9 flex items-center justify-center">
+                <div className="flex h-9 w-9 items-center justify-center">
                   <button
                     className="rounded-full focus:outline-none"
                     aria-label="User menu"
                   >
                     <Avatar className="h-9 w-9">
-                      <AvatarImage
-                        src={
-                          profile?.avatar_url ||
-                          "/user1.png"
-                        }
-                      />
+                      <AvatarImage src={profile?.avatar_url || "/user1.png"} />
                       <AvatarFallback>
                         {user.email?.[0]?.toUpperCase() || "U"}
                       </AvatarFallback>
@@ -184,7 +179,7 @@ export default function Header() {
                 <div className="mt-6 space-y-6">
                   {NAV_ITEMS.map((nav) => (
                     <div key={nav.label}>
-                      <p className="text-sm font-semibold text-muted-foreground mb-2">
+                      <p className="mb-2 text-sm font-semibold text-muted-foreground">
                         {nav.label}
                       </p>
 
@@ -192,7 +187,7 @@ export default function Header() {
                         {nav.items.map((item) => (
                           <button
                             key={item.title}
-                            className="w-full text-left rounded-md px-3 py-2 text-sm hover:bg-muted"
+                            className="w-full rounded-md px-3 py-2 text-left text-sm hover:bg-muted"
                             onClick={() => router.push(item.href)}
                           >
                             {item.title}

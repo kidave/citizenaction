@@ -10,19 +10,10 @@ export function useClubs({
   enabled = true,
 } = {}) {
   return useQuery({
-    queryKey: [
-      "clubs",
-      spaceSlug,
-      scopeType,
-      scopeCode,
-      search,
-    ],
+    queryKey: ["clubs", spaceSlug, scopeType, scopeCode, search],
     enabled,
     queryFn: async () => {
-      let query = supabase
-        .from("club_view")
-        .select("*")
-        .eq("is_active", true);
+      let query = supabase.from("club_view").select("*").eq("is_active", true);
 
       if (spaceSlug && spaceSlug !== "all") {
         query = query.eq("space_slug", spaceSlug);

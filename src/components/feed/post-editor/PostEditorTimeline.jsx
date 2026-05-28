@@ -16,26 +16,22 @@ export default function PostEditorTimeline({ editor }) {
 
   return (
     <>
-        <div
-            className={`flex items-center gap-2 w-[160px] ${
-              !showTimeline ? "opacity-0 pointer-events-none" : ""
-            }`}
+      <div
+        className={`flex w-[160px] items-center gap-2 ${
+          !showTimeline ? "pointer-events-none opacity-0" : ""
+        }`}
+      >
+        <Button
+          variant="outline"
+          onClick={() => setOpen(true)}
+          className="flex items-center gap-2"
         >
-          <Button
-            variant="outline"
-            onClick={() => setOpen(true)}
-            className="flex items-center gap-2"
-          >
-            <Route />
-            Timeline
-          </Button>
-        </div>
+          <Route />
+          Timeline
+        </Button>
+      </div>
 
-      <PostTimelineModal
-        open={open}
-        onOpenChange={setOpen}
-        editor={editor}
-      />
+      <PostTimelineModal open={open} onOpenChange={setOpen} editor={editor} />
     </>
   );
 }

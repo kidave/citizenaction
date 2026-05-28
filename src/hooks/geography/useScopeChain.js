@@ -6,10 +6,9 @@ export function useScopeChain(scopeCode) {
     queryKey: ["scope-chain", scopeCode],
     enabled: !!scopeCode,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc(
-        "get_scope_chain",
-        { input_code: scopeCode }
-      );
+      const { data, error } = await supabase.rpc("get_scope_chain", {
+        input_code: scopeCode,
+      });
 
       if (error) throw error;
       return data || {};

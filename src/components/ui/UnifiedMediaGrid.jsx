@@ -24,7 +24,6 @@ export default function UnifiedMediaGrid({ media = [] }) {
 
   return (
     <div className="mt-3 space-y-3">
-
       {/* 🖼️ IMAGE GRID */}
       {images.length > 0 && (
         <ImageGrid
@@ -35,21 +34,19 @@ export default function UnifiedMediaGrid({ media = [] }) {
 
       {/* 📦 OTHER MEDIA GRID */}
       {others.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {others.map((item, i) => {
-
             /* 📄 PDF */
             if (item.type === "pdf") {
               return (
                 <div
                   key={i}
                   onClick={() => setActivePdf(item.url)}
-                  className="relative h-32 rounded-lg border bg-muted flex items-center justify-center cursor-pointer hover:bg-muted/70 transition"
+                  className="relative flex h-32 cursor-pointer items-center justify-center rounded-lg border bg-muted transition hover:bg-muted/70"
                 >
                   <span className="text-sm">📄 PDF</span>
 
-                  <div className="absolute bottom-0 w-full bg-black/60 text-white text-xs p-1 text-center">
+                  <div className="absolute bottom-0 w-full bg-black/60 p-1 text-center text-xs text-white">
                     Open PDF
                   </div>
                 </div>
@@ -62,9 +59,9 @@ export default function UnifiedMediaGrid({ media = [] }) {
                 <div
                   key={i}
                   onClick={() => setActiveVideo(item)}
-                  className="relative h-32 rounded-lg border bg-black flex items-center justify-center cursor-pointer"
+                  className="relative flex h-32 cursor-pointer items-center justify-center rounded-lg border bg-black"
                 >
-                  <span className="text-white text-xl">▶</span>
+                  <span className="text-xl text-white">▶</span>
                 </div>
               );
             }
@@ -86,11 +83,11 @@ export default function UnifiedMediaGrid({ media = [] }) {
       {/* 📄 PDF VIEWER */}
       {activePdf && (
         <div
-          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
           onClick={() => setActivePdf(null)}
         >
           <div
-            className="w-[90vw] h-[80vh] bg-white rounded-lg overflow-hidden"
+            className="h-[80vh] w-[90vw] overflow-hidden rounded-lg bg-white"
             onClick={(e) => e.stopPropagation()}
           >
             <PDFViewer fileUrl={activePdf} />
@@ -101,22 +98,21 @@ export default function UnifiedMediaGrid({ media = [] }) {
       {/* 🎥 VIDEO VIEWER */}
       {activeVideo && (
         <div
-          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
           onClick={() => setActiveVideo(null)}
         >
           <div
-            className="w-[90vw] max-w-3xl aspect-video bg-black"
+            className="aspect-video w-[90vw] max-w-3xl bg-black"
             onClick={(e) => e.stopPropagation()}
           >
             <iframe
               src={activeVideo.embed || activeVideo.url}
-              className="w-full h-full"
+              className="h-full w-full"
               allowFullScreen
             />
           </div>
         </div>
       )}
-
     </div>
   );
 }

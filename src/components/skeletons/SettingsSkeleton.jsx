@@ -7,13 +7,13 @@ export default function SettingsSkeleton({
   showBranding = false, // optional toggle
 }) {
   return (
-    <div className="max-w-3xl mx-auto py-10 space-y-6">
+    <div className="mx-auto max-w-3xl space-y-6 py-10">
       {/* HEADER */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Skeleton className="h-10 w-10 rounded-md" />
           <div>
-            <Skeleton className="h-6 w-48 mb-2" />
+            <Skeleton className="mb-2 h-6 w-48" />
             <Skeleton className="h-4 w-32" />
           </div>
         </div>

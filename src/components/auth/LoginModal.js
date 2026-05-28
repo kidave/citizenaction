@@ -64,15 +64,11 @@ export function LoginModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-center">
-            Sign in to continue
-          </DialogTitle>
+          <DialogTitle className="text-center">Sign in to continue</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          <p className="text-sm text-muted-foreground text-center">
-            {message}
-          </p>
+          <p className="text-center text-sm text-muted-foreground">{message}</p>
 
           {/* DEV MODE → Email Login */}
           {isDevAuth && (
@@ -87,7 +83,7 @@ export function LoginModal({
           <Button
             onClick={handleLogin}
             disabled={loading || (isDevAuth && !email)}
-            className="w-full flex items-center justify-center gap-2"
+            className="flex w-full items-center justify-center gap-2"
             variant="outline"
           >
             {!isDevAuth && <FcGoogle size={20} />}
@@ -95,8 +91,8 @@ export function LoginModal({
             {loading
               ? "Signing in..."
               : isDevAuth
-              ? "Sign in with Email"
-              : "Continue with Google"}
+                ? "Sign in with Email"
+                : "Continue with Google"}
           </Button>
 
           <div className="text-center">

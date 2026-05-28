@@ -22,7 +22,6 @@
   min-width: 300px;
 }
 
-
 .socialIcons {
   display: flex;
   gap: 1.2rem;
@@ -83,11 +82,11 @@
     flex-direction: column;
     text-align: center;
   }
-  
+
   .footerInfo {
     min-width: auto;
   }
-  
+
   .socialIcons {
     justify-content: center;
   }

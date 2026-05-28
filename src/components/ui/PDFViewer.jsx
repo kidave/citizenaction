@@ -12,10 +12,7 @@ export default function PDFViewer({ fileUrl }) {
   return (
     <div className="h-[85vh] w-full bg-background">
       <Worker workerUrl="/pdf.worker.min.js">
-        <Viewer
-          fileUrl={fileUrl}
-          plugins={[defaultLayoutPluginInstance]}
-        />
+        <Viewer fileUrl={fileUrl} plugins={[defaultLayoutPluginInstance]} />
       </Worker>
     </div>
   );

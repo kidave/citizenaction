@@ -5,108 +5,67 @@ import { supabase } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
 export function useDeletePost() {
+  const queryClient = useQueryClient();
 
-  const queryClient =
-    useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async (postId) => {
+      // =========================
+      // DELETE FEED SPACES
+      // =========================
 
-  const mutation =
-    useMutation({
+      const { error: spaceError } = await supabase
+        .from("feed_space")
+        .delete()
+        .eq("feed_id", postId);
 
-      mutationFn:
-        async (postId) => {
+      if (spaceError) {
+        throw spaceError;
+      }
 
-          // =========================
-          // DELETE FEED SPACES
-          // =========================
+      // =========================
+      // DELETE GOVERNANCE TAGS
+      // =========================
 
-          const {
-            error:
-              spaceError,
-          } = await supabase
-            .from(
-              "feed_space"
-            )
-            .delete()
-            .eq(
-              "feed_id",
-              postId
-            );
+      const { error: tagError } = await supabase
+        .from("feed_governance_entities")
+        .delete()
+        .eq("feed_id", postId);
 
-          if (spaceError) {
-            throw spaceError;
-          }
+      if (tagError) {
+        throw tagError;
+      }
 
-          // =========================
-          // DELETE GOVERNANCE TAGS
-          // =========================
+      // =========================
+      // DELETE FEED
+      // =========================
 
-          const {
-            error: tagError,
-          } = await supabase
-            .from(
-              "feed_governance_entities"
-            )
-            .delete()
-            .eq(
-              "feed_id",
-              postId
-            );
+      const { error } = await supabase.from("feed").delete().eq("id", postId);
 
-          if (tagError) {
-            throw tagError;
-          }
+      if (error) {
+        throw error;
+      }
 
-          // =========================
-          // DELETE FEED
-          // =========================
+      return true;
+    },
 
-          const { error } =
-            await supabase
-              .from("feed")
-              .delete()
-              .eq(
-                "id",
-                postId
-              );
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["feed"],
+      });
 
-          if (error) {
-            throw error;
-          }
+      toast.success("Post deleted successfully");
+    },
 
-          return true;
-        },
+    onError: (error) => {
+      console.error("Delete post error:", error);
 
-      onSuccess: () => {
-
-        queryClient
-          .invalidateQueries({
-            queryKey: ["feed"],
-          });
-
-        toast.success(
-          "Post deleted successfully"
-        );
-      },
-
-      onError: (error) => {
-
-        console.error(
-          "Delete post error:",
-          error
-        );
-
-        toast.error(
-          error.message ||
-          "Failed to delete post"
-        );
-      },
-    });
+      toast.error(error.message || "Failed to delete post");
+    },
+  });
 
   return {
-    deletePost:
-      mutation.mutateAsync,
+    deletePost: mutation.mutateAsync,
 
-    isDeleting:
-      mutation.isPending,
+    isDeleting: mutation.isPending,
   };
 }

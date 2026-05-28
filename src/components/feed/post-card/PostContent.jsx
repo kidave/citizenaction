@@ -30,9 +30,8 @@ export default function PostContent({
     update: "bg-pink-100 text-pink-700 border-pink-200",
     meeting: "bg-yellow-100 text-yellow-700 border-yellow-200",
   };
-  
-  const { text: truncatedText, isLong } =
-    truncateContent(content, 280);
+
+  const { text: truncatedText, isLong } = truncateContent(content, 280);
 
   return (
     <div
@@ -46,36 +45,27 @@ export default function PostContent({
       }}
       className={!forceExpanded ? "cursor-pointer" : ""}
     >
-      <div className="text-sm whitespace-pre-wrap space-y-1">
-        <Row className="gap-2 mb-2">
-          <div className="flex items-center gap-2 flex-wrap">
-          
+      <div className="space-y-1 whitespace-pre-wrap text-sm">
+        <Row className="mb-2 gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Badge
               variant="secondary"
-              className={`text-xs shrink-0 ${typeStyles[type] || ""}`}
+              className={`shrink-0 text-xs ${typeStyles[type] || ""}`}
             >
               {type.toUpperCase()}
             </Badge>
-            
-            {title && (
-              <div className="font-medium items-center">
-                {title}
-              </div>
-            )}
 
+            {title && <div className="items-center font-medium">{title}</div>}
           </div>
         </Row>
-        
+
         <Linkify
           options={{
             target: "_blank",
             rel: "noopener noreferrer",
             className: "text-blue-600 hover:underline break-all",
             render: ({ attributes, content }) => (
-              <a
-                {...attributes}
-                onClick={(e) => e.stopPropagation()}
-              >
+              <a {...attributes} onClick={(e) => e.stopPropagation()}>
                 {content}
               </a>
             ),
@@ -86,7 +76,7 @@ export default function PostContent({
 
         {!forceExpanded && isLong && (
           <span
-            className="ml-2 text-primary font-medium hover:underline cursor-pointer"
+            className="ml-2 cursor-pointer font-medium text-primary hover:underline"
             onClick={(e) => {
               e.stopPropagation();
               setExpanded(!expanded);
@@ -95,7 +85,6 @@ export default function PostContent({
             {expanded ? "Show less" : "Show more"}
           </span>
         )}
-
       </div>
     </div>
   );

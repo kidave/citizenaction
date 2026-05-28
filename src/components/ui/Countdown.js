@@ -1,12 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  differenceInMinutes,
-  isAfter,
-  isBefore,
-  isValid,
-} from "date-fns";
+import { differenceInMinutes, isAfter, isBefore, isValid } from "date-fns";
 import { Clock } from "lucide-react";
 
 export default function Countdown({
@@ -21,8 +16,7 @@ export default function Countdown({
   useEffect(() => {
     if (!date || !time) return;
 
-    const COUNTDOWN_THRESHOLD_MINUTES =
-      thresholdHours * 60;
+    const COUNTDOWN_THRESHOLD_MINUTES = thresholdHours * 60;
 
     const update = () => {
       const meetingDate = new Date(`${date}T${time}`);
@@ -33,15 +27,9 @@ export default function Countdown({
       if (isAfter(meetingDate, now)) {
         setStatus("Upcoming");
 
-        const minutesLeft = differenceInMinutes(
-          meetingDate,
-          now
-        );
+        const minutesLeft = differenceInMinutes(meetingDate, now);
 
-        if (
-          minutesLeft > 0 &&
-          minutesLeft <= COUNTDOWN_THRESHOLD_MINUTES
-        ) {
+        if (minutesLeft > 0 && minutesLeft <= COUNTDOWN_THRESHOLD_MINUTES) {
           const hours = Math.floor(minutesLeft / 60);
           const minutes = minutesLeft % 60;
 
@@ -67,43 +55,34 @@ export default function Countdown({
 
   /* ---------- Urgency Colors ---------- */
 
-  const totalMinutes =
-    countdown.hours * 60 + countdown.minutes;
+  const totalMinutes = countdown.hours * 60 + countdown.minutes;
 
-  let style =
-    "bg-blue-50 text-blue-700 border-blue-200";
+  let style = "bg-blue-50 text-blue-700 border-blue-200";
 
   if (totalMinutes <= 120) {
-    style =
-      "bg-orange-50 text-orange-700 border-orange-200";
+    style = "bg-orange-50 text-orange-700 border-orange-200";
   }
 
   if (totalMinutes <= 30) {
-    style =
-      "bg-red-50 text-red-700 border-red-200";
+    style = "bg-red-50 text-red-700 border-red-200";
   }
 
   return (
     <div
-      className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border ${style} ${className}`}
+      className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 ${style} ${className}`}
     >
       <div className="flex items-center gap-2 text-sm font-medium">
         <Clock className="h-4 w-4" />
         {countdown.hours > 0 ? (
           <span>
-            Meeting starts in {countdown.hours}h{" "}
-            {countdown.minutes}m
+            Meeting starts in {countdown.hours}h {countdown.minutes}m
           </span>
         ) : (
-          <span>
-            Meeting starts in {countdown.minutes}m
-          </span>
+          <span>Meeting starts in {countdown.minutes}m</span>
         )}
       </div>
 
-      <div className="text-xs opacity-70">
-        Be prepared
-      </div>
+      <div className="text-xs opacity-70">Be prepared</div>
     </div>
   );
 }

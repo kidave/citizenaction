@@ -13,12 +13,7 @@ import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { useGeographicScopes } from "@/hooks/geography/useGeographicScopes";
 import { authFetch } from "@/lib/fetch";
 
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -53,8 +48,6 @@ export default function CreateClubPage() {
 
   const { data: profile, isLoading: profileLoading } = useMyProfile();
 
-
-
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm({
@@ -86,22 +79,17 @@ export default function CreateClubPage() {
   const scopeType = form.watch("scope_type");
   const scopeCode = form.watch("scope_code");
 
-  const { data: scopes = [], isLoading: scopesLoading } =
-    useGeographicScopes({
-      type: scopeType,
-      parentCode: null,
-      enabled: !!scopeType,
-    });
+  const { data: scopes = [], isLoading: scopesLoading } = useGeographicScopes({
+    type: scopeType,
+    parentCode: null,
+    enabled: !!scopeType,
+  });
 
-  const selectedScope = scopes?.find(
-    (s) => s.code === scopeCode
-  );
+  const selectedScope = scopes?.find((s) => s.code === scopeCode);
 
   const scopeLogo = selectedScope?.logo_url;
   const scopeCover = selectedScope?.cover_url;
   const scopeName = selectedScope?.name;
-
-
 
   /* ---------------------------------- */
   /* Submit */
@@ -137,8 +125,8 @@ export default function CreateClubPage() {
 
   if (authLoading || profileLoading) {
     return (
-      <div className="max-w-2xl mx-auto py-10 px-4">
-        <div className="flex items-center gap-3 mb-8">
+      <div className="mx-auto max-w-2xl px-4 py-10">
+        <div className="mb-8 flex items-center gap-3">
           <Skeleton className="h-10 w-10 rounded-md" />
           <Skeleton className="h-8 w-48" />
         </div>
@@ -160,7 +148,7 @@ export default function CreateClubPage() {
   if (!user) return null;
   if (!slug) {
     return (
-      <div className="flex justify-center items-center h-64">
+      <div className="flex h-64 items-center justify-center">
         Loading space…
       </div>
     );
@@ -171,9 +159,9 @@ export default function CreateClubPage() {
   /* ---------------------------------- */
 
   return (
-    <div className="max-w-2xl mx-auto py-10 px-4">
+    <div className="mx-auto max-w-2xl px-4 py-10">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-8">
+      <div className="mb-8 flex items-center gap-3">
         <Link
           href={`/space/${slug}`}
           className="inline-flex items-center justify-center rounded-md border p-2 hover:bg-muted"
@@ -189,16 +177,14 @@ export default function CreateClubPage() {
       <Card>
         <CardHeader>
           <p className="text-sm text-muted-foreground">
-            Creating a club which will represent a geographic area within {slug}.
+            Creating a club which will represent a geographic area within {slug}
+            .
           </p>
         </CardHeader>
 
         <CardContent>
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-6"
-            >
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Geographic Scope */}
               <FormField
                 control={form.control}
@@ -292,7 +278,7 @@ export default function CreateClubPage() {
               </div>
 
               {/* Public Club Preview */}
-              <div className="rounded-md border bg-muted/30 p-4 text-sm space-y-3">
+              <div className="space-y-3 rounded-md border bg-muted/30 p-4 text-sm">
                 <div>
                   <p className="font-medium">Club Identity</p>
                   <p className="text-muted-foreground">
@@ -307,7 +293,7 @@ export default function CreateClubPage() {
                       alt="Scope logo"
                       width={48}
                       height={48}
-                      className="h-12 w-12 rounded-md object-contain border bg-background"
+                      className="h-12 w-12 rounded-md border bg-background object-contain"
                     />
                   )}
 
@@ -315,13 +301,14 @@ export default function CreateClubPage() {
                     <p className="font-medium">
                       {scopeName || "Selected Geographic Area"}
                     </p>
-                    <p className="text-muted-foreground text-sm">
-                      Club name and branding are derived from the selected geographic area.
+                    <p className="text-sm text-muted-foreground">
+                      Club name and branding are derived from the selected
+                      geographic area.
                     </p>
                   </div>
                 </div>
 
-                <div className="space-y-1 pt-2 border-t">
+                <div className="space-y-1 border-t pt-2">
                   <p>
                     Name:{" "}
                     <span className="font-medium">
@@ -343,9 +330,11 @@ export default function CreateClubPage() {
                 </div>
 
                 <p className="text-xs text-muted-foreground">
-                  You can update contact details or customise the club name later from the
-                  club settings.<br />
-                  If you want to create a club without public contact info just leave the fields blank.
+                  You can update contact details or customise the club name
+                  later from the club settings.
+                  <br />
+                  If you want to create a club without public contact info just
+                  leave the fields blank.
                 </p>
               </div>
 

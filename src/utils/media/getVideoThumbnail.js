@@ -5,9 +5,7 @@ export function getVideoThumbnail(url) {
     // YouTube
     if (url.includes("youtube.com/watch")) {
       const id = new URL(url).searchParams.get("v");
-      return id
-        ? `https://img.youtube.com/vi/${id}/hqdefault.jpg`
-        : null;
+      return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
     }
 
     if (url.includes("youtu.be")) {

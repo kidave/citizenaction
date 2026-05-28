@@ -5,11 +5,7 @@ import Link from "next/link";
 import { Row } from "@/components/layout/Row";
 import { Stack } from "@/components/layout/Stack";
 
-import {
-  Avatar,
-  AvatarImage,
-  AvatarFallback,
-} from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export function UserIdentity({
   username,
@@ -33,36 +29,25 @@ export function UserIdentity({
   const avatarSize = sizeMap[size] || sizeMap.md;
 
   return (
-    <Link
-      href={`/user/${username}`}
-      className="group block"
-    >
+    <Link href={`/user/${username}`} className="group block">
       <Row className="items-center gap-2">
-
         <Avatar className={avatarSize}>
           <AvatarImage src={avatar || undefined} />
 
-          <AvatarFallback>
-            {name?.charAt(0) || "U"}
-          </AvatarFallback>
+          <AvatarFallback>{name?.charAt(0) || "U"}</AvatarFallback>
         </Avatar>
 
         {!hideName && (
           <Stack className="leading-tight" gap="gap-0">
-
-            <span className="font-medium text-sm group-hover:underline">
+            <span className="text-sm font-medium group-hover:underline">
               {name || "Anonymous"}
             </span>
 
             {!hideTimestamp && createdAt && (
-              <span className="text-xs text-muted-foreground">
-                {createdAt}
-              </span>
+              <span className="text-xs text-muted-foreground">{createdAt}</span>
             )}
-
           </Stack>
         )}
-
       </Row>
     </Link>
   );

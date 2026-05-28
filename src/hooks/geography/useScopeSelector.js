@@ -49,28 +49,32 @@ export function useScopeSelector({ value, onChange, levels }) {
 
   /* ---------------- DATA ---------------- */
 
-  const stateData = useGeographicScopes({
-    type: "state",
-    enabled: levels.includes("state"),
-  }).data || [];
+  const stateData =
+    useGeographicScopes({
+      type: "state",
+      enabled: levels.includes("state"),
+    }).data || [];
 
-  const regionData = useGeographicScopes({
-    type: "region",
-    parentCode: selected.state,
-    enabled: levels.includes("region") && !!selected.state,
-  }).data || [];
+  const regionData =
+    useGeographicScopes({
+      type: "region",
+      parentCode: selected.state,
+      enabled: levels.includes("region") && !!selected.state,
+    }).data || [];
 
-  const cityData = useGeographicScopes({
-    type: "city",
-    parentCode: selected.region,
-    enabled: levels.includes("city") && !!selected.region,
-  }).data || [];
+  const cityData =
+    useGeographicScopes({
+      type: "city",
+      parentCode: selected.region,
+      enabled: levels.includes("city") && !!selected.region,
+    }).data || [];
 
-  const wardData = useGeographicScopes({
-    type: "ward",
-    parentCode: selected.city,
-    enabled: levels.includes("ward") && !!selected.city,
-  }).data || [];
+  const wardData =
+    useGeographicScopes({
+      type: "ward",
+      parentCode: selected.city,
+      enabled: levels.includes("ward") && !!selected.city,
+    }).data || [];
 
   const scopeData = {
     state: stateData,

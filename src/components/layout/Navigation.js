@@ -1,7 +1,15 @@
 "use client";
 
 import { useRouter } from "next/router";
-import { Search, CirclePlus, Orbit, Sparkles, Info, MapPinned, ChevronRight } from "lucide-react";
+import {
+  Search,
+  CirclePlus,
+  Orbit,
+  Sparkles,
+  Info,
+  MapPinned,
+  ChevronRight,
+} from "lucide-react";
 
 import {
   SidebarGroup,
@@ -28,7 +36,6 @@ export function Navigation() {
   const { data: spaces = [], isLoading } = useSpaces({
     enabled: true,
   });
-
 
   return (
     <SidebarGroup>
@@ -82,10 +89,12 @@ export function Navigation() {
 
             <CollapsibleContent>
               <SidebarMenuSub>
-
                 {isLoading && (
                   <SidebarMenuSubItem>
-                    <SidebarMenuSubButton disabled className="flex items-center gap-2">
+                    <SidebarMenuSubButton
+                      disabled
+                      className="flex items-center gap-2"
+                    >
                       <Skeleton className="h-4 w-24" />
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
@@ -94,18 +103,14 @@ export function Navigation() {
                 {spaces?.map((space) => (
                   <SidebarMenuSubItem key={space.id}>
                     <SidebarMenuSubButton
-                      onClick={() =>
-                        router.push(`/space/${space.slug}`)
-                      }
+                      onClick={() => router.push(`/space/${space.slug}`)}
                     >
                       <span>{space.name}</span>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                 ))}
-
               </SidebarMenuSub>
             </CollapsibleContent>
-
           </SidebarMenuItem>
         </Collapsible>
 
@@ -113,9 +118,7 @@ export function Navigation() {
         <SidebarMenuItem>
           <SidebarMenuButton
             tooltip="Mumbai Metropolitan Region"
-            onClick={() =>
-              router.push("/space/walkingproject/region/MH-MMR")
-            }
+            onClick={() => router.push("/space/walkingproject/region/MH-MMR")}
           >
             <MapPinned />
             <span>Mumbai Metropolitan Region</span>

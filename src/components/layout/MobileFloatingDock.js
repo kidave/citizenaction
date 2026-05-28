@@ -31,7 +31,7 @@ export default function MobileFloatingDock() {
     {
       title: "Create",
       icon: (
-        <div className="flex items-center justify-center h-full w-full rounded-full bg-primary text-white">
+        <div className="flex h-full w-full items-center justify-center rounded-full bg-primary text-white">
           <IconPlus className="h-5 w-5" />
         </div>
       ),

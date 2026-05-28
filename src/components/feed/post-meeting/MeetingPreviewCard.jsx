@@ -11,8 +11,7 @@ import GovernanceAvatarGroups from "@/components/governance/GovernanceAvatarGrou
 import AutoImageCarousel from "@/components/ui/AutoImageCarousel";
 import formatDate from "@/utils/date/formatDate";
 
-const meetingStyle =
-  "bg-yellow-50";
+const meetingStyle = "bg-yellow-50";
 
 export default function MeetingPreviewCard({ meeting }) {
   const router = useRouter();
@@ -22,24 +21,19 @@ export default function MeetingPreviewCard({ meeting }) {
     router.push(`/post/${meeting.id}`);
   };
 
-  const dateString =
-    meeting.metadata_date || meeting.sort_date;
+  const dateString = meeting.metadata_date || meeting.sort_date;
 
-  const formattedDate = formatDate(
-    dateString,
-    "absolute"
-  );
+  const formattedDate = formatDate(dateString, "absolute");
 
   return (
     <Card
       onClick={handleNavigate}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`group cursor-pointer overflow-hidden hover:shadow-lg transition ${meetingStyle}`}
+      className={`group cursor-pointer overflow-hidden transition hover:shadow-lg ${meetingStyle}`}
     >
       {/* ================= IMAGE AREA ================= */}
-      <div className="relative h-40 bg-muted overflow-hidden">
-
+      <div className="relative h-40 overflow-hidden bg-muted">
         {/* IMAGE OR FALLBACK */}
         <motion.div
           animate={{ opacity: isHovered ? 0 : 1 }}
@@ -53,16 +47,16 @@ export default function MeetingPreviewCard({ meeting }) {
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
 
               {/* TITLE ON IMAGE */}
-              <div className="absolute bottom-2 left-2 right-2 text-white text-sm font-medium line-clamp-2">
+              <div className="absolute bottom-2 left-2 right-2 line-clamp-2 text-sm font-medium text-white">
                 {meeting.summary || "Untitled"}
               </div>
 
-              <div className="absolute top-2 right-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded">
+              <div className="absolute right-2 top-2 rounded bg-black/60 px-2 py-1 text-[10px] text-white">
                 MEETING
               </div>
             </>
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
+            <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
               MEETING
             </div>
           )}
@@ -75,16 +69,14 @@ export default function MeetingPreviewCard({ meeting }) {
             opacity: isHovered ? 1 : 0,
           }}
           transition={{ duration: 0.25 }}
-          className="absolute inset-0 p-3 flex flex-col bg-background"
+          className="absolute inset-0 flex flex-col bg-background p-3"
         >
-          <div className="text-sm font-semibold line-clamp-2">
+          <div className="line-clamp-2 text-sm font-semibold">
             {meeting.summary || "Untitled"}
           </div>
 
-          <div className="text-xs text-muted-foreground mt-1 overflow-hidden">
-            <div className="line-clamp-6">
-              {meeting.details}
-            </div>
+          <div className="mt-1 overflow-hidden text-xs text-muted-foreground">
+            <div className="line-clamp-6">{meeting.details}</div>
           </div>
         </motion.div>
       </div>
@@ -96,7 +88,7 @@ export default function MeetingPreviewCard({ meeting }) {
       >
         <CardHeader className="space-y-1">
           {(meeting.details || meeting.summary) && (
-            <div className="text-xs text-muted-foreground line-clamp-2">
+            <div className="line-clamp-2 text-xs text-muted-foreground">
               {meeting.details || meeting.summary}
             </div>
           )}
@@ -105,14 +97,10 @@ export default function MeetingPreviewCard({ meeting }) {
 
       {/* ================= FOOTER ================= */}
       <CardContent className="flex items-center justify-between">
-        <AttendeeAvatarGroup
-          attendees={meeting.attendees || []}
-        />
+        <AttendeeAvatarGroup attendees={meeting.attendees || []} />
 
         {meeting.governance_entities?.length > 0 && (
-          <GovernanceAvatarGroups
-            entities={meeting.governance_entities}
-          />
+          <GovernanceAvatarGroups entities={meeting.governance_entities} />
         )}
       </CardContent>
 

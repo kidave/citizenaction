@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-
 import {
   Users,
   Activity,
@@ -14,13 +13,10 @@ import {
   MapPinned,
   ExternalLink,
 } from "lucide-react";
-
 import { useFeed } from "@/hooks/feed/useFeed";
-
 import { useSpaceMembers } from "@/hooks/space/useSpaceMembers";
-
 import ActivityPreviewCard from "@/components/feed/post-activity/ActivityPreviewCard";
-
+import MetricCard from "@/components/ui/metric-card";
 import {
   Card,
   CardHeader,
@@ -28,88 +24,33 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
-import {
-  Avatar,
-  AvatarImage,
-  AvatarFallback,
-} from "@/components/ui/avatar";
-
-
-export default function OverviewTab({
-  space,
-}) {
-  const {
-    data: members = [],
-  } = useSpaceMembers({
+export default function OverviewTab({ space }) {
+  const { data: members = [] } = useSpaceMembers({
     spaceId: space.id,
   });
 
-  const {
-    data: feed = [],
-  } = useFeed();
+  const { data: feed = [] } = useFeed();
 
-  const spaceFeed = feed.filter(
-    (f) => f.space_id === space.id
-  );
+  const spaceFeed = feed.filter((f) => f.space_id === space.id);
 
-  const meetings =
-    spaceFeed.filter(
-      (f) => f.type === "meeting"
-    );
+  const meetings = spaceFeed.filter((f) => f.type === "meeting");
 
-  const events =
-    spaceFeed.filter(
-      (f) => f.type === "event"
-    );
+  const events = spaceFeed.filter((f) => f.type === "event");
 
-  const recentFeed =
-    [...spaceFeed]
-      .sort(
-        (a, b) =>
-          new Date(
-            b.created_at
-          ) -
-          new Date(
-            a.created_at
-          )
-      )
-      .slice(0, 4);
+  const recentFeed = [...spaceFeed]
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .slice(0, 4);
 
-  const admins =
-    members.filter((m) =>
-      ["owner", "admin"].includes(
-        m.role
-      )
-    );
+  const admins = members.filter((m) => ["owner", "admin"].includes(m.role));
 
   return (
     <div className="space-y-6">
+      <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <MetricCard icon={Users} label="Members" value={members.length} />
 
-      {/* =====================================================
-          METRICS
-      ===================================================== */}
-
-      <section
-        className="
-          grid
-          grid-cols-2
-          lg:grid-cols-4
-          gap-4
-        "
-      >
-
-        <MetricCard
-          icon={Users}
-          label="Members"
-          value={members.length}
-        />
-
-        <MetricCard
-          icon={Activity}
-          label="Activity"
-          value={spaceFeed.length}
-        />
+        <MetricCard icon={Activity} label="Activity" value={spaceFeed.length} />
 
         <MetricCard
           icon={Presentation}
@@ -117,35 +58,11 @@ export default function OverviewTab({
           value={meetings.length}
         />
 
-        <MetricCard
-          icon={CalendarDays}
-          label="Events"
-          value={events.length}
-        />
-
+        <MetricCard icon={CalendarDays} label="Events" value={events.length} />
       </section>
 
-      {/* =====================================================
-          GRID
-      ===================================================== */}
-
-      <section
-        className="
-          grid
-          grid-cols-1
-          lg:grid-cols-3
-          gap-6
-        "
-      >
-
-        {/* =====================================================
-            LEFT
-        ===================================================== */}
-
-        <div className="lg:col-span-2 space-y-6">
-
-          {/* RECENT ACTIVITY */}
-
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
           <div className="space-y-4">
             <Link
               href={`/space/${space.slug}?tab=activity`}
@@ -155,7 +72,6 @@ export default function OverviewTab({
                 <p className="text-sm font-semibold text-muted-foreground">
                   Latest updates from {space.name}
                 </p>
-
               </div>
             </Link>
 
@@ -164,264 +80,130 @@ export default function OverviewTab({
                 No recent activity.
               </div>
             ) : (
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-
+              <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
                 {recentFeed.map((post) => (
-                  <ActivityPreviewCard
-                    key={post.id}
-                    post={post}
-                  />
+                  <ActivityPreviewCard key={post.id} post={post} />
                 ))}
-
               </div>
             )}
-
           </div>
-
         </div>
 
-        {/* =====================================================
-            RIGHT
-        ===================================================== */}
-
         <div className="space-y-6">
-
-          {/* GOVERNANCE */}
-
-          <Card className="rounded-[32px] border-4 overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-
+          <Card className="overflow-hidden rounded-[32px] border-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
             <CardHeader>
               <Link
                 href={`/space/${space.slug}?tab=members`}
                 className="flex items-center justify-between"
               >
-                <CardTitle>
-                  Team
-                </CardTitle>
+                <CardTitle>Team</CardTitle>
               </Link>
-
             </CardHeader>
 
             <CardContent className="space-y-4">
-
               {admins.map((member) => (
-                <Link
-                  key={member.user_id}
-                  href={`/user/${member.username}`}
-                >
-
-                  <div
-                    className="
-                      flex
-                      items-center
-                      justify-between
-                      gap-3
-                      rounded-lg
-                      p-2
-                      transition
-                    "
-                  >
-
-                    <div className="flex items-center gap-3 min-w-0">
-
+                <Link key={member.user_id} href={`/user/${member.username}`}>
+                  <div className="flex items-center justify-between gap-3 rounded-lg p-2 transition">
+                    <div className="flex min-w-0 items-center gap-3">
                       <Avatar className="h-10 w-10">
-
-                        <AvatarImage
-                          src={
-                            member.avatar_url
-                          }
-                        />
+                        <AvatarImage src={member.avatar_url} />
 
                         <AvatarFallback>
-                          {member.name?.[0] ||
-                            "U"}
+                          {member.name?.[0] || "U"}
                         </AvatarFallback>
-
                       </Avatar>
 
                       <div className="min-w-0">
-
-                        <div className="font-medium truncate">
+                        <div className="truncate font-medium">
                           {member.name}
                         </div>
 
-                        <div className="text-xs text-muted-foreground truncate">
+                        <div className="truncate text-xs text-muted-foreground">
                           @{member.username}
                         </div>
-
                       </div>
-
                     </div>
-
                   </div>
-
                 </Link>
               ))}
-
             </CardContent>
-
           </Card>
 
-          {/* SPACE INFO */}
-
-          <Card className="rounded-[32px] border-4 overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-
+          <Card className="overflow-hidden rounded-[32px] border-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
             <CardHeader>
-
-              <CardTitle>
-                {space.name}
-              </CardTitle>
-
+              <CardTitle>{space.name}</CardTitle>
             </CardHeader>
 
             <CardContent className="space-y-4 text-sm">
-
               {space.scope_type && (
-                <InfoRow
-                  icon={MapPinned}
-                  label="Scope"
-                  value={
-                    space.scope_type
-                  }
-                />
+                <div className="flex items-start gap-3">
+                  <MapPinned className="mt-0.5 h-4 w-4 text-muted-foreground" />
+
+                  <div>
+                    <div className="text-xs text-muted-foreground">Scope</div>
+
+                    <div>{space.scope_type}</div>
+                  </div>
+                </div>
               )}
 
               {space.website && (
-                <InfoRow
-                    icon={Globe}
-                    label="Website"
-                    value={
+                <div className="flex items-start gap-3">
+                  <Globe className="mt-0.5 h-4 w-4 text-muted-foreground" />
+
+                  <div>
+                    <div className="text-xs text-muted-foreground">Website</div>
+
                     <a
-                        href={space.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="
-                        inline-flex
-                        items-center
-                        gap-1
-                        hover:opacity-70
-                        transition
-                        "
+                      href={space.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 transition hover:opacity-70"
                     >
-                        <span className="truncate max-w-[160px]">
+                      <span className="max-w-[160px] truncate">
                         {space.website
-                            .replace("https://", "")
-                            .replace("http://", "")}
-                        </span>
+                          .replace("https://", "")
+                          .replace("http://", "")}
+                      </span>
 
-                        <ExternalLink className="h-3 w-3" />
-
+                      <ExternalLink className="h-3 w-3" />
                     </a>
-                    }
-                />
+                  </div>
+                </div>
               )}
 
               {space.email && (
-                <InfoRow
-                    icon={Mail}
-                    label="Email"
-                    value={
+                <div className="flex items-start gap-3">
+                  <Mail className="mt-0.5 h-4 w-4 text-muted-foreground" />
+
+                  <div>
+                    <div className="text-xs text-muted-foreground">Email</div>
+
                     <a
-                        href={`mailto:${space.email}`}
-                        className="
-                        hover:underline
-                        break-all
-                        "
+                      href={`mailto:${space.email}`}
+                      className="break-all hover:underline"
                     >
-                        {space.email}
+                      {space.email}
                     </a>
-                    }
-                />
+                  </div>
+                </div>
               )}
 
               {space.contact_number && (
-                <InfoRow
-                  icon={Phone}
-                  label="Phone"
-                  value={
-                    space.contact_number
-                  }
-                />
+                <div className="flex items-start gap-3">
+                  <Phone className="mt-0.5 h-4 w-4 text-muted-foreground" />
+
+                  <div>
+                    <div className="text-xs text-muted-foreground">Phone</div>
+
+                    <div>{space.contact_number}</div>
+                  </div>
+                </div>
               )}
-
             </CardContent>
-
           </Card>
-
         </div>
-
       </section>
-
-    </div>
-  );
-}
-
-/* =====================================================
-   METRIC CARD
-===================================================== */
-
-function MetricCard({
-  icon: Icon,
-  label,
-  value,
-}) {
-  return (
-    <Card className="rounded-[28px] border-4 bg-gradient-to-br from-background to-muted/40 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition hover:-translate-y-1">
-
-      <CardContent className="p-5">
-
-        <div className="flex items-center justify-between gap-4">
-
-          <div>
-
-            <div className="text-xs font-black uppercase tracking-wider text-muted-foreground">
-              {label}
-            </div>
-
-            <div className="mt-2 text-4xl font-black leading-none">
-              {value}
-            </div>
-
-          </div>
-
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border-2 bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-
-            <Icon className="h-5 w-5" />
-
-          </div>
-
-        </div>
-
-      </CardContent>
-
-    </Card>
-  );
-}
-
-/* =====================================================
-   INFO ROW
-===================================================== */
-
-function InfoRow({
-  icon: Icon,
-  label,
-  value,
-}) {
-  return (
-    <div className="flex items-start gap-3">
-
-      <Icon className="h-4 w-4 mt-0.5 text-muted-foreground" />
-
-      <div>
-
-        <div className="text-xs text-muted-foreground">
-          {label}
-        </div>
-
-        <div>{value}</div>
-
-      </div>
-
     </div>
   );
 }

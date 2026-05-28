@@ -12,7 +12,6 @@ import PostEditorModal from "@/components/feed/post-editor/PostEditorModal";
 import { Card } from "@/components/ui/card";
 
 export default function Feed() {
-
   const { user } = useAuth();
   const { data, isLoading } = useFeed();
   const { deletePost } = useDeletePost();
@@ -20,8 +19,7 @@ export default function Feed() {
   const [editingPost, setEditingPost] = useState(null);
 
   return (
-    <div className="flex flex-col w-full">
-
+    <div className="flex w-full flex-col">
       {isLoading ? (
         <div className="space-y-4">
           <PostSkeleton />
@@ -36,7 +34,6 @@ export default function Feed() {
         </Card>
       ) : (
         <div className="space-y-4">
-
           {data?.map((post) => (
             <PostCard
               key={post.id}
@@ -46,7 +43,6 @@ export default function Feed() {
               onDelete={() => deletePost(post.id)}
             />
           ))}
-
         </div>
       )}
 
@@ -59,7 +55,6 @@ export default function Feed() {
           post={editingPost}
         />
       )}
-
     </div>
   );
 }

@@ -2,10 +2,7 @@ import Head from "next/head";
 
 import "@/styles/main.css";
 
-import {
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { AuthProvider } from "@/context/AuthContext";
 
@@ -21,40 +18,27 @@ import MobileBottomBar from "@/components/layout/MobileBottomBar";
 
 import { Toaster } from "sonner";
 
-const queryClient =
-  new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime:
-          5 * 60 * 1000,
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
 
-        cacheTime:
-          30 * 60 * 1000,
+      cacheTime: 30 * 60 * 1000,
 
-        refetchOnWindowFocus:
-          false,
+      refetchOnWindowFocus: false,
 
-        retry: 1,
-      },
+      retry: 1,
     },
-  });
+  },
+});
 
-function MyApp({
-  Component,
-  pageProps,
-}) {
-  const getLayout =
-    Component.getLayout ||
-    ((page) => page);
+function MyApp({ Component, pageProps }) {
+  const getLayout = Component.getLayout || ((page) => page);
 
   return (
     <>
       <Head>
-        <title key="title">
-          Citizen Action -
-          Mumbai Sustainability
-          Center
-        </title>
+        <title key="title">Citizen Action - Mumbai Sustainability Center</title>
 
         <meta
           name="viewport"
@@ -65,43 +49,24 @@ function MyApp({
           "
         />
 
-        <link
-          rel="icon"
-          href="/favicon.ico"
-        />
+        <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <QueryClientProvider
-        client={queryClient}
-      >
+      <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <MediaProvider>
             <Layout>
               <RouteLoader />
 
               <ErrorBoundary>
-                <main
-                  className="
-                    w-full
-                    min-w-0
-                    pb-24
-                    md:pb-0
-                  "
-                >
-                  {getLayout(
-                    <Component
-                      {...pageProps}
-                    />
-                  )}
+                <main className="w-full min-w-0 pb-24 md:pb-0">
+                  {getLayout(<Component {...pageProps} />)}
                 </main>
 
                 <MobileBottomBar />
               </ErrorBoundary>
 
-              <Toaster
-                richColors
-                position="top-right"
-              />
+              <Toaster richColors position="top-right" />
             </Layout>
           </MediaProvider>
         </AuthProvider>

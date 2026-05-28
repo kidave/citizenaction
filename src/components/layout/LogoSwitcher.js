@@ -19,13 +19,12 @@ export function LogoSwitcher() {
   return (
     <SidebarMenu className="w-full">
       <SidebarMenuItem>
-        <div className="flex items-center justify-between w-full px-2">
-
+        <div className="flex w-full items-center justify-between px-2">
           {/* LEFT SIDE: Logo + Text */}
           <SidebarMenuButton
             size="lg"
             onClick={() => router.push("/")}
-            className="flex items-center gap-3 flex-1"
+            className="flex flex-1 items-center gap-3"
           >
             <div className="flex size-8 items-center justify-center rounded-lg bg-accent text-sidebar-primary-foreground">
               <Logo className="h-4 w-4" />
@@ -33,9 +32,7 @@ export function LogoSwitcher() {
 
             {!isCollapsed && (
               <div className="grid text-left text-sm leading-tight">
-                <span className="truncate font-semibold">
-                  Citizen Action
-                </span>
+                <span className="truncate font-semibold">Citizen Action</span>
                 <span className="truncate text-xs text-muted-foreground">
                   Civic Platform
                 </span>
@@ -46,11 +43,10 @@ export function LogoSwitcher() {
           {/* RIGHT SIDE: Toggle (Inline, Not Floating) */}
           <button
             onClick={toggleSidebar}
-            className="ml-2 p-2 rounded-md hover:bg-muted transition"
+            className="ml-2 rounded-md p-2 transition hover:bg-muted"
           >
             <PanelLeft className="size-4" />
           </button>
-
         </div>
       </SidebarMenuItem>
     </SidebarMenu>

@@ -16,27 +16,30 @@ export default async function handler(req, res) {
   try {
     // Get the JWT token from the Authorization header
     const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ 
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
         error: "Authorization token required",
-        details: "Please provide a valid Bearer token"
+        details: "Please provide a valid Bearer token",
       });
     }
-    
+
     const accessToken = authHeader.substring(7);
-    
+
     // Create Supabase client with the user's JWT
     const supabase = createServerSupabase(accessToken);
-    
+
     // Verify the token and get user
-    const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken);
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser(accessToken);
+
     if (authError || !user) {
       console.error("Auth error:", authError);
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: "You must be logged in to create a club",
-        details: authError?.message || "Invalid authentication token"
+        details: authError?.message || "Invalid authentication token",
       });
     }
 
@@ -62,17 +65,19 @@ export default async function handler(req, res) {
         .select("name")
         .eq("user_id", user.id)
         .single();
-      
-      return res.status(403).json({ 
+
+      return res.status(403).json({
         error: "Only space owners can create clubs",
-        details: `You (${profile?.name || user.email}) are not the owner of "${space.name}"`
+        details: `You (${profile?.name || user.email}) are not the owner of "${space.name}"`,
       });
     }
 
     // Validate required fields
 
     if (!clubData.scope_type?.trim() || !clubData.scope_code?.trim()) {
-      return res.status(400).json({ error: "Scope type and code are required" });
+      return res
+        .status(400)
+        .json({ error: "Scope type and code are required" });
     }
 
     // Validate that the scope exists in geographic_scope table
@@ -84,16 +89,16 @@ export default async function handler(req, res) {
       .single();
 
     if (scopeError) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: `Invalid location: ${clubData.scope_type}:${clubData.scope_code} not found in geographic database`,
-        details: "Please select a valid location for the club's scope"
+        details: "Please select a valid location for the club's scope",
       });
     }
 
     // Check if club already exists with same scope
     // Try club first, then fall back to club
     let existingClub = null;
-    
+
     const { data: existingSpaceClub } = await supabase
       .from("club")
       .select("id, name")
@@ -113,14 +118,14 @@ export default async function handler(req, res) {
         .eq("scope_type", clubData.scope_type)
         .eq("scope_code", clubData.scope_code)
         .maybeSingle();
-      
+
       existingClub = existingRegularClub;
     }
 
     if (existingClub) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: `A club already exists for the selected ${clubData.scope_type}.`,
-        existingClub: existingClub.name
+        existingClub: existingClub.name,
       });
     }
 
@@ -145,8 +150,10 @@ export default async function handler(req, res) {
         description: clubData.description?.trim() || null,
         scope_type: clubData.scope_type,
         scope_code: clubData.scope_code,
-        contact_email: clubData.contact_email?.trim() || profile?.email || user.email,
-        contact_phone: clubData.contact_phone?.trim() || profile?.mobile || profile?.phone,
+        contact_email:
+          clubData.contact_email?.trim() || profile?.email || user.email,
+        contact_phone:
+          clubData.contact_phone?.trim() || profile?.mobile || profile?.phone,
         is_active: true,
         created_by: user.id,
       })
@@ -156,7 +163,7 @@ export default async function handler(req, res) {
     if (ccError) {
       // If club fails, try club table
       console.log("club insert failed, trying club table:", ccError.message);
-      
+
       const { data: regularClub, error: cError } = await supabase
         .from("club")
         .insert({
@@ -165,8 +172,10 @@ export default async function handler(req, res) {
           description: clubData.description?.trim() || null,
           scope_type: clubData.scope_type,
           scope_code: clubData.scope_code,
-          contact_email: clubData.contact_email?.trim() || profile?.email || user.email,
-          contact_phone: clubData.contact_phone?.trim() || profile?.mobile || profile?.phone,
+          contact_email:
+            clubData.contact_email?.trim() || profile?.email || user.email,
+          contact_phone:
+            clubData.contact_phone?.trim() || profile?.mobile || profile?.phone,
           is_active: true,
           created_by: user.id,
         })
@@ -186,10 +195,10 @@ export default async function handler(req, res) {
 
     if (createError) {
       console.error("Club creation error:", createError);
-      return res.status(500).json({ 
-        error: "Failed to create club", 
+      return res.status(500).json({
+        error: "Failed to create club",
         details: createError.message,
-        code: createError.code
+        code: createError.code,
       });
     }
 
@@ -202,7 +211,7 @@ export default async function handler(req, res) {
           .insert({
             club_id: clubId,
             user_id: user.id,
-            role: 'chair', // Space owner becomes chair by default
+            role: "chair", // Space owner becomes chair by default
             is_active: true,
           });
 
@@ -216,21 +225,20 @@ export default async function handler(req, res) {
       }
     }
 
-    return res.status(201).json({ 
+    return res.status(201).json({
       message: "Club created successfully",
       club: newClub,
       geographicScope: {
         name: geographicScope.name,
         type: geographicScope.type,
-        code: geographicScope.code
-      }
+        code: geographicScope.code,
+      },
     });
-
   } catch (error) {
     console.error("Unexpected error in apply-club:", error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Internal server error",
-      message: error.message
+      message: error.message,
     });
   }
 }

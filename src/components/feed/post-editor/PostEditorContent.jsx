@@ -11,7 +11,6 @@ export default function PostEditorContent({
 }) {
   return (
     <div className="space-y-3">
-
       {/* TITLE */}
       <Input
         placeholder="Add a title..."
@@ -31,7 +30,6 @@ export default function PostEditorContent({
         }}
         className="min-h-[140px] resize-none overflow-hidden"
       />
-
     </div>
   );
 }

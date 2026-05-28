@@ -12,8 +12,11 @@ export default function ScopeSelector({
   itemClassName,
   showClear = false,
 }) {
-  const { selected, scopeData, update, clear } =
-    useScopeSelector({ value, onChange, levels });
+  const { selected, scopeData, update, clear } = useScopeSelector({
+    value,
+    onChange,
+    levels,
+  });
 
   return (
     <div className={containerClassName}>
@@ -34,11 +37,7 @@ export default function ScopeSelector({
         );
       })}
 
-      {showClear && (
-        <button onClick={clear}>
-          Reset
-        </button>
-      )}
+      {showClear && <button onClick={clear}>Reset</button>}
     </div>
   );
 }

@@ -12,8 +12,7 @@ export default function ManageClub() {
   if (!slug) return null;
 
   return (
-    <div className="max-w-4xl mx-auto py-10 space-y-6">
-
+    <div className="mx-auto max-w-4xl space-y-6 py-10">
       <div className="flex items-center gap-3">
         <Link
           href={`/space/${slug}/${scopeType}/${scopeCode}`}
@@ -23,17 +22,15 @@ export default function ManageClub() {
           <ArrowLeft className="h-4 w-4" />
         </Link>
 
-        <h1 className="text-2xl font-semibold">
-          Manage Club
-        </h1>
+        <h1 className="text-2xl font-semibold">Manage Club</h1>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Club Settings</CardTitle>
         </CardHeader>
-        <CardContent className="flex justify-between items-center">
-          <span className="text-muted-foreground text-sm">
+        <CardContent className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">
             Update details, branding, and contact information
           </span>
 
@@ -48,12 +45,11 @@ export default function ManageClub() {
           <CardTitle>Member Settings</CardTitle>
         </CardHeader>
         <CardContent>
-          <span className="text-muted-foreground text-sm">
+          <span className="text-sm text-muted-foreground">
             Manage your club members, roles, and permissions
           </span>
         </CardContent>
       </Card>
-
     </div>
   );
 }

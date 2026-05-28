@@ -10,26 +10,25 @@ export function usePostSpaces(postId) {
     enabled: !!postId,
 
     queryFn: async () => {
-
       const { data, error } = await supabase
         .from("feed_space")
-        .select(`
+        .select(
+          `
           space:space_id (
             id,
             name,
             slug,
             logo_url
           )
-        `)
+        `,
+        )
         .eq("feed_id", postId);
 
       if (error) {
         throw error;
       }
 
-      return (data || [])
-        .map((x) => x.space)
-        .filter(Boolean);
+      return (data || []).map((x) => x.space).filter(Boolean);
     },
   });
 }

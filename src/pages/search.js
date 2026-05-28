@@ -27,17 +27,11 @@ export default function UnifiedSearchPage() {
   const [scopeType, setScopeType] = useState("all");
   const [spaceSlug, setSpaceSlug] = useState("all");
 
-  const {
-    data: spaces = [],
-    isLoading: spacesLoading,
-  } = useSpaces({
+  const { data: spaces = [], isLoading: spacesLoading } = useSpaces({
     search: searchType === "space" ? search : undefined,
   });
 
-  const {
-    data: clubs = [],
-    isLoading: clubsLoading,
-  } = useClubs({
+  const { data: clubs = [], isLoading: clubsLoading } = useClubs({
     search: searchType === "club" ? search : undefined,
     scopeType,
     spaceSlug,
@@ -45,12 +39,16 @@ export default function UnifiedSearchPage() {
 
   const isLoading = spacesLoading || clubsLoading;
 
-  const scopeTypes = [...new Set(clubs.map((c) => c.scope_type))].filter(Boolean);
-  const spaceOptions = [...new Set(clubs.map((c) => c.space_slug))].filter(Boolean);
+  const scopeTypes = [...new Set(clubs.map((c) => c.scope_type))].filter(
+    Boolean,
+  );
+  const spaceOptions = [...new Set(clubs.map((c) => c.space_slug))].filter(
+    Boolean,
+  );
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-4 space-y-4">
+      <div className="mx-auto max-w-7xl space-y-4 px-4 py-4">
         <SearchFiltersSkeleton />
         <CardGridSkeleton />
       </div>
@@ -58,8 +56,8 @@ export default function UnifiedSearchPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-4 space-y-4">
-      <div className="flex flex-wrap gap-3 items-center">
+    <div className="mx-auto max-w-7xl space-y-4 px-4 py-4">
+      <div className="flex flex-wrap items-center gap-3">
         <Input
           placeholder="Search spaces or clubs…"
           value={search}
@@ -145,14 +143,16 @@ export default function UnifiedSearchPage() {
 }
 
 function Grid({ children }) {
-  return <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">{children}</div>;
+  return (
+    <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">{children}</div>
+  );
 }
 
 function EmptyState({ label }) {
   return (
-    <div className="text-center py-16">
+    <div className="py-16 text-center">
       <h3 className="text-xl font-semibold">No {label} found</h3>
-      <p className="text-muted-foreground mt-2">
+      <p className="mt-2 text-muted-foreground">
         Try adjusting your search or filters
       </p>
     </div>
@@ -165,7 +165,7 @@ function SpaceCard({ space }) {
       {/* Cover Image */}
       {space.cover_url ? (
         <div className="relative h-48 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent z-10" />
+          <div className="absolute inset-0 z-10 bg-gradient-to-t from-background/80 to-transparent" />
           <Image
             src={space.cover_url}
             alt={`${space.name} cover`}
@@ -187,7 +187,7 @@ function SpaceCard({ space }) {
           )}
         </div>
       ) : (
-        <div className="h-48 bg-muted flex items-center justify-center">
+        <div className="flex h-48 items-center justify-center bg-muted">
           {space.logo_url && (
             <Image
               src={space.logo_url}
@@ -201,24 +201,19 @@ function SpaceCard({ space }) {
       )}
 
       <CardContent className="pt-6">
-        <div className="flex items-start justify-between mb-2">
-          <h3 className="font-bold text-xl line-clamp-1">
-            {space.name}
-          </h3>
+        <div className="mb-2 flex items-start justify-between">
+          <h3 className="line-clamp-1 text-xl font-bold">{space.name}</h3>
         </div>
 
         {space.description && (
-          <p className="text-muted-foreground text-sm line-clamp-3 mb-2">
+          <p className="mb-2 line-clamp-3 text-sm text-muted-foreground">
             {space.description}
           </p>
         )}
       </CardContent>
 
       <CardFooter>
-        <Link
-          href={`/space/${space.slug}`}
-          className="w-full"
-        >
+        <Link href={`/space/${space.slug}`} className="w-full">
           <Button variant="outline" className="w-full">
             View Space
           </Button>
@@ -234,7 +229,7 @@ function ClubCard({ club }) {
       {/* Cover */}
       {club.cover_url ? (
         <div className="relative h-48 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent z-10" />
+          <div className="absolute inset-0 z-10 bg-gradient-to-t from-background/80 to-transparent" />
           <Image
             src={club.cover_url}
             alt={`${club.name} cover`}
@@ -256,7 +251,7 @@ function ClubCard({ club }) {
           )}
         </div>
       ) : (
-        <div className="h-48 bg-muted flex items-center justify-center">
+        <div className="flex h-48 items-center justify-center bg-muted">
           {club.logo_url && (
             <Image
               src={club.logo_url}
@@ -270,17 +265,15 @@ function ClubCard({ club }) {
       )}
 
       <CardContent className="pt-6">
-        <div className="flex items-start justify-between mb-2">
-          <h3 className="font-bold text-xl line-clamp-1">
-            {club.name}
-          </h3>
+        <div className="mb-2 flex items-start justify-between">
+          <h3 className="line-clamp-1 text-xl font-bold">{club.name}</h3>
           {club.scope_type && (
             <Badge variant="outline">{club.scope_type.toUpperCase()}</Badge>
           )}
         </div>
 
         {/* Space link (IMPORTANT) */}
-        <div className="text-sm text-muted-foreground mb-2">
+        <div className="mb-2 text-sm text-muted-foreground">
           Space:{" "}
           <Link
             href={`/space/${club.space_slug}`}
@@ -291,7 +284,7 @@ function ClubCard({ club }) {
         </div>
 
         {club.description && (
-          <p className="text-muted-foreground text-sm line-clamp-2">
+          <p className="line-clamp-2 text-sm text-muted-foreground">
             {club.description}
           </p>
         )}

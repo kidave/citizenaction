@@ -13,22 +13,20 @@ import { FaBluesky, FaXTwitter } from "react-icons/fa6";
 
 export default function RightSidebar() {
   return (
-    <aside className="sticky py-4 space-y-4">
+    <aside className="sticky space-y-4 py-4">
       {/* ABOUT */}
-      <Card className="p-4 text-sm space-y-2">
+      <Card className="space-y-2 p-4 text-sm">
         <p className="font-semibold">Citizen Action</p>
-        <p className="text-muted-foreground leading-relaxed">
-          A civic participation platform by the{" "}
-          <b> Walking Project </b>
-          {' '}under{' '}
-          <b>Mumbai Sustainability Center</b>
-          , focused on walkability, governance, and local action.
+        <p className="leading-relaxed text-muted-foreground">
+          A civic participation platform by the <b> Walking Project </b> under{" "}
+          <b>Mumbai Sustainability Center</b>, focused on walkability,
+          governance, and local action.
         </p>
       </Card>
 
       {/* SOCIAL */}
       <Card className="p-4">
-        <p className="text-sm font-medium mb-3">Connect</p>
+        <p className="mb-3 text-sm font-medium">Connect</p>
         <div className="flex items-center gap-4 text-muted-foreground">
           <Link
             href="https://x.com"
@@ -69,7 +67,7 @@ export default function RightSidebar() {
       </Card>
 
       {/* LEGAL */}
-      <Card className="p-4 text-xs text-muted-foreground space-y-2">
+      <Card className="space-y-2 p-4 text-xs text-muted-foreground">
         <div className="flex flex-wrap gap-x-3 gap-y-1">
           <Link href="/about" className="hover:underline">
             About

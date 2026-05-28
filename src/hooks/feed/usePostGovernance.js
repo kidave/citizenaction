@@ -13,20 +13,20 @@ export function usePostGovernance(postId) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("feed_governance_entities")
-        .select(`
+        .select(
+          `
           governance_entities (
             id,
             label,
             image_url
           )
-        `)
+        `,
+        )
         .eq("feed_id", postId);
 
       if (error) throw error;
 
-      return data?.map(
-        (d) => d.governance_entities
-      ) || [];
+      return data?.map((d) => d.governance_entities) || [];
     },
   });
 }

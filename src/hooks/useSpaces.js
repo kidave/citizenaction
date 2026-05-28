@@ -2,7 +2,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 
-export function useSpaces({ slug, search, privateAccess = false, enabled = true } = {}) {
+export function useSpaces({
+  slug,
+  search,
+  privateAccess = false,
+  enabled = true,
+} = {}) {
   return useQuery({
     queryKey: ["spaces", slug, search, privateAccess],
     enabled,

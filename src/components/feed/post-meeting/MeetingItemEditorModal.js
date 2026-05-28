@@ -39,17 +39,13 @@ export default function MeetingItemEditorModal({
   return (
     <>
       {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black/50 z-50"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 z-50 bg-black/50" onClick={onClose} />
 
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-lg">
-
           {/* Header */}
-          <div className="border-b p-4 flex justify-between items-center">
+          <div className="flex items-center justify-between border-b p-4">
             <div className="font-medium">
               {existingItem
                 ? existingItem.is_self
@@ -59,19 +55,11 @@ export default function MeetingItemEditorModal({
             </div>
 
             <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-              >
+              <Button variant="ghost" size="sm" onClick={onClose}>
                 Cancel
               </Button>
 
-              <Button
-                size="sm"
-                onClick={handleSave}
-                disabled={isSaving}
-              >
+              <Button size="sm" onClick={handleSave} disabled={isSaving}>
                 {existingItem ? "Update" : "Add"}
               </Button>
             </div>
@@ -85,14 +73,12 @@ export default function MeetingItemEditorModal({
               onChange={(e) => {
                 setNotes(e.target.value);
                 e.target.style.height = "auto";
-                e.target.style.height =
-                  e.target.scrollHeight + "px";
+                e.target.style.height = e.target.scrollHeight + "px";
               }}
               placeholder="Write your input..."
               className="min-h-[120px] resize-none overflow-hidden"
             />
           </div>
-
         </Card>
       </div>
     </>

@@ -4,27 +4,18 @@ import { useEffect, useState } from "react";
 
 import Image from "next/image";
 
-import {
-  FileText,
-  Paperclip,
-} from "lucide-react";
+import { FileText, Paperclip } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 import { getPdfThumbnail } from "@/utils/media/getPdfThumbnail";
 
-export function FocusCards({
-  images = [],
-  onCardClick,
-}) {
-
-  const [hovered, setHovered] =
-    useState(null);
+export function FocusCards({ images = [], onCardClick }) {
+  const [hovered, setHovered] = useState(null);
 
   if (!images?.length) return null;
 
-  const visibleImages =
-    images.slice(0, 4);
+  const visibleImages = images.slice(0, 4);
 
   return (
     <>
@@ -33,126 +24,72 @@ export function FocusCards({
       ========================================= */}
 
       <div className="md:hidden">
-
         <div
           className={cn(
-            "grid gap-1 rounded-xl overflow-hidden",
-            images.length === 1
-              ? "grid-cols-1"
-              : "grid-cols-2"
+            "grid gap-1 overflow-hidden rounded-xl",
+            images.length === 1 ? "grid-cols-1" : "grid-cols-2",
           )}
         >
+          {visibleImages.map((img, index) => {
+            const isThreeLayout = images.length === 3 && index === 2;
 
-          {visibleImages.map(
-            (img, index) => {
-
-              const isThreeLayout =
-                images.length === 3 &&
-                index === 2;
-
-              return (
-                <div
-                  key={
-                    img.url || index
-                  }
-                  onClick={() =>
-                    onCardClick?.(
-                      index
-                    )
-                  }
-                  className={cn(
-                    "relative w-full cursor-pointer bg-muted overflow-hidden",
-                    images.length === 1
-                      ? "aspect-[3/2]"
-                      : isThreeLayout
+            return (
+              <div
+                key={img.url || index}
+                onClick={() => onCardClick?.(index)}
+                className={cn(
+                  "relative w-full cursor-pointer overflow-hidden bg-muted",
+                  images.length === 1
+                    ? "aspect-[3/2]"
+                    : isThreeLayout
                       ? "col-span-2 aspect-[3/2]"
-                      : "aspect-square"
-                  )}
-                >
+                      : "aspect-square",
+                )}
+              >
+                <AttachmentPreview attachment={img} />
 
-                  <AttachmentPreview
-                    attachment={img}
-                  />
-
-                  {images.length >
-                    4 &&
-                    index === 3 && (
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-lg font-semibold">
-                        +
-                        {images.length -
-                          4}
-                      </div>
-                    )}
-
-                </div>
-              );
-            }
-          )}
-
+                {images.length > 4 && index === 3 && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-lg font-semibold text-white">
+                    +{images.length - 4}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
-
       </div>
 
       {/* =========================================
           DESKTOP
       ========================================= */}
 
-      <div className="hidden md:grid grid-cols-3 gap-2 w-full">
+      <div className="hidden w-full grid-cols-3 gap-2 md:grid">
+        {images.slice(0, 3).map((img, index) => {
+          const remainingDesktop = images.length - 3;
 
-        {images
-          .slice(0, 3)
-          .map((img, index) => {
+          const isLastVisible = index === 2 && remainingDesktop > 0;
 
-            const remainingDesktop =
-              images.length - 3;
+          return (
+            <div
+              key={img.url || index}
+              onMouseEnter={() => setHovered(index)}
+              onMouseLeave={() => setHovered(null)}
+              onClick={() => onCardClick?.(index)}
+              className={cn(
+                "relative h-60 w-full cursor-pointer overflow-hidden rounded-lg bg-muted transition-all duration-300 ease-out",
+                hovered !== null && hovered !== index && "scale-[0.98] blur-sm",
+              )}
+            >
+              <AttachmentPreview attachment={img} />
 
-            const isLastVisible =
-              index === 2 &&
-              remainingDesktop > 0;
-
-            return (
-              <div
-                key={
-                  img.url || index
-                }
-                onMouseEnter={() =>
-                  setHovered(index)
-                }
-                onMouseLeave={() =>
-                  setHovered(null)
-                }
-                onClick={() =>
-                  onCardClick?.(
-                    index
-                  )
-                }
-                className={cn(
-                  "rounded-lg relative overflow-hidden h-60 w-full transition-all duration-300 ease-out cursor-pointer bg-muted",
-                  hovered !==
-                    null &&
-                    hovered !==
-                      index &&
-                    "blur-sm scale-[0.98]"
-                )}
-              >
-
-                <AttachmentPreview
-                  attachment={img}
-                />
-
-                {isLastVisible && (
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-3xl font-semibold">
-                    +
-                    {
-                      remainingDesktop
-                    }
-                  </div>
-                )}
-
-              </div>
-            );
-          })}
-
+              {isLastVisible && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-3xl font-semibold text-white">
+                  +{remainingDesktop}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </>
   );
@@ -162,41 +99,22 @@ export function FocusCards({
    ATTACHMENT PREVIEW
 ========================================= */
 
-function AttachmentPreview({
-  attachment,
-}) {
-
-  const [pdfThumbnail, setPdfThumbnail] =
-    useState(null);
+function AttachmentPreview({ attachment }) {
+  const [pdfThumbnail, setPdfThumbnail] = useState(null);
 
   /* ======================================
      LOAD PDF THUMBNAIL
   ====================================== */
 
   useEffect(() => {
-
     let mounted = true;
 
     async function loadThumbnail() {
+      if (attachment?.type === "application/pdf" && attachment?.url) {
+        const thumbnail = await getPdfThumbnail(attachment.url);
 
-      if (
-        attachment?.type ===
-          "application/pdf" &&
-        attachment?.url
-      ) {
-
-        const thumbnail =
-          await getPdfThumbnail(
-            attachment.url
-          );
-
-        if (
-          mounted &&
-          thumbnail
-        ) {
-          setPdfThumbnail(
-            thumbnail
-          );
+        if (mounted && thumbnail) {
+          setPdfThumbnail(thumbnail);
         }
       }
     }
@@ -206,29 +124,20 @@ function AttachmentPreview({
     return () => {
       mounted = false;
     };
-
-  }, [
-    attachment?.type,
-    attachment?.url,
-  ]);
+  }, [attachment?.type, attachment?.url]);
 
   /* ======================================
      IMAGE
   ====================================== */
 
-  if (
-    attachment?.type?.startsWith(
-      "image/"
-    )
-  ) {
-
+  if (attachment?.type?.startsWith("image/")) {
     return (
       <Image
         src={attachment.url}
         alt=""
         fill
         sizes="(max-width: 768px) 100vw, 680px"
-        className="object-cover hover:opacity-90 transition"
+        className="object-cover transition hover:opacity-90"
       />
     );
   }
@@ -237,13 +146,8 @@ function AttachmentPreview({
      PDF
   ====================================== */
 
-  if (
-    attachment?.type ===
-    "application/pdf"
-  ) {
-
+  if (attachment?.type === "application/pdf") {
     if (pdfThumbnail) {
-
       return (
         <>
           <Image
@@ -260,47 +164,20 @@ function AttachmentPreview({
 
           {/* PDF BADGE */}
 
-          <div
-            className="
-              absolute
-              bottom-2
-              right-2
-
-              flex
-              items-center
-              gap-1
-
-              bg-black/70
-              text-white
-
-              px-2
-              py-1
-
-              rounded-md
-              backdrop-blur-sm
-            "
-          >
-
+          <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-md bg-black/70 px-2 py-1 text-white backdrop-blur-sm">
             <FileText className="h-3.5 w-3.5" />
 
-            <span className="text-[10px] font-medium">
-              PDF
-            </span>
-
+            <span className="text-[10px] font-medium">PDF</span>
           </div>
         </>
       );
     }
 
     return (
-      <div className="absolute inset-0 bg-red-50 flex flex-col items-center justify-center">
-
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-50">
         <FileText className="h-10 w-10 text-red-500" />
 
-        <span className="mt-2 text-xs font-medium">
-          PDF
-        </span>
-
+        <span className="mt-2 text-xs font-medium">PDF</span>
       </div>
     );
   }
@@ -310,14 +187,10 @@ function AttachmentPreview({
   ====================================== */
 
   return (
-    <div className="absolute inset-0 bg-muted flex flex-col items-center justify-center">
-
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted">
       <Paperclip className="h-8 w-8 text-muted-foreground" />
 
-      <span className="mt-2 text-xs">
-        File
-      </span>
-
+      <span className="mt-2 text-xs">File</span>
     </div>
   );
 }

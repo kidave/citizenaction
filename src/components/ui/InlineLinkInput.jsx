@@ -1,17 +1,10 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 
-import {
-  Button,
-} from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 
-import {
-  Input,
-} from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 
 import {
   Tooltip,
@@ -20,21 +13,16 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-import {
-  Link2,
-  Check,
-} from "lucide-react";
+import { Link2, Check } from "lucide-react";
 
 export default function InlineLinkInput({
   value,
   onChange,
   placeholder = "https://...",
 }) {
-  const [open, setOpen] =
-    useState(false);
+  const [open, setOpen] = useState(false);
 
-  const [draft, setDraft] =
-    useState(value || "");
+  const [draft, setDraft] = useState(value || "");
 
   useEffect(() => {
     setDraft(value || "");
@@ -45,10 +33,7 @@ export default function InlineLinkInput({
   // =====================================================
 
   function handleSave() {
-
-    onChange(
-      draft.trim()
-    );
+    onChange(draft.trim());
 
     setOpen(false);
   }
@@ -57,14 +42,8 @@ export default function InlineLinkInput({
   // ENTER
   // =====================================================
 
-  function handleKeyDown(
-    e
-  ) {
-
-    if (
-      e.key === "Enter"
-    ) {
-
+  function handleKeyDown(e) {
+    if (e.key === "Enter") {
       e.preventDefault();
 
       handleSave();
@@ -76,72 +55,32 @@ export default function InlineLinkInput({
   // =====================================================
 
   if (open) {
-
     return (
-      <div
-        className="
-          flex
-          items-center
-          gap-2
-        "
-      >
-
+      <div className="flex items-center gap-2">
         {/* ICON */}
         <Button
           variant="ghost"
           size="icon"
-          className="
-            shrink-0
-          "
-          onClick={() =>
-            setOpen(false)
-          }
+          className="shrink-0"
+          onClick={() => setOpen(false)}
         >
-
-          <Link2
-            className="
-              w-5
-              h-5
-            "
-          />
-
+          <Link2 className="h-5 w-5" />
         </Button>
 
         {/* INPUT */}
         <Input
           autoFocus
           value={draft}
-          onChange={(e) =>
-            setDraft(
-              e.target.value
-            )
-          }
-          onKeyDown={
-            handleKeyDown
-          }
-          placeholder={
-            placeholder
-          }
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
           className="h-8"
         />
 
         {/* SAVE */}
-        <Button
-          size="icon"
-          onClick={
-            handleSave
-          }
-        >
-
-          <Check
-            className="
-              w-4
-              h-4
-            "
-          />
-
+        <Button size="icon" onClick={handleSave}>
+          <Check className="h-4 w-4" />
         </Button>
-
       </div>
     );
   }
@@ -152,47 +91,17 @@ export default function InlineLinkInput({
 
   return (
     <TooltipProvider>
-
       <Tooltip>
-
-        <TooltipTrigger
-          asChild
-        >
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() =>
-              setOpen(true)
-            }
-          >
-
-            <Link2
-              className="
-                w-5
-                h-5
-              "
-            />
-
+        <TooltipTrigger asChild>
+          <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
+            <Link2 className="h-5 w-5" />
           </Button>
-
         </TooltipTrigger>
 
-        <TooltipContent
-          side="top"
-          className="
-            max-w-xs
-            break-all
-          "
-        >
-
-          {value ||
-            "Add link"}
-
+        <TooltipContent side="top" className="max-w-xs break-all">
+          {value || "Add link"}
         </TooltipContent>
-
       </Tooltip>
-
     </TooltipProvider>
   );
 }

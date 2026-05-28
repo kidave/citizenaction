@@ -8,7 +8,7 @@ export default function Logo({ className = "", isCollapsed = false }) {
 
   // Size based on sidebar state
   const size = isCollapsed ? 40 : 32; // Slightly larger when collapsed to match other icons
-  
+
   return (
     <div
       className={`relative flex items-center justify-center ${className}`}
@@ -32,7 +32,7 @@ export default function Logo({ className = "", isCollapsed = false }) {
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="absolute inset-0 flex items-center justify-center"
           >
-            <div className="relative w-full h-full flex items-center justify-center">
+            <div className="relative flex h-full w-full items-center justify-center">
               <Image
                 src="/logo.png"
                 alt="Citizen Action"
@@ -52,11 +52,11 @@ export default function Logo({ className = "", isCollapsed = false }) {
             transition={{ duration: 0.2 }}
             className="absolute inset-0 flex items-center justify-center"
           >
-            <div 
+            <div
               className="rounded-full bg-muted-foreground/25"
               style={{
-                width: isCollapsed ? '24px' : '20px',
-                height: isCollapsed ? '24px' : '20px',
+                width: isCollapsed ? "24px" : "20px",
+                height: isCollapsed ? "24px" : "20px",
               }}
             />
           </motion.div>

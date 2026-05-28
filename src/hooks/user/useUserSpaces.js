@@ -18,7 +18,8 @@ export function useUserSpaces({ enabled = true } = {}) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("space_member")
-        .select(`
+        .select(
+          `
           role,
           space:space_id (
             id,
@@ -28,7 +29,8 @@ export function useUserSpaces({ enabled = true } = {}) {
             primary_color,
             is_active
           )
-        `)
+        `,
+        )
         .eq("user_id", user.id)
         .eq("is_active", true);
 

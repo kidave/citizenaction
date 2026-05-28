@@ -1,6 +1,5 @@
 export default function getPostTypeConfig(type) {
   const config = {
-
     // =====================================================
     // REPORT
     // =====================================================
@@ -22,36 +21,31 @@ export default function getPostTypeConfig(type) {
         planned: {
           label: "Planned",
 
-          className:
-            "bg-indigo-100 text-indigo-700",
+          className: "bg-indigo-100 text-indigo-700",
         },
 
         ongoing: {
           label: "Ongoing",
 
-          className:
-            "bg-green-100 text-green-700 border border-gray-200",
+          className: "bg-green-100 text-green-700 border border-gray-200",
         },
 
         completed: {
           label: "Completed",
 
-          className:
-            "bg-green-100 text-green-700",
+          className: "bg-green-100 text-green-700",
         },
 
         dropped: {
           label: "Dropped",
 
-          className:
-            "bg-slate-200 text-slate-700 border border-slate-300",
+          className: "bg-slate-200 text-slate-700 border border-slate-300",
         },
 
         postponed: {
           label: "Postponed",
 
-          className:
-            "bg-amber-100 text-amber-800",
+          className: "bg-amber-100 text-amber-800",
         },
       },
     },
@@ -79,15 +73,13 @@ export default function getPostTypeConfig(type) {
 
           label: "Upcoming",
 
-          className:
-            "bg-blue-100 text-blue-700",
+          className: "bg-blue-100 text-blue-700",
         },
 
         live: {
           label: "LIVE NOW",
 
-          className:
-            "bg-red-600 text-white",
+          className: "bg-red-600 text-white",
         },
 
         ended: {
@@ -95,22 +87,19 @@ export default function getPostTypeConfig(type) {
 
           label: "Ended",
 
-          className:
-            "bg-muted text-muted-foreground border",
+          className: "bg-muted text-muted-foreground border",
         },
 
         postponed: {
           label: "Postponed",
 
-          className:
-            "bg-amber-100 text-amber-800",
+          className: "bg-amber-100 text-amber-800",
         },
 
         cancelled: {
           label: "Cancelled",
 
-          className:
-            "bg-red-100 text-red-700",
+          className: "bg-red-100 text-red-700",
         },
       },
     },
@@ -138,15 +127,13 @@ export default function getPostTypeConfig(type) {
 
           label: "Upcoming",
 
-          className:
-            "bg-blue-100 text-blue-700",
+          className: "bg-blue-100 text-blue-700",
         },
 
         live: {
           label: "LIVE NOW",
 
-          className:
-            "bg-red-600 text-white",
+          className: "bg-red-600 text-white",
         },
 
         ended: {
@@ -154,22 +141,19 @@ export default function getPostTypeConfig(type) {
 
           label: "Ended",
 
-          className:
-            "bg-muted text-muted-foreground border",
+          className: "bg-muted text-muted-foreground border",
         },
 
         postponed: {
           label: "Postponed",
 
-          className:
-            "bg-amber-100 text-amber-800",
+          className: "bg-amber-100 text-amber-800",
         },
 
         cancelled: {
           label: "Cancelled",
 
-          className:
-            "bg-red-100 text-red-700",
+          className: "bg-red-100 text-red-700",
         },
       },
     },

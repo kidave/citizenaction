@@ -1,42 +1,28 @@
 "use client";
 
-import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@/components/ui/toggle-group";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-export default function EntityTypeSelector({
-  value,
-  onChange,
-}) {
+export default function EntityTypeSelector({ value, onChange }) {
   return (
     <div className="flex justify-end">
-
       <ToggleGroup
         type="single"
         value={value}
         onValueChange={(v) => v && onChange(v)}
         variant="outline"
       >
-
         <ToggleGroupItem
           value="all"
-          className="rounded-none first:rounded-l-md border-r-0"
+          className="rounded-none border-r-0 first:rounded-l-md"
         >
           All
         </ToggleGroupItem>
 
-        <ToggleGroupItem
-          value="authority"
-          className="rounded-none border-r-0"
-        >
+        <ToggleGroupItem value="authority" className="rounded-none border-r-0">
           Authority
         </ToggleGroupItem>
 
-        <ToggleGroupItem
-          value="department"
-          className="rounded-none border-r-0"
-        >
+        <ToggleGroupItem value="department" className="rounded-none border-r-0">
           Department
         </ToggleGroupItem>
 
@@ -53,9 +39,7 @@ export default function EntityTypeSelector({
         >
           Person
         </ToggleGroupItem>
-
       </ToggleGroup>
-
     </div>
   );
 }

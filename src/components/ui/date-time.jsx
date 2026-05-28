@@ -14,40 +14,24 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-export function DateTimePicker({
-  value,
-  onDateChange,
-  mode = "date",
-}) {
-  const [open, setOpen] =
-    useState(false);
+export function DateTimePicker({ value, onDateChange, mode = "date" }) {
+  const [open, setOpen] = useState(false);
 
   // =====================================================
   // DATE SELECT
   // =====================================================
 
-  function handleDateSelect(
-    selected
-  ) {
+  function handleDateSelect(selected) {
     if (!selected) return;
 
-    const updated =
-      value
-        ? new Date(value)
-        : new Date();
+    const updated = value ? new Date(value) : new Date();
 
     // preserve existing time
-    updated.setFullYear(
-      selected.getFullYear()
-    );
+    updated.setFullYear(selected.getFullYear());
 
-    updated.setMonth(
-      selected.getMonth()
-    );
+    updated.setMonth(selected.getMonth());
 
-    updated.setDate(
-      selected.getDate()
-    );
+    updated.setDate(selected.getDate());
 
     onDateChange(updated);
 
@@ -61,21 +45,13 @@ export function DateTimePicker({
   // =====================================================
 
   function handleTimeChange(e) {
-    const [hours, minutes] =
-      e.target.value.split(":");
+    const [hours, minutes] = e.target.value.split(":");
 
-    const updated =
-      value
-        ? new Date(value)
-        : new Date();
+    const updated = value ? new Date(value) : new Date();
 
-    updated.setHours(
-      Number(hours)
-    );
+    updated.setHours(Number(hours));
 
-    updated.setMinutes(
-      Number(minutes)
-    );
+    updated.setMinutes(Number(minutes));
 
     updated.setSeconds(0);
 
@@ -102,128 +78,62 @@ export function DateTimePicker({
     // DATE ONLY
 
     if (mode === "date") {
-      return format(
-        value,
-        "PPP"
-      );
+      return format(value, "PPP");
     }
 
     // TIME ONLY
 
     if (mode === "time") {
-      return format(
-        value,
-        "h:mm a"
-      );
+      return format(value, "h:mm a");
     }
 
     // DATETIME
 
-    return format(
-      value,
-      "PPP h:mm a"
-    );
+    return format(value, "PPP h:mm a");
   }
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={setOpen}
-    >
-
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-
         <Button
           variant="outline"
-          className="
-            min-w-[220px]
-            justify-start
-            text-left
-            font-normal
-          "
+          className="min-w-[220px] justify-start text-left font-normal"
         >
           {getLabel()}
         </Button>
-
       </PopoverTrigger>
 
-      <PopoverContent
-        className="
-          w-auto
-          p-3
-          space-y-3
-        "
-        align="start"
-      >
-
+      <PopoverContent className="w-auto space-y-3 p-3" align="start">
         {/* ================================================= */}
         {/* CALENDAR */}
         {/* ================================================= */}
 
-        {(mode === "date" ||
-          mode === "datetime") && (
-            <Calendar
-              mode="single"
-              selected={value}
-              onSelect={
-                handleDateSelect
-              }
-              initialFocus
-            />
-          )}
+        {(mode === "date" || mode === "datetime") && (
+          <Calendar
+            mode="single"
+            selected={value}
+            onSelect={handleDateSelect}
+            initialFocus
+          />
+        )}
 
         {/* ================================================= */}
         {/* TIME */}
         {/* ================================================= */}
 
-        {(mode === "time" ||
-          mode === "datetime") && (
-            <div className="space-y-2">
+        {(mode === "time" || mode === "datetime") && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Time</label>
 
-              <label className="text-sm font-medium">
-                Time
-              </label>
-
-              <input
-                type="time"
-                className="
-                  w-full
-
-                  min-h-12
-
-                  rounded-md
-                  border
-
-                  bg-background
-
-                  px-3
-                  py-2
-
-                  text-base
-
-                  appearance-none
-
-                  [&::-webkit-calendar-picker-indicator]:opacity-100
-                  [&::-webkit-calendar-picker-indicator]:cursor-pointer
-                "
-                value={
-                  value
-                    ? format(
-                        value,
-                        "HH:mm"
-                      )
-                    : ""
-                }
-                onChange={
-                  handleTimeChange
-                }
-              />
-
-            </div>
-          )}
-
+            <input
+              type="time"
+              className="min-h-12 w-full appearance-none rounded-md border bg-background px-3 py-2 text-base [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-100"
+              value={value ? format(value, "HH:mm") : ""}
+              onChange={handleTimeChange}
+            />
+          </div>
+        )}
       </PopoverContent>
-
     </Popover>
   );
 }

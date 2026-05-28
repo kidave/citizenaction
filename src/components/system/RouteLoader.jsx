@@ -23,6 +23,6 @@ export default function RouteLoader() {
   if (!loading) return null;
 
   return (
-    <div className="fixed top-0 left-0 z-50 h-[2px] w-full bg-primary animate-pulse" />
+    <div className="fixed left-0 top-0 z-50 h-[2px] w-full animate-pulse bg-primary" />
   );
 }

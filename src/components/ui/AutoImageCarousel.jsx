@@ -6,9 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function AutoImageCarousel({ attachments = [] }) {
   const images = attachments
-    .map((a) =>
-      typeof a === "string" ? a : a?.url
-    )
+    .map((a) => (typeof a === "string" ? a : a?.url))
     .filter(Boolean);
 
   const [index, setIndex] = useState(0);
@@ -57,9 +55,7 @@ export default function AutoImageCarousel({ attachments = [] }) {
             <div
               key={i}
               className={`h-1.5 w-1.5 rounded-full transition-all ${
-                i === index
-                  ? "bg-white scale-110"
-                  : "bg-white/40"
+                i === index ? "scale-110 bg-white" : "bg-white/40"
               }`}
             />
           ))}

@@ -30,7 +30,7 @@ export default function LocationSearchMapbox({ onSelect }) {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Search location"
-        className="w-full border rounded-md px-3 py-2 text-sm"
+        className="w-full rounded-md border px-3 py-2 text-sm"
       />
     </AddressAutofill>
   );

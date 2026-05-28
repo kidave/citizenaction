@@ -2,10 +2,7 @@
 
 import { UserIdentity } from "@/components/profile/UserIdentity";
 
-export default function UserAvatarGroup({
-  users = [],
-  max = 5,
-}) {
+export default function UserAvatarGroup({ users = [], max = 5 }) {
   if (!users?.length) return null;
 
   const visible = users.slice(0, max);
@@ -13,7 +10,6 @@ export default function UserAvatarGroup({
 
   return (
     <div className="flex items-center -space-x-2">
-
       {visible.map((user, i) => (
         <div key={user.id || i}>
           <UserIdentity
@@ -27,11 +23,10 @@ export default function UserAvatarGroup({
       ))}
 
       {remaining > 0 && (
-        <div className="h-6 w-6 flex items-center justify-center text-xs bg-muted border rounded-full">
+        <div className="flex h-6 w-6 items-center justify-center rounded-full border bg-muted text-xs">
           +{remaining}
         </div>
       )}
-
     </div>
   );
 }

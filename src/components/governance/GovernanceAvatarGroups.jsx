@@ -36,7 +36,7 @@ export default function GovernanceAvatarGroups({
      DEDUPE AUTHORITIES
   ------------------------- */
   const uniqueEntities = Array.from(
-    new Map(entities.map((e) => [e.id, e])).values()
+    new Map(entities.map((e) => [e.id, e])).values(),
   );
 
   const visible = uniqueEntities.slice(0, maxVisible);
@@ -48,12 +48,11 @@ export default function GovernanceAvatarGroups({
         {/* ================= AVATAR GROUP ================= */}
         <div className="flex items-center">
           <AvatarGroup>
-
             {visible.map((entity) => (
               <Tooltip key={entity.id}>
                 <TooltipTrigger asChild>
                   <Avatar
-                    className="h-7 w-7 hover:z-20 transition-all hover:scale-110"
+                    className="h-7 w-7 transition-all hover:z-20 hover:scale-110"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <AvatarImage src={entity.image_url} />
@@ -64,9 +63,7 @@ export default function GovernanceAvatarGroups({
                 </TooltipTrigger>
 
                 <TooltipContent>
-                  <div className="text-xs font-medium">
-                    {entity.label}
-                  </div>
+                  <div className="text-xs font-medium">{entity.label}</div>
                 </TooltipContent>
               </Tooltip>
             ))}
@@ -74,18 +71,15 @@ export default function GovernanceAvatarGroups({
             {/* +COUNT */}
             {hiddenCount > 0 && (
               <Avatar
-                className="h-7 w-7 bg-muted text-xs cursor-pointer"
+                className="h-7 w-7 cursor-pointer bg-muted text-xs"
                 onClick={(e) => {
                   e.stopPropagation();
                   setOpen(true);
                 }}
               >
-                <AvatarFallback>
-                  +{hiddenCount}
-                </AvatarFallback>
+                <AvatarFallback>+{hiddenCount}</AvatarFallback>
               </Avatar>
             )}
-
           </AvatarGroup>
         </div>
 
@@ -96,12 +90,9 @@ export default function GovernanceAvatarGroups({
               <DialogTitle>Tagged Authorities</DialogTitle>
             </DialogHeader>
 
-            <div className="space-y-3 max-h-[400px] overflow-y-auto">
+            <div className="max-h-[400px] space-y-3 overflow-y-auto">
               {uniqueEntities.map((entity) => (
-                <Card
-                  key={entity.id}
-                  className="p-3 flex items-center gap-3"
-                >
+                <Card key={entity.id} className="flex items-center gap-3 p-3">
                   <Avatar className="h-9 w-9">
                     <AvatarImage src={entity.image_url} />
                     <AvatarFallback>
@@ -110,9 +101,7 @@ export default function GovernanceAvatarGroups({
                   </Avatar>
 
                   <div className="flex-1">
-                    <div className="text-sm font-medium">
-                      {entity.label}
-                    </div>
+                    <div className="text-sm font-medium">{entity.label}</div>
                     <div className="text-xs text-muted-foreground">
                       {entity.entity_type?.toUpperCase()}
                     </div>

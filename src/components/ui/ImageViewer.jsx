@@ -12,7 +12,6 @@ export default function ImageViewer({
   images = [],
   startIndex = 0,
 }) {
-
   /* =========================================
      SAFETY
   ========================================= */
@@ -21,10 +20,7 @@ export default function ImageViewer({
     return null;
   }
 
-  const safeIndex = Math.min(
-    Math.max(startIndex, 0),
-    images.length - 1
-  );
+  const safeIndex = Math.min(Math.max(startIndex, 0), images.length - 1);
 
   return (
     <Lightbox

@@ -13,13 +13,7 @@ import { useScopeChain } from "@/hooks/geography/useScopeChain";
 /* -------------------------
    PRIORITY ORDER
 ------------------------- */
-const SCOPE_PRIORITY = [
-  "ward",
-  "city",
-  "region",
-  "state",
-  "country",
-];
+const SCOPE_PRIORITY = ["ward", "city", "region", "state", "country"];
 
 function getScopePriority(type) {
   return SCOPE_PRIORITY.indexOf(type);
@@ -30,15 +24,8 @@ export default function AuthorityExplorer({
   onChange,
   context,
 }) {
-  const {
-    search,
-    setSearch,
-    scope,
-    setScope,
-    stack,
-    setStack,
-    reset,
-  } = useAuthorityExplorer();
+  const { search, setSearch, scope, setScope, stack, setStack, reset } =
+    useAuthorityExplorer();
 
   /* -------------------------
      🧠 DIRTY STATE (CRITICAL FIX)
@@ -89,7 +76,7 @@ export default function AuthorityExplorer({
       type: scope?.scope_type || "country",
       code: scope?.scope_code || "IN",
     }),
-    [scope?.scope_type, scope?.scope_code]
+    [scope?.scope_type, scope?.scope_code],
   );
 
   /* -------------------------
@@ -160,8 +147,7 @@ export default function AuthorityExplorer({
   const ranked = useMemo(() => {
     return [...data].sort((a, b) => {
       return (
-        getScopePriority(a.geo_scope_type) -
-        getScopePriority(b.geo_scope_type)
+        getScopePriority(a.geo_scope_type) - getScopePriority(b.geo_scope_type)
       );
     });
   }, [data]);
@@ -173,9 +159,7 @@ export default function AuthorityExplorer({
 
   const selectedItems = selected;
 
-  const unselectedItems = ranked.filter(
-    (e) => !selectedIds.has(e.id)
-  );
+  const unselectedItems = ranked.filter((e) => !selectedIds.has(e.id));
 
   function handleReset() {
     setSearch("");
@@ -194,10 +178,8 @@ export default function AuthorityExplorer({
   ------------------------- */
   return (
     <div className="space-y-3">
-
       {/* ================= SEARCH + SCOPE ================= */}
       <div className="space-y-2">
-
         <Input
           placeholder="Search authority, dept, person..."
           value={search}
@@ -220,12 +202,11 @@ export default function AuthorityExplorer({
             });
           }}
         />
-
       </div>
 
       {/* ================= SELECTED ================= */}
       {selectedItems.length > 0 && (
-        <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
           {selectedItems.map((entity) => (
             <AuthorityCard
               key={entity.id}
@@ -239,16 +220,15 @@ export default function AuthorityExplorer({
       )}
 
       {/* ================= LIST ================= */}
-      <div className="grid gap-2 overflow-y-auto max-h-[400px] grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-
+      <div className="grid max-h-[400px] grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3 lg:grid-cols-4">
         {isLoading && (
-          <p className="text-sm text-muted-foreground col-span-full">
+          <p className="col-span-full text-sm text-muted-foreground">
             Loading...
           </p>
         )}
 
         {!isLoading && ranked.length === 0 && (
-          <p className="text-sm text-muted-foreground col-span-full text-center py-6">
+          <p className="col-span-full py-6 text-center text-sm text-muted-foreground">
             No results found
           </p>
         )}
@@ -262,19 +242,14 @@ export default function AuthorityExplorer({
             onOpen={open}
           />
         ))}
-
       </div>
 
       {/* ================= RESET ================= */}
       <div className="flex justify-end">
-        <button
-          onClick={handleReset}
-          className="text-xs text-primary"
-        >
+        <button onClick={handleReset} className="text-xs text-primary">
           Reset filters
         </button>
       </div>
-
     </div>
   );
 }

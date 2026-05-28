@@ -5,10 +5,8 @@ export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen bg-muted/30 px-4 py-12">
       <div className="mx-auto max-w-3xl">
-
         <Card className="p-10">
-          <article className="prose prose-slate max-w-none dark:prose-invert">
-
+          <article className="prose prose-slate dark:prose-invert max-w-none">
             {/* Title */}
             <header className="mb-10">
               <h1 className="mb-2">Privacy Policy</h1>
@@ -67,8 +65,8 @@ export default function PrivacyPolicy() {
               </p>
               <ul>
                 <li>
-                  <strong>Supabase</strong> – for secure data storage and backend
-                  services.
+                  <strong>Supabase</strong> – for secure data storage and
+                  backend services.
                 </li>
                 <li>
                   <strong>Google</strong> – solely for authentication purposes.
@@ -142,12 +140,13 @@ export default function PrivacyPolicy() {
                 us at{" "}
                 <a href="mailto:info@walkingproject.org">
                   info@walkingproject.org
-                </a>.
+                </a>
+                .
               </p>
             </section>
 
             {/* Footer */}
-            <footer className="pt-8 border-t">
+            <footer className="border-t pt-8">
               <p className="text-sm text-muted-foreground">
                 © {new Date().getFullYear()} Walking Project
               </p>
@@ -157,10 +156,8 @@ export default function PrivacyPolicy() {
                 </Link>
               </p>
             </footer>
-
           </article>
         </Card>
-
       </div>
     </div>
   );

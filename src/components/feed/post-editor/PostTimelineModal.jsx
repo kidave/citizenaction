@@ -13,11 +13,7 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 
 import PostTimelineRecordModal from "./PostTimelineRecordModal";
 
-export default function PostTimelineModal({
-  open,
-  onOpenChange,
-  editor,
-}) {
+export default function PostTimelineModal({ open, onOpenChange, editor }) {
   const {
     timeline,
     removeTimelineEntry,
@@ -63,21 +59,15 @@ export default function PostTimelineModal({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-xl">
-
           <DialogHeader>
             <DialogTitle>Timeline History</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-
+          <div className="max-h-[60vh] space-y-4 overflow-y-auto">
             {/* Insert at Top */}
             <div className="flex justify-center">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => openInsert(0)}
-              >
-                <Plus className="h-4 w-4 mr-1" />
+              <Button size="sm" variant="ghost" onClick={() => openInsert(0)}>
+                <Plus className="mr-1 h-4 w-4" />
                 Add Record
               </Button>
             </div>
@@ -85,12 +75,10 @@ export default function PostTimelineModal({
             {timeline.map((item, index) => (
               <div
                 key={`${item.at}-${index}`}
-                className="border rounded-md p-3 flex justify-between items-start"
+                className="flex items-start justify-between rounded-md border p-3"
               >
                 <div>
-                  <div className="text-sm font-medium">
-                    {item.title}
-                  </div>
+                  <div className="text-sm font-medium">{item.title}</div>
                   <div className="text-xs text-muted-foreground">
                     {new Date(item.at).toLocaleString()}
                   </div>
@@ -119,7 +107,7 @@ export default function PostTimelineModal({
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="bg-background border rounded-full"
+                    className="rounded-full border bg-background"
                     onClick={() => openInsert(index + 1)}
                   >
                     <Plus className="h-4 w-4" />
@@ -127,57 +115,45 @@ export default function PostTimelineModal({
                 </div>
               </div>
             ))}
-
           </div>
-
         </DialogContent>
       </Dialog>
 
       {deleteIndex !== null && (
-      <Dialog
-        open={true}
-        onOpenChange={() => setDeleteIndex(null)}
-      >
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Delete Timeline Record?</DialogTitle>
-          </DialogHeader>
+        <Dialog open={true} onOpenChange={() => setDeleteIndex(null)}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Delete Timeline Record?</DialogTitle>
+            </DialogHeader>
 
-          <div className="text-sm text-muted-foreground">
-            This record will be permanently removed from the timeline.
-          </div>
+            <div className="text-sm text-muted-foreground">
+              This record will be permanently removed from the timeline.
+            </div>
 
-          <div className="flex justify-end gap-2 mt-4">
-            <Button
-              variant="ghost"
-              onClick={() => setDeleteIndex(null)}
-            >
-              Cancel
-            </Button>
+            <div className="mt-4 flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setDeleteIndex(null)}>
+                Cancel
+              </Button>
 
-            <Button
-              variant="destructive"
-              onClick={() => {
-                removeTimelineEntry(deleteIndex);
-                setDeleteIndex(null);
-              }}
-            >
-              Delete
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    )}
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  removeTimelineEntry(deleteIndex);
+                  setDeleteIndex(null);
+                }}
+              >
+                Delete
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       <PostTimelineRecordModal
         open={recordModal.open}
-        onOpenChange={(open) =>
-          setRecordModal((prev) => ({ ...prev, open }))
-        }
+        onOpenChange={(open) => setRecordModal((prev) => ({ ...prev, open }))}
         existing={
-          recordModal.mode === "edit"
-            ? timeline[recordModal.index]
-            : null
+          recordModal.mode === "edit" ? timeline[recordModal.index] : null
         }
         onSave={handleSave}
       />

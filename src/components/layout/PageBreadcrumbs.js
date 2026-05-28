@@ -35,16 +35,11 @@ export default function PageBreadcrumbs() {
     enabled: !!space && !!scopeType && !!scopeCode,
   });
 
-  const clubData = Array.isArray(clubList)
-    ? clubList?.[0]
-    : clubList;
+  const clubData = Array.isArray(clubList) ? clubList?.[0] : clubList;
 
   /* ---------------- PATH SEGMENTS ---------------- */
 
-  const segments = router.asPath
-    .split("?")[0]
-    .split("/")
-    .filter(Boolean);
+  const segments = router.asPath.split("?")[0].split("/").filter(Boolean);
 
   let href = "";
 
@@ -83,13 +78,7 @@ export default function PageBreadcrumbs() {
 
 /* ---------------- HELPERS ---------------- */
 
-function resolveDynamicLabel({
-  seg,
-  space,
-  scopeCode,
-  spaceData,
-  clubData,
-}) {
+function resolveDynamicLabel({ seg, space, scopeCode, spaceData, clubData }) {
   // Replace space slug with space.name
   if (seg === space && spaceData?.name) {
     return spaceData.name;

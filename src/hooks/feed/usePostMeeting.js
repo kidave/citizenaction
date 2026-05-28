@@ -13,7 +13,8 @@ export function usePostMeeting(postId) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("meeting_item")
-        .select(`
+        .select(
+          `
           id,
           notes,
           user_id,
@@ -25,7 +26,8 @@ export function usePostMeeting(postId) {
             avatar_url,
             designation
           )
-        `)
+        `,
+        )
         .eq("feed_id", postId);
 
       if (error) throw error;

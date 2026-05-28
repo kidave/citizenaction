@@ -18,105 +18,51 @@ function LayoutContent({ children }) {
 
   const { state } = useSidebar();
 
-  const safePathname =
-    pathname ?? "";
+  const safePathname = pathname ?? "";
 
-  const isAboutPage =
-    safePathname === "/about";
+  const isAboutPage = safePathname === "/about";
 
-  const isHomePage =
-    safePathname === "/";
+  const isHomePage = safePathname === "/";
 
-  const isPostPage =
-    safePathname.startsWith(
-      "/post/"
-    );
+  const isPostPage = safePathname.startsWith("/post/");
 
-  const isMeetingPage =
-    safePathname.startsWith(
-      "/meeting/"
-    );
+  const isMeetingPage = safePathname.startsWith("/meeting/");
 
   return (
-    <div
-      className="
-        flex
-        min-h-screen
-        w-full
-        min-w-0
-      "
-    >
-      {!isAboutPage && (
-        <LeftSidebar />
-      )}
+    <div className="flex min-h-screen w-full min-w-0">
+      {!isAboutPage && <LeftSidebar />}
 
-      <SidebarInset
-        className="
-          flex
-          min-w-0
-          flex-1
-          flex-col
-        "
-      >
+      <SidebarInset className="flex min-w-0 flex-1 flex-col">
         {/* FLOATING SIDEBAR BUTTON */}
-        {isHomePage &&
-          state ===
-            "collapsed" && (
-            <motion.div
-              initial={{
-                opacity: 0,
-                x: -20,
-              }}
-              animate={{
-                opacity: 1,
-                x: 0,
-              }}
-              transition={{
-                duration: 0.3,
-              }}
-              className="
-                fixed
-                left-4
-                top-4
-                z-50
-                hidden
-                md:block
-              "
-            >
-              <SidebarTrigger
-                className="
-                  rounded-xl
-                  border
-                  bg-background/80
-                  p-2
-                  shadow-lg
-                  backdrop-blur-xl
-                "
-              />
-            </motion.div>
-          )}
+        {isHomePage && state === "collapsed" && (
+          <motion.div
+            initial={{
+              opacity: 0,
+              x: -20,
+            }}
+            animate={{
+              opacity: 1,
+              x: 0,
+            }}
+            transition={{
+              duration: 0.3,
+            }}
+            className="fixed left-4 top-4 z-50 hidden md:block"
+          >
+            <SidebarTrigger className="rounded-xl border bg-background/80 p-2 shadow-lg backdrop-blur-xl" />
+          </motion.div>
+        )}
 
-        <main
-          className="
-            w-full
-            min-w-0
-          "
-        >
-          {children}
-        </main>
+        <main className="w-full min-w-0">{children}</main>
       </SidebarInset>
     </div>
   );
 }
 
-export default function Layout({
-  children,
-}) {
+export default function Layout({ children }) {
   return (
     <SidebarProvider>
-      <LayoutContent>
-        {children}
-      </LayoutContent>
+      <LayoutContent>{children}</LayoutContent>
     </SidebarProvider>
   );
 }

@@ -8,7 +8,7 @@ export default function CardSkeleton() {
       {/* cover */}
       <Skeleton className="h-48 w-full" />
 
-      <CardContent className="pt-6 space-y-3">
+      <CardContent className="space-y-3 pt-6">
         <div className="flex justify-between gap-2">
           <Skeleton className="h-6 w-40" />
           <Skeleton className="h-5 w-16" />

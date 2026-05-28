@@ -10,7 +10,7 @@ export default async function handler(req, res) {
         headers: {
           "User-Agent": "CitizenActionApp/1.0",
         },
-      }
+      },
     );
 
     const data = await response.json();

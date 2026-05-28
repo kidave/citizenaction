@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import {
   Children,
   cloneElement,
@@ -14,67 +14,73 @@ import { cva } from "class-variance-authority";
 // CSS VARIANTS
 
 // Dot in the center of the timeline item
-const timelineDotVariants = cva("relative h-4 w-4 rounded-full z-10 flex items-center justify-center", {
-  variants: {
-    variant: {
-      default: "border-primary",
-      secondary: "border-secondary",
-      destructive: "border-destructive",
-      outline: ""
+const timelineDotVariants = cva(
+  "relative h-4 w-4 rounded-full z-10 flex items-center justify-center",
+  {
+    variants: {
+      variant: {
+        default: "border-primary",
+        secondary: "border-secondary",
+        destructive: "border-destructive",
+        outline: "",
+      },
+      hollow: {
+        true: "border-2 bg-card",
+        false: "border-2",
+      },
     },
-    hollow: {
-      true: "border-2 bg-card",
-      false: "border-2"
-    }
-  },
-  compoundVariants: [
-    {
-      hollow: false,
+    compoundVariants: [
+      {
+        hollow: false,
+        variant: "default",
+        class: "bg-primary",
+      },
+      {
+        hollow: false,
+        variant: "secondary",
+        class: "bg-secondary",
+      },
+      {
+        hollow: false,
+        variant: "destructive",
+        class: "bg-destructive",
+      },
+      {
+        hollow: false,
+        variant: "outline",
+        class: "bg-background",
+      },
+    ],
+    defaultVariants: {
       variant: "default",
-      class: "bg-primary"
-    },
-    {
       hollow: false,
-      variant: "secondary",
-      class: "bg-secondary"
     },
-    {
-      hollow: false,
-      variant: "destructive",
-      class: "bg-destructive"
-    },
-    {
-      hollow: false,
-      variant: "outline",
-      class: "bg-background"
-    }
-  ],
-  defaultVariants: {
-    variant: "default",
-    hollow: false
-  }
-});
+  },
+);
 
 // Card container
-const timelineItemVariants = cva("flex flex-col rounded-md transition-all p-4 shrink-0", {
-  variants: {
-    variant: {
-      default: "bg-card border text-card-foreground shadow-sm",
-      secondary: "bg-secondary text-secondary-foreground shadow-sm",
-      destructive:
-        "bg-destructive/10 border border-destructive/20 text-destructive-foreground shadow-sm",
-      outline: "bg-transparent border shadow-sm"
+const timelineItemVariants = cva(
+  "flex flex-col rounded-md transition-all p-4 shrink-0",
+  {
+    variants: {
+      variant: {
+        default: "bg-card border text-card-foreground shadow-sm",
+        secondary: "bg-secondary text-secondary-foreground shadow-sm",
+        destructive:
+          "bg-destructive/10 border border-destructive/20 text-destructive-foreground shadow-sm",
+        outline: "bg-transparent border shadow-sm",
+      },
+      noCards: {
+        true: "border-none shadow-none bg-transparent",
+        false: "",
+      },
     },
-    noCards: {
-      true: "border-none shadow-none bg-transparent",
-      false: ""
-    }
+    defaultVariants: {
+      variant: "default",
+      noCards: false,
+    },
   },
-  defaultVariants: {
-    variant: "default",
-    noCards: false
-  }
-});
+);
 
 // Branch connecting dot to card
 const timelineBranchVariants = cva("absolute z-0", {
@@ -83,12 +89,12 @@ const timelineBranchVariants = cva("absolute z-0", {
       default: "bg-primary",
       secondary: "bg-secondary",
       destructive: "bg-destructive",
-      outline: "bg-border"
-    }
+      outline: "bg-border",
+    },
   },
   defaultVariants: {
-    variant: "default"
-  }
+    variant: "default",
+  },
 });
 
 // Timeline layout container
@@ -96,12 +102,12 @@ const timelineLayoutVariants = cva("grid relative", {
   variants: {
     orientation: {
       horizontal: "grid-flow-col grid-rows-[min-content_2rem_min-content]",
-      vertical: "grid-cols-[1fr_2rem_1fr] auto-rows-min"
-    }
+      vertical: "grid-cols-[1fr_2rem_1fr] auto-rows-min",
+    },
   },
   defaultVariants: {
-    orientation: "horizontal"
-  }
+    orientation: "horizontal",
+  },
 });
 
 // Timeline item container (card + dot + line + branch)
@@ -109,19 +115,19 @@ const timelineItemContainerVariants = cva("flex relative snap-center", {
   variants: {
     orientation: {
       horizontal: "w-full justify-center",
-      vertical: "h-full items-center"
+      vertical: "h-full items-center",
     },
     side: {
       before: "",
-      after: ""
-    }
+      after: "",
+    },
   },
   compoundVariants: [
     { orientation: "horizontal", side: "before", class: "items-end" },
     { orientation: "horizontal", side: "after", class: "items-start" },
     { orientation: "vertical", side: "before", class: "justify-end" },
-    { orientation: "vertical", side: "after", class: "justify-start" }
-  ]
+    { orientation: "vertical", side: "after", class: "justify-start" },
+  ],
 });
 
 const TlCtxt = createContext(null);
@@ -129,7 +135,9 @@ const TlCtxt = createContext(null);
 function useTimelineContext() {
   const context = useContext(TlCtxt);
   if (context === null) {
-    throw new Error("Timeline components must be used within a Timeline component.");
+    throw new Error(
+      "Timeline components must be used within a Timeline component.",
+    );
   }
   return context;
 }
@@ -201,17 +209,22 @@ export default function Timeline({
     maxCardWidth: vertItemMaxWidth,
     alternating,
     alignment,
-    noCards
+    noCards,
   };
 
   return (
     <div
       id="timeline-container"
-      className={cn("flex h-full w-full", isVertical ? "flex-col" : "flex-row", className)}
+      className={cn(
+        "flex h-full w-full",
+        isVertical ? "flex-col" : "flex-row",
+        className,
+      )}
       role="list"
       aria-orientation={orientation}
       aria-label="Timeline"
-      {...props}>
+      {...props}
+    >
       <ul
         id="timeline-grid"
         className={timelineLayoutVariants({ orientation })}
@@ -235,13 +248,15 @@ export default function Timeline({
                     ? "min-content 2rem"
                     : "2rem min-content",
                 paddingLeft: `${safePadding}px`,
-                paddingRight: `${safePadding}px`
+                paddingRight: `${safePadding}px`,
               }
         }
-        ref={listRef}>
+        ref={listRef}
+      >
         <TlCtxt.Provider value={contextVal}>
           {Children.map(children, (child, index) =>
-            cloneElement(child, { index }))}
+            cloneElement(child, { index }),
+          )}
         </TlCtxt.Provider>
       </ul>
     </div>
@@ -298,12 +313,12 @@ function getGridAndLineStyles(side, index, isVertical, alternating) {
 function getCardStyle(isVertical, cardWidth, maxCardWidth) {
   return isVertical
     ? {
-        maxWidth: `${maxCardWidth}px`
+        maxWidth: `${maxCardWidth}px`,
       }
     : {
         width: `${cardWidth}px`,
         minWidth: `${cardWidth}px`,
-        maxWidth: `${cardWidth}px`
+        maxWidth: `${cardWidth}px`,
       };
 }
 
@@ -345,7 +360,7 @@ export function TimelineItem({
     maxCardWidth,
     alternating,
     alignment,
-    noCards
+    noCards,
   } = useTimelineContext();
 
   const isEven = index % 2 === 0;
@@ -360,7 +375,12 @@ export function TimelineItem({
       ? "before"
       : "after";
 
-  const { gridStyle, lineStyle } = getGridAndLineStyles(side, index, isVertical, alternating);
+  const { gridStyle, lineStyle } = getGridAndLineStyles(
+    side,
+    index,
+    isVertical,
+    alternating,
+  );
 
   return (
     <>
@@ -371,45 +391,55 @@ export function TimelineItem({
         role="listitem"
         aria-posinset={index + 1}
         aria-setsize={total}
-        {...props}>
+        {...props}
+      >
         <div
           id={`timeline-item-${index}`}
           style={getCardStyle(isVertical, cardWidth, maxCardWidth)}
           className={cn(timelineItemVariants({ variant, noCards }), className)}
-          data-timeline-card={true}>
+          data-timeline-card={true}
+        >
           {children}
         </div>
       </li>
       <li
         id={`timeline-item-${index}-middle`}
         className="relative flex items-center justify-center"
-        style={lineStyle}>
+        style={lineStyle}
+      >
         <div
-          className={cn("absolute bg-muted", index === 0
-            ? isVertical
-              ? "rounded-t-full"
-              : "rounded-l-full"
-            : "", index === total - 1
-            ? isVertical
-              ? "rounded-b-full"
-              : "rounded-r-full"
-            : "", isVertical ? "h-full w-1" : "w-full h-1")}
+          className={cn(
+            "absolute bg-muted",
+            index === 0
+              ? isVertical
+                ? "rounded-t-full"
+                : "rounded-l-full"
+              : "",
+            index === total - 1
+              ? isVertical
+                ? "rounded-b-full"
+                : "rounded-r-full"
+              : "",
+            isVertical ? "h-full w-1" : "h-1 w-full",
+          )}
           id={`timeline-item-${index}-line`}
-          aria-hidden="true" />
+          aria-hidden="true"
+        />
 
         <div
           className={cn(
             timelineBranchVariants({ variant }),
-            getBranchStyle(isVertical, isEven, alternating, alignment)
+            getBranchStyle(isVertical, isEven, alternating, alignment),
           )}
           id={`timeline-item-${index}-branch`}
-          aria-hidden="true" />
+          aria-hidden="true"
+        />
 
         <div
           onClick={onDotClick}
           className={cn(
             timelineDotVariants({ variant, hollow }),
-            onDotClick && "cursor-pointer hover:scale-110 transition"
+            onDotClick && "cursor-pointer transition hover:scale-110",
           )}
           id={`timeline-item-${index}-dot`}
           role="button"
@@ -421,15 +451,12 @@ export function TimelineItem({
   );
 }
 
-export function TimelineItemDate({
-  children,
-  className,
-  ...props
-}) {
+export function TimelineItemDate({ children, className, ...props }) {
   return (
     <span
-      className={cn("text-xs text-muted-foreground mb-1", className)}
-      {...props}>
+      className={cn("mb-1 text-xs text-muted-foreground", className)}
+      {...props}
+    >
       {children instanceof Date ? (
         <time dateTime={children.toISOString()}>
           {dateFormatter.format(children)}
@@ -441,30 +468,26 @@ export function TimelineItemDate({
   );
 }
 
-export function TimelineItemTitle({
-  children,
-  className,
-  ...props
-}) {
+export function TimelineItemTitle({ children, className, ...props }) {
   return (
-    <h3 className={cn("font-medium text-sm leading-snug", className)} {...props}>
+    <h3
+      className={cn("text-sm font-medium leading-snug", className)}
+      {...props}
+    >
       {children}
     </h3>
   );
 }
 
-export function TimelineItemDescription({
-  children,
-  className,
-  ...props
-}) {
+export function TimelineItemDescription({ children, className, ...props }) {
   return (
     <p
       className={cn(
-        "text-xs text-muted-foreground mt-1 leading-relaxed break-words whitespace-normal",
-        className
+        "mt-1 whitespace-normal break-words text-xs leading-relaxed text-muted-foreground",
+        className,
       )}
-      {...props}>
+      {...props}
+    >
       {children}
     </p>
   );
@@ -473,5 +496,5 @@ export function TimelineItemDescription({
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
   month: "short",
-  year: "numeric"
+  year: "numeric",
 });

@@ -9,30 +9,30 @@ import { supabase } from "./client";
 export async function uploadPostAttachment(file, userId) {
   // Create path: userId/timestamp-filename
   const timestamp = Date.now();
-  const fileName = file.name.replace(/[^a-zA-Z0-9.]/g, '_'); // Sanitize filename
+  const fileName = file.name.replace(/[^a-zA-Z0-9.]/g, "_"); // Sanitize filename
   const path = `${userId}/${timestamp}-${fileName}`;
 
   // Upload file
   const { error: uploadError } = await supabase.storage
     .from("post-attachments")
-    .upload(path, file, { 
+    .upload(path, file, {
       upsert: false,
-      cacheControl: '3600'
+      cacheControl: "3600",
     });
 
   if (uploadError) throw uploadError;
 
   // Get public URL
-  const { data: { publicUrl } } = supabase.storage
-    .from("post-attachments")
-    .getPublicUrl(path);
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from("post-attachments").getPublicUrl(path);
 
   return {
     url: publicUrl,
     name: file.name,
     type: file.type,
     size: file.size,
-    path // Store path for potential deletion
+    path, // Store path for potential deletion
   };
 }
 
@@ -52,10 +52,10 @@ export async function deletePostAttachment(path) {
  * Get file type category for display
  */
 export function getFileCategory(mimeType) {
-  if (mimeType?.startsWith('image/')) return 'image';
-  if (mimeType === 'application/pdf') return 'pdf';
-  if (mimeType?.includes('word')) return 'document';
-  if (mimeType?.includes('spreadsheet')) return 'spreadsheet';
-  if (mimeType?.startsWith('text/')) return 'text';
-  return 'file';
+  if (mimeType?.startsWith("image/")) return "image";
+  if (mimeType === "application/pdf") return "pdf";
+  if (mimeType?.includes("word")) return "document";
+  if (mimeType?.includes("spreadsheet")) return "spreadsheet";
+  if (mimeType?.startsWith("text/")) return "text";
+  return "file";
 }

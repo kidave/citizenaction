@@ -9,15 +9,9 @@ export const spaceApplicationSchema = z.object({
     .min(3)
     .regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers and hyphens"),
 
-  email: z
-    .string()
-    .email("Invalid email address"),
+  email: z.string().email("Invalid email address"),
 
-  website: z
-    .string()
-    .url("Invalid website URL")
-    .optional()
-    .or(z.literal("")),
+  website: z.string().url("Invalid website URL").optional().or(z.literal("")),
 
   contact_number: z
     .string()

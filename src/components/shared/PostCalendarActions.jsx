@@ -2,14 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 
-import {
-  CalendarPlus,
-  Download,
-} from "lucide-react";
+import { CalendarPlus, Download } from "lucide-react";
 
-export default function PostCalendarActions({
-  post,
-}) {
+export default function PostCalendarActions({ post }) {
   if (!post?.start_at) {
     return null;
   }
@@ -18,34 +13,24 @@ export default function PostCalendarActions({
   // DATES
   // =====================================================
 
-  const start =
-    new Date(post.start_at);
+  const start = new Date(post.start_at);
 
   const end = post.end_at
     ? new Date(post.end_at)
-    : new Date(
-        start.getTime() +
-          60 * 60 * 1000
-      );
+    : new Date(start.getTime() + 60 * 60 * 1000);
 
   // =====================================================
   // FORMAT
   // =====================================================
 
   const formatDate = (d) =>
-    d
-      .toISOString()
-      .replace(/[-:]/g, "")
-      .split(".")[0] + "Z";
+    d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
 
   // =====================================================
   // LOCATION
   // =====================================================
 
-  const locationValue = [
-    post.address,
-    post.meeting_link,
-  ]
+  const locationValue = [post.address, post.meeting_link]
     .filter(Boolean)
     .join("\n");
 
@@ -56,19 +41,10 @@ export default function PostCalendarActions({
   function handleGoogleCalendar() {
     const url =
       `https://calendar.google.com/calendar/render?action=TEMPLATE` +
-      `&text=${encodeURIComponent(
-        post.summary ||
-          "Meeting/Event"
-      )}` +
-      `&details=${encodeURIComponent(
-        post.details || ""
-      )}` +
-      `&location=${encodeURIComponent(
-        locationValue || ""
-      )}` +
-      `&dates=${formatDate(
-        start
-      )}/${formatDate(end)}`;
+      `&text=${encodeURIComponent(post.summary || "Meeting/Event")}` +
+      `&details=${encodeURIComponent(post.details || "")}` +
+      `&location=${encodeURIComponent(locationValue || "")}` +
+      `&dates=${formatDate(start)}/${formatDate(end)}`;
 
     window.open(url, "_blank");
   }
@@ -83,9 +59,7 @@ BEGIN:VCALENDAR
 VERSION:2.0
 BEGIN:VEVENT
 UID:${Date.now()}@citizenaction
-DTSTAMP:${formatDate(
-      new Date()
-    )}
+DTSTAMP:${formatDate(new Date())}
 DTSTART:${formatDate(start)}
 DTEND:${formatDate(end)}
 SUMMARY:${post.summary || "Meeting/Event"}
@@ -94,25 +68,15 @@ LOCATION:${locationValue || ""}
 END:VEVENT
 END:VCALENDAR`;
 
-    const blob = new Blob(
-      [ics],
-      {
-        type: "text/calendar;charset=utf-8;",
-      }
-    );
+    const blob = new Blob([ics], {
+      type: "text/calendar;charset=utf-8;",
+    });
 
-    const link =
-      document.createElement(
-        "a"
-      );
+    const link = document.createElement("a");
 
-    link.href =
-      URL.createObjectURL(
-        blob
-      );
+    link.href = URL.createObjectURL(blob);
 
-    link.download =
-      "event.ics";
+    link.download = "event.ics";
 
     link.click();
   }
@@ -122,23 +86,17 @@ END:VCALENDAR`;
   // =====================================================
 
   return (
-    <div className="flex gap-2 flex-wrap">
-
+    <div className="flex flex-wrap gap-2">
       {/* GOOGLE */}
 
       <Button
         size="sm"
         variant="outline"
-        onClick={
-          handleGoogleCalendar
-        }
+        onClick={handleGoogleCalendar}
         className="flex items-center gap-1"
       >
-
         <CalendarPlus className="h-4 w-4" />
-
         Add to Calendar
-
       </Button>
 
       {/* ICS */}
@@ -146,18 +104,12 @@ END:VCALENDAR`;
       <Button
         size="sm"
         variant="outline"
-        onClick={
-          handleICSDownload
-        }
+        onClick={handleICSDownload}
         className="flex items-center gap-1"
       >
-
         <Download className="h-4 w-4" />
-
         .ics
-
       </Button>
-
     </div>
   );
 }

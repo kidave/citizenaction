@@ -4,11 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import ScopeSelector from "./ScopeSelector";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Save } from "lucide-react";
 
@@ -41,21 +37,12 @@ export default function ScopeSelectorModal({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent
-        className="
-          w-full 
-          max-w-2xl 
-          max-h-[90vh] 
-          flex 
-          flex-col
-        "
-      >
+      <DialogContent className="flex max-h-[90vh] w-full max-w-2xl flex-col">
         <DialogTitle>Select Location</DialogTitle>
 
         <div className="flex-1 overflow-y-auto pt-4">
-
           {!tempScope ? (
-            <div className="text-sm text-muted-foreground py-10 text-center">
+            <div className="py-10 text-center text-sm text-muted-foreground">
               Loading location...
             </div>
           ) : (
@@ -67,11 +54,9 @@ export default function ScopeSelectorModal({
               itemClassName="w-full"
             />
           )}
-
         </div>
 
-        <div className="flex justify-between items-center pt-4 border-t mt-2">
-
+        <div className="mt-2 flex items-center justify-between border-t pt-4">
           <Button
             onClick={() =>
               setTempScope({
@@ -86,11 +71,7 @@ export default function ScopeSelectorModal({
           </Button>
 
           <div className="flex gap-2">
-            <Button
-              onClick={onClose}
-              variant="outline"
-              size="sm"
-            >
+            <Button onClick={onClose} variant="outline" size="sm">
               Cancel
             </Button>
 
@@ -101,12 +82,10 @@ export default function ScopeSelectorModal({
               }}
               size="sm"
             >
-              <Save/> Save
+              <Save /> Save
             </Button>
           </div>
-
         </div>
-
       </DialogContent>
     </Dialog>
   );

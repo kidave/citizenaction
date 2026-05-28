@@ -6,9 +6,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PostSkeleton() {
   return (
-    <Card className="p-4 space-y-4">
+    <Card className="space-y-4 p-4">
       {/* HEADER SKELETON */}
-      <div className="flex gap-3 items-center">
+      <div className="flex items-center gap-3">
         <Skeleton className="h-10 w-10 rounded-full" />
         <div className="space-y-2">
           <Skeleton className="h-4 w-32" />

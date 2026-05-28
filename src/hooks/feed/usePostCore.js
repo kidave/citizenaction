@@ -4,10 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/lib/supabase/client";
 
-export function usePostCore(
-  id,
-  initialData
-) {
+export function usePostCore(id, initialData) {
   return useQuery({
     queryKey: ["post-core", id],
 
@@ -16,10 +13,10 @@ export function usePostCore(
     initialData,
 
     queryFn: async () => {
-      const { data, error } =
-        await supabase
-          .from("feed_light_view")
-          .select(`
+      const { data, error } = await supabase
+        .from("feed_light_view")
+        .select(
+          `
             id,
 
             type,
@@ -52,9 +49,10 @@ export function usePostCore(
             address,
 
             meeting_link
-          `)
-          .eq("id", id)
-          .single();
+          `,
+        )
+        .eq("id", id)
+        .single();
 
       if (error) {
         throw error;

@@ -12,17 +12,9 @@ import { useMyProfile } from "@/hooks/user/useMyProfile";
 
 import { Button } from "@/components/ui/button";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
-import {
-  Avatar,
-  AvatarImage,
-  AvatarFallback,
-} from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,11 +30,7 @@ export default function ProfileSettingsPage() {
 
   const { user, loading: authLoading } = useAuth();
 
-  const {
-    data: profile,
-    isLoading,
-    refetch,
-  } = useMyProfile();
+  const { data: profile, isLoading, refetch } = useMyProfile();
 
   const [saving, setSaving] = useState(false);
 
@@ -68,11 +56,9 @@ export default function ProfileSettingsPage() {
         email: profile.email || "",
         mobile: profile.mobile || "",
 
-        is_email_public:
-          profile.is_email_public || false,
+        is_email_public: profile.is_email_public || false,
 
-        is_mobile_public:
-          profile.is_mobile_public || false,
+        is_mobile_public: profile.is_mobile_public || false,
       });
     }
   }, [profile]);
@@ -97,11 +83,9 @@ export default function ProfileSettingsPage() {
           designation: form.designation,
           locality: form.locality,
 
-          is_email_public:
-            form.is_email_public,
+          is_email_public: form.is_email_public,
 
-          is_mobile_public:
-            form.is_mobile_public,
+          is_mobile_public: form.is_mobile_public,
         })
         .eq("user_id", user.id);
 
@@ -111,20 +95,13 @@ export default function ProfileSettingsPage() {
 
       toast.success("Profile updated");
 
-      if (
-        oldUsername !== form.username &&
-        form.username
-      ) {
-        router.replace(
-          `/user/${form.username}`
-        );
+      if (oldUsername !== form.username && form.username) {
+        router.replace(`/user/${form.username}`);
 
         return;
       }
 
-      router.replace(
-        `/user/${profile.username}`
-      );
+      router.replace(`/user/${profile.username}`);
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -132,55 +109,37 @@ export default function ProfileSettingsPage() {
     }
   };
 
-  if (
-    authLoading ||
-    isLoading ||
-    !profile
-  ) {
+  if (authLoading || isLoading || !profile) {
     return <SettingsSkeleton />;
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 px-4 py-10 flex justify-center">
+    <div className="flex min-h-screen justify-center bg-muted/30 px-4 py-10">
       <div className="w-full max-w-lg">
-
         {/* Header */}
         <div className="mb-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.back()}
-          >
+          <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </div>
 
         <Card>
-
           {/* Avatar */}
           <div className="flex justify-center pt-8">
             <Avatar className="h-24 w-24">
-              <AvatarImage
-                src={
-                  profile.avatar_url || undefined
-                }
-              />
+              <AvatarImage src={profile.avatar_url || undefined} />
 
               <AvatarFallback>
-                {profile.name?.[0]?.toUpperCase() ||
-                  "U"}
+                {profile.name?.[0]?.toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
           </div>
 
           <CardHeader className="text-center">
-            <h2 className="text-lg font-semibold">
-              Profile Settings
-            </h2>
+            <h2 className="text-lg font-semibold">Profile Settings</h2>
           </CardHeader>
 
           <CardContent className="space-y-6">
-
             {/* Name */}
             <div className="space-y-2">
               <Label>Name</Label>
@@ -220,8 +179,7 @@ export default function ProfileSettingsPage() {
                 onChange={(e) =>
                   setForm({
                     ...form,
-                    designation:
-                      e.target.value,
+                    designation: e.target.value,
                   })
                 }
               />
@@ -247,21 +205,14 @@ export default function ProfileSettingsPage() {
               <div>
                 <Label>Email</Label>
 
-                <Input
-                  value={form.email}
-                  disabled
-                />
+                <Input value={form.email} disabled />
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-sm">
-                  Public Email
-                </span>
+                <span className="text-sm">Public Email</span>
 
                 <Switch
-                  checked={
-                    form.is_email_public
-                  }
+                  checked={form.is_email_public}
                   onCheckedChange={(v) =>
                     setForm({
                       ...form,
@@ -277,21 +228,14 @@ export default function ProfileSettingsPage() {
               <div>
                 <Label>Mobile</Label>
 
-                <Input
-                  value={form.mobile}
-                  disabled
-                />
+                <Input value={form.mobile} disabled />
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-sm">
-                  Public Mobile
-                </span>
+                <span className="text-sm">Public Mobile</span>
 
                 <Switch
-                  checked={
-                    form.is_mobile_public
-                  }
+                  checked={form.is_mobile_public}
                   onCheckedChange={(v) =>
                     setForm({
                       ...form,
@@ -303,16 +247,9 @@ export default function ProfileSettingsPage() {
             </div>
 
             {/* Save */}
-            <Button
-              className="w-full"
-              onClick={handleSave}
-              disabled={saving}
-            >
-              {saving
-                ? "Saving..."
-                : "Save Changes"}
+            <Button className="w-full" onClick={handleSave} disabled={saving}>
+              {saving ? "Saving..." : "Save Changes"}
             </Button>
-
           </CardContent>
         </Card>
       </div>
@@ -322,10 +259,9 @@ export default function ProfileSettingsPage() {
 
 function SettingsSkeleton() {
   return (
-    <div className="min-h-screen bg-muted/30 px-4 py-10 flex justify-center">
+    <div className="flex min-h-screen justify-center bg-muted/30 px-4 py-10">
       <div className="w-full max-w-lg">
         <Card>
-
           <div className="flex justify-center pt-8">
             <Skeleton className="h-24 w-24 rounded-full" />
           </div>
@@ -336,7 +272,6 @@ function SettingsSkeleton() {
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />
           </CardContent>
-
         </Card>
       </div>
     </div>

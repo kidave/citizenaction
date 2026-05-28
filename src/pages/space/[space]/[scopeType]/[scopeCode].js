@@ -22,12 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import PageHeaderSkeleton from "@/components/skeletons/PageHeaderSkeleton";
 import MetaCardsSkeleton from "@/components/skeletons/MetaCardsSkeleton";
@@ -51,7 +46,6 @@ export async function getServerSideProps({ params }) {
     },
   };
 }
-
 
 export default function ClubPage() {
   const router = useRouter();
@@ -78,7 +72,7 @@ export default function ClubPage() {
 
   if (clubLoading || !space || !scopeType || !scopeCode) {
     return (
-      <div className="max-w-6xl mx-auto my-auto px-4 py-4 space-y-4">
+      <div className="mx-auto my-auto max-w-6xl space-y-4 px-4 py-4">
         <PageHeaderSkeleton />
         <MetaCardsSkeleton />
       </div>
@@ -87,7 +81,7 @@ export default function ClubPage() {
 
   if (error || !club) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-16 text-center">
+      <div className="mx-auto max-w-6xl px-4 py-16 text-center">
         <h2 className="text-xl font-semibold">Club not found</h2>
 
         <Link href={`/space/${space}`}>
@@ -103,7 +97,7 @@ export default function ClubPage() {
 
   return (
     <div
-      className="max-w-6xl mx-auto my-auto px-4 py-4 space-y-6"
+      className="mx-auto my-auto max-w-6xl space-y-6 px-4 py-4"
       style={
         club.primary_color
           ? { "--club-primary": club.primary_color }
@@ -114,7 +108,6 @@ export default function ClubPage() {
 
       <header className="space-y-4">
         <div className="flex items-center gap-4">
-
           <Link href={`/space/${space}`}>
             <div className="inline-flex items-center justify-center rounded-md border p-2 hover:bg-muted">
               <ArrowLeft className="h-4 w-4" />
@@ -132,33 +125,22 @@ export default function ClubPage() {
           )}
 
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-semibold">
-              {club.name}
-            </h1>
+            <h1 className="text-3xl font-semibold">{club.name}</h1>
 
-            {club.scope_type && (
-              <Badge>{club.scope_type.toUpperCase()}</Badge>
-            )}
+            {club.scope_type && <Badge>{club.scope_type.toUpperCase()}</Badge>}
           </div>
         </div>
 
         {club.description && (
-          <p className="text-muted-foreground max-w-3xl">
-            {club.description}
-          </p>
+          <p className="max-w-3xl text-muted-foreground">{club.description}</p>
         )}
       </header>
 
       {/* TABS */}
 
       <Tabs value={activeTab} className="space-y-6">
-
         <TabsList>
-
-          <TabsTrigger
-            value="overview"
-            onClick={() => router.push(base)}
-          >
+          <TabsTrigger value="overview" onClick={() => router.push(base)}>
             Overview
           </TabsTrigger>
 
@@ -175,24 +157,21 @@ export default function ClubPage() {
           >
             Activity
           </TabsTrigger>
-
         </TabsList>
 
         <TabsContent value="overview">
-
-          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-
-            <Card className="border-l-4" style={{ borderLeftColor: "var(--club-primary)" }}>
+          <section className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <Card
+              className="border-l-4"
+              style={{ borderLeftColor: "var(--club-primary)" }}
+            >
               <CardHeader>
                 <CardTitle>Club Owner</CardTitle>
-                <CardDescription>
-                  Primary point of contact
-                </CardDescription>
+                <CardDescription>Primary point of contact</CardDescription>
               </CardHeader>
 
               <CardContent>
                 <div className="flex items-center gap-3">
-
                   <Image
                     src={club.owner_avatar_url || "/user1.png"}
                     alt=""
@@ -204,7 +183,6 @@ export default function ClubPage() {
                   <span className="font-medium">
                     {club.owner_name || "Unnamed user"}
                   </span>
-
                 </div>
               </CardContent>
             </Card>
@@ -214,23 +192,19 @@ export default function ClubPage() {
                 <CardTitle>Contact</CardTitle>
               </CardHeader>
 
-              <CardContent className="text-sm space-y-1">
+              <CardContent className="space-y-1 text-sm">
                 {club.email && <div>{club.email}</div>}
                 {club.contact_number && <div>{club.contact_number}</div>}
               </CardContent>
             </Card>
-
           </section>
-
         </TabsContent>
 
         <TabsContent value="members">
           <Card className="border-dashed">
             <CardHeader>
               <CardTitle>Members</CardTitle>
-              <CardDescription>
-                Club members will appear here.
-              </CardDescription>
+              <CardDescription>Club members will appear here.</CardDescription>
             </CardHeader>
           </Card>
         </TabsContent>
@@ -238,18 +212,16 @@ export default function ClubPage() {
         <TabsContent value="activity">
           <ActivityTab clubId={club.id} />
         </TabsContent>
-
       </Tabs>
 
       {/* ACTION BUTTONS */}
 
       <div className="flex gap-3 pt-2">
-
         {!authLoading && !isOwner && (
           <>
             <Link
               href={`/apply/space/${space}/${scopeType}/${scopeCode}`}
-              className="rounded-md border bg-black text-white px-4 py-2 text-sm"
+              className="rounded-md border bg-black px-4 py-2 text-sm text-white"
             >
               Join Club
             </Link>
@@ -266,14 +238,12 @@ export default function ClubPage() {
         {!authLoading && isOwner && (
           <Link
             href={`/manage/${space}/${scopeType}/${scopeCode}`}
-            className="rounded-md border bg-black text-white px-4 py-2 text-sm"
+            className="rounded-md border bg-black px-4 py-2 text-sm text-white"
           >
             Manage Club
           </Link>
         )}
-
       </div>
-
     </div>
   );
 }

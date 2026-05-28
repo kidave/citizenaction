@@ -4,11 +4,7 @@ import { motion } from "framer-motion";
 
 import { useRouter } from "next/router";
 
-import {
-  Home,
-  CirclePlus,
-  Menu,
-} from "lucide-react";
+import { Home, CirclePlus, Menu } from "lucide-react";
 
 import { useSidebar } from "@/components/ui/sidebar";
 
@@ -17,17 +13,13 @@ import { useAuth } from "@/context/AuthContext";
 export default function MobileBottomBar() {
   const router = useRouter();
 
-  const { toggleSidebar } =
-    useSidebar();
+  const { toggleSidebar } = useSidebar();
 
   const { user } = useAuth();
 
-  const pathname =
-    router.pathname;
+  const pathname = router.pathname;
 
-  const dockItem = (
-    active = false
-  ) => `
+  const dockItem = (active = false) => `
     relative
     flex
     h-12
@@ -67,30 +59,9 @@ export default function MobileBottomBar() {
         stiffness: 260,
         damping: 22,
       }}
-      className="
-        fixed
-        inset-x-0
-        z-50
-        mx-auto
-        flex
-        h-[72px]
-        w-[260px]
-        items-center
-        justify-between
-        rounded-[32px]
-        border
-        border-white/20
-        bg-background/60
-        px-4
-        shadow-[0_8px_32px_rgba(0,0,0,0.12)]
-        backdrop-blur-2xl
-        backdrop-saturate-150
-        supports-[backdrop-filter]:bg-background/40
-        md:hidden
-      "
+      className="fixed inset-x-0 z-50 mx-auto flex h-[72px] w-[260px] items-center justify-between rounded-[32px] border border-white/20 bg-background/60 px-4 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-2xl backdrop-saturate-150 supports-[backdrop-filter]:bg-background/40 md:hidden"
       style={{
-        bottom:
-          "max(12px, env(safe-area-inset-bottom))",
+        bottom: "max(12px, env(safe-area-inset-bottom))",
       }}
     >
       {/* HOME */}
@@ -101,12 +72,8 @@ export default function MobileBottomBar() {
         whileHover={{
           scale: 1.05,
         }}
-        onClick={() =>
-          router.push("/")
-        }
-        className={dockItem(
-          pathname === "/"
-        )}
+        onClick={() => router.push("/")}
+        className={dockItem(pathname === "/")}
       >
         <Home className="h-5 w-5" />
       </motion.button>
@@ -120,40 +87,12 @@ export default function MobileBottomBar() {
           scale: 1.08,
         }}
         onClick={() =>
-          user
-            ? router.push(
-                "/action"
-              )
-            : router.push(
-                "/auth/login"
-              )
+          user ? router.push("/action") : router.push("/auth/login")
         }
-        className="
-          relative
-          flex
-          h-14
-          w-14
-          items-center
-          justify-center
-          rounded-[20px]
-          border
-          border-white/30
-          bg-white/20
-          text-foreground
-          shadow-[0_4px_20px_rgba(255,255,255,0.15)]
-          backdrop-blur-xl
-        "
+        className="relative flex h-14 w-14 items-center justify-center rounded-[20px] border border-white/30 bg-white/20 text-foreground shadow-[0_4px_20px_rgba(255,255,255,0.15)] backdrop-blur-xl"
       >
         {/* GLOW */}
-        <div
-          className="
-            absolute
-            inset-0
-            rounded-[20px]
-            bg-white/10
-            blur-xl
-          "
-        />
+        <div className="absolute inset-0 rounded-[20px] bg-white/10 blur-xl" />
 
         <CirclePlus className="relative z-10 h-6 w-6" />
       </motion.button>
@@ -166,9 +105,7 @@ export default function MobileBottomBar() {
         whileHover={{
           scale: 1.05,
         }}
-        onClick={
-          toggleSidebar
-        }
+        onClick={toggleSidebar}
         className={dockItem()}
       >
         <Menu className="h-5 w-5" />

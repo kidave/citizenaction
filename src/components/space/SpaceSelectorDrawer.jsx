@@ -23,259 +23,113 @@ export default function SpaceSelectorDrawer({
   selectedSpaces = [],
   setSelectedSpaces,
 }) {
+  const [open, setOpen] = useState(false);
 
-  const [open, setOpen] =
-    useState(false);
+  const [search, setSearch] = useState("");
 
-  const [search, setSearch] =
-    useState("");
+  const filteredSpaces = useMemo(() => {
+    if (!search.trim()) {
+      return spaces;
+    }
 
-  const filteredSpaces =
-    useMemo(() => {
-
-      if (!search.trim()) {
-        return spaces;
-      }
-
-      return spaces.filter((space) =>
-        space.name
-          ?.toLowerCase()
-          .includes(
-            search.toLowerCase()
-          )
-      );
-
-    }, [spaces, search]);
+    return spaces.filter((space) =>
+      space.name?.toLowerCase().includes(search.toLowerCase()),
+    );
+  }, [spaces, search]);
 
   function isSelected(spaceId) {
-    return selectedSpaces.some(
-      (s) => s.id === spaceId
-    );
+    return selectedSpaces.some((s) => s.id === spaceId);
   }
 
   function toggleSpace(space) {
-
     if (isSelected(space.id)) {
-
-      setSelectedSpaces(
-        selectedSpaces.filter(
-          (s) => s.id !== space.id
-        )
-      );
+      setSelectedSpaces(selectedSpaces.filter((s) => s.id !== space.id));
 
       return;
     }
 
-    setSelectedSpaces([
-      ...selectedSpaces,
-      space,
-    ]);
+    setSelectedSpaces([...selectedSpaces, space]);
   }
 
   return (
-    <Drawer
-      open={open}
-      onOpenChange={setOpen}
-    >
-
+    <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-
         <Button
           variant="outline"
           size="sm"
-          className="
-            justify-start
-            gap-2
-            min-w-[180px]
-            max-w-[260px]
-            overflow-hidden
-          "
+          className="min-w-[180px] max-w-[260px] justify-start gap-2 overflow-hidden"
         >
-
           {selectedSpaces.length === 0
             ? "Select Spaces"
-            : selectedSpaces
-                .map((s) => s.name)
-                .join(", ")}
-
+            : selectedSpaces.map((s) => s.name).join(", ")}
         </Button>
-
       </DrawerTrigger>
 
-      <DrawerContent
-        className="max-h-[85vh]"
-      >
-
+      <DrawerContent className="max-h-[85vh]">
         <DrawerHeader>
-
-          <DrawerTitle>
-            Select Spaces
-          </DrawerTitle>
-
+          <DrawerTitle>Select Spaces</DrawerTitle>
         </DrawerHeader>
 
-        <div className="p-4 pt-0 space-y-4 overflow-y-auto">
-
+        <div className="space-y-4 overflow-y-auto p-4 pt-0">
           {/* SEARCH */}
           <Input
             placeholder="Search spaces..."
             value={search}
-            onChange={(e) =>
-              setSearch(
-                e.target.value
-              )
-            }
+            onChange={(e) => setSearch(e.target.value)}
           />
 
           {/* GRID */}
-          <div
-            className="
-              grid
-              grid-cols-1
-              sm:grid-cols-2
-              gap-3
-            "
-          >
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {filteredSpaces.map((space) => {
+              const selected = isSelected(space.id);
 
-            {filteredSpaces.map(
-              (space) => {
+              return (
+                <button
+                  key={space.id}
+                  type="button"
+                  onClick={() => toggleSpace(space)}
+                  className={`relative rounded-xl border p-3 text-left transition-all ${
+                    selected
+                      ? `border-primary bg-primary/5`
+                      : `hover:bg-muted/50`
+                  } `}
+                >
+                  {/* CHECK */}
+                  {selected && (
+                    <div className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                      <Check className="h-3 w-3" />
+                    </div>
+                  )}
 
-                const selected =
-                  isSelected(
-                    space.id
-                  );
-
-                return (
-                  <button
-                    key={space.id}
-                    type="button"
-                    onClick={() =>
-                      toggleSpace(space)
-                    }
-                    className={`
-                      relative
-                      border
-                      rounded-xl
-                      p-3
-                      text-left
-                      transition-all
-
-                      ${
-                        selected
-                          ? `
-                            border-primary
-                            bg-primary/5
-                          `
-                          : `
-                            hover:bg-muted/50
-                          `
-                      }
-                    `}
-                  >
-
-                    {/* CHECK */}
-                    {selected && (
-                      <div
-                        className="
-                          absolute
-                          top-2
-                          right-2
-                          w-5
-                          h-5
-                          rounded-full
-                          bg-primary
-                          text-primary-foreground
-                          flex
-                          items-center
-                          justify-center
-                        "
-                      >
-
-                        <Check
-                          className="w-3 h-3"
-                        />
-
+                  <div className="flex items-center gap-3">
+                    {space.logo_url ? (
+                      <Image
+                        src={space.logo_url}
+                        alt={space.name}
+                        width={40}
+                        height={40}
+                        className="rounded-lg"
+                      />
+                    ) : (
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted font-medium">
+                        {space.name?.[0]}
                       </div>
                     )}
 
-                    <div
-                      className="
-                        flex
-                        items-center
-                        gap-3
-                      "
-                    >
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-medium">{space.name}</div>
 
-                      {space.logo_url ? (
-                        <Image
-                          src={
-                            space.logo_url
-                          }
-                          alt={space.name}
-                          width={40}
-                          height={40}
-                          className="
-                            rounded-lg
-                          "
-                        />
-                      ) : (
-                        <div
-                          className="
-                            w-10
-                            h-10
-                            rounded-lg
-                            bg-muted
-                            flex
-                            items-center
-                            justify-center
-                            font-medium
-                          "
-                        >
-                          {space.name?.[0]}
-                        </div>
-                      )}
-
-                      <div
-                        className="
-                          min-w-0
-                          flex-1
-                        "
-                      >
-
-                        <div
-                          className="
-                            font-medium
-                            truncate
-                          "
-                        >
-                          {space.name}
-                        </div>
-
-                        <div
-                          className="
-                            text-xs
-                            text-muted-foreground
-                            truncate
-                          "
-                        >
-                          @{space.slug}
-                        </div>
-
+                      <div className="truncate text-xs text-muted-foreground">
+                        @{space.slug}
                       </div>
-
                     </div>
-
-                  </button>
-                );
-              }
-            )}
-
+                  </div>
+                </button>
+              );
+            })}
           </div>
-
         </div>
-
       </DrawerContent>
-
     </Drawer>
   );
 }

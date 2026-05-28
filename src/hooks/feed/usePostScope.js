@@ -1,34 +1,26 @@
 "use client";
 
-import { useQuery }
-from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
-import { supabase }
-from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 
-export function usePostScope(
-  scopeCode
-) {
+export function usePostScope(scopeCode) {
   return useQuery({
-    queryKey: [
-      "post-scope",
-      scopeCode,
-    ],
+    queryKey: ["post-scope", scopeCode],
 
     enabled: !!scopeCode,
 
     queryFn: async () => {
-      const { data, error } =
-        await supabase
-          .from(
-            "geographic_scope"
-          )
-          .select(`
+      const { data, error } = await supabase
+        .from("geographic_scope")
+        .select(
+          `
             code,
             name
-          `)
-          .eq("code", scopeCode)
-          .single();
+          `,
+        )
+        .eq("code", scopeCode)
+        .single();
 
       if (error) {
         throw error;

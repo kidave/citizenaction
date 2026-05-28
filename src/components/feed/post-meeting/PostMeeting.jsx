@@ -35,27 +35,23 @@ export default function PostMeeting({ post }) {
 
   if (isLoading) {
     return (
-      <div className="text-sm text-muted-foreground">
-        Loading attendees...
-      </div>
+      <div className="text-sm text-muted-foreground">Loading attendees...</div>
     );
   }
 
   return (
     <>
-
       {/* ITEMS */}
       <div className="space-y-3">
         {attendees.map((person) => {
           const p = person.profile;
 
-          const canEditThis =
-            post.can_manage || person.user_id === user?.id;
+          const canEditThis = post.can_manage || person.user_id === user?.id;
 
           return (
             <div
               key={person.id}
-              className="border rounded-md p-3 text-sm space-y-2"
+              className="space-y-2 rounded-md border p-3 text-sm"
             >
               <Row className="items-center justify-between">
                 <UserIdentity
@@ -77,7 +73,7 @@ export default function PostMeeting({ post }) {
               </Row>
 
               {(person.notes || person.guest_designation) && (
-                <div className="text-muted-foreground whitespace-pre-wrap">
+                <div className="whitespace-pre-wrap text-muted-foreground">
                   {person.notes}
                 </div>
               )}
@@ -93,7 +89,7 @@ export default function PostMeeting({ post }) {
             setSelectedItem(null);
             setIsEditorOpen(true);
           }}
-          className="w-full border rounded-md py-2 text-sm hover:bg-muted transition-colors"
+          className="w-full rounded-md border py-2 text-sm transition-colors hover:bg-muted"
         >
           Add your input
         </button>

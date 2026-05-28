@@ -19,19 +19,15 @@ import { Button } from "@/components/ui/button";
    SERVER
 ===================================================== */
 
-export async function getServerSideProps({
-  params,
-}) {
-
-  const supabase =
-    createServerSupabase();
+export async function getServerSideProps({ params }) {
+  const supabase = createServerSupabase();
 
   const { id } = params;
 
-  const { data } =
-    await supabase
-      .from("feed_light_view")
-      .select(`
+  const { data } = await supabase
+    .from("feed_light_view")
+    .select(
+      `
         id,
 
         type,
@@ -73,9 +69,10 @@ export async function getServerSideProps({
         space_logo,
 
         scope_name
-      `)
-      .eq("id", id)
-      .single();
+      `,
+    )
+    .eq("id", id)
+    .single();
 
   return {
     props: {
@@ -90,54 +87,36 @@ export async function getServerSideProps({
 ===================================================== */
 
 function cleanText(text) {
-
   if (!text) return "";
 
   return text
-    .replace(
-      /https?:\/\/\S+/g,
-      ""
-    )
+    .replace(/https?:\/\/\S+/g, "")
     .replace(/\s+/g, " ")
     .trim();
 }
 
 function getDescription(post) {
-
-  const clean =
-    cleanText(post.details);
+  const clean = cleanText(post.details);
 
   if (!clean) {
     return "Citizen Action";
   }
 
-  return clean.length > 140
-    ? clean.slice(0, 140) + "..."
-    : clean;
+  return clean.length > 140 ? clean.slice(0, 140) + "..." : clean;
 }
 
 function getImage(attachments) {
-
-  const fallback =
-    "https://citizenaction.in/logo.png";
+  const fallback = "https://citizenaction.in/logo.png";
 
   if (!attachments) {
     return fallback;
   }
 
   try {
-
     const parsed =
-      typeof attachments ===
-      "string"
-        ? JSON.parse(
-            attachments
-          )
-        : attachments;
+      typeof attachments === "string" ? JSON.parse(attachments) : attachments;
 
-    if (
-      !Array.isArray(parsed)
-    ) {
+    if (!Array.isArray(parsed)) {
       return fallback;
     }
 
@@ -145,14 +124,7 @@ function getImage(attachments) {
        FIRST IMAGE
     ===================================== */
 
-    const image =
-      parsed.find(
-        (a) =>
-          a?.url &&
-          a?.type?.startsWith(
-            "image/"
-          )
-      );
+    const image = parsed.find((a) => a?.url && a?.type?.startsWith("image/"));
 
     if (image?.url) {
       return image.url;
@@ -162,25 +134,15 @@ function getImage(attachments) {
        PDF THUMBNAIL
     ===================================== */
 
-    const pdf =
-      parsed.find(
-        (a) =>
-          a?.type ===
-          "application/pdf"
-      );
+    const pdf = parsed.find((a) => a?.type === "application/pdf");
 
-    if (
-      pdf?.thumbnail_url
-    ) {
+    if (pdf?.thumbnail_url) {
       return pdf.thumbnail_url;
     }
 
     return fallback;
-
   } catch {
-
     return fallback;
-
   }
 }
 
@@ -188,40 +150,22 @@ function getImage(attachments) {
    PAGE
 ===================================================== */
 
-export default function SinglePostPage({
-  postId,
-  initialPost,
-}) {
-
+export default function SinglePostPage({ postId, initialPost }) {
   const router = useRouter();
 
-  const { deletePost } =
-    useDeletePost();
+  const { deletePost } = useDeletePost();
 
-  const { user } =
-    useAuth();
+  const { user } = useAuth();
 
-  const [
-    editingPost,
-    setEditingPost,
-  ] = useState(null);
+  const [editingPost, setEditingPost] = useState(null);
 
   /* =====================================
      POST
   ===================================== */
 
-  const {
-    data: post,
-    isLoading,
-  } = usePost(
-    postId,
-    initialPost
-  );
+  const { data: post, isLoading } = usePost(postId, initialPost);
 
-  if (
-    isLoading ||
-    !post
-  ) {
+  if (isLoading || !post) {
     return null;
   }
 
@@ -229,221 +173,112 @@ export default function SinglePostPage({
      SEO
   ===================================== */
 
-  const title =
-    initialPost?.summary ||
-    "Citizen Action";
+  const title = initialPost?.summary || "Citizen Action";
 
-  const description =
-    getDescription(
-      initialPost
-    );
+  const description = getDescription(initialPost);
 
-  const image =
-    getImage(
-      initialPost?.attachments
-    );
+  const image = getImage(initialPost?.attachments);
 
-  const url =
-    `https://citizenaction.in/post/${post.id}`;
+  const url = `https://citizenaction.in/post/${post.id}`;
 
   /* =====================================
      PERMISSIONS
   ===================================== */
 
-  const canEdit =
-    post?.can_manage ||
-    post?.author_id ===
-      user?.id;
+  const canEdit = post?.can_manage || post?.author_id === user?.id;
 
   return (
     <>
       <Head>
-
         {/* =====================================
             BASIC SEO
         ===================================== */}
 
-        <title key="title">
-          {title}
-        </title>
+        <title key="title">{title}</title>
 
-        <meta
-          name="description"
-          content={
-            description
-          }
-        />
+        <meta name="description" content={description} />
 
-        <link
-          rel="canonical"
-          href={url}
-        />
+        <link rel="canonical" href={url} />
 
         {/* =====================================
             OPEN GRAPH
         ===================================== */}
 
-        <meta
-          property="og:type"
-          content="article"
-        />
+        <meta property="og:type" content="article" />
 
-        <meta
-          property="og:site_name"
-          content="Citizen Action"
-        />
+        <meta property="og:site_name" content="Citizen Action" />
 
-        <meta
-          property="og:title"
-          content={title}
-        />
+        <meta property="og:title" content={title} />
 
-        <meta
-          property="og:description"
-          content={
-            description
-          }
-        />
+        <meta property="og:description" content={description} />
 
-        <meta
-          property="og:url"
-          content={url}
-        />
+        <meta property="og:url" content={url} />
 
-        <meta
-          property="og:image"
-          content={image}
-        />
+        <meta property="og:image" content={image} />
 
-        <meta
-          property="og:image:secure_url"
-          content={image}
-        />
+        <meta property="og:image:secure_url" content={image} />
 
-        <meta
-          property="og:image:width"
-          content="1200"
-        />
+        <meta property="og:image:width" content="1200" />
 
-        <meta
-          property="og:image:height"
-          content="630"
-        />
+        <meta property="og:image:height" content="630" />
 
-        <meta
-          property="og:image:type"
-          content="image/jpeg"
-        />
+        <meta property="og:image:type" content="image/jpeg" />
 
         {/* =====================================
             TWITTER
         ===================================== */}
 
-        <meta
-          name="twitter:card"
-          content="summary_large_image"
-        />
+        <meta name="twitter:card" content="summary_large_image" />
 
-        <meta
-          name="twitter:title"
-          content={title}
-        />
+        <meta name="twitter:title" content={title} />
 
-        <meta
-          name="twitter:description"
-          content={
-            description
-          }
-        />
+        <meta name="twitter:description" content={description} />
 
-        <meta
-          name="twitter:image"
-          content={image}
-        />
+        <meta name="twitter:image" content={image} />
 
-        <meta
-          name="twitter:url"
-          content={url}
-        />
-
+        <meta name="twitter:url" content={url} />
       </Head>
 
       {/* =====================================
           UI
       ===================================== */}
 
-      <div className="flex flex-col w-full min-h-screen">
-
+      <div className="flex min-h-screen w-full flex-col">
         {/* HEADER */}
 
-        <div className="sticky top-0 z-40 bg-background border-b">
-
-          <div className="flex items-center h-14 px-3 sm:h-16 sm:px-4 max-w-4xl mx-auto">
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() =>
-                router.back()
-              }
-            >
+        <div className="sticky top-0 z-40 border-b bg-background">
+          <div className="mx-auto flex h-14 max-w-4xl items-center px-3 sm:h-16 sm:px-4">
+            <Button variant="ghost" size="icon" onClick={() => router.back()}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
 
-            <span className="ml-3 font-medium">
-              Post
-            </span>
-
+            <span className="ml-3 font-medium">Post</span>
           </div>
-
         </div>
 
         {/* CONTENT */}
 
-        <div className="flex justify-center w-full sm:py-8">
-
+        <div className="flex w-full justify-center sm:py-8">
           <div className="w-full max-w-4xl px-0 sm:px-4">
-
             <PostCard
               post={post}
-              canEdit={
-                canEdit
-              }
-              onEdit={() =>
-                setEditingPost(
-                  post
-                )
-              }
-              onDelete={() =>
-                deletePost(
-                  post.id
-                )
-              }
+              canEdit={canEdit}
+              onEdit={() => setEditingPost(post)}
+              onDelete={() => deletePost(post.id)}
               forceExpanded
             />
-
           </div>
-
         </div>
 
         {/* EDITOR */}
 
         {editingPost && (
           <PostEditorModal
-            isOpen={
-              !!editingPost
-            }
-            onClose={() =>
-              setEditingPost(
-                null
-              )
-            }
-            post={
-              editingPost
-            }
+            isOpen={!!editingPost}
+            onClose={() => setEditingPost(null)}
+            post={editingPost}
           />
         )}
-
       </div>
     </>
   );

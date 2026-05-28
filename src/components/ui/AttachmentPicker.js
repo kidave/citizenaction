@@ -3,13 +3,7 @@
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
-import {
-  X,
-  FileText,
-  File,
-  Paperclip,
-  Image as ImageIcon,
-} from "lucide-react";
+import { X, FileText, File, Paperclip, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
 
@@ -37,13 +31,10 @@ export default function AttachmentPicker({
   const onDrop = useCallback(
     (acceptedFiles) => {
       const currentImageCount = attachments.filter((f) =>
-        f.type?.startsWith("image/")
+        f.type?.startsWith("image/"),
       ).length;
 
-      let totalSize = attachments.reduce(
-        (sum, f) => sum + (f.size || 0),
-        0
-      );
+      let totalSize = attachments.reduce((sum, f) => sum + (f.size || 0), 0);
 
       const validFiles = [];
 
@@ -52,9 +43,7 @@ export default function AttachmentPicker({
         if (file.type.startsWith("image/")) {
           const newImageCount =
             currentImageCount +
-            validFiles.filter((f) =>
-              f.type.startsWith("image/")
-            ).length;
+            validFiles.filter((f) => f.type.startsWith("image/")).length;
 
           if (newImageCount >= MAX_IMAGES) {
             toast.error(`Maximum ${MAX_IMAGES} images allowed`);
@@ -89,18 +78,17 @@ export default function AttachmentPicker({
       validFiles.forEach((file) => onUpload(file));
       toast.success(`${validFiles.length} file(s) added`);
     },
-    [attachments, onUpload]
+    [attachments, onUpload],
   );
 
-  const { getRootProps, getInputProps, isDragActive } =
-    useDropzone({
-      onDrop,
-      multiple: true,
-      accept: ALLOWED_TYPES.reduce((acc, type) => {
-        acc[type] = [];
-        return acc;
-      }, {}),
-    });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    multiple: true,
+    accept: ALLOWED_TYPES.reduce((acc, type) => {
+      acc[type] = [];
+      return acc;
+    }, {}),
+  });
 
   const getFilePreview = (file) => {
     if (!file?.type?.startsWith("image/")) return null;
@@ -120,23 +108,16 @@ export default function AttachmentPicker({
   const formatFileSize = (bytes) => {
     if (!bytes) return "";
     if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024)
-      return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   return (
     <div className="space-y-3">
-
       {/* Compact Upload Bar */}
       <div
         {...getRootProps()}
-        className={`
-          flex items-center justify-between gap-3
-          px-3 py-2 rounded-md border
-          cursor-pointer transition
-          ${isDragActive ? "border-primary bg-primary/10" : "border-muted"}
-        `}
+        className={`flex cursor-pointer items-center justify-between gap-3 rounded-md border px-3 py-2 transition ${isDragActive ? "border-primary bg-primary/10" : "border-muted"} `}
       >
         <input {...getInputProps()} />
 
@@ -145,11 +126,7 @@ export default function AttachmentPicker({
           <span>Add attachments</span>
         </div>
 
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-        >
+        <Button type="button" size="sm" variant="outline">
           Browse
         </Button>
       </div>
@@ -162,18 +139,14 @@ export default function AttachmentPicker({
             const preview = getFilePreview(file);
 
             return (
-              <div
-                key={index}
-                className="relative group"
-              >
-                <div className="h-20 w-20 rounded-md overflow-hidden bg-muted flex items-center justify-center">
-
+              <div key={index} className="group relative">
+                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-md bg-muted">
                   {isImage && preview ? (
                     preview.startsWith("blob:") ? (
                       <img
                         src={preview}
                         alt={file.name}
-                        className="w-full h-full object-cover"
+                        className="h-full w-full object-cover"
                       />
                     ) : (
                       <Image
@@ -186,17 +159,16 @@ export default function AttachmentPicker({
                       />
                     )
                   ) : (
-                    <div className="flex flex-col items-center justify-center text-center p-1">
+                    <div className="flex flex-col items-center justify-center p-1 text-center">
                       {getFileIcon(file)}
                     </div>
                   )}
-
                 </div>
 
                 <Button
                   variant="destructive"
                   size="icon"
-                  className="absolute -top-2 -right-2 h-5 w-5 rounded-full sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                  className="absolute -right-2 -top-2 h-5 w-5 rounded-full transition-opacity sm:opacity-0 sm:group-hover:opacity-100"
                   onClick={() => onRemove(index)}
                 >
                   <X className="h-3 w-3" />

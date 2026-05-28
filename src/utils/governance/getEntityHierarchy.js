@@ -4,9 +4,7 @@ export function getEntityHierarchy(entity, allEntities) {
   let current = entity;
 
   while (current?.parent_id) {
-    const parent = allEntities.find(
-      (e) => e.id === current.parent_id
-    );
+    const parent = allEntities.find((e) => e.id === current.parent_id);
 
     if (!parent) break;
 
