@@ -42,7 +42,7 @@ export default function PostHeader({ post, canEdit, onEdit, onDelete }) {
             post.scope_code && (
               <Link
                 href={`/space/${post.space_slug}/${post.scope_type}/${post.scope_code}`}
-                className="text-xs text-muted-foreground hover:underline"
+                className="text-xs hover:underline"
               >
                 {post.scope_name}
               </Link>

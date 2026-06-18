@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-
+import { Link2, Check, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 import {
@@ -12,8 +12,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-import { Link2, Check } from "lucide-react";
 
 export default function InlineLinkInput({
   value,
@@ -56,8 +54,7 @@ export default function InlineLinkInput({
 
   if (open) {
     return (
-      <div className="flex items-center gap-2">
-        {/* ICON */}
+      <div className="flex w-[500px] max-w-full items-center gap-2">
         <Button
           variant="ghost"
           size="icon"
@@ -67,17 +64,27 @@ export default function InlineLinkInput({
           <Link2 className="h-5 w-5" />
         </Button>
 
-        {/* INPUT */}
         <Input
           autoFocus
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="h-8"
+          className="h-8 flex-1"
         />
 
-        {/* SAVE */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => {
+            setDraft("");
+            onChange("");
+            setOpen(false);
+          }}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+
         <Button size="icon" onClick={handleSave}>
           <Check className="h-4 w-4" />
         </Button>

@@ -11,7 +11,7 @@ export function useUpsertMeetingItem() {
 
   const mutation = useMutation({
     mutationFn: async ({ item_id, feed_id, notes }) => {
-      // ✅ 1. If editing existing → update by id
+      // UPDATE EXISTING
       if (item_id) {
         const { error } = await supabase
           .from("meeting_item")
@@ -22,10 +22,11 @@ export function useUpsertMeetingItem() {
           .eq("id", item_id);
 
         if (error) throw error;
+
         return;
       }
 
-      // ✅ 2. Try insert (self only)
+      // CREATE NEW
       try {
         const { error } = await supabase.from("meeting_item").insert({
           feed_id,
@@ -36,8 +37,8 @@ export function useUpsertMeetingItem() {
 
         if (error) throw error;
       } catch (err) {
-        // 🔥 3. If duplicate → fallback UPDATE
-        if (err.message.includes("duplicate key")) {
+        // Existing user record → update instead
+        if (err.message?.includes("duplicate key")) {
           const { error: updateError } = await supabase
             .from("meeting_item")
             .update({
@@ -55,7 +56,10 @@ export function useUpsertMeetingItem() {
     },
 
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["post-meeting", feed_id] });
+      queryClient.invalidateQueries({
+        queryKey: ["post-meeting"],
+      });
+
       toast.success("Saved successfully");
     },
 

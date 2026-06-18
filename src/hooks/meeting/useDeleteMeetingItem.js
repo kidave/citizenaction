@@ -8,24 +8,28 @@ export function useDeleteMeetingItem() {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: async ({ feed_id, user_id }) => {
+    mutationFn: async (itemId) => {
       const { error } = await supabase
         .from("meeting_item")
         .delete()
-        .eq("feed_id", feed_id)
-        .eq("user_id", user_id);
+        .eq("id", itemId);
 
       if (error) throw error;
+
+      return true;
     },
 
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["post-meeting", feed_id] });
+      queryClient.invalidateQueries({
+        queryKey: ["post-meeting"],
+      });
+
       toast.success("Deleted successfully");
     },
 
     onError: (err) => {
       console.error(err);
-      toast.error("Delete failed");
+      toast.error(err.message || "Delete failed");
     },
   });
 

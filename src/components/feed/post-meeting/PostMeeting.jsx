@@ -27,10 +27,11 @@ export default function PostMeeting({ post }) {
   async function handleDelete(person) {
     if (!confirm("Delete this entry?")) return;
 
-    await deleteMeetingItem({
-      feed_id: postId,
-      user_id: person.user_id,
-    });
+    try {
+      await deleteMeetingItem(person.id);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   if (isLoading) {
@@ -70,9 +71,7 @@ export default function PostMeeting({ post }) {
               </Row>
 
               {(person.notes || person.guest_designation) && (
-                <div className="whitespace-pre-wrap text-muted-foreground">
-                  {person.notes}
-                </div>
+                <div className="whitespace-pre-wrap">{person.notes}</div>
               )}
             </div>
           );

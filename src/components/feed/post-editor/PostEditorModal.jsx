@@ -37,43 +37,40 @@ export default function PostEditorModal({ isOpen, onClose, post = null }) {
           onDelete={() => editor.remove(onClose)}
         />
 
-        <div className="flex-1 overflow-y-auto p-4">
-          <Stack gap="gap-4">
-            <PostTypeSelector type={editor.type} setType={editor.setType} />
+        <div className="flex h-full flex-1 flex-col overflow-hidden p-4">
+          <PostTypeSelector type={editor.type} setType={editor.setType} />
 
+          <div className="mt-4 flex min-h-0 flex-1 flex-col">
             <PostEditorContent
               title={editor.title}
               setTitle={editor.setTitle}
               content={editor.content}
               setContent={editor.setContent}
             />
+          </div>
 
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-1">
-                <PostDateTime editor={editor} />
-
-                <PostAddress editor={editor} />
-
-                <InlineLinkInput
-                  value={editor.meeting_link}
-                  onChange={editor.setMeetingLink}
-                />
-              </div>
-
-              <Button
-                onClick={() => editor.submit(onClose)}
-                className="shrink-0"
-              >
-                <Save className="h-4 w-4" />
-                {post ? "Update" : "Post"}
-              </Button>
-            </div>
-
+          <div className="mt-4">
             <PostEditorAttachments
               attachments={editor.attachments}
               setAttachments={editor.setAttachments}
             />
-          </Stack>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <PostDateTime editor={editor} />
+            <PostAddress editor={editor} />
+            <InlineLinkInput
+              value={editor.meeting_link}
+              onChange={editor.setMeetingLink}
+            />
+          </div>
+
+          <div className="mt-4 flex justify-end">
+            <Button onClick={() => editor.submit(onClose)}>
+              <Save className="h-4 w-4" />
+              {post ? "Update" : "Post"}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
