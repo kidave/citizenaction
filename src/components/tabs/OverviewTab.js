@@ -90,7 +90,7 @@ export default function OverviewTab({ space }) {
         </div>
 
         <div className="space-y-6">
-          <Card className="overflow-hidden rounded-[32px] border-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <Card className="overflow-hidden rounded-[32px] border-4">
             <CardHeader>
               <Link
                 href={`/space/${space.slug}?tab=members`}
@@ -129,7 +129,7 @@ export default function OverviewTab({ space }) {
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden rounded-[32px] border-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <Card className="overflow-hidden rounded-[32px] border-4">
             <CardHeader>
               <CardTitle>{space.name}</CardTitle>
             </CardHeader>

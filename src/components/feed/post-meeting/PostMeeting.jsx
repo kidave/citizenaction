@@ -42,17 +42,14 @@ export default function PostMeeting({ post }) {
   return (
     <>
       {/* ITEMS */}
-      <div className="space-y-3">
+      <div className="mb-4 space-y-3">
         {attendees.map((person) => {
           const p = person.profile;
 
           const canEditThis = post.can_manage || person.user_id === user?.id;
 
           return (
-            <div
-              key={person.id}
-              className="space-y-2 rounded-md border p-3 text-sm"
-            >
+            <div key={person.id} className="space-y-2 rounded-md p-2 text-sm">
               <Row className="items-center justify-between">
                 <UserIdentity
                   username={p?.username || person.guest_name}

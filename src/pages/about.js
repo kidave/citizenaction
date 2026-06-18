@@ -27,20 +27,6 @@ import ScrollButton from "@/components/ui/ScrollButton";
 
 const features = [
   {
-    icon: MapPinned,
-    title: "Fix local issues",
-    desc: "Track roads, footpaths, drainage, safety and public infrastructure together.",
-    color: "bg-pink-100",
-  },
-
-  {
-    icon: Users,
-    title: "Build real communities",
-    desc: "Create spaces for buildings, neighborhoods, wards and civic groups.",
-    color: "bg-blue-100",
-  },
-
-  {
     icon: Megaphone,
     title: "Make voices visible",
     desc: "Document meetings, updates and civic actions publicly.",
@@ -86,16 +72,7 @@ const faqs = [
 export default function AboutPage() {
   return (
     <div className="relative overflow-hidden bg-background">
-      {/* =====================================================
-          HERO
-      ===================================================== */}
-
       <HeroGeometric />
-
-      {/* =====================================================
-          INTRO
-      ===================================================== */}
-
       <section className="relative py-24">
         <div className="mx-auto max-w-5xl px-6 text-center">
           <motion.div
@@ -155,7 +132,7 @@ export default function AboutPage() {
                   delay: index * 0.1,
                 }}
               >
-                <Card className="overflow-hidden rounded-3xl border-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition hover:-translate-y-1">
+                <Card className="overflow-hidden rounded-3xl transition">
                   <CardContent className="relative p-8">
                     <div
                       className={`flex h-16 w-16 items-center justify-center rounded-2xl ${feature.color} `}
@@ -191,19 +168,11 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* =====================================================
-          COMMUNITY SPACES
-      ===================================================== */}
-
       <LiveSpaceShowcase />
-
-      {/* =====================================================
-          BIG CTA
-      ===================================================== */}
 
       <section className="py-32">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="relative overflow-hidden rounded-[40px] border-4 bg-yellow-300 p-12 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] md:p-20">
+          <div className="relative overflow-hidden rounded-[40px] bg-yellow-300 p-12 md:p-20">
             <motion.div
               animate={{
                 y: [0, -10, 0],

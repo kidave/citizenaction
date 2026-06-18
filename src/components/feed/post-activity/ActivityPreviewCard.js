@@ -52,7 +52,7 @@ export default function ActivityPreviewCard({ post }) {
       onClick={handleNavigate}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`group relative cursor-pointer overflow-hidden rounded-[28px] border-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 ${style} `}
+      className={`group relative cursor-pointer overflow-hidden rounded-[28px] transition-all duration-300 ${style} `}
     >
       {/* =====================================================
           IMAGE

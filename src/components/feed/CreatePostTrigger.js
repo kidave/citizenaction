@@ -46,17 +46,7 @@ export default function CreatePostTrigger() {
           duration: 0.2,
         }}
       >
-        <Card className="relative mb-4 hidden overflow-hidden rounded-[28px] border-4 bg-gradient-to-br from-background to-muted/40 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:block">
-          {/* =====================================================
-              FLOATING BG
-          ===================================================== */}
-
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-pink-300/20 blur-3xl" />
-
-            <div className="absolute bottom-0 left-0 h-32 w-32 rounded-full bg-blue-300/20 blur-3xl" />
-          </div>
-
+        <Card className="relative mb-4 hidden overflow-hidden rounded-[28px] to-muted/40 md:block">
           {/* =====================================================
               CONTENT
           ===================================================== */}

@@ -23,7 +23,7 @@ import ActivityPreviewCard from "@/components/feed/post-activity/ActivityPreview
 function FancyBadge({ children, className = "" }) {
   return (
     <div
-      className={`inline-flex items-center rounded-full border-4 border-black bg-yellow-300 px-5 py-2 text-sm font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${className} `}
+      className={`inline-flex items-center rounded-full border-4 border-black bg-yellow-300 px-5 py-2 text-sm font-black ${className} `}
     >
       {children}
     </div>
@@ -80,7 +80,7 @@ export default function LiveSpaceShowcase({ space = null }) {
                   delay: index * 0.1,
                 }}
               >
-                <Card className="overflow-hidden rounded-[32px] border-4 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">
+                <Card className="overflow-hidden rounded-[32px]">
                   <CardContent className="flex flex-col gap-8 p-8 xl:flex-row">
                     {/* =====================================================
                           SPACE INFO
@@ -89,7 +89,7 @@ export default function LiveSpaceShowcase({ space = null }) {
                     <div className="flex-shrink-0 xl:w-[340px]">
                       {/* LOGO */}
 
-                      <div className="h-24 w-24 overflow-hidden rounded-3xl border-4 bg-muted">
+                      <div className="h-24 w-24 overflow-hidden rounded-3xl bg-muted">
                         {currentSpace.logo_url ? (
                           <Image
                             src={currentSpace.logo_url}
