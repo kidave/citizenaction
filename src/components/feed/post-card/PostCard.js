@@ -92,6 +92,14 @@ export default function PostCard({
             onDelete={onDelete}
           />
 
+          {post.attachments?.length > 0 && (
+            <div className="mt-4">
+              <div className="overflow-hidden rounded-3xl">
+                <PostAttachments attachments={post.attachments} />
+              </div>
+            </div>
+          )}
+
           <div>
             <div
               className="cursor-pointer transition-opacity hover:opacity-90"
@@ -128,14 +136,6 @@ export default function PostCard({
                 />
               </div>
             </div>
-
-            {post.attachments?.length > 0 && (
-              <div className="mt-4">
-                <div className="overflow-hidden rounded-3xl">
-                  <PostAttachments attachments={post.attachments} />
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="rounded-3xl border-2 bg-white/70 p-2 backdrop-blur-sm">

@@ -2,13 +2,27 @@
 
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { Button } from "@/components/ui/button";
-import { X, FileText, File, Paperclip, Image as ImageIcon } from "lucide-react";
-import { toast } from "sonner";
 import Image from "next/image";
 
-const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB per file
-const MAX_TOTAL_SIZE = 5 * 1024 * 1024; // 5MB total
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+
+import {
+  Attachment,
+  AttachmentAction,
+  AttachmentActions,
+  AttachmentContent,
+  AttachmentDescription,
+  AttachmentGroup,
+  AttachmentMedia,
+  AttachmentTitle,
+} from "@/components/ui/attachment";
+
+import { Paperclip, Image as ImageIcon, FileText, File, X } from "lucide-react";
+
+const MAX_FILE_SIZE = 1024 * 1024;
+const MAX_TOTAL_SIZE = 5 * 1024 * 1024;
 const MAX_IMAGES = 4;
 
 const ALLOWED_TYPES = [
@@ -30,53 +44,53 @@ export default function AttachmentPicker({
 }) {
   const onDrop = useCallback(
     (acceptedFiles) => {
-      const currentImageCount = attachments.filter((f) =>
-        f.type?.startsWith("image/"),
+      const currentImages = attachments.filter((a) =>
+        a.type?.startsWith("image/"),
       ).length;
 
-      let totalSize = attachments.reduce((sum, f) => sum + (f.size || 0), 0);
+      let totalSize = attachments.reduce(
+        (sum, file) => sum + (file.size || 0),
+        0,
+      );
 
       const validFiles = [];
 
       for (const file of acceptedFiles) {
-        // Image limit
         if (file.type.startsWith("image/")) {
-          const newImageCount =
-            currentImageCount +
+          const imageCount =
+            currentImages +
             validFiles.filter((f) => f.type.startsWith("image/")).length;
 
-          if (newImageCount >= MAX_IMAGES) {
+          if (imageCount >= MAX_IMAGES) {
             toast.error(`Maximum ${MAX_IMAGES} images allowed`);
             continue;
           }
         }
 
-        // Individual size
         if (file.size > MAX_FILE_SIZE) {
           toast.error(`${file.name} exceeds 1MB limit`);
           continue;
         }
 
-        // Total size
         if (totalSize + file.size > MAX_TOTAL_SIZE) {
-          toast.error(`Total attachments exceed 5MB`);
+          toast.error("Total attachment size exceeds 5MB");
           continue;
         }
 
-        // Type validation
         if (!ALLOWED_TYPES.includes(file.type)) {
-          toast.error(`${file.name} type not supported`);
+          toast.error(`${file.name} is not supported`);
           continue;
         }
 
-        validFiles.push(file);
         totalSize += file.size;
+        validFiles.push(file);
       }
 
-      if (!validFiles.length) return;
+      validFiles.forEach(onUpload);
 
-      validFiles.forEach((file) => onUpload(file));
-      toast.success(`${validFiles.length} file(s) added`);
+      if (validFiles.length) {
+        toast.success(`${validFiles.length} attachment(s) added`);
+      }
     },
     [attachments, onUpload],
   );
@@ -84,98 +98,161 @@ export default function AttachmentPicker({
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     multiple: true,
-    accept: ALLOWED_TYPES.reduce((acc, type) => {
-      acc[type] = [];
-      return acc;
+    accept: ALLOWED_TYPES.reduce((obj, type) => {
+      obj[type] = [];
+      return obj;
     }, {}),
   });
 
-  const getFilePreview = (file) => {
-    if (!file?.type?.startsWith("image/")) return null;
+  const imageAttachments = attachments.filter((file) =>
+    file.type?.startsWith("image/"),
+  );
+
+  const documentAttachments = attachments.filter(
+    (file) => !file.type?.startsWith("image/"),
+  );
+
+  const getPreview = (file) => {
     return file.url || URL.createObjectURL(file);
   };
 
-  const getFileIcon = (file) => {
-    if (file.type?.startsWith("image/")) {
+  const getIcon = (file) => {
+    if (file.type.startsWith("image/")) {
       return <ImageIcon className="h-5 w-5 text-blue-600" />;
     }
+
     if (file.type === "application/pdf") {
       return <FileText className="h-5 w-5 text-red-600" />;
     }
+
     return <File className="h-5 w-5 text-muted-foreground" />;
   };
 
-  const formatFileSize = (bytes) => {
+  const formatSize = (bytes) => {
     if (!bytes) return "";
+
     if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+
+    if (bytes < 1024 * 1024) {
+      return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
   };
 
   return (
     <div className="space-y-3">
-      {/* Compact Upload Bar */}
-      <div
+      <Attachment
         {...getRootProps()}
-        className={`flex cursor-pointer items-center justify-between gap-3 rounded-md border px-3 py-2 transition ${isDragActive ? "border-primary bg-primary/10" : "border-muted"} `}
+        className={`relative cursor-pointer overflow-hidden rounded-2xl border border-dashed bg-card p-4 transition ${isDragActive ? "border-primary bg-primary/10" : "border-muted"}`}
+        orientation="horizontal"
       >
         <input {...getInputProps()} />
 
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Paperclip className="h-4 w-4" />
-          <span>Add attachments</span>
-        </div>
+        <AttachmentMedia>
+          <Paperclip className="h-5 w-5 text-primary" />
+        </AttachmentMedia>
 
-        <Button type="button" size="sm" variant="outline">
-          Browse
-        </Button>
-      </div>
+        <AttachmentContent>
+          <AttachmentTitle>Add attachments</AttachmentTitle>
+          <AttachmentDescription>
+            Drop files here or browse to upload. Supported: JPG, PNG, GIF, WEBP,
+            AVIF, PDF, DOC, DOCX, TXT.
+          </AttachmentDescription>
+        </AttachmentContent>
 
-      {/* Compact Preview Grid */}
-      {attachments.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {attachments.map((file, index) => {
-            const isImage = file.type?.startsWith("image/");
-            const preview = getFilePreview(file);
+        <AttachmentActions>
+          <Button type="button" size="sm" variant="outline">
+            Browse
+          </Button>
+        </AttachmentActions>
+      </Attachment>
+
+      {/* ================= Images ================= */}
+
+      {imageAttachments.length > 0 && (
+        <AttachmentGroup>
+          {imageAttachments.map((file, index) => {
+            const preview = getPreview(file);
 
             return (
-              <div key={index} className="group relative">
-                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-md bg-muted">
-                  {isImage && preview ? (
-                    preview.startsWith("blob:") ? (
-                      <img
-                        src={preview}
-                        alt={file.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <Image
-                        src={preview}
-                        alt={file.name}
-                        fill
-                        className="object-cover"
-                        sizes="80px"
-                        unoptimized
-                      />
-                    )
+              <Attachment key={index} orientation="vertical">
+                <AttachmentMedia variant="image">
+                  {preview.startsWith("blob:") ? (
+                    <img src={preview} alt={file.name} />
                   ) : (
-                    <div className="flex flex-col items-center justify-center p-1 text-center">
-                      {getFileIcon(file)}
-                    </div>
+                    <Image
+                      src={preview}
+                      alt={file.name}
+                      fill
+                      unoptimized
+                      className="object-cover"
+                    />
                   )}
-                </div>
+                </AttachmentMedia>
 
-                <Button
-                  variant="destructive"
-                  size="icon"
-                  className="absolute -right-2 -top-2 h-5 w-5 rounded-full transition-opacity sm:opacity-0 sm:group-hover:opacity-100"
-                  onClick={() => onRemove(index)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
+                <AttachmentContent>
+                  <AttachmentTitle className="truncate">
+                    {file.name}
+                  </AttachmentTitle>
+
+                  <AttachmentDescription>
+                    Image • {formatSize(file.size)}
+                  </AttachmentDescription>
+                </AttachmentContent>
+
+                <AttachmentActions>
+                  <AttachmentAction
+                    aria-label="Remove"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemove(attachments.indexOf(file));
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </AttachmentAction>
+                </AttachmentActions>
+              </Attachment>
             );
           })}
+        </AttachmentGroup>
+      )}
+
+      {/* ================= Documents ================= */}
+
+      {documentAttachments.length > 0 && (
+        <div className="space-y-2">
+          {documentAttachments.map((file) => (
+            <Attachment key={file.name} className="w-full">
+              <AttachmentMedia>{getIcon(file)}</AttachmentMedia>
+
+              <AttachmentContent>
+                <AttachmentTitle className="truncate">
+                  {file.name}
+                </AttachmentTitle>
+
+                <AttachmentDescription>
+                  {file.type === "application/pdf" ? "PDF" : "Document"}
+
+                  {" • "}
+
+                  {formatSize(file.size)}
+                </AttachmentDescription>
+              </AttachmentContent>
+
+              <AttachmentActions>
+                <AttachmentAction
+                  aria-label="Remove"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove(attachments.indexOf(file));
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </AttachmentAction>
+              </AttachmentActions>
+            </Attachment>
+          ))}
         </div>
       )}
     </div>
