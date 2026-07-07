@@ -118,10 +118,10 @@ export function Navigation() {
         <SidebarMenuItem>
           <SidebarMenuButton
             tooltip="Mumbai Metropolitan Region"
-            onClick={() => router.push("/space/walkingproject/region/MH-MMR")}
+            onClick={() => router.push("/standards/lbcs")}
           >
             <MapPinned />
-            <span>Mumbai Metropolitan Region</span>
+            <span>Land-Based Classification Standards</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

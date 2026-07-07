@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 
 export default function TreeNode({ node, selected, onSelect }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 
   const hasChildren = node.children.length > 0;
 
