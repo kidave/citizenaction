@@ -21,7 +21,7 @@ export default function StandardsPage() {
   }
 
   return (
-    <div className="container py-8">
+    <div className="container p-4">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Standards</h1>

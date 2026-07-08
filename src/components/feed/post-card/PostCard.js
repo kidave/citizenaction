@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
 import { Card } from "@/components/ui/card";
-import { Stack } from "@/components/layout/Stack";
 
 import PostHeader from "./PostHeader";
 import PostContent from "./PostContent";
@@ -79,85 +78,81 @@ export default function PostCard({
         post.type || ""
       } `}
     >
-      <div className="relative z-10 p-4 sm:p-6">
-        <Stack>
-          <PostHeader
-            post={{
-              ...post,
-              spaces,
+      <div className="relative z-10 flex flex-col gap-4 p-4 sm:p-6">
+        <PostHeader
+          post={{
+            ...post,
+            spaces,
+          }}
+          status={status}
+          canEdit={canEdit}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
+
+        {post.attachments?.length > 0 && (
+          <div className="overflow-hidden rounded-3xl">
+            <PostAttachments attachments={post.attachments} />
+          </div>
+        )}
+
+        <div>
+          <div
+            className="cursor-pointer transition-opacity hover:opacity-90"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleNavigate();
             }}
-            status={status}
-            canEdit={canEdit}
-            onEdit={onEdit}
-            onDelete={onDelete}
-          />
+          >
+            <div className="rounded-3xl border-2 bg-white/70 p-4 shadow-sm backdrop-blur-sm">
+              <PostContent
+                post={{
+                  ...post,
+                  spaces,
+                }}
+                status={status}
+                forceExpanded={forceExpanded}
+              />
 
-          {post.attachments?.length > 0 && (
-            <div className="mt-4">
-              <div className="overflow-hidden rounded-3xl">
-                <PostAttachments attachments={post.attachments} />
-              </div>
-            </div>
-          )}
+              <PostMetadata
+                post={{
+                  ...post,
+                  spaces,
+                }}
+                status={status}
+                forceExpanded={forceExpanded}
+              />
 
-          <div>
-            <div
-              className="cursor-pointer transition-opacity hover:opacity-90"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleNavigate();
-              }}
-            >
-              <div className="mt-2 rounded-3xl border-2 bg-white/70 p-4 shadow-sm backdrop-blur-sm">
-                <PostContent
-                  post={{
-                    ...post,
-                    spaces,
-                  }}
-                  status={status}
-                  forceExpanded={forceExpanded}
-                />
-
-                <PostMetadata
-                  post={{
-                    ...post,
-                    spaces,
-                  }}
-                  status={status}
-                  forceExpanded={forceExpanded}
-                />
-
-                <PostTimeline
-                  post={{
-                    ...post,
-                    spaces,
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-3xl border-2 bg-white/70 p-2 backdrop-blur-sm">
-            <PostFooter
-              post={{
-                ...post,
-                spaces,
-              }}
-            />
-          </div>
-
-          {post.type === "meeting" && forceExpanded && (
-            <div className="rounded-3xl border-2 p-4">
-              <PostMeeting
+              <PostTimeline
                 post={{
                   ...post,
                   spaces,
                 }}
               />
             </div>
-          )}
-        </Stack>
+          </div>
+        </div>
+
+        <div className="rounded-3xl border-2 bg-white/70 p-2 backdrop-blur-sm">
+          <PostFooter
+            post={{
+              ...post,
+              spaces,
+            }}
+          />
+        </div>
+
+        {post.type === "meeting" && forceExpanded && (
+          <div className="rounded-3xl border-2 p-4">
+            <PostMeeting
+              post={{
+                ...post,
+                spaces,
+              }}
+            />
+          </div>
+        )}
       </div>
     </Card>
   );

@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/hover-card";
 import { Card } from "@/components/ui/card";
 import { Row } from "@/components/layout/Row";
-import { Stack } from "@/components/layout/Stack";
 
 import { usePublicProfile } from "@/hooks/user/usePublicProfile";
 
@@ -45,7 +44,7 @@ export function UserHoverCard({ username, children }) {
                   className="rounded-full"
                   alt=""
                 />
-                <Stack gap="gap-0">
+                <div className="flex flex-col gap-0">
                   <div className="text-base font-semibold">{profile.name}</div>
 
                   {primaryClub && primarySpace && (
@@ -57,7 +56,7 @@ export function UserHoverCard({ username, children }) {
                       </Link>
                     </div>
                   )}
-                </Stack>
+                </div>
               </Row>
 
               {primarySpace && (

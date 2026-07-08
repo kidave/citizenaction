@@ -7,8 +7,6 @@ import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { usePostEditor } from "@/hooks/feed/usePostEditor";
 import { useSpaces } from "@/hooks/useSpaces";
 
-import { Stack } from "@/components/layout/Stack";
-
 import PostEditorHeader from "./PostEditorHeader";
 import PostEditorContent from "./PostEditorContent";
 import PostEditorAttachments from "./PostEditorAttachments";

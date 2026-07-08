@@ -38,7 +38,7 @@ export function UserIdentity({
         </Avatar>
 
         {!hideName && (
-          <Stack className="leading-tight" gap="gap-0">
+          <div className="flex flex-col gap-0 leading-tight">
             <span className="text-sm font-medium group-hover:underline">
               {name || "Anonymous"}
             </span>
@@ -46,7 +46,7 @@ export function UserIdentity({
             {!hideTimestamp && createdAt && (
               <span className="text-xs text-muted-foreground">{createdAt}</span>
             )}
-          </Stack>
+          </div>
         )}
       </Row>
     </Link>
