@@ -250,11 +250,12 @@ export default function SinglePostPage({ postId, initialPost }) {
 
         {/* CONTENT */}
 
-        <div className="flex w-full justify-center sm:py-8">
-          <div className="w-full max-w-4xl px-0 sm:px-4">
+        <div className="flex w-full justify-center">
+          <div className="w-full max-w-4xl px-0">
             <PostCard
               post={post}
               canEdit={canEdit}
+              borderless
               onEdit={() => setEditingPost(post)}
               onDelete={() => deletePost(post.id)}
               forceExpanded

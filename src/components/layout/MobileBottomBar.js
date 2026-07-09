@@ -1,115 +1,54 @@
 "use client";
 
-import { motion } from "framer-motion";
-
+import { Home, CirclePlus, Menu } from "lucide-react";
 import { useRouter } from "next/router";
 
-import { Home, CirclePlus, Menu } from "lucide-react";
-
 import { useSidebar } from "@/components/ui/sidebar";
-
 import { useAuth } from "@/context/AuthContext";
 
 export default function MobileBottomBar() {
   const router = useRouter();
-
   const { toggleSidebar } = useSidebar();
-
   const { user } = useAuth();
 
   const pathname = router.pathname;
 
-  const dockItem = (active = false) => `
-    relative
-    flex
-    h-12
-    w-12
-    items-center
-    justify-center
-    rounded-2xl
-    transition-all
-    duration-300
-    ${
-      active
-        ? `
-          bg-white/20
-          text-foreground
-          shadow-md
-        `
-        : `
-          text-muted-foreground
-          hover:bg-white/10
-          hover:text-foreground
-        `
-    }
-  `;
+  const itemClass = (active) =>
+    `flex flex-1 flex-col items-center justify-center gap-1 py-2 text-xs transition-colors ${
+      active ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+    }`;
 
   return (
-    <motion.div
-      initial={{
-        opacity: 0,
-        y: 100,
-      }}
-      animate={{
-        opacity: 1,
-        y: 0,
-      }}
-      transition={{
-        type: "spring",
-        stiffness: 260,
-        damping: 22,
-      }}
-      className="fixed inset-x-0 z-50 mx-auto flex h-[72px] w-[260px] items-center justify-between rounded-[32px] border border-white/20 bg-background/60 px-4 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-2xl backdrop-saturate-150 supports-[backdrop-filter]:bg-background/40 md:hidden"
+    <nav
+      className="fixed inset-x-0 bottom-0 z-50 border-t bg-background md:hidden"
       style={{
-        bottom: "max(12px, env(safe-area-inset-bottom))",
+        paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >
-      {/* HOME */}
-      <motion.button
-        whileTap={{
-          scale: 0.9,
-        }}
-        whileHover={{
-          scale: 1.05,
-        }}
-        onClick={() => router.push("/")}
-        className={dockItem(pathname === "/")}
-      >
-        <Home className="h-5 w-5" />
-      </motion.button>
+      <div className="flex h-16">
+        <button
+          onClick={() => router.push("/")}
+          className={itemClass(pathname === "/")}
+        >
+          <Home className="h-5 w-5" />
+          <span>Home</span>
+        </button>
 
-      {/* CREATE */}
-      <motion.button
-        whileTap={{
-          scale: 0.92,
-        }}
-        whileHover={{
-          scale: 1.08,
-        }}
-        onClick={() =>
-          user ? router.push("/action") : router.push("/auth/login")
-        }
-        className="relative flex h-14 w-14 items-center justify-center rounded-[20px] border border-white/30 bg-white/20 text-foreground shadow-[0_4px_20px_rgba(255,255,255,0.15)] backdrop-blur-xl"
-      >
-        {/* GLOW */}
-        <div className="absolute inset-0 rounded-[20px] bg-white/10 blur-xl" />
+        <button
+          onClick={() =>
+            user ? router.push("/action") : router.push("/auth/login")
+          }
+          className={itemClass(false)}
+        >
+          <CirclePlus className="h-5 w-5" />
+          <span>Create</span>
+        </button>
 
-        <CirclePlus className="relative z-10 h-6 w-6" />
-      </motion.button>
-
-      {/* SIDEBAR */}
-      <motion.button
-        whileTap={{
-          scale: 0.9,
-        }}
-        whileHover={{
-          scale: 1.05,
-        }}
-        onClick={toggleSidebar}
-        className={dockItem()}
-      >
-        <Menu className="h-5 w-5" />
-      </motion.button>
-    </motion.div>
+        <button onClick={toggleSidebar} className={itemClass(false)}>
+          <Menu className="h-5 w-5" />
+          <span>Menu</span>
+        </button>
+      </div>
+    </nav>
   );
 }

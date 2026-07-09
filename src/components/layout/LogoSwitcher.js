@@ -16,11 +16,31 @@ export function LogoSwitcher() {
 
   const isCollapsed = state === "collapsed";
 
+  // ---------------- COLLAPSED ----------------
+
+  if (isCollapsed) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            size="lg"
+            onClick={toggleSidebar}
+            tooltip="Expand sidebar"
+            className="justify-center"
+          >
+            <PanelLeft className="h-5 w-5" />
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    );
+  }
+
+  // ---------------- EXPANDED ----------------
+
   return (
     <SidebarMenu className="w-full">
       <SidebarMenuItem>
         <div className="flex w-full items-center justify-between px-2">
-          {/* LEFT SIDE: Logo + Text */}
           <SidebarMenuButton
             size="lg"
             onClick={() => router.push("/")}
@@ -40,7 +60,6 @@ export function LogoSwitcher() {
             )}
           </SidebarMenuButton>
 
-          {/* RIGHT SIDE: Toggle (Inline, Not Floating) */}
           <button
             onClick={toggleSidebar}
             className="ml-2 rounded-md p-2 transition hover:bg-muted"

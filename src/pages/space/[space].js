@@ -1,19 +1,10 @@
 // pages/space/[space].js
 "use client";
 
-import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft } from "lucide-react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BackButton from "@/components/ui/back-button";
 import { Badge } from "@/components/ui/badge";

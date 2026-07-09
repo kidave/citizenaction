@@ -117,7 +117,7 @@ export function Navigation() {
         {/* DIRECT REGION LINK */}
         <SidebarMenuItem>
           <SidebarMenuButton
-            tooltip="Mumbai Metropolitan Region"
+            tooltip="Land-Based Classification Standards"
             onClick={() => router.push("/standards/lbcs")}
           >
             <MapPinned />

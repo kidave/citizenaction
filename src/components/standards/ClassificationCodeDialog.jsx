@@ -56,7 +56,7 @@ export default function ClassificationCodeDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>{value ? "Edit Code" : "Create Code"}</DialogTitle>
         </DialogHeader>

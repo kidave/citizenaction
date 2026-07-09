@@ -10,7 +10,7 @@ export default function MetricCard({
 }) {
   return (
     <Card
-      className={`rounded-[28px] border-4 bg-gradient-to-br from-background to-muted/40 transition hover:-translate-y-1 ${className} `}
+      className={`rounded-[28px] bg-gradient-to-br from-background to-muted/40 transition ${className} `}
     >
       <CardContent className="p-5">
         <div className="flex items-center justify-between gap-4">

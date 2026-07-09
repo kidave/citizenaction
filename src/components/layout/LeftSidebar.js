@@ -14,7 +14,7 @@ import RightSidebar from "./RightSidebar";
 
 export default function LeftSidebar() {
   return (
-    <Sidebar collapsible="offcanvas" className="border-r">
+    <Sidebar collapsible="icon" className="border-r">
       <SidebarHeader>
         <LogoSwitcher />
       </SidebarHeader>

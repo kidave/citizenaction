@@ -26,6 +26,8 @@ export default function PostCard({
   onEdit,
   onDelete,
   forceExpanded = false,
+  borderless = false,
+  edgeToEdgeMobile = false,
 }) {
   const router = useRouter();
 
@@ -60,23 +62,9 @@ export default function PostCard({
     router.push(`/post/${post.id}`);
   };
 
-  const typeStyles = {
-    action: "bg-gradient-to-br from-red-100 to-red-50",
-
-    report: "bg-gradient-to-br from-blue-100 to-blue-50",
-
-    event: "bg-gradient-to-br from-green-100 to-green-50",
-
-    update: "bg-gradient-to-br from-pink-100 to-pink-50",
-
-    meeting: "bg-gradient-to-br from-yellow-100 to-yellow-50",
-  };
-
   return (
     <Card
-      className={`relative overflow-hidden rounded-[28px] bg-background transition-all duration-300 ${
-        post.type || ""
-      } `}
+      className={`relative overflow-hidden transition-all duration-300 ${edgeToEdgeMobile ? "rounded-none sm:rounded-[28px]" : "rounded-[28px]"} ${borderless ? "border-0 shadow-none" : ""} ${post.type || ""} `}
     >
       <div className="relative z-10 flex flex-col gap-4 p-4 sm:p-6">
         <PostHeader

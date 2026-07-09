@@ -183,10 +183,10 @@ export default function ApplySpace() {
             HERO
         ==================================== */}
 
-        <Card className="overflow-hidden rounded-[32px] border-4 bg-gradient-to-br from-primary/10 via-background to-pink-100">
+        <Card className="overflow-hidden rounded-[32px]">
           <CardContent className="space-y-6 p-8">
             <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full border-2 bg-background px-4 py-2 text-sm font-medium">
+              <div className="inline-flex items-center gap-2 rounded-full border-2 px-4 py-2 text-sm font-medium">
                 <Building2 className="h-4 w-4" />
                 Civic Spaces
               </div>
@@ -205,23 +205,35 @@ export default function ApplySpace() {
             {/* BENEFITS */}
 
             <div className="grid gap-4 md:grid-cols-3">
-              <BenefitCard
-                icon={Megaphone}
-                title="Share Updates"
-                description="Post reports, updates, and civic issues."
-              />
+              <Card className="rounded-xl border-2 p-5">
+                <Megaphone className="mb-4 h-6 w-6" />
 
-              <BenefitCard
-                icon={CalendarDays}
-                title="Host Events"
-                description="Coordinate meetings and community actions."
-              />
+                <h3 className="mb-1 font-semibold">Share Updates</h3>
 
-              <BenefitCard
-                icon={Users}
-                title="Build Community"
-                description="Bring volunteers and local stakeholders together."
-              />
+                <p className="text-sm text-muted-foreground">
+                  Post reports, updates, and civic issues.
+                </p>
+              </Card>
+
+              <Card className="rounded-xl border-2 p-5">
+                <CalendarDays className="mb-4 h-6 w-6" />
+
+                <h3 className="mb-1 font-semibold">Host Events</h3>
+
+                <p className="text-sm text-muted-foreground">
+                  Coordinate meetings and community actions.
+                </p>
+              </Card>
+
+              <Card className="rounded-xl border-2 p-5">
+                <Users className="mb-4 h-6 w-6" />
+
+                <h3 className="mb-1 font-semibold">Build Community</h3>
+
+                <p className="text-sm text-muted-foreground">
+                  Bring volunteers and local stakeholders together.
+                </p>
+              </Card>
             </div>
           </CardContent>
         </Card>
@@ -230,7 +242,7 @@ export default function ApplySpace() {
             FORM
         ==================================== */}
 
-        <Card className="rounded-[32px] border-4">
+        <Card className="rounded-[32px]">
           <CardHeader className="space-y-2">
             <h2 className="text-2xl font-black">Application</h2>
 
@@ -522,26 +534,6 @@ export default function ApplySpace() {
         redirectPath="/apply/space"
         message="You need to sign in before submitting"
       />
-    </div>
-  );
-}
-
-/* ==========================================
-   BENEFIT CARD
-========================================== */
-
-function BenefitCard({ icon: Icon, title, description }) {
-  return (
-    <div className="rounded-3xl border-2 bg-background/80 p-5 backdrop-blur-sm">
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border-2 bg-primary/10">
-        <Icon className="h-5 w-5" />
-      </div>
-
-      <div className="space-y-1">
-        <h3 className="font-bold">{title}</h3>
-
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </div>
     </div>
   );
 }

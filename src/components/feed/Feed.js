@@ -21,7 +21,7 @@ export default function Feed() {
   return (
     <div className="flex w-full flex-col">
       {isLoading ? (
-        <div className="space-y-4">
+        <div className="space-y-0 sm:space-y-4">
           <PostSkeleton />
           <PostSkeleton />
           <PostSkeleton />
@@ -33,11 +33,12 @@ export default function Feed() {
           </p>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-0 sm:space-y-4">
           {data?.map((post) => (
             <PostCard
               key={post.id}
               post={post}
+              edgeToEdgeMobile
               canEdit={post.can_manage}
               onEdit={() => setEditingPost(post)}
               onDelete={() => deletePost(post.id)}
