@@ -1,36 +1,17 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import CopyField from "@/components/ui/CopyField";
 
 export default function CodeDetailsCard({ code }) {
   if (!code) return null;
 
   return (
-    <Card className="w-full">
-      <CardHeader className="space-y-3">
-        <div>
-          <CardTitle className="text-xl">
-            {code.display_name || code.title}
-          </CardTitle>
-        </div>
+    <div className="max-w-4xl space-y-6">
+      <div className="text-xl font-bold">{code.display_name || code.title}</div>
 
-        <div className="flex flex-wrap gap-2">
-          <Badge>Level {code.level}</Badge>
-
-          <Badge variant="outline">{code.dimension_name}</Badge>
-        </div>
-      </CardHeader>
-
-      <CardContent className="space-y-6">
-        <div className="rounded-lg border p-4">
-          <h4 className="mb-3 text-sm font-semibold">Description</h4>
-
-          <p className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
-            {code.description || "No description available."}
-          </p>
-        </div>
+      <div className="space-y-6">
+        <h4>{code.description || "No description available."}</h4>
 
         <div>
           <h4 className="mb-3 text-sm font-semibold">Details</h4>
@@ -88,19 +69,7 @@ export default function CodeDetailsCard({ code }) {
             </CardContent>
           </Card>
         </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function Detail({ label, value }) {
-  return (
-    <div className="rounded-lg border p-3">
-      <div className="text-xs uppercase tracking-wide text-muted-foreground">
-        {label}
       </div>
-
-      <div className="mt-1 break-words text-sm font-medium">{value || "—"}</div>
     </div>
   );
 }
