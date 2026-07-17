@@ -1,8 +1,7 @@
 "use client";
 
-import { Home, CirclePlus, Menu } from "lucide-react";
 import { useRouter } from "next/router";
-
+import { Home, CirclePlus, Menu } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/context/AuthContext";
 
@@ -11,35 +10,29 @@ export default function MobileBottomBar() {
   const { toggleSidebar } = useSidebar();
   const { user } = useAuth();
 
-  const pathname = router.pathname;
-
-  const itemClass = (active) =>
-    `flex flex-1 flex-col items-center justify-center gap-1 text-xs ${
-      active ? "text-foreground" : "text-muted-foreground"
-    }`;
-
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 h-16 border-t bg-background md:hidden">
+    <div className="fixed bottom-0 left-0 right-0 z-40 flex h-16 items-center justify-around border-t bg-background md:hidden">
       <button
         onClick={() => router.push("/")}
-        className={itemClass(pathname === "/")}
+        className="flex flex-col items-center text-muted-foreground"
       >
         <Home className="h-5 w-5" />
-        <span>Home</span>
+        <span className="text-xs">Home</span>
       </button>
 
       <button
-        onClick={() => router.push(user ? "/action" : "/auth/login")}
-        className={itemClass(false)}
+        onClick={() =>
+          user ? router.push("/action") : router.push("/auth/login")
+        }
+        className="relative -mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg"
       >
-        <CirclePlus className="h-5 w-5" />
-        <span>Create</span>
+        <CirclePlus className="h-6 w-6" />
       </button>
 
       <button onClick={toggleSidebar} className={itemClass(false)}>
-        <Menu className="h-5 w-5" />
+        <Menu className="h-6 w-6" />
         <span>Menu</span>
       </button>
-    </nav>
+    </div>
   );
 }
