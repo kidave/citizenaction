@@ -237,7 +237,7 @@ export default function SinglePostPage({ postId, initialPost }) {
           UI
       ===================================== */}
 
-      <div className="flex min-h-screen w-full flex-col">
+      <div className="flex min-h-dvh w-full flex-col">
         {/* HEADER */}
 
         <div className="sticky top-0 z-40 border-b bg-background">

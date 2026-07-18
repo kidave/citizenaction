@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 
 export default function PrivacyPolicy() {
   return (
-    <div className="min-h-screen bg-muted/30 px-4 py-12">
+    <div className="min-h-dvh bg-muted/30 px-4 py-12">
       <div className="mx-auto max-w-3xl">
         <Card className="p-10">
           <article className="prose prose-slate dark:prose-invert max-w-none">

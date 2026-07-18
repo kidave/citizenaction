@@ -114,7 +114,7 @@ export default function ProfileSettingsPage() {
   }
 
   return (
-    <div className="flex min-h-screen justify-center bg-muted/30 px-4 py-10">
+    <div className="flex min-h-dvh justify-center bg-muted/30 px-4 py-10">
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="mb-4">
@@ -259,7 +259,7 @@ export default function ProfileSettingsPage() {
 
 function SettingsSkeleton() {
   return (
-    <div className="flex min-h-screen justify-center bg-muted/30 px-4 py-10">
+    <div className="flex min-h-dvh justify-center bg-muted/30 px-4 py-10">
       <div className="w-full max-w-lg">
         <Card>
           <div className="flex justify-center pt-8">

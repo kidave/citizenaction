@@ -97,7 +97,7 @@ export default function SpaceApplicationPage() {
 
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-dvh items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-r-transparent" />
       </div>
     );
@@ -109,7 +109,7 @@ export default function SpaceApplicationPage() {
 
   if (!user) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-6">
+      <div className="flex min-h-dvh items-center justify-center p-6">
         <Card className="w-full max-w-md rounded-[32px] border-4">
           <CardContent className="space-y-4 p-8 text-center">
             <h1 className="text-2xl font-black">Sign in required</h1>
@@ -129,7 +129,7 @@ export default function SpaceApplicationPage() {
 
   if (loading || !application) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-dvh items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-r-transparent" />
       </div>
     );
@@ -149,7 +149,7 @@ export default function SpaceApplicationPage() {
         <title>Space Application</title>
       </Head>
 
-      <div className="min-h-screen bg-muted/30 px-4 py-6">
+      <div className="min-h-dvh bg-muted/30 px-4 py-6">
         <div className="mx-auto max-w-3xl space-y-6">
           {/* ==================================
               BACK

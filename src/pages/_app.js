@@ -59,7 +59,7 @@ function MyApp({ Component, pageProps }) {
               <RouteLoader />
 
               <ErrorBoundary>
-                <main className="w-full min-w-0 pb-24 md:pb-0">
+                <main className="w-full min-w-0">
                   {getLayout(<Component {...pageProps} />)}
                 </main>
 

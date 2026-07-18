@@ -16,7 +16,6 @@ export default function MobileBottomBar() {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 flex h-[calc(64px+env(safe-area-inset-bottom))] items-center justify-around border-t border-border/50 bg-background/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 md:hidden">
-      {/* HOME */}
       <button
         onClick={() => router.push("/")}
         className="flex flex-col items-center text-muted-foreground"
@@ -25,7 +24,6 @@ export default function MobileBottomBar() {
         <span className="text-xs">Home</span>
       </button>
 
-      {/* CREATE POST (Center Floating Button) */}
       <button
         onClick={() =>
           user ? router.push("/action") : router.push("/auth/login")
@@ -36,9 +34,7 @@ export default function MobileBottomBar() {
         <span className="text-xs">Create</span>
       </button>
 
-      {/* RIGHT SIDE */}
       {user ? (
-        // Logged In → Show Avatar
         <button onClick={toggleSidebar} className="flex flex-col items-center">
           <Avatar className="h-9 w-9">
             <AvatarImage src={profile?.avatar_url || undefined} />

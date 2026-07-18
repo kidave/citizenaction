@@ -14,7 +14,7 @@ export function HeroGeometric({
   return (
     <section
       className={cn(
-        `relative flex min-h-[90vh] items-center justify-center overflow-hidden bg-background`,
+        `relative flex min-h-dvh items-center justify-center overflow-hidden bg-background`,
         className,
       )}
     >

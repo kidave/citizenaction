@@ -26,7 +26,7 @@ export default function Callback() {
   }, [router]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex min-h-dvh items-center justify-center">
       <div className="text-center">
         <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-primary"></div>
         <p className="mt-4">Completing sign in...</p>

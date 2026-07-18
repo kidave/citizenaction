@@ -83,7 +83,7 @@ export default function ApplySpace() {
 
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-dvh items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-r-transparent" />
       </div>
     );
@@ -171,7 +171,7 @@ export default function ApplySpace() {
   ======================================== */
 
   return (
-    <div className="min-h-screen bg-muted/30 px-4 py-6">
+    <div className="min-h-dvh bg-muted/30 px-4 py-6">
       <div className="mx-auto w-full max-w-4xl space-y-6">
         {/* ====================================
             BACK

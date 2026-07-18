@@ -75,7 +75,7 @@ export default function PublicProfilePage() {
 
   return (
     <>
-      <div className="flex min-h-screen justify-center bg-muted/30 px-4 py-10">
+      <div className="flex min-h-dvh justify-center bg-muted/30 px-4 py-10">
         <div className="w-full max-w-lg">
           {/* Header */}
           <div className="mb-4 flex items-center justify-between">
@@ -212,7 +212,7 @@ function ProfileItem({ label, value }) {
 
 function ProfileSkeleton() {
   return (
-    <div className="flex min-h-screen justify-center bg-muted/30 px-4 py-10">
+    <div className="flex min-h-dvh justify-center bg-muted/30 px-4 py-10">
       <div className="w-full max-w-lg">
         <div className="mb-4 flex justify-between">
           <Skeleton className="h-10 w-10" />

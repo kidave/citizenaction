@@ -38,7 +38,7 @@ export default function LiveSpaceShowcase({ space = null }) {
   const featuredSpaces = space ? [space] : spaces.slice(0, 3);
 
   return (
-    <section className="pb-32">
+    <section>
       <div className="mx-auto max-w-7xl px-6">
         <div className="text-center">
           <FancyBadge>Live Community Space</FancyBadge>

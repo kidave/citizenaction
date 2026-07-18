@@ -2,16 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  MapPinned,
-  Users,
-  Megaphone,
-  Sparkles,
-  Building2,
-  HeartHandshake,
-  SendIcon,
-} from "lucide-react";
+import { ArrowRight, HeartHandshake, SendIcon } from "lucide-react";
 import { HeroGeometric } from "@/components/ui/shape-landing-hero";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,26 +11,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Card, CardContent } from "@/components/ui/card";
 import FancyBadge from "@/components/ui/FancyBadge";
 import LiveSpaceShowcase from "@/components/layout/LiveSpaceShowcase";
 import ScrollButton from "@/components/ui/ScrollButton";
-
-const features = [
-  {
-    icon: Megaphone,
-    title: "Make voices visible",
-    desc: "Document meetings, updates and civic actions publicly.",
-    color: "bg-yellow-100",
-  },
-
-  {
-    icon: Building2,
-    title: "Coordinate better",
-    desc: "Organize members, responsibilities and local initiatives clearly.",
-    color: "bg-green-100",
-  },
-];
 
 const faqs = [
   {
@@ -73,7 +47,7 @@ export default function AboutPage() {
   return (
     <div className="relative overflow-hidden bg-background">
       <HeroGeometric />
-      <section className="relative py-24">
+      <section className="flex min-h-dvh items-center">
         <div className="mx-auto max-w-5xl px-6 text-center">
           <motion.div
             initial={{
@@ -98,79 +72,22 @@ export default function AboutPage() {
             </h2>
 
             <p className="mx-auto mt-6 max-w-3xl text-lg text-muted-foreground">
-              Citizen Action is a collaborative platform for documenting civic
-              participation, local initiatives, and community progress.
+              A collaborative platform for documenting civic participation,
+              local initiatives, and community progress.
             </p>
+            <Button size="lg" className="mt-10 rounded-full text-base" asChild>
+              <Link href="/action">
+                <SendIcon className="mr-2 h-4 w-4" />
+                Create Your First Action
+              </Link>
+            </Button>
           </motion.div>
-        </div>
-      </section>
-
-      {/* =====================================================
-          FEATURES
-      ===================================================== */}
-
-      <section className="pb-28">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-6 md:grid-cols-2">
-          {features.map((feature, index) => {
-            const Icon = feature.icon;
-
-            return (
-              <motion.div
-                key={feature.title}
-                initial={{
-                  opacity: 0,
-                  y: 40,
-                }}
-                whileInView={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                viewport={{
-                  once: true,
-                }}
-                transition={{
-                  delay: index * 0.1,
-                }}
-              >
-                <Card className="overflow-hidden rounded-3xl transition">
-                  <CardContent className="relative p-8">
-                    <div
-                      className={`flex h-16 w-16 items-center justify-center rounded-2xl ${feature.color} `}
-                    >
-                      <Icon className="h-8 w-8" />
-                    </div>
-
-                    <h3 className="mt-6 text-2xl font-black">
-                      {feature.title}
-                    </h3>
-
-                    <p className="mt-3 leading-relaxed text-muted-foreground">
-                      {feature.desc}
-                    </p>
-
-                    <motion.div
-                      animate={{
-                        rotate: [0, 5, -5, 0],
-                      }}
-                      transition={{
-                        repeat: Infinity,
-                        duration: 4,
-                      }}
-                      className="absolute -right-5 -top-5 opacity-10"
-                    >
-                      <Sparkles className="h-24 w-24" />
-                    </motion.div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            );
-          })}
         </div>
       </section>
 
       <LiveSpaceShowcase />
 
-      <section className="py-32">
+      <section className="flex min-h-dvh items-center">
         <div className="mx-auto max-w-6xl px-6">
           <div className="relative overflow-hidden rounded-[40px] bg-yellow-300 p-12 md:p-20">
             <motion.div
@@ -213,7 +130,7 @@ export default function AboutPage() {
           FAQ
       ===================================================== */}
 
-      <section className="py-24">
+      <section className="flex min-h-dvh items-center">
         <div className="mx-auto max-w-4xl px-6">
           <div className="text-center">
             <FancyBadge>FAQ</FancyBadge>
@@ -243,7 +160,7 @@ export default function AboutPage() {
           FINAL CTA
       ===================================================== */}
 
-      <section className="pb-32">
+      <section className="flex min-h-dvh items-center">
         <div className="mx-auto max-w-4xl px-6 text-center">
           <FancyBadge>Join The Movement</FancyBadge>
 
@@ -251,12 +168,18 @@ export default function AboutPage() {
             Better cities start with organized people.
           </h2>
 
-          <Button size="lg" className="mt-10 rounded-full text-base" asChild>
-            <Link href="/action">
-              <SendIcon className="mr-2 h-4 w-4" />
-              Create Your First Action
-            </Link>
-          </Button>
+          <div className="mt-10 flex justify-center">
+            <Button
+              asChild
+              size="lg"
+              className="rounded-full px-8 text-base font-semibold"
+            >
+              <Link href="/">
+                Get Started
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
 

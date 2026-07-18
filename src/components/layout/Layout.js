@@ -11,11 +11,11 @@ function LayoutContent({ children }) {
   const showSidebar = pathname !== "/about";
 
   return (
-    <div className="flex min-h-screen w-full min-w-0">
+    <div className="flex min-h-dvh w-full">
       {showSidebar && <LeftSidebar />}
 
-      <SidebarInset className="flex min-w-0 flex-1 flex-col">
-        <main className="w-full min-w-0">{children}</main>
+      <SidebarInset className="flex min-h-dvh flex-1 flex-col">
+        <div className="flex-1">{children}</div>
       </SidebarInset>
     </div>
   );
