@@ -88,6 +88,10 @@
 }
 
 /* Custom styles */
+html {
+  scrollbar-gutter: stable;
+}
+
 .scrollbar-hide {
   scrollbar-width: none;
 }
