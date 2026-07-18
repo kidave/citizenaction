@@ -61,7 +61,7 @@ export default function StandardPage() {
   const { data: tree = [] } = useClassificationTree(selectedDimension?.id);
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-dvh flex-col">
       {/* Header */}
       <div className="border-b px-6 py-4">
         <div className="flex items-center gap-4">
