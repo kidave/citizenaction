@@ -24,10 +24,6 @@ export default function PostFooter({ post }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  /* -------------------------
-     STATS
-  ------------------------- */
-
   const { data } = usePostStats(post.id, user?.id);
 
   const supportCount = data?.support_count || 0;
@@ -36,21 +32,8 @@ export default function PostFooter({ post }) {
   const supported = data?.is_supported || false;
   const contributing = data?.is_contributing || false;
 
-  /* -------------------------
-     CONTRIBUTIONS
-  ------------------------- */
-
-  const { data: attendees = [] } = usePostMeeting(post?.id);
-
-  /* -------------------------
-     GOVERNANCE
-  ------------------------- */
-
+  const { data: contributors = [] } = usePostMeeting(post?.id);
   const { data: governance = [] } = usePostGovernance(post?.id);
-
-  /* -------------------------
-     SUPPORT
-  ------------------------- */
 
   async function handleSupport(e) {
     e?.stopPropagation();
@@ -90,10 +73,6 @@ export default function PostFooter({ post }) {
       });
     }
   }
-
-  /* -------------------------
-     CONTRIBUTE
-  ------------------------- */
 
   async function handleContribute(e) {
     e?.stopPropagation();
@@ -137,15 +116,12 @@ export default function PostFooter({ post }) {
   return (
     <TooltipProvider>
       <div className="flex items-center justify-between text-sm text-muted-foreground">
-        {/* LEFT */}
         <div className="flex items-center gap-3">
           <GovernanceAvatarGroups entities={governance} />
-          <AttendeeAvatarGroup attendees={attendees} />
+          <AttendeeAvatarGroup attendees={contributors} />
         </div>
 
-        {/* RIGHT */}
         <div className="flex items-center gap-6">
-          {/* SUPPORT */}
           <Tooltip>
             <TooltipTrigger asChild>
               <button
@@ -164,7 +140,6 @@ export default function PostFooter({ post }) {
             </TooltipContent>
           </Tooltip>
 
-          {/* CONTRIBUTE */}
           <Tooltip>
             <TooltipTrigger asChild>
               <button
