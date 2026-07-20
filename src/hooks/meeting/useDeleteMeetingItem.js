@@ -10,7 +10,7 @@ export function useDeleteMeetingItem() {
   const mutation = useMutation({
     mutationFn: async (itemId) => {
       const { error } = await supabase
-        .from("meeting_item")
+        .from("post_contribution")
         .delete()
         .eq("id", itemId);
 
