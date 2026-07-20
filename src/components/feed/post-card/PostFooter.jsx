@@ -4,16 +4,12 @@ import { Orbit, ArrowBigUpDash } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
 import { usePostStats } from "@/hooks/feed/usePostStats";
-
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 
 import AttendeeAvatarGroup from "@/components/feed/post-meeting/AttendeeAvatarGroup";
-
 import GovernanceAvatarGroups from "@/components/governance/GovernanceAvatarGroups";
-
 import PostShareButton from "@/components/feed/PostShareButton";
-
 import { usePostMeeting } from "@/hooks/feed/usePostMeeting";
 import { usePostGovernance } from "@/hooks/feed/usePostGovernance";
 
@@ -26,7 +22,6 @@ import {
 
 export default function PostFooter({ post }) {
   const { user } = useAuth();
-
   const queryClient = useQueryClient();
 
   /* -------------------------
@@ -42,7 +37,7 @@ export default function PostFooter({ post }) {
   const contributing = data?.is_contributing || false;
 
   /* -------------------------
-     MEETING ATTENDEES
+     CONTRIBUTIONS
   ------------------------- */
 
   const { data: attendees = [] } = usePostMeeting(post?.id);
@@ -67,11 +62,9 @@ export default function PostFooter({ post }) {
 
       return {
         ...old,
-
         support_count: supported
           ? old.support_count - 1
           : old.support_count + 1,
-
         is_supported: !supported,
       };
     });
@@ -112,11 +105,9 @@ export default function PostFooter({ post }) {
 
       return {
         ...old,
-
         contribute_count: contributing
           ? old.contribute_count - 1
           : old.contribute_count + 1,
-
         is_contributing: !contributing,
       };
     });
@@ -148,13 +139,8 @@ export default function PostFooter({ post }) {
       <div className="flex items-center justify-between text-sm text-muted-foreground">
         {/* LEFT */}
         <div className="flex items-center gap-3">
-          {/* GOVERNANCE */}
           <GovernanceAvatarGroups entities={governance} />
-
-          {/* ATTENDEES */}
-          {post.type === "meeting" && (
-            <AttendeeAvatarGroup attendees={attendees} />
-          )}
+          <AttendeeAvatarGroup attendees={attendees} />
         </div>
 
         {/* RIGHT */}
@@ -197,7 +183,6 @@ export default function PostFooter({ post }) {
             </TooltipContent>
           </Tooltip>
 
-          {/* SHARE */}
           <PostShareButton post={post} />
         </div>
       </div>
