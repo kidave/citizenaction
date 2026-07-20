@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
-export function useDeleteMeetingItem() {
+export function useDeleteContribution() {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -21,7 +21,7 @@ export function useDeleteMeetingItem() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["post-meeting"],
+        queryKey: ["post-contribution"],
       });
 
       toast.success("Deleted successfully");
@@ -34,7 +34,7 @@ export function useDeleteMeetingItem() {
   });
 
   return {
-    deleteMeetingItem: mutation.mutateAsync,
+    deleteContribution: mutation.mutateAsync,
     isDeleting: mutation.isPending,
   };
 }

@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 
-export function useUpsertMeetingItem() {
+export function useUpsertContribution() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
@@ -60,7 +60,7 @@ export function useUpsertMeetingItem() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["post-meeting"],
+        queryKey: ["post-contribution"],
       });
 
       toast.success("Saved successfully");
@@ -73,7 +73,7 @@ export function useUpsertMeetingItem() {
   });
 
   return {
-    upsertMeetingItem: mutation.mutateAsync,
+    upsertContribution: mutation.mutateAsync,
     isSaving: mutation.isPending,
   };
 }

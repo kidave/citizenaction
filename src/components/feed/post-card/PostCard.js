@@ -14,7 +14,7 @@ import PostTimeline from "./PostTimeline";
 import PostAttachments from "./PostAttachments";
 import PostFooter from "./PostFooter";
 
-import PostMeeting from "@/components/feed/post-meeting/PostMeeting";
+import PostContribution from "@/components/feed/post-contribution/PostContribution";
 
 import { usePostPermissions } from "@/hooks/feed/usePostPermissions";
 import { usePostSpaces } from "@/hooks/feed/usePostSpaces";
@@ -131,9 +131,9 @@ export default function PostCard({
           />
         </div>
 
-        {post.type === "meeting" && forceExpanded && (
+        {forceExpanded && (
           <div className="rounded-3xl border-2 p-4">
-            <PostMeeting
+            <PostContribution
               post={{
                 ...post,
                 spaces,

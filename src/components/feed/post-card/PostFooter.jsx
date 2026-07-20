@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Orbit, ArrowBigUpDash } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
@@ -7,10 +8,9 @@ import { usePostStats } from "@/hooks/feed/usePostStats";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 
-import AttendeeAvatarGroup from "@/components/feed/post-meeting/AttendeeAvatarGroup";
 import GovernanceAvatarGroups from "@/components/governance/GovernanceAvatarGroups";
+import ContributorAvatarGroup from "@/components/feed/post-contribution/ContributorAvatarGroup";
 import PostShareButton from "@/components/feed/PostShareButton";
-import { usePostMeeting } from "@/hooks/feed/usePostMeeting";
 import { usePostGovernance } from "@/hooks/feed/usePostGovernance";
 
 import {
@@ -24,16 +24,19 @@ export default function PostFooter({ post }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   const { data } = usePostStats(post.id, user?.id);
 
-  const supportCount = data?.support_count || 0;
-  const contributeCount = data?.contribute_count || 0;
+  const supportCount = data?.support_count ?? 0;
+  const contributionCount = data?.contribution_count ?? 0;
+  const contributorCount = data?.contributor_count ?? 0;
 
-  const supported = data?.is_supported || false;
-  const contributing = data?.is_contributing || false;
+  const supported = data?.is_supported ?? false;
 
-  const { data: contributors = [] } = usePostMeeting(post?.id);
-  const { data: governance = [] } = usePostGovernance(post?.id);
+  const contributors = data?.contributors_preview ?? [];
+
+  const { data: governance = [] } = usePostGovernance(post.id);
 
   async function handleSupport(e) {
     e?.stopPropagation();
@@ -74,93 +77,74 @@ export default function PostFooter({ post }) {
     }
   }
 
-  async function handleContribute(e) {
+  function handleContributors(e) {
     e?.stopPropagation();
-
-    if (!user) return;
-
-    queryClient.setQueryData(["post-stats", post.id, user?.id], (old) => {
-      if (!old) return old;
-
-      return {
-        ...old,
-        contribute_count: contributing
-          ? old.contribute_count - 1
-          : old.contribute_count + 1,
-        is_contributing: !contributing,
-      };
-    });
-
-    try {
-      if (contributing) {
-        await supabase
-          .from("action_contribute")
-          .delete()
-          .eq("action_id", post.id)
-          .eq("user_id", user.id);
-      } else {
-        await supabase.from("action_contribute").insert({
-          action_id: post.id,
-          user_id: user.id,
-        });
-      }
-    } catch (err) {
-      console.error(err);
-
-      queryClient.invalidateQueries({
-        queryKey: ["post-stats", post.id],
-      });
-    }
+    setDrawerOpen(true);
   }
 
   return (
-    <TooltipProvider>
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <div className="flex items-center gap-3">
-          <GovernanceAvatarGroups entities={governance} />
-          <AttendeeAvatarGroup attendees={contributors} />
+    <>
+      <TooltipProvider>
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <div className="flex items-center gap-3">
+            <GovernanceAvatarGroups entities={governance} />
+
+            <button
+              onClick={handleContributors}
+              className="transition hover:opacity-80"
+            >
+              <ContributorAvatarGroup attendees={contributors} />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleSupport}
+                  className={`flex items-center gap-2 hover:text-primary ${
+                    supported ? "font-medium text-primary" : ""
+                  }`}
+                >
+                  <ArrowBigUpDash className="h-4 w-4" />
+                  {supportCount}
+                </button>
+              </TooltipTrigger>
+
+              <TooltipContent>
+                {supported ? "Remove support" : "Support"}
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleContributors}
+                  className="flex items-center gap-2 hover:text-primary"
+                >
+                  <Orbit className="h-4 w-4" />
+                  {contributorCount}
+                </button>
+              </TooltipTrigger>
+
+              <TooltipContent>
+                View contributions ({contributionCount})
+              </TooltipContent>
+            </Tooltip>
+
+            <PostShareButton post={post} />
+          </div>
         </div>
+      </TooltipProvider>
 
-        <div className="flex items-center gap-6">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={handleSupport}
-                className={`flex items-center gap-2 hover:text-primary ${
-                  supported ? "font-medium text-primary" : ""
-                }`}
-              >
-                <ArrowBigUpDash className="h-4 w-4" />
-                {supportCount}
-              </button>
-            </TooltipTrigger>
-
-            <TooltipContent>
-              {supported ? "Remove support" : "Support"}
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={handleContribute}
-                className={`flex items-center gap-2 hover:text-primary ${
-                  contributing ? "font-medium text-primary" : ""
-                }`}
-              >
-                <Orbit className="h-4 w-4" />
-                {contributeCount}
-              </button>
-            </TooltipTrigger>
-
-            <TooltipContent>
-              {contributing ? "Withdraw" : "Contribute"}
-            </TooltipContent>
-          </Tooltip>
-
-          <PostShareButton post={post} />
-        </div>
-      </div>
-    </TooltipProvider>
+      {/* Future */}
+      {/*
+      <ContributionDrawer
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        post={post}
+      />
+      */}
+    </>
   );
 }

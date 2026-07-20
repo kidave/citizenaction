@@ -3,7 +3,7 @@
 import { usePostCore } from "./usePostCore";
 import { usePostGovernance } from "./usePostGovernance";
 import { usePostStats } from "./usePostStats";
-import { usePostMeeting } from "./usePostMeeting";
+import { usePostContribution } from "./usePostContribution";
 import { usePostPermissions } from "./usePostPermissions";
 import { usePostSpaces } from "./usePostSpaces";
 
@@ -16,7 +16,7 @@ export function usePost(id, initialData) {
 
   const stats = usePostStats(id);
 
-  const meeting = usePostMeeting(id);
+  const meeting = usePostContribution(id);
 
   const permissions = usePostPermissions(id);
 

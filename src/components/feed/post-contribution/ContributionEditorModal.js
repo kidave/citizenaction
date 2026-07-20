@@ -5,16 +5,16 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
-import { useUpsertMeetingItem } from "@/hooks/meeting/useUpsertMeetingItem";
+import { useUpsertContribution } from "@/hooks/contribution/useUpsertContribution";
 
-export default function MeetingItemEditorModal({
+export default function ContributionEditorModal({
   isOpen,
   onClose,
-  meeting,
+  contribution,
   existingItem,
 }) {
   const { user } = useAuth();
-  const { upsertMeetingItem, isSaving } = useUpsertMeetingItem();
+  const { upsertContribution, isSaving } = useUpsertContribution();
 
   const [notes, setNotes] = useState("");
 
@@ -27,9 +27,9 @@ export default function MeetingItemEditorModal({
   async function handleSave() {
     if (!notes.trim()) return;
 
-    await upsertMeetingItem({
+    await upsertContribution({
       item_id: existingItem?.id, // ✅ KEY CHANGE
-      feed_id: meeting.id,
+      feed_id: contribution.id,
       notes,
     });
 
