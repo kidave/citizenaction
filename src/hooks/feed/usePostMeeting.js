@@ -1,5 +1,3 @@
-// hooks/feed/usePostMeeting.js
-
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
@@ -12,14 +10,20 @@ export function usePostMeeting(postId) {
 
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("meeting_item")
+        .from("post_contribution")
         .select(
           `
           id,
-          notes,
+          post_id,
+          parent_id,
+          content,
+          contribution_type,
+          status,
           user_id,
           guest_name,
           guest_designation,
+          created_at,
+          updated_at,
           profile:user_id (
             username,
             name,
@@ -28,13 +32,15 @@ export function usePostMeeting(postId) {
           )
         `,
         )
-        .eq("feed_id", postId);
+        .eq("post_id", postId)
+        .eq("status", "active")
+        .order("created_at", { ascending: true });
 
       if (error) throw error;
 
       return (data || []).map((item) => ({
         ...item,
-
+        notes: item.content,
         avatar: item.profile?.avatar_url,
         name: item.profile?.name || item.guest_name,
         username: item.profile?.username,
