@@ -11,12 +11,14 @@ export function useUpsertMeetingItem() {
 
   const mutation = useMutation({
     mutationFn: async ({ item_id, feed_id, notes }) => {
+      const content = notes;
+
       // UPDATE EXISTING
       if (item_id) {
         const { error } = await supabase
-          .from("meeting_item")
+          .from("post_contribution")
           .update({
-            notes,
+            content,
             updated_by: user.id,
           })
           .eq("id", item_id);
@@ -28,10 +30,11 @@ export function useUpsertMeetingItem() {
 
       // CREATE NEW
       try {
-        const { error } = await supabase.from("meeting_item").insert({
-          feed_id,
+        const { error } = await supabase.from("post_contribution").insert({
+          post_id: feed_id,
           user_id: user.id,
-          notes,
+          content,
+          contribution_type: "comment",
           updated_by: user.id,
         });
 
@@ -40,12 +43,12 @@ export function useUpsertMeetingItem() {
         // Existing user record → update instead
         if (err.message?.includes("duplicate key")) {
           const { error: updateError } = await supabase
-            .from("meeting_item")
+            .from("post_contribution")
             .update({
-              notes,
+              content,
               updated_by: user.id,
             })
-            .eq("feed_id", feed_id)
+            .eq("post_id", feed_id)
             .eq("user_id", user.id);
 
           if (updateError) throw updateError;
