@@ -66,7 +66,7 @@ export default function PostCard({
     <Card
       className={`relative overflow-hidden transition-all duration-300 ${edgeToEdgeMobile ? "rounded-none sm:rounded-[28px]" : "rounded-[28px]"} ${borderless ? "border-0 shadow-none" : ""} ${post.type || ""} `}
     >
-      <div className="relative z-10 flex flex-col gap-4 p-4 sm:p-6">
+      <div className="relative z-10 flex flex-col gap-2 p-4 sm:p-6">
         <PostHeader
           post={{
             ...post,

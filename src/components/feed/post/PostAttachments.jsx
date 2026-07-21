@@ -3,20 +3,15 @@
 import { useMemo, useState } from "react";
 
 import EmblaCarousel from "@/components/ui/EmblaCarousel";
-
 import PDFViewer from "@/components/ui/PDFViewer";
-
-import { FocusCards } from "@/components/ui/focus-cards";
+import AttachmentCarousel from "@/components/ui/AttachmentCarousel";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 export default function PostAttachments({ attachments = [] }) {
   const [openImages, setOpenImages] = useState(false);
-
   const [openPdf, setOpenPdf] = useState(false);
-
   const [selectedPdf, setSelectedPdf] = useState(null);
-
   const [startIndex, setStartIndex] = useState(0);
 
   const images = useMemo(() => {
@@ -24,34 +19,34 @@ export default function PostAttachments({ attachments = [] }) {
   }, [attachments]);
 
   const handleClick = (attachment) => {
-    if (!attachment) {
-      return;
-    }
+    if (!attachment) return;
 
-    if (attachment?.type?.startsWith("image/")) {
+    const mime = attachment.type || "";
+    const extension = attachment.name?.split(".").pop()?.toLowerCase();
+
+    const isImage = mime.startsWith("image/");
+    const isPdf = mime === "application/pdf" || extension === "pdf";
+
+    if (isImage) {
       const imageIndex = images.findIndex((img) => img.url === attachment.url);
 
       setStartIndex(imageIndex >= 0 ? imageIndex : 0);
-
       setOpenImages(true);
-
       return;
     }
 
-    if (attachment?.type === "application/pdf") {
+    if (isPdf) {
       setSelectedPdf(attachment);
-
       setOpenPdf(true);
     }
   };
 
   return (
     <>
-      <FocusCards
-        images={attachments}
-        onCardClick={(index) => {
-          const attachment = attachments[index];
-          handleClick(attachment);
+      <AttachmentCarousel
+        attachments={attachments}
+        onAttachmentClick={(index) => {
+          handleClick(attachments[index]);
         }}
       />
 
