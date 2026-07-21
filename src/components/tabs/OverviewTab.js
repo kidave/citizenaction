@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useFeed } from "@/hooks/feed/useFeed";
 import { useSpaceMembers } from "@/hooks/space/useSpaceMembers";
-import ActivityPreviewCard from "@/components/feed/post-activity/ActivityPreviewCard";
+import ActivityPreviewCard from "@/components/feed/activity/ActivityPreviewCard";
 import MetricCard from "@/components/ui/metric-card";
 import {
   Card,

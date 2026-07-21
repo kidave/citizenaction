@@ -82,7 +82,7 @@ Recommended future split candidates:
    - verify whether this is imported from a UI template; if customized, split into primitives and composed variants.
 7. `src/components/ui/timeline.jsx`
    - split timeline primitives from application-specific timeline rendering.
-8. `src/hooks/feed/usePostEditor.js`
+8. `src/hooks/feed/useEditor.js`
    - split editor state transitions if additional editor complexity is added.
 
 ## Potential bugs

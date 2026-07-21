@@ -14,7 +14,7 @@ import PostTimeline from "./PostTimeline";
 import PostAttachments from "./PostAttachments";
 import PostFooter from "./PostFooter";
 
-import PostContribution from "@/components/feed/post-contribution/PostContribution";
+import PostContribution from "@/components/feed/contribution/PostContribution";
 
 import { usePostPermissions } from "@/hooks/feed/usePostPermissions";
 import { usePostSpaces } from "@/hooks/feed/usePostSpaces";

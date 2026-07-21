@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 
 import { useFeed } from "@/hooks/feed/useFeed";
 
-import ActivityPreviewCard from "@/components/feed/post-activity/ActivityPreviewCard";
+import ActivityPreviewCard from "@/components/feed/activity/ActivityPreviewCard";
 
 import MeetingSkeleton from "@/components/skeletons/MeetingSkeleton";
 

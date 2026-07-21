@@ -8,13 +8,13 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 
 import { useFeed } from "@/hooks/feed/useFeed";
-import { useSpaces } from "@/hooks/useSpaces";
+import { useSpaces } from "@/hooks/space/useSpaces";
 
 import { Button } from "@/components/ui/button";
 
 import { Card, CardContent } from "@/components/ui/card";
 
-import ActivityPreviewCard from "@/components/feed/post-activity/ActivityPreviewCard";
+import ActivityPreviewCard from "@/components/feed/activity/ActivityPreviewCard";
 
 /* =====================================================
    BADGE

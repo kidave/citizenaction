@@ -6,13 +6,12 @@ import { supabase } from "@/lib/supabase/client";
 export function usePostStats(postId, userId) {
   return useQuery({
     queryKey: ["post-stats", postId, userId],
-
     enabled: !!postId,
 
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_post_stats", {
         p_post_id: postId,
-        p_user_id: userId,
+        p_author_id: userId,
       });
 
       if (error) throw error;

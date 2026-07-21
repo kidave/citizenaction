@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { useSpaces } from "@/hooks/useSpaces";
+import { useSpaces } from "@/hooks/space/useSpaces";
 
 export default function FeaturedSpaceCard() {
   const { data: spaces, isLoading } = useSpaces();

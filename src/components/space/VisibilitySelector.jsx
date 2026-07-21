@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import SpaceExplorer from "@/components/space/SpaceExplorer";
 
-export default function PostVisibilitySelector({ editor, spaces = [] }) {
+export default function VisibilitySelector({ editor, spaces = [] }) {
   const [open, setOpen] = useState(false);
 
   const isGlobal = editor.spaces.length === 0;

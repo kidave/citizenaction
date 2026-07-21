@@ -28,7 +28,7 @@ import {
   CollapsibleContent,
 } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSpaces } from "@/hooks/useSpaces";
+import { useSpaces } from "@/hooks/space/useSpaces";
 
 export function Navigation() {
   const router = useRouter();

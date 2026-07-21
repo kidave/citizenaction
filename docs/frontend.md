@@ -132,7 +132,7 @@ The code generally separates Supabase access into hooks and presentation into co
 
 ### Modal-heavy editing flows
 
-Post creation/editing and timeline editing are modal-driven. Editor state appears to be centralized in `usePostEditor`, with specific editor subcomponents for sections of a post.
+Post creation/editing and timeline editing are modal-driven. Editor state appears to be centralized in `useEditor`, with specific editor subcomponents for sections of a post.
 
 ### Supabase-first data access
 

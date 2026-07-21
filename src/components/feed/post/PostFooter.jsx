@@ -9,7 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 
 import GovernanceAvatarGroups from "@/components/governance/GovernanceAvatarGroups";
-import ContributorAvatarGroup from "@/components/feed/post-contribution/ContributorAvatarGroup";
+import ContributorAvatarGroup from "@/components/feed/contribution/ContributorAvatarGroup";
 import PostShareButton from "@/components/feed/PostShareButton";
 import { usePostGovernance } from "@/hooks/feed/usePostGovernance";
 

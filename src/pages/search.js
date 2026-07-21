@@ -18,8 +18,8 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import SearchFiltersSkeleton from "@/components/skeletons/SearchFiltersSkeleton";
 import CardGridSkeleton from "@/components/skeletons/CardGridSkeleton";
 
-import { useSpaces } from "@/hooks/useSpaces";
-import { useClubs } from "@/hooks/useClubs";
+import { useSpaces } from "@/hooks/space/useSpaces";
+import { useClubs } from "@/hooks/space/useClubs";
 
 export default function UnifiedSearchPage() {
   const [searchType, setSearchType] = useState("space");

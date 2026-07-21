@@ -7,7 +7,7 @@ import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
-import { useClubs } from "@/hooks/useClubs";
+import { useClubs } from "@/hooks/space/useClubs";
 
 import ActivityTab from "@/components/tabs/ActivityTab";
 

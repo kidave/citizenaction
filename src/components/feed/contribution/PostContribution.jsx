@@ -4,14 +4,13 @@ import { useState } from "react";
 
 import { Row } from "@/components/layout/Row";
 import { UserIdentity } from "@/components/profile/UserIdentity";
-import PostActions from "@/components/feed/post-card/PostActions";
+import PostActions from "@/components/feed/post/PostActions";
+import EditorModal from "@/components/feed/editor/EditorModal";
 
 import { useAuth } from "@/context/AuthContext";
 
 import { useDeleteContribution } from "@/hooks/contribution/useDeleteContribution";
 import { usePostContribution } from "@/hooks/feed/usePostContribution";
-
-import ContributionEditorModal from "./ContributionEditorModal";
 
 export default function PostContribution({ post }) {
   const { user } = useAuth();
@@ -19,7 +18,7 @@ export default function PostContribution({ post }) {
   const { deleteContribution } = useDeleteContribution();
 
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedContribution, setSelectedContribution] = useState(null);
 
   const {
     data: contributions = [],
@@ -29,9 +28,7 @@ export default function PostContribution({ post }) {
 
   if (!post?.id) return null;
 
-  console.log("Contributions:", contributions);
-
-  const myContribution = contributions.find((c) => c.user_id === user?.id);
+  const myContribution = contributions.find((c) => c.author_id === user?.id);
 
   async function handleDelete(contribution) {
     if (!confirm("Delete this contribution?")) return;
@@ -61,17 +58,18 @@ export default function PostContribution({ post }) {
     <>
       <div className="space-y-4">
         {contributions.map((contribution) => {
-          const canEdit = post.can_manage || contribution.user_id === user?.id;
+          const canEdit =
+            post.can_manage || contribution.author_id === user?.id;
 
           return (
             <div
               key={contribution.id}
-              className="space-y-3 rounded-xl border p-4"
+              className="space-y-4 rounded-xl border p-4"
             >
               <Row className="items-center justify-between">
                 <UserIdentity
                   username={contribution.username}
-                  name={contribution.name || contribution.guest_name}
+                  name={contribution.name}
                   avatar={contribution.avatar_url}
                 />
 
@@ -79,7 +77,7 @@ export default function PostContribution({ post }) {
                   <PostActions
                     canEdit
                     onEdit={() => {
-                      setSelectedItem(contribution);
+                      setSelectedContribution(contribution);
                       setIsEditorOpen(true);
                     }}
                     onDelete={() => handleDelete(contribution)}
@@ -87,21 +85,29 @@ export default function PostContribution({ post }) {
                 )}
               </Row>
 
-              <div className="space-y-2">
-                <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  {contribution.contribution_type}
-                </div>
+              {contribution.title && (
+                <h4 className="font-semibold">{contribution.title}</h4>
+              )}
 
+              {contribution.content && (
                 <div className="whitespace-pre-wrap text-sm">
                   {contribution.content}
                 </div>
+              )}
 
-                {contribution.event_date && (
-                  <div className="text-xs text-muted-foreground">
-                    {new Date(contribution.event_date).toLocaleDateString()}
-                  </div>
-                )}
-              </div>
+              {contribution.start_at && (
+                <div className="text-xs text-muted-foreground">
+                  {new Date(contribution.start_at).toLocaleDateString()}
+                </div>
+              )}
+
+              {contribution.address && (
+                <div className="text-xs text-muted-foreground">
+                  {contribution.address}
+                </div>
+              )}
+
+              {/* Attachments will go here */}
             </div>
           );
         })}
@@ -110,7 +116,7 @@ export default function PostContribution({ post }) {
       {!myContribution && user && (
         <button
           onClick={() => {
-            setSelectedItem(null);
+            setSelectedContribution(null);
             setIsEditorOpen(true);
           }}
           className="mt-4 w-full rounded-md border py-2 text-sm transition-colors hover:bg-muted"
@@ -119,14 +125,15 @@ export default function PostContribution({ post }) {
         </button>
       )}
 
-      <ContributionEditorModal
+      <EditorModal
+        mode="contribution"
         isOpen={isEditorOpen}
         onClose={() => {
           setIsEditorOpen(false);
-          setSelectedItem(null);
+          setSelectedContribution(null);
         }}
-        contribution={post}
-        existingItem={selectedItem}
+        item={selectedContribution}
+        post={post}
       />
     </>
   );

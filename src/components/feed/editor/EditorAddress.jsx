@@ -19,7 +19,7 @@ import LocationSearchInput from "@/components/shared/LocationSearchInput";
 
 import LocationMapPreview from "@/components/shared/LocationMapPreview";
 
-export default function PostAddress({ editor }) {
+export default function EditorAddress({ editor }) {
   const [open, setOpen] = useState(false);
 
   const [loadingGPS, setLoadingGPS] = useState(false);

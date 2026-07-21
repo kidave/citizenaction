@@ -17,7 +17,7 @@ import { DateTimePicker } from "@/components/ui/date-time";
 
 import { CalendarDays } from "lucide-react";
 
-export default function PostDateTime({ editor }) {
+export default function EditorDateTime({ editor }) {
   const [open, setOpen] = useState(false);
 
   const contextSummary = useMemo(() => {

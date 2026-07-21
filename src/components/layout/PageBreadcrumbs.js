@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ChevronRight } from "lucide-react";
-import { useSpaces } from "@/hooks/useSpaces";
-import { useClubs } from "@/hooks/useClubs";
+import { useSpaces } from "@/hooks/space/useSpaces";
+import { useClubs } from "@/hooks/space/useClubs";
 
 const STATIC_LABELS = {
   space: "Space",

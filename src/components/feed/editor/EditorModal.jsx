@@ -3,32 +3,52 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Save } from "lucide-react";
-import { useMyProfile } from "@/hooks/user/useMyProfile";
-import { usePostEditor } from "@/hooks/feed/usePostEditor";
-import { useSpaces } from "@/hooks/useSpaces";
 
-import PostEditorHeader from "./PostEditorHeader";
-import PostEditorContent from "./PostEditorContent";
-import PostEditorAttachments from "./PostEditorAttachments";
-import PostDateTime from "./PostDateTime";
-import PostAddress from "./PostAddress";
-import PostTypeSelector from "./PostTypeSelector";
+import { useMyProfile } from "@/hooks/user/useMyProfile";
+import { useSpaces } from "@/hooks/space/useSpaces";
+
+import { usePostEditor } from "@/hooks/editor/usePostEditor";
+import { useContributionEditor } from "@/hooks/editor/useContributionEditor";
+
+import EditorHeader from "./EditorHeader";
+import EditorContent from "./EditorContent";
+import EditorAttachments from "./EditorAttachments";
+import EditorDateTime from "./EditorDateTime";
+import EditorAddress from "./EditorAddress";
+import EditorType from "./EditorType";
 
 import InlineLinkInput from "@/components/ui/InlineLinkInput";
 
-export default function PostEditorModal({ isOpen, onClose, post = null }) {
+export default function EditorModal({
+  isOpen,
+  onClose,
+
+  mode = "post",
+
+  item = null,
+
+  post = null,
+}) {
   const { data: profile } = useMyProfile();
 
   const { data: spaces = [] } = useSpaces();
 
-  const editor = usePostEditor(post, profile);
+  const postEditor = usePostEditor(mode === "post" ? item : null);
+
+  const contributionEditor = useContributionEditor(
+    mode === "contribution" ? item : null,
+    post,
+  );
+
+  const editor = mode === "post" ? postEditor : contributionEditor;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="flex h-full w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-2xl sm:rounded-lg">
-        <PostEditorHeader
+        <EditorHeader
+          mode={mode}
           profile={profile}
-          post={post}
+          item={item}
           editor={editor}
           spaces={spaces}
           onClose={onClose}
@@ -36,10 +56,13 @@ export default function PostEditorModal({ isOpen, onClose, post = null }) {
         />
 
         <div className="flex h-full flex-1 flex-col overflow-hidden p-4">
-          <PostTypeSelector type={editor.type} setType={editor.setType} />
+          {mode === "post" && (
+            <EditorType type={editor.type} setType={editor.setType} />
+          )}
 
           <div className="mt-4 flex min-h-0 flex-1 flex-col">
-            <PostEditorContent
+            <EditorContent
+              mode={mode}
               title={editor.title}
               setTitle={editor.setTitle}
               content={editor.content}
@@ -48,15 +71,17 @@ export default function PostEditorModal({ isOpen, onClose, post = null }) {
           </div>
 
           <div className="mt-4">
-            <PostEditorAttachments
+            <EditorAttachments
               attachments={editor.attachments}
               setAttachments={editor.setAttachments}
             />
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
-            <PostDateTime editor={editor} />
-            <PostAddress editor={editor} />
+            <EditorDateTime editor={editor} />
+
+            <EditorAddress editor={editor} />
+
             <InlineLinkInput
               value={editor.meeting_link}
               onChange={editor.setMeetingLink}
@@ -66,7 +91,14 @@ export default function PostEditorModal({ isOpen, onClose, post = null }) {
           <div className="mt-4 flex justify-end">
             <Button onClick={() => editor.submit(onClose)}>
               <Save className="h-4 w-4" />
-              {post ? "Update" : "Post"}
+
+              {mode === "post"
+                ? item
+                  ? "Update Post"
+                  : "Create Post"
+                : item
+                  ? "Update Contribution"
+                  : "Add Contribution"}
             </Button>
           </div>
         </div>

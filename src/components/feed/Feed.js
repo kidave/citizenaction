@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useFeed } from "@/hooks/feed/useFeed";
-import { useDeletePost } from "@/hooks/feed/useDeletePost";
+import { useDeletePost } from "@/hooks/post/useDeletePost";
 
 import PostSkeleton from "@/components/skeletons/PostSkeleton";
-import PostCard from "@/components/feed/post-card/PostCard";
-import PostEditorModal from "@/components/feed/post-editor/PostEditorModal";
+import PostCard from "@/components/feed/post/PostCard";
+import EditorModal from "@/components/feed/editor/EditorModal";
 
 import { Card } from "@/components/ui/card";
 
@@ -50,7 +50,7 @@ export default function Feed() {
       {/* EDIT MODAL */}
 
       {editingPost && (
-        <PostEditorModal
+        <EditorModal
           isOpen={!!editingPost}
           onClose={() => setEditingPost(null)}
           post={editingPost}

@@ -4,9 +4,9 @@ import { useState } from "react";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { usePost } from "@/hooks/feed/usePost";
 import { useAuth } from "@/context/AuthContext";
-import PostCard from "@/components/feed/post-card/PostCard";
-import PostEditorModal from "@/components/feed/post-editor/PostEditorModal";
-import { useDeletePost } from "@/hooks/feed/useDeletePost";
+import PostCard from "@/components/feed/post/PostCard";
+import EditorModal from "@/components/feed/editor/EditorModal";
+import { useDeletePost } from "@/hooks/post/useDeletePost";
 import BackButton from "@/components/ui/back-button";
 
 /* =====================================================
@@ -266,7 +266,7 @@ export default function SinglePostPage({ postId, initialPost }) {
         {/* EDITOR */}
 
         {editingPost && (
-          <PostEditorModal
+          <EditorModal
             isOpen={!!editingPost}
             onClose={() => setEditingPost(null)}
             post={editingPost}

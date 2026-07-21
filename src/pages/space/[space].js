@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PageHeaderSkeleton from "@/components/skeletons/PageHeaderSkeleton";
 import MetaCardsSkeleton from "@/components/skeletons/MetaCardsSkeleton";
-import { useSpaces } from "@/hooks/useSpaces";
+import { useSpaces } from "@/hooks/space/useSpaces";
 import MembersTab from "@/components/tabs/MembersTab";
 import ActivityTab from "@/components/tabs/ActivityTab";
 import OverviewTab from "@/components/tabs/OverviewTab";

@@ -2,7 +2,7 @@
 
 import AttachmentPicker from "@/components/ui/AttachmentPicker";
 
-export default function PostEditorAttachments({ attachments, setAttachments }) {
+export default function EditorAttachments({ attachments, setAttachments }) {
   return (
     <AttachmentPicker
       attachments={attachments}

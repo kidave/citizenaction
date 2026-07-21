@@ -23,7 +23,7 @@ import { ArrowLeft, Trash2, Upload, X, Save } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
-import { useSpaces } from "@/hooks/useSpaces";
+import { useSpaces } from "@/hooks/space/useSpaces";
 import { spaceUpdateSchema } from "@/schemas/space";
 import { supabase } from "@/lib/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
