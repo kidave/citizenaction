@@ -118,14 +118,22 @@ export default function AttachmentPicker({
 
   const getIcon = (file) => {
     if (file.type.startsWith("image/")) {
-      return <ImageIcon className="h-5 w-5 text-blue-600" />;
+      return <ImageIcon className="h-5 w-5" />;
     }
 
     if (file.type === "application/pdf") {
-      return <FileText className="h-5 w-5 text-red-600" />;
+      return <FileText className="h-5 w-5" />;
     }
 
-    return <File className="h-5 w-5 text-muted-foreground" />;
+    return <File className="h-5 w-5" />;
+  };
+
+  const getFileType = (file) => {
+    if (!file?.name) return "FILE";
+
+    const extension = file.name.split(".").pop();
+
+    return extension ? extension.toUpperCase() : "FILE";
   };
 
   const formatSize = (bytes) => {
@@ -141,7 +149,7 @@ export default function AttachmentPicker({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <Attachment
         {...getRootProps()}
         className={`relative cursor-pointer gap-2 overflow-hidden rounded-2xl border border-dashed bg-card p-4 transition ${isDragActive ? "border-primary bg-primary/10" : "border-muted"}`}
@@ -170,13 +178,20 @@ export default function AttachmentPicker({
       {/* ================= Images ================= */}
 
       {imageAttachments.length > 0 && (
-        <AttachmentGroup>
+        <div className="grid grid-cols-4 gap-2">
           {imageAttachments.map((file, index) => {
             const preview = getPreview(file);
 
             return (
-              <Attachment key={index} orientation="vertical">
-                <AttachmentMedia variant="image">
+              <Attachment
+                key={index}
+                orientation="vertical"
+                className="w-44 overflow-hidden rounded-xl"
+              >
+                <AttachmentMedia
+                  variant="image"
+                  className="aspect-[4/3] w-full bg-muted"
+                >
                   {preview.startsWith("blob:") ? (
                     <img src={preview} alt={file.name} />
                   ) : (
@@ -190,18 +205,19 @@ export default function AttachmentPicker({
                   )}
                 </AttachmentMedia>
 
-                <AttachmentContent>
-                  <AttachmentTitle className="truncate">
+                <AttachmentContent className="space-y-1 p-2">
+                  <AttachmentTitle className="truncate text-sm font-medium leading-tight">
                     {file.name}
                   </AttachmentTitle>
 
-                  <AttachmentDescription>
-                    Image • {formatSize(file.size)}
+                  <AttachmentDescription className="text-xs text-muted-foreground">
+                    {getFileType(file)} • {formatSize(file.size)}
                   </AttachmentDescription>
                 </AttachmentContent>
 
                 <AttachmentActions>
                   <AttachmentAction
+                    className="h-7 w-7 rounded-full bg-background/80 shadow-sm backdrop-blur"
                     aria-label="Remove"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -214,28 +230,24 @@ export default function AttachmentPicker({
               </Attachment>
             );
           })}
-        </AttachmentGroup>
+        </div>
       )}
 
       {/* ================= Documents ================= */}
 
       {documentAttachments.length > 0 && (
-        <div className="space-y-2">
+        <div className="grid grid-cols-3 gap-2">
           {documentAttachments.map((file) => (
             <Attachment key={file.name} className="w-full">
               <AttachmentMedia>{getIcon(file)}</AttachmentMedia>
 
-              <AttachmentContent>
-                <AttachmentTitle className="truncate">
+              <AttachmentContent className="space-y-1 p-2">
+                <AttachmentTitle className="truncate text-sm font-medium leading-tight">
                   {file.name}
                 </AttachmentTitle>
 
                 <AttachmentDescription>
-                  {file.type === "application/pdf" ? "PDF" : "Document"}
-
-                  {" • "}
-
-                  {formatSize(file.size)}
+                  {getFileType(file)} • {formatSize(file.size)}
                 </AttachmentDescription>
               </AttachmentContent>
 

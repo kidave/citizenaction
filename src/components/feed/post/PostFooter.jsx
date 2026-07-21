@@ -87,7 +87,7 @@ export default function PostFooter({ post }) {
     <>
       <TooltipProvider>
         <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <GovernanceAvatarGroups entities={governance} />
 
             <button
@@ -98,7 +98,7 @@ export default function PostFooter({ post }) {
             </button>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             <Tooltip>
               <TooltipTrigger asChild>
                 <button

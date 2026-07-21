@@ -51,7 +51,6 @@ export default function PostAttachments({ attachments = [] }) {
         images={attachments}
         onCardClick={(index) => {
           const attachment = attachments[index];
-
           handleClick(attachment);
         }}
       />
