@@ -12,6 +12,7 @@ import GovernanceAvatarGroups from "@/components/governance/GovernanceAvatarGrou
 import ContributorAvatarGroup from "@/components/feed/contribution/ContributorAvatarGroup";
 import PostShareButton from "@/components/feed/PostShareButton";
 import { usePostGovernance } from "@/hooks/feed/usePostGovernance";
+import ContributionDrawer from "@/components/feed/contribution/ContributionDrawer";
 
 import {
   Tooltip,
@@ -127,9 +128,7 @@ export default function PostFooter({ post }) {
                 </button>
               </TooltipTrigger>
 
-              <TooltipContent>
-                View contributions ({contributionCount})
-              </TooltipContent>
+              <TooltipContent>Contribute</TooltipContent>
             </Tooltip>
 
             <PostShareButton post={post} />
@@ -137,14 +136,11 @@ export default function PostFooter({ post }) {
         </div>
       </TooltipProvider>
 
-      {/* Future */}
-      {/*
       <ContributionDrawer
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
         post={post}
       />
-      */}
     </>
   );
 }

@@ -12,8 +12,6 @@ import PostContent from "@/components/feed/post/PostContent";
 import PostMetadata from "@/components/feed/post/PostMetadata";
 import PostAttachments from "@/components/feed/post/PostAttachments";
 
-import ContributionFooter from "./ContributionFooter";
-
 export default function ContributionCard({
   contribution,
   post,
@@ -26,7 +24,7 @@ export default function ContributionCard({
 
   return (
     <Card>
-      <div className="flex flex-col gap-4 p-4">
+      <div className="flex flex-col gap-2 p-4">
         {/* Header */}
 
         <Row className="items-start justify-between gap-3">
@@ -70,10 +68,6 @@ export default function ContributionCard({
           }}
           forceExpanded
         />
-
-        {/* Footer
-        <ContributionFooter contribution={contribution} post={post} />
-         */}
       </div>
     </Card>
   );

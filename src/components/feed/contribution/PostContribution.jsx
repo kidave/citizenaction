@@ -54,7 +54,19 @@ export default function PostContribution({ post }) {
 
   return (
     <>
-      <div className="space-y-4">
+      {!myContribution && user && (
+        <button
+          onClick={() => {
+            setSelectedContribution(null);
+            setIsEditorOpen(true);
+          }}
+          className="mb-4 w-full rounded-xl border py-3 text-sm font-medium hover:bg-muted"
+        >
+          Add Contribution
+        </button>
+      )}
+
+      <div className="space-y-4 pb-4">
         {contributions.map((contribution) => {
           const canEdit =
             post.can_manage || contribution.author_id === user?.id;
@@ -78,18 +90,6 @@ export default function PostContribution({ post }) {
           );
         })}
       </div>
-
-      {!myContribution && user && (
-        <button
-          onClick={() => {
-            setSelectedContribution(null);
-            setIsEditorOpen(true);
-          }}
-          className="mt-4 w-full rounded-md border py-2 text-sm transition-colors hover:bg-muted"
-        >
-          Add Contribution
-        </button>
-      )}
 
       <EditorModal
         mode="contribution"
