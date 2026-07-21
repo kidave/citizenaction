@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 
-import { Row } from "@/components/layout/Row";
-import { UserIdentity } from "@/components/profile/UserIdentity";
-import PostActions from "@/components/feed/post/PostActions";
+import ContributionCard from "@/components/feed/contribution/ContributionCard";
 import EditorModal from "@/components/feed/editor/EditorModal";
 
 import { useAuth } from "@/context/AuthContext";
@@ -62,53 +60,21 @@ export default function PostContribution({ post }) {
             post.can_manage || contribution.author_id === user?.id;
 
           return (
-            <div
+            <ContributionCard
               key={contribution.id}
-              className="space-y-4 rounded-xl border p-4"
-            >
-              <Row className="items-center justify-between">
-                <UserIdentity
-                  username={contribution.username}
-                  name={contribution.name}
-                  avatar={contribution.avatar_url}
-                />
-
-                {canEdit && (
-                  <PostActions
-                    canEdit
-                    onEdit={() => {
-                      setSelectedContribution(contribution);
-                      setIsEditorOpen(true);
-                    }}
-                    onDelete={() => handleDelete(contribution)}
-                  />
-                )}
-              </Row>
-
-              {contribution.title && (
-                <h4 className="font-semibold">{contribution.title}</h4>
-              )}
-
-              {contribution.content && (
-                <div className="whitespace-pre-wrap text-sm">
-                  {contribution.content}
-                </div>
-              )}
-
-              {contribution.start_at && (
-                <div className="text-xs text-muted-foreground">
-                  {new Date(contribution.start_at).toLocaleDateString()}
-                </div>
-              )}
-
-              {contribution.address && (
-                <div className="text-xs text-muted-foreground">
-                  {contribution.address}
-                </div>
-              )}
-
-              {/* Attachments will go here */}
-            </div>
+              contribution={contribution}
+              post={post}
+              canEdit={canEdit}
+              onEdit={() => {
+                setSelectedContribution(contribution);
+                setIsEditorOpen(true);
+              }}
+              onDelete={() => handleDelete(contribution)}
+              onContribute={() => {
+                setSelectedContribution(null);
+                setIsEditorOpen(true);
+              }}
+            />
           );
         })}
       </div>

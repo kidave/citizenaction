@@ -51,9 +51,10 @@ export default function Feed() {
 
       {editingPost && (
         <EditorModal
+          mode="post"
           isOpen={!!editingPost}
           onClose={() => setEditingPost(null)}
-          post={editingPost}
+          item={editingPost}
         />
       )}
     </div>

@@ -132,14 +132,12 @@ export default function PostCard({
         </div>
 
         {forceExpanded && (
-          <div className="rounded-3xl border-2 p-4">
-            <PostContribution
-              post={{
-                ...post,
-                spaces,
-              }}
-            />
-          </div>
+          <PostContribution
+            post={{
+              ...post,
+              spaces,
+            }}
+          />
         )}
       </div>
     </Card>

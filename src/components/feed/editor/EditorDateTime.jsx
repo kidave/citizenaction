@@ -82,7 +82,17 @@ export default function EditorDateTime({ editor }) {
           ))}
         </div>
 
-        <div className="flex justify-end border-t px-5 py-4">
+        <div className="flex justify-between border-t px-5 py-4">
+          <Button
+            variant="outline"
+            onClick={() => {
+              editor.setStartAt(null);
+              editor.setEndAt(null);
+            }}
+          >
+            Clear
+          </Button>
+
           <Button onClick={() => setOpen(false)}>Done</Button>
         </div>
       </DialogContent>

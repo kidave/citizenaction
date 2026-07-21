@@ -39,6 +39,7 @@ export default function EditorModal({
     mode === "contribution" ? item : null,
     post,
   );
+  console.log("item", item);
 
   const editor = mode === "post" ? postEditor : contributionEditor;
 

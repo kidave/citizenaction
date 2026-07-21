@@ -179,12 +179,25 @@ export default function EditorAddress({ editor }) {
                     </div>
                   </div>
 
-                  <div className="flex flex-col-reverse justify-end gap-2 border-t p-3 sm:flex-row">
-                    <Button variant="outline" onClick={() => setOpen(false)}>
-                      Cancel
+                  <div className="flex flex-col-reverse justify-between gap-2 border-t p-3 sm:flex-row">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        editor.setLat(null);
+                        editor.setLng(null);
+                        editor.setAddress(null);
+                      }}
+                    >
+                      Clear
                     </Button>
 
-                    <Button onClick={() => setOpen(false)}>Done</Button>
+                    <div className="flex gap-2">
+                      <Button variant="outline" onClick={() => setOpen(false)}>
+                        Cancel
+                      </Button>
+
+                      <Button onClick={() => setOpen(false)}>Done</Button>
+                    </div>
                   </div>
                 </div>
               </div>

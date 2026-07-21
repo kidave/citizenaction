@@ -2,51 +2,78 @@
 
 import { Card } from "@/components/ui/card";
 
-import PostHeader from "@/components/feed/post/PostHeader";
+import { Row } from "@/components/layout/Row";
+
+import { UserIdentity } from "@/components/profile/UserIdentity";
+import formatDate from "@/utils/date/formatDate";
+import PostActions from "@/components/feed/post/PostActions";
+
 import PostContent from "@/components/feed/post/PostContent";
 import PostMetadata from "@/components/feed/post/PostMetadata";
 import PostAttachments from "@/components/feed/post/PostAttachments";
-import PostActions from "@/components/feed/post/PostActions";
+
+import ContributionFooter from "./ContributionFooter";
 
 export default function ContributionCard({
   contribution,
   post,
-  canEdit,
+  canEdit = false,
   onEdit,
   onDelete,
 }) {
-  const contributionPost = {
-    ...contribution,
-
-    summary: contribution.summary ?? contribution.title,
-    details: contribution.details ?? contribution.content,
-
-    spaces: post.spaces ?? [],
-    type: "contribution",
-  };
+  if (!contribution) return null;
+  const formattedDate = formatDate(contribution.created_at);
 
   return (
-    <Card className="rounded-3xl border-2 bg-white/70 p-4 shadow-sm backdrop-blur-sm">
-      <div className="space-y-4">
-        <PostHeader post={contributionPost} canEdit={false} status={null} />
+    <Card>
+      <div className="flex flex-col gap-4 p-4">
+        {/* Header */}
 
-        {canEdit && (
-          <div className="flex justify-end">
+        <Row className="items-start justify-between gap-3">
+          <UserIdentity
+            username={contribution.username}
+            name={contribution.name}
+            avatar={contribution.avatar_url}
+            createdAt={formattedDate}
+          />
+
+          {canEdit && (
             <PostActions canEdit onEdit={onEdit} onDelete={onDelete} />
-          </div>
-        )}
+          )}
+        </Row>
+
+        {/* Attachments */}
 
         {contribution.attachments?.length > 0 && (
-          <div className="overflow-hidden rounded-3xl">
+          <div className="overflow-hidden rounded-2xl">
             <PostAttachments attachments={contribution.attachments} />
           </div>
         )}
 
-        <div className="rounded-3xl border-2 bg-white/70 p-4 shadow-sm backdrop-blur-sm">
-          <PostContent post={contributionPost} forceExpanded />
+        {/* Content */}
 
-          <PostMetadata post={contributionPost} forceExpanded />
-        </div>
+        <PostContent
+          post={{
+            ...contribution,
+            summary: contribution.title,
+            details: contribution.content,
+            type: "contribution",
+          }}
+          forceExpanded
+          showBadge={false}
+        />
+
+        <PostMetadata
+          post={{
+            ...contribution,
+            type: "contribution",
+          }}
+          forceExpanded
+        />
+
+        {/* Footer
+        <ContributionFooter contribution={contribution} post={post} />
+         */}
       </div>
     </Card>
   );

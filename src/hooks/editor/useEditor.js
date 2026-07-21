@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { useAuth } from "@/context/AuthContext";
 
@@ -9,33 +9,54 @@ import { extractContentMeta } from "@/utils/text/contentMeta";
 export function useEditor(item = null) {
   const { user } = useAuth();
 
-  const [spaces, setSpaces] = useState(item?.spaces || []);
+  const [spaces, setSpaces] = useState([]);
+  const [is_global, setIsGlobal] = useState(false);
+  const [governance_entities, setSelectedAuthorities] = useState([]);
 
-  const [is_global, setIsGlobal] = useState(item?.is_global || false);
+  const [type, setType] = useState("action");
 
-  const [governance_entities, setSelectedAuthorities] = useState(
-    item?.governance_entities || [],
-  );
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
 
-  const [type, setType] = useState(item?.type || "action");
+  const [attachments, setAttachments] = useState([]);
 
-  const [title, setTitle] = useState(item?.summary ?? item?.title ?? "");
+  const [start_at, setStartAt] = useState(null);
+  const [end_at, setEndAt] = useState(null);
 
-  const [content, setContent] = useState(item?.details ?? item?.content ?? "");
+  const [lat, setLat] = useState(null);
+  const [lng, setLng] = useState(null);
 
-  const [attachments, setAttachments] = useState(item?.attachments || []);
+  const [address, setAddress] = useState(null);
 
-  const [start_at, setStartAt] = useState(item?.start_at || null);
+  const [meeting_link, setMeetingLink] = useState("");
 
-  const [end_at, setEndAt] = useState(item?.end_at || null);
+  useEffect(() => {
+    setSpaces(item?.spaces ?? []);
 
-  const [lat, setLat] = useState(item?.lat || null);
+    setIsGlobal(item?.is_global ?? false);
 
-  const [lng, setLng] = useState(item?.lng || null);
+    setSelectedAuthorities(item?.governance_entities ?? []);
 
-  const [address, setAddress] = useState(item?.address || null);
+    setType(item?.type ?? "action");
 
-  const [meeting_link, setMeetingLink] = useState(item?.meeting_link || "");
+    setTitle(item?.summary ?? item?.title ?? "");
+
+    setContent(item?.details ?? item?.content ?? "");
+
+    setAttachments(item?.attachments ?? []);
+
+    setStartAt(item?.start_at ?? null);
+
+    setEndAt(item?.end_at ?? null);
+
+    setLat(item?.lat ?? null);
+
+    setLng(item?.lng ?? null);
+
+    setAddress(item?.address ?? null);
+
+    setMeetingLink(item?.meeting_link ?? "");
+  }, [item]);
 
   function getEditorData() {
     const { links, hashtags } = extractContentMeta(content);

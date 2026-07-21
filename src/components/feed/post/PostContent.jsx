@@ -10,6 +10,7 @@ export default function PostContent({
   post,
   onNavigate,
   forceExpanded = false,
+  showBadge = true,
 }) {
   const [expanded, setExpanded] = useState(forceExpanded);
 
@@ -48,14 +49,16 @@ export default function PostContent({
       <div className="space-y-1 whitespace-pre-wrap text-sm">
         <Row className="mb-2 gap-2">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge
-              variant="secondary"
-              className={`shrink-0 text-xs ${typeStyles[type] || ""}`}
-            >
-              {type.toUpperCase()}
-            </Badge>
+            {showBadge && (
+              <Badge
+                variant="secondary"
+                className={`shrink-0 text-xs ${typeStyles[type] || ""}`}
+              >
+                {type.toUpperCase()}
+              </Badge>
+            )}
 
-            {title && <div className="items-center font-medium">{title}</div>}
+            {title && <div className="font-medium">{title}</div>}
           </div>
         </Row>
 

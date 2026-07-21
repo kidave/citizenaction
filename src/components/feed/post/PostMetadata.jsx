@@ -1,17 +1,11 @@
 "use client";
 
 import Link from "next/link";
-
 import { useEffect, useMemo, useState } from "react";
-
 import { CalendarDays, Clock3, MapPin, Video } from "lucide-react";
-
 import { format, formatDistanceToNowStrict } from "date-fns";
-
 import PostCalendarActions from "@/components/shared/PostCalendarActions";
-
 import getPostTypeConfig from "@/utils/feed/getPostTypeConfig";
-
 import getPostStatus from "@/utils/feed/getPostStatus";
 
 const pillStyles = {
@@ -59,53 +53,22 @@ export default function PostMetadata({ post, forceExpanded = false }) {
     return () => clearInterval(interval);
   }, []);
 
-  // =====================================================
-  // CONFIG
-  // =====================================================
-
   const config = getPostTypeConfig(post.type);
-
-  // =====================================================
-  // STATUS
-  // =====================================================
-
   const status = useMemo(
     () => getPostStatus(post, mounted ? now : null),
 
     [post, now, mounted],
   );
 
-  // =====================================================
-  // GUARDS
-  // =====================================================
-
-  if (!post?.start_at) {
-    return null;
-  }
-
-  // =====================================================
-  // DATES
-  // =====================================================
-
-  const start = new Date(post.start_at);
-
+  const start = post.start_at ? new Date(post.start_at) : null;
   const end = post.end_at ? new Date(post.end_at) : null;
 
-  // =====================================================
-  // UI FLAGS
-  // =====================================================
-
   const compactMode = !forceExpanded;
-
   const showCountdown =
     mounted && status?.key === "upcoming" && status?.countdown;
 
-  // =====================================================
-  // UI
-  // =====================================================
-
   return (
-    <div className="mb-2 gap-2 space-y-2">
+    <div className="gap-2 space-y-2">
       {/* STATUS */}
 
       <div className="flex flex-wrap items-center gap-2">
@@ -134,29 +97,29 @@ export default function PostMetadata({ post, forceExpanded = false }) {
 
       {!compactMode && (
         <>
-          {/* DATE/TIME */}
+          {start && (
+            <>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <CalendarDays className="h-4 w-4 shrink-0" />
+                  <span>{format(start, "d MMMM yyyy")}</span>
+                </div>
 
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-            {/* DATE */}
-            <div className="flex items-center gap-2">
-              <CalendarDays className="h-4 w-4 shrink-0" />
+                {config.showTime && (
+                  <div className="flex items-center gap-2">
+                    <Clock3 className="h-4 w-4 shrink-0" />
 
-              <span>{format(start, "d MMMM yyyy")}</span>
-            </div>
-
-            {/* TIME */}
-            {config.showTime && (
-              <div className="flex items-center gap-2">
-                <Clock3 className="h-4 w-4 shrink-0" />
-
-                <span>
-                  {format(start, "h:mm a")}
-
-                  {end && <> - {format(end, "h:mm a")}</>}
-                </span>
+                    <span>
+                      {format(start, "h:mm a")}
+                      {end && <> - {format(end, "h:mm a")}</>}
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+
+              {showCountdown && <PostCalendarActions post={post} />}
+            </>
+          )}
 
           {/* ADDRESS */}
 

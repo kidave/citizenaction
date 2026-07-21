@@ -31,7 +31,7 @@ export function useUpdateContribution() {
       // ==========================================
 
       const { data, error } = await supabase.rpc("update_post_contribution", {
-        p_contribution_id: contributionId,
+        p_id: contributionId,
 
         p_title: contributionData.title,
 

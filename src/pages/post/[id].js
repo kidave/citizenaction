@@ -267,9 +267,10 @@ export default function SinglePostPage({ postId, initialPost }) {
 
         {editingPost && (
           <EditorModal
+            mode="post"
             isOpen={!!editingPost}
             onClose={() => setEditingPost(null)}
-            post={editingPost}
+            item={editingPost}
           />
         )}
       </div>
