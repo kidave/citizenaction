@@ -1,7 +1,7 @@
 import Head from "next/head";
 
 import "@/styles/main.css";
-
+import ThemeProvider from "@/styles/ThemeProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { AuthProvider } from "@/context/AuthContext";
@@ -53,23 +53,25 @@ function MyApp({ Component, pageProps }) {
       </Head>
 
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <MediaProvider>
-            <Layout>
-              <RouteLoader />
+        <ThemeProvider>
+          <AuthProvider>
+            <MediaProvider>
+              <Layout>
+                <RouteLoader />
 
-              <ErrorBoundary>
-                <main className="w-full min-w-0">
-                  {getLayout(<Component {...pageProps} />)}
-                </main>
+                <ErrorBoundary>
+                  <main className="w-full min-w-0">
+                    {getLayout(<Component {...pageProps} />)}
+                  </main>
 
-                <MobileBottomBar />
-              </ErrorBoundary>
+                  <MobileBottomBar />
+                </ErrorBoundary>
 
-              <Toaster richColors position="top-right" />
-            </Layout>
-          </MediaProvider>
-        </AuthProvider>
+                <Toaster richColors position="top-right" />
+              </Layout>
+            </MediaProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </QueryClientProvider>
     </>
   );

@@ -12,10 +12,7 @@ export default function Home() {
         <Feed />
       </div>
 
-      {/* RIGHT SIDEBAR */}
-      <div className="ml-4 hidden w-[320px] xl:block">
-        <RightSidebar />
-      </div>
+      <RightSidebar />
     </div>
   );
 }

@@ -47,7 +47,7 @@ export default function PostContent({
       className={!forceExpanded ? "cursor-pointer" : ""}
     >
       <div className="space-y-1 whitespace-pre-wrap text-sm">
-        <Row className="gap-2">
+        <div className="flex items-center gap-2">
           <div className="flex flex-wrap items-center gap-2">
             {showBadge && (
               <Badge
@@ -60,7 +60,7 @@ export default function PostContent({
 
             {title && <div className="font-medium">{title}</div>}
           </div>
-        </Row>
+        </div>
 
         <Linkify
           options={{
