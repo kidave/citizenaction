@@ -34,7 +34,7 @@ export default function FancyBadge({
   return (
     <div
       className={cn(
-        `inline-flex select-none items-center justify-center rounded-full border-4 px-5 py-2 text-sm font-black tracking-wide shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]`,
+        `inline-flex select-none items-center justify-center rounded-full border-4 px-5 py-2 text-sm tracking-wide shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]`,
         variants[variant],
         className,
       )}

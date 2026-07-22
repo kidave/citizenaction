@@ -67,7 +67,7 @@ export default function AboutPage() {
           >
             <FancyBadge>Community Powered</FancyBadge>
 
-            <h2 className="mt-6 text-4xl font-black tracking-tight md:text-6xl">
+            <h2 className="mt-6 text-4xl tracking-tight md:text-6xl">
               Civic action should feel human, local and fun.
             </h2>
 
@@ -105,7 +105,7 @@ export default function AboutPage() {
 
             <FancyBadge>Start Your Community</FancyBadge>
 
-            <h2 className="mt-6 max-w-3xl text-4xl font-black md:text-6xl">
+            <h2 className="mt-6 max-w-3xl text-4xl md:text-6xl">
               Create a civic space for your cause.
             </h2>
 
@@ -135,7 +135,7 @@ export default function AboutPage() {
           <div className="text-center">
             <FancyBadge>FAQ</FancyBadge>
 
-            <h2 className="mt-6 text-4xl font-black md:text-5xl">
+            <h2 className="mt-6 text-4xl md:text-5xl">
               Questions people usually ask
             </h2>
           </div>
@@ -164,7 +164,7 @@ export default function AboutPage() {
         <div className="mx-auto max-w-4xl px-6 text-center">
           <FancyBadge>Join The Movement</FancyBadge>
 
-          <h2 className="mt-6 text-4xl font-black md:text-6xl">
+          <h2 className="mt-6 text-4xl md:text-6xl">
             Better cities start with organized people.
           </h2>
 

@@ -42,7 +42,6 @@ export default function MobileBottomBar() {
           </Avatar>
         </button>
       ) : (
-        // Not Logged In → Show Menu Icon
         <button
           onClick={toggleSidebar}
           className="flex flex-col items-center text-muted-foreground"

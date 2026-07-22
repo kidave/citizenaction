@@ -88,7 +88,7 @@ export default function SpacePage() {
               alt={`${space.name} logo`}
               width={56}
               height={56}
-              className="rounded-md border object-contain"
+              className="rounded-md border bg-muted object-contain"
             />
           )}
 

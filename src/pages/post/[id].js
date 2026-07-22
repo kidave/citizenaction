@@ -251,7 +251,7 @@ export default function SinglePostPage({ postId, initialPost }) {
         {/* CONTENT */}
 
         <div className="flex w-full justify-center">
-          <div className="w-full max-w-4xl px-0">
+          <div className="w-full max-w-4xl py-4">
             <PostCard
               post={post}
               canEdit={canEdit}

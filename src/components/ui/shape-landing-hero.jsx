@@ -86,7 +86,7 @@ export function HeroGeometric({
             duration: 0.5,
           }}
         >
-          <div className="inline-flex items-center rounded-full border-4 border-black bg-yellow-300 px-5 py-2 text-sm font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div className="inline-flex items-center rounded-full border-4 border-black bg-yellow-300 px-5 py-2 text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
             {badge}
           </div>
         </motion.div>
@@ -105,7 +105,7 @@ export function HeroGeometric({
           transition={{
             delay: 0.15,
           }}
-          className="mt-10 text-5xl font-black leading-[0.95] tracking-tight md:text-8xl"
+          className="mt-10 text-5xl leading-[0.95] tracking-tight md:text-8xl"
         >
           <span className="block">{title1}</span>
 

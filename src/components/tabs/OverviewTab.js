@@ -60,37 +60,37 @@ export default function OverviewTab({ space }) {
 
         <MetricCard icon={CalendarDays} label="Events" value={events.length} />
       </section>
-
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
-          <div className="space-y-4">
-            <Link
-              href={`/space/${space.slug}?tab=activity`}
-              className="flex items-center justify-between"
-            >
-              <div>
-                <p className="text-sm font-semibold text-muted-foreground">
-                  Latest updates from {space.name}
-                </p>
-              </div>
-            </Link>
-
-            {!recentFeed.length ? (
-              <div className="text-sm text-muted-foreground">
-                No recent activity.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-                {recentFeed.map((post) => (
-                  <ActivityPreviewCard key={post.id} post={post} />
-                ))}
-              </div>
-            )}
+      <div className="space-y-4">
+        <Link
+          href={`/space/${space.slug}?tab=activity`}
+          className="flex items-center justify-between"
+        >
+          <div>
+            <p className="text-sm font-semibold text-muted-foreground">
+              Latest updates from {space.name}
+            </p>
           </div>
+        </Link>
+      </div>
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+        {/* Activity */}
+        <div className="lg:col-span-2">
+          {!recentFeed.length ? (
+            <div className="text-sm text-muted-foreground">
+              No recent activity.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {recentFeed.map((post) => (
+                <ActivityPreviewCard key={post.id} post={post} />
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className="space-y-6">
-          <Card className="overflow-hidden rounded-[32px]">
+        {/* Right Side */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:col-span-2 lg:grid-cols-1">
+          <Card className="flex h-full flex-col overflow-hidden rounded-3xl bg-muted">
             <CardHeader>
               <Link
                 href={`/space/${space.slug}?tab=members`}
@@ -100,7 +100,7 @@ export default function OverviewTab({ space }) {
               </Link>
             </CardHeader>
 
-            <CardContent className="space-y-4">
+            <CardContent className="flex-1 bg-background py-2">
               {admins.map((member) => (
                 <Link key={member.user_id} href={`/user/${member.username}`}>
                   <div className="flex items-center justify-between gap-3 rounded-lg p-2 transition">
@@ -129,12 +129,12 @@ export default function OverviewTab({ space }) {
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden rounded-[32px]">
+          <Card className="flex h-full flex-col overflow-hidden rounded-3xl bg-muted">
             <CardHeader>
               <CardTitle>{space.name}</CardTitle>
             </CardHeader>
 
-            <CardContent className="space-y-4 text-sm">
+            <CardContent className="flex-1 bg-background py-2">
               {space.scope_type && (
                 <div className="flex items-start gap-3">
                   <MapPinned className="mt-0.5 h-4 w-4 text-muted-foreground" />

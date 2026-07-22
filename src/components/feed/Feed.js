@@ -28,9 +28,7 @@ export default function Feed() {
         </div>
       ) : data?.length === 0 ? (
         <Card className="p-8 text-center">
-          <p className="text-muted-foreground">
-            No posts yet. Be the first to share!
-          </p>
+          <p>No posts yet. Be the first to share!</p>
         </Card>
       ) : (
         <div className="space-y-0 sm:space-y-4">

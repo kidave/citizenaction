@@ -78,7 +78,7 @@ export default function ActivityPreviewCard({ post }) {
             </div>
           </>
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+          <div className="flex h-full w-full items-center justify-center text-xs">
             {post.type?.toUpperCase()}
           </div>
         )}
@@ -98,14 +98,14 @@ export default function ActivityPreviewCard({ post }) {
       >
         <CardHeader className="space-y-2">
           {(post.details || post.summary) && (
-            <div className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+            <div className="line-clamp-2 text-sm leading-relaxed text-black">
               {post.details || post.summary}
             </div>
           )}
 
           {/* DATE */}
 
-          <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+          <div className="flex items-center gap-2 text-xs font-medium text-black">
             <CalendarDays className="h-3.5 w-3.5 shrink-0" />
 
             <span>{format(new Date(startDate), "d MMMM yyyy")}</span>
@@ -147,7 +147,7 @@ export default function ActivityPreviewCard({ post }) {
         transition={{
           duration: 0.22,
         }}
-        className="pointer-events-none absolute inset-0 flex flex-col bg-background/100"
+        className="pointer-events-none absolute inset-0 flex flex-col bg-muted"
       >
         {/* TOP */}
 
@@ -156,7 +156,7 @@ export default function ActivityPreviewCard({ post }) {
             {post.summary || "Untitled"}
           </div>
 
-          <div className="mt-4 text-sm leading-relaxed text-muted-foreground">
+          <div className="mt-4 text-sm leading-relaxed">
             <div className="line-clamp-[12]">
               {post.details || "No additional details."}
             </div>

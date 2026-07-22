@@ -112,7 +112,7 @@ export default function SpaceApplicationPage() {
       <div className="flex min-h-dvh items-center justify-center p-6">
         <Card className="w-full max-w-md rounded-[32px] border-4">
           <CardContent className="space-y-4 p-8 text-center">
-            <h1 className="text-2xl font-black">Sign in required</h1>
+            <h1 className="text-2xl">Sign in required</h1>
 
             <p className="text-muted-foreground">
               You need to sign in to view your application.
@@ -170,7 +170,7 @@ export default function SpaceApplicationPage() {
                 </div>
 
                 <div>
-                  <h1 className="text-4xl font-black tracking-tight">
+                  <h1 className="text-4xl tracking-tight">
                     Application Submitted
                   </h1>
 
@@ -194,7 +194,7 @@ export default function SpaceApplicationPage() {
                     Application Reference
                   </div>
 
-                  <div className="mt-1 text-3xl font-black tracking-tight">
+                  <div className="mt-1 text-3xl tracking-tight">
                     #{application.id.slice(0, 8).toUpperCase()}
                   </div>
                 </div>

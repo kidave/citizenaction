@@ -191,9 +191,7 @@ export default function ApplySpace() {
                 Civic Spaces
               </div>
 
-              <h1 className="text-4xl font-black tracking-tight">
-                Start a Civic Space
-              </h1>
+              <h1 className="text-4xl tracking-tight">Start a Civic Space</h1>
 
               <p className="max-w-2xl text-muted-foreground">
                 Organize civic actions, coordinate volunteers, host meetings,
@@ -244,7 +242,7 @@ export default function ApplySpace() {
 
         <Card className="rounded-[32px]">
           <CardHeader className="space-y-2">
-            <h2 className="text-2xl font-black">Application</h2>
+            <h2 className="text-2xl ">Application</h2>
 
             <p className="text-sm text-muted-foreground">
               Tell us a little about your organization or initiative.

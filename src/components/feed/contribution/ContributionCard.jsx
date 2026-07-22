@@ -23,7 +23,7 @@ export default function ContributionCard({
   const formattedDate = formatDate(contribution.created_at);
 
   return (
-    <Card>
+    <Card className="bg-background">
       <div className="flex flex-col gap-2 p-4">
         {/* Header */}
 

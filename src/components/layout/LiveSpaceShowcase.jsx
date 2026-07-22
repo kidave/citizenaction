@@ -23,7 +23,7 @@ import ActivityPreviewCard from "@/components/feed/activity/ActivityPreviewCard"
 function FancyBadge({ children, className = "" }) {
   return (
     <div
-      className={`inline-flex items-center rounded-full border-4 border-black bg-yellow-300 px-5 py-2 text-sm font-black ${className} `}
+      className={`inline-flex items-center rounded-full border-4 border-black bg-yellow-300 px-5 py-2 text-sm ${className} `}
     >
       {children}
     </div>
@@ -43,7 +43,7 @@ export default function LiveSpaceShowcase({ space = null }) {
         <div className="text-center">
           <FancyBadge>Live Community Space</FancyBadge>
 
-          <h2 className="mt-6 text-4xl font-black md:text-6xl">
+          <h2 className="mt-6 text-4xl md:text-6xl">
             Communities documenting collaborative progress.
           </h2>
 
@@ -99,7 +99,7 @@ export default function LiveSpaceShowcase({ space = null }) {
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center text-3xl font-black">
+                          <div className="flex h-full w-full items-center justify-center text-3xl">
                             {currentSpace.name?.[0]}
                           </div>
                         )}
@@ -107,9 +107,7 @@ export default function LiveSpaceShowcase({ space = null }) {
 
                       {/* TITLE */}
 
-                      <h3 className="mt-6 text-3xl font-black">
-                        {currentSpace.name}
-                      </h3>
+                      <h3 className="mt-6 text-3xl">{currentSpace.name}</h3>
 
                       {/* DESCRIPTION */}
 
@@ -119,7 +117,7 @@ export default function LiveSpaceShowcase({ space = null }) {
 
                       {/* CTA */}
 
-                      <Button className="mt-8 rounded-2xl font-black" asChild>
+                      <Button className="mt-8 rounded-2xl" asChild>
                         <Link href={`/space/${currentSpace.slug}`}>
                           View Space
                           <ArrowRight className="ml-2 h-4 w-4" />

@@ -46,7 +46,7 @@ export default function CreatePostTrigger() {
           duration: 0.2,
         }}
       >
-        <Card className="relative mb-4 hidden overflow-hidden rounded-[28px] to-muted/40 md:block">
+        <Card className="relative mb-4 hidden overflow-hidden rounded-[28px] bg-muted md:block">
           {/* =====================================================
               CONTENT
           ===================================================== */}
@@ -62,7 +62,7 @@ export default function CreatePostTrigger() {
                   <Avatar className="h-12 w-12 cursor-pointer border-2">
                     <AvatarImage src={profile.avatar_url || undefined} />
 
-                    <AvatarFallback className="font-black">
+                    <AvatarFallback>
                       {profile.name?.charAt(0) || "U"}
                     </AvatarFallback>
                   </Avatar>
@@ -72,7 +72,7 @@ export default function CreatePostTrigger() {
                   onClick={() => setShowLogin(true)}
                   className="h-12 w-12 cursor-pointer border-2"
                 >
-                  <AvatarFallback className="bg-background">
+                  <AvatarFallback>
                     <div className="relative h-7 w-7">
                       <Image
                         src="/logo.png"
@@ -90,16 +90,16 @@ export default function CreatePostTrigger() {
               ===================================================== */}
 
               <div onClick={handleClick} className="flex-1 cursor-pointer">
-                <div className="group relative overflow-hidden rounded-2xl border-2 bg-white/80 px-5 py-4 backdrop-blur-sm transition-all duration-300">
+                <Card className="group relative overflow-hidden rounded-2xl bg-background px-5 py-4 transition-all duration-300">
                   {/* INNER BG */}
 
-                  <div className="absolute inset-0 bg-gradient-to-r from-pink-100/40 via-transparent to-blue-100/40 opacity-0 transition group-hover:opacity-100" />
+                  <div className="absolute inset-0 transition group-hover:opacity-100" />
 
                   <div className="relative z-10 flex items-center justify-between gap-4">
                     {/* TEXT */}
 
                     <div>
-                      <div className="flex items-center gap-2 text-sm font-black">
+                      <div className="flex items-center gap-2 text-sm">
                         <Sparkles className="h-4 w-4" />
 
                         {user
@@ -107,7 +107,7 @@ export default function CreatePostTrigger() {
                           : "Login to document your action"}
                       </div>
 
-                      <div className="mt-1 text-xs text-muted-foreground">
+                      <div className="mt-1 text-xs">
                         Share meetings, reports, updates, events and civic
                         progress
                       </div>
@@ -115,11 +115,11 @@ export default function CreatePostTrigger() {
 
                     {/* BUTTON */}
 
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-4 bg-black text-white">
+                    <Card className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-4">
                       <Plus className="h-4 w-4" />
-                    </div>
+                    </Card>
                   </div>
-                </div>
+                </Card>
               </div>
             </div>
           </div>

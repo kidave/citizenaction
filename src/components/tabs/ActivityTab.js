@@ -135,7 +135,7 @@ export default function ActivityTab({ spaceId }) {
         <select
           value={type}
           onChange={(e) => setType(e.target.value)}
-          className="rounded-md border bg-background px-3 py-2 text-sm"
+          className="rounded-md border px-3 py-2 text-sm"
         >
           {activityTypes.map((t) => (
             <option key={t} value={t}>
@@ -207,7 +207,7 @@ export default function ActivityTab({ spaceId }) {
           LEGEND
       ===================================================== */}
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1 text-xs text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1 text-xs">
         <div className="flex items-center gap-1.5">
           <span className="h-3 w-3 rounded-sm bg-red-500"></span>
 
@@ -244,7 +244,7 @@ export default function ActivityTab({ spaceId }) {
       ===================================================== */}
 
       {!finalFeed.length ? (
-        <Card className="border-dashed">
+        <Card>
           <CardHeader>
             <CardTitle>No activity</CardTitle>
 
