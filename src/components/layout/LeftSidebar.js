@@ -5,6 +5,7 @@ import {
   SidebarHeader,
   SidebarContent,
   SidebarFooter,
+  SidebarRail,
 } from "@/components/ui/sidebar";
 
 import { LogoSwitcher } from "./LogoSwitcher";
@@ -23,7 +24,7 @@ export default function LeftSidebar() {
         <Navigation />
 
         {/* Extra content on mobile */}
-        <div className="mt-6 px-4 md:hidden">
+        <div className="mt-6 md:hidden">
           <RightSidebar />
         </div>
       </SidebarContent>
@@ -31,6 +32,7 @@ export default function LeftSidebar() {
       <SidebarFooter>
         <Profile />
       </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   );
 }

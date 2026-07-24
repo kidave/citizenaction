@@ -46,7 +46,7 @@ export default function CreatePostTrigger() {
           duration: 0.2,
         }}
       >
-        <Card className="relative mb-4 hidden overflow-hidden rounded-[28px] bg-muted md:block">
+        <Card className="relative hidden overflow-hidden rounded-[28px] md:block">
           {/* =====================================================
               CONTENT
           ===================================================== */}
@@ -90,7 +90,7 @@ export default function CreatePostTrigger() {
               ===================================================== */}
 
               <div onClick={handleClick} className="flex-1 cursor-pointer">
-                <Card className="group relative overflow-hidden rounded-2xl bg-background px-5 py-4 transition-all duration-300">
+                <Card className="group relative overflow-hidden rounded-2xl bg-muted px-5 py-4 transition-all duration-300">
                   {/* INNER BG */}
 
                   <div className="absolute inset-0 transition group-hover:opacity-100" />
@@ -115,7 +115,7 @@ export default function CreatePostTrigger() {
 
                     {/* BUTTON */}
 
-                    <Card className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-4">
+                    <Card className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background">
                       <Plus className="h-4 w-4" />
                     </Card>
                   </div>

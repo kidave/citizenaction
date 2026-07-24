@@ -152,7 +152,7 @@ export default function AttachmentPicker({
     <div className="space-y-2">
       <Attachment
         {...getRootProps()}
-        className={`relative cursor-pointer gap-2 overflow-hidden rounded-2xl border border-dashed bg-card p-4 transition ${isDragActive ? "border-primary bg-primary/10" : "border-muted"}`}
+        className={`relative cursor-pointer gap-2 overflow-hidden rounded-2xl border border-dashed p-4 transition ${isDragActive ? "border-primary bg-primary/10" : "border-muted"}`}
         orientation="horizontal"
       >
         <input {...getInputProps()} />

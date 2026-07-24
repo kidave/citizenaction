@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/router";
+import { useState } from "react";
 import {
   Search,
   CirclePlus,
@@ -10,7 +11,8 @@ import {
   MapPinned,
   ChevronRight,
 } from "lucide-react";
-
+import { useAuth } from "@/context/AuthContext";
+import { LoginModal } from "@/components/auth/LoginModal";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -21,7 +23,6 @@ import {
   SidebarMenuSubItem,
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
-
 import {
   Collapsible,
   CollapsibleTrigger,
@@ -36,6 +37,19 @@ export function Navigation() {
   const { data: spaces = [], isLoading } = useSpaces({
     enabled: true,
   });
+
+  const { user } = useAuth();
+  const [showLogin, setShowLogin] = useState(false);
+
+  function handleCreatePost() {
+    if (!user) {
+      setShowLogin(true);
+      return;
+    }
+
+    localStorage.setItem("returnTo", router.asPath);
+    router.push("/action");
+  }
 
   return (
     <SidebarGroup>
@@ -54,14 +68,18 @@ export function Navigation() {
         </SidebarMenuItem>
 
         <SidebarMenuItem>
-          <SidebarMenuButton
-            tooltip="Create Post"
-            onClick={() => router.push("/action")}
-          >
+          <SidebarMenuButton tooltip="Create Post" onClick={handleCreatePost}>
             <CirclePlus />
             <span>Create Post</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
+
+        <LoginModal
+          open={showLogin}
+          onOpenChange={setShowLogin}
+          message="Sign in to create a post"
+          redirectPath="/action"
+        />
 
         <SidebarMenuItem>
           <SidebarMenuButton

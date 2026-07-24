@@ -64,7 +64,7 @@ export default function PostCard({
 
   return (
     <Card
-      className={`relative overflow-hidden bg-muted transition-all duration-300 ${edgeToEdgeMobile ? "rounded-none sm:rounded-[28px]" : "rounded-[28px]"} ${borderless ? "border-0 shadow-none" : ""} ${post.type || ""} `}
+      className={`relative overflow-hidden transition-all duration-300 ${edgeToEdgeMobile ? "rounded-none sm:rounded-[28px]" : "rounded-[28px]"} ${borderless ? "border-0 shadow-none" : ""} ${post.type || ""} `}
     >
       <div className="relative z-10 flex flex-col gap-2 p-4 sm:p-6">
         <PostHeader
@@ -93,7 +93,7 @@ export default function PostCard({
               handleNavigate();
             }}
           >
-            <div className="rounded-3xl border-2 bg-background p-4 shadow-sm backdrop-blur-sm">
+            <div className="rounded-3xl border-2 bg-muted p-4 shadow-sm backdrop-blur-sm">
               <PostContent
                 post={{
                   ...post,
@@ -122,7 +122,7 @@ export default function PostCard({
           </div>
         </div>
 
-        <div className="rounded-3xl border-2 bg-background p-2 backdrop-blur-sm">
+        <div className="rounded-3xl border-2 bg-muted p-2 backdrop-blur-sm">
           <PostFooter
             post={{
               ...post,

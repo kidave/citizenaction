@@ -1,24 +1,20 @@
 "use client";
 
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { useRouter } from "next/router";
 
-import LeftSidebar from "./LeftSidebar";
+import AppShell from "./AppShell";
 
 function LayoutContent({ children }) {
   const { pathname } = useRouter();
 
-  const showSidebar = pathname !== "/about";
+  const useShell = pathname !== "/about";
 
-  return (
-    <div className="flex min-h-dvh w-full">
-      {showSidebar && <LeftSidebar />}
+  if (!useShell) {
+    return children;
+  }
 
-      <SidebarInset className="flex min-h-dvh flex-1 flex-col">
-        <div className="flex-1">{children}</div>
-      </SidebarInset>
-    </div>
-  );
+  return <AppShell>{children}</AppShell>;
 }
 
 export default function Layout({ children }) {

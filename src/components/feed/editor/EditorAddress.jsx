@@ -130,7 +130,7 @@ export default function EditorAddress({ editor }) {
 
       {/* MODAL */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="h-dvh w-screen max-w-none overflow-hidden rounded-none p-0">
+        <DialogContent className="h-dvh max-w-none overflow-hidden rounded-none p-0">
           <div className="relative h-full w-full overflow-hidden">
             {/* MAP */}
 

@@ -18,6 +18,7 @@ export default function EditorContent({
         }
         value={title}
         onChange={(e) => setTitle(e.target.value)}
+        className="bg-muted"
       />
 
       <Textarea
@@ -28,7 +29,7 @@ export default function EditorContent({
         }
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        className="flex-1 resize-y"
+        className="flex-1 resize-y bg-muted"
       />
     </div>
   );

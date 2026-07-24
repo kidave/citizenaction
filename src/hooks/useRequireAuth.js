@@ -1,4 +1,3 @@
-// hooks/useRequireAuth.js
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/context/AuthContext";
@@ -8,14 +7,14 @@ export function useRequireAuth(redirectTo = "/auth/login") {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
-      // Store current path to return after login
-      if (typeof window !== "undefined") {
-        localStorage.setItem("returnTo", window.location.pathname);
-      }
-      router.push(redirectTo);
+    if (loading || user) return;
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem("returnTo", router.asPath);
     }
-  }, [user, loading, router, redirectTo]);
+
+    router.replace(redirectTo);
+  }, [loading, user, router, redirectTo]);
 
   return { user, loading };
 }

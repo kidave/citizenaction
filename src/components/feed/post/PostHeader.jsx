@@ -12,7 +12,7 @@ export default function PostHeader({ post, canEdit, onEdit, onDelete }) {
   const formattedDate = formatDate(post.created_at);
 
   return (
-    <Row className="flex-col justify-between gap-2 md:flex-row">
+    <Row className="flex-row justify-between gap-2">
       <Row className="min-w-0 items-start gap-3">
         <UserIdentity
           username={post.author_username}
@@ -22,7 +22,7 @@ export default function PostHeader({ post, canEdit, onEdit, onDelete }) {
         />
       </Row>
 
-      <Inline className="justify-end md:justify-start">
+      <div className="flex flex-wrap items-center justify-end md:justify-start">
         <div className="flex items-center gap-2">
           {post.space_logo && post.space_slug && (
             <Link href={`/space/${post.space_slug}`}>
@@ -35,18 +35,6 @@ export default function PostHeader({ post, canEdit, onEdit, onDelete }) {
               />
             </Link>
           )}
-
-          {post.scope_name &&
-            post.space_slug &&
-            post.scope_type &&
-            post.scope_code && (
-              <Link
-                href={`/space/${post.space_slug}/${post.scope_type}/${post.scope_code}`}
-                className="text-xs hover:underline"
-              >
-                {post.scope_name}
-              </Link>
-            )}
         </div>
 
         {canEdit && (
@@ -61,7 +49,7 @@ export default function PostHeader({ post, canEdit, onEdit, onDelete }) {
             }}
           />
         )}
-      </Inline>
+      </div>
     </Row>
   );
 }

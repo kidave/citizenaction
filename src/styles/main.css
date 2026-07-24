@@ -44,6 +44,23 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
+  --color-alert: var(--alert);
+  --color-alert-foreground: var(--alert-foreground);
+
+  --color-neutral: var(--neutral);
+  --color-neutral-foreground: var(--neutral-foreground);
+
+  --color-destructive-foreground: var(--destructive-foreground);
 }
 
 :root {
@@ -61,7 +78,7 @@
   --muted-foreground: 215.4 16.3% 46.9%;
   --accent: 210 40% 96.1%;
   --accent-foreground: 222.2 47.4% 11.2%;
-  --destructive: 0 84.2% 60.2%;
+  --destructive: 0 84.2% 70.2%;
   --destructive-foreground: 210 40% 98%;
   --border: 214.3 31.8% 91.4%;
   --input: 214.3 31.8% 91.4%;
@@ -82,6 +99,26 @@
   --sidebar-accent-foreground: 240 5.9% 10%;
   --sidebar-border: 220 13% 91%;
   --sidebar-ring: 217.2 91.2% 59.8%;
+
+  /* Success - Emerald */
+  --success: 145 63% 80%;
+  --success-foreground: 0 0% 100%;
+
+  /* Warning - Amber */
+  --warning: 42 96% 80%;
+  --warning-foreground: 26 83% 14%;
+
+  /* Info - Sky Blue */
+  --info: 200 94% 80%;
+  --info-foreground: 0 0% 100%;
+
+  /* Alert - Orange */
+  --alert: 24 95% 70%;
+  --alert-foreground: 0 0% 100%;
+
+  /* Neutral - Slate */
+  --neutral: 215 16% 80%;
+  --neutral-foreground: 0 0% 100%;
 }
 
 .dark {
@@ -106,7 +143,7 @@
   --accent: 0 0% 17%;
   --accent-foreground: 0 0% 98%;
 
-  --destructive: 22 83% 63%;
+  --destructive: 5 50% 30%;
   --destructive-foreground: 0 0% 98%;
 
   --border: 0 0% 100% / 10%;
@@ -130,6 +167,26 @@
 
   --sidebar-border: 0 0% 100% / 10%;
   --sidebar-ring: 0 0% 56%;
+
+  /* Success */
+  --success: 142 60% 50%;
+  --success-foreground: 0 0% 100%;
+
+  /* Warning */
+  --warning: 42 96% 58%;
+  --warning-foreground: 0 0% 10%;
+
+  /* Info */
+  --info: 204 90% 60%;
+  --info-foreground: 0 0% 100%;
+
+  /* Alert */
+  --alert: 24 95% 60%;
+  --alert-foreground: 0 0% 100%;
+
+  /* Neutral */
+  --neutral: 215 15% 50%;
+  --neutral-foreground: 0 0% 98%;
 }
 
 @layer base {
@@ -143,10 +200,6 @@
 }
 
 /* Custom styles */
-html {
-  scrollbar-gutter: stable;
-}
-
 .scrollbar-hide {
   scrollbar-width: none;
 }

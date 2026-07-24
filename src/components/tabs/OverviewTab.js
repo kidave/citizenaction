@@ -72,137 +72,113 @@ export default function OverviewTab({ space }) {
           </div>
         </Link>
       </div>
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-4">
-        {/* Activity */}
-        <div className="lg:col-span-2">
-          {!recentFeed.length ? (
-            <div className="text-sm text-muted-foreground">
-              No recent activity.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {recentFeed.map((post) => (
-                <ActivityPreviewCard key={post.id} post={post} />
-              ))}
-            </div>
-          )}
-        </div>
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {recentFeed.slice(0, 1).map((post) => (
+          <ActivityPreviewCard key={post.id} post={post} />
+        ))}
 
-        {/* Right Side */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:col-span-2 lg:grid-cols-1">
-          <Card className="flex h-full flex-col overflow-hidden rounded-3xl bg-muted">
-            <CardHeader>
-              <Link
-                href={`/space/${space.slug}?tab=members`}
-                className="flex items-center justify-between"
-              >
-                <CardTitle>Team</CardTitle>
-              </Link>
-            </CardHeader>
+        {!recentFeed.length && (
+          <div className="text-sm text-muted-foreground">
+            No recent activity.
+          </div>
+        )}
 
-            <CardContent className="flex-1 bg-background py-2">
-              {admins.map((member) => (
-                <Link key={member.user_id} href={`/user/${member.username}`}>
-                  <div className="flex items-center justify-between gap-3 rounded-lg p-2 transition">
-                    <div className="flex min-w-0 items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={member.avatar_url} />
+        <Card className="flex h-full flex-col overflow-hidden rounded-3xl bg-muted">
+          <CardHeader>
+            <Link
+              href={`/space/${space.slug}?tab=members`}
+              className="flex items-center justify-between"
+            >
+              <CardTitle>Team</CardTitle>
+            </Link>
+          </CardHeader>
 
-                        <AvatarFallback>
-                          {member.name?.[0] || "U"}
-                        </AvatarFallback>
-                      </Avatar>
+          <CardContent className="flex-1 bg-background py-2">
+            {admins.map((member) => (
+              <Link key={member.user_id} href={`/user/${member.username}`}>
+                <div className="flex items-center justify-between gap-3 rounded-lg p-2 transition">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={member.avatar_url} />
 
-                      <div className="min-w-0">
-                        <div className="truncate font-medium">
-                          {member.name}
-                        </div>
+                      <AvatarFallback>{member.name?.[0] || "U"}</AvatarFallback>
+                    </Avatar>
 
-                        <div className="truncate text-xs text-muted-foreground">
-                          @{member.username}
-                        </div>
+                    <div className="min-w-0">
+                      <div className="truncate font-medium">{member.name}</div>
+
+                      <div className="truncate text-xs text-muted-foreground">
+                        @{member.username}
                       </div>
                     </div>
                   </div>
-                </Link>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card className="flex h-full flex-col overflow-hidden rounded-3xl bg-muted">
-            <CardHeader>
-              <CardTitle>{space.name}</CardTitle>
-            </CardHeader>
-
-            <CardContent className="flex-1 bg-background py-2">
-              {space.scope_type && (
-                <div className="flex items-start gap-3">
-                  <MapPinned className="mt-0.5 h-4 w-4 text-muted-foreground" />
-
-                  <div>
-                    <div className="text-xs text-muted-foreground">Scope</div>
-
-                    <div>{space.scope_type}</div>
-                  </div>
                 </div>
-              )}
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
 
-              {space.website && (
-                <div className="flex items-start gap-3">
-                  <Globe className="mt-0.5 h-4 w-4 text-muted-foreground" />
+        <Card className="flex h-full flex-col overflow-hidden rounded-3xl bg-muted">
+          <CardHeader>
+            <CardTitle>{space.name}</CardTitle>
+          </CardHeader>
 
-                  <div>
-                    <div className="text-xs text-muted-foreground">Website</div>
+          <CardContent className="flex-1 bg-background py-2">
+            {space.website && (
+              <div className="flex items-start gap-3 p-2">
+                <Globe className="mt-0.5 h-4 w-4 text-muted-foreground" />
 
-                    <a
-                      href={space.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 transition hover:opacity-70"
-                    >
-                      <span className="max-w-[160px] truncate">
-                        {space.website
-                          .replace("https://", "")
-                          .replace("http://", "")}
-                      </span>
+                <div>
+                  <div className="text-xs text-muted-foreground">Website</div>
 
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </div>
+                  <a
+                    href={space.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 transition hover:opacity-70"
+                  >
+                    <span className="max-w-[160px] truncate">
+                      {space.website
+                        .replace("https://", "")
+                        .replace("http://", "")}
+                    </span>
+
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
                 </div>
-              )}
+              </div>
+            )}
 
-              {space.email && (
-                <div className="flex items-start gap-3">
-                  <Mail className="mt-0.5 h-4 w-4 text-muted-foreground" />
+            {space.email && (
+              <div className="flex items-start gap-3 p-2">
+                <Mail className="mt-0.5 h-4 w-4 text-muted-foreground" />
 
-                  <div>
-                    <div className="text-xs text-muted-foreground">Email</div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Email</div>
 
-                    <a
-                      href={`mailto:${space.email}`}
-                      className="break-all hover:underline"
-                    >
-                      {space.email}
-                    </a>
-                  </div>
+                  <a
+                    href={`mailto:${space.email}`}
+                    className="break-all hover:underline"
+                  >
+                    {space.email}
+                  </a>
                 </div>
-              )}
+              </div>
+            )}
 
-              {space.contact_number && (
-                <div className="flex items-start gap-3">
-                  <Phone className="mt-0.5 h-4 w-4 text-muted-foreground" />
+            {space.contact_number && (
+              <div className="flex items-start gap-3 p-2">
+                <Phone className="mt-0.5 h-4 w-4 text-muted-foreground" />
 
-                  <div>
-                    <div className="text-xs text-muted-foreground">Phone</div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Phone</div>
 
-                    <div>{space.contact_number}</div>
-                  </div>
+                  <div>{space.contact_number}</div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </section>
     </div>
   );

@@ -15,8 +15,8 @@ import {
   CalendarDays,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+
 import { LoginModal } from "@/components/auth/LoginModal";
-import { ProtectedButton } from "@/components/auth/ProtectedButton";
 import { spaceApplicationSchema } from "@/schemas/spaceApplication";
 import { supabase } from "@/lib/supabase/client";
 import {
@@ -77,10 +77,6 @@ export default function ApplySpace() {
     },
   });
 
-  /* ========================================
-     LOADING
-  ======================================== */
-
   if (authLoading) {
     return (
       <div className="flex min-h-dvh items-center justify-center">
@@ -88,10 +84,6 @@ export default function ApplySpace() {
       </div>
     );
   }
-
-  /* ========================================
-     ADD SOCIAL LINK
-  ======================================== */
 
   function addSocialLink() {
     if (!socialValue.trim()) {
@@ -113,10 +105,6 @@ export default function ApplySpace() {
     setSocialValue("");
   }
 
-  /* ========================================
-     REMOVE SOCIAL LINK
-  ======================================== */
-
   function removeSocialLink(index) {
     const updated = socialLinks.filter((_, i) => i !== index);
 
@@ -125,14 +113,9 @@ export default function ApplySpace() {
     form.setValue("social_links", updated);
   }
 
-  /* ========================================
-     SUBMIT
-  ======================================== */
-
   async function onSubmit(values) {
     if (!user) {
       setShowLogin(true);
-
       return;
     }
 
@@ -145,88 +128,70 @@ export default function ApplySpace() {
         })
         .select(
           `
-          id,
-          proposed_name,
-          status
-        `,
+        id,
+        proposed_name,
+        status
+      `,
         )
         .single();
 
       if (error) {
         toast.error(error.message);
-
         return;
       }
 
       toast.success("Application submitted successfully");
-
       router.push(`/space/application/${data.id}`);
     } catch (err) {
       toast.error("Something went wrong");
     }
   }
 
-  /* ========================================
-     PAGE
-  ======================================== */
-
   return (
-    <div className="min-h-dvh bg-muted/30 px-4 py-6">
-      <div className="mx-auto w-full max-w-4xl space-y-6">
-        {/* ====================================
-            BACK
-        ==================================== */}
-
+    <div className="min-h-dvh px-4 py-6">
+      <div className="mx-auto w-full max-w-4xl space-y-2">
         <BackButton label="Back" />
 
-        {/* ====================================
-            HERO
-        ==================================== */}
-
-        <Card className="overflow-hidden rounded-[32px]">
-          <CardContent className="space-y-6 p-8">
+        <div>
+          <CardContent className="space-y-4 p-4">
             <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full border-2 px-4 py-2 text-sm font-medium">
+              <div className="inline-flex items-center gap-2 rounded-full border-2 bg-muted px-4 py-2 text-sm font-medium">
                 <Building2 className="h-4 w-4" />
-                Civic Spaces
+                Register a Space
               </div>
-
-              <h1 className="text-4xl tracking-tight">Start a Civic Space</h1>
-
-              <p className="max-w-2xl text-muted-foreground">
-                Organize civic actions, coordinate volunteers, host meetings,
-                publish updates, and build local communities around causes that
-                matter.
-              </p>
             </div>
 
-            {/* BENEFITS */}
-
             <div className="grid gap-4 md:grid-cols-3">
-              <Card className="rounded-xl border-2 p-5">
-                <Megaphone className="mb-4 h-6 w-6" />
+              <Card className="rounded-xl border-2 bg-muted p-5">
+                <div className="flex gap-4">
+                  <Megaphone className="mb-4 h-6 w-6" />
 
-                <h3 className="mb-1 font-semibold">Share Updates</h3>
+                  <h3 className="mb-1 font-semibold">Share Updates</h3>
+                </div>
 
                 <p className="text-sm text-muted-foreground">
-                  Post reports, updates, and civic issues.
+                  Post reports, updates, and minutes of meetings.
                 </p>
               </Card>
 
-              <Card className="rounded-xl border-2 p-5">
-                <CalendarDays className="mb-4 h-6 w-6" />
+              <Card className="rounded-xl border-2 bg-muted p-5">
+                <div className="flex gap-4">
+                  <CalendarDays className="mb-4 h-6 w-6" />
 
-                <h3 className="mb-1 font-semibold">Host Events</h3>
+                  <h3 className="mb-1 font-semibold">Organize Events</h3>
+                </div>
 
                 <p className="text-sm text-muted-foreground">
                   Coordinate meetings and community actions.
                 </p>
               </Card>
 
-              <Card className="rounded-xl border-2 p-5">
-                <Users className="mb-4 h-6 w-6" />
+              <Card className="rounded-xl border-2 bg-muted p-5">
+                <div className="flex gap-4">
+                  <Users className="mb-4 h-6 w-6" />
 
-                <h3 className="mb-1 font-semibold">Build Community</h3>
+                  <h3 className="mb-1 font-semibold">Build Community</h3>
+                </div>
 
                 <p className="text-sm text-muted-foreground">
                   Bring volunteers and local stakeholders together.
@@ -234,24 +199,18 @@ export default function ApplySpace() {
               </Card>
             </div>
           </CardContent>
-        </Card>
+        </div>
 
-        {/* ====================================
-            FORM
-        ==================================== */}
-
-        <Card className="rounded-[32px]">
+        <div>
           <CardHeader className="space-y-2">
-            <h2 className="text-2xl ">Application</h2>
-
-            <p className="text-sm text-muted-foreground">
+            <h2 className="text-2xl">
               Tell us a little about your organization or initiative.
-            </p>
+            </h2>
 
             {!user && (
-              <div className="rounded-2xl border-2 border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                Sign in is required before submitting your application.
-              </div>
+              <Card className="bg-warning px-4 py-3 text-sm">
+                Sign in required
+              </Card>
             )}
           </CardHeader>
 
@@ -261,10 +220,6 @@ export default function ApplySpace() {
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-8"
               >
-                {/* ==================================
-                    BASIC INFO
-                ================================== */}
-
                 <div className="grid gap-5 md:grid-cols-2">
                   <FormField
                     control={form.control}
@@ -273,7 +228,7 @@ export default function ApplySpace() {
                       <FormItem>
                         <FormLabel>Organization / Initiative Name</FormLabel>
 
-                        <FormControl>
+                        <FormControl className="bg-muted">
                           <Input
                             placeholder="Mumbai Walkability Forum"
                             {...field}
@@ -292,7 +247,7 @@ export default function ApplySpace() {
                       <FormItem>
                         <FormLabel>Space URL</FormLabel>
 
-                        <FormControl>
+                        <FormControl className="bg-muted">
                           <Input placeholder="mumbai-walkability" {...field} />
                         </FormControl>
 
@@ -308,7 +263,7 @@ export default function ApplySpace() {
                       <FormItem>
                         <FormLabel>Category (optional)</FormLabel>
 
-                        <FormControl>
+                        <FormControl className="bg-muted">
                           <Input
                             placeholder="Mobility, Heritage, Environment..."
                             {...field}
@@ -325,7 +280,7 @@ export default function ApplySpace() {
                       <FormItem>
                         <FormLabel>Website (optional)</FormLabel>
 
-                        <FormControl>
+                        <FormControl className="bg-muted">
                           <Input placeholder="https://example.org" {...field} />
                         </FormControl>
 
@@ -335,10 +290,6 @@ export default function ApplySpace() {
                   />
                 </div>
 
-                {/* ==================================
-                    DESCRIPTION
-                ================================== */}
-
                 <div className="space-y-5">
                   <FormField
                     control={form.control}
@@ -347,7 +298,7 @@ export default function ApplySpace() {
                       <FormItem>
                         <FormLabel>What does your organization do?</FormLabel>
 
-                        <FormControl>
+                        <FormControl className="bg-muted">
                           <Textarea
                             rows={4}
                             placeholder="Tell us about your mission, goals, or work..."
@@ -367,7 +318,7 @@ export default function ApplySpace() {
                       <FormItem>
                         <FormLabel>Why should this space exist?</FormLabel>
 
-                        <FormControl>
+                        <FormControl className="bg-muted">
                           <Textarea
                             rows={4}
                             placeholder="How will this space help people organize or collaborate?"
@@ -381,10 +332,6 @@ export default function ApplySpace() {
                   />
                 </div>
 
-                {/* ==================================
-                    CONTACT
-                ================================== */}
-
                 <div className="grid gap-5 md:grid-cols-2">
                   <FormField
                     control={form.control}
@@ -393,7 +340,7 @@ export default function ApplySpace() {
                       <FormItem>
                         <FormLabel>Contact Email</FormLabel>
 
-                        <FormControl>
+                        <FormControl className="bg-muted">
                           <Input
                             type="email"
                             placeholder="contact@example.org"
@@ -413,7 +360,7 @@ export default function ApplySpace() {
                       <FormItem>
                         <FormLabel>Contact Number</FormLabel>
 
-                        <FormControl>
+                        <FormControl className="bg-muted">
                           <Input placeholder="+91 9876543210" {...field} />
                         </FormControl>
 
@@ -429,7 +376,7 @@ export default function ApplySpace() {
                       <FormItem className="md:col-span-2">
                         <FormLabel>Address (optional)</FormLabel>
 
-                        <FormControl>
+                        <FormControl className="bg-muted">
                           <Textarea
                             rows={3}
                             placeholder="Organization or office address"
@@ -441,17 +388,9 @@ export default function ApplySpace() {
                   />
                 </div>
 
-                {/* ==================================
-                    SOCIAL LINKS
-                ================================== */}
-
                 <div className="space-y-4">
                   <div className="space-y-1">
                     <h3 className="font-semibold">Social Links</h3>
-
-                    <p className="text-sm text-muted-foreground">
-                      Add social profiles or public pages.
-                    </p>
                   </div>
 
                   <div className="flex flex-col gap-3 md:flex-row">
@@ -459,7 +398,7 @@ export default function ApplySpace() {
                       value={socialPlatform}
                       onValueChange={setSocialPlatform}
                     >
-                      <SelectTrigger className="md:w-56">
+                      <SelectTrigger className="bg-muted md:w-56">
                         <SelectValue />
                       </SelectTrigger>
 
@@ -473,6 +412,7 @@ export default function ApplySpace() {
                     </Select>
 
                     <Input
+                      className="bg-muted"
                       value={socialValue}
                       onChange={(e) => setSocialValue(e.target.value)}
                       placeholder="@username or URL"
@@ -500,31 +440,22 @@ export default function ApplySpace() {
                   )}
                 </div>
 
-                {/* ==================================
-                    SUBMIT
-                ================================== */}
-
-                <ProtectedButton
+                <Button
                   type="submit"
                   disabled={form.formState.isSubmitting}
                   className="h-14 w-full rounded-2xl text-base font-bold"
-                  loginMessage="You need to sign in before submitting"
                 >
                   {form.formState.isSubmitting
                     ? "Submitting..."
                     : user
                       ? "Submit Application"
                       : "Sign in to Continue"}
-                </ProtectedButton>
+                </Button>
               </form>
             </Form>
           </CardContent>
-        </Card>
+        </div>
       </div>
-
-      {/* ========================================
-          LOGIN MODAL
-      ======================================== */}
 
       <LoginModal
         open={showLogin}

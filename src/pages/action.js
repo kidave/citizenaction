@@ -1,17 +1,35 @@
-// pages/action.js
+import { useRouter } from "next/router";
+import { Loader2 } from "lucide-react";
 
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import EditorModal from "@/components/feed/editor/EditorModal";
 
 export default function ActionPage() {
+  const router = useRouter();
+
   const { user, loading } = useRequireAuth();
 
-  if (loading) return null;
+  function handleClose() {
+    const returnTo = localStorage.getItem("returnTo");
+
+    if (returnTo) {
+      localStorage.removeItem("returnTo");
+      router.replace(returnTo);
+      return;
+    }
+
+    router.replace("/");
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   if (!user) return null;
 
-  return (
-    <div className="flex justify-center py-10">
-      <EditorModal isOpen={true} onClose={() => window.history.back()} />
-    </div>
-  );
+  return <EditorModal isOpen onClose={handleClose} />;
 }
