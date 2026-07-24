@@ -60,7 +60,7 @@ export default function PostContribution({ post }) {
             setSelectedContribution(null);
             setIsEditorOpen(true);
           }}
-          className="mb-4 w-full rounded-xl border py-3 text-sm font-medium hover:bg-muted"
+          className="my-4 w-full rounded-xl border bg-success py-3 text-sm font-medium hover:bg-muted"
         >
           Add Contribution
         </button>

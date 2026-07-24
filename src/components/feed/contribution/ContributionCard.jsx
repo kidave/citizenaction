@@ -23,11 +23,11 @@ export default function ContributionCard({
   const formattedDate = formatDate(contribution.created_at);
 
   return (
-    <Card className="bg-background">
+    <Card className="bg-muted">
       <div className="flex flex-col gap-2 p-4">
         {/* Header */}
 
-        <Row className="items-start justify-between gap-3">
+        <div className="flex items-start justify-between gap-3">
           <UserIdentity
             username={contribution.username}
             name={contribution.name}
@@ -38,7 +38,7 @@ export default function ContributionCard({
           {canEdit && (
             <PostActions canEdit onEdit={onEdit} onDelete={onDelete} />
           )}
-        </Row>
+        </div>
 
         {/* Attachments */}
 
