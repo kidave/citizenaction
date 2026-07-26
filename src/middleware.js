@@ -6,7 +6,7 @@ export async function middleware(req) {
   const url = req.nextUrl.clone();
 
   // 1. Check Maintenance Mode first
-  const isMaintenanceMode = process.env.MAINTENANCE_MODE === "true";
+  const isMaintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true";
 
   if (isMaintenanceMode) {
     // Avoid infinite loops: let static assets, api routes, and the maintenance page load
