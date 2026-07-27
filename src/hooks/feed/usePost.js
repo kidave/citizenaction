@@ -30,7 +30,7 @@ export function usePost(id, initialData) {
         spaces: spaces.data || [],
 
         // GOVERNANCE
-        governance_entities: governance.data || [],
+        governance: governance.data || [],
 
         governance: governance.data || [],
 

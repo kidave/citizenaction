@@ -1,15 +1,21 @@
 "use client";
 
-import AttachmentPicker from "@/components/ui/AttachmentPicker";
+import AttachmentCarousel from "@/components/attachment/AttachmentCarousel";
 
 export default function EditorAttachments({ attachments, setAttachments }) {
+  if (!attachments?.length) return null;
+
   return (
-    <AttachmentPicker
-      attachments={attachments}
-      onUpload={(file) => setAttachments((prev) => [...prev, file])}
-      onRemove={(index) =>
-        setAttachments((prev) => prev.filter((_, i) => i !== index))
-      }
-    />
+    <div className="border-t p-3">
+      <AttachmentCarousel
+        attachments={attachments}
+        showMetadata={false}
+        onAttachmentClick={() => {}}
+        onRemove={(index) =>
+          setAttachments((prev) => prev.filter((_, i) => i !== index))
+        }
+        removable
+      />
+    </div>
   );
 }

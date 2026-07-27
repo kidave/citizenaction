@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
-import { uploadPostAttachment } from "@/lib/supabase/storage";
+import { uploadAttachment } from "@/lib/supabase/storage";
 import { toast } from "sonner";
 
 export function useCreateContribution() {
@@ -21,7 +21,11 @@ export function useCreateContribution() {
           contributionData.attachments.map(async (file) => {
             if (file?.url) return file;
 
-            return uploadPostAttachment(file, contributionData.author_id);
+            return uploadAttachment({
+              kind: "contribution",
+              entityId: crypto.randomUUID(), // temporary id
+              file,
+            });
           }),
         );
       }
@@ -30,14 +34,12 @@ export function useCreateContribution() {
       // CREATE CONTRIBUTION
       // ==========================================
 
-      const { data, error } = await supabase.rpc("create_post_contribution", {
+      const { data, error } = await supabase.rpc("publish_contribution", {
         p_post_id: postId,
 
         p_title: contributionData.title,
 
         p_content: contributionData.content,
-
-        p_attachments: uploadedAttachments,
 
         p_metadata: contributionData.metadata,
 
@@ -52,6 +54,14 @@ export function useCreateContribution() {
         p_address: contributionData.address,
 
         p_meeting_link: contributionData.meeting_link,
+
+        p_guest_name: contributionData.guest_name,
+
+        p_contribution_type: contributionData.contribution_type,
+
+        p_status: contributionData.status,
+
+        p_attachments: uploadedAttachments,
       });
 
       if (error) throw error;
@@ -65,7 +75,7 @@ export function useCreateContribution() {
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["feed"],
+        queryKey: ["post"],
       });
 
       toast.success("Contribution created successfully");
@@ -80,7 +90,6 @@ export function useCreateContribution() {
 
   return {
     createContribution: mutation.mutateAsync,
-
     isCreating: mutation.isPending,
   };
 }

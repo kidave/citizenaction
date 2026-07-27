@@ -12,21 +12,21 @@ export function usePostGovernance(postId) {
 
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("feed_governance_entities")
+        .from("post_governance")
         .select(
           `
-          governance_entities (
+          governance (
             id,
             label,
             image_url
           )
         `,
         )
-        .eq("feed_id", postId);
+        .eq("post_id", postId);
 
       if (error) throw error;
 
-      return data?.map((d) => d.governance_entities) || [];
+      return data?.map((d) => d.governance) || [];
     },
   });
 }

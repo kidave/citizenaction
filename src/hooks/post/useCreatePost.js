@@ -2,7 +2,10 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
-import { uploadPostAttachment } from "@/lib/supabase/storage";
+import {
+  uploadPostAttachments,
+  deletePostAttachments,
+} from "@/lib/supabase/storage";
 import { toast } from "sonner";
 
 export function useCreatePost() {
@@ -10,108 +13,90 @@ export function useCreatePost() {
 
   const mutation = useMutation({
     mutationFn: async (postData) => {
-      const isGlobal = !postData.spaces || postData.spaces.length === 0;
+      const postId = crypto.randomUUID();
 
       let uploadedAttachments = [];
 
-      // =========================
-      // UPLOAD ATTACHMENTS
-      // =========================
+      try {
+        // ==========================================================
+        // Upload attachments
+        // ==========================================================
 
-      if (postData.attachments?.length > 0) {
-        const uploadPromises = postData.attachments.map((file) =>
-          uploadPostAttachment(file, postData.author_id),
-        );
+        if (postData.attachments?.length) {
+          uploadedAttachments = await uploadPostAttachments(
+            postId,
+            postData.attachments,
+          );
+        }
 
-        uploadedAttachments = await Promise.all(uploadPromises);
-      }
+        // ==========================================================
+        // Publish post
+        // ==========================================================
 
-      // =========================
-      // CREATE FEED
-      // =========================
+        const { data, error } = await supabase.rpc("publish_post", {
+          p_post_id: postId,
 
-      const { data, error } = await supabase
-        .from("feed")
-        .insert({
-          author_id: postData.author_id,
+          p_space_id:
+            postData.spaces?.length > 0 ? postData.spaces[0].id : null,
 
-          is_global: isGlobal,
+          p_type: postData.type,
 
-          type: postData.type,
+          p_summary: postData.summary,
 
-          summary: postData.summary,
+          p_details: postData.details,
 
-          details: postData.details,
+          p_is_global: !postData.spaces || postData.spaces.length === 0,
 
-          start_at: postData.start_at ?? null,
+          p_metadata: postData.metadata ?? {},
 
-          end_at: postData.end_at ?? null,
+          p_start_at: postData.start_at ?? null,
 
-          lat: postData.lat ?? null,
+          p_end_at: postData.end_at ?? null,
 
-          lng: postData.lng ?? null,
+          p_lat: postData.lat ?? null,
 
-          address: postData.address ?? null,
+          p_lng: postData.lng ?? null,
 
-          meeting_link: postData.meeting_link ?? null,
+          p_address: postData.address ?? null,
 
-          metadata: postData.metadata ?? null,
+          p_meeting_link: postData.meeting_link ?? null,
 
-          attachments: uploadedAttachments,
-        })
-        .select()
-        .single();
+          p_date: null,
 
-      if (error) {
+          p_time: null,
+
+          p_slug: null,
+
+          p_governance_ids: postData.governance?.map((g) => g.id) ?? [],
+
+          p_attachments: uploadedAttachments,
+        });
+
+        if (error) throw error;
+
+        return data;
+      } catch (error) {
+        // ==========================================================
+        // Rollback uploaded files
+        // ==========================================================
+
+        if (uploadedAttachments.length) {
+          try {
+            await deletePostAttachments(
+              uploadedAttachments.map((a) => a.storage_path),
+            );
+          } catch (rollbackError) {
+            console.error("Attachment rollback failed", rollbackError);
+          }
+        }
+
         throw error;
       }
-
-      // =========================
-      // FEED SPACES
-      // =========================
-
-      if (postData.spaces?.length > 0) {
-        const rows = postData.spaces.map((space) => ({
-          feed_id: data.id,
-
-          space_id: space.id,
-        }));
-
-        const { error: spaceError } = await supabase
-          .from("feed_space")
-          .insert(rows);
-
-        if (spaceError) {
-          throw spaceError;
-        }
-      }
-
-      // =========================
-      // GOVERNANCE TAGS
-      // =========================
-
-      if (postData.governance_entities?.length > 0) {
-        const rows = postData.governance_entities.map((e) => ({
-          feed_id: data.id,
-
-          governance_entity_id: e.id,
-        }));
-
-        const { error: tagError } = await supabase
-          .from("feed_governance_entities")
-          .insert(rows);
-
-        if (tagError) {
-          throw tagError;
-        }
-      }
-
-      return data;
     },
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["feed"],
+        queryKey: ["post"],
       });
 
       toast.success("Post published successfully");
@@ -120,13 +105,12 @@ export function useCreatePost() {
     onError: (error) => {
       console.error(error);
 
-      toast.error(error.message || "Failed to create post");
+      toast.error(error.message || "Failed to publish post");
     },
   });
 
   return {
     createPost: mutation.mutateAsync,
-
     isCreating: mutation.isPending,
   };
 }

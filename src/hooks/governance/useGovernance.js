@@ -19,7 +19,7 @@ export function useGovernance({
     enabled,
     queryFn: async () => {
       let query = supabase
-        .from("governance_entity_view")
+        .from("governance_view")
         .select("*")
         .order("label", { ascending: true });
 

@@ -15,22 +15,23 @@ import AttachmentCard from "./AttachmentCard";
 export default function AttachmentCarousel({
   attachments = [],
   onAttachmentClick,
+  onRemove,
+  removable = false,
+  showMetadata = true,
 }) {
   const [hovered, setHovered] = useState(null);
 
   if (!attachments.length) return null;
 
-  // Group attachments into pages of 4
   const mobilePages = [];
+
   for (let i = 0; i < attachments.length; i += 4) {
     mobilePages.push(attachments.slice(i, i + 4));
   }
 
   return (
     <>
-      {/* ==========================
-          MOBILE
-      ========================== */}
+      {/* Mobile */}
 
       <div className="md:hidden">
         <Carousel
@@ -52,6 +53,9 @@ export default function AttachmentCarousel({
                         attachment={attachment}
                         index={actualIndex}
                         onClick={onAttachmentClick}
+                        onRemove={onRemove}
+                        removable={removable}
+                        showMetadata={showMetadata}
                         hovered={null}
                         setHovered={() => {}}
                       />
@@ -64,9 +68,7 @@ export default function AttachmentCarousel({
         </Carousel>
       </div>
 
-      {/* ==========================
-          DESKTOP
-      ========================== */}
+      {/* Desktop */}
 
       <div className="relative hidden md:block md:px-8">
         <Carousel
@@ -87,6 +89,9 @@ export default function AttachmentCarousel({
                   attachment={attachment}
                   index={index}
                   onClick={onAttachmentClick}
+                  onRemove={onRemove}
+                  removable={removable}
+                  showMetadata={showMetadata}
                   hovered={hovered}
                   setHovered={setHovered}
                 />

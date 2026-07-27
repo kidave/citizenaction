@@ -14,7 +14,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
-import AutoImageCarousel from "@/components/ui/AutoImageCarousel";
+import AutoImageCarousel from "@/components/attachment/AutoImageCarousel";
 
 import GovernanceAvatarGroups from "@/components/governance/GovernanceAvatarGroups";
 

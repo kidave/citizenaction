@@ -13,10 +13,7 @@ export function useGovernanceTree({
     queryKey: ["governance-tree", parentId, scopes, search],
     enabled,
     queryFn: async () => {
-      let query = supabase
-        .from("governance_entity_view")
-        .select("*")
-        .order("label");
+      let query = supabase.from("governance_view").select("*").order("label");
 
       /* -------------------------
          HIERARCHY

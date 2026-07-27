@@ -93,7 +93,7 @@ export default function PostCard({
               handleNavigate();
             }}
           >
-            <div className="rounded-3xl border-2 bg-muted p-4 shadow-sm backdrop-blur-sm">
+            <div className="rounded-3xl bg-muted p-4 shadow-sm backdrop-blur-sm">
               <PostContent
                 post={{
                   ...post,
@@ -122,7 +122,7 @@ export default function PostCard({
           </div>
         </div>
 
-        <div className="rounded-3xl border-2 bg-muted p-2 backdrop-blur-sm">
+        <div className="rounded-3xl bg-muted p-2 backdrop-blur-sm">
           <PostFooter
             post={{
               ...post,

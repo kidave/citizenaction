@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase/client";
 
 export function useFeed() {
   return useQuery({
-    queryKey: ["feed"],
+    queryKey: ["post"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("feed_light_view")

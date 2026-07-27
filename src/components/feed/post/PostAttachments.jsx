@@ -2,9 +2,9 @@
 
 import { useMemo, useState } from "react";
 
-import EmblaCarousel from "@/components/ui/EmblaCarousel";
-import PDFViewer from "@/components/ui/PDFViewer";
-import AttachmentCarousel from "@/components/ui/AttachmentCarousel";
+import EmblaCarousel from "@/components/attachment/EmblaCarousel";
+import PDFViewer from "@/components/attachment/PDFViewer";
+import AttachmentCarousel from "@/components/attachment/AttachmentCarousel";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
@@ -45,6 +45,7 @@ export default function PostAttachments({ attachments = [] }) {
     <>
       <AttachmentCarousel
         attachments={attachments}
+        showMetadata={false}
         onAttachmentClick={(index) => {
           handleClick(attachments[index]);
         }}

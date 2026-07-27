@@ -65,7 +65,7 @@ export function useUpdateContribution() {
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["feed"],
+        queryKey: ["post"],
       });
 
       toast.success("Contribution updated successfully");

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 import { useAuth } from "@/context/AuthContext";
 
@@ -11,7 +11,7 @@ export function useEditor(item = null) {
 
   const [spaces, setSpaces] = useState([]);
   const [is_global, setIsGlobal] = useState(false);
-  const [governance_entities, setSelectedAuthorities] = useState([]);
+  const [governance, setSelectedAuthorities] = useState([]);
 
   const [type, setType] = useState("action");
 
@@ -30,12 +30,60 @@ export function useEditor(item = null) {
 
   const [meeting_link, setMeetingLink] = useState("");
 
+  // ==========================================================
+  // Attachment Helpers
+  // ==========================================================
+
+  const addAttachments = (files) => {
+    const list = Array.isArray(files) ? files : [files];
+
+    setAttachments((prev) => [...prev, ...list]);
+  };
+
+  const replaceAttachments = (files) => {
+    setAttachments(Array.isArray(files) ? files : []);
+  };
+
+  const removeAttachment = (index) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const clearAttachments = () => {
+    setAttachments([]);
+  };
+
+  const updateAttachment = (index, updates) => {
+    setAttachments((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, ...updates } : item)),
+    );
+  };
+
+  const moveAttachment = (from, to) => {
+    setAttachments((prev) => {
+      const next = [...prev];
+
+      const [item] = next.splice(from, 1);
+
+      next.splice(to, 0, item);
+
+      return next;
+    });
+  };
+
+  const attachmentCount = attachments.length;
+
+  const hasAttachments = attachmentCount > 0;
+
+  // ==========================================================
+  // Load Existing Item
+  // ==========================================================
+
   useEffect(() => {
     setSpaces(item?.spaces ?? []);
 
     setIsGlobal(item?.is_global ?? false);
 
-    setSelectedAuthorities(item?.governance_entities ?? []);
+    setSelectedAuthorities(item?.governance ?? []);
 
     setType(item?.type ?? "action");
 
@@ -43,7 +91,7 @@ export function useEditor(item = null) {
 
     setContent(item?.details ?? item?.content ?? "");
 
-    setAttachments(item?.attachments ?? []);
+    replaceAttachments(item?.attachments ?? []);
 
     setStartAt(item?.start_at ?? null);
 
@@ -58,11 +106,15 @@ export function useEditor(item = null) {
     setMeetingLink(item?.meeting_link ?? "");
   }, [item]);
 
-  function getEditorData() {
+  // ==========================================================
+  // Editor Data
+  // ==========================================================
+
+  const editorData = useMemo(() => {
     const { links, hashtags } = extractContentMeta(content);
 
     return {
-      author_id: user.id,
+      author_id: user?.id ?? null,
 
       title,
       content,
@@ -88,31 +140,61 @@ export function useEditor(item = null) {
 
       is_global,
 
-      governance_entities,
+      governance,
 
       type,
     };
-  }
+  }, [
+    user,
+    title,
+    content,
+    attachments,
+    start_at,
+    end_at,
+    lat,
+    lng,
+    address,
+    meeting_link,
+    spaces,
+    is_global,
+    governance,
+    type,
+  ]);
 
   return {
+    // Type
     type,
     setType,
 
+    // Content
     title,
     setTitle,
 
     content,
     setContent,
 
+    // Attachments
     attachments,
-    setAttachments,
+    attachmentCount,
+    hasAttachments,
 
+    setAttachments,
+    replaceAttachments,
+
+    addAttachments,
+    removeAttachment,
+    clearAttachments,
+    updateAttachment,
+    moveAttachment,
+
+    // Dates
     start_at,
     setStartAt,
 
     end_at,
     setEndAt,
 
+    // Location
     lat,
     setLat,
 
@@ -122,18 +204,23 @@ export function useEditor(item = null) {
     address,
     setAddress,
 
+    // Meeting
     meeting_link,
     setMeetingLink,
 
+    // Spaces
     spaces,
     setSpaces,
 
     is_global,
     setIsGlobal,
 
-    governance_entities,
+    governance,
     setSelectedAuthorities,
 
-    getEditorData,
+    // Helpers
+    editorData,
+
+    getEditorData: () => editorData,
   };
 }

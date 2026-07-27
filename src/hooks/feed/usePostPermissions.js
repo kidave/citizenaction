@@ -9,8 +9,14 @@ export function usePostPermissions(postId) {
     enabled: !!postId,
 
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("can_manage_feed", {
-        feed_id: postId,
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+
+      if (!userId) return { can_manage: false };
+
+      const { data, error } = await supabase.rpc("can_manage_post", {
+        p_post_id: postId,
+        p_user_id: userId,
       });
 
       if (error) throw error;

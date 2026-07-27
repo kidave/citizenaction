@@ -11,14 +11,14 @@ export default function EditorContent({
   setContent,
 }) {
   return (
-    <div className="flex h-full flex-col space-y-3">
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
       <Input
         placeholder={
           mode === "post" ? "Add a title..." : "Contribution title..."
         }
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="bg-muted"
+        className="h-10 shrink-0 bg-muted"
       />
 
       <Textarea
@@ -29,7 +29,7 @@ export default function EditorContent({
         }
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        className="flex-1 resize-y bg-muted"
+        className="min-h-0 flex-1 resize-none bg-muted"
       />
     </div>
   );

@@ -9,37 +9,9 @@ export function useDeletePost() {
 
   const mutation = useMutation({
     mutationFn: async (postId) => {
-      // =========================
-      // DELETE FEED SPACES
-      // =========================
-
-      const { error: spaceError } = await supabase
-        .from("feed_space")
-        .delete()
-        .eq("feed_id", postId);
-
-      if (spaceError) {
-        throw spaceError;
-      }
-
-      // =========================
-      // DELETE GOVERNANCE TAGS
-      // =========================
-
-      const { error: tagError } = await supabase
-        .from("feed_governance_entities")
-        .delete()
-        .eq("feed_id", postId);
-
-      if (tagError) {
-        throw tagError;
-      }
-
-      // =========================
-      // DELETE FEED
-      // =========================
-
-      const { error } = await supabase.from("feed").delete().eq("id", postId);
+      const { error } = await supabase.rpc("delete_post", {
+        p_post_id: postId,
+      });
 
       if (error) {
         throw error;
@@ -50,7 +22,7 @@ export function useDeletePost() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["feed"],
+        queryKey: ["post"],
       });
 
       toast.success("Post deleted successfully");
@@ -65,7 +37,6 @@ export function useDeletePost() {
 
   return {
     deletePost: mutation.mutateAsync,
-
     isDeleting: mutation.isPending,
   };
 }

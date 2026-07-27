@@ -7,7 +7,7 @@ import Timeline, {
   TimelineItemTitle,
   TimelineItemDescription,
 } from "@/components/ui/timeline";
-import FieldInfo from "@/components/ui/FieldInfo";
+
 import formatDate from "@/utils/date/formatDate";
 
 export default function PostTimeline({ post }) {
@@ -34,8 +34,7 @@ export default function PostTimeline({ post }) {
             if (item.type === "authority_response") {
               title = `Response from ${item.authority || "Authority"}`;
             } else {
-
-            /* default status */
+              /* default status */
               title = item.title;
             }
 
@@ -90,8 +89,7 @@ export default function PostTimeline({ post }) {
             if (item.type === "authority_response") {
               title = `Response from ${item.authority || "Authority"}`;
             } else {
-
-            /* default status */
+              /* default status */
               title = item.title;
             }
 

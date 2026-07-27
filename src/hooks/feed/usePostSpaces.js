@@ -11,7 +11,7 @@ export function usePostSpaces(postId) {
 
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("feed_space")
+        .from("post_space")
         .select(
           `
           space:space_id (
@@ -22,7 +22,7 @@ export function usePostSpaces(postId) {
           )
         `,
         )
-        .eq("feed_id", postId);
+        .eq("post_id", postId);
 
       if (error) {
         throw error;

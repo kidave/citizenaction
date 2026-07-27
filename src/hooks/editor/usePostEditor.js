@@ -43,7 +43,7 @@ export function usePostEditor(post = null) {
 
       is_global: data.is_global,
 
-      governance_entities: data.governance_entities,
+      governance: data.governance,
 
       type: data.type,
 
