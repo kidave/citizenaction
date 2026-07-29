@@ -26,7 +26,7 @@ export default function AuthoritySearchModal({
   selected = [],
   onChange = () => {},
   onSubmit = () => {},
-  existingEntities = [],
+  existingAuthorities = [],
 }) {
   const [search, setSearch] = useState("");
 
@@ -54,7 +54,7 @@ export default function AuthoritySearchModal({
   }
 
   function getTaggedUser(entityId) {
-    const found = existingEntities.find((e) => e.id === entityId);
+    const found = existingAuthorities.find((e) => e.id === entityId);
     if (!found || !found.tagged_by) return null;
 
     return {

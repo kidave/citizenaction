@@ -26,7 +26,7 @@ This roadmap is based on repository review only. It does not change application 
 
 - Feed display through `feed_light_view`.
 - Feed post creation, update, delete.
-- Post editor with content, metadata, attachments, timeline, authority selection, date/time, address, spaces, and governance entities.
+- Post editor with content, metadata, attachments, timeline, authority selection, date/time, address, spaces, and governance authorities.
 - Post support/contribution actions.
 - Authority escalation actions.
 - Post stats hooks.

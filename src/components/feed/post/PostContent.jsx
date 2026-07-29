@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import truncateContent from "@/utils/text/truncateContent";
 import Linkify from "linkify-react";
 import { Badge } from "@/components/ui/badge";
-import { Row } from "@/components/layout/Row";
 
 export default function PostContent({
   post,

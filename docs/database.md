@@ -6,24 +6,24 @@ This document uses only information available from the repository. The actual Su
 
 The following table names are directly referenced through Supabase `.from()` calls and appear to be base tables based on usage. This classification is inferred from reads/writes in code and may need confirmation against Supabase.
 
-| Table                        | Evidence from code usage                          |
-| ---------------------------- | ------------------------------------------------- |
-| `action_contribute`          | count/select, insert/delete contribution actions  |
-| `action_escalate`            | insert/delete escalation/authority actions        |
-| `action_support`             | count/select, insert/delete support actions       |
-| `club`                       | create, read, update, delete clubs/committees     |
-| `club_member`                | inserts creator as club member                    |
-| `delete_account_requests`    | inserts account deletion request                  |
-| `feed`                       | create, update, delete feed posts                 |
-| `post_governance`            | join table for feed posts and governance entities |
-| `feed_space`                 | join table for feed posts and spaces              |
-| `geographic_scope`           | scope lookup by type/code and post scope reads    |
-| `geographic_scope_hierarchy` | geographic scope hierarchy reads                  |
-| `meeting_item`               | meeting item create/update/delete/read            |
-| `profile`                    | user profile reads/updates and contact fallback   |
-| `space`                      | space reads/updates/deletes and ownership checks  |
-| `space_application`          | space application create/read/update flows        |
-| `space_member`               | user-space membership reads                       |
+| Table                        | Evidence from code usage                             |
+| ---------------------------- | ---------------------------------------------------- |
+| `action_contribute`          | count/select, insert/delete contribution actions     |
+| `action_escalate`            | insert/delete escalation/authority actions           |
+| `action_support`             | count/select, insert/delete support actions          |
+| `club`                       | create, read, update, delete clubs/committees        |
+| `club_member`                | inserts creator as club member                       |
+| `delete_account_requests`    | inserts account deletion request                     |
+| `feed`                       | create, update, delete feed posts                    |
+| `post_governance`            | join table for feed posts and governance authorities |
+| `feed_space`                 | join table for feed posts and spaces                 |
+| `geographic_scope`           | scope lookup by type/code and post scope reads       |
+| `geographic_scope_hierarchy` | geographic scope hierarchy reads                     |
+| `meeting_item`               | meeting item create/update/delete/read               |
+| `profile`                    | user profile reads/updates and contact fallback      |
+| `space`                      | space reads/updates/deletes and ownership checks     |
+| `space_application`          | space application create/read/update flows           |
+| `space_member`               | user-space membership reads                          |
 
 ## Views referenced
 
@@ -77,7 +77,7 @@ These relationships are inferred from query filters and inserted fields. They sh
 - `feed` stores core post/action records.
 - `feed_light_view` is the read model used for feed and post details.
 - `feed_space` associates feed posts with spaces.
-- `post_governance` associates feed posts with governance entities.
+- `post_governance` associates feed posts with governance authorities.
 - `action_support`, `action_contribute`, and `action_escalate` store user interactions/engagements with feed posts or actions.
 - `can_manage_post` determines whether the current user may manage a feed entity.
 

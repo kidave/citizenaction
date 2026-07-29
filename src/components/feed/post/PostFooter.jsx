@@ -4,14 +4,12 @@ import { useState } from "react";
 import { Orbit, ArrowBigUpDash } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
-import { usePostStats } from "@/hooks/feed/usePostStats";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 
 import GovernanceAvatarGroups from "@/components/governance/GovernanceAvatarGroups";
 import ContributorAvatarGroup from "@/components/feed/contribution/ContributorAvatarGroup";
 import PostShareButton from "@/components/feed/PostShareButton";
-import { usePostGovernance } from "@/hooks/feed/usePostGovernance";
 import ContributionDrawer from "@/components/feed/contribution/ContributionDrawer";
 
 import {
@@ -27,17 +25,19 @@ export default function PostFooter({ post }) {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const { data } = usePostStats(post.id, user?.id);
+  const stats = post.stats ?? {};
 
-  const supportCount = data?.support_count ?? 0;
-  const contributionCount = data?.contribution_count ?? 0;
-  const contributorCount = data?.contributor_count ?? 0;
+  const supportCount = stats.support_count ?? 0;
 
-  const supported = data?.is_supported ?? false;
+  const contributionCount = stats.contribution_count ?? 0;
 
-  const contributors = data?.contributors_preview ?? [];
+  const contributorCount = stats.contributor_count ?? 0;
 
-  const { data: governance = [] } = usePostGovernance(post.id);
+  const supported = stats.is_supported ?? false;
+
+  const contributors = post.contributors ?? [];
+
+  const governance = post.governance ?? [];
 
   async function handleSupport(e) {
     e?.stopPropagation();
@@ -88,13 +88,13 @@ export default function PostFooter({ post }) {
       <TooltipProvider>
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <GovernanceAvatarGroups entities={governance} />
+            <GovernanceAvatarGroups authorities={governance} />
 
             <button
               onClick={handleContributors}
               className="transition hover:opacity-80"
             >
-              <ContributorAvatarGroup attendees={contributors} />
+              <ContributorAvatarGroup contributors={contributors} />
             </button>
           </div>
 

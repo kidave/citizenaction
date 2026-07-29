@@ -2,8 +2,6 @@
 
 import { Card } from "@/components/ui/card";
 
-import { Row } from "@/components/layout/Row";
-
 import { UserIdentity } from "@/components/profile/UserIdentity";
 import formatDate from "@/utils/date/formatDate";
 import PostActions from "@/components/feed/post/PostActions";
@@ -23,7 +21,7 @@ export default function ContributionCard({
   const formattedDate = formatDate(contribution.created_at);
 
   return (
-    <Card className="bg-muted">
+    <Card className="rounded-3xl bg-muted">
       <div className="flex flex-col gap-2 p-4">
         {/* Header */}
 

@@ -13,12 +13,7 @@ import PostMetadata from "./PostMetadata";
 import PostTimeline from "./PostTimeline";
 import PostAttachments from "./PostAttachments";
 import PostFooter from "./PostFooter";
-
 import PostContribution from "@/components/feed/contribution/PostContribution";
-
-import { usePostPermissions } from "@/hooks/feed/usePostPermissions";
-import { usePostSpaces } from "@/hooks/feed/usePostSpaces";
-
 import getPostStatus from "@/utils/feed/getPostStatus";
 
 export default function PostCard({
@@ -46,13 +41,9 @@ export default function PostCard({
     return () => clearInterval(interval);
   }, []);
 
-  const { data: permissions } = usePostPermissions(post?.id);
-
-  const { data: spaces = [] } = usePostSpaces(post?.id);
-
   if (!post) return null;
 
-  const canEdit = permissions?.can_manage || post.author_id === user?.id;
+  const canEdit = post.permissions?.can_manage || post.author_id === user?.id;
 
   const status = getPostStatus(post, mounted ? now : null);
 
@@ -66,12 +57,9 @@ export default function PostCard({
     <Card
       className={`relative overflow-hidden transition-all duration-300 ${edgeToEdgeMobile ? "rounded-none sm:rounded-[28px]" : "rounded-[28px]"} ${borderless ? "border-0 shadow-none" : ""} ${post.type || ""} `}
     >
-      <div className="relative z-10 flex flex-col gap-2 p-4 sm:p-6">
+      <div className="relative z-10 flex flex-col gap-4 p-4 sm:p-6">
         <PostHeader
-          post={{
-            ...post,
-            spaces,
-          }}
+          post={post}
           status={status}
           canEdit={canEdit}
           onEdit={onEdit}
@@ -93,52 +81,29 @@ export default function PostCard({
               handleNavigate();
             }}
           >
-            <div className="rounded-3xl bg-muted p-4 shadow-sm backdrop-blur-sm">
+            <Card className="rounded-3xl bg-muted p-4">
               <PostContent
-                post={{
-                  ...post,
-                  spaces,
-                }}
+                post={post}
                 status={status}
                 forceExpanded={forceExpanded}
               />
 
               <PostMetadata
-                post={{
-                  ...post,
-                  spaces,
-                }}
+                post={post}
                 status={status}
                 forceExpanded={forceExpanded}
               />
 
-              <PostTimeline
-                post={{
-                  ...post,
-                  spaces,
-                }}
-              />
-            </div>
+              <PostTimeline post={post} />
+            </Card>
           </div>
         </div>
 
-        <div className="rounded-3xl bg-muted p-2 backdrop-blur-sm">
-          <PostFooter
-            post={{
-              ...post,
-              spaces,
-            }}
-          />
-        </div>
+        <Card className="rounded-3xl bg-muted p-2">
+          <PostFooter post={post} />
+        </Card>
 
-        {forceExpanded && (
-          <PostContribution
-            post={{
-              ...post,
-              spaces,
-            }}
-          />
-        )}
+        {forceExpanded && <PostContribution post={post} />}
       </div>
     </Card>
   );

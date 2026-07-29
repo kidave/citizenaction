@@ -25,22 +25,22 @@ import {
 import { Card } from "@/components/ui/card";
 
 export default function GovernanceAvatarGroups({
-  entities = [],
+  authorities = [],
   maxVisible = 5,
 }) {
   const [open, setOpen] = useState(false);
 
-  if (!entities || entities.length === 0) return null;
+  if (!authorities || authorities.length === 0) return null;
 
   /* -------------------------
      DEDUPE AUTHORITIES
   ------------------------- */
-  const uniqueEntities = Array.from(
-    new Map(entities.map((e) => [e.id, e])).values(),
+  const uniqueAuthorities = Array.from(
+    new Map(authorities.map((e) => [e.id, e])).values(),
   );
 
-  const visible = uniqueEntities.slice(0, maxVisible);
-  const hiddenCount = uniqueEntities.length - maxVisible;
+  const visible = uniqueAuthorities.slice(0, maxVisible);
+  const hiddenCount = uniqueAuthorities.length - maxVisible;
 
   return (
     <TooltipProvider>
@@ -91,7 +91,7 @@ export default function GovernanceAvatarGroups({
             </DialogHeader>
 
             <div className="max-h-[400px] space-y-3 overflow-y-auto">
-              {uniqueEntities.map((entity) => (
+              {uniqueAuthorities.map((entity) => (
                 <Card key={entity.id} className="flex items-center gap-3 p-3">
                   <Avatar className="h-9 w-9">
                     <AvatarImage src={entity.image_url} />

@@ -1,7 +1,6 @@
 import { supabase } from "./client";
 
 const POST_BUCKET = "post";
-const CONTRIBUTION_BUCKET = "contribution";
 
 function sanitizeFileName(name) {
   return name.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -13,15 +12,15 @@ function makeFileName(originalName) {
   return `${unique}-${safeName}`;
 }
 
-async function uploadToBucket({ bucket, folderId, file }) {
+async function uploadToBucket({ folderId, file }) {
   if (!file) throw new Error("Missing file for upload");
-  if (!folderId) throw new Error("Missing folderId for attachment upload");
+  if (!folderId) throw new Error("Missing postId for attachment upload");
 
   const fileName = makeFileName(file.name);
   const path = `${folderId}/${fileName}`;
 
   const { error: uploadError } = await supabase.storage
-    .from(bucket)
+    .from(POST_BUCKET)
     .upload(path, file, {
       upsert: false,
       cacheControl: "3600",
@@ -30,7 +29,7 @@ async function uploadToBucket({ bucket, folderId, file }) {
 
   if (uploadError) throw uploadError;
 
-  const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+  const { data } = supabase.storage.from(POST_BUCKET).getPublicUrl(path);
 
   return {
     storage_path: path,
@@ -45,24 +44,32 @@ async function uploadToBucket({ bucket, folderId, file }) {
   };
 }
 
+/* -------------------------------------------------------------------------- */
+/* Upload Single */
+/* -------------------------------------------------------------------------- */
+
 export async function uploadPostAttachment(postId, file) {
   return uploadToBucket({
-    bucket: POST_BUCKET,
     folderId: postId,
     file,
   });
 }
 
-export async function uploadContributionAttachment(contributionId, file) {
+export async function uploadContributionAttachment(postId, file) {
+  // Contribution files are also stored under the parent post folder.
   return uploadToBucket({
-    bucket: CONTRIBUTION_BUCKET,
-    folderId: contributionId,
+    folderId: postId,
     file,
   });
 }
 
+/* -------------------------------------------------------------------------- */
+/* Upload Multiple */
+/* -------------------------------------------------------------------------- */
+
 export async function uploadPostAttachments(postId, attachments = []) {
   if (!Array.isArray(attachments) || attachments.length === 0) return [];
+
   return Promise.all(
     attachments.map((attachment) =>
       uploadPostAttachment(postId, attachment?.file ?? attachment),
@@ -70,46 +77,40 @@ export async function uploadPostAttachments(postId, attachments = []) {
   );
 }
 
-export async function uploadContributionAttachments(
-  contributionId,
-  attachments = [],
-) {
+export async function uploadContributionAttachments(postId, attachments = []) {
   if (!Array.isArray(attachments) || attachments.length === 0) return [];
+
   return Promise.all(
     attachments.map((attachment) =>
-      uploadContributionAttachment(
-        contributionId,
-        attachment?.file ?? attachment,
-      ),
+      uploadContributionAttachment(postId, attachment?.file ?? attachment),
     ),
   );
 }
 
-export async function deletePostAttachments(paths = []) {
+/* -------------------------------------------------------------------------- */
+/* Delete */
+/* -------------------------------------------------------------------------- */
+
+export async function deleteAttachments(paths = []) {
   const validPaths = paths.filter(Boolean);
+
   if (!validPaths.length) return true;
 
   const { error } = await supabase.storage.from(POST_BUCKET).remove(validPaths);
-  if (error) throw error;
-
-  return true;
-}
-
-export async function deleteContributionAttachments(paths = []) {
-  const validPaths = paths.filter(Boolean);
-  if (!validPaths.length) return true;
-
-  const { error } = await supabase.storage
-    .from(CONTRIBUTION_BUCKET)
-    .remove(validPaths);
 
   if (error) throw error;
 
   return true;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Helpers */
+/* -------------------------------------------------------------------------- */
 
 export function getAttachmentPaths(attachments = []) {
-  return attachments.map((attachment) => attachment?.path).filter(Boolean);
+  return attachments
+    .map((attachment) => attachment?.storage_path)
+    .filter(Boolean);
 }
 
 export function getFileCategory(mimeType) {
@@ -123,5 +124,6 @@ export function getFileCategory(mimeType) {
     return "presentation";
   if (mimeType?.startsWith("text/")) return "text";
   if (mimeType?.includes("zip") || mimeType?.includes("rar")) return "archive";
+
   return "file";
 }

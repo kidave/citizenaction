@@ -132,7 +132,7 @@ export default function ActivityPreviewCard({ post }) {
 
         {/* GOVERNANCE */}
 
-        <PostGovernanceEntities postId={post.id} />
+        <PostGovernanceAuthorities postId={post.id} />
       </CardContent>
 
       {/* =====================================================
@@ -180,7 +180,7 @@ export default function ActivityPreviewCard({ post }) {
 
           {/* GOVERNANCE */}
 
-          <PostGovernanceEntities postId={post.id} />
+          <PostGovernanceAuthorities postId={post.id} />
         </CardContent>
       </motion.div>
     </Card>
@@ -191,12 +191,12 @@ export default function ActivityPreviewCard({ post }) {
    GOVERNANCE
 ===================================================== */
 
-function PostGovernanceEntities({ postId }) {
-  const { data: entities = [] } = usePostGovernance(postId);
+function PostGovernanceAuthorities({ postId }) {
+  const { data: authorities = [] } = usePostGovernance(postId);
 
-  if (!entities.length) {
+  if (!authorities.length) {
     return null;
   }
 
-  return <GovernanceAvatarGroups entities={entities} />;
+  return <GovernanceAvatarGroups authorities={authorities} />;
 }

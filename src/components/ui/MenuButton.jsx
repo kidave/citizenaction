@@ -9,19 +9,10 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog";
-
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
+
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
 export default function MenuButton({ onEdit, onDelete }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -60,32 +51,18 @@ export default function MenuButton({ onEdit, onDelete }) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this post?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. The post and related data will be
-              permanently removed.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete?.();
-                setConfirmOpen(false);
-              }}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Delete this post?"
+        description="This action cannot be undone. The post and related data will be permanently removed."
+        confirmText="Delete"
+        onConfirm={(e) => {
+          e?.stopPropagation();
+          onDelete?.();
+          setConfirmOpen(false);
+        }}
+      />
     </>
   );
 }

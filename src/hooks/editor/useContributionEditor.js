@@ -51,6 +51,7 @@ export function useContributionEditor(contribution = null, post = null) {
       if (contribution) {
         await updateContribution({
           contributionId: contribution.id,
+          postId: post.id,
           contributionData: payload,
         });
       } else {
@@ -71,7 +72,7 @@ export function useContributionEditor(contribution = null, post = null) {
     if (!contribution) return;
 
     try {
-      await deleteContribution(contribution.id);
+      await deleteContribution(contribution);
       onSuccess?.();
     } catch (error) {
       console.error(error);

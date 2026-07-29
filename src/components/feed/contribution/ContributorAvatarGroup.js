@@ -9,10 +9,10 @@ import {
   AvatarGroup,
 } from "@/components/ui/avatar";
 
-export default function ContributorAvatarGroup({ attendees = [] }) {
-  if (!attendees || attendees.length === 0) return null;
+export default function ContributorAvatarGroup({ contributors = [] }) {
+  if (!contributors || contributors.length === 0) return null;
 
-  const users = attendees.filter(
+  const users = contributors.filter(
     (a) => (a?.avatar || a?.avatar_url) && a?.username,
   );
 

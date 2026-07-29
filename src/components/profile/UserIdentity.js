@@ -3,7 +3,6 @@
 import Link from "next/link";
 
 import { Row } from "@/components/layout/Row";
-import { Stack } from "@/components/layout/Stack";
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 

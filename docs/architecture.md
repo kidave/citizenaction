@@ -229,7 +229,7 @@ Hook folders map closely to product domains:
 
 - `src/hooks/feed/` handles feed posts, post CRUD, metadata, permissions, authority actions, meetings, spaces, stats, and editor state.
 - `src/hooks/geography/` handles geographic scopes, scope chains, location search, and scope selector state.
-- `src/hooks/governance/` handles governance entities, hierarchy/tree views, and authority exploration.
+- `src/hooks/governance/` handles governance authorities, hierarchy/tree views, and authority exploration.
 - `src/hooks/meeting/` handles meeting items.
 - `src/hooks/space/` handles space membership.
 - `src/hooks/user/` handles profiles and user spaces.
@@ -268,14 +268,14 @@ Authenticated endpoint for club settings. It supports GET, PUT, and DELETE flows
 
 Application code references these environment variables:
 
-| Variable | Where used | Purpose |
-| --- | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | client, server, node, network banner | Supabase project URL exposed to browser and server code |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client and server helpers | Supabase anon/public key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Node helper | Trusted service-role key for Node-only usage |
-| `NEXT_PUBLIC_DEV_AUTH` | Auth context | Switches login to local/dev email OTP mode when set to `true` |
-| `NEXT_PUBLIC_MAPBOX_TOKEN` | Mapbox search component | Browser Mapbox search token |
-| `NODE_ENV` | Next config | Enables development-only CSP allowances |
+| Variable                        | Where used                           | Purpose                                                       |
+| ------------------------------- | ------------------------------------ | ------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | client, server, node, network banner | Supabase project URL exposed to browser and server code       |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client and server helpers            | Supabase anon/public key                                      |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Node helper                          | Trusted service-role key for Node-only usage                  |
+| `NEXT_PUBLIC_DEV_AUTH`          | Auth context                         | Switches login to local/dev email OTP mode when set to `true` |
+| `NEXT_PUBLIC_MAPBOX_TOKEN`      | Mapbox search component              | Browser Mapbox search token                                   |
+| `NODE_ENV`                      | Next config                          | Enables development-only CSP allowances                       |
 
 GitHub Actions workflow `.github/workflows/osm-sync.yml` references different secret names for a scheduled script:
 

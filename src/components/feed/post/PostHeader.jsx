@@ -1,9 +1,8 @@
 "use client";
 
 import { Row } from "@/components/layout/Row";
-import { Inline } from "@/components/layout/Inline";
 import { UserIdentity } from "@/components/profile/UserIdentity";
-import MenuButton from "@/components/feed/MenuButton";
+import MenuButton from "@/components/ui/MenuButton";
 import formatDate from "@/utils/date/formatDate";
 import Image from "next/image";
 import Link from "next/link";
