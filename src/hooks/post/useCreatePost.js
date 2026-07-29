@@ -23,10 +23,22 @@ export function useCreatePost() {
         // ==========================================================
 
         if (postData.attachments?.length) {
-          uploadedAttachments = await uploadPostAttachments(
+          const uploaded = await uploadPostAttachments(
             postId,
             postData.attachments,
           );
+
+          uploadedAttachments = uploaded.map((uploadedAttachment) => {
+            const original = postData.attachments.find(
+              (a) => a.file?.name === uploadedAttachment.file_name,
+            );
+
+            return {
+              ...uploadedAttachment,
+              credit_name: original?.credit_name ?? null,
+              credit_url: original?.credit_url ?? null,
+            };
+          });
         }
 
         // ==========================================================

@@ -2,6 +2,8 @@
 
 import { X } from "lucide-react";
 
+import { Input } from "@/components/ui/input";
+
 import { cn } from "@/lib/utils";
 import { getFileExtension, formatFileSize } from "@/utils/attachment";
 
@@ -12,24 +14,19 @@ export default function AttachmentCard({
   index,
   onClick,
   onRemove,
+  onCreditNameChange,
   removable = false,
-
   showMetadata = true,
-
   hovered = null,
   setHovered = () => {},
-
   className,
 }) {
   return (
-    <button
-      type="button"
-      onClick={() => onClick?.(index)}
+    <div
       onMouseEnter={() => setHovered(index)}
       onMouseLeave={() => setHovered(null)}
       className={cn(
-        "group relative w-full overflow-hidden rounded-xl border bg-card text-left transition-all duration-500 ease-out md:rounded-2xl",
-        "focus:outline-none focus:ring-2 focus:ring-primary/30",
+        "group relative overflow-hidden rounded-xl border bg-card transition-all duration-500 ease-out md:rounded-2xl",
 
         hovered !== null &&
           hovered !== index &&
@@ -41,8 +38,13 @@ export default function AttachmentCard({
         className,
       )}
     >
-      <div className="relative aspect-square overflow-hidden bg-muted md:aspect-[16/10]">
-        <div className="h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.06]">
+      {/* Preview */}
+
+      <div
+        onClick={() => onClick?.(index)}
+        className="relative aspect-square cursor-pointer overflow-hidden bg-muted md:aspect-[16/10]"
+      >
+        <div className="relative h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.06]">
           <AttachmentPreview attachment={attachment} />
         </div>
 
@@ -60,16 +62,31 @@ export default function AttachmentCard({
         )}
       </div>
 
+      {/* Metadata */}
+
       {showMetadata && (
-        <div className="space-y-1 p-3">
+        <div className="space-y-2 p-3">
           <p className="truncate text-sm font-medium">{attachment.name}</p>
 
-          <p className="text-xs text-muted-foreground">
-            {getFileExtension(attachment.name)} •{" "}
-            {formatFileSize(attachment.size)}
-          </p>
+          <Input
+            value={attachment.credit_name ?? ""}
+            placeholder="Add credit"
+            onChange={(e) => onCreditNameChange?.(index, e.target.value)}
+            className="h-7 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
+          />
+
+          <div className="space-y-0.5 text-xs text-muted-foreground">
+            <p>
+              {getFileExtension(attachment.name)} •{" "}
+              {formatFileSize(attachment.size)}
+            </p>
+
+            {attachment.credit_name && (
+              <p className="truncate">{attachment.credit_name}</p>
+            )}
+          </div>
         </div>
       )}
-    </button>
+    </div>
   );
 }

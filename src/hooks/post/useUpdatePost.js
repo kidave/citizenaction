@@ -24,19 +24,11 @@ export function useUpdatePost() {
           data: { user },
         } = await supabase.auth.getUser();
 
-        console.log("================================");
-        console.log("UPDATE POST DEBUG");
-        console.log("Current User:", user?.id);
-        console.log("Post ID:", postId);
-
         const { data: postInfo, error: postInfoError } = await supabase
           .from("post")
           .select("id, author_id, space_id")
           .eq("id", postId)
           .single();
-
-        console.log("Post Info:", postInfo);
-        console.log("Post Info Error:", postInfoError);
 
         if (postInfo?.space_id) {
           const { data: membership } = await supabase
@@ -44,33 +36,50 @@ export function useUpdatePost() {
             .select("*")
             .eq("space_id", postInfo.space_id)
             .eq("user_id", user?.id);
-
-          console.log("Space Membership:", membership);
         }
-
-        console.log("================================");
 
         // ==========================================================
         // Upload new attachments
         // ==========================================================
 
         if (postData.attachments?.length) {
-          const existingAttachments = postData.attachments.filter(
-            (attachment) => attachment.storage_path,
-          );
+          const existingAttachments = postData.attachments
+            .filter((attachment) => attachment.storage_path || attachment.path)
+            .map((attachment) => ({
+              storage_path: attachment.storage_path ?? attachment.path,
+              public_url: attachment.public_url ?? attachment.url,
+              file_name: attachment.file_name ?? attachment.name,
+              mime_type: attachment.mime_type ?? attachment.type,
+              file_size: attachment.file_size ?? attachment.size,
+              width: attachment.width,
+              height: attachment.height,
+              duration: attachment.duration,
+              sort_order: attachment.sort_order ?? 0,
+              credit_name: attachment.credit_name ?? null,
+              credit_url: attachment.credit_url ?? null,
+            }));
 
           const newAttachments = postData.attachments.filter(
-            (attachment) => !attachment.storage_path,
+            (attachment) => !(attachment.storage_path || attachment.path),
           );
 
           const uploadedNewAttachments = newAttachments.length
             ? await uploadPostAttachments(postId, newAttachments)
             : [];
 
-          uploadedAttachments = [
-            ...existingAttachments,
-            ...uploadedNewAttachments,
-          ];
+          const mergedUploads = uploadedNewAttachments.map((uploaded) => {
+            const original = newAttachments.find(
+              (a) => a.file.name === uploaded.file_name,
+            );
+
+            return {
+              ...uploaded,
+              credit_name: original?.credit_name ?? null,
+              credit_url: original?.credit_url ?? null,
+            };
+          });
+
+          uploadedAttachments = [...existingAttachments, ...mergedUploads];
         }
 
         // ==========================================================
@@ -99,8 +108,6 @@ export function useUpdatePost() {
           },
         );
 
-        console.log("RPC Response:", { data, error });
-
         if (error) throw error;
 
         return data;
@@ -120,9 +127,7 @@ export function useUpdatePost() {
             await deletePostAttachments(
               newUploads.map((attachment) => attachment.storage_path),
             );
-          } catch (rollbackError) {
-            console.error("Attachment rollback failed", rollbackError);
-          }
+          } catch (rollbackError) {}
         }
 
         throw error;
@@ -138,7 +143,6 @@ export function useUpdatePost() {
     },
 
     onError: (error) => {
-      console.error("Update Post Error:", error);
       toast.error(error.message || "Failed to update post");
     },
   });

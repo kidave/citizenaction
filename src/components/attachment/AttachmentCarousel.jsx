@@ -16,6 +16,7 @@ export default function AttachmentCarousel({
   attachments = [],
   onAttachmentClick,
   onRemove,
+  onCreditNameChange,
   removable = false,
   showMetadata = true,
 }) {
@@ -92,6 +93,7 @@ export default function AttachmentCarousel({
                   onRemove={onRemove}
                   removable={removable}
                   showMetadata={showMetadata}
+                  onCreditNameChange={onCreditNameChange}
                   hovered={hovered}
                   setHovered={setHovered}
                 />

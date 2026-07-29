@@ -66,11 +66,19 @@ export default function PostContent({
             target: "_blank",
             rel: "noopener noreferrer",
             className: "text-blue-600 hover:underline break-all",
-            render: ({ attributes, content }) => (
-              <a {...attributes} onClick={(e) => e.stopPropagation()}>
-                {content}
-              </a>
-            ),
+            render: ({ attributes, content }) => {
+              const { class: className, ...rest } = attributes;
+
+              return (
+                <a
+                  {...rest}
+                  className={className}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {content}
+                </a>
+              );
+            },
           }}
         >
           {expanded || !isLong ? content : truncatedText}

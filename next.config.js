@@ -11,7 +11,6 @@ const nextConfig = {
       { protocol: "https", hostname: "*.sender.net" },
       { protocol: "https", hostname: "*.sendercdn.com" },
     ],
-    unoptimized: true,
   },
 
   async headers() {
@@ -40,8 +39,7 @@ const nextConfig = {
         https://*.sendercdn.com
         https://*.fbcdn.net
         https://*.fna.fbcdn.net
-        https://*.mapillary.com
-        https://scontent.*.fna.fbcdn.net;
+        https://*.mapillary.com;
 
       connect-src 'self'
         ${isDev ? "http://localhost:54321 http://127.0.0.1:54321" : ""}

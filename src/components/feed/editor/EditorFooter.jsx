@@ -14,7 +14,7 @@ import EditorAddress from "./EditorAddress";
 
 export default function EditorFooter({ mode, item, editor, onClose }) {
   return (
-    <div className="border-t bg-background p-3">
+    <div className="border-t bg-background/95 p-3 backdrop-blur">
       <div className="flex items-center justify-between gap-3">
         {/* Left Toolbar */}
         <div className="flex min-w-0 items-center gap-1">
