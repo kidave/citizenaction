@@ -22,9 +22,9 @@ const themes = [
     description: "Dark interface.",
   },
   {
-    value: "citizen-action",
-    title: "Citizen Action",
-    description: "Citizen Action brand theme.",
+    value: "space",
+    title: "Space",
+    description: "Space-themed interface.",
   },
 ];
 

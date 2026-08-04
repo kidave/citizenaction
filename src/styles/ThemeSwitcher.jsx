@@ -31,8 +31,8 @@ export function ThemeSwitcher() {
           System
         </DropdownMenuItem>
 
-        <DropdownMenuItem onClick={() => setTheme("citizen-action")}>
-          Citizen Action
+        <DropdownMenuItem onClick={() => setTheme("space")}>
+          Space
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

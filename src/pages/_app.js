@@ -49,6 +49,8 @@ function MyApp({ Component, pageProps }) {
           "
         />
 
+        <link rel="manifest" href="/manifest.json" />
+
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
