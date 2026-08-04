@@ -3,11 +3,11 @@
 import { X } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
-
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getFileExtension, formatFileSize } from "@/utils/attachment";
 
-import AttachmentPreview from "./AttachmentPreview";
+import AttachmentPreview from "@/components/attachment/AttachmentPreview";
 
 export default function AttachmentCard({
   attachment,
@@ -49,30 +49,31 @@ export default function AttachmentCard({
         </div>
 
         {removable && (
-          <button
-            type="button"
-            className="absolute right-2 top-2 rounded-full bg-background/80 p-1 backdrop-blur"
+          <Button
+            variant="destructive"
+            size="icon"
+            className="absolute right-2 top-2 rounded-full"
             onClick={(e) => {
               e.stopPropagation();
               onRemove?.(index);
             }}
           >
-            <X className="h-4 w-4" />
-          </button>
+            <X />
+          </Button>
         )}
       </div>
 
       {/* Metadata */}
 
       {showMetadata && (
-        <div className="space-y-2 p-3">
+        <div className="space-y-2 p-2">
           <p className="truncate text-sm font-medium">{attachment.name}</p>
 
           <Input
             value={attachment.credit_name ?? ""}
             placeholder="Add credit"
             onChange={(e) => onCreditNameChange?.(index, e.target.value)}
-            className="h-7 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
+            className="h-4 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
           />
 
           <div className="space-y-0.5 text-xs text-muted-foreground">

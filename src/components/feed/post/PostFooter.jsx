@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import { Orbit, ArrowBigUpDash } from "lucide-react";
-
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 
-import GovernanceAvatarGroups from "@/components/governance/GovernanceAvatarGroups";
 import ContributorAvatarGroup from "@/components/feed/contribution/ContributorAvatarGroup";
 import PostShareButton from "@/components/feed/PostShareButton";
 import ContributionDrawer from "@/components/feed/contribution/ContributionDrawer";
@@ -19,7 +18,7 @@ import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
 
-export default function PostFooter({ post }) {
+export default function PostFooter({ post, forceExpanded = false }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -36,8 +35,6 @@ export default function PostFooter({ post }) {
   const supported = stats.is_supported ?? false;
 
   const contributors = post.contributors ?? [];
-
-  const governance = post.governance ?? [];
 
   async function handleSupport(e) {
     e?.stopPropagation();
@@ -80,6 +77,16 @@ export default function PostFooter({ post }) {
 
   function handleContributors(e) {
     e?.stopPropagation();
+
+    if (forceExpanded) {
+      document.getElementById("post-contributions")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+
+      return;
+    }
+
     setDrawerOpen(true);
   }
 
@@ -88,20 +95,18 @@ export default function PostFooter({ post }) {
       <TooltipProvider>
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <GovernanceAvatarGroups authorities={governance} />
-
-            <button
-              onClick={handleContributors}
-              className="transition hover:opacity-80"
-            >
-              <ContributorAvatarGroup contributors={contributors} />
-            </button>
+            {contributorCount > 0 && (
+              <Button onClick={handleContributors} variant="ghost">
+                <ContributorAvatarGroup contributors={contributors} />
+              </Button>
+            )}
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center">
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
+                <Button
+                  variant="ghost"
                   onClick={handleSupport}
                   className={`flex items-center gap-2 hover:text-primary ${
                     supported ? "font-medium text-primary" : ""
@@ -109,7 +114,7 @@ export default function PostFooter({ post }) {
                 >
                   <ArrowBigUpDash className="h-4 w-4" />
                   {supportCount}
-                </button>
+                </Button>
               </TooltipTrigger>
 
               <TooltipContent>
@@ -119,13 +124,14 @@ export default function PostFooter({ post }) {
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
+                <Button
+                  variant="ghost"
                   onClick={handleContributors}
                   className="flex items-center gap-2 hover:text-primary"
                 >
                   <Orbit className="h-4 w-4" />
                   {contributorCount}
-                </button>
+                </Button>
               </TooltipTrigger>
 
               <TooltipContent>Contribute</TooltipContent>
@@ -136,11 +142,13 @@ export default function PostFooter({ post }) {
         </div>
       </TooltipProvider>
 
-      <ContributionDrawer
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
-        post={post}
-      />
+      {!forceExpanded && (
+        <ContributionDrawer
+          open={drawerOpen}
+          onOpenChange={setDrawerOpen}
+          post={post}
+        />
+      )}
     </>
   );
 }

@@ -2,6 +2,7 @@
 
 import { ChevronDown, ChevronUp, Paperclip } from "lucide-react";
 import AttachmentCarousel from "@/components/attachment/AttachmentCarousel";
+import { Button } from "@/components/ui/button";
 
 export default function EditorAttachments({
   attachments,
@@ -19,13 +20,15 @@ export default function EditorAttachments({
     >
       {/* Header */}
 
-      <button
+      <Button
         onClick={() => setOpen(!open)}
+        variant="ghost"
+        size="icon"
         className="flex h-12 w-full items-center justify-center"
       >
         {!open ? (
           <div className="flex items-center gap-2">
-            <Paperclip className="h-4 w-4" />
+            <Paperclip />
             <span className="text-sm font-medium">
               {attachments.length} Attachment
               {attachments.length > 1 && "s"}
@@ -34,7 +37,7 @@ export default function EditorAttachments({
         ) : (
           <div className="h-1 w-10 rounded-full bg-border" />
         )}
-      </button>
+      </Button>
 
       {/* Drawer */}
 

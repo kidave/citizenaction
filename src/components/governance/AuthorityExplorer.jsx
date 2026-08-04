@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import AuthorityCard from "./AuthorityCard";
-
+import { Button } from "@/components/ui/button";
 import ScopeSelector from "@/components/shared/ScopeSelector";
 
 import { useAuthorityExplorer } from "@/hooks/governance/useAuthorityExplorer";
@@ -246,9 +246,9 @@ export default function AuthorityExplorer({
 
       {/* ================= RESET ================= */}
       <div className="flex justify-end">
-        <button onClick={handleReset} className="text-xs text-primary">
+        <Button onClick={handleReset} className="text-xs text-primary">
           Reset filters
-        </button>
+        </Button>
       </div>
     </div>
   );

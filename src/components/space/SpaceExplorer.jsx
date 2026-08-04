@@ -53,7 +53,7 @@ export default function SpaceExplorer({
           {/* LEFT */}
           <div className="flex min-w-0 items-center gap-3">
             {/* GLOBAL */}
-            <button
+            <Button
               type="button"
               onClick={() => setSelectedSpaces([])}
               className="flex shrink-0 items-center gap-3 rounded-full border px-4 py-2 transition-all hover:bg-muted/40"
@@ -69,7 +69,7 @@ export default function SpaceExplorer({
               >
                 {selectedSpaces.length === 0 && <Check className="h-3 w-3" />}
               </div>
-            </button>
+            </Button>
 
             {/* SELECTED SPACES */}
             {selectedSpaces.length > 0 && (
@@ -141,7 +141,7 @@ export default function SpaceExplorer({
               const selected = isSelected(space.id);
 
               return (
-                <button
+                <Button
                   key={space.id}
                   type="button"
                   onClick={() => toggleSpace(space)}
@@ -180,7 +180,7 @@ export default function SpaceExplorer({
                   <div className="line-clamp-2 max-w-[72px] text-center text-xs leading-tight">
                     {space.name}
                   </div>
-                </button>
+                </Button>
               );
             })}
           </div>

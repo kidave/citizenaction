@@ -5,7 +5,7 @@ import { Home, CirclePlus, Menu } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { useAuth } from "@/context/AuthContext";
-
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default function MobileBottomBar() {
@@ -15,40 +15,35 @@ export default function MobileBottomBar() {
   const { data: profile } = useMyProfile();
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 flex h-[calc(64px+env(safe-area-inset-bottom))] items-center justify-around border-t border-border/50 bg-background/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 md:hidden">
-      <button
-        onClick={() => router.push("/")}
-        className="flex flex-col items-center text-muted-foreground"
-      >
+    <div className="fixed inset-x-0 bottom-0 z-40 flex h-[calc(64px+env(safe-area-inset-bottom))] items-center justify-around border-t border-border/50 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
+      <Button onClick={() => router.push("/")} variant="ghost" size="icon">
         <Home className="h-6 w-6" />
         <span className="text-xs">Home</span>
-      </button>
+      </Button>
 
-      <button
+      <Button
         onClick={() =>
           user ? router.push("/action") : router.push("/auth/login")
         }
-        className="flex flex-col items-center text-muted-foreground"
+        variant="ghost"
+        size="icon"
       >
         <CirclePlus className="h-6 w-6" />
         <span className="text-xs">Create</span>
-      </button>
+      </Button>
 
       {user ? (
-        <button onClick={toggleSidebar} className="flex flex-col items-center">
+        <Button onClick={toggleSidebar} variant="outline" size="icon">
           <Avatar className="h-9 w-9">
             <AvatarImage src={profile?.avatar_url || undefined} />
             <AvatarFallback>{profile?.name?.[0] || "U"}</AvatarFallback>
           </Avatar>
-        </button>
+        </Button>
       ) : (
-        <button
-          onClick={toggleSidebar}
-          className="flex flex-col items-center text-muted-foreground"
-        >
+        <Button onClick={toggleSidebar} variant="ghost" size="icon">
           <Menu className="h-6 w-6" />
           <span className="text-xs">Menu</span>
-        </button>
+        </Button>
       )}
     </div>
   );

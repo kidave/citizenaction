@@ -84,7 +84,7 @@ export default function SpaceSelectorDrawer({
               const selected = isSelected(space.id);
 
               return (
-                <button
+                <Button
                   key={space.id}
                   type="button"
                   onClick={() => toggleSpace(space)}
@@ -124,7 +124,7 @@ export default function SpaceSelectorDrawer({
                       </div>
                     </div>
                   </div>
-                </button>
+                </Button>
               );
             })}
           </div>

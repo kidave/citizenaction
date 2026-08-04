@@ -427,14 +427,14 @@ export default function ApplySpace() {
                   {!!socialLinks.length && (
                     <div className="flex flex-wrap gap-2">
                       {socialLinks.map((social, index) => (
-                        <button
+                        <Button
                           key={index}
                           type="button"
                           onClick={() => removeSocialLink(index)}
                           className="rounded-full border-2 bg-muted px-3 py-1.5 text-sm transition hover:bg-destructive hover:text-white"
                         >
                           {social.platform}: {social.value}
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   )}

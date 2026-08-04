@@ -6,12 +6,15 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarRail,
+  SidebarGroup,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
 } from "@/components/ui/sidebar";
 
-import { LogoSwitcher } from "./LogoSwitcher";
-import { Navigation } from "./Navigation";
-import { Profile } from "./Profile";
-import RightSidebar from "./RightSidebar";
+import { LogoSwitcher } from "@/components/layout/LogoSwitcher";
+import { Navigation } from "@/components/layout/Navigation";
+import { Profile } from "@/components/layout/Profile";
 
 export default function LeftSidebar() {
   return (
@@ -22,11 +25,6 @@ export default function LeftSidebar() {
 
       <SidebarContent>
         <Navigation />
-
-        {/* Extra content on mobile */}
-        <div className="mt-6 md:hidden">
-          <RightSidebar />
-        </div>
       </SidebarContent>
 
       <SidebarFooter>

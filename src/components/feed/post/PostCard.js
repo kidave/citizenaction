@@ -81,7 +81,7 @@ export default function PostCard({
               handleNavigate();
             }}
           >
-            <Card className="rounded-3xl bg-muted p-4">
+            <Card className="rounded-none border-0 bg-transparent p-0 shadow-none sm:rounded-3xl sm:bg-muted sm:p-4">
               <PostContent
                 post={post}
                 status={status}
@@ -99,9 +99,11 @@ export default function PostCard({
           </div>
         </div>
 
-        <Card className="rounded-3xl bg-muted p-2">
-          <PostFooter post={post} />
-        </Card>
+        <div className="shadow-none sm:px-0 sm:pb-0">
+          <Card className="rounded-none border-0 bg-transparent p-0 shadow-none sm:rounded-3xl sm:bg-muted sm:p-2">
+            <PostFooter post={post} forceExpanded={forceExpanded} />
+          </Card>
+        </div>
 
         {forceExpanded && <PostContribution post={post} />}
       </div>

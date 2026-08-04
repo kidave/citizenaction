@@ -1,25 +1,26 @@
 "use client";
 
-import { Row } from "@/components/layout/Row";
 import { UserIdentity } from "@/components/profile/UserIdentity";
 import MenuButton from "@/components/ui/MenuButton";
 import formatDate from "@/utils/date/formatDate";
 import Image from "next/image";
 import Link from "next/link";
+import GovernanceAvatarGroups from "@/components/governance/GovernanceAvatarGroups";
 
 export default function PostHeader({ post, canEdit, onEdit, onDelete }) {
   const formattedDate = formatDate(post.created_at);
+  const governance = post.governance ?? [];
 
   return (
-    <Row className="flex-row justify-between gap-2">
-      <Row className="min-w-0 items-start gap-3">
+    <div className="flex flex-row justify-between gap-2">
+      <div className="flex min-w-0 items-start gap-3">
         <UserIdentity
           username={post.author_username}
           name={post.author_name}
           avatar={post.author_avatar}
           createdAt={formattedDate}
         />
-      </Row>
+      </div>
 
       <div className="flex flex-wrap items-center justify-end md:justify-start">
         <div className="flex items-center gap-2">
@@ -34,6 +35,7 @@ export default function PostHeader({ post, canEdit, onEdit, onDelete }) {
               />
             </Link>
           )}
+          <GovernanceAvatarGroups authorities={governance} />
         </div>
 
         {canEdit && (
@@ -49,6 +51,6 @@ export default function PostHeader({ post, canEdit, onEdit, onDelete }) {
           />
         )}
       </div>
-    </Row>
+    </div>
   );
 }

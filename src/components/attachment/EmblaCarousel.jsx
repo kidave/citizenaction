@@ -3,7 +3,7 @@
 import useEmblaCarousel from "embla-carousel-react";
 
 import Image from "next/image";
-
+import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { useCallback, useEffect } from "react";
@@ -96,23 +96,27 @@ export default function EmblaCarousel({ images = [], startIndex = 0 }) {
           PREV
       ==================================== */}
 
-      <button
+      <Button
         onClick={scrollPrev}
-        className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white backdrop-blur-sm transition hover:bg-black/80"
+        variant="outline"
+        size="icon"
+        className="absolute left-4 top-1/2 rounded-full"
       >
-        <ChevronLeft className="h-6 w-6" />
-      </button>
+        <ChevronLeft className="h-8 w-8" />
+      </Button>
 
       {/* ====================================
           NEXT
       ==================================== */}
 
-      <button
+      <Button
         onClick={scrollNext}
-        className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white backdrop-blur-sm transition hover:bg-black/80"
+        variant="outline"
+        size="icon"
+        className="absolute right-4 top-1/2 rounded-full"
       >
-        <ChevronRight className="h-6 w-6" />
-      </button>
+        <ChevronRight className="h-8 w-8" />
+      </Button>
 
       {/* ====================================
           MOBILE SWIPE HINT

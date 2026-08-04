@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import ContributionCard from "@/components/feed/contribution/ContributionCard";
 import EditorModal from "@/components/feed/editor/EditorModal";
-
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
 import { useDeleteContribution } from "@/hooks/contribution/useDeleteContribution";
@@ -53,17 +53,17 @@ export default function PostContribution({ post }) {
   }
 
   return (
-    <>
+    <div id="post-contributions">
       {!myContribution && user && (
-        <button
+        <Button
           onClick={() => {
             setSelectedContribution(null);
             setIsEditorOpen(true);
           }}
-          className="my-4 w-full rounded-xl border bg-success py-3 text-sm font-medium hover:bg-muted"
+          className="mb-4 w-full rounded-xl py-3"
         >
           Add Contribution
-        </button>
+        </Button>
       )}
 
       <div className="space-y-4 pb-4">
@@ -101,6 +101,6 @@ export default function PostContribution({ post }) {
         item={selectedContribution}
         post={post}
       />
-    </>
+    </div>
   );
 }

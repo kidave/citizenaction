@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 
 export default function ClassificationDimensionSidebar({
   dimensions,
@@ -10,7 +11,7 @@ export default function ClassificationDimensionSidebar({
     <ScrollArea className="h-full">
       <div className="space-y-1 p-3">
         {dimensions.map((dimension) => (
-          <button
+          <Button
             key={dimension.id}
             onClick={() => onSelect(dimension)}
             className={cn(
@@ -21,7 +22,7 @@ export default function ClassificationDimensionSidebar({
             )}
           >
             {dimension.name}
-          </button>
+          </Button>
         ))}
       </div>
     </ScrollArea>

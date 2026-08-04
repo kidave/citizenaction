@@ -14,7 +14,7 @@ import ErrorBoundary from "@/components/system/ErrorBoundary";
 
 import RouteLoader from "@/components/system/RouteLoader";
 
-import MobileBottomBar from "@/components/layout/MobileBottomBar";
+import FloatingMenu from "@/components/layout/FloatingMenu";
 
 import { Toaster } from "sonner";
 
@@ -64,7 +64,7 @@ function MyApp({ Component, pageProps }) {
                     {getLayout(<Component {...pageProps} />)}
                   </main>
 
-                  <MobileBottomBar />
+                  <FloatingMenu />
                 </ErrorBoundary>
 
                 <Toaster richColors position="top-right" />

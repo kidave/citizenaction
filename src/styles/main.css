@@ -105,11 +105,11 @@
   --success-foreground: 0 0% 100%;
 
   /* Warning - Amber */
-  --warning: 42 96% 80%;
+  --warning: 42 96% 50%;
   --warning-foreground: 26 83% 14%;
 
   /* Info - Sky Blue */
-  --info: 200 94% 80%;
+  --info: 220 90% 50%;
   --info-foreground: 0 0% 100%;
 
   /* Alert - Orange */
@@ -177,7 +177,7 @@
   --warning-foreground: 0 0% 10%;
 
   /* Info */
-  --info: 204 90% 60%;
+  --info: 200 90% 50%;
   --info-foreground: 0 0% 100%;
 
   /* Alert */

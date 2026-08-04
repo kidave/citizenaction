@@ -137,7 +137,7 @@ export default function Header() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div className="flex h-9 w-9 items-center justify-center">
-                  <button
+                  <Button
                     className="rounded-full focus:outline-none"
                     aria-label="User menu"
                   >
@@ -147,7 +147,7 @@ export default function Header() {
                         {user.email?.[0]?.toUpperCase() || "U"}
                       </AvatarFallback>
                     </Avatar>
-                  </button>
+                  </Button>
                 </div>
               </DropdownMenuTrigger>
 
@@ -185,13 +185,13 @@ export default function Header() {
 
                       <div className="space-y-1">
                         {nav.items.map((item) => (
-                          <button
+                          <Button
                             key={item.title}
                             className="w-full rounded-md px-3 py-2 text-left text-sm hover:bg-muted"
                             onClick={() => router.push(item.href)}
                           >
                             {item.title}
-                          </button>
+                          </Button>
                         ))}
                       </div>
                     </div>

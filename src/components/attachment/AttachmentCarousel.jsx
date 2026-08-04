@@ -33,40 +33,82 @@ export default function AttachmentCarousel({
   return (
     <>
       {/* Mobile */}
-
       <div className="md:hidden">
-        <Carousel
-          opts={{
-            align: "start",
-            containScroll: "trimSnaps",
-          }}
-        >
-          <CarouselContent>
-            {mobilePages.map((page, pageIndex) => (
-              <CarouselItem key={pageIndex}>
-                <div className="grid grid-cols-2 gap-1">
-                  {page.map((attachment, index) => {
-                    const actualIndex = pageIndex * 4 + index;
+        {/* 1 image */}
+        {attachments.length === 1 && (
+          <AttachmentCard
+            attachment={attachments[0]}
+            index={0}
+            onClick={onAttachmentClick}
+            onRemove={onRemove}
+            removable={removable}
+            showMetadata={showMetadata}
+            hovered={null}
+            setHovered={() => {}}
+          />
+        )}
 
-                    return (
-                      <AttachmentCard
-                        key={attachment.url ?? actualIndex}
-                        attachment={attachment}
-                        index={actualIndex}
-                        onClick={onAttachmentClick}
-                        onRemove={onRemove}
-                        removable={removable}
-                        showMetadata={showMetadata}
-                        hovered={null}
-                        setHovered={() => {}}
-                      />
-                    );
-                  })}
-                </div>
-              </CarouselItem>
+        {/* 2 images */}
+        {attachments.length === 2 && (
+          <div className="grid grid-cols-2 gap-1">
+            {attachments.map((attachment, index) => (
+              <AttachmentCard
+                key={attachment.url ?? index}
+                attachment={attachment}
+                index={index}
+                onClick={onAttachmentClick}
+                onRemove={onRemove}
+                removable={removable}
+                showMetadata={showMetadata}
+                hovered={null}
+                setHovered={() => {}}
+              />
             ))}
-          </CarouselContent>
-        </Carousel>
+          </div>
+        )}
+
+        {/* 3+ images */}
+        {attachments.length >= 3 && (
+          <Carousel
+            opts={{
+              align: "start",
+              containScroll: "trimSnaps",
+            }}
+          >
+            <CarouselContent>
+              {Array.from({
+                length: Math.ceil(attachments.length / 2),
+              }).map((_, columnIndex) => (
+                <CarouselItem key={columnIndex} className="basis-1/2 pl-1">
+                  <div className="flex flex-col gap-1">
+                    {[0, 1].map((row) => {
+                      const actualIndex = columnIndex * 2 + row;
+                      const attachment = attachments[actualIndex];
+
+                      if (!attachment) {
+                        return <div key={row} className="aspect-square" />;
+                      }
+
+                      return (
+                        <AttachmentCard
+                          key={attachment.url ?? actualIndex}
+                          attachment={attachment}
+                          index={actualIndex}
+                          onClick={onAttachmentClick}
+                          onRemove={onRemove}
+                          removable={removable}
+                          showMetadata={showMetadata}
+                          hovered={null}
+                          setHovered={() => {}}
+                        />
+                      );
+                    })}
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
+        )}
       </div>
 
       {/* Desktop */}

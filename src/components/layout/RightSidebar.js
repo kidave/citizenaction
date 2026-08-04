@@ -105,7 +105,7 @@ export default function RightSidebar() {
               Terms
             </Link>
 
-            <Link href="/contact" className="hover:text-foreground">
+            <Link href="/settings/contact" className="hover:text-foreground">
               Contact
             </Link>
           </div>

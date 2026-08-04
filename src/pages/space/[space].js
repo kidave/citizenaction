@@ -1,24 +1,24 @@
-// pages/space/[space].js
 "use client";
 
-import { useAuth } from "@/context/AuthContext";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
-import Link from "next/link";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
+
+import { cn } from "@/lib/utils";
+
 import BackButton from "@/components/ui/back-button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
 import PageHeaderSkeleton from "@/components/skeletons/PageHeaderSkeleton";
 import MetaCardsSkeleton from "@/components/skeletons/MetaCardsSkeleton";
+
 import { useSpaces } from "@/hooks/space/useSpaces";
+
 import MembersTab from "@/components/tabs/MembersTab";
 import ActivityTab from "@/components/tabs/ActivityTab";
 import OverviewTab from "@/components/tabs/OverviewTab";
 
 export default function SpacePage() {
-  const { user, loading: authLoading } = useAuth();
-
   const router = useRouter();
 
   const { space: slug, tab } = router.query;
@@ -36,82 +36,79 @@ export default function SpacePage() {
 
   const base = `/space/${slug}`;
 
-  /* ---------------- LOADING ---------------- */
+  const sentinelRef = useRef(null);
+
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setCollapsed(!entry.isIntersecting);
+      },
+      {
+        threshold: 0,
+      },
+    );
+
+    if (sentinelRef.current) {
+      observer.observe(sentinelRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   if (isLoading) {
     return (
-      <div className="mx-auto my-auto max-w-6xl space-y-4 px-4 py-4">
+      <div className="mx-auto max-w-6xl space-y-4 p-4">
         <PageHeaderSkeleton />
         <MetaCardsSkeleton />
       </div>
     );
   }
 
-  /* ---------------- ERROR ---------------- */
-
   if (error || !space) {
     return (
-      <div className="mx-auto max-w-6xl px-4 py-16 text-center">
+      <div className="mx-auto max-w-6xl py-16 text-center">
         <h2 className="text-xl font-semibold">Space not found</h2>
 
         <p className="mt-2 text-muted-foreground">
-          The requested space does not exist or is unavailable.
+          The requested space does not exist.
         </p>
       </div>
     );
   }
 
-  const isOwner = !!user && user.id === space.owner_user_id;
-
   return (
-    <div
-      className="mx-auto my-auto max-w-6xl space-y-6 px-4 py-4"
-      style={
-        space.primary_color
-          ? {
-              "--space-primary": space.primary_color,
-            }
-          : undefined
-      }
-    >
-      {/* ================= HEADER ================= */}
+    <div className="mx-auto max-w-6xl">
+      {/* sentinel */}
+      <div ref={sentinelRef} className="h-px" />
 
-      <header className="space-y-4">
+      {/* LARGE HEADER */}
+      <header className="space-y-4 px-4 py-6">
         <div className="flex items-center gap-4">
-          {/* BACK */}
           <BackButton />
+          <Image
+            src={space.logo_url}
+            alt={space.name}
+            width={64}
+            height={64}
+            className="rounded-lg border bg-muted"
+          />
 
-          {/* LOGO */}
-          {space.logo_url && (
-            <Image
-              src={space.logo_url}
-              alt={`${space.name} logo`}
-              width={56}
-              height={56}
-              className="rounded-md border bg-muted object-contain"
-            />
-          )}
+          <div>
+            <h1 className="text-3xl font-bold">{space.name}</h1>
 
-          {/* NAME */}
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-semibold">{space.name}</h1>
-
-            {space.scope_type && (
-              <Badge>{space.scope_type.toUpperCase()}</Badge>
+            {space.description && (
+              <p className="mt-2 max-w-3xl text-muted-foreground">
+                {space.description}
+              </p>
             )}
           </div>
         </div>
-
-        {/* DESCRIPTION */}
-        {space.description && (
-          <p className="max-w-3xl text-muted-foreground">{space.description}</p>
-        )}
       </header>
 
-      {/* ================= TABS ================= */}
-
-      <Tabs value={activeTab} className="space-y-6">
-        <TabsList>
+      <Tabs value={activeTab}>
+        <TabsList className="mx-4">
           <TabsTrigger value="overview" onClick={() => router.push(base)}>
             Overview
           </TabsTrigger>
@@ -130,34 +127,24 @@ export default function SpacePage() {
             Activity
           </TabsTrigger>
         </TabsList>
-
-        {/* ================= OVERVIEW ================= */}
-
-        <TabsContent value="overview">
-          <OverviewTab space={space} />
-        </TabsContent>
-
-        {/* ================= MEMBERS ================= */}
-        <TabsContent value="members">
-          <MembersTab spaceId={space.id} />
-        </TabsContent>
-
-        {/* ================= ACTIVITY ================= */}
-
-        <TabsContent value="activity">
-          <ActivityTab spaceId={space.id} />
-        </TabsContent>
       </Tabs>
 
-      {/* ================= ACTIONS ================= */}
+      {/* CONTENT */}
+      <div className="space-y-6 px-4 py-6">
+        <Tabs value={activeTab}>
+          <TabsContent value="overview">
+            <OverviewTab space={space} />
+          </TabsContent>
 
-      {!authLoading && isOwner && (
-        <div className="flex gap-3 pt-2">
-          <Link href={`/manage/${space.slug}`}>
-            <Button>Manage Space</Button>
-          </Link>
-        </div>
-      )}
+          <TabsContent value="members">
+            <MembersTab spaceId={space.id} />
+          </TabsContent>
+
+          <TabsContent value="activity">
+            <ActivityTab spaceId={space.id} />
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }

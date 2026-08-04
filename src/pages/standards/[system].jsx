@@ -8,7 +8,7 @@ import {
   Landmark,
 } from "lucide-react";
 import BackButton from "@/components/ui/back-button";
-
+import { Button } from "@/components/ui/button";
 import useClassificationSystems from "@/hooks/standards/useClassificationSystems";
 import useClassificationDimensions from "@/hooks/standards/useClassificationDimensions";
 import useClassificationTree from "@/hooks/standards/useClassificationTree";
@@ -89,7 +89,7 @@ export default function StandardPage() {
                 return (
                   <Tooltip key={dimension.id}>
                     <TooltipTrigger asChild>
-                      <button
+                      <Button
                         onClick={() => setSelectedDimension(dimension)}
                         className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${
                           active
@@ -98,7 +98,7 @@ export default function StandardPage() {
                         }`}
                       >
                         <Icon className="h-5 w-5" />
-                      </button>
+                      </Button>
                     </TooltipTrigger>
 
                     <TooltipContent side="right">

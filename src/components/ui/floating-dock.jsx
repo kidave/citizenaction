@@ -14,7 +14,7 @@ import {
   useSpring,
   useTransform,
 } from "motion/react";
-
+import { Button } from "@/components/ui/button";
 import { useRef, useState } from "react";
 
 export const FloatingDock = ({ items, desktopClassName, mobileClassName }) => {
@@ -65,12 +65,12 @@ const FloatingDockMobile = ({ items, className }) => {
           </motion.div>
         )}
       </AnimatePresence>
-      <button
+      <Button
         onClick={() => setOpen(!open)}
         className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 dark:bg-neutral-800"
       >
         <IconLayoutNavbarCollapse className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
-      </button>
+      </Button>
     </div>
   );
 };

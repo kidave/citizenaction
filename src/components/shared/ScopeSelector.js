@@ -37,7 +37,7 @@ export default function ScopeSelector({
         );
       })}
 
-      {showClear && <button onClick={clear}>Reset</button>}
+      {showClear && <Button onClick={clear}>Reset</Button>}
     </div>
   );
 }

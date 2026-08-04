@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/sidebar";
 import Logo from "@/components/layout/Logo";
 import { PanelLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function LogoSwitcher() {
   const router = useRouter();
@@ -60,12 +61,9 @@ export function LogoSwitcher() {
             )}
           </SidebarMenuButton>
 
-          <button
-            onClick={toggleSidebar}
-            className="ml-2 rounded-md p-2 transition hover:bg-muted"
-          >
+          <Button onClick={toggleSidebar} className="p-2" variant="ghost">
             <PanelLeft className="size-4" />
-          </button>
+          </Button>
         </div>
       </SidebarMenuItem>
     </SidebarMenu>

@@ -114,6 +114,10 @@ export function Profile() {
               Profile
             </DropdownMenuItem>
 
+            <DropdownMenuItem onClick={() => router.push("/settings")}>
+              Settings
+            </DropdownMenuItem>
+
             <DropdownMenuSeparator />
 
             <DropdownMenuItem

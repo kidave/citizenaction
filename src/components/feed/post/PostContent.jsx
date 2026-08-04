@@ -3,13 +3,11 @@
 import { useState, useEffect } from "react";
 import truncateContent from "@/utils/text/truncateContent";
 import Linkify from "linkify-react";
-import { Badge } from "@/components/ui/badge";
 
 export default function PostContent({
   post,
   onNavigate,
   forceExpanded = false,
-  showBadge = true,
 }) {
   const [expanded, setExpanded] = useState(forceExpanded);
 
@@ -19,17 +17,8 @@ export default function PostContent({
     }
   }, [forceExpanded]);
 
-  const type = post.type || "action";
   const title = post.summary || "";
   const content = post.details || "";
-
-  const typeStyles = {
-    action: "bg-red-100 text-red-700 border-red-200",
-    report: "bg-blue-100 text-blue-700 border-blue-200",
-    event: "bg-green-100 text-green-700 border-green-200",
-    update: "bg-pink-100 text-pink-700 border-pink-200",
-    meeting: "bg-yellow-100 text-yellow-700 border-yellow-200",
-  };
 
   const { text: truncatedText, isLong } = truncateContent(content, 280);
 
@@ -46,26 +35,15 @@ export default function PostContent({
       className={!forceExpanded ? "cursor-pointer" : ""}
     >
       <div className="space-y-1 whitespace-pre-wrap text-sm">
-        <div className="flex items-center gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            {showBadge && (
-              <Badge
-                variant="secondary"
-                className={`shrink-0 text-xs ${typeStyles[type] || ""}`}
-              >
-                {type.toUpperCase()}
-              </Badge>
-            )}
-
-            {title && <div className="font-medium">{title}</div>}
-          </div>
+        <div className="mb-2 flex items-center gap-2">
+          {title && <div className="font-medium">{title}</div>}
         </div>
 
         <Linkify
           options={{
             target: "_blank",
             rel: "noopener noreferrer",
-            className: "text-blue-600 hover:underline break-all",
+            className: "text-info hover:underline break-all",
             render: ({ attributes, content }) => {
               const { class: className, ...rest } = attributes;
 
@@ -86,7 +64,7 @@ export default function PostContent({
 
         {!forceExpanded && isLong && (
           <span
-            className="ml-2 cursor-pointer font-medium text-primary hover:underline"
+            className="ml-2 cursor-pointer font-medium hover:underline"
             onClick={(e) => {
               e.stopPropagation();
               setExpanded(!expanded);
