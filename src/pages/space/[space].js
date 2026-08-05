@@ -1,10 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
-
-import { cn } from "@/lib/utils";
 
 import BackButton from "@/components/ui/back-button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -36,27 +33,6 @@ export default function SpacePage() {
 
   const base = `/space/${slug}`;
 
-  const sentinelRef = useRef(null);
-
-  const [collapsed, setCollapsed] = useState(false);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setCollapsed(!entry.isIntersecting);
-      },
-      {
-        threshold: 0,
-      },
-    );
-
-    if (sentinelRef.current) {
-      observer.observe(sentinelRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
-
   if (isLoading) {
     return (
       <div className="mx-auto max-w-6xl space-y-4 p-4">
@@ -80,26 +56,33 @@ export default function SpacePage() {
 
   return (
     <div className="mx-auto max-w-6xl">
-      {/* sentinel */}
-      <div ref={sentinelRef} className="h-px" />
-
-      {/* LARGE HEADER */}
-      <header className="space-y-4 px-4 py-6">
-        <div className="flex items-center gap-4">
+      <header className="space-y-4 px-4 py-4">
+        {/* Mobile Back Button */}
+        <div className="lg:hidden">
           <BackButton />
+        </div>
+
+        <div className="flex items-start gap-2">
+          {/* Desktop Back Button */}
+          <div className="hidden lg:block">
+            <BackButton />
+          </div>
+
           <Image
             src={space.logo_url}
             alt={space.name}
             width={64}
             height={64}
-            className="rounded-lg border bg-muted"
+            className="h-16 w-16 rounded-lg border bg-muted object-cover"
           />
 
-          <div>
-            <h1 className="text-3xl font-bold">{space.name}</h1>
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-2xl font-bold lg:text-3xl">
+              {space.name}
+            </h1>
 
             {space.description && (
-              <p className="mt-2 max-w-3xl text-muted-foreground">
+              <p className="mt-2 text-sm text-muted-foreground lg:text-base">
                 {space.description}
               </p>
             )}
@@ -107,27 +90,35 @@ export default function SpacePage() {
         </div>
       </header>
 
-      <Tabs value={activeTab}>
-        <TabsList className="mx-4">
-          <TabsTrigger value="overview" onClick={() => router.push(base)}>
-            Overview
-          </TabsTrigger>
+      <div className="sticky top-0 z-20 pt-2">
+        <Tabs value={activeTab}>
+          <TabsList className="mx-4 flex w-auto">
+            <TabsTrigger
+              value="overview"
+              onClick={() => router.push(base)}
+              className="flex-1"
+            >
+              Overview
+            </TabsTrigger>
 
-          <TabsTrigger
-            value="members"
-            onClick={() => router.push(`${base}?tab=members`)}
-          >
-            Members
-          </TabsTrigger>
+            <TabsTrigger
+              value="members"
+              onClick={() => router.push(`${base}?tab=members`)}
+              className="flex-1"
+            >
+              Members
+            </TabsTrigger>
 
-          <TabsTrigger
-            value="activity"
-            onClick={() => router.push(`${base}?tab=activity`)}
-          >
-            Activity
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+            <TabsTrigger
+              value="activity"
+              onClick={() => router.push(`${base}?tab=activity`)}
+              className="flex-1"
+            >
+              Activity
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
 
       {/* CONTENT */}
       <div className="space-y-6 px-4 py-6">

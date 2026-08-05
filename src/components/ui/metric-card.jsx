@@ -9,18 +9,20 @@ export default function MetricCard({
   className = "",
 }) {
   return (
-    <Card className="rounded-3xl bg-muted">
-      <CardContent className="p-5">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <div className="text-xs uppercase tracking-wider text-muted-foreground">
-              {label}
-            </div>
+    <Card className={`rounded-3xl bg-muted ${className}`}>
+      <CardContent className="space-y-4 p-5">
+        {/* Label */}
+        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          {label}
+        </p>
 
-            <div className="mt-2 text-4xl leading-none">{value}</div>
-          </div>
+        {/* Value + Icon */}
+        <div className="flex items-center justify-between">
+          <span className="text-4xl font-semibold leading-none tracking-tight">
+            {value}
+          </span>
 
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border-2 bg-background">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border bg-background">
             <Icon className="h-5 w-5" />
           </div>
         </div>
