@@ -26,7 +26,7 @@ export function useFeed() {
       // Fetch stats
       // -----------------------------
       const { data: stats, error: statsError } = await supabase.rpc(
-        "get_feed_stats",
+        "get_post_stats",
         {
           p_post_ids: ids,
         },
@@ -48,7 +48,7 @@ export function useFeed() {
       // Fetch governance
       // -----------------------------
       const { data: governance, error: governanceError } = await supabase.rpc(
-        "get_feed_governance",
+        "get_post_governance",
         {
           p_post_ids: ids,
         },
