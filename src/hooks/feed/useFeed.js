@@ -38,7 +38,7 @@ export function useFeed() {
       // Fetch contributors
       // -----------------------------
       const { data: contributors, error: contributorsError } =
-        await supabase.rpc("get_feed_contributors", {
+        await supabase.rpc("get_post_contributors", {
           p_post_ids: ids,
         });
 
