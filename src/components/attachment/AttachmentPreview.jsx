@@ -23,8 +23,11 @@ export default function AttachmentPreview({ attachment }) {
     let mounted = true;
 
     async function loadThumbnail() {
-      if (attachment?.type === "application/pdf" && attachment?.url) {
-        const thumbnail = await getPdfThumbnail(attachment.url);
+      if (
+        attachment?.mime_type === "application/pdf" &&
+        attachment?.public_url
+      ) {
+        const thumbnail = await getPdfThumbnail(attachment.public_url);
 
         if (mounted) {
           setPdfThumbnail(thumbnail);
@@ -37,11 +40,11 @@ export default function AttachmentPreview({ attachment }) {
     return () => {
       mounted = false;
     };
-  }, [attachment?.type, attachment?.url]);
+  }, [attachment?.mime_type, attachment?.public_url]);
 
   if (!attachment) return null;
 
-  const mime = attachment.type || "";
+  const mime = attachment.mime_type || "";
 
   /* ==========================================
      IMAGE
@@ -51,8 +54,8 @@ export default function AttachmentPreview({ attachment }) {
     return (
       <>
         <Image
-          src={attachment.url}
-          alt={attachment.name || ""}
+          src={attachment.public_url}
+          alt={attachment.file_name || ""}
           fill
           placeholder="empty"
           loading="lazy"

@@ -15,20 +15,22 @@ export default function PostAttachments({ attachments = [] }) {
   const [startIndex, setStartIndex] = useState(0);
 
   const images = useMemo(() => {
-    return attachments.filter((a) => a?.type?.startsWith("image/"));
+    return attachments.filter((a) => a?.mime_type?.startsWith("image/"));
   }, [attachments]);
 
   const handleClick = (attachment) => {
     if (!attachment) return;
 
-    const mime = attachment.type || "";
-    const extension = attachment.name?.split(".").pop()?.toLowerCase();
+    const mime = attachment.mime_type || "";
+    const extension = attachment.file_name?.split(".").pop()?.toLowerCase();
 
     const isImage = mime.startsWith("image/");
     const isPdf = mime === "application/pdf" || extension === "pdf";
 
     if (isImage) {
-      const imageIndex = images.findIndex((img) => img.url === attachment.url);
+      const imageIndex = images.findIndex(
+        (img) => img.public_url === attachment.public_url,
+      );
 
       setStartIndex(imageIndex >= 0 ? imageIndex : 0);
       setOpenImages(true);
@@ -59,7 +61,9 @@ export default function PostAttachments({ attachments = [] }) {
 
       <Dialog open={openPdf} onOpenChange={setOpenPdf}>
         <DialogContent className="h-[90vh] max-w-5xl overflow-hidden p-0">
-          {selectedPdf?.url && <PDFViewer fileUrl={selectedPdf.url} />}
+          {selectedPdf?.public_url && (
+            <PDFViewer fileUrl={selectedPdf.public_url} />
+          )}
         </DialogContent>
       </Dialog>
     </>

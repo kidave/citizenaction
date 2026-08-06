@@ -62,7 +62,7 @@ export default function PostContribution({ post }) {
           }}
           className="mb-4 w-full rounded-xl py-3"
         >
-          Add Contribution
+          Document your contribution
         </Button>
       )}
 

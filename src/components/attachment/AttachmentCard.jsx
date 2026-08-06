@@ -67,7 +67,7 @@ export default function AttachmentCard({
 
       {showMetadata && (
         <div className="space-y-2 p-2">
-          <p className="truncate text-sm font-medium">{attachment.name}</p>
+          <p className="truncate text-sm font-medium">{attachment.file_name}</p>
 
           <Input
             value={attachment.credit_name ?? ""}
@@ -78,8 +78,8 @@ export default function AttachmentCard({
 
           <div className="space-y-0.5 text-xs text-muted-foreground">
             <p>
-              {getFileExtension(attachment.name)} •{" "}
-              {formatFileSize(attachment.size)}
+              {getFileExtension(attachment.file_name)} •{" "}
+              {formatFileSize(attachment.file_size)}
             </p>
 
             {attachment.credit_name && (

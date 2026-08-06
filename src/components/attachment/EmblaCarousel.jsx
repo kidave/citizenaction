@@ -75,11 +75,11 @@ export default function EmblaCarousel({ images = [], startIndex = 0 }) {
         <div className="flex">
           {images.map((image, index) => (
             <div
-              key={image.url || index}
+              key={image.public_url || index}
               className="relative h-[85vh] min-w-0 flex-[0_0_100%] select-none"
             >
               <Image
-                src={image.url}
+                src={image.public_url}
                 alt=""
                 fill
                 draggable={false}

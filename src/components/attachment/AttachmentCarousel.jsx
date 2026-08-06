@@ -53,7 +53,7 @@ export default function AttachmentCarousel({
           <div className="grid grid-cols-2 gap-1">
             {attachments.map((attachment, index) => (
               <AttachmentCard
-                key={attachment.url ?? index}
+                key={attachment.public_urllic_url ?? index}
                 attachment={attachment}
                 index={index}
                 onClick={onAttachmentClick}
@@ -91,7 +91,7 @@ export default function AttachmentCarousel({
 
                       return (
                         <AttachmentCard
-                          key={attachment.url ?? actualIndex}
+                          key={attachment.public_url ?? actualIndex}
                           attachment={attachment}
                           index={actualIndex}
                           onClick={onAttachmentClick}
@@ -125,7 +125,7 @@ export default function AttachmentCarousel({
           <CarouselContent className="py-2">
             {attachments.map((attachment, index) => (
               <CarouselItem
-                key={attachment.url ?? index}
+                key={attachment.public_url ?? index}
                 className="basis-[50%] pl-6 pr-2 md:basis-[260px] lg:basis-[280px]"
               >
                 <AttachmentCard
