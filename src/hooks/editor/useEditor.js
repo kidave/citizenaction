@@ -127,9 +127,9 @@ export function useEditor(item = null) {
 
     setType(item?.type ?? "action");
 
-    setTitle(item?.summary ?? item?.title ?? "");
+    setTitle(item?.title ?? "");
 
-    setContent(item?.details ?? item?.content ?? "");
+    setContent(item?.content ?? item?.content ?? "");
 
     replaceAttachments(item?.attachments ?? []);
 

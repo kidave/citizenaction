@@ -46,9 +46,9 @@ export function useCreatePost() {
           p_space_id:
             postData.spaces?.length > 0 ? postData.spaces[0].id : null,
 
-          p_summary: postData.summary,
+          p_title: postData.title,
 
-          p_details: postData.details,
+          p_details: postData.content,
 
           p_metadata: postData.metadata ?? {},
 

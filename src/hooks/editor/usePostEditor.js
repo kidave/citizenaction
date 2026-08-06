@@ -47,9 +47,9 @@ export function usePostEditor(post = null) {
 
       type: data.type,
 
-      summary: data.title || data.content.slice(0, 200),
+      title: data.title || data.content.slice(0, 200),
 
-      details: data.content,
+      content: data.content,
 
       attachments: data.attachments,
 

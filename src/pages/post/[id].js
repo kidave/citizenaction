@@ -95,7 +95,7 @@ export default function SinglePostPage({ postId, initialPost }) {
     return null;
   }
 
-  const title = post.summary || "Citizen Action";
+  const title = post.title || "Citizen Action";
   const description = getDescription(post);
   const image = getImage(post.attachments);
 
@@ -148,7 +148,7 @@ export default function SinglePostPage({ postId, initialPost }) {
           <div className="mx-auto flex h-14 max-w-4xl items-center px-3 sm:h-16 sm:px-4">
             <BackButton />
 
-            <span className="ml-3 font-medium">{post.summary}</span>
+            <span className="ml-3 font-medium">{post.title}</span>
           </div>
         </div>
 

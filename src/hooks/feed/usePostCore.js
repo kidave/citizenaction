@@ -20,8 +20,8 @@ export function usePostCore(id, initialData) {
             id,
 
             type,
-            summary,
-            details,
+            title,
+            content,
 
             attachments,
 

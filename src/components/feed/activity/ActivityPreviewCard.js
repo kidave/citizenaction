@@ -68,7 +68,7 @@ export default function ActivityPreviewCard({ post }) {
             {/* TITLE */}
 
             <div className="absolute bottom-2 left-2 right-2 line-clamp-2 text-sm font-medium text-white">
-              {post.summary || "Untitled"}
+              {post.title || "Untitled"}
             </div>
 
             {/* BADGE */}
@@ -97,9 +97,9 @@ export default function ActivityPreviewCard({ post }) {
         }}
       >
         <CardHeader className="space-y-2">
-          {(post.details || post.summary) && (
+          {(post.content || post.title) && (
             <div className="line-clamp-2 text-sm leading-relaxed text-black">
-              {post.details || post.summary}
+              {post.content || post.title}
             </div>
           )}
 
@@ -153,12 +153,12 @@ export default function ActivityPreviewCard({ post }) {
 
         <div className="flex-1 overflow-hidden p-4">
           <div className="line-clamp-2 text-sm font-semibold">
-            {post.summary || "Untitled"}
+            {post.title || "Untitled"}
           </div>
 
           <div className="mt-4 text-sm leading-relaxed">
             <div className="line-clamp-[12]">
-              {post.details || "No additional details."}
+              {post.content || "No additional content."}
             </div>
           </div>
         </div>

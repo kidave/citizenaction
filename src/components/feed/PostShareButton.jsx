@@ -8,7 +8,7 @@ export default function PostShareButton({ post }) {
     e.stopPropagation();
 
     const url = `${window.location.origin}/post/${post.id}`;
-    const title = post.summary || "Citizen Action Post";
+    const title = post.title || "Citizen Action Post";
 
     if (navigator.share) {
       try {

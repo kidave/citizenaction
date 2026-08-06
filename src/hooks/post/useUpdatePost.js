@@ -91,8 +91,8 @@ export function useUpdatePost() {
           {
             p_post_id: postId,
             p_type: postData.type,
-            p_summary: postData.summary,
-            p_details: postData.details,
+            p_title: postData.title,
+            p_details: postData.content,
             p_start_at: postData.start_at ?? null,
             p_end_at: postData.end_at ?? null,
             p_lat: postData.lat ?? null,

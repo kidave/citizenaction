@@ -17,8 +17,8 @@ export default function PostContent({
     }
   }, [forceExpanded]);
 
-  const title = post.summary || "";
-  const content = post.details || "";
+  const title = post.title || "";
+  const content = post.content || "";
 
   const { text: truncatedText, isLong } = truncateContent(content, 280);
 

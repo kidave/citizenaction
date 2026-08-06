@@ -51,8 +51,8 @@ export default function ContributionCard({
         <PostContent
           post={{
             ...contribution,
-            summary: contribution.title,
-            details: contribution.content,
+            title: contribution.title,
+            content: contribution.content,
             type: "contribution",
           }}
           forceExpanded
