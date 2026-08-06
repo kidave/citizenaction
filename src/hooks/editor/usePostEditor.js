@@ -63,7 +63,7 @@ export function usePostEditor(post = null) {
 
       address: data.address,
 
-      meeting_link: data.meeting_link,
+      links: data.links,
 
       metadata: data.metadata,
     };

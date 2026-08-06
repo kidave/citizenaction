@@ -21,8 +21,8 @@ export default function ContributionCard({
   const formattedDate = formatDate(contribution.created_at);
 
   return (
-    <Card className="rounded-3xl bg-muted">
-      <div className="flex flex-col gap-2 p-4">
+    <div className="md:rounded-3xl md:bg-muted">
+      <div className="flex flex-col gap-2 px-0 py-1 md:p-4">
         {/* Header */}
 
         <div className="flex items-start justify-between gap-3">
@@ -41,7 +41,7 @@ export default function ContributionCard({
         {/* Attachments */}
 
         {contribution.attachments?.length > 0 && (
-          <div className="overflow-hidden rounded-2xl">
+          <div className="overflow-hidden rounded-none md:rounded-2xl">
             <PostAttachments attachments={contribution.attachments} />
           </div>
         )}
@@ -67,6 +67,6 @@ export default function ContributionCard({
           forceExpanded
         />
       </div>
-    </Card>
+    </div>
   );
 }

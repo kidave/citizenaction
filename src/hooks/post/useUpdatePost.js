@@ -98,7 +98,7 @@ export function useUpdatePost() {
             p_lat: postData.lat ?? null,
             p_lng: postData.lng ?? null,
             p_address: postData.address ?? null,
-            p_meeting_link: postData.meeting_link ?? null,
+            p_links: postData.links ?? null,
             p_metadata: postData.metadata ?? {},
             p_is_global: !postData.spaces || postData.spaces.length === 0,
             p_space_id:

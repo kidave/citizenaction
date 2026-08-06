@@ -34,10 +34,7 @@ export default function EditorFooter({ mode, item, editor, onClose }) {
 
           <EditorAddress editor={editor} />
 
-          <InlineLinkInput
-            value={editor.meeting_link}
-            onChange={editor.setMeetingLink}
-          />
+          <InlineLinkInput value={editor.links} onChange={editor.setLinks} />
         </div>
 
         {/* Submit */}

@@ -72,37 +72,33 @@ export default function PostCard({
           </div>
         )}
 
-        <div>
-          <div
-            className="cursor-pointer transition-opacity hover:opacity-90"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleNavigate();
-            }}
-          >
-            <Card className="rounded-none border-0 bg-transparent p-0 shadow-none sm:rounded-3xl sm:bg-muted sm:p-4">
-              <PostContent
-                post={post}
-                status={status}
-                forceExpanded={forceExpanded}
-              />
+        <div
+          className="cursor-pointer transition-opacity hover:opacity-90"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleNavigate();
+          }}
+        >
+          <div className="sm:rounded-3xl sm:bg-muted sm:p-4">
+            <PostContent
+              post={post}
+              status={status}
+              forceExpanded={forceExpanded}
+            />
 
-              <PostMetadata
-                post={post}
-                status={status}
-                forceExpanded={forceExpanded}
-              />
+            <PostMetadata
+              post={post}
+              status={status}
+              forceExpanded={forceExpanded}
+            />
 
-              <PostTimeline post={post} />
-            </Card>
+            <PostTimeline post={post} />
           </div>
         </div>
 
-        <div className="shadow-none sm:px-0 sm:pb-0">
-          <Card className="rounded-none border-0 bg-transparent p-0 shadow-none sm:rounded-3xl sm:bg-muted sm:p-2">
-            <PostFooter post={post} forceExpanded={forceExpanded} />
-          </Card>
+        <div className="sm:rounded-3xl sm:bg-muted sm:p-2">
+          <PostFooter post={post} forceExpanded={forceExpanded} />
         </div>
 
         {forceExpanded && <PostContribution post={post} />}

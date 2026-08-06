@@ -42,7 +42,7 @@ export function useCreateContribution() {
 
           p_address: contributionData.address ?? null,
 
-          p_meeting_link: contributionData.meeting_link ?? null,
+          p_links: contributionData.links ?? null,
 
           p_guest_name: contributionData.guest_name ?? null,
 

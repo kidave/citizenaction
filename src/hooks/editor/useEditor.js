@@ -28,7 +28,7 @@ export function useEditor(item = null) {
 
   const [address, setAddress] = useState(null);
 
-  const [meeting_link, setMeetingLink] = useState("");
+  const [links, setLinks] = useState([]);
 
   // ==========================================================
   // Attachment Helpers
@@ -75,6 +75,46 @@ export function useEditor(item = null) {
   const hasAttachments = attachmentCount > 0;
 
   // ==========================================================
+  // Link Helpers
+  // ==========================================================
+
+  const addLinks = (newLinks) => {
+    const list = Array.isArray(newLinks) ? newLinks : [newLinks];
+
+    setLinks((prev) => [...prev, ...list]);
+  };
+
+  const replaceLinks = (newLinks) => {
+    setLinks(Array.isArray(newLinks) ? newLinks : []);
+  };
+
+  const removeLink = (index) => {
+    setLinks((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const clearLinks = () => {
+    setLinks([]);
+  };
+
+  const updateLink = (index, updates) => {
+    setLinks((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, ...updates } : item)),
+    );
+  };
+
+  const moveLink = (from, to) => {
+    setLinks((prev) => {
+      const next = [...prev];
+
+      const [item] = next.splice(from, 1);
+
+      next.splice(to, 0, item);
+
+      return next;
+    });
+  };
+
+  // ==========================================================
   // Load Existing Item
   // ==========================================================
 
@@ -93,6 +133,8 @@ export function useEditor(item = null) {
 
     replaceAttachments(item?.attachments ?? []);
 
+    replaceLinks(item?.links ?? []);
+
     setStartAt(item?.start_at ?? null);
 
     setEndAt(item?.end_at ?? null);
@@ -102,8 +144,6 @@ export function useEditor(item = null) {
     setLng(item?.lng ?? null);
 
     setAddress(item?.address ?? null);
-
-    setMeetingLink(item?.meeting_link ?? "");
   }, [item]);
 
   // ==========================================================
@@ -111,7 +151,7 @@ export function useEditor(item = null) {
   // ==========================================================
 
   const editorData = useMemo(() => {
-    const { links, hashtags } = extractContentMeta(content);
+    const { extracted_links, hashtags } = extractContentMeta(content);
 
     return {
       author_id: user?.id ?? null,
@@ -120,6 +160,7 @@ export function useEditor(item = null) {
       content,
 
       attachments,
+      links,
 
       start_at,
       end_at,
@@ -129,10 +170,8 @@ export function useEditor(item = null) {
 
       address,
 
-      meeting_link: meeting_link || null,
-
       metadata: {
-        links,
+        extracted_links,
         hashtags,
       },
 
@@ -149,12 +188,12 @@ export function useEditor(item = null) {
     title,
     content,
     attachments,
+    links,
     start_at,
     end_at,
     lat,
     lng,
     address,
-    meeting_link,
     spaces,
     is_global,
     governance,
@@ -187,6 +226,18 @@ export function useEditor(item = null) {
     updateAttachment,
     moveAttachment,
 
+    // Links
+    links,
+
+    setLinks,
+    replaceLinks,
+
+    addLinks,
+    removeLink,
+    clearLinks,
+    updateLink,
+    moveLink,
+
     // Dates
     start_at,
     setStartAt,
@@ -203,10 +254,6 @@ export function useEditor(item = null) {
 
     address,
     setAddress,
-
-    // Meeting
-    meeting_link,
-    setMeetingLink,
 
     // Spaces
     spaces,

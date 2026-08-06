@@ -48,7 +48,7 @@ export function usePostCore(id, initialData) {
             lng,
             address,
 
-            meeting_link
+            link
           `,
         )
         .eq("id", id)

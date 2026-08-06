@@ -13,8 +13,6 @@ export function useCreatePost() {
 
   const mutation = useMutation({
     mutationFn: async (postData) => {
-      const postId = crypto.randomUUID();
-
       let uploadedAttachments = [];
 
       try {
@@ -23,10 +21,7 @@ export function useCreatePost() {
         // ==========================================================
 
         if (postData.attachments?.length) {
-          const uploaded = await uploadPostAttachments(
-            postId,
-            postData.attachments,
-          );
+          const uploaded = await uploadPostAttachments(postData.attachments);
 
           uploadedAttachments = uploaded.map((uploadedAttachment) => {
             const original = postData.attachments.find(
@@ -42,22 +37,18 @@ export function useCreatePost() {
         }
 
         // ==========================================================
-        // Publish post
+        // Create post
         // ==========================================================
 
-        const { data, error } = await supabase.rpc("publish_post", {
-          p_post_id: postId,
+        const { data, error } = await supabase.rpc("create_post", {
+          p_type: postData.type,
 
           p_space_id:
             postData.spaces?.length > 0 ? postData.spaces[0].id : null,
 
-          p_type: postData.type,
-
           p_summary: postData.summary,
 
           p_details: postData.details,
-
-          p_is_global: !postData.spaces || postData.spaces.length === 0,
 
           p_metadata: postData.metadata ?? {},
 
@@ -71,17 +62,11 @@ export function useCreatePost() {
 
           p_address: postData.address ?? null,
 
-          p_meeting_link: postData.meeting_link ?? null,
-
-          p_date: null,
-
-          p_time: null,
-
-          p_slug: null,
-
           p_governance_ids: postData.governance?.map((g) => g.id) ?? [],
 
           p_attachments: uploadedAttachments,
+
+          p_links: postData.links ?? [],
         });
 
         if (error) throw error;
@@ -111,13 +96,12 @@ export function useCreatePost() {
         queryKey: ["post"],
       });
 
-      toast.success("Post published successfully");
+      toast.success("Post created successfully");
     },
 
     onError: (error) => {
       console.error(error);
-
-      toast.error(error.message || "Failed to publish post");
+      toast.error(error.message || "Failed to create post");
     },
   });
 

@@ -18,11 +18,13 @@ export function useDeleteContribution() {
         await deletePostAttachments(paths);
       }
 
-      const { error } = await supabase.rpc("delete_contribution", {
+      const result = await supabase.rpc("delete_contribution", {
         p_contribution_id: contribution.id,
       });
 
-      if (error) throw error;
+      console.log(result);
+
+      if (result.error) throw result.error;
 
       return true;
     },

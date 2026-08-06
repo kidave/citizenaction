@@ -51,7 +51,7 @@ export function useUpdateContribution() {
 
           p_address: contributionData.address ?? null,
 
-          p_meeting_link: contributionData.meeting_link ?? null,
+          p_links: contributionData.links ?? null,
 
           p_status: contributionData.status ?? null,
 

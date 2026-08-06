@@ -133,9 +133,9 @@ export default function PostMetadata({ post, forceExpanded = false }) {
 
           {/* JOIN */}
 
-          {config.showJoin && post.meeting_link && status?.key === "live" && (
+          {config.showJoin && post.links && status?.key === "live" && (
             <Link
-              href={post.meeting_link}
+              href={post.links}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90"

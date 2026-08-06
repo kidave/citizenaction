@@ -44,7 +44,7 @@ export default function ContributionDrawer({ open, onOpenChange, post }) {
           <DrawerTitle>Contributions</DrawerTitle>
         </DrawerHeader>
 
-        <div className="overflow-y-auto px-4 pb-6">
+        <div className="overflow-y-auto px-4">
           <PostContribution post={post} />
         </div>
       </DrawerContent>
