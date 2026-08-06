@@ -30,9 +30,7 @@ export default function PostCalendarActions({ post }) {
   // LOCATION
   // =====================================================
 
-  const locationValue = [post.address, post.meeting_link]
-    .filter(Boolean)
-    .join("\n");
+  const locationValue = [post.address, post.links].filter(Boolean).join("\n");
 
   // =====================================================
   // GOOGLE CALENDAR

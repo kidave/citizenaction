@@ -68,7 +68,7 @@ function getImage(attachments) {
     const image = parsed.find((a) => a?.url && a?.type?.startsWith("image/"));
 
     if (image?.url) {
-      return image.url;
+      return image.public_url;
     }
 
     const pdf = parsed.find((a) => a?.type === "application/pdf");
