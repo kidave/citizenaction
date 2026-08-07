@@ -19,6 +19,7 @@ export default function AttachmentCarousel({
   onCreditNameChange,
   removable = false,
   showMetadata = true,
+  size = "default",
 }) {
   const [hovered, setHovered] = useState(null);
 
@@ -45,6 +46,7 @@ export default function AttachmentCarousel({
             showMetadata={showMetadata}
             hovered={null}
             setHovered={() => {}}
+            size={size}
           />
         )}
 

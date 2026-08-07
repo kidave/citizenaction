@@ -20,6 +20,7 @@ export default function AttachmentCard({
   hovered = null,
   setHovered = () => {},
   className,
+  size = "default",
 }) {
   return (
     <div
@@ -42,7 +43,10 @@ export default function AttachmentCard({
 
       <div
         onClick={() => onClick?.(index)}
-        className="relative aspect-square cursor-pointer overflow-hidden bg-muted md:aspect-[16/10]"
+        className={cn(
+          "relative cursor-pointer overflow-hidden bg-muted",
+          size === "sm" ? "aspect-[4/3]" : "aspect-square md:aspect-[16/10]",
+        )}
       >
         <div className="relative h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.06]">
           <AttachmentPreview attachment={attachment} />
@@ -66,8 +70,15 @@ export default function AttachmentCard({
       {/* Metadata */}
 
       {showMetadata && (
-        <div className="space-y-2 p-2">
-          <p className="truncate text-sm font-medium">{attachment.file_name}</p>
+        <div className={cn("space-y-2", size === "sm" ? "p-2" : "p-3")}>
+          <p
+            className={cn(
+              "truncate font-medium",
+              size === "sm" ? "text-xs" : "text-sm",
+            )}
+          >
+            {attachment.file_name}
+          </p>
 
           <Input
             value={attachment.credit_name ?? ""}

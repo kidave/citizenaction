@@ -35,11 +35,6 @@ export default function EditorModal({
 
   const editor = mode === "post" ? postEditor : contributionEditor;
   const [attachmentsOpen, setAttachmentsOpen] = useState(false);
-  useEffect(() => {
-    if (editor.attachments.length > 0) {
-      setAttachmentsOpen(true);
-    }
-  }, [editor.attachments.length]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>

@@ -50,6 +50,7 @@ export default function EditorAttachments({
           attachments={attachments}
           showMetadata
           removable
+          size="sm"
           onAttachmentClick={() => {}}
           onRemove={(index) =>
             setAttachments((prev) => prev.filter((_, i) => i !== index))
