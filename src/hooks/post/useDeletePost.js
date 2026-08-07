@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
+import { deletePostAttachmentsByPostId } from "@/lib/supabase/storage";
 import { toast } from "sonner";
 
 export function useDeletePost() {
@@ -9,13 +10,15 @@ export function useDeletePost() {
 
   const mutation = useMutation({
     mutationFn: async (postId) => {
+      // Delete Storage
+      await deletePostAttachmentsByPostId(postId);
+
+      // Delete Database
       const { error } = await supabase.rpc("delete_post", {
         p_post_id: postId,
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       return true;
     },
@@ -25,12 +28,15 @@ export function useDeletePost() {
         queryKey: ["post"],
       });
 
+      queryClient.invalidateQueries({
+        queryKey: ["posts"],
+      });
+
       toast.success("Post deleted successfully");
     },
 
     onError: (error) => {
-      console.error("Delete post error:", error);
-
+      console.error(error);
       toast.error(error.message || "Failed to delete post");
     },
   });

@@ -46,6 +46,7 @@ export function LogoSwitcher() {
             size="lg"
             onClick={() => router.push("/")}
             className="flex flex-1 items-center gap-3"
+            tooltip="Collapse sidebar"
           >
             <div className="flex size-8 items-center justify-center rounded-lg bg-accent text-sidebar-primary-foreground">
               <Logo className="h-4 w-4" />

@@ -1,6 +1,11 @@
+// lib/supabase/storage.js
+
 import { supabase } from "./client";
 
-const POST_BUCKET = "post";
+const BUCKETS = {
+  POST: "post",
+  CONTRIBUTION: "contribution",
+};
 
 function sanitizeFileName(name) {
   return name.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -8,108 +13,175 @@ function sanitizeFileName(name) {
 
 function makeFileName(originalName) {
   const safeName = sanitizeFileName(originalName || "file");
-  const unique = crypto.randomUUID();
-  return `${unique}-${safeName}`;
+  return `${crypto.randomUUID()}-${safeName}`;
 }
 
-async function uploadToBucket({ folderId, file }) {
-  if (!file) throw new Error("Missing file for upload");
-  if (!folderId) throw new Error("Missing postId for attachment upload");
+/* -------------------------------------------------------------------------- */
+/* Generic Upload                                                              */
+/* -------------------------------------------------------------------------- */
+
+async function uploadAttachment({ bucket, ownerId, file }) {
+  if (!bucket) {
+    throw new Error("Missing bucket");
+  }
+
+  if (!ownerId) {
+    throw new Error("Missing ownerId");
+  }
+
+  if (!file) {
+    throw new Error("Missing file");
+  }
 
   const fileName = makeFileName(file.name);
-  const path = `${folderId}/${fileName}`;
 
-  const { error: uploadError } = await supabase.storage
-    .from(POST_BUCKET)
-    .upload(path, file, {
+  const storagePath = `${ownerId}/${fileName}`;
+
+  const { error } = await supabase.storage
+    .from(bucket)
+    .upload(storagePath, file, {
       upsert: false,
       cacheControl: "3600",
       contentType: file.type || "application/octet-stream",
     });
 
-  if (uploadError) throw uploadError;
+  if (error) throw error;
 
-  const { data } = supabase.storage.from(POST_BUCKET).getPublicUrl(path);
+  const { data } = supabase.storage.from(bucket).getPublicUrl(storagePath);
 
   return {
-    storage_path: path,
+    storage_path: storagePath,
     public_url: data.publicUrl,
+
     file_name: file.name,
     mime_type: file.type,
     file_size: file.size,
+
     width: null,
     height: null,
     duration: null,
+
     sort_order: null,
   };
 }
 
 /* -------------------------------------------------------------------------- */
-/* Upload Single */
+/* Generic Multiple Upload                                                     */
 /* -------------------------------------------------------------------------- */
 
-export async function uploadPostAttachment(postId, file) {
-  return uploadToBucket({
-    folderId: postId,
-    file,
-  });
-}
-
-export async function uploadContributionAttachment(postId, file) {
-  // Contribution files are also stored under the parent post folder.
-  return uploadToBucket({
-    folderId: postId,
-    file,
-  });
-}
-
-/* -------------------------------------------------------------------------- */
-/* Upload Multiple */
-/* -------------------------------------------------------------------------- */
-
-export async function uploadPostAttachments(postId, attachments = []) {
-  if (!Array.isArray(attachments) || attachments.length === 0) return [];
+async function uploadAttachments({ bucket, ownerId, attachments = [] }) {
+  if (!Array.isArray(attachments) || attachments.length === 0) {
+    return [];
+  }
 
   return Promise.all(
     attachments.map((attachment) =>
-      uploadPostAttachment(postId, attachment?.file ?? attachment),
-    ),
-  );
-}
-
-export async function uploadContributionAttachments(postId, attachments = []) {
-  if (!Array.isArray(attachments) || attachments.length === 0) return [];
-
-  return Promise.all(
-    attachments.map((attachment) =>
-      uploadContributionAttachment(postId, attachment?.file ?? attachment),
+      uploadAttachment({
+        bucket,
+        ownerId,
+        file: attachment.file ?? attachment,
+      }),
     ),
   );
 }
 
 /* -------------------------------------------------------------------------- */
-/* Delete */
+/* Wrappers                                                                    */
 /* -------------------------------------------------------------------------- */
 
-export async function deleteAttachments(paths = []) {
+export function uploadPostAttachments(postId, attachments) {
+  return uploadAttachments({
+    bucket: BUCKETS.POST,
+    ownerId: postId,
+    attachments,
+  });
+}
+
+export function uploadContributionAttachments(contributionId, attachments) {
+  return uploadAttachments({
+    bucket: BUCKETS.CONTRIBUTION,
+    ownerId: contributionId,
+    attachments,
+  });
+}
+
+/* -------------------------------------------------------------------------- */
+/* Delete                                                                      */
+/* -------------------------------------------------------------------------- */
+
+export async function deleteAttachments(bucket, paths = []) {
   const validPaths = paths.filter(Boolean);
 
-  if (!validPaths.length) return true;
+  if (!validPaths.length) return;
 
-  const { error } = await supabase.storage.from(POST_BUCKET).remove(validPaths);
+  const { error } = await supabase.storage.from(bucket).remove(validPaths);
+
+  if (error) throw error;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Delete By Owner                                                             */
+/* -------------------------------------------------------------------------- */
+
+export async function deletePostAttachmentsByPostId(postId) {
+  if (!postId) {
+    throw new Error("Missing postId");
+  }
+
+  const { data, error } = await supabase
+    .from("attachment")
+    .select("storage_path")
+    .eq("post_id", postId);
 
   if (error) throw error;
 
-  return true;
+  const paths = getAttachmentPaths(data);
+
+  if (!paths.length) return;
+
+  await deletePostAttachments(paths);
+}
+
+export async function deleteContributionAttachmentsByContributionId(
+  contributionId,
+) {
+  if (!contributionId) {
+    throw new Error("Missing contributionId");
+  }
+
+  const { data, error } = await supabase
+    .from("attachment")
+    .select("storage_path")
+    .eq("contribution_id", contributionId);
+
+  if (error) throw error;
+
+  const paths = getAttachmentPaths(data);
+
+  if (!paths.length) return;
+
+  await deleteContributionAttachments(paths);
 }
 
 /* -------------------------------------------------------------------------- */
-/* Helpers */
+/* Wrappers                                                                    */
+/* -------------------------------------------------------------------------- */
+
+export function deletePostAttachments(paths) {
+  return deleteAttachments(BUCKETS.POST, paths);
+}
+
+export function deleteContributionAttachments(paths) {
+  return deleteAttachments(BUCKETS.CONTRIBUTION, paths);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Helpers                                                                     */
 /* -------------------------------------------------------------------------- */
 
 export function getAttachmentPaths(attachments = []) {
   return attachments
-    .map((attachment) => attachment?.storage_path)
+    .map((attachment) => attachment.storage_path)
     .filter(Boolean);
 }
 
@@ -118,12 +190,13 @@ export function getFileCategory(mimeType) {
   if (mimeType?.startsWith("video/")) return "video";
   if (mimeType === "application/pdf") return "pdf";
   if (mimeType?.includes("word")) return "document";
-  if (mimeType?.includes("spreadsheet") || mimeType?.includes("excel"))
-    return "spreadsheet";
-  if (mimeType?.includes("presentation") || mimeType?.includes("powerpoint"))
-    return "presentation";
+  if (mimeType?.includes("spreadsheet")) return "spreadsheet";
+  if (mimeType?.includes("excel")) return "spreadsheet";
+  if (mimeType?.includes("presentation")) return "presentation";
+  if (mimeType?.includes("powerpoint")) return "presentation";
   if (mimeType?.startsWith("text/")) return "text";
-  if (mimeType?.includes("zip") || mimeType?.includes("rar")) return "archive";
+  if (mimeType?.includes("zip")) return "archive";
+  if (mimeType?.includes("rar")) return "archive";
 
   return "file";
 }

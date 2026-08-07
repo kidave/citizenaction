@@ -39,8 +39,8 @@ export default function PostCalendarActions({ post }) {
   function handleGoogleCalendar() {
     const url =
       `https://calendar.google.com/calendar/render?action=TEMPLATE` +
-      `&text=${encodeURIComponent(post.summary || "Meeting/Event")}` +
-      `&details=${encodeURIComponent(post.details || "")}` +
+      `&text=${encodeURIComponent(post.title || "Meeting/Event")}` +
+      `&details=${encodeURIComponent(post.content || "")}` +
       `&location=${encodeURIComponent(locationValue || "")}` +
       `&dates=${formatDate(start)}/${formatDate(end)}`;
 
@@ -60,8 +60,8 @@ UID:${Date.now()}@citizenaction
 DTSTAMP:${formatDate(new Date())}
 DTSTART:${formatDate(start)}
 DTEND:${formatDate(end)}
-SUMMARY:${post.summary || "Meeting/Event"}
-DESCRIPTION:${post.details || ""}
+SUMMARY:${post.title || "Meeting/Event"}
+DESCRIPTION:${post.content || ""}
 LOCATION:${locationValue || ""}
 END:VEVENT
 END:VCALENDAR`;

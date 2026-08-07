@@ -3,20 +3,26 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 
-export function usePost(id, initialData) {
+export function usePost(postId, initialPost) {
   return useQuery({
-    queryKey: ["post", id],
-    enabled: !!id,
-    initialData,
+    queryKey: ["post", postId],
+
+    enabled: !!postId,
+
+    initialData: initialPost,
+
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_post", {
-        p_post_id: id,
+        p_post_id: postId,
       });
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
-      return data;
+      return Array.isArray(data) ? data[0] : data;
     },
+
     staleTime: 1000 * 60 * 5,
   });
 }

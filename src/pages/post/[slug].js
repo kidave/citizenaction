@@ -1,32 +1,64 @@
 import Head from "next/head";
-
+import { useRouter } from "next/router";
 import { useState } from "react";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { usePost } from "@/hooks/feed/usePost";
-import { useAuth } from "@/context/AuthContext";
+
 import PostCard from "@/components/feed/post/PostCard";
 import EditorModal from "@/components/feed/editor/EditorModal";
 import { useDeletePost } from "@/hooks/post/useDeletePost";
 import BackButton from "@/components/ui/back-button";
+import PageSkeleton from "@/components/skeletons/PostSkeleton";
 
 export async function getServerSideProps({ params }) {
   const supabase = createServerSupabase();
-  const { id } = params;
+
+  const { slug } = params;
+
+  // ---------------------------------------------------------
+  // Resolve slug -> post id
+  // ---------------------------------------------------------
+
+  const { data: postRow, error: slugError } = await supabase
+    .from("post")
+    .select("id")
+    .eq("slug", slug)
+    .single();
+
+  if (slugError || !postRow) {
+    return {
+      notFound: true,
+    };
+  }
+
+  // ---------------------------------------------------------
+  // Load full post
+  // ---------------------------------------------------------
 
   const { data, error } = await supabase.rpc("get_post", {
-    p_post_id: id,
+    p_post_id: postRow.id,
   });
 
   if (error) {
     console.error(error);
+
+    return {
+      notFound: true,
+    };
   }
 
   const post = Array.isArray(data) ? data[0] : data;
 
+  if (!post) {
+    return {
+      notFound: true,
+    };
+  }
+
   return {
     props: {
-      initialPost: post ?? null,
-      postId: id,
+      initialPost: post,
+      postId: post.id,
     },
   };
 }
@@ -41,7 +73,7 @@ function cleanText(text) {
 }
 
 function getDescription(post) {
-  const clean = cleanText(post.details);
+  const clean = cleanText(post.content);
 
   if (!clean) {
     return "Citizen Action";
@@ -50,58 +82,46 @@ function getDescription(post) {
   return clean.length > 140 ? clean.slice(0, 140) + "..." : clean;
 }
 
-function getImage(attachments) {
+function getImage(attachments = []) {
   const fallback = "https://citizenaction.in/logo.png";
 
-  if (!attachments) {
+  if (!Array.isArray(attachments)) {
     return fallback;
   }
 
-  try {
-    const parsed =
-      typeof attachments === "string" ? JSON.parse(attachments) : attachments;
+  const image = attachments.find(
+    (a) => a.public_url && a.mime_type?.startsWith("image/"),
+  );
 
-    if (!Array.isArray(parsed)) {
-      return fallback;
-    }
-
-    const image = parsed.find((a) => a?.url && a?.type?.startsWith("image/"));
-
-    if (image?.url) {
-      return image.public_url;
-    }
-
-    const pdf = parsed.find((a) => a?.type === "application/pdf");
-
-    if (pdf?.thumbnail_url) {
-      return pdf.thumbnail_url;
-    }
-
-    return fallback;
-  } catch {
-    return fallback;
+  if (image) {
+    return image.public_url;
   }
+
+  return fallback;
 }
 
 export default function SinglePostPage({ postId, initialPost }) {
   const { deletePost } = useDeletePost();
-  const { user } = useAuth();
+
+  const router = useRouter();
 
   const [editingPost, setEditingPost] = useState(null);
 
   const { data: post, isLoading } = usePost(postId, initialPost);
 
+  console.log(post);
+
   if (isLoading || !post) {
-    return null;
+    return <PageSkeleton />;
   }
 
   const title = post.title || "Citizen Action";
   const description = getDescription(post);
   const image = getImage(post.attachments);
 
-  const url = `https://citizenaction.in/post/${post.id}`;
+  const url = `https://citizenaction.in/post/${post.slug}`;
 
-  const canEdit = post?.permissions?.can_manage || post?.author_id === user?.id;
+  const canEdit = post?.permissions?.can_manage ?? false;
 
   return (
     <>
@@ -159,7 +179,11 @@ export default function SinglePostPage({ postId, initialPost }) {
               canEdit={canEdit}
               borderless
               onEdit={() => setEditingPost(post)}
-              onDelete={() => deletePost(post.id)}
+              onDelete={async () => {
+                await deletePost(post.id);
+
+                router.push("/");
+              }}
               forceExpanded
             />
           </div>

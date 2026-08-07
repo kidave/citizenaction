@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 
 import { useAuth } from "@/context/AuthContext";
 
@@ -50,7 +50,7 @@ export default function PostCard({
   const handleNavigate = () => {
     sessionStorage.setItem("feed-scroll", window.scrollY.toString());
 
-    router.push(`/post/${post.id}`);
+    router.push(`/post/${post.slug}`);
   };
 
   return (
