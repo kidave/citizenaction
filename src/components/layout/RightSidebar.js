@@ -12,7 +12,6 @@ import {
   SidebarGroupContent,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { Moon, Sun, Laptop, Palette } from "lucide-react";
 import { ThemeSwitcher } from "@/styles/ThemeSwitcher";
 
 export default function RightSidebar() {
@@ -40,7 +39,7 @@ export default function RightSidebar() {
             <span className="font-medium text-foreground">
               Mumbai Sustainability Center
             </span>
-            , focused on walkability, governance, and local civic action.
+            focused on walkability.
           </SidebarGroupContent>
         </SidebarGroup>
 

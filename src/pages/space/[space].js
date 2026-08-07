@@ -121,7 +121,7 @@ export default function SpacePage() {
       </div>
 
       {/* CONTENT */}
-      <div className="space-y-6 px-4 py-6">
+      <div className="space-y-4 px-4 py-4">
         <Tabs value={activeTab}>
           <TabsContent value="overview">
             <OverviewTab space={space} />

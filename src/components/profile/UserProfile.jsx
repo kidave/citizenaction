@@ -75,7 +75,7 @@ export default function UserProfile() {
 
   return (
     <>
-      <div className="flex min-h-dvh justify-center bg-muted/30 px-4 py-10">
+      <div className="flex justify-center px-4 py-4">
         <div className="w-full max-w-lg">
           <Card className="relative">
             {profile.is_self && (

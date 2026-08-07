@@ -2,56 +2,108 @@
 
 import { useRouter } from "next/router";
 
+import BackButton from "@/components/ui/back-button";
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import EditProfile from "@/components/profile/EditProfile";
+
+import Appearance from "@/components/system/Appearance";
+import Notifications from "@/components/system/Notification";
+import Support from "@/components/system/Support";
+import About from "@/components/system/About";
 import PrivacyPolicy from "@/components/system/PrivacyPolicy";
 
 export default function SettingsPage() {
   const router = useRouter();
 
-  const tab = router.query.tab || "account";
+  const activeTab = router.query.tab || "account";
+
+  function changeTab(value) {
+    router.push(
+      {
+        pathname: "/settings",
+        query: value === "account" ? {} : { tab: value },
+      },
+      undefined,
+      {
+        shallow: true,
+      },
+    );
+  }
 
   return (
-    <div>
-      {tab === "account" && (
-        <>
-          <h1 className="mb-2 text-3xl font-bold">Account</h1>
+    <div className="mx-auto max-w-xl">
+      {/* Header */}
+      <header className="space-y-4 px-4 py-4">
+        <div className="flex items-start gap-2">
+          <BackButton />
 
-          <p className="text-muted-foreground">Account settings go here.</p>
-        </>
-      )}
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl font-bold lg:text-3xl">Settings</h1>
+          </div>
+        </div>
+      </header>
 
-      {tab === "appearance" && (
-        <>
-          <h1 className="mb-6 text-3xl font-bold">Appearance</h1>
+      <Tabs value={activeTab} onValueChange={changeTab}>
+        {/* Navigation */}
+        <div className="sticky top-0 z-20 bg-background pt-2">
+          <div className="overflow-x-auto">
+            <TabsList className="mx-4 flex w-max min-w-[calc(100%-2rem)]">
+              <TabsTrigger value="account" className="flex-1">
+                Account
+              </TabsTrigger>
 
-          {/* Theme selector */}
-        </>
-      )}
+              <TabsTrigger value="appearance" className="flex-1">
+                Appearance
+              </TabsTrigger>
 
-      {tab === "notifications" && (
-        <>
-          <h1 className="mb-6 text-3xl font-bold">Notifications</h1>
+              <TabsTrigger value="notifications" className="flex-1">
+                Notifications
+              </TabsTrigger>
 
-          {/* Notifications */}
-        </>
-      )}
+              <TabsTrigger value="privacy" className="flex-1">
+                Privacy
+              </TabsTrigger>
 
-      {tab === "privacy" && <PrivacyPolicy />}
+              <TabsTrigger value="support" className="flex-1">
+                Support
+              </TabsTrigger>
 
-      {tab === "support" && (
-        <>
-          <h1 className="mb-6 text-3xl font-bold">Support</h1>
+              <TabsTrigger value="about" className="flex-1">
+                About
+              </TabsTrigger>
+            </TabsList>
+          </div>
+        </div>
 
-          {/* Support */}
-        </>
-      )}
+        {/* Content */}
+        <div className="px-4 py-6">
+          <TabsContent value="account">
+            <EditProfile />
+          </TabsContent>
 
-      {tab === "about" && (
-        <>
-          <h1 className="mb-6 text-3xl font-bold">About</h1>
+          <TabsContent value="appearance">
+            <Appearance />
+          </TabsContent>
 
-          {/* About */}
-        </>
-      )}
+          <TabsContent value="notifications">
+            <Notifications />
+          </TabsContent>
+
+          <TabsContent value="privacy">
+            <PrivacyPolicy />
+          </TabsContent>
+
+          <TabsContent value="support">
+            <Support />
+          </TabsContent>
+
+          <TabsContent value="about">
+            <About />
+          </TabsContent>
+        </div>
+      </Tabs>
     </div>
   );
 }

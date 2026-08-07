@@ -27,7 +27,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -148,313 +147,255 @@ export default function ApplySpace() {
   }
 
   return (
-    <div className="min-h-dvh px-4 py-6">
-      <div className="mx-auto w-full max-w-4xl space-y-2">
-        <BackButton label="Back" />
+    <div className="mx-auto max-w-xl">
+      <header className="space-y-4 px-4 py-4">
+        <div className="flex items-start gap-2">
+          <BackButton />
 
-        <div>
-          <CardContent className="space-y-4 p-4">
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full border-2 bg-muted px-4 py-2 text-sm font-medium">
-                <Building2 className="h-4 w-4" />
-                Give your project a home.
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl font-bold lg:text-3xl">
+              Give your project a home
+            </h1>
+          </div>
+        </div>
+      </header>
+
+      <div className="mb-4 space-y-4 px-4">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <div className="grid gap-5 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="proposed_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Organization / Initiative Name</FormLabel>
+
+                    <FormControl className="bg-muted">
+                      <Input
+                        placeholder="Mumbai Walkability Forum"
+                        {...field}
+                      />
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="proposed_slug"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Space URL</FormLabel>
+
+                    <FormControl className="bg-muted">
+                      <Input placeholder="mumbai-walkability" {...field} />
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category (optional)</FormLabel>
+
+                    <FormControl className="bg-muted">
+                      <Input
+                        placeholder="Mobility, Heritage, Environment..."
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="website"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Website (optional)</FormLabel>
+
+                    <FormControl className="bg-muted">
+                      <Input placeholder="https://example.org" {...field} />
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="space-y-5">
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>What does your organization do?</FormLabel>
+
+                    <FormControl className="bg-muted">
+                      <Textarea
+                        rows={4}
+                        placeholder="Tell us about your mission, goals, or work..."
+                        {...field}
+                      />
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="justification"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Why should this space exist?</FormLabel>
+
+                    <FormControl className="bg-muted">
+                      <Textarea
+                        rows={4}
+                        placeholder="How will this space help people organize or collaborate?"
+                        {...field}
+                      />
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contact Email</FormLabel>
+
+                    <FormControl className="bg-muted">
+                      <Input
+                        type="email"
+                        placeholder="contact@example.org"
+                        {...field}
+                      />
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="contact_number"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contact Number</FormLabel>
+
+                    <FormControl className="bg-muted">
+                      <Input placeholder="+91 9876543210" {...field} />
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-2">
+                    <FormLabel>Address (optional)</FormLabel>
+
+                    <FormControl className="bg-muted">
+                      <Textarea
+                        rows={3}
+                        placeholder="Organization or office address"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <h3 className="font-semibold">Social Links</h3>
               </div>
-            </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
-              <Card className="rounded-xl border-2 bg-muted p-5">
-                <div className="flex gap-4">
-                  <Megaphone className="mb-4 h-6 w-6" />
-
-                  <h3 className="mb-1 font-semibold">Share Updates</h3>
-                </div>
-
-                <p className="text-sm text-muted-foreground">
-                  Post reports, updates, and minutes of meetings.
-                </p>
-              </Card>
-
-              <Card className="rounded-xl border-2 bg-muted p-5">
-                <div className="flex gap-4">
-                  <CalendarDays className="mb-4 h-6 w-6" />
-
-                  <h3 className="mb-1 font-semibold">Organize Events</h3>
-                </div>
-
-                <p className="text-sm text-muted-foreground">
-                  Coordinate meetings and community actions.
-                </p>
-              </Card>
-
-              <Card className="rounded-xl border-2 bg-muted p-5">
-                <div className="flex gap-4">
-                  <Users className="mb-4 h-6 w-6" />
-
-                  <h3 className="mb-1 font-semibold">Build Community</h3>
-                </div>
-
-                <p className="text-sm text-muted-foreground">
-                  Bring volunteers and local stakeholders together.
-                </p>
-              </Card>
-            </div>
-          </CardContent>
-        </div>
-
-        <div>
-          <CardHeader className="space-y-2">
-            <h2 className="text-2xl">
-              Tell us a little about your organization or initiative.
-            </h2>
-
-            {!user && (
-              <Card className="bg-warning px-4 py-3 text-sm">
-                Sign in required
-              </Card>
-            )}
-          </CardHeader>
-
-          <CardContent>
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-8"
-              >
-                <div className="grid gap-5 md:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="proposed_name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Organization / Initiative Name</FormLabel>
-
-                        <FormControl className="bg-muted">
-                          <Input
-                            placeholder="Mumbai Walkability Forum"
-                            {...field}
-                          />
-                        </FormControl>
-
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="proposed_slug"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Space URL</FormLabel>
-
-                        <FormControl className="bg-muted">
-                          <Input placeholder="mumbai-walkability" {...field} />
-                        </FormControl>
-
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Category (optional)</FormLabel>
-
-                        <FormControl className="bg-muted">
-                          <Input
-                            placeholder="Mobility, Heritage, Environment..."
-                            {...field}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="website"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Website (optional)</FormLabel>
-
-                        <FormControl className="bg-muted">
-                          <Input placeholder="https://example.org" {...field} />
-                        </FormControl>
-
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="space-y-5">
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>What does your organization do?</FormLabel>
-
-                        <FormControl className="bg-muted">
-                          <Textarea
-                            rows={4}
-                            placeholder="Tell us about your mission, goals, or work..."
-                            {...field}
-                          />
-                        </FormControl>
-
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="justification"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Why should this space exist?</FormLabel>
-
-                        <FormControl className="bg-muted">
-                          <Textarea
-                            rows={4}
-                            placeholder="How will this space help people organize or collaborate?"
-                            {...field}
-                          />
-                        </FormControl>
-
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid gap-5 md:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Contact Email</FormLabel>
-
-                        <FormControl className="bg-muted">
-                          <Input
-                            type="email"
-                            placeholder="contact@example.org"
-                            {...field}
-                          />
-                        </FormControl>
-
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="contact_number"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Contact Number</FormLabel>
-
-                        <FormControl className="bg-muted">
-                          <Input placeholder="+91 9876543210" {...field} />
-                        </FormControl>
-
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="address"
-                    render={({ field }) => (
-                      <FormItem className="md:col-span-2">
-                        <FormLabel>Address (optional)</FormLabel>
-
-                        <FormControl className="bg-muted">
-                          <Textarea
-                            rows={3}
-                            placeholder="Organization or office address"
-                            {...field}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="space-y-4">
-                  <div className="space-y-1">
-                    <h3 className="font-semibold">Social Links</h3>
-                  </div>
-
-                  <div className="flex flex-col gap-3 md:flex-row">
-                    <Select
-                      value={socialPlatform}
-                      onValueChange={setSocialPlatform}
-                    >
-                      <SelectTrigger className="bg-muted md:w-56">
-                        <SelectValue />
-                      </SelectTrigger>
-
-                      <SelectContent>
-                        {SOCIAL_PLATFORMS.map((platform) => (
-                          <SelectItem key={platform} value={platform}>
-                            {platform}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <Input
-                      className="bg-muted"
-                      value={socialValue}
-                      onChange={(e) => setSocialValue(e.target.value)}
-                      placeholder="@username or URL"
-                    />
-
-                    <Button type="button" onClick={addSocialLink}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add
-                    </Button>
-                  </div>
-
-                  {!!socialLinks.length && (
-                    <div className="flex flex-wrap gap-2">
-                      {socialLinks.map((social, index) => (
-                        <Button
-                          key={index}
-                          type="button"
-                          onClick={() => removeSocialLink(index)}
-                          className="rounded-full border-2 bg-muted px-3 py-1.5 text-sm transition hover:bg-destructive hover:text-white"
-                        >
-                          {social.platform}: {social.value}
-                        </Button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={form.formState.isSubmitting}
-                  className="h-14 w-full rounded-2xl text-base font-bold"
+              <div className="flex flex-col gap-3 md:flex-row">
+                <Select
+                  value={socialPlatform}
+                  onValueChange={setSocialPlatform}
                 >
-                  {form.formState.isSubmitting
-                    ? "Submitting..."
-                    : user
-                      ? "Submit Application"
-                      : "Sign in to Continue"}
+                  <SelectTrigger className="bg-muted md:w-56">
+                    <SelectValue />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {SOCIAL_PLATFORMS.map((platform) => (
+                      <SelectItem key={platform} value={platform}>
+                        {platform}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Input
+                  className="bg-muted"
+                  value={socialValue}
+                  onChange={(e) => setSocialValue(e.target.value)}
+                  placeholder="@username or URL"
+                />
+
+                <Button type="button" onClick={addSocialLink}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add
                 </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </div>
+              </div>
+
+              {!!socialLinks.length && (
+                <div className="flex flex-wrap gap-2">
+                  {socialLinks.map((social, index) => (
+                    <Button
+                      key={index}
+                      type="button"
+                      onClick={() => removeSocialLink(index)}
+                      className="rounded-full border-2 bg-muted px-3 py-1.5 text-sm transition hover:bg-destructive hover:text-white"
+                    >
+                      {social.platform}: {social.value}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Button
+              type="submit"
+              disabled={form.formState.isSubmitting}
+              className="h-14 w-full rounded-2xl text-base font-bold"
+            >
+              {form.formState.isSubmitting
+                ? "Submitting..."
+                : user
+                  ? "Submit Application"
+                  : "Sign in to Continue"}
+            </Button>
+          </form>
+        </Form>
       </div>
 
       <LoginModal
