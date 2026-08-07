@@ -1,14 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-
 import { cn } from "@/lib/utils";
 
 export function HeroGeometric({
-  badge = "Citizen Action",
-  title1 = "Support",
-  title2 = "your cause.",
-  description = "Organize civic action with your community.",
+  title1 = "Local action,",
+  title2 = "made simple.",
   className,
 }) {
   return (
@@ -71,26 +68,6 @@ export function HeroGeometric({
       ===================================================== */}
 
       <div className="relative z-10 mx-auto max-w-6xl px-6 text-center">
-        {/* BADGE */}
-
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 20,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          transition={{
-            duration: 0.5,
-          }}
-        >
-          <div className="inline-flex items-center rounded-full border-4 border-black bg-yellow-300 px-5 py-2 text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            {badge}
-          </div>
-        </motion.div>
-
         {/* TITLE */}
 
         <motion.h1
@@ -114,24 +91,31 @@ export function HeroGeometric({
           </span>
         </motion.h1>
 
-        {/* DESCRIPTION */}
+        {/* SCROLL INDICATOR */}
 
-        <motion.p
-          initial={{
-            opacity: 0,
-            y: 30,
-          }}
+        <motion.div
           animate={{
-            opacity: 1,
-            y: 0,
+            y: [0, 10, 0],
           }}
           transition={{
-            delay: 0.3,
+            repeat: Infinity,
+            duration: 2,
           }}
-          className="mx-auto mt-8 max-w-2xl text-lg text-muted-foreground md:text-xl"
+          className="mt-20 flex justify-center"
         >
-          {description}
-        </motion.p>
+          <div className="flex h-14 w-8 justify-center rounded-full border border-border">
+            <motion.div
+              animate={{
+                y: [4, 20, 4],
+              }}
+              transition={{
+                repeat: Infinity,
+                duration: 2,
+              }}
+              className="mt-2 h-2 w-2 rounded-full bg-primary"
+            />
+          </div>
+        </motion.div>
       </div>
     </section>
   );

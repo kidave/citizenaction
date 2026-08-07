@@ -157,7 +157,7 @@ export default function ApplySpace() {
             <div className="space-y-3">
               <div className="inline-flex items-center gap-2 rounded-full border-2 bg-muted px-4 py-2 text-sm font-medium">
                 <Building2 className="h-4 w-4" />
-                Register a Space
+                Give your project a home.
               </div>
             </div>
 

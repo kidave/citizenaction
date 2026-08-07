@@ -13,22 +13,7 @@ import { useSpaces } from "@/hooks/space/useSpaces";
 import { Button } from "@/components/ui/button";
 
 import { Card, CardContent } from "@/components/ui/card";
-
 import ActivityPreviewCard from "@/components/feed/activity/ActivityPreviewCard";
-
-/* =====================================================
-   BADGE
-===================================================== */
-
-function FancyBadge({ children, className = "" }) {
-  return (
-    <div
-      className={`inline-flex items-center rounded-full border-4 border-black bg-yellow-300 px-5 py-2 text-sm ${className} `}
-    >
-      {children}
-    </div>
-  );
-}
 
 export default function LiveSpaceShowcase({ space = null }) {
   const { data: feed = [] } = useFeed();
@@ -40,20 +25,6 @@ export default function LiveSpaceShowcase({ space = null }) {
   return (
     <section>
       <div className="mx-auto max-w-7xl px-6">
-        <div className="text-center">
-          <FancyBadge>Live Community Space</FancyBadge>
-
-          <h2 className="mt-6 text-4xl md:text-6xl">
-            Communities documenting collaborative progress.
-          </h2>
-
-          <p className="mx-auto mt-6 max-w-3xl text-lg text-muted-foreground">
-            Citizen Action helps organizations, institutions and communities
-            share updates, meetings, initiatives and visible civic
-            collaboration.
-          </p>
-        </div>
-
         <div className="mt-20 space-y-10">
           {featuredSpaces.map((currentSpace, index) => {
             const spaceFeed = feed.filter(
@@ -80,7 +51,7 @@ export default function LiveSpaceShowcase({ space = null }) {
                   delay: index * 0.1,
                 }}
               >
-                <Card className="overflow-hidden rounded-[32px]">
+                <Card className="overflow-hidden rounded-[32px] bg-muted">
                   <CardContent className="flex flex-col gap-8 p-8 xl:flex-row">
                     {/* =====================================================
                           SPACE INFO
