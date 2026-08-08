@@ -129,108 +129,100 @@ export default function ActivityTab({ spaceId }) {
           FILTERS
       ===================================================== */}
 
-      <div className="scrollbar-hide flex items-center gap-1 overflow-x-auto">
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value)}
-          className="min-w-0 rounded-md border px-2 py-1.5 text-xs"
-        >
-          {activityTypes.map((t) => (
-            <option key={t} value={t}>
-              {t === "all"
-                ? "All Types"
-                : t.charAt(0).toUpperCase() + t.slice(1)}
-            </option>
-          ))}
-        </select>
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        {/* FILTERS */}
+        <div className="scrollbar-hide flex items-center gap-1 overflow-x-auto">
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+            className="min-w-0 rounded-md border px-2 py-1.5 text-xs"
+          >
+            {activityTypes.map((t) => (
+              <option key={t} value={t}>
+                {t === "all"
+                  ? "All Types"
+                  : t.charAt(0).toUpperCase() + t.slice(1)}
+              </option>
+            ))}
+          </select>
 
-        {/* YEAR */}
+          {/* YEAR */}
+          <select
+            value={year}
+            onChange={(e) => {
+              setYear(e.target.value);
+              setMonth(null);
+            }}
+            className="w-20 rounded-md border px-2 py-1.5 text-xs"
+          >
+            <option value="">Select Year</option>
 
-        <select
-          value={year}
-          onChange={(e) => {
-            setYear(e.target.value);
-            setMonth(null);
-          }}
-          className="w-20 rounded-md border px-2 py-1.5 text-xs"
-        >
-          <option value="">Select Year</option>
+            {years.map((y) => (
+              <option key={y} value={String(y)}>
+                {y}
+              </option>
+            ))}
+          </select>
 
-          {years.map((y) => (
-            <option key={y} value={String(y)}>
-              {y}
-            </option>
-          ))}
-        </select>
+          {/* MONTH */}
+          <select
+            value={month ?? ""}
+            onChange={(e) => {
+              const val = e.target.value;
+              setMonth(val === "" ? null : Number(val));
+            }}
+            className="w-24 rounded-md border px-2 py-1.5 text-xs"
+          >
+            <option value="">Select Month</option>
 
-        {/* MONTH */}
+            {months.map((m, i) => (
+              <option key={i} value={i}>
+                {m}
+              </option>
+            ))}
+          </select>
 
-        <select
-          value={month ?? ""}
-          onChange={(e) => {
-            const val = e.target.value;
-            setMonth(val === "" ? null : Number(val));
-          }}
-          className="w-24 rounded-md border px-2 py-1.5 text-xs"
-        >
-          <option value="">Select Month</option>
-
-          {months.map((m, i) => (
-            <option key={i} value={i}>
-              {m}
-            </option>
-          ))}
-        </select>
-
-        {/* CLEAR */}
-
-        <Button
-          size="sm"
-          variant="ghost"
-          className="h-8 px-2 text-xs"
-          onClick={() => {
-            setMonth(null);
-            setYear("");
-            setType("all");
-          }}
-        >
-          Clear
-        </Button>
-      </div>
-
-      {/* =====================================================
-          LEGEND
-      ===================================================== */}
-
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1 text-xs">
-        <div className="flex items-center gap-1">
-          <span className="h-3 w-3 rounded-sm bg-red-500"></span>
-
-          <span>Action</span>
+          {/* CLEAR */}
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 px-2 text-xs"
+            onClick={() => {
+              setMonth(null);
+              setYear("");
+              setType("all");
+            }}
+          >
+            Clear
+          </Button>
         </div>
 
-        <div className="flex items-center gap-1">
-          <span className="h-3 w-3 rounded-sm bg-yellow-500"></span>
+        {/* LEGEND */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1 text-xs lg:shrink-0">
+          <div className="flex items-center gap-1">
+            <span className="h-3 w-3 rounded-sm bg-red-500" />
+            <span>Action</span>
+          </div>
 
-          <span>Meeting</span>
-        </div>
+          <div className="flex items-center gap-1">
+            <span className="h-3 w-3 rounded-sm bg-yellow-500" />
+            <span>Meeting</span>
+          </div>
 
-        <div className="flex items-center gap-1">
-          <span className="h-3 w-3 rounded-sm bg-blue-500"></span>
+          <div className="flex items-center gap-1">
+            <span className="h-3 w-3 rounded-sm bg-blue-500" />
+            <span>Report</span>
+          </div>
 
-          <span>Report</span>
-        </div>
+          <div className="flex items-center gap-1">
+            <span className="h-3 w-3 rounded-sm bg-green-500" />
+            <span>Event</span>
+          </div>
 
-        <div className="flex items-center gap-1">
-          <span className="h-3 w-3 rounded-sm bg-green-500"></span>
-
-          <span>Event</span>
-        </div>
-
-        <div className="flex items-center gap-1">
-          <span className="h-3 w-3 rounded-sm bg-pink-500"></span>
-
-          <span>Update</span>
+          <div className="flex items-center gap-1">
+            <span className="h-3 w-3 rounded-sm bg-pink-500" />
+            <span>Update</span>
+          </div>
         </div>
       </div>
 

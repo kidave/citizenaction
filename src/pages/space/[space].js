@@ -36,8 +36,8 @@ export default function SpacePage() {
   if (isLoading) {
     return (
       <div className="mx-auto max-w-6xl space-y-4 p-4">
-        <PageHeaderSkeleton />
-        <MetaCardsSkeleton />
+        {" "}
+        <PageHeaderSkeleton /> <MetaCardsSkeleton />{" "}
       </div>
     );
   }
@@ -45,8 +45,8 @@ export default function SpacePage() {
   if (error || !space) {
     return (
       <div className="mx-auto max-w-6xl py-16 text-center">
+        {" "}
         <h2 className="text-xl font-semibold">Space not found</h2>
-
         <p className="mt-2 text-muted-foreground">
           The requested space does not exist.
         </p>
@@ -56,43 +56,47 @@ export default function SpacePage() {
 
   return (
     <div className="mx-auto max-w-6xl">
-      <header className="space-y-4 px-4 py-4">
-        {/* Mobile Back Button */}
-        <div className="lg:hidden">
+      {/* =====================================================
+FIXED SPACE HEADER
+===================================================== */}
+
+      <div className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
+        <div className="flex h-14 items-center gap-3 px-4 sm:h-16">
           <BackButton />
+
+          <h1 className="truncate font-semibold sm:text-lg">{space.name}</h1>
         </div>
-
-        <div className="flex items-start gap-2">
-          {/* Desktop Back Button */}
-          <div className="hidden lg:block">
-            <BackButton />
-          </div>
-
-          <Image
-            src={space.logo_url}
-            alt={space.name}
-            width={64}
-            height={64}
-            className="h-16 w-16 rounded-lg border bg-muted object-cover"
-          />
+      </div>
+      {/* =====================================================
+      SPACE INFORMATION
+  ===================================================== */}
+      <header className="p-4">
+        <div className="flex items-start gap-3 sm:gap-4">
+          {space.logo_url && (
+            <Image
+              src={space.logo_url}
+              alt={space.name}
+              width={64}
+              height={64}
+              className="h-14 w-14 shrink-0 rounded-lg border bg-muted object-cover sm:h-16 sm:w-16"
+            />
+          )}
 
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-2xl font-bold lg:text-3xl">
-              {space.name}
-            </h1>
-
             {space.description && (
-              <p className="mt-2 text-sm text-muted-foreground lg:text-base">
+              <p className="text-sm text-muted-foreground lg:text-base">
                 {space.description}
               </p>
             )}
           </div>
         </div>
       </header>
-
-      <div className="sticky top-0 z-20 pt-2">
+      {/* =====================================================
+      STICKY TABS
+  ===================================================== */}
+      <div className="sticky top-14 z-30 pt-2 sm:top-16">
         <Tabs value={activeTab}>
-          <TabsList className="mx-4 flex w-auto">
+          <TabsList className="mx-6 flex w-auto">
             <TabsTrigger
               value="overview"
               onClick={() => router.push(base)}
@@ -119,8 +123,9 @@ export default function SpacePage() {
           </TabsList>
         </Tabs>
       </div>
-
-      {/* CONTENT */}
+      {/* =====================================================
+      CONTENT
+  ===================================================== */}
       <div className="space-y-4 px-4 py-4">
         <Tabs value={activeTab}>
           <TabsContent value="overview">

@@ -33,76 +33,79 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-xl">
-      {/* Header */}
-      <header className="space-y-4 px-4 py-4">
-        <div className="flex items-start gap-2">
+    <div className="mx-auto max-w-6xl">
+      {/* =====================================================
+FIXED SETTINGS HEADER
+===================================================== */}
+
+      <div className="sticky top-0 z-40 border-b bg-background">
+        <div className="flex h-14 items-center gap-3 px-4 sm:h-16">
           <BackButton />
 
-          <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-bold lg:text-3xl">Settings</h1>
-          </div>
+          <h1 className="truncate font-semibold sm:text-lg">Settings</h1>
         </div>
-      </header>
+      </div>
+
+      {/* =====================================================
+      STICKY TABS
+  ===================================================== */}
 
       <Tabs value={activeTab} onValueChange={changeTab}>
-        {/* Navigation */}
-        <div className="sticky top-0 z-20 bg-background pt-2">
-          <div className="overflow-x-auto">
-            <TabsList className="mx-4 flex w-max min-w-[calc(100%-2rem)]">
-              <TabsTrigger value="account" className="flex-1">
-                Account
-              </TabsTrigger>
+        <div className="sticky top-14 z-30 pt-2 sm:top-16">
+          <TabsList className="mx-4 flex w-max min-w-[calc(100%-2rem)]">
+            <TabsTrigger value="account" className="flex-1">
+              Account
+            </TabsTrigger>
 
-              <TabsTrigger value="appearance" className="flex-1">
-                Appearance
-              </TabsTrigger>
+            <TabsTrigger value="appearance" className="flex-1">
+              Appearance
+            </TabsTrigger>
 
-              <TabsTrigger value="notifications" className="flex-1">
-                Notifications
-              </TabsTrigger>
+            <TabsTrigger value="notifications" className="flex-1">
+              Notifications
+            </TabsTrigger>
 
-              <TabsTrigger value="privacy" className="flex-1">
-                Privacy
-              </TabsTrigger>
+            <TabsTrigger value="privacy" className="flex-1">
+              Privacy
+            </TabsTrigger>
 
-              <TabsTrigger value="support" className="flex-1">
-                Support
-              </TabsTrigger>
+            <TabsTrigger value="support" className="flex-1">
+              Support
+            </TabsTrigger>
 
-              <TabsTrigger value="about" className="flex-1">
-                About
-              </TabsTrigger>
-            </TabsList>
-          </div>
+            <TabsTrigger value="about" className="flex-1">
+              About
+            </TabsTrigger>
+          </TabsList>
         </div>
 
-        {/* Content */}
-        <div className="px-4 py-6">
-          <TabsContent value="account">
-            <EditProfile />
-          </TabsContent>
+        {/* =====================================================
+        CONTENT
+    ===================================================== */}
 
-          <TabsContent value="appearance">
-            <Appearance />
-          </TabsContent>
+        <TabsContent value="account">
+          <EditProfile />
+        </TabsContent>
 
-          <TabsContent value="notifications">
-            <Notifications />
-          </TabsContent>
+        <TabsContent value="appearance">
+          <Appearance />
+        </TabsContent>
 
-          <TabsContent value="privacy">
-            <PrivacyPolicy />
-          </TabsContent>
+        <TabsContent value="notifications">
+          <Notifications />
+        </TabsContent>
 
-          <TabsContent value="support">
-            <Support />
-          </TabsContent>
+        <TabsContent value="privacy">
+          <PrivacyPolicy />
+        </TabsContent>
 
-          <TabsContent value="about">
-            <About />
-          </TabsContent>
-        </div>
+        <TabsContent value="support">
+          <Support />
+        </TabsContent>
+
+        <TabsContent value="about">
+          <About />
+        </TabsContent>
       </Tabs>
     </div>
   );

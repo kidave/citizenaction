@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function AutoImageCarousel({ attachments = [] }) {
-  const images = attachments
-    .map((a) => (typeof a === "string" ? a : a?.url))
-    .filter(Boolean);
+  const images = useMemo(
+    () =>
+      attachments
+        .filter((attachment) => attachment?.mime_type?.startsWith("image/"))
+        .map((attachment) => attachment.public_url)
+        .filter(Boolean),
+    [attachments],
+  );
 
   const [index, setIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -19,10 +24,15 @@ export default function AutoImageCarousel({ attachments = [] }) {
     intervalRef.current = setInterval(() => {
       setIndex((prev) => (prev + 1) % images.length);
     }, 4000);
+
     return () => clearInterval(intervalRef.current);
   }, [images.length, isHovered]);
 
-  if (images.length === 0) return null;
+  useEffect(() => {
+    setIndex(0);
+  }, [images]);
+
+  if (!images.length) return null;
 
   return (
     <div
@@ -32,11 +42,11 @@ export default function AutoImageCarousel({ attachments = [] }) {
     >
       <AnimatePresence mode="wait">
         <motion.div
-          key={index}
+          key={images[index]}
           initial={{ opacity: 0, scale: 1.05 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.8 }} // smooth
+          transition={{ duration: 0.8 }}
           className="absolute inset-0"
         >
           <Image
@@ -48,12 +58,11 @@ export default function AutoImageCarousel({ attachments = [] }) {
         </motion.div>
       </AnimatePresence>
 
-      {/* dots */}
       {images.length > 1 && (
         <div className="absolute bottom-2 right-2 flex gap-1">
-          {images.map((_, i) => (
+          {images.map((image, i) => (
             <div
-              key={i}
+              key={image}
               className={`h-1.5 w-1.5 rounded-full transition-all ${
                 i === index ? "scale-110 bg-white" : "bg-white/40"
               }`}

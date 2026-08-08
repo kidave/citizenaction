@@ -1,24 +1,18 @@
 "use client";
 
 import { useState } from "react";
-
 import { useRouter } from "next/navigation";
 
 import { motion } from "framer-motion";
 
 import { CalendarDays } from "lucide-react";
-
 import { format } from "date-fns";
 
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
-
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 import AutoImageCarousel from "@/components/attachment/AutoImageCarousel";
-
 import GovernanceAvatarGroups from "@/components/governance/GovernanceAvatarGroups";
-
-import { usePostGovernance } from "@/hooks/feed/usePostGovernance";
 
 const typeStyles = {
   action: "bg-gradient-to-br from-red-100 to-red-50",
@@ -132,7 +126,7 @@ export default function ActivityPreviewCard({ post }) {
 
         {/* GOVERNANCE */}
 
-        <PostGovernanceAuthorities postId={post.id} />
+        <GovernanceAvatarGroups authorities={post.governance ?? []} />
       </CardContent>
 
       {/* =====================================================
@@ -180,23 +174,9 @@ export default function ActivityPreviewCard({ post }) {
 
           {/* GOVERNANCE */}
 
-          <PostGovernanceAuthorities postId={post.id} />
+          <GovernanceAvatarGroups authorities={post.governance ?? []} />
         </CardContent>
       </motion.div>
     </Card>
   );
-}
-
-/* =====================================================
-   GOVERNANCE
-===================================================== */
-
-function PostGovernanceAuthorities({ postId }) {
-  const { data: authorities = [] } = usePostGovernance(postId);
-
-  if (!authorities.length) {
-    return null;
-  }
-
-  return <GovernanceAvatarGroups authorities={authorities} />;
 }
