@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 
-import { useFeed } from "@/hooks/feed/useFeed";
+import { useSpaceFeed } from "@/hooks/space/useSpaceFeed";
 
 import ActivityPreviewCard from "@/components/feed/activity/ActivityPreviewCard";
 
@@ -35,36 +35,28 @@ const months = [
 const activityTypes = ["all", "action", "meeting", "report", "event", "update"];
 
 export default function ActivityTab({ spaceId }) {
-  const { data: feed = [], isLoading } = useFeed();
+  const { data: feed = [], isLoading } = useSpaceFeed(spaceId);
 
   const currentYear = new Date().getFullYear();
 
   const [year, setYear] = useState("");
-
   const [month, setMonth] = useState(null);
-
   const [type, setType] = useState("all");
-
-  /* =====================================================
-     BASE FILTER
-  ===================================================== */
-
-  const filteredFeed = useMemo(() => {
-    return feed.filter((f) => {
-      return spaceId ? f.space_id === spaceId : true;
-    });
-  }, [feed, spaceId]);
 
   /* =====================================================
      DATE HELPER
   ===================================================== */
 
-  const getDate = (m) => {
-    if (m.start_at) return new Date(m.start_at);
+  const getDate = (post) => {
+    if (post.start_at) {
+      return new Date(post.start_at);
+    }
 
-    if (m.date) return new Date(m.date);
+    if (post.date) {
+      return new Date(post.date);
+    }
 
-    return new Date(m.created_at);
+    return new Date(post.created_at);
   };
 
   /* =====================================================
@@ -72,7 +64,7 @@ export default function ActivityTab({ spaceId }) {
   ===================================================== */
 
   const years = useMemo(() => {
-    const allYears = filteredFeed.map((m) => getDate(m).getFullYear());
+    const allYears = feed.map((post) => getDate(post).getFullYear());
 
     const uniqueYears = [...new Set(allYears)];
 
@@ -81,27 +73,27 @@ export default function ActivityTab({ spaceId }) {
     }
 
     return uniqueYears.sort((a, b) => b - a);
-  }, [filteredFeed, currentYear]);
+  }, [feed, currentYear]);
 
   /* =====================================================
      FINAL FILTERING
   ===================================================== */
 
   const finalFeed = useMemo(() => {
-    return filteredFeed
-      .filter((m) => {
-        const d = getDate(m);
+    return feed
+      .filter((post) => {
+        const date = getDate(post);
 
-        const matchYear = year ? d.getFullYear() === Number(year) : true;
+        const matchYear = year ? date.getFullYear() === Number(year) : true;
 
-        const matchMonth = month !== null ? d.getMonth() === month : true;
+        const matchMonth = month !== null ? date.getMonth() === month : true;
 
-        const matchType = type === "all" ? true : m.type === type;
+        const matchType = type === "all" ? true : post.type === type;
 
         return matchYear && matchMonth && matchType;
       })
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  }, [filteredFeed, year, month, type]);
+  }, [feed, year, month, type]);
 
   /* =====================================================
      LOADING
@@ -109,10 +101,8 @@ export default function ActivityTab({ spaceId }) {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        {Array.from({
-          length: 3,
-        }).map((_, i) => (
+      <div className="space-y-4">
+        {Array.from({ length: 3 }).map((_, i) => (
           <MeetingSkeleton key={i} />
         ))}
       </div>
@@ -124,13 +114,14 @@ export default function ActivityTab({ spaceId }) {
   ===================================================== */
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* =====================================================
           FILTERS
       ===================================================== */}
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         {/* FILTERS */}
+
         <div className="scrollbar-hide flex items-center gap-1 overflow-x-auto">
           <select
             value={type}
@@ -147,6 +138,7 @@ export default function ActivityTab({ spaceId }) {
           </select>
 
           {/* YEAR */}
+
           <select
             value={year}
             onChange={(e) => {
@@ -165,24 +157,27 @@ export default function ActivityTab({ spaceId }) {
           </select>
 
           {/* MONTH */}
+
           <select
             value={month ?? ""}
             onChange={(e) => {
-              const val = e.target.value;
-              setMonth(val === "" ? null : Number(val));
+              const value = e.target.value;
+
+              setMonth(value === "" ? null : Number(value));
             }}
             className="w-24 rounded-md border px-2 py-1.5 text-xs"
           >
             <option value="">Select Month</option>
 
-            {months.map((m, i) => (
-              <option key={i} value={i}>
-                {m}
+            {months.map((monthName, index) => (
+              <option key={index} value={index}>
+                {monthName}
               </option>
             ))}
           </select>
 
           {/* CLEAR */}
+
           <Button
             size="sm"
             variant="ghost"
@@ -198,6 +193,7 @@ export default function ActivityTab({ spaceId }) {
         </div>
 
         {/* LEGEND */}
+
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1 text-xs lg:shrink-0">
           <div className="flex items-center gap-1">
             <span className="h-3 w-3 rounded-sm bg-red-500" />

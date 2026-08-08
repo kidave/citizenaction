@@ -169,7 +169,7 @@ export default function SinglePostPage({ postId, initialPost }) {
           <div className="mx-auto flex h-14 max-w-4xl items-center px-3 sm:h-16 sm:px-4">
             <BackButton />
 
-            <span className="ml-3 font-medium">{post.title}</span>
+            <span className="min-w-0 flex-1 truncate">{post.title}</span>
           </div>
         </div>
 

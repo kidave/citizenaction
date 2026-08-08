@@ -33,11 +33,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl">
-      {/* =====================================================
-FIXED SETTINGS HEADER
-===================================================== */}
-
+    <div className="mx-auto w-full">
       <div className="sticky top-0 z-40 border-b bg-background">
         <div className="flex h-14 items-center gap-3 px-4 sm:h-16">
           <BackButton />
@@ -46,13 +42,9 @@ FIXED SETTINGS HEADER
         </div>
       </div>
 
-      {/* =====================================================
-      STICKY TABS
-  ===================================================== */}
-
       <Tabs value={activeTab} onValueChange={changeTab}>
-        <div className="sticky top-14 z-30 pt-2 sm:top-16">
-          <TabsList className="mx-4 flex w-max min-w-[calc(100%-2rem)]">
+        <div className="sticky top-14 z-30 p-2 sm:top-16">
+          <TabsList className="mx-6 flex w-max overflow-x-auto">
             <TabsTrigger value="account" className="flex-1">
               Account
             </TabsTrigger>
@@ -79,33 +71,31 @@ FIXED SETTINGS HEADER
           </TabsList>
         </div>
 
-        {/* =====================================================
-        CONTENT
-    ===================================================== */}
+        <div className="mx-4 space-y-4 p-4">
+          <TabsContent value="account">
+            <EditProfile />
+          </TabsContent>
 
-        <TabsContent value="account">
-          <EditProfile />
-        </TabsContent>
+          <TabsContent value="appearance">
+            <Appearance />
+          </TabsContent>
 
-        <TabsContent value="appearance">
-          <Appearance />
-        </TabsContent>
+          <TabsContent value="notifications">
+            <Notifications />
+          </TabsContent>
 
-        <TabsContent value="notifications">
-          <Notifications />
-        </TabsContent>
+          <TabsContent value="privacy">
+            <PrivacyPolicy />
+          </TabsContent>
 
-        <TabsContent value="privacy">
-          <PrivacyPolicy />
-        </TabsContent>
+          <TabsContent value="support">
+            <Support />
+          </TabsContent>
 
-        <TabsContent value="support">
-          <Support />
-        </TabsContent>
-
-        <TabsContent value="about">
-          <About />
-        </TabsContent>
+          <TabsContent value="about">
+            <About />
+          </TabsContent>
+        </div>
       </Tabs>
     </div>
   );

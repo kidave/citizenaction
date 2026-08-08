@@ -9,7 +9,7 @@ export default function MetricCard({
   className = "",
 }) {
   return (
-    <Card className={`rounded-3xl bg-muted ${className}`}>
+    <Card className={`rounded-3xl ${className}`}>
       <CardContent className="space-y-4 p-5">
         {/* Label */}
         <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -22,7 +22,7 @@ export default function MetricCard({
             {value}
           </span>
 
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border bg-background">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border bg-muted">
             <Icon className="h-5 w-5" />
           </div>
         </div>

@@ -33,7 +33,6 @@ export default function CreatePostTrigger({ onCreate }) {
   return (
     <>
       <motion.div
-        className="sticky top-0 z-30"
         transition={{
           duration: 0.2,
         }}

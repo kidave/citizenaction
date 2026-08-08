@@ -1,29 +1,27 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
+
 import {
-  Users,
   Activity,
   CalendarDays,
-  Megaphone,
+  ExternalLink,
   Globe,
   Mail,
   Phone,
   Presentation,
-  MapPinned,
-  ExternalLink,
+  Users,
 } from "lucide-react";
-import { useFeed } from "@/hooks/feed/useFeed";
+
+import { useSpaceFeed } from "@/hooks/space/useSpaceFeed";
 import { useSpaceMembers } from "@/hooks/space/useSpaceMembers";
+
 import ActivityPreviewCard from "@/components/feed/activity/ActivityPreviewCard";
 import MetricCard from "@/components/ui/metric-card";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
+
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default function OverviewTab({ space }) {
@@ -31,9 +29,7 @@ export default function OverviewTab({ space }) {
     spaceId: space.id,
   });
 
-  const { data: feed = [] } = useFeed();
-
-  const spaceFeed = feed.filter((f) => f.space_id === space.id);
+  const { data: spaceFeed = [] } = useSpaceFeed(space.id);
 
   const meetings = spaceFeed.filter((f) => f.type === "meeting");
 
@@ -47,6 +43,36 @@ export default function OverviewTab({ space }) {
 
   return (
     <div className="space-y-6">
+      {/* =====================================================
+          SPACE INFORMATION
+      ===================================================== */}
+
+      <header>
+        <div className="flex items-start gap-3 sm:gap-4">
+          {space.logo_url && (
+            <Image
+              src={space.logo_url}
+              alt={space.name}
+              width={64}
+              height={64}
+              className="h-14 w-14 shrink-0 rounded-lg border bg-muted object-cover sm:h-16 sm:w-16"
+            />
+          )}
+
+          <div className="min-w-0 flex-1">
+            {space.description && (
+              <p className="text-sm leading-relaxed text-muted-foreground lg:text-base">
+                {space.description}
+              </p>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* =====================================================
+          METRICS
+      ===================================================== */}
+
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <MetricCard icon={Users} label="Members" value={members.length} />
 
@@ -60,6 +86,11 @@ export default function OverviewTab({ space }) {
 
         <MetricCard icon={CalendarDays} label="Events" value={events.length} />
       </section>
+
+      {/* =====================================================
+          LATEST ACTIVITY
+      ===================================================== */}
+
       <div className="space-y-4">
         <Link
           href={`/space/${space.slug}?tab=activity`}
@@ -72,6 +103,11 @@ export default function OverviewTab({ space }) {
           </div>
         </Link>
       </div>
+
+      {/* =====================================================
+          OVERVIEW CARDS
+      ===================================================== */}
+
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {recentFeed.slice(0, 1).map((post) => (
           <ActivityPreviewCard key={post.id} post={post} />
@@ -82,6 +118,8 @@ export default function OverviewTab({ space }) {
             No recent activity.
           </div>
         )}
+
+        {/* TEAM */}
 
         <Card className="flex h-full flex-col overflow-hidden rounded-3xl bg-muted">
           <CardHeader>
@@ -117,6 +155,8 @@ export default function OverviewTab({ space }) {
             ))}
           </CardContent>
         </Card>
+
+        {/* CONTACT */}
 
         <Card className="flex h-full flex-col overflow-hidden rounded-3xl bg-muted">
           <CardHeader>

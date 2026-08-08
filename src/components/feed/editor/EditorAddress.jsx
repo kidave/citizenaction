@@ -147,7 +147,7 @@ export default function EditorAddress({ editor }) {
                   TOP SEARCH
               ===================================================== */}
 
-              <div className="pointer-events-auto w-full pt-14 sm:ml-12 sm:w-[380px] sm:pt-0">
+              <div className="pointer-events-auto w-full sm:ml-12 sm:w-[380px]">
                 <div className="rounded-xl border bg-background p-2 shadow-lg">
                   <LocationSearchInput
                     value={editor.address || ""}
@@ -179,7 +179,7 @@ export default function EditorAddress({ editor }) {
                     </div>
                   </div>
 
-                  <div className="flex flex-col-reverse justify-between gap-2 border-t p-3 sm:flex-row">
+                  <div className="flex items-center justify-between gap-2 border-t p-3">
                     <Button
                       variant="outline"
                       onClick={() => {

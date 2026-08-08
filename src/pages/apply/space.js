@@ -147,20 +147,18 @@ export default function ApplySpace() {
   }
 
   return (
-    <div className="mx-auto max-w-xl">
-      <header className="space-y-4 px-4 py-4">
-        <div className="flex items-start gap-2">
+    <div className="mx-auto w-full">
+      <div className="sticky top-0 z-40 border-b bg-background">
+        <div className="flex h-14 items-center gap-3 px-4 sm:h-16">
           <BackButton />
 
-          <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-bold lg:text-3xl">
-              Give your project a home
-            </h1>
-          </div>
+          <h1 className="truncate font-semibold sm:text-lg">
+            Give your project a home
+          </h1>
         </div>
-      </header>
+      </div>
 
-      <div className="mb-4 space-y-4 px-4">
+      <div className="mx-4 space-y-4 p-4">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid gap-5 md:grid-cols-2">
