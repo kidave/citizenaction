@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-
+import PostCardSkeleton from "@/components/skeletons/PostCardSkeleton";
 import { useAuth } from "@/context/AuthContext";
 
 import { Card } from "@/components/ui/card";
@@ -23,6 +23,7 @@ export default function PostCard({
   forceExpanded = false,
   borderless = false,
   edgeToEdgeMobile = false,
+  loading = false,
 }) {
   const router = useRouter();
 
@@ -40,6 +41,15 @@ export default function PostCard({
 
     return () => clearInterval(interval);
   }, []);
+
+  if (loading) {
+    return (
+      <PostCardSkeleton
+        borderless={borderless}
+        edgeToEdgeMobile={edgeToEdgeMobile}
+      />
+    );
+  }
 
   if (!post) return null;
 

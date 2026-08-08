@@ -183,7 +183,7 @@ export default function AboutPage() {
             </h2>
 
             <Button size="lg" className="mt-10 rounded-full text-base" asChild>
-              <Link href="/action">
+              <Link href="/">
                 <SendIcon className="mr-2 h-4 w-4" />
                 Create Your First Post
               </Link>

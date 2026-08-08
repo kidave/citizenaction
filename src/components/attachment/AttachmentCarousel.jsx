@@ -113,16 +113,14 @@ export default function AttachmentCarousel({
         )}
       </div>
 
-      {/* Desktop */}
-
-      <div className="relative hidden md:block md:px-8">
+      <div className="relative hidden md:block">
         <Carousel
           opts={{
             align: "start",
             containScroll: "trimSnaps",
             dragFree: false,
           }}
-          className="w-full"
+          className="w-full px-8"
         >
           <CarouselContent className="py-2">
             {attachments.map((attachment, index) => (
@@ -145,8 +143,8 @@ export default function AttachmentCarousel({
             ))}
           </CarouselContent>
 
-          <CarouselPrevious className="-left-8 hidden lg:flex" />
-          <CarouselNext className="-right-8 hidden lg:flex" />
+          <CarouselPrevious className="left-1 hidden lg:flex" />
+          <CarouselNext className="right-1 hidden lg:flex" />
         </Carousel>
       </div>
     </>

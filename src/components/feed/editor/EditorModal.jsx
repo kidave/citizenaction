@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-
+import EditorModalSkeleton from "@/components/skeletons/EditorModalSkeleton";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { useSpaces } from "@/hooks/space/useSpaces";
 
@@ -22,9 +22,9 @@ export default function EditorModal({
   item = null,
   post = null,
 }) {
-  const { data: profile } = useMyProfile();
-
-  const { data: spaces = [] } = useSpaces();
+  const { data: profile, isLoading: profileLoading } = useMyProfile();
+  const { data: spaces = [], isLoading: spacesLoading } = useSpaces();
+  const loading = profileLoading || spacesLoading;
 
   const postEditor = usePostEditor(mode === "post" ? item : null);
 
@@ -38,49 +38,55 @@ export default function EditorModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="flex h-full w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-2xl sm:rounded-xl">
-        {/* Header */}
-        <EditorHeader
-          mode={mode}
-          profile={profile}
-          editor={editor}
-          spaces={spaces}
-        />
+      {loading ? (
+        <DialogContent className="flex h-full w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-2xl sm:rounded-xl">
+          <EditorModalSkeleton />
+        </DialogContent>
+      ) : (
+        <DialogContent className="flex h-full w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-2xl sm:rounded-xl">
+          {/* Header */}
+          <EditorHeader
+            mode={mode}
+            profile={profile}
+            editor={editor}
+            spaces={spaces}
+          />
 
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4">
-            {mode === "post" && (
-              <div className="mb-3 shrink-0">
-                <EditorType type={editor.type} setType={editor.setType} />
-              </div>
-            )}
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4">
+              {mode === "post" && (
+                <div className="mb-3 shrink-0">
+                  <EditorType type={editor.type} setType={editor.setType} />
+                </div>
+              )}
 
-            <EditorContent
-              mode={mode}
-              title={editor.title}
-              setTitle={editor.setTitle}
-              content={editor.content}
-              setContent={editor.setContent}
-              onFocus={() => setAttachmentsOpen(false)}
+              <EditorContent
+                mode={mode}
+                title={editor.title}
+                setTitle={editor.setTitle}
+                content={editor.content}
+                setContent={editor.setContent}
+                onFocus={() => setAttachmentsOpen(false)}
+              />
+            </div>
+
+            <EditorAttachments
+              attachments={editor.attachments}
+              setAttachments={editor.setAttachments}
+              open={attachmentsOpen}
+              setOpen={setAttachmentsOpen}
             />
           </div>
 
-          <EditorAttachments
-            attachments={editor.attachments}
-            setAttachments={editor.setAttachments}
-            open={attachmentsOpen}
-            setOpen={setAttachmentsOpen}
+          {/* Footer */}
+          <EditorFooter
+            mode={mode}
+            item={item}
+            editor={editor}
+            onClose={onClose}
           />
-        </div>
-
-        {/* Footer */}
-        <EditorFooter
-          mode={mode}
-          item={item}
-          editor={editor}
-          onClose={onClose}
-        />
-      </DialogContent>
+        </DialogContent>
+      )}
     </Dialog>
   );
 }

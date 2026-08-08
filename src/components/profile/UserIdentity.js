@@ -29,7 +29,7 @@ export function UserIdentity({
 
   return (
     <Link href={`/user/${username}`} className="group block">
-      <Row className="items-center gap-2">
+      <div className="flex items-center gap-2">
         <Avatar className={avatarSize}>
           <AvatarImage src={avatar || undefined} />
 
@@ -47,7 +47,7 @@ export function UserIdentity({
             )}
           </div>
         )}
-      </Row>
+      </div>
     </Link>
   );
 }

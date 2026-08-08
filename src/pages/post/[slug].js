@@ -8,7 +8,6 @@ import PostCard from "@/components/feed/post/PostCard";
 import EditorModal from "@/components/feed/editor/EditorModal";
 import { useDeletePost } from "@/hooks/post/useDeletePost";
 import BackButton from "@/components/ui/back-button";
-import PageSkeleton from "@/components/skeletons/PostSkeleton";
 
 export async function getServerSideProps({ params }) {
   const supabase = createServerSupabase();
@@ -109,10 +108,12 @@ export default function SinglePostPage({ postId, initialPost }) {
 
   const { data: post, isLoading } = usePost(postId, initialPost);
 
-  console.log(post);
-
   if (isLoading || !post) {
-    return <PageSkeleton />;
+    return (
+      <div className="mx-auto w-full max-w-4xl">
+        <PostCard loading borderless forceExpanded />
+      </div>
+    );
   }
 
   const title = post.title || "Citizen Action";

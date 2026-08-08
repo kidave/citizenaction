@@ -1,32 +1,22 @@
 "use client";
 
 import { useState } from "react";
-
-import { useRouter } from "next/router";
-
 import Image from "next/image";
-
 import Link from "next/link";
 
 import { Sparkles, Plus } from "lucide-react";
-
 import { motion } from "framer-motion";
 
 import { useAuth } from "@/context/AuthContext";
-
 import { useMyProfile } from "@/hooks/user/useMyProfile";
 
 import { Card } from "@/components/ui/card";
-
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 import { LoginModal } from "@/components/auth/LoginModal";
 
-export default function CreatePostTrigger() {
-  const router = useRouter();
-
+export default function CreatePostTrigger({ onCreate }) {
   const { user } = useAuth();
-
   const { data: profile } = useMyProfile();
 
   const [showLogin, setShowLogin] = useState(false);
@@ -34,96 +24,81 @@ export default function CreatePostTrigger() {
   const handleClick = () => {
     if (!user) {
       setShowLogin(true);
-    } else {
-      router.push("/action");
+      return;
     }
+
+    onCreate?.();
   };
 
   return (
     <>
       <motion.div
+        className="sticky top-0 z-30"
         transition={{
           duration: 0.2,
         }}
       >
-        <Card className="relative hidden overflow-hidden rounded-[28px] md:block">
-          {/* =====================================================
-              CONTENT
-          ===================================================== */}
+        <div className="mx-auto flex w-full max-w-4xl items-center gap-3 px-4 py-2 sm:px-6">
+          {/* AVATAR */}
 
-          <div className="relative z-10 p-4">
-            <div className="flex items-center gap-4">
-              {/* =====================================================
-                  AVATAR
-              ===================================================== */}
+          {user && profile ? (
+            <Link href={`/user/${profile.username}`}>
+              <Avatar className="h-10 w-10 cursor-pointer border-2">
+                <AvatarImage src={profile.avatar_url || undefined} />
 
-              {user && profile ? (
-                <Link href={`/user/${profile.username}`}>
-                  <Avatar className="h-12 w-12 cursor-pointer border-2">
-                    <AvatarImage src={profile.avatar_url || undefined} />
+                <AvatarFallback>
+                  {profile.name?.charAt(0) || "U"}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
+          ) : (
+            <Avatar
+              onClick={() => setShowLogin(true)}
+              className="h-10 w-10 cursor-pointer border-2"
+            >
+              <AvatarFallback>
+                <div className="relative h-6 w-6">
+                  <Image
+                    src="/logo.png"
+                    alt="Citizen Action"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              </AvatarFallback>
+            </Avatar>
+          )}
 
-                    <AvatarFallback>
-                      {profile.name?.charAt(0) || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                </Link>
-              ) : (
-                <Avatar
-                  onClick={() => setShowLogin(true)}
-                  className="h-12 w-12 cursor-pointer border-2"
-                >
-                  <AvatarFallback>
-                    <div className="relative h-7 w-7">
-                      <Image
-                        src="/logo.png"
-                        alt="Citizen Action"
-                        fill
-                        className="object-contain"
-                      />
-                    </div>
-                  </AvatarFallback>
-                </Avatar>
-              )}
+          {/* CREATE TRIGGER */}
 
-              {/* =====================================================
-                  TRIGGER
-              ===================================================== */}
+          <button
+            type="button"
+            onClick={handleClick}
+            className="flex min-w-0 flex-1 text-left"
+          >
+            <Card className="group flex w-full items-center justify-between gap-3 rounded-2xl bg-muted px-4 py-3 transition-colors">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 text-sm">
+                  <Sparkles className="h-4 w-4 shrink-0" />
 
-              <div onClick={handleClick} className="flex-1 cursor-pointer">
-                <Card className="group relative overflow-hidden rounded-2xl bg-muted px-5 py-4 transition-all duration-300">
-                  {/* INNER BG */}
+                  <span className="truncate">
+                    {user
+                      ? "Document your action"
+                      : "Login to document your action"}
+                  </span>
+                </div>
 
-                  <div className="absolute inset-0 transition group-hover:opacity-100" />
-
-                  <div className="relative z-10 flex items-center justify-between gap-4">
-                    {/* TEXT */}
-
-                    <div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Sparkles className="h-4 w-4" />
-
-                        {user
-                          ? "Document your action"
-                          : "Login to document your action"}
-                      </div>
-
-                      <div className="mt-1 text-xs">
-                        Share meetings, reports, updates, events and civic
-                        progress
-                      </div>
-                    </div>
-
-                    {/* BUTTON */}
-
-                    <Card className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background">
-                      <Plus className="h-4 w-4" />
-                    </Card>
-                  </div>
-                </Card>
+                <div className="mt-1 truncate text-xs text-muted-foreground">
+                  Document meetings, reports, updates and events
+                </div>
               </div>
-            </div>
-          </div>
-        </Card>
+
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 bg-background">
+                <Plus className="h-4 w-4" />
+              </div>
+            </Card>
+          </button>
+        </div>
       </motion.div>
 
       <LoginModal

@@ -31,7 +31,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSpaces } from "@/hooks/space/useSpaces";
 
-export function Navigation() {
+export function Navigation({ onCreatePost }) {
   const router = useRouter();
 
   const { data: spaces = [], isLoading } = useSpaces({
@@ -40,16 +40,6 @@ export function Navigation() {
 
   const { user } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
-
-  function handleCreatePost() {
-    if (!user) {
-      setShowLogin(true);
-      return;
-    }
-
-    localStorage.setItem("returnTo", router.asPath);
-    router.push("/action");
-  }
 
   return (
     <SidebarGroup>
@@ -66,20 +56,6 @@ export function Navigation() {
             <span>Search</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
-
-        <SidebarMenuItem>
-          <SidebarMenuButton tooltip="Create Post" onClick={handleCreatePost}>
-            <CirclePlus />
-            <span>Create Post</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-
-        <LoginModal
-          open={showLogin}
-          onOpenChange={setShowLogin}
-          message="Sign in to create a post"
-          redirectPath="/action"
-        />
 
         <SidebarMenuItem>
           <SidebarMenuButton

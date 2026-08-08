@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { AnimatePresence, motion } from "framer-motion";
-import { Home, CirclePlus, Menu, X, User } from "lucide-react";
+import { Home, Settings, Menu, X, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -26,10 +26,10 @@ export default function FloatingMenu() {
       },
     },
     {
-      icon: CirclePlus,
-      label: "Create",
+      icon: Settings,
+      label: "Settings",
       onClick: () => {
-        user ? router.push("/action") : router.push("/auth/login");
+        router.push("/settings");
         setOpen(false);
       },
     },
@@ -61,7 +61,12 @@ export default function FloatingMenu() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 10 }}
               >
-                <Button variant="outline" size="icon" onClick={onClick}>
+                <Button
+                  className="h-12 w-12"
+                  variant="outline"
+                  size="icon"
+                  onClick={onClick}
+                >
                   <Icon className="h-8 w-8" />
                 </Button>
               </motion.div>

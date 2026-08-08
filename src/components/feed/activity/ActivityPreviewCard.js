@@ -40,7 +40,7 @@ export default function ActivityPreviewCard({ post }) {
   const handleNavigate = () => {
     sessionStorage.setItem("feed-scroll", window.scrollY.toString());
 
-    router.push(`/post/${post.id}`);
+    router.push(`/post/${post.slug}`);
   };
 
   const startDate = post.start_at || post.date || post.created_at;

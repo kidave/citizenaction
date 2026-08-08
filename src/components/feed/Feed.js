@@ -4,8 +4,8 @@ import { useState } from "react";
 
 import { useFeed } from "@/hooks/feed/useFeed";
 import { useDeletePost } from "@/hooks/post/useDeletePost";
-
-import PostSkeleton from "@/components/skeletons/PostSkeleton";
+import CreatePostTriggerSkeleton from "@/components/skeletons/CreatePostTriggerSkeleton";
+import PostCardSkeleton from "@/components/skeletons/PostCardSkeleton";
 import PostCard from "@/components/feed/post/PostCard";
 import EditorModal from "@/components/feed/editor/EditorModal";
 import CreatePostTrigger from "@/components/feed/CreatePostTrigger";
@@ -16,19 +16,22 @@ export default function Feed() {
   const { deletePost } = useDeletePost();
 
   const [editingPost, setEditingPost] = useState(null);
+  const [createPostOpen, setCreatePostOpen] = useState(false);
 
   return (
     <>
       <div className="mx-auto flex w-full max-w-[720px] flex-col gap-0 py-0 sm:gap-4 sm:p-4">
         {isLoading ? (
           <>
-            <PostSkeleton />
-            <PostSkeleton />
-            <PostSkeleton />
+            <CreatePostTriggerSkeleton />
+            <PostCardSkeleton edgeToEdgeMobile />
+            <PostCardSkeleton edgeToEdgeMobile />
+            <PostCardSkeleton edgeToEdgeMobile />
+            <PostCardSkeleton edgeToEdgeMobile />
           </>
         ) : (
           <>
-            <CreatePostTrigger />
+            <CreatePostTrigger onCreate={() => setCreatePostOpen(true)} />
 
             {data.length === 0 ? (
               <Card className="p-8 text-center">
@@ -49,6 +52,12 @@ export default function Feed() {
           </>
         )}
       </div>
+
+      <EditorModal
+        mode="post"
+        isOpen={createPostOpen}
+        onClose={() => setCreatePostOpen(false)}
+      />
 
       <EditorModal
         mode="post"
