@@ -8,18 +8,23 @@ import {
 
 export default function ClassificationBreadcrumb({ system, dimension }) {
   return (
-    <Breadcrumb>
-      <BreadcrumbList>
-        <BreadcrumbItem>
-          <BreadcrumbLink href="/standards">Standards</BreadcrumbLink>
+    <Breadcrumb className="min-w-0">
+      <BreadcrumbList className="flex-nowrap">
+        <BreadcrumbItem className="shrink-0">
+          <BreadcrumbLink href="/standards">
+            <span className="sm:inline">Standards</span>
+            <span className="sm:hidden">Std.</span>
+          </BreadcrumbLink>
         </BreadcrumbItem>
 
         {system && (
           <>
             <BreadcrumbSeparator />
 
-            <BreadcrumbItem>
-              <BreadcrumbLink>{system.name}</BreadcrumbLink>
+            <BreadcrumbItem className="min-w-0">
+              <BreadcrumbLink className="max-w-[120px] truncate sm:max-w-none">
+                {system.name}
+              </BreadcrumbLink>
             </BreadcrumbItem>
           </>
         )}
@@ -28,8 +33,10 @@ export default function ClassificationBreadcrumb({ system, dimension }) {
           <>
             <BreadcrumbSeparator />
 
-            <BreadcrumbItem>
-              <BreadcrumbLink>{dimension.name}</BreadcrumbLink>
+            <BreadcrumbItem className="min-w-0">
+              <BreadcrumbLink className="max-w-[120px] truncate sm:max-w-none">
+                {dimension.name}
+              </BreadcrumbLink>
             </BreadcrumbItem>
           </>
         )}

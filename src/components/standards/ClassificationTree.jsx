@@ -1,8 +1,10 @@
+// components/standards/ClassificationTree.jsx
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import TreeNode from "./TreeNode";
 
-export default function ClassificationTree({ tree = [], selected, onSelect }) {
+export default function ClassificationTree({ tree = [], selected, onInspect }) {
   return (
     <ScrollArea className="h-full">
       <div className="p-3">
@@ -11,7 +13,7 @@ export default function ClassificationTree({ tree = [], selected, onSelect }) {
             key={node.id}
             node={node}
             selected={selected}
-            onSelect={onSelect}
+            onInspect={onInspect}
           />
         ))}
       </div>
