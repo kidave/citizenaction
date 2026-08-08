@@ -21,7 +21,7 @@ export default function Appearance() {
         </p>
       </header>
 
-      <RadioGroup value={theme} onValueChange={setTheme} className="space-y-5">
+      <RadioGroup value={theme} onValueChange={setTheme} className="space-y-4">
         <div className="flex items-center gap-3">
           <RadioGroupItem value="light" id="light" />
           <Label htmlFor="light">Light</Label>

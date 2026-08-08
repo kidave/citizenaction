@@ -2,7 +2,11 @@
 
 import { useMemo, useState } from "react";
 
-import EmblaCarousel from "@/components/attachment/EmblaCarousel";
+import Lightbox from "yet-another-react-lightbox";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
+
+import "yet-another-react-lightbox/styles.css";
+
 import PDFViewer from "@/components/attachment/PDFViewer";
 import AttachmentCarousel from "@/components/attachment/AttachmentCarousel";
 
@@ -11,12 +15,24 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 export default function PostAttachments({ attachments = [] }) {
   const [openImages, setOpenImages] = useState(false);
   const [openPdf, setOpenPdf] = useState(false);
+
   const [selectedPdf, setSelectedPdf] = useState(null);
   const [startIndex, setStartIndex] = useState(0);
 
   const images = useMemo(() => {
-    return attachments.filter((a) => a?.mime_type?.startsWith("image/"));
+    return attachments.filter((attachment) =>
+      attachment?.mime_type?.startsWith("image/"),
+    );
   }, [attachments]);
+
+  const imageSlides = useMemo(() => {
+    return images.map((image) => ({
+      src: image.public_url,
+      alt: image.file_name || "",
+      width: image.width || undefined,
+      height: image.height || undefined,
+    }));
+  }, [images]);
 
   const handleClick = (attachment) => {
     if (!attachment) return;
@@ -29,11 +45,12 @@ export default function PostAttachments({ attachments = [] }) {
 
     if (isImage) {
       const imageIndex = images.findIndex(
-        (img) => img.public_url === attachment.public_url,
+        (image) => image.public_url === attachment.public_url,
       );
 
       setStartIndex(imageIndex >= 0 ? imageIndex : 0);
       setOpenImages(true);
+
       return;
     }
 
@@ -45,6 +62,10 @@ export default function PostAttachments({ attachments = [] }) {
 
   return (
     <>
+      {/* =====================================================
+          ATTACHMENT PREVIEW
+      ===================================================== */}
+
       <AttachmentCarousel
         attachments={attachments}
         showMetadata={false}
@@ -53,11 +74,28 @@ export default function PostAttachments({ attachments = [] }) {
         }}
       />
 
-      <Dialog open={openImages} onOpenChange={setOpenImages}>
-        <DialogContent className="max-w-6xl overflow-hidden border-0 bg-black p-0 [&>button]:right-4 [&>button]:top-4 [&>button]:rounded-full [&>button]:bg-black/60 [&>button]:p-1 [&>button]:text-white [&>button]:opacity-100 [&>button]:backdrop-blur-sm [&>button]:hover:bg-black/80">
-          <EmblaCarousel images={images} startIndex={startIndex} />
-        </DialogContent>
-      </Dialog>
+      {/* =====================================================
+          IMAGE LIGHTBOX
+      ===================================================== */}
+
+      <Lightbox
+        open={openImages}
+        close={() => setOpenImages(false)}
+        index={startIndex}
+        slides={imageSlides}
+        plugins={[Zoom]}
+        carousel={{
+          finite: true,
+        }}
+        render={{
+          buttonPrev: imageSlides.length > 1 ? undefined : () => null,
+          buttonNext: imageSlides.length > 1 ? undefined : () => null,
+        }}
+      />
+
+      {/* =====================================================
+          PDF VIEWER
+      ===================================================== */}
 
       <Dialog open={openPdf} onOpenChange={setOpenPdf}>
         <DialogContent className="h-[90vh] max-w-5xl overflow-hidden p-0">
