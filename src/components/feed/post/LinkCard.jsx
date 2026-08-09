@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { ExternalLink, Globe, MapPin, Video } from "lucide-react";
 
 function getProviderLabel(link) {
@@ -43,18 +44,17 @@ function getProviderIcon(type) {
       return Globe;
   }
 }
+
 export default function LinkCard({ link }) {
   if (!link?.url) {
     return null;
   }
 
-  console.log("LINK CARD DATA:", link);
-
   const ProviderIcon = getProviderIcon(link.type);
 
   const provider = getProviderLabel(link);
 
-  const title = link.title || link.hostname || link.url;
+  const title = link.title || link.hostname || link.provider_name || link.url;
 
   const description = link.description || null;
 
@@ -68,17 +68,25 @@ export default function LinkCard({ link }) {
       }}
       className="group block overflow-hidden rounded-2xl border bg-background transition-colors hover:bg-muted/50"
     >
+      {/* Thumbnail */}
+
       {link.image_url && (
-        <div className="w-32 shrink-0 overflow-hidden bg-muted sm:w-40">
-          <img
+        <div className="relative aspect-video w-full overflow-hidden bg-muted">
+          <Image
             src={link.image_url}
-            alt=""
-            className="h-full min-h-28 w-full object-cover"
+            alt={link.title || provider}
+            fill
+            sizes="(max-width: 640px) 100vw, 50vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
           />
         </div>
       )}
 
-      <div className="min-w-0 flex-1 p-4">
+      {/* Content */}
+
+      <div className="min-w-0 p-4">
+        {/* Provider */}
+
         <div className="mb-2 flex items-center gap-2">
           <ProviderIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
 
@@ -89,13 +97,19 @@ export default function LinkCard({ link }) {
           <ExternalLink className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
         </div>
 
+        {/* Title */}
+
         <div className="line-clamp-2 text-sm font-semibold">{title}</div>
+
+        {/* Description */}
 
         {description && (
           <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">
             {description}
           </div>
         )}
+
+        {/* Hostname */}
 
         {link.hostname && (
           <div className="mt-2 truncate text-xs text-muted-foreground">

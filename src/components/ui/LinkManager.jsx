@@ -69,16 +69,11 @@ export default function LinkManager({ value = [], onChange }) {
     setResolving(true);
 
     try {
-      console.log("Resolving link:", url);
-
       const { data, error } = await supabase.functions.invoke("resolve-link", {
         body: {
           url,
         },
       });
-
-      console.log("resolve-link response:", data);
-      console.log("resolve-link error:", error);
 
       if (error) {
         throw error;
@@ -90,8 +85,6 @@ export default function LinkManager({ value = [], onChange }) {
 
       return data.link;
     } catch (error) {
-      console.error("Link resolution failed:", error);
-
       // --------------------------------------------------------
       // Fallback
       //
