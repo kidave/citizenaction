@@ -45,6 +45,10 @@ function getProviderIcon(type) {
   }
 }
 
+function shouldShowHostname(link) {
+  return link.type === "website" && !!link.hostname;
+}
+
 export default function LinkCard({ link }) {
   if (!link?.url) {
     return null;
@@ -54,7 +58,7 @@ export default function LinkCard({ link }) {
 
   const provider = getProviderLabel(link);
 
-  const title = link.title || link.hostname || link.provider_name || link.url;
+  const title = link.title || link.provider_name || link.hostname || link.url;
 
   const description = link.description || null;
 
@@ -71,12 +75,12 @@ export default function LinkCard({ link }) {
       {/* Thumbnail */}
 
       {link.image_url && (
-        <div className="relative aspect-video w-full overflow-hidden bg-muted">
+        <div className="relative aspect-[16/9] w-full overflow-hidden bg-muted">
           <Image
             src={link.image_url}
             alt={link.title || provider}
             fill
-            sizes="(max-width: 640px) 100vw, 50vw"
+            sizes="(max-width: 640px) 100vw, 33vw"
             className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
           />
         </div>
@@ -84,35 +88,35 @@ export default function LinkCard({ link }) {
 
       {/* Content */}
 
-      <div className="min-w-0 p-4">
+      <div className="min-w-0 px-3 py-2">
         {/* Provider */}
 
-        <div className="mb-2 flex items-center gap-2">
-          <ProviderIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <div className="mb-1.5 flex items-center gap-1.5">
+          <ProviderIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
 
           <span className="truncate text-xs font-medium text-muted-foreground">
             {provider}
           </span>
 
-          <ExternalLink className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+          <ExternalLink className="ml-auto h-3 w-3 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
         </div>
 
         {/* Title */}
 
-        <div className="line-clamp-2 text-sm font-semibold">{title}</div>
+        <div className="truncate text-xs font-medium leading-snug">{title}</div>
 
         {/* Description */}
 
         {description && (
-          <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+          <div className="mt-1 line-clamp-1 text-[11px] text-muted-foreground">
             {description}
           </div>
         )}
 
         {/* Hostname */}
 
-        {link.hostname && (
-          <div className="mt-2 truncate text-xs text-muted-foreground">
+        {shouldShowHostname(link) && (
+          <div className="mt-1 truncate text-[10px] text-muted-foreground">
             {link.hostname}
           </div>
         )}

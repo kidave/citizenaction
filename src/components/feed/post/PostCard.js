@@ -83,7 +83,12 @@ export default function PostCard({
           </div>
         )}
 
-        {post.links?.length > 0 && <PostLinks links={post.links} />}
+        {(forceExpanded || !post.attachments?.length) &&
+          post.links?.length > 0 && (
+            <div className="overflow-hidden rounded-3xl">
+              <PostLinks links={post.links} />
+            </div>
+          )}
 
         <div
           className={

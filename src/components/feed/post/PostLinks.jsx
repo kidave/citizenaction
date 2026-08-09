@@ -8,7 +8,7 @@ export default function PostLinks({ links = [] }) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <div className="grid grid-cols-3 gap-2">
       {links.map((link) => (
         <LinkCard
           key={link.id ?? `${link.url}-${link.sort_order}`}

@@ -12,7 +12,7 @@ import AttachmentCarousel from "@/components/attachment/AttachmentCarousel";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
-export default function PostAttachments({ attachments = [] }) {
+export default function PostAttachments({ attachments = [], links = [] }) {
   const [openImages, setOpenImages] = useState(false);
   const [openPdf, setOpenPdf] = useState(false);
 
@@ -34,13 +34,21 @@ export default function PostAttachments({ attachments = [] }) {
     }));
   }, [images]);
 
-  const handleClick = (attachment) => {
+  if (!attachments.length && !links.length) {
+    return null;
+  }
+
+  const handleAttachmentClick = (index) => {
+    const attachment = attachments[index];
+
     if (!attachment) return;
 
     const mime = attachment.mime_type || "";
+
     const extension = attachment.file_name?.split(".").pop()?.toLowerCase();
 
     const isImage = mime.startsWith("image/");
+
     const isPdf = mime === "application/pdf" || extension === "pdf";
 
     if (isImage) {
@@ -49,6 +57,7 @@ export default function PostAttachments({ attachments = [] }) {
       );
 
       setStartIndex(imageIndex >= 0 ? imageIndex : 0);
+
       setOpenImages(true);
 
       return;
@@ -62,16 +71,11 @@ export default function PostAttachments({ attachments = [] }) {
 
   return (
     <>
-      {/* =====================================================
-          ATTACHMENT PREVIEW
-      ===================================================== */}
-
       <AttachmentCarousel
         attachments={attachments}
+        links={links}
         showMetadata={false}
-        onAttachmentClick={(index) => {
-          handleClick(attachments[index]);
-        }}
+        onAttachmentClick={handleAttachmentClick}
       />
 
       {/* =====================================================
@@ -89,6 +93,7 @@ export default function PostAttachments({ attachments = [] }) {
         }}
         render={{
           buttonPrev: imageSlides.length > 1 ? undefined : () => null,
+
           buttonNext: imageSlides.length > 1 ? undefined : () => null,
         }}
       />
