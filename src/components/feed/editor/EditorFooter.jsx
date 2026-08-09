@@ -4,7 +4,7 @@ import { Save } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-import InlineLinkInput from "@/components/ui/InlineLinkInput";
+import LinkManager from "@/components/ui/LinkManager";
 
 import ImagePicker from "@/components/attachment/ImagePicker";
 import DocumentPicker from "@/components/attachment/DocumentPicker";
@@ -34,7 +34,7 @@ export default function EditorFooter({ mode, item, editor, onClose }) {
 
           <EditorAddress editor={editor} />
 
-          <InlineLinkInput value={editor.links} onChange={editor.setLinks} />
+          <LinkManager value={editor.links} onChange={editor.setLinks} />
         </div>
 
         {/* Submit */}

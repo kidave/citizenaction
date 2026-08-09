@@ -77,6 +77,7 @@
     "next-sitemap": "^4.2.3",
     "next-themes": "^0.4.6",
     "node-fetch": "^3.3.2",
+    "oembed-spec": "^1.4.12",
     "openai": "^5.22.0",
     "pbf": "^4.0.1",
     "pdf-parse": "^1.1.1",
@@ -126,6 +127,7 @@
     ]
   },
   "devDependencies": {
+    "@types/deno": "^2.7.0",
     "autoprefixer": "^10.4.23",
     "eslint": "^8.57.1",
     "eslint-config-next": "^15.5.11",

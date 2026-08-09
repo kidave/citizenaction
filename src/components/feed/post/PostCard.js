@@ -12,6 +12,7 @@ import PostContent from "./PostContent";
 import PostMetadata from "./PostMetadata";
 import PostTimeline from "./PostTimeline";
 import PostAttachments from "./PostAttachments";
+import PostLinks from "./PostLinks";
 import PostFooter from "./PostFooter";
 import PostContribution from "@/components/feed/contribution/PostContribution";
 import getPostStatus from "@/utils/feed/getPostStatus";
@@ -82,20 +83,26 @@ export default function PostCard({
           </div>
         )}
 
+        {post.links?.length > 0 && <PostLinks links={post.links} />}
+
         <div
-          className="cursor-pointer transition-opacity hover:opacity-90"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            handleNavigate();
-          }}
+          className={
+            !forceExpanded
+              ? "cursor-pointer transition-opacity hover:opacity-90"
+              : "transition-opacity"
+          }
+          onClick={
+            !forceExpanded
+              ? (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleNavigate();
+                }
+              : undefined
+          }
         >
           <div className="sm:rounded-3xl sm:bg-muted sm:p-4">
-            <PostContent
-              post={post}
-              status={status}
-              forceExpanded={forceExpanded}
-            />
+            <PostContent post={post} forceExpanded={forceExpanded} />
 
             <PostMetadata
               post={post}

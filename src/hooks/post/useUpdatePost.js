@@ -13,137 +13,296 @@ export function useUpdatePost() {
 
   const mutation = useMutation({
     mutationFn: async ({ postId, postData }) => {
-      let uploadedAttachments = [];
+      let newUploadedAttachments = [];
 
       try {
         // ==========================================================
-        // Debug
+        // 1. Get current attachment records
         // ==========================================================
 
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        const { data: existingAttachments, error: existingAttachmentsError } =
+          await supabase
+            .from("attachment")
+            .select(
+              `
+              id,
+              storage_path,
+              public_url,
+              file_name,
+              mime_type,
+              file_size,
+              width,
+              height,
+              duration,
+              sort_order,
+              credit_name,
+              credit_url
+            `,
+            )
+            .eq("post_id", postId)
+            .is("contribution_id", null);
 
-        const { data: postInfo, error: postInfoError } = await supabase
-          .from("post")
-          .select("id, author_id, space_id")
-          .eq("id", postId)
-          .single();
-
-        if (postInfo?.space_id) {
-          const { data: membership } = await supabase
-            .from("space_member")
-            .select("*")
-            .eq("space_id", postInfo.space_id)
-            .eq("user_id", user?.id);
+        if (existingAttachmentsError) {
+          throw existingAttachmentsError;
         }
 
         // ==========================================================
-        // Upload new attachments
+        // 2. Read attachments from editor
         // ==========================================================
 
-        if (postData.attachments?.length) {
-          const existingAttachments = postData.attachments
-            .filter((attachment) => attachment.storage_path || attachment.path)
-            .map((attachment) => ({
-              storage_path: attachment.storage_path ?? attachment.path,
-              public_url: attachment.public_url ?? attachment.url,
-              file_name: attachment.file_name ?? attachment.name,
-              mime_type: attachment.mime_type ?? attachment.type,
-              file_size: attachment.file_size ?? attachment.size,
-              width: attachment.width,
-              height: attachment.height,
-              duration: attachment.duration,
-              sort_order: attachment.sort_order ?? 0,
-              credit_name: attachment.credit_name ?? null,
-              credit_url: attachment.credit_url ?? null,
-            }));
+        const editorAttachments = Array.isArray(postData.attachments)
+          ? postData.attachments
+          : [];
 
-          const newAttachments = postData.attachments.filter(
-            (attachment) => !(attachment.storage_path || attachment.path),
-          );
+        // Existing attachments are identified by storage_path.
+        //
+        // This is more reliable than depending on attachment.id
+        // surviving through the editor state.
+        const editorStoragePaths = new Set(
+          editorAttachments
+            .map((attachment) => attachment?.storage_path)
+            .filter(Boolean),
+        );
 
-          const uploadedNewAttachments = newAttachments.length
-            ? await uploadPostAttachments(postId, newAttachments)
-            : [];
+        // ==========================================================
+        // 3. Keep existing attachments
+        // ==========================================================
 
-          const mergedUploads = uploadedNewAttachments.map((uploaded) => {
-            const original = newAttachments.find(
-              (a) => a.file.name === uploaded.file_name,
-            );
+        const retainedAttachments = existingAttachments
+          .filter((attachment) =>
+            editorStoragePaths.has(attachment.storage_path),
+          )
+          .map((attachment) => ({
+            storage_path: attachment.storage_path,
+            public_url: attachment.public_url,
+            file_name: attachment.file_name,
+            mime_type: attachment.mime_type,
+            file_size: attachment.file_size,
+            width: attachment.width,
+            height: attachment.height,
+            duration: attachment.duration,
+            sort_order: attachment.sort_order ?? 0,
+            credit_name: attachment.credit_name ?? null,
+            credit_url: attachment.credit_url ?? null,
+          }));
+
+        // ==========================================================
+        // 4. Find genuinely new files
+        // ==========================================================
+
+        const newFiles = editorAttachments.filter(
+          (attachment) => !attachment?.storage_path && attachment?.file,
+        );
+
+        // ==========================================================
+        // 5. Upload new files
+        // ==========================================================
+
+        if (newFiles.length) {
+          toast.loading("Uploading attachments...", {
+            id: "update-post",
+          });
+
+          const uploaded = await uploadPostAttachments(postId, newFiles);
+
+          newUploadedAttachments = uploaded.map((uploadedAttachment, index) => {
+            const original = newFiles[index];
 
             return {
-              ...uploaded,
+              ...uploadedAttachment,
               credit_name: original?.credit_name ?? null,
               credit_url: original?.credit_url ?? null,
             };
           });
-
-          uploadedAttachments = [...existingAttachments, ...mergedUploads];
         }
 
         // ==========================================================
-        // Update post
+        // 6. Build final attachment list
         // ==========================================================
 
-        const { data, error } = await supabase.rpc(
-          "update_post_with_attachments",
+        const finalAttachments = [
+          ...retainedAttachments,
+          ...newUploadedAttachments,
+        ].map((attachment, index) => ({
+          ...attachment,
+          sort_order: index,
+        }));
+
+        // ==========================================================
+        // 7. Update post
+        // ==========================================================
+
+        toast.loading("Updating post...", {
+          id: "update-post",
+        });
+
+        const { data: updatedPost, error: updateError } = await supabase.rpc(
+          "update_post",
           {
             p_post_id: postId,
+
             p_type: postData.type,
-            p_title: postData.title,
-            p_details: postData.content,
-            p_start_at: postData.start_at ?? null,
-            p_end_at: postData.end_at ?? null,
-            p_lat: postData.lat ?? null,
-            p_lng: postData.lng ?? null,
-            p_address: postData.address ?? null,
-            p_links: postData.links ?? null,
-            p_metadata: postData.metadata ?? {},
-            p_is_global: !postData.spaces || postData.spaces.length === 0,
+
             p_space_id:
               postData.spaces?.length > 0 ? postData.spaces[0].id : null,
+
+            p_title: postData.title,
+
+            p_content: postData.content,
+
+            p_metadata: postData.metadata ?? {},
+
+            p_start_at: postData.start_at ?? null,
+
+            p_end_at: postData.end_at ?? null,
+
+            p_lat: postData.lat ?? null,
+
+            p_lng: postData.lng ?? null,
+
+            p_address: postData.address ?? null,
+
             p_governance_ids: postData.governance?.map((g) => g.id) ?? [],
-            p_attachments: uploadedAttachments,
           },
         );
 
-        if (error) throw error;
+        if (updateError) {
+          throw updateError;
+        }
 
-        return data;
-      } catch (error) {
         // ==========================================================
-        // Rollback uploaded files
+        // 8. Replace attachment records
         // ==========================================================
 
-        const newUploads = uploadedAttachments.filter((attachment) =>
-          postData.attachments?.find(
-            (a) => !a.storage_path && a.file?.name === attachment.file_name,
-          ),
+        const { error: attachmentError } = await supabase.rpc(
+          "upsert_post_attachments",
+          {
+            p_post_id: postId,
+            p_attachments: finalAttachments,
+          },
         );
 
-        if (newUploads.length) {
+        if (attachmentError) {
+          throw attachmentError;
+        }
+
+        // ==========================================================
+        // 9. Replace links
+        //
+        // [] intentionally means "remove all links".
+        // ==========================================================
+
+        const links = Array.isArray(postData.links)
+          ? postData.links.map((link, index) => ({
+              url: link.url,
+              type: link.type ?? "website",
+              title: link.title ?? null,
+              description: link.description ?? null,
+              hostname: link.hostname ?? null,
+              image_url: link.image_url ?? null,
+              icon_url: link.icon_url ?? null,
+              sort_order: index,
+            }))
+          : [];
+
+        const { error: linkError } = await supabase.rpc("upsert_post_links", {
+          p_post_id: postId,
+          p_links: links,
+        });
+
+        if (linkError) {
+          throw linkError;
+        }
+
+        // ==========================================================
+        // 10. Delete removed Storage files
+        // ==========================================================
+
+        const oldStoragePaths = existingAttachments
+          .map((attachment) => attachment.storage_path)
+          .filter(Boolean);
+
+        const finalStoragePaths = new Set(
+          finalAttachments
+            .map((attachment) => attachment.storage_path)
+            .filter(Boolean),
+        );
+
+        const removedStoragePaths = oldStoragePaths.filter(
+          (path) => !finalStoragePaths.has(path),
+        );
+
+        if (removedStoragePaths.length) {
+          await deletePostAttachments(removedStoragePaths);
+        }
+
+        // ==========================================================
+        // 11. Return updated database post
+        // ==========================================================
+
+        return updatedPost;
+      } catch (error) {
+        // ==========================================================
+        // Roll back ONLY newly uploaded files
+        //
+        // Existing files are never deleted here.
+        // ==========================================================
+
+        if (newUploadedAttachments.length) {
           try {
             await deletePostAttachments(
-              newUploads.map((attachment) => attachment.storage_path),
+              newUploadedAttachments
+                .map((attachment) => attachment.storage_path)
+                .filter(Boolean),
             );
-          } catch (rollbackError) {}
+          } catch (rollbackError) {
+            console.error("Attachment rollback failed:", rollbackError);
+          }
         }
 
         throw error;
       }
     },
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["post"],
+    // ============================================================
+    // Success
+    // ============================================================
+
+    onSuccess: (updatedPost, variables) => {
+      const postId = variables.postId;
+
+      // Update currently open post immediately.
+      queryClient.setQueryData(["post", postId], (currentPost) => {
+        if (!currentPost) {
+          return updatedPost;
+        }
+
+        return {
+          ...currentPost,
+          ...updatedPost,
+        };
       });
 
-      toast.success("Post updated successfully");
+      // Refresh feed.
+      queryClient.invalidateQueries({
+        queryKey: ["feed"],
+      });
+
+      toast.success("Post updated successfully", {
+        id: "update-post",
+      });
     },
 
+    // ============================================================
+    // Error
+    // ============================================================
+
     onError: (error) => {
-      toast.error(error.message || "Failed to update post");
+      console.error("Update post error:", error);
+
+      toast.error(error.message || "Failed to update post", {
+        id: "update-post",
+      });
     },
   });
 

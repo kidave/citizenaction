@@ -128,12 +128,10 @@ export function useCreatePost() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["post"],
+        queryKey: ["feed"],
       });
 
-      queryClient.invalidateQueries({
-        queryKey: ["posts"],
-      });
+      toast.success("Post created successfully");
     },
 
     onError: (error) => {

@@ -23,13 +23,13 @@ export function useDeletePost() {
       return true;
     },
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["post"],
+    onSuccess: (_, postId) => {
+      queryClient.removeQueries({
+        queryKey: ["post", postId],
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["posts"],
+        queryKey: ["feed"],
       });
 
       toast.success("Post deleted successfully");
