@@ -82,14 +82,6 @@ export default function PostCard({
             <PostAttachments attachments={post.attachments} />
           </div>
         )}
-
-        {(forceExpanded || !post.attachments?.length) &&
-          post.links?.length > 0 && (
-            <div className="overflow-hidden rounded-3xl">
-              <PostLinks links={post.links} />
-            </div>
-          )}
-
         <div
           className={
             !forceExpanded
@@ -118,6 +110,13 @@ export default function PostCard({
             <PostTimeline post={post} />
           </div>
         </div>
+
+        {post.links?.length > 0 &&
+          (forceExpanded || !post.attachments?.length) && (
+            <div className="overflow-hidden rounded-3xl">
+              <PostLinks links={post.links} />
+            </div>
+          )}
 
         <div className="sm:rounded-3xl sm:bg-muted sm:p-2">
           <PostFooter post={post} forceExpanded={forceExpanded} />

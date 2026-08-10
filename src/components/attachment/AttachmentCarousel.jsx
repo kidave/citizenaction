@@ -11,9 +11,11 @@ import {
 } from "@/components/ui/carousel";
 
 import AttachmentCard from "./AttachmentCard";
+import LinkCard from "@/components/feed/post/LinkCard";
 
 export default function AttachmentCarousel({
   attachments = [],
+  links = [],
   onAttachmentClick,
   onRemove,
   onCreditNameChange,
@@ -23,86 +25,138 @@ export default function AttachmentCarousel({
 }) {
   const [hovered, setHovered] = useState(null);
 
-  if (!attachments.length) return null;
+  // ==========================================================
+  // Combine attachments + links
+  // ==========================================================
 
-  const mobilePages = [];
+  const items = [
+    ...attachments.map((attachment, index) => ({
+      type: "attachment",
+      data: attachment,
+      originalIndex: index,
+    })),
 
-  for (let i = 0; i < attachments.length; i += 4) {
-    mobilePages.push(attachments.slice(i, i + 4));
-  }
+    ...links.map((link, index) => ({
+      type: "link",
+      data: link,
+      originalIndex: index,
+    })),
+  ];
+
+  if (!items.length) return null;
+
+  // ==========================================================
+  // Render item
+  // ==========================================================
+
+  const renderItem = (item, key, index) => {
+    // --------------------------------------------------------
+    // Link
+    // --------------------------------------------------------
+
+    if (item.type === "link") {
+      return (
+        <LinkCard
+          key={key}
+          link={item.data}
+          size={size === "sm" ? "sm" : "default"}
+        />
+      );
+    }
+
+    // --------------------------------------------------------
+    // Attachment
+    // --------------------------------------------------------
+
+    return (
+      <AttachmentCard
+        key={key}
+        attachment={item.data}
+        index={item.originalIndex}
+        onClick={onAttachmentClick}
+        onRemove={onRemove}
+        removable={removable}
+        showMetadata={showMetadata}
+        onCreditNameChange={onCreditNameChange}
+        hovered={hovered}
+        setHovered={setHovered}
+        size={size}
+      />
+    );
+  };
+
+  // ==========================================================
+  // Mobile
+  // ==========================================================
+
+  const mobileItems = items;
 
   return (
     <>
-      {/* Mobile */}
-      <div className="md:hidden">
-        {/* 1 image */}
-        {attachments.length === 1 && (
-          <AttachmentCard
-            attachment={attachments[0]}
-            index={0}
-            onClick={onAttachmentClick}
-            onRemove={onRemove}
-            removable={removable}
-            showMetadata={showMetadata}
-            hovered={null}
-            setHovered={() => {}}
-            size={size}
-          />
-        )}
+      {/* ====================================================
+          Mobile
+          ==================================================== */}
 
-        {/* 2 images */}
-        {attachments.length === 2 && (
-          <div className="grid grid-cols-2 gap-1">
-            {attachments.map((attachment, index) => (
-              <AttachmentCard
-                key={attachment.public_urllic_url ?? index}
-                attachment={attachment}
-                index={index}
-                onClick={onAttachmentClick}
-                onRemove={onRemove}
-                removable={removable}
-                showMetadata={showMetadata}
-                hovered={null}
-                setHovered={() => {}}
-              />
-            ))}
+      <div className="md:hidden">
+        {/* ====================================================
+            1 ITEM
+            ==================================================== */}
+
+        {mobileItems.length === 1 && (
+          <div>
+            {renderItem(mobileItems[0], mobileItems[0].data.id ?? "0", 0)}
           </div>
         )}
 
-        {/* 3+ images */}
-        {attachments.length >= 3 && (
+        {/* ====================================================
+            2 ITEMS
+            ==================================================== */}
+
+        {mobileItems.length === 2 && (
+          <div className="grid grid-cols-2 gap-1">
+            {mobileItems.map((item, index) =>
+              renderItem(item, `${item.type}-${item.data.id ?? index}`, index),
+            )}
+          </div>
+        )}
+
+        {/* ====================================================
+            3+ ITEMS
+            ==================================================== */}
+
+        {mobileItems.length >= 3 && (
           <Carousel
             opts={{
               align: "start",
               containScroll: "trimSnaps",
             }}
+            className="w-full"
           >
-            <CarouselContent>
+            <CarouselContent className="-ml-1">
               {Array.from({
-                length: Math.ceil(attachments.length / 2),
+                length: Math.ceil(mobileItems.length / 2),
               }).map((_, columnIndex) => (
                 <CarouselItem key={columnIndex} className="basis-1/2 pl-1">
                   <div className="flex flex-col gap-1">
                     {[0, 1].map((row) => {
                       const actualIndex = columnIndex * 2 + row;
-                      const attachment = attachments[actualIndex];
+                      const item = mobileItems[actualIndex];
 
-                      if (!attachment) {
-                        return <div key={row} className="aspect-square" />;
+                      if (!item) {
+                        return (
+                          <div
+                            key={row}
+                            className={
+                              size === "sm" ? "aspect-[4/3]" : "aspect-square"
+                            }
+                          />
+                        );
                       }
 
-                      return (
-                        <AttachmentCard
-                          key={attachment.public_url ?? actualIndex}
-                          attachment={attachment}
-                          index={actualIndex}
-                          onClick={onAttachmentClick}
-                          onRemove={onRemove}
-                          removable={removable}
-                          showMetadata={showMetadata}
-                          hovered={null}
-                          setHovered={() => {}}
-                        />
+                      return renderItem(
+                        item,
+                        `${item.type}-${item.data.id ?? actualIndex}`,
+                        actualIndex,
                       );
                     })}
                   </div>
@@ -113,6 +167,10 @@ export default function AttachmentCarousel({
         )}
       </div>
 
+      {/* ======================================================
+          Desktop
+          ====================================================== */}
+
       <div className="relative hidden md:block">
         <Carousel
           opts={{
@@ -120,31 +178,26 @@ export default function AttachmentCarousel({
             containScroll: "trimSnaps",
             dragFree: false,
           }}
-          className="w-full px-8"
+          className="w-full px-6"
         >
-          <CarouselContent className="py-2">
-            {attachments.map((attachment, index) => (
+          <CarouselContent className="-ml-2 py-2">
+            {items.map((item, index) => (
               <CarouselItem
-                key={attachment.public_url ?? index}
-                className="basis-[50%] pl-6 pr-2 md:basis-[260px] lg:basis-[280px]"
+                key={`${item.type}-${item.data.id ?? index}`}
+                className="basis-[260px] pl-2 lg:basis-[280px]"
               >
-                <AttachmentCard
-                  attachment={attachment}
-                  index={index}
-                  onClick={onAttachmentClick}
-                  onRemove={onRemove}
-                  removable={removable}
-                  showMetadata={showMetadata}
-                  onCreditNameChange={onCreditNameChange}
-                  hovered={hovered}
-                  setHovered={setHovered}
-                />
+                {renderItem(
+                  item,
+                  `${item.type}-${item.data.id ?? index}`,
+                  index,
+                )}
               </CarouselItem>
             ))}
           </CarouselContent>
 
-          <CarouselPrevious className="left-1 hidden lg:flex" />
-          <CarouselNext className="right-1 hidden lg:flex" />
+          <CarouselPrevious className="left-0 hidden lg:flex" />
+
+          <CarouselNext className="right-0 hidden lg:flex" />
         </Carousel>
       </div>
     </>
