@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Carousel,
@@ -24,6 +24,7 @@ export default function AttachmentCarousel({
   size = "default",
 }) {
   const [hovered, setHovered] = useState(null);
+  const [desktopApi, setDesktopApi] = useState(null);
 
   // ==========================================================
   // Combine attachments + links
@@ -42,6 +43,44 @@ export default function AttachmentCarousel({
       originalIndex: index,
     })),
   ];
+
+  // ==========================================================
+  // Keyboard navigation
+  // ==========================================================
+
+  useEffect(() => {
+    if (!desktopApi) return;
+
+    function handleKeyDown(event) {
+      const target = event.target;
+
+      // Don't interfere with typing.
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        target?.isContentEditable
+      ) {
+        return;
+      }
+
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        desktopApi.scrollPrev();
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        desktopApi.scrollNext();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [desktopApi]);
 
   if (!items.length) return null;
 
@@ -93,9 +132,9 @@ export default function AttachmentCarousel({
 
   return (
     <>
-      {/* ====================================================
-          Mobile
-          ==================================================== */}
+      {/* ======================================================
+          MOBILE
+          ====================================================== */}
 
       <div className="md:hidden">
         {/* ====================================================
@@ -140,8 +179,10 @@ export default function AttachmentCarousel({
                   <div className="flex flex-col gap-1">
                     {[0, 1].map((row) => {
                       const actualIndex = columnIndex * 2 + row;
+
                       const item = mobileItems[actualIndex];
 
+                      // Empty second slot.
                       if (!item) {
                         return (
                           <div
@@ -168,19 +209,20 @@ export default function AttachmentCarousel({
       </div>
 
       {/* ======================================================
-          Desktop
+          DESKTOP
           ====================================================== */}
 
       <div className="relative hidden md:block">
         <Carousel
+          setApi={setDesktopApi}
           opts={{
             align: "start",
             containScroll: "trimSnaps",
             dragFree: false,
           }}
-          className="w-full"
+          className="relative w-full"
         >
-          <CarouselContent className="items-center py-2">
+          <CarouselContent className="py-2">
             {items.map((item, index) => (
               <CarouselItem
                 key={`${item.type}-${item.data.id ?? index}`}
@@ -194,9 +236,14 @@ export default function AttachmentCarousel({
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="left-0 hidden lg:flex" />
 
-          <CarouselNext className="right-0 hidden lg:flex" />
+          {/* Previous */}
+
+          <CarouselPrevious className="absolute left-2 top-1/2 z-20 hidden -translate-y-1/2 lg:flex" />
+
+          {/* Next */}
+
+          <CarouselNext className="absolute right-2 top-1/2 z-20 hidden -translate-y-1/2 lg:flex" />
         </Carousel>
       </div>
     </>
