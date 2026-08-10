@@ -132,11 +132,11 @@ export default function AttachmentCarousel({
             }}
             className="w-full"
           >
-            <CarouselContent className="-ml-1">
+            <CarouselContent>
               {Array.from({
                 length: Math.ceil(mobileItems.length / 2),
               }).map((_, columnIndex) => (
-                <CarouselItem key={columnIndex} className="basis-1/2 pl-1">
+                <CarouselItem key={columnIndex} className="basis-1/2">
                   <div className="flex flex-col gap-1">
                     {[0, 1].map((row) => {
                       const actualIndex = columnIndex * 2 + row;
@@ -178,13 +178,13 @@ export default function AttachmentCarousel({
             containScroll: "trimSnaps",
             dragFree: false,
           }}
-          className="w-full px-6"
+          className="w-full"
         >
-          <CarouselContent className="-ml-2 py-2">
+          <CarouselContent className="items-center py-2">
             {items.map((item, index) => (
               <CarouselItem
                 key={`${item.type}-${item.data.id ?? index}`}
-                className="basis-[260px] pl-2 lg:basis-[280px]"
+                className="basis-[260px] lg:basis-[280px]"
               >
                 {renderItem(
                   item,
@@ -194,7 +194,6 @@ export default function AttachmentCarousel({
               </CarouselItem>
             ))}
           </CarouselContent>
-
           <CarouselPrevious className="left-0 hidden lg:flex" />
 
           <CarouselNext className="right-0 hidden lg:flex" />

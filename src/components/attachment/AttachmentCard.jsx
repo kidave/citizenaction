@@ -29,12 +29,9 @@ export default function AttachmentCard({
       className={cn(
         "group relative overflow-hidden rounded-xl border bg-card transition-all duration-500 ease-out md:rounded-2xl",
 
-        hovered !== null &&
-          hovered !== index &&
-          "scale-[0.97] opacity-60 blur-[2px]",
+        hovered !== null && hovered !== index && "opacity-60 blur-[2px]",
 
-        hovered === index &&
-          "z-10 scale-[1.04] border-primary/30 shadow-2xl shadow-white/10",
+        hovered === index && "z-10",
 
         className,
       )}
