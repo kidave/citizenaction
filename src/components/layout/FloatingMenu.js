@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { AnimatePresence, motion } from "framer-motion";
 import { Home, Settings, Menu, X, User } from "lucide-react";
 
+import InstallAppButton from "@/components/layout/InstallAppButton";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/context/AuthContext";
@@ -44,7 +45,7 @@ export default function FloatingMenu() {
   ];
 
   return (
-    <div className="fixed bottom-5 right-5 z-40 md:hidden">
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end">
       <AnimatePresence>
         {open && (
           <motion.div
@@ -60,6 +61,7 @@ export default function FloatingMenu() {
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 10 }}
+                transition={{ duration: 0.18 }}
               >
                 <Button
                   className="h-12 w-12"
@@ -71,6 +73,19 @@ export default function FloatingMenu() {
                 </Button>
               </motion.div>
             ))}
+
+            {/* INSTALL CITIZEN ACTION */}
+            <motion.div
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              transition={{
+                duration: 0.18,
+                delay: 0.05,
+              }}
+            >
+              <InstallAppButton onInstalled={() => setOpen(false)} />
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

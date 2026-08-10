@@ -17,8 +17,7 @@ export default function Footer() {
         <div className="max-w-md text-center md:text-left">
           <h3 className="text-lg font-semibold">Citizen Action</h3>
           <p className="mt-2 text-sm text-slate-300">
-            A civic documentation platform designed to make citizen action
-            visible
+            A documentation platform designed to make citizen action visible
           </p>
         </div>
 

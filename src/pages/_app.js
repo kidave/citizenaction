@@ -1,19 +1,17 @@
 import Head from "next/head";
+import { useEffect } from "react";
 
 import "@/styles/main.css";
 import ThemeProvider from "@/styles/ThemeProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { AuthProvider } from "@/context/AuthContext";
-
 import { MediaProvider } from "@/context/MediaContext";
 
 import Layout from "@/components/layout/Layout";
 
 import ErrorBoundary from "@/components/system/ErrorBoundary";
-
 import RouteLoader from "@/components/system/RouteLoader";
-
 import FloatingMenu from "@/components/layout/FloatingMenu";
 
 import { Toaster } from "sonner";
@@ -22,11 +20,8 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000,
-
       cacheTime: 30 * 60 * 1000,
-
       refetchOnWindowFocus: false,
-
       retry: 1,
     },
   },
@@ -35,6 +30,14 @@ const queryClient = new QueryClient({
 function MyApp({ Component, pageProps }) {
   const getLayout = Component.getLayout || ((page) => page);
 
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch((error) => {
+        console.error("Service worker registration failed:", error);
+      });
+    }
+  }, []);
+
   return (
     <>
       <Head>
@@ -42,15 +45,24 @@ function MyApp({ Component, pageProps }) {
 
         <meta
           name="viewport"
-          content="
-            width=device-width,
-            initial-scale=1,
-            viewport-fit=cover
-          "
+          content="width=device-width, initial-scale=1, viewport-fit=cover"
         />
 
+        {/* PWA */}
         <link rel="manifest" href="/manifest.json" />
 
+        <meta name="theme-color" content="#ffffff" />
+
+        {/* iOS / Safari */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+
+        <meta name="apple-mobile-web-app-title" content="Citizen Action" />
+
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+
+        {/* Browser favicon */}
         <link rel="icon" href="/favicon.ico" />
       </Head>
 

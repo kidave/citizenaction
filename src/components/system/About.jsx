@@ -9,8 +9,8 @@ export default function About() {
 
       <div className="space-y-4">
         <p className="text-muted-foreground">
-          Citizen Action is a civic platform by the Walking Project under the
-          Mumbai Sustainability Center focused on walkability.
+          Citizen Action is a documentation platform by the Walking Project
+          under the Mumbai Sustainability Center focused on walkability.
         </p>
 
         <div className="space-y-1 text-sm text-muted-foreground">

@@ -56,7 +56,7 @@ export function LogoSwitcher() {
               <div className="grid text-left text-sm leading-tight">
                 <span className="truncate font-semibold">Citizen Action</span>
                 <span className="truncate text-xs text-muted-foreground">
-                  Civic Platform
+                  Documentation Platform
                 </span>
               </div>
             )}
