@@ -92,9 +92,7 @@ export default function PostCardSkeleton({
       {/* FOOTER */}
       <div className="sm:p-2">
         <div className="flex items-center justify-between gap-3">
-          <Skeleton className="h-9 w-24 rounded-md" />
-          <Skeleton className="h-9 w-24 rounded-md" />
-          <Skeleton className="h-9 w-20 rounded-md" />
+          <Skeleton className="h-4 w-full" />
         </div>
       </div>
     </Card>

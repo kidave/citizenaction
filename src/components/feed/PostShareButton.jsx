@@ -7,12 +7,15 @@ export default function PostShareButton({ post }) {
   const handleShare = async (e) => {
     e.stopPropagation();
 
-    const url = `${window.location.origin}/post/${post.id}`;
+    const url = `${window.location.origin}/post/${post.slug}`;
     const title = post.title || "Citizen Action Post";
 
     if (navigator.share) {
       try {
-        await navigator.share({ title, url });
+        await navigator.share({
+          title,
+          url,
+        });
       } catch (err) {
         console.log("Share cancelled");
       }
@@ -25,9 +28,9 @@ export default function PostShareButton({ post }) {
   return (
     <Button
       variant="ghost"
-      size="sm"
+      size="icon"
       onClick={handleShare}
-      className="transition hover:bg-transparent"
+      aria-label="Share post"
     >
       <Share2 className="h-4 w-4" />
     </Button>
