@@ -27,8 +27,7 @@ export default function InstallAppButton({ onInstalled }) {
     setIsStandalone(standalone);
 
     const ios =
-      /iPad|iPhone|iPod/.test(navigator.userAgent) &&
-      !window.MSStream;
+      /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
     setIsIOS(ios);
 
@@ -37,10 +36,7 @@ export default function InstallAppButton({ onInstalled }) {
       setInstallPrompt(event);
     };
 
-    window.addEventListener(
-      "beforeinstallprompt",
-      handleBeforeInstallPrompt,
-    );
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
     return () => {
       window.removeEventListener(
@@ -69,19 +65,14 @@ export default function InstallAppButton({ onInstalled }) {
           <span>Add Citizen Action</span>
         </Button>
 
-        <Dialog
-          open={iosDialogOpen}
-          onOpenChange={setIosDialogOpen}
-        >
+        <Dialog open={iosDialogOpen} onOpenChange={setIosDialogOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>
-                Add Citizen Action to your Home Screen
-              </DialogTitle>
+              <DialogTitle>Add Citizen Action to your Home Screen</DialogTitle>
 
               <DialogDescription>
-                Install Citizen Action on your iPhone for quick access
-                and an app-like experience.
+                Install Citizen Action on your iPhone for quick access and an
+                app-like experience.
               </DialogDescription>
             </DialogHeader>
 
@@ -102,8 +93,7 @@ export default function InstallAppButton({ onInstalled }) {
                 </div>
 
                 <p className="pt-1 text-sm">
-                  Scroll down and select{" "}
-                  <strong>Add to Home Screen</strong>.
+                  Scroll down and select <strong>Add to Home Screen</strong>.
                 </p>
               </div>
 

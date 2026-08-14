@@ -1,5 +1,7 @@
 "use client";
 
+import { EDITOR_TYPE_CONFIG } from "./editorTypes";
+
 import {
   Orbit,
   FileWarning,
@@ -19,33 +21,23 @@ import {
 const TYPES = [
   {
     value: "action",
-    label: "Action",
     icon: Orbit,
-    desc: "Document civic initiatives and actions taken.",
   },
   {
     value: "report",
-    label: "Report",
     icon: FileWarning,
-    desc: "Document complaints, suggestions or policy proposals.",
   },
   {
     value: "update",
-    label: "Update",
     icon: Bell,
-    desc: "Document major updates or announcements.",
   },
   {
     value: "event",
-    label: "Event",
     icon: CalendarDays,
-    desc: "Post event details and media.",
   },
   {
     value: "meeting",
-    label: "Meeting",
     icon: Presentation,
-    desc: "Record meetings with officials.",
   },
 ];
 
@@ -55,32 +47,37 @@ export default function EditorType({ type, setType }) {
       <ToggleGroup
         type="single"
         value={type}
-        onValueChange={(v) => v && setType(v)}
+        onValueChange={(value) => {
+          if (value) {
+            setType(value);
+          }
+        }}
         variant="outline"
         className="w-max min-w-max flex-nowrap justify-start"
       >
-        {TYPES.map((t, i) => {
-          const Icon = t.icon;
+        {TYPES.map((item, index) => {
+          const Icon = item.icon;
+          const config = EDITOR_TYPE_CONFIG[item.value];
 
           return (
             <ToggleGroupItem
-              key={t.value}
-              value={t.value}
+              key={item.value}
+              value={item.value}
               className={`shrink-0 gap-2 rounded-none ${
-                i === 0 ? "rounded-l-md" : ""
-              } ${i === TYPES.length - 1 ? "rounded-r-md" : "border-r-0"} `}
+                index === 0 ? "rounded-l-md" : ""
+              } ${index === TYPES.length - 1 ? "rounded-r-md" : "border-r-0"}`}
             >
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span className="flex cursor-pointer items-center gap-2 whitespace-nowrap">
                     <Icon className="h-4 w-4 shrink-0" />
 
-                    <span>{t.label}</span>
+                    <span>{config.label}</span>
                   </span>
                 </TooltipTrigger>
 
                 <TooltipContent>
-                  <p className="max-w-[200px] text-xs">{t.desc}</p>
+                  <p className="max-w-[200px] text-xs">{config.placeholder}</p>
                 </TooltipContent>
               </Tooltip>
             </ToggleGroupItem>

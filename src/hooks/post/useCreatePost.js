@@ -35,6 +35,10 @@ export function useCreatePost() {
 
         p_content: postData.content,
 
+        p_content_json: postData.content_json ?? null,
+
+        p_content_format: postData.content_format ?? "text",
+
         p_metadata: postData.metadata ?? {},
 
         p_start_at: postData.start_at ?? null,

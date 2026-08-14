@@ -99,7 +99,11 @@ export default function PostCard({
           }
         >
           <div className="sm:rounded-3xl sm:bg-muted sm:p-4">
-            <PostContent post={post} forceExpanded={forceExpanded} />
+            <PostContent
+              post={post}
+              onNavigate={handleNavigate}
+              forceExpanded={forceExpanded}
+            />
 
             <PostMetadata
               post={post}

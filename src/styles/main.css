@@ -299,3 +299,53 @@
 body {
   max-width: 100vw;
 }
+
+/* =========================================================
+   Editor.js
+   ========================================================= */
+
+.codex-editor {
+  color: hsl(var(--foreground));
+}
+
+.ce-block__content,
+.ce-toolbar__content {
+  color: hsl(var(--foreground));
+}
+
+.ce-inline-toolbar {
+  color: hsl(var(--foreground));
+}
+
+.ce-inline-tool-input {
+  color: #111 !important;
+  background-color: #fff !important;
+  border-color: hsl(var(--border)) !important;
+  caret-color: #111 !important;
+}
+
+.ce-inline-tool-input::placeholder {
+  color: #666 !important;
+}
+
+.ce-inline-tool-input-holder {
+  background-color: hsl(var(--popover)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+.ce-toolbar__plus,
+.ce-toolbar__settings-btn {
+  color: hsl(var(--foreground)) !important;
+}
+
+.ce-toolbar__plus svg,
+.ce-toolbar__settings-btn svg {
+  color: currentColor !important;
+  stroke: currentColor !important;
+}
+
+.ce-toolbar__plus:hover,
+.ce-toolbar__settings-btn:hover {
+  background-color: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
+}

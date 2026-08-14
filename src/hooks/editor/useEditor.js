@@ -18,6 +18,13 @@ export function useEditor(item = null) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
+  // ==========================================================
+  // Structured content
+  // ==========================================================
+
+  const [contentJson, setContentJson] = useState(null);
+  const [contentFormat, setContentFormat] = useState("text");
+
   const [attachments, setAttachments] = useState([]);
 
   const [start_at, setStartAt] = useState(null);
@@ -129,7 +136,15 @@ export function useEditor(item = null) {
 
     setTitle(item?.title ?? "");
 
-    setContent(item?.content ?? item?.content ?? "");
+    setContent(item?.content ?? "");
+
+    // --------------------------------------------------------
+    // Structured content
+    // --------------------------------------------------------
+
+    setContentJson(item?.content_json ?? null);
+
+    setContentFormat(item?.content_format === "editorjs" ? "editorjs" : "text");
 
     replaceAttachments(item?.attachments ?? []);
 
@@ -159,6 +174,9 @@ export function useEditor(item = null) {
       title,
       content,
 
+      content_json: contentJson,
+      content_format: contentFormat,
+
       attachments,
       links,
 
@@ -187,6 +205,8 @@ export function useEditor(item = null) {
     user,
     title,
     content,
+    contentJson,
+    contentFormat,
     attachments,
     links,
     start_at,
@@ -211,6 +231,13 @@ export function useEditor(item = null) {
 
     content,
     setContent,
+
+    // Structured content
+    contentJson,
+    setContentJson,
+
+    contentFormat,
+    setContentFormat,
 
     // Attachments
     attachments,

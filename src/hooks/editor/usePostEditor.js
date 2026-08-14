@@ -51,6 +51,10 @@ export function usePostEditor(post = null) {
 
       content: data.content,
 
+      content_json: data.content_json,
+
+      content_format: data.content_format,
+
       attachments: data.attachments,
 
       start_at: data.start_at,
