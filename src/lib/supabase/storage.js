@@ -1,5 +1,3 @@
-// lib/supabase/storage.js
-
 import { supabase } from "./client";
 
 const BUCKETS = {
@@ -13,6 +11,7 @@ function sanitizeFileName(name) {
 
 function makeFileName(originalName) {
   const safeName = sanitizeFileName(originalName || "file");
+
   return `${crypto.randomUUID()}-${safeName}`;
 }
 
@@ -20,7 +19,12 @@ function makeFileName(originalName) {
 /* Generic Upload                                                              */
 /* -------------------------------------------------------------------------- */
 
-async function uploadAttachment({ bucket, ownerId, file }) {
+async function uploadAttachment({
+  bucket,
+  ownerId,
+  file,
+  attachmentId = null,
+}) {
   if (!bucket) {
     throw new Error("Missing bucket");
   }
@@ -45,20 +49,35 @@ async function uploadAttachment({ bucket, ownerId, file }) {
       contentType: file.type || "application/octet-stream",
     });
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 
   const { data } = supabase.storage.from(bucket).getPublicUrl(storagePath);
 
   return {
+    /*
+     * IMPORTANT
+     *
+     * This connects an Editor.js image block
+     * to the uploaded attachment.
+     */
+    attachmentId,
+
     storage_path: storagePath,
+
     public_url: data.publicUrl,
 
     file_name: file.name,
+
     mime_type: file.type,
+
     file_size: file.size,
 
     width: null,
+
     height: null,
+
     duration: null,
 
     sort_order: null,
@@ -78,8 +97,17 @@ async function uploadAttachments({ bucket, ownerId, attachments = [] }) {
     attachments.map((attachment) =>
       uploadAttachment({
         bucket,
+
         ownerId,
+
         file: attachment.file ?? attachment,
+
+        /*
+         * Preserve the Editor.js attachment ID.
+         *
+         * Normal attachments simply get null.
+         */
+        attachmentId: attachment.attachmentId ?? null,
       }),
     ),
   );
@@ -92,7 +120,9 @@ async function uploadAttachments({ bucket, ownerId, attachments = [] }) {
 export function uploadPostAttachments(postId, attachments) {
   return uploadAttachments({
     bucket: BUCKETS.POST,
+
     ownerId: postId,
+
     attachments,
   });
 }
@@ -100,7 +130,9 @@ export function uploadPostAttachments(postId, attachments) {
 export function uploadContributionAttachments(contributionId, attachments) {
   return uploadAttachments({
     bucket: BUCKETS.CONTRIBUTION,
+
     ownerId: contributionId,
+
     attachments,
   });
 }
@@ -112,11 +144,15 @@ export function uploadContributionAttachments(contributionId, attachments) {
 export async function deleteAttachments(bucket, paths = []) {
   const validPaths = paths.filter(Boolean);
 
-  if (!validPaths.length) return;
+  if (!validPaths.length) {
+    return;
+  }
 
   const { error } = await supabase.storage.from(bucket).remove(validPaths);
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -133,11 +169,15 @@ export async function deletePostAttachmentsByPostId(postId) {
     .select("storage_path")
     .eq("post_id", postId);
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 
   const paths = getAttachmentPaths(data);
 
-  if (!paths.length) return;
+  if (!paths.length) {
+    return;
+  }
 
   await deletePostAttachments(paths);
 }
@@ -154,17 +194,21 @@ export async function deleteContributionAttachmentsByContributionId(
     .select("storage_path")
     .eq("contribution_id", contributionId);
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 
   const paths = getAttachmentPaths(data);
 
-  if (!paths.length) return;
+  if (!paths.length) {
+    return;
+  }
 
   await deleteContributionAttachments(paths);
 }
 
 /* -------------------------------------------------------------------------- */
-/* Wrappers                                                                    */
+/* Delete Wrappers                                                             */
 /* -------------------------------------------------------------------------- */
 
 export function deletePostAttachments(paths) {
@@ -186,17 +230,49 @@ export function getAttachmentPaths(attachments = []) {
 }
 
 export function getFileCategory(mimeType) {
-  if (mimeType?.startsWith("image/")) return "image";
-  if (mimeType?.startsWith("video/")) return "video";
-  if (mimeType === "application/pdf") return "pdf";
-  if (mimeType?.includes("word")) return "document";
-  if (mimeType?.includes("spreadsheet")) return "spreadsheet";
-  if (mimeType?.includes("excel")) return "spreadsheet";
-  if (mimeType?.includes("presentation")) return "presentation";
-  if (mimeType?.includes("powerpoint")) return "presentation";
-  if (mimeType?.startsWith("text/")) return "text";
-  if (mimeType?.includes("zip")) return "archive";
-  if (mimeType?.includes("rar")) return "archive";
+  if (mimeType?.startsWith("image/")) {
+    return "image";
+  }
+
+  if (mimeType?.startsWith("video/")) {
+    return "video";
+  }
+
+  if (mimeType === "application/pdf") {
+    return "pdf";
+  }
+
+  if (mimeType?.includes("word")) {
+    return "document";
+  }
+
+  if (mimeType?.includes("spreadsheet")) {
+    return "spreadsheet";
+  }
+
+  if (mimeType?.includes("excel")) {
+    return "spreadsheet";
+  }
+
+  if (mimeType?.includes("presentation")) {
+    return "presentation";
+  }
+
+  if (mimeType?.includes("powerpoint")) {
+    return "presentation";
+  }
+
+  if (mimeType?.startsWith("text/")) {
+    return "text";
+  }
+
+  if (mimeType?.includes("zip")) {
+    return "archive";
+  }
+
+  if (mimeType?.includes("rar")) {
+    return "archive";
+  }
 
   return "file";
 }

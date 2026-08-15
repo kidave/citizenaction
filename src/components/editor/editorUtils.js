@@ -67,35 +67,20 @@ export function extractListText(data = {}) {
    EDITOR.JS → PLAIN TEXT
    ========================================================= */
 
-export function editorBlocksToText(blocks = []) {
+export function editorBlocksToFeedText(blocks = []) {
   return blocks
     .map((block) => {
       const data = block?.data || {};
 
       switch (block?.type) {
         case "paragraph":
+          return stripHtml(data.text || "");
+
         case "header":
           return stripHtml(data.text || "");
 
         case "list":
           return extractListText(data);
-
-        case "warning":
-          return [stripHtml(data.title || ""), stripHtml(data.message || "")]
-            .filter(Boolean)
-            .join("\n");
-
-        case "table":
-          return (data.content || [])
-            .flat()
-            .map((cell) => stripHtml(cell || ""))
-            .join(" ");
-
-        case "image":
-          return stripHtml(data.caption || "");
-
-        case "embed":
-          return stripHtml(data.caption || "");
 
         default:
           return "";
@@ -104,4 +89,23 @@ export function editorBlocksToText(blocks = []) {
     .filter(Boolean)
     .join("\n\n")
     .trim();
+}
+
+export function getInitialBlocks({ content = "", contentJson = null }) {
+  if (contentJson?.blocks?.length) {
+    return contentJson.blocks;
+  }
+
+  if (content) {
+    return [
+      {
+        type: "paragraph",
+        data: {
+          text: content,
+        },
+      },
+    ];
+  }
+
+  return [];
 }

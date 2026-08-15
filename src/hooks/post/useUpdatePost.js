@@ -1,11 +1,16 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { supabase } from "@/lib/supabase/client";
+
 import {
   uploadPostAttachments,
   deletePostAttachments,
 } from "@/lib/supabase/storage";
+
+import { resolveEditorImageUrls } from "@/components/editor/resolveEditorImageUrls";
+
 import { toast } from "sonner";
 
 export function useUpdatePost() {
@@ -54,19 +59,15 @@ export function useUpdatePost() {
           ? postData.attachments
           : [];
 
-        // Existing attachments are identified by storage_path.
-        //
-        // This is more reliable than depending on attachment.id
-        // surviving through the editor state.
+        // ==========================================================
+        // 3. Find retained existing attachments
+        // ==========================================================
+
         const editorStoragePaths = new Set(
           editorAttachments
             .map((attachment) => attachment?.storage_path)
             .filter(Boolean),
         );
-
-        // ==========================================================
-        // 3. Keep existing attachments
-        // ==========================================================
 
         const retainedAttachments = existingAttachments
           .filter((attachment) =>
@@ -74,15 +75,25 @@ export function useUpdatePost() {
           )
           .map((attachment) => ({
             storage_path: attachment.storage_path,
+
             public_url: attachment.public_url,
+
             file_name: attachment.file_name,
+
             mime_type: attachment.mime_type,
+
             file_size: attachment.file_size,
+
             width: attachment.width,
+
             height: attachment.height,
+
             duration: attachment.duration,
+
             sort_order: attachment.sort_order ?? 0,
+
             credit_name: attachment.credit_name ?? null,
+
             credit_url: attachment.credit_url ?? null,
           }));
 
@@ -110,7 +121,9 @@ export function useUpdatePost() {
 
             return {
               ...uploadedAttachment,
+
               credit_name: original?.credit_name ?? null,
+
               credit_url: original?.credit_url ?? null,
             };
           });
@@ -125,11 +138,41 @@ export function useUpdatePost() {
           ...newUploadedAttachments,
         ].map((attachment, index) => ({
           ...attachment,
+
           sort_order: index,
         }));
 
         // ==========================================================
-        // 7. Update post
+        // 7. Resolve Editor.js image URLs
+        // ==========================================================
+
+        /*
+         * This is the important part.
+         *
+         * New Editor.js images contain:
+         *
+         * blob:http://localhost...
+         *
+         * plus:
+         *
+         * attachmentId
+         *
+         * newUploadedAttachments now contains:
+         *
+         * attachmentId
+         * public_url
+         *
+         * so the helper replaces the blob URL
+         * with the permanent Supabase URL.
+         */
+
+        const resolvedContentJson = resolveEditorImageUrls(
+          postData.content_json,
+          newUploadedAttachments,
+        );
+
+        // ==========================================================
+        // 8. Update post
         // ==========================================================
 
         toast.loading("Updating post...", {
@@ -150,7 +193,7 @@ export function useUpdatePost() {
 
             p_content: postData.content,
 
-            p_content_json: postData.content_json ?? null,
+            p_content_json: resolvedContentJson ?? null,
 
             p_content_format: postData.content_format ?? "text",
 
@@ -175,13 +218,14 @@ export function useUpdatePost() {
         }
 
         // ==========================================================
-        // 8. Replace attachment records
+        // 9. Replace attachment records
         // ==========================================================
 
         const { error: attachmentError } = await supabase.rpc(
           "upsert_post_attachments",
           {
             p_post_id: postId,
+
             p_attachments: finalAttachments,
           },
         );
@@ -191,26 +235,32 @@ export function useUpdatePost() {
         }
 
         // ==========================================================
-        // 9. Replace links
-        //
-        // [] intentionally means "remove all links".
+        // 10. Replace links
         // ==========================================================
 
         const links = Array.isArray(postData.links)
           ? postData.links.map((link, index) => ({
               url: link.url,
+
               type: link.type ?? "website",
+
               title: link.title ?? null,
+
               description: link.description ?? null,
+
               hostname: link.hostname ?? null,
+
               image_url: link.image_url ?? null,
+
               icon_url: link.icon_url ?? null,
+
               sort_order: index,
             }))
           : [];
 
         const { error: linkError } = await supabase.rpc("upsert_post_links", {
           p_post_id: postId,
+
           p_links: links,
         });
 
@@ -219,7 +269,7 @@ export function useUpdatePost() {
         }
 
         // ==========================================================
-        // 10. Delete removed Storage files
+        // 11. Delete removed Storage files
         // ==========================================================
 
         const oldStoragePaths = existingAttachments
@@ -241,15 +291,13 @@ export function useUpdatePost() {
         }
 
         // ==========================================================
-        // 11. Return updated database post
+        // 12. Return updated post
         // ==========================================================
 
         return updatedPost;
       } catch (error) {
         // ==========================================================
         // Roll back ONLY newly uploaded files
-        //
-        // Existing files are never deleted here.
         // ==========================================================
 
         if (newUploadedAttachments.length) {
@@ -275,7 +323,6 @@ export function useUpdatePost() {
     onSuccess: (updatedPost, variables) => {
       const postId = variables.postId;
 
-      // Update currently open post immediately.
       queryClient.setQueryData(["post", postId], (currentPost) => {
         if (!currentPost) {
           return updatedPost;
@@ -287,7 +334,6 @@ export function useUpdatePost() {
         };
       });
 
-      // Refresh feed.
       queryClient.invalidateQueries({
         queryKey: ["feed"],
       });
@@ -312,6 +358,7 @@ export function useUpdatePost() {
 
   return {
     updatePost: mutation.mutateAsync,
+
     isUpdating: mutation.isPending,
   };
 }
