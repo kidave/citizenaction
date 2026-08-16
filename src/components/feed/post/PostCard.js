@@ -25,6 +25,7 @@ export default function PostCard({
   borderless = false,
   edgeToEdgeMobile = false,
   loading = false,
+  queryKey,
 }) {
   const router = useRouter();
 
@@ -123,10 +124,14 @@ export default function PostCard({
           )}
 
         <div className="sm:rounded-3xl sm:bg-muted sm:p-2">
-          <PostFooter post={post} forceExpanded={forceExpanded} />
+          <PostFooter
+            post={post}
+            forceExpanded={forceExpanded}
+            queryKey={["feed"]}
+          />
         </div>
 
-        {forceExpanded && <PostContribution post={post} />}
+        {forceExpanded && <PostContribution post={post} queryKey={["feed"]} />}
       </div>
     </Card>
   );

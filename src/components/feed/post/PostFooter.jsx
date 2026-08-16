@@ -20,7 +20,7 @@ import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
 
-export default function PostFooter({ post, forceExpanded = false }) {
+export default function PostFooter({ post, queryKey, forceExpanded = false }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -50,17 +50,46 @@ export default function PostFooter({ post, forceExpanded = false }) {
       return;
     }
 
-    queryClient.setQueryData(["post-stats", post.id, user.id], (old) => {
-      if (!old) return old;
+    if (!queryKey) {
+      toast.error("Unable to update support right now.");
+      return;
+    }
 
-      return {
-        ...old,
-        support_count: supported
-          ? old.support_count - 1
-          : old.support_count + 1,
-        is_supported: !supported,
-      };
+    // ----------------------------------------
+    // Optimistic update
+    // ----------------------------------------
+
+    queryClient.setQueryData(queryKey, (oldPosts) => {
+      if (!Array.isArray(oldPosts)) {
+        return oldPosts;
+      }
+
+      return oldPosts.map((item) => {
+        if (item.id !== post.id) {
+          return item;
+        }
+
+        const currentStats = item.stats ?? {};
+
+        return {
+          ...item,
+
+          stats: {
+            ...currentStats,
+
+            support_count: supported
+              ? Math.max(0, (currentStats.support_count ?? 0) - 1)
+              : (currentStats.support_count ?? 0) + 1,
+
+            is_supported: !supported,
+          },
+        };
+      });
     });
+
+    // ----------------------------------------
+    // Database mutation
+    // ----------------------------------------
 
     try {
       let error;
@@ -81,17 +110,53 @@ export default function PostFooter({ post, forceExpanded = false }) {
       if (error) {
         throw error;
       }
+
+      // ----------------------------------------
+      // Reconcile with database
+      // ----------------------------------------
+
+      await queryClient.invalidateQueries({
+        queryKey,
+      });
     } catch (error) {
+      // ----------------------------------------
+      // Roll back optimistic update
+      // ----------------------------------------
+
+      queryClient.setQueryData(queryKey, (oldPosts) => {
+        if (!Array.isArray(oldPosts)) {
+          return oldPosts;
+        }
+
+        return oldPosts.map((item) => {
+          if (item.id !== post.id) {
+            return item;
+          }
+
+          const currentStats = item.stats ?? {};
+
+          return {
+            ...item,
+
+            stats: {
+              ...currentStats,
+
+              support_count: supported
+                ? (currentStats.support_count ?? 0) + 1
+                : Math.max(0, (currentStats.support_count ?? 0) - 1),
+
+              is_supported: supported,
+            },
+          };
+        });
+      });
+
       console.error("Failed to update post support", {
         message: error?.message,
         code: error?.code,
       });
 
       toast.error(error?.message || "Unable to update support.");
-
-      queryClient.invalidateQueries({
-        queryKey: ["post-stats", post.id],
-      });
     }
   }
 
@@ -114,11 +179,6 @@ export default function PostFooter({ post, forceExpanded = false }) {
 
     setDrawerOpen(true);
   }
-
-  const redirectPath =
-    typeof window !== "undefined"
-      ? window.location.pathname + window.location.search
-      : "/";
 
   return (
     <>
