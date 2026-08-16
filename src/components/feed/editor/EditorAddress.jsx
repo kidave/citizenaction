@@ -79,30 +79,64 @@ export default function EditorAddress({ editor }) {
   // =====================================================
 
   function handleUseCurrentLocation() {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      toast.error("Location is not supported by this browser.");
+      return;
+    }
 
     setLoadingGPS(true);
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const lat = position.coords.latitude;
+        try {
+          const { latitude: lat, longitude: lng } = position.coords;
 
-        const lng = position.coords.longitude;
+          editor.setLat(lat);
+          editor.setLng(lng);
 
-        editor.setLat(lat);
-        editor.setLng(lng);
+          await reverseGeocode(lat, lng);
+        } catch (error) {
+          console.error("Reverse geocoding failed", {
+            message: error?.message,
+            code: error?.code,
+          });
 
-        await reverseGeocode(lat, lng);
-
-        setLoadingGPS(false);
+          toast.error("We couldn't determine the address for your location.");
+        } finally {
+          setLoadingGPS(false);
+        }
       },
       (error) => {
-        console.error(error);
+        console.warn("Unable to get current location", {
+          code: error.code,
+          message: error.message,
+        });
 
         setLoadingGPS(false);
+
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            toast.error(
+              "Location permission was denied. Please allow location access and try again.",
+            );
+            break;
+
+          case error.POSITION_UNAVAILABLE:
+            toast.error("Your current location could not be determined.");
+            break;
+
+          case error.TIMEOUT:
+            toast.error("Location request timed out. Please try again.");
+            break;
+
+          default:
+            toast.error("Unable to get your current location.");
+        }
       },
       {
         enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
       },
     );
   }

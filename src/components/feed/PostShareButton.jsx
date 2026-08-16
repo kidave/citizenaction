@@ -16,12 +16,33 @@ export default function PostShareButton({ post }) {
           title,
           url,
         });
-      } catch (err) {
-        console.log("Share cancelled");
+      } catch (error) {
+        // User cancelled the share dialog.
+        if (error?.name === "AbortError") {
+          return;
+        }
+
+        console.error("Native share failed", {
+          message: error?.message,
+          name: error?.name,
+        });
+
+        toast.error("Unable to share this post.");
       }
-    } else {
+
+      return;
+    }
+
+    try {
       await navigator.clipboard.writeText(url);
-      alert("Link copied to clipboard!");
+      toast.success("Link copied to clipboard.");
+    } catch (error) {
+      console.error("Failed to copy post link", {
+        message: error?.message,
+        name: error?.name,
+      });
+
+      toast.error("Unable to copy the link.");
     }
   };
 

@@ -33,8 +33,14 @@ export default function PostContribution({ post }) {
 
     try {
       await deleteContribution(contribution.id);
-    } catch (err) {
-      console.error(err);
+      toast.success("Contribution deleted");
+    } catch (error) {
+      console.error("Failed to delete contribution", {
+        message: error?.message,
+        code: error?.code,
+      });
+
+      toast.error(error?.message || "Failed to delete contribution");
     }
   }
 

@@ -20,8 +20,6 @@ export function useSpaceMembers({ spaceId, enabled = true }) {
         });
 
       if (error) {
-        console.error(error);
-
         throw error;
       }
 

@@ -272,8 +272,6 @@ export function useCreatePost() {
     // ============================================================
 
     onError: (error) => {
-      console.error(error);
-
       toast.error(error.message ?? "Failed to create post", {
         id: "create-post",
       });

@@ -9,7 +9,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { MediaProvider } from "@/context/MediaContext";
 
 import Layout from "@/components/layout/Layout";
-
+import GoogleOneTap from "@/components/auth/GoogleOneTap";
 import ErrorBoundary from "@/components/system/ErrorBoundary";
 import RouteLoader from "@/components/system/RouteLoader";
 import FloatingMenu from "@/components/layout/FloatingMenu";
@@ -69,6 +69,7 @@ function MyApp({ Component, pageProps }) {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
+            <GoogleOneTap />
             <MediaProvider>
               <Layout>
                 <RouteLoader />

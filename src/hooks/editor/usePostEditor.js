@@ -84,8 +84,13 @@ export function usePostEditor(post = null) {
 
       onSuccess?.();
     } catch (error) {
-      console.error(error);
-      toast.error(error.message || "Something went wrong");
+      console.error("Failed to save post", {
+        message: error?.message,
+        code: error?.code,
+        status: error?.status,
+      });
+
+      toast.error(error?.message || "Something went wrong");
     }
   }
 
@@ -96,8 +101,13 @@ export function usePostEditor(post = null) {
       await deletePost(post.id);
       onSuccess?.();
     } catch (error) {
-      console.error(error);
-      toast.error(error.message);
+      console.error("Failed to delete post", {
+        message: error?.message,
+        code: error?.code,
+        status: error?.status,
+      });
+
+      toast.error(error?.message || "Failed to delete post");
     }
   }
 

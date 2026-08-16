@@ -14,14 +14,6 @@ export default function ImagePicker({ onUpload, disabled = false }) {
   async function handleChange(e) {
     const files = Array.from(e.target.files || []);
 
-    console.log(
-      files.map((f) => ({
-        name: f.name,
-        type: f.type,
-        size: f.size,
-      })),
-    );
-
     if (!files.length) return;
 
     const attachments = await Promise.all(

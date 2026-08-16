@@ -2,13 +2,14 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowBigUpDash, Orbit } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 
 import { useAuth } from "@/context/AuthContext";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
 import {
   Card,
   CardContent,
@@ -23,6 +24,8 @@ export default function AuthCard({
   redirectPath,
   onBack,
   onSuccess,
+  post = null,
+  action = "continue",
 }) {
   const router = useRouter();
 
@@ -31,6 +34,31 @@ export default function AuthCard({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
+
+  const isModal = variant === "modal";
+
+  const actionConfig = {
+    support: {
+      title: "Support this post",
+      icon: ArrowBigUpDash,
+    },
+
+    contribute: {
+      title: "Contribute to this post",
+      description: "Sign in to add your ideas, information, or evidence.",
+      icon: Orbit,
+    },
+
+    continue: {
+      title: "Sign in to continue",
+      description: "Sign in to continue with Citizen Action.",
+      icon: null,
+    },
+  };
+
+  const config = actionConfig[action] || actionConfig.continue;
+
+  const ActionIcon = config.icon;
 
   const handleLogin = async () => {
     setLoading(true);
@@ -55,24 +83,144 @@ export default function AuthCard({
 
       onSuccess?.();
     } catch (err) {
-      setError(err.message || "Failed to sign in");
+      setError(err?.message || "Failed to sign in");
       setLoading(false);
     }
   };
 
+  /*
+   * ------------------------------------------------------------
+   * MODAL
+   * ------------------------------------------------------------
+   */
+
+  if (isModal) {
+    return (
+      <Card className="w-full border-0 shadow-none">
+        <CardHeader className="px-6 pb-2 pt-7 text-center sm:px-8">
+          <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+            {ActionIcon ? (
+              <ActionIcon className="h-5 w-5" />
+            ) : (
+              <span className="text-lg font-semibold">CA</span>
+            )}
+          </div>
+
+          <CardTitle className="text-xl font-semibold">
+            {config.title}
+          </CardTitle>
+
+          <p className="mx-auto max-w-sm text-sm leading-6 text-muted-foreground">
+            {action === "support" && post?.author_name
+              ? `Show ${post.author_name} that you support their action.`
+              : action === "contribute" && post?.author_name
+                ? `Help ${post.author_name} with your ideas, information, or evidence.`
+                : "Sign in to continue with Citizen Action."}
+          </p>
+        </CardHeader>
+
+        <CardContent className="space-y-5 px-6 pb-6 sm:px-8">
+          {post && (
+            <div className="rounded-xl border bg-muted/30 p-4">
+              <div className="flex items-start gap-3">
+                {post.author_avatar ? (
+                  <Image
+                    src={post.author_avatar}
+                    alt={post.author_name || "Author"}
+                    width={40}
+                    height={40}
+                    className="h-10 w-10 shrink-0 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium">
+                    {(post.author_name || "U").charAt(0).toUpperCase()}
+                  </div>
+                )}
+
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium">
+                    {post.author_name || "Citizen"}
+                  </p>
+
+                  {post.title && (
+                    <p className="mt-1 line-clamp-3 text-sm leading-5 text-foreground/80">
+                      {post.title}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+
+          {isDevAuth ? (
+            <div className="space-y-3">
+              <Input
+                type="email"
+                placeholder="Enter email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+              />
+
+              <Button
+                onClick={handleLogin}
+                disabled={loading || !email}
+                className="w-full"
+              >
+                {loading ? "Sending link..." : "Sign in with Email"}
+              </Button>
+            </div>
+          ) : (
+            <Button
+              onClick={handleLogin}
+              disabled={loading}
+              className="flex h-11 w-full items-center justify-center gap-3"
+              variant="outline"
+            >
+              <FcGoogle size={20} />
+
+              {loading ? "Signing in..." : "Continue with Google"}
+            </Button>
+          )}
+
+          <p className="text-center text-xs leading-5 text-muted-foreground">
+            By continuing, you agree to our{" "}
+            <Link
+              href="/auth/privacy"
+              className="underline underline-offset-4 hover:text-primary"
+            >
+              Privacy Policy
+            </Link>
+            .
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  /*
+   * ------------------------------------------------------------
+   * FULL AUTH PAGE
+   * ------------------------------------------------------------
+   */
+
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="relative space-y-4 text-center">
-        {variant === "page" && (
-          <Button
-            variant="secondary"
-            size="icon"
-            onClick={onBack ?? (() => router.back())}
-            className="absolute left-2 top-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        )}
+        <Button
+          variant="secondary"
+          size="icon"
+          onClick={onBack ?? (() => router.back())}
+          className="absolute left-2 top-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
 
         <div className="flex items-center justify-center gap-3">
           <Image
@@ -91,8 +239,6 @@ export default function AuthCard({
             className="h-8 w-auto"
           />
         </div>
-
-        {variant === "modal" && <CardTitle>{message}</CardTitle>}
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -109,7 +255,16 @@ export default function AuthCard({
               placeholder="Enter email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
             />
+
+            <Button
+              onClick={handleLogin}
+              disabled={loading || !email}
+              className="w-full"
+            >
+              {loading ? "Sending link..." : "Sign in with Email"}
+            </Button>
           </>
         ) : (
           <Button
@@ -119,17 +274,8 @@ export default function AuthCard({
             variant="outline"
           >
             <FcGoogle size={20} />
-            {loading ? "Signing in..." : "Continue with Google"}
-          </Button>
-        )}
 
-        {isDevAuth && (
-          <Button
-            onClick={handleLogin}
-            disabled={loading || !email}
-            className="w-full"
-          >
-            {loading ? "Sending link..." : "Sign in with Email"}
+            {loading ? "Signing in..." : "Continue with Google"}
           </Button>
         )}
 

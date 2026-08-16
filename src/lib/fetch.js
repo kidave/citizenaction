@@ -19,22 +19,7 @@ export async function authFetch(url, options = {}) {
     Authorization: `Bearer ${session.access_token}`,
   };
 
-  // Add debug logging
-  console.log("authFetch called with:", {
-    url,
-    method: options.method || "GET",
-    headers,
-    body: options.body,
-    options,
-  });
-
   const response = await fetch(url, { ...options, headers });
-
-  console.log("authFetch response:", {
-    status: response.status,
-    statusText: response.statusText,
-    ok: response.ok,
-  });
 
   if (response.status === 401) {
     await supabase.auth.signOut();

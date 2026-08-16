@@ -45,11 +45,19 @@ export default function LocationSearchInput({
 
         const res = await fetch(`/api/osm?q=${encodeURIComponent(query)}`);
 
+        if (!res.ok) {
+          throw new Error(`Location search failed (${res.status})`);
+        }
+
         const data = await res.json();
 
-        setResults(data || []);
-      } catch (err) {
-        console.error(err);
+        setResults(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.warn("Location search failed", {
+          message: error?.message,
+        });
+
+        setResults([]);
       } finally {
         setLoading(false);
       }

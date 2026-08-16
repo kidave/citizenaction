@@ -22,8 +22,6 @@ export function useDeleteContribution() {
         p_contribution_id: contribution.id,
       });
 
-      console.log(result);
-
       if (result.error) throw result.error;
 
       return true;
@@ -38,7 +36,6 @@ export function useDeleteContribution() {
     },
 
     onError: (error) => {
-      console.error(error);
       toast.error(error.message || "Failed to delete contribution");
     },
   });
