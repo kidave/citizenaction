@@ -5,6 +5,7 @@
 
 @custom-variant dark (&:is(.dark *));
 @custom-variant space (&:is(.space *));
+@custom-variant vintage (&:is(.vintage *));
 
 @theme inline {
   --color-background: var(--background);
@@ -276,6 +277,99 @@
 
   --sidebar-border: 48 25% 88%;
   --sidebar-ring: 47 100% 50%;
+}
+
+.vintage {
+  /* ===========================
+     Core
+     =========================== */
+
+  --background: 44 42.8571% 93.1373%;
+  --foreground: 28.5714 16.5354% 24.902%;
+
+  --card: 42 100% 98.0392%;
+  --card-foreground: 28.5714 16.5354% 24.902%;
+
+  --popover: 42 100% 98.0392%;
+  --popover-foreground: 28.5714 16.5354% 24.902%;
+
+  /* ===========================
+     Brand
+     =========================== */
+
+  --primary: 30 33.871% 48.6275%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 40.6452 34.8315% 82.549%;
+  --secondary-foreground: 28.9655 18.7097% 30.3922%;
+
+  --muted: 39 34.4828% 88.6275%;
+  --muted-foreground: 32.3077 18.4834% 41.3725%;
+
+  --accent: 42.8571 32.8125% 74.902%;
+  --accent-foreground: 28.5714 16.5354% 24.902%;
+
+  /* ===========================
+     States
+     =========================== */
+
+  --destructive: 9.8438 54.7009% 45.8824%;
+  --destructive-foreground: 0 0% 100%;
+
+  --success: 145 63% 45%;
+  --success-foreground: 0 0% 100%;
+
+  --warning: 40 85% 48%;
+  --warning-foreground: 28 20% 15%;
+
+  --info: 210 70% 45%;
+  --info-foreground: 0 0% 100%;
+
+  --alert: 24 75% 50%;
+  --alert-foreground: 0 0% 100%;
+
+  --neutral: 32 10% 50%;
+  --neutral-foreground: 0 0% 100%;
+
+  /* ===========================
+     Borders
+     =========================== */
+
+  --border: 40 31.4286% 79.4118%;
+  --input: 40 31.4286% 79.4118%;
+  --ring: 30 33.871% 48.6275%;
+
+  /* ===========================
+     Charts
+     =========================== */
+
+  --chart-1: 30 33.871% 48.6275%;
+  --chart-2: 31.3846 29.9539% 42.549%;
+  --chart-3: 33.6842 32.948% 33.9216%;
+  --chart-4: 29.1176 30.9091% 56.8627%;
+  --chart-5: 30 33.6842% 62.7451%;
+
+  /* ===========================
+     Sidebar
+     =========================== */
+
+  --sidebar-background: 39 34.4828% 88.6275%;
+  --sidebar-foreground: 28.5714 16.5354% 24.902%;
+
+  --sidebar-primary: 30 33.871% 48.6275%;
+  --sidebar-primary-foreground: 0 0% 100%;
+
+  --sidebar-accent: 42.8571 32.8125% 74.902%;
+  --sidebar-accent-foreground: 28.5714 16.5354% 24.902%;
+
+  --sidebar-border: 40 31.4286% 79.4118%;
+  --sidebar-ring: 30 33.871% 48.6275%;
+
+  /* ===========================
+     Shape
+     =========================== */
+
+  --radius: 0.25rem;
 }
 
 @layer base {

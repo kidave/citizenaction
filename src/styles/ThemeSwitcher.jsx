@@ -34,6 +34,9 @@ export function ThemeSwitcher() {
         <DropdownMenuItem onClick={() => setTheme("space")}>
           Space
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("vintage")}>
+          Vintage
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

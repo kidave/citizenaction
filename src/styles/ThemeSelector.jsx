@@ -26,6 +26,11 @@ const themes = [
     title: "Space",
     description: "Space-themed interface.",
   },
+  {
+    value: "vintage",
+    title: "Vintage",
+    description: "Vitage-style interface.",
+  },
 ];
 
 export function ThemeSelector() {

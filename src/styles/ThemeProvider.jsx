@@ -8,7 +8,7 @@ export default function ThemeProvider({ children }) {
       attribute="class"
       defaultTheme="system"
       enableSystem
-      themes={["light", "dark", "space"]}
+      themes={["light", "dark", "space", "vintage"]}
     >
       {children}
     </NextThemesProvider>
