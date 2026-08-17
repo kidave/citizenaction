@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
-
+import * as React from "react";
 import { format } from "date-fns";
+import { ChevronDownIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-
 import { Calendar } from "@/components/ui/calendar";
 
 import {
@@ -14,126 +13,157 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-export function DateTimePicker({ value, onDateChange, mode = "date" }) {
-  const [open, setOpen] = useState(false);
+export function DateTimePicker({ value, onDateChange, mode = "datetime" }) {
+  const [open, setOpen] = React.useState(false);
+
+  const date = value ? new Date(value) : undefined;
 
   // =====================================================
-  // DATE SELECT
+  // DATE
   // =====================================================
 
-  function handleDateSelect(selected) {
-    if (!selected) return;
+  function handleDateSelect(selectedDate) {
+    if (!selectedDate) return;
 
-    const updated = value ? new Date(value) : new Date();
+    const updated = date ? new Date(date) : new Date();
 
-    // preserve existing time
-    updated.setFullYear(selected.getFullYear());
+    updated.setFullYear(selectedDate.getFullYear());
 
-    updated.setMonth(selected.getMonth());
+    updated.setMonth(selectedDate.getMonth());
 
-    updated.setDate(selected.getDate());
+    updated.setDate(selectedDate.getDate());
 
     onDateChange(updated);
 
-    if (mode === "date") {
-      setOpen(false);
-    }
+    setOpen(false);
   }
 
   // =====================================================
-  // TIME CHANGE
+  // TIME
   // =====================================================
 
-  function handleTimeChange(e) {
-    const [hours, minutes] = e.target.value.split(":");
+  function handleTimeChange(event) {
+    const [hours, minutes] = event.target.value.split(":");
 
-    const updated = value ? new Date(value) : new Date();
+    const updated = date ? new Date(date) : new Date();
 
     updated.setHours(Number(hours));
-
     updated.setMinutes(Number(minutes));
-
     updated.setSeconds(0);
+    updated.setMilliseconds(0);
 
     onDateChange(updated);
   }
 
   // =====================================================
-  // LABEL
+  // DATE LABEL
   // =====================================================
 
-  function getLabel() {
-    if (!value) {
-      if (mode === "date") {
-        return "Pick date";
-      }
-
-      if (mode === "time") {
-        return "Pick time";
-      }
-
-      return "Pick date & time";
+  function getDateLabel() {
+    if (!date) {
+      return "Select date";
     }
 
-    // DATE ONLY
-
-    if (mode === "date") {
-      return format(value, "PPP");
-    }
-
-    // TIME ONLY
-
-    if (mode === "time") {
-      return format(value, "h:mm a");
-    }
-
-    // DATETIME
-
-    return format(value, "PPP h:mm a");
+    return format(date, "PPP");
   }
 
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className="min-w-[220px] justify-start text-left font-normal"
-        >
-          {getLabel()}
-        </Button>
-      </PopoverTrigger>
+  // =====================================================
+  // TIME VALUE
+  // =====================================================
 
-      <PopoverContent className="w-auto space-y-3 p-3" align="start">
-        {/* ================================================= */}
-        {/* CALENDAR */}
-        {/* ================================================= */}
+  function getTimeValue() {
+    if (!date) return "";
 
-        {(mode === "date" || mode === "datetime") && (
+    return format(date, "HH:mm");
+  }
+
+  // =====================================================
+  // DATE ONLY
+  // =====================================================
+
+  if (mode === "date") {
+    return (
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full justify-between font-normal"
+          >
+            {getDateLabel()}
+
+            <ChevronDownIcon className="h-4 w-4 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+
+        <PopoverContent className="w-auto overflow-hidden p-0" align="start">
           <Calendar
             mode="single"
-            selected={value}
+            selected={date}
+            captionLayout="dropdown"
+            defaultMonth={date}
             onSelect={handleDateSelect}
-            initialFocus
           />
-        )}
+        </PopoverContent>
+      </Popover>
+    );
+  }
 
-        {/* ================================================= */}
-        {/* TIME */}
-        {/* ================================================= */}
+  // =====================================================
+  // TIME ONLY
+  // =====================================================
 
-        {(mode === "time" || mode === "datetime") && (
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Time</label>
+  if (mode === "time") {
+    return (
+      <input
+        type="time"
+        value={getTimeValue()}
+        onChange={handleTimeChange}
+        className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+      />
+    );
+  }
 
-            <input
-              type="time"
-              className="min-h-12 w-full appearance-none rounded-md border bg-background px-3 py-2 text-base [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-100"
-              value={value ? format(value, "HH:mm") : ""}
-              onChange={handleTimeChange}
-            />
-          </div>
-        )}
-      </PopoverContent>
-    </Popover>
+  // =====================================================
+  // DATE + TIME
+  // =====================================================
+
+  return (
+    <div className="grid grid-cols-1 gap-3">
+      {/* Date */}
+
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full justify-between font-normal"
+          >
+            {getDateLabel()}
+
+            <ChevronDownIcon className="h-4 w-4 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+
+        <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={date}
+            captionLayout="dropdown"
+            defaultMonth={date}
+            onSelect={handleDateSelect}
+          />
+        </PopoverContent>
+      </Popover>
+
+      {/* Time */}
+
+      <input
+        type="time"
+        value={getTimeValue()}
+        onChange={handleTimeChange}
+        className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+      />
+    </div>
   );
 }
