@@ -12,7 +12,9 @@ export function useContributionEditor(contribution = null, post = null) {
   const editor = useEditor(contribution);
 
   const { createContribution } = useCreateContribution();
+
   const { updateContribution } = useUpdateContribution();
+
   const { deleteContribution } = useDeleteContribution();
 
   async function submit(onSuccess) {
@@ -21,42 +23,52 @@ export function useContributionEditor(contribution = null, post = null) {
       return;
     }
 
+    if (!post?.id) {
+      toast.error("Post ID is missing.");
+      return;
+    }
+
     const data = editor.getEditorData();
 
     const payload = {
-      author_id: data.author_id,
+      title: data.title ?? null,
 
-      title: data.title,
+      content: data.content ?? null,
 
-      content: data.content,
+      contribution_type: contribution?.contribution_type ?? "comment",
 
-      attachments: data.attachments,
+      status: contribution?.status ?? null,
 
-      start_at: data.start_at,
+      attachments: data.attachments ?? [],
 
-      end_at: data.end_at,
+      links: data.links ?? [],
 
-      lat: data.lat,
+      start_at: data.start_at ?? null,
 
-      lng: data.lng,
+      end_at: data.end_at ?? null,
 
-      address: data.address,
+      lat: data.lat ?? null,
 
-      links: data.links,
+      lng: data.lng ?? null,
 
-      metadata: data.metadata,
+      address: data.address ?? null,
+
+      metadata: data.metadata ?? {},
     };
 
     try {
       if (contribution) {
         await updateContribution({
           contributionId: contribution.id,
+
           postId: post.id,
+
           contributionData: payload,
         });
       } else {
         await createContribution({
           postId: post.id,
+
           contributionData: payload,
         });
       }
@@ -74,10 +86,13 @@ export function useContributionEditor(contribution = null, post = null) {
   }
 
   async function remove(onSuccess) {
-    if (!contribution) return;
+    if (!contribution?.id) {
+      return;
+    }
 
     try {
       await deleteContribution(contribution);
+
       onSuccess?.();
     } catch (error) {
       console.error("Failed to delete contribution", {

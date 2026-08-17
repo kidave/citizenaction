@@ -16,63 +16,120 @@ export function useUpdateContribution() {
       let uploadedAttachments = [];
 
       try {
-        if (contributionData.attachments?.length) {
-          const existing = contributionData.attachments.filter(
-            (a) => a.storage_path,
+        // -----------------------------------------
+        // Existing + new attachments
+        // -----------------------------------------
+
+        const existingAttachments =
+          contributionData.attachments?.filter(
+            (attachment) => attachment?.storage_path,
+          ) ?? [];
+
+        const newAttachments =
+          contributionData.attachments?.filter(
+            (attachment) => !attachment?.storage_path,
+          ) ?? [];
+
+        // -----------------------------------------
+        // Upload new files
+        // -----------------------------------------
+
+        if (newAttachments.length) {
+          uploadedAttachments = await uploadPostAttachments(
+            postId,
+            newAttachments,
           );
-
-          const fresh = contributionData.attachments.filter(
-            (a) => !a.storage_path,
-          );
-
-          const uploaded = fresh.length
-            ? await uploadPostAttachments(postId, fresh)
-            : [];
-
-          uploadedAttachments = [...existing, ...uploaded];
         }
 
-        const { data, error } = await supabase.rpc("update_contribution", {
-          p_contribution_id: contributionId,
+        const finalAttachments = [
+          ...existingAttachments,
+          ...uploadedAttachments,
+        ];
 
-          p_title: contributionData.title,
+        // -----------------------------------------
+        // Update contribution
+        // -----------------------------------------
 
-          p_content: contributionData.content,
+        const { data: contribution, error: contributionError } =
+          await supabase.rpc("update_contribution", {
+            p_contribution_id: contributionId,
 
-          p_metadata: contributionData.metadata ?? {},
+            p_title: contributionData.title ?? null,
 
-          p_start_at: contributionData.start_at ?? null,
+            p_content: contributionData.content ?? null,
 
-          p_end_at: contributionData.end_at ?? null,
+            p_contribution_type:
+              contributionData.contribution_type ?? "comment",
 
-          p_lat: contributionData.lat ?? null,
+            p_status: contributionData.status ?? null,
 
-          p_lng: contributionData.lng ?? null,
+            p_metadata: contributionData.metadata ?? {},
 
-          p_address: contributionData.address ?? null,
+            p_start_at: contributionData.start_at ?? null,
 
-          p_links: contributionData.links ?? null,
+            p_end_at: contributionData.end_at ?? null,
 
-          p_status: contributionData.status ?? null,
+            p_lat: contributionData.lat ?? null,
 
-          p_attachments: uploadedAttachments,
-        });
+            p_lng: contributionData.lng ?? null,
 
-        if (error) throw error;
+            p_address: contributionData.address ?? null,
+          });
 
-        return data;
-      } catch (error) {
-        const newUploads = uploadedAttachments.filter((attachment) =>
-          contributionData.attachments?.find(
-            (a) => !a.storage_path && a.file?.name === attachment.file_name,
-          ),
+        if (contributionError) {
+          throw contributionError;
+        }
+
+        // -----------------------------------------
+        // Replace attachments
+        // -----------------------------------------
+
+        const { error: attachmentError } = await supabase.rpc(
+          "upsert_contribution_attachments",
+          {
+            p_contribution_id: contributionId,
+            p_attachments: finalAttachments,
+          },
         );
 
-        if (newUploads.length) {
+        if (attachmentError) {
+          throw attachmentError;
+        }
+
+        // -----------------------------------------
+        // Replace links
+        // -----------------------------------------
+
+        const { error: linkError } = await supabase.rpc(
+          "upsert_contribution_links",
+          {
+            p_contribution_id: contributionId,
+            p_links: contributionData.links ?? [],
+          },
+        );
+
+        if (linkError) {
+          throw linkError;
+        }
+
+        return contribution;
+      } catch (error) {
+        // -----------------------------------------
+        // Roll back newly uploaded files
+        // -----------------------------------------
+
+        if (uploadedAttachments.length) {
           try {
-            await deletePostAttachments(newUploads.map((a) => a.storage_path));
+            await deletePostAttachments(
+              uploadedAttachments
+                .map((attachment) => attachment.storage_path)
+                .filter(Boolean),
+            );
           } catch (rollbackError) {
-            console.error("Attachment rollback failed", rollbackError);
+            console.error(
+              "Contribution attachment rollback failed",
+              rollbackError,
+            );
           }
         }
 
@@ -82,15 +139,16 @@ export function useUpdateContribution() {
 
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["post-contributions", variables.postId],
+        queryKey: ["contribution", variables.postId],
       });
 
       toast.success("Contribution updated successfully");
     },
 
     onError: (error) => {
-      console.error(error);
-      toast.error(error.message || "Failed to update contribution");
+      console.error("Failed to update contribution", error);
+
+      toast.error(error?.message || "Failed to update contribution");
     },
   });
 

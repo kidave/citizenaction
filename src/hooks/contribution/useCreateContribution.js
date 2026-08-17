@@ -16,6 +16,10 @@ export function useCreateContribution() {
       let uploadedAttachments = [];
 
       try {
+        // -----------------------------------------
+        // Upload files first
+        // -----------------------------------------
+
         if (contributionData.attachments?.length) {
           uploadedAttachments = await uploadPostAttachments(
             postId,
@@ -23,47 +27,98 @@ export function useCreateContribution() {
           );
         }
 
-        const { data, error } = await supabase.rpc("publish_contribution", {
-          p_post_id: postId,
+        // -----------------------------------------
+        // Create contribution
+        // -----------------------------------------
 
-          p_title: contributionData.title,
+        const { data: contribution, error: contributionError } =
+          await supabase.rpc("create_contribution", {
+            p_post_id: postId,
 
-          p_content: contributionData.content,
+            p_title: contributionData.title ?? null,
 
-          p_metadata: contributionData.metadata ?? {},
+            p_content: contributionData.content ?? null,
 
-          p_start_at: contributionData.start_at ?? null,
+            p_contribution_type:
+              contributionData.contribution_type ?? "comment",
 
-          p_end_at: contributionData.end_at ?? null,
+            p_status: contributionData.status ?? null,
 
-          p_lat: contributionData.lat ?? null,
+            p_metadata: contributionData.metadata ?? {},
 
-          p_lng: contributionData.lng ?? null,
+            p_start_at: contributionData.start_at ?? null,
 
-          p_address: contributionData.address ?? null,
+            p_end_at: contributionData.end_at ?? null,
 
-          p_links: contributionData.links ?? null,
+            p_lat: contributionData.lat ?? null,
 
-          p_guest_name: contributionData.guest_name ?? null,
+            p_lng: contributionData.lng ?? null,
 
-          p_contribution_type: contributionData.contribution_type ?? "comment",
+            p_address: contributionData.address ?? null,
+          });
 
-          p_status: contributionData.status ?? null,
+        if (contributionError) {
+          throw contributionError;
+        }
 
-          p_attachments: uploadedAttachments,
-        });
+        if (!contribution?.id) {
+          throw new Error("Contribution was not created");
+        }
 
-        if (error) throw error;
+        // -----------------------------------------
+        // Attachments
+        // -----------------------------------------
 
-        return data;
+        if (uploadedAttachments.length) {
+          const { error: attachmentError } = await supabase.rpc(
+            "upsert_contribution_attachments",
+            {
+              p_contribution_id: contribution.id,
+              p_attachments: uploadedAttachments,
+            },
+          );
+
+          if (attachmentError) {
+            throw attachmentError;
+          }
+        }
+
+        // -----------------------------------------
+        // Links
+        // -----------------------------------------
+
+        if (contributionData.links?.length) {
+          const { error: linkError } = await supabase.rpc(
+            "upsert_contribution_links",
+            {
+              p_contribution_id: contribution.id,
+              p_links: contributionData.links,
+            },
+          );
+
+          if (linkError) {
+            throw linkError;
+          }
+        }
+
+        return contribution;
       } catch (error) {
+        // -----------------------------------------
+        // Roll back uploaded storage files
+        // -----------------------------------------
+
         if (uploadedAttachments.length) {
           try {
             await deletePostAttachments(
-              uploadedAttachments.map((a) => a.storage_path),
+              uploadedAttachments
+                .map((attachment) => attachment.storage_path)
+                .filter(Boolean),
             );
           } catch (rollbackError) {
-            console.error("Attachment rollback failed", rollbackError);
+            console.error(
+              "Contribution attachment rollback failed",
+              rollbackError,
+            );
           }
         }
 
@@ -73,15 +128,16 @@ export function useCreateContribution() {
 
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["post-contributions", variables.postId],
+        queryKey: ["contribution", variables.postId],
       });
 
       toast.success("Contribution published successfully");
     },
 
     onError: (error) => {
-      console.error(error);
-      toast.error(error.message || "Failed to publish contribution");
+      console.error("Failed to create contribution", error);
+
+      toast.error(error?.message || "Failed to publish contribution");
     },
   });
 

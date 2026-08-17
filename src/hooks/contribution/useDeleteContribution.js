@@ -10,33 +10,50 @@ export function useDeleteContribution() {
 
   const mutation = useMutation({
     mutationFn: async (contribution) => {
+      if (!contribution?.id) {
+        throw new Error("Contribution ID is required");
+      }
+
+      // -----------------------------------------
+      // Delete storage files
+      // -----------------------------------------
+
       const paths =
-        contribution.attachments?.map((a) => a.storage_path).filter(Boolean) ??
-        [];
+        contribution.attachments
+          ?.map((attachment) => attachment?.storage_path)
+          .filter(Boolean) ?? [];
 
       if (paths.length) {
         await deletePostAttachments(paths);
       }
 
-      const result = await supabase.rpc("delete_contribution", {
+      // -----------------------------------------
+      // Delete contribution
+      // -----------------------------------------
+
+      const { error } = await supabase.rpc("delete_contribution", {
         p_contribution_id: contribution.id,
       });
 
-      if (result.error) throw result.error;
+      if (error) {
+        throw error;
+      }
 
       return true;
     },
 
     onSuccess: (_, contribution) => {
       queryClient.invalidateQueries({
-        queryKey: ["post-contributions", contribution.post_id],
+        queryKey: ["contribution", contribution.post_id],
       });
 
       toast.success("Contribution deleted successfully");
     },
 
     onError: (error) => {
-      toast.error(error.message || "Failed to delete contribution");
+      console.error("Failed to delete contribution", error);
+
+      toast.error(error?.message || "Failed to delete contribution");
     },
   });
 

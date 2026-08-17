@@ -14,9 +14,13 @@ export function useContribution(postId) {
         p_post_id: postId,
       });
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
       return data || [];
     },
+
+    staleTime: 1000 * 60 * 5,
   });
 }
