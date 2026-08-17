@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Orbit, ArrowBigUpDash } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
@@ -184,13 +185,27 @@ export default function PostFooter({ post, queryKey, forceExpanded = false }) {
     <>
       <TooltipProvider>
         <div className="flex items-center justify-between text-sm text-muted-foreground">
+          {/* ----------------------------------------
+              Contributors
+          ----------------------------------------- */}
+
           <div className="flex items-center gap-2">
             {contributorCount > 0 && (
-              <Button onClick={handleContributors} variant="ghost">
+              <div
+                onClick={(event) => {
+                  // Prevent the post/card click handler
+                  // from seeing avatar-group clicks.
+                  event.stopPropagation();
+                }}
+              >
                 <ContributorAvatarGroup contributors={contributors} />
-              </Button>
+              </div>
             )}
           </div>
+
+          {/* ----------------------------------------
+              Actions
+          ----------------------------------------- */}
 
           <div className="flex items-center">
             <Tooltip>

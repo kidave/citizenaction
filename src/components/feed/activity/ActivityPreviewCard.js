@@ -12,7 +12,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 import AutoImageCarousel from "@/components/attachment/AutoImageCarousel";
-import GovernanceAvatarGroups from "@/components/governance/GovernanceAvatarGroups";
+import GovernanceAvatarGroup from "@/components/governance/GovernanceAvatarGroup";
 
 const typeStyles = {
   action: "bg-gradient-to-br from-red-100 to-red-50",
@@ -126,7 +126,7 @@ export default function ActivityPreviewCard({ post }) {
 
         {/* GOVERNANCE */}
 
-        <GovernanceAvatarGroups authorities={post.governance ?? []} />
+        <GovernanceAvatarGroup authorities={post.governance ?? []} />
       </CardContent>
 
       {/* =====================================================
@@ -174,7 +174,7 @@ export default function ActivityPreviewCard({ post }) {
 
           {/* GOVERNANCE */}
 
-          <GovernanceAvatarGroups authorities={post.governance ?? []} />
+          <GovernanceAvatarGroup authorities={post.governance ?? []} />
         </CardContent>
       </motion.div>
     </Card>

@@ -5,7 +5,7 @@ import MenuButton from "@/components/ui/MenuButton";
 import formatDate from "@/utils/date/formatDate";
 import Image from "next/image";
 import Link from "next/link";
-import GovernanceAvatarGroups from "@/components/governance/GovernanceAvatarGroups";
+import GovernanceAvatarGroup from "@/components/governance/GovernanceAvatarGroup";
 
 export default function PostHeader({ post, canEdit, onEdit, onDelete }) {
   const formattedDate = formatDate(post.created_at);
@@ -35,7 +35,7 @@ export default function PostHeader({ post, canEdit, onEdit, onDelete }) {
               />
             </Link>
           )}
-          <GovernanceAvatarGroups authorities={governance} />
+          <GovernanceAvatarGroup authorities={governance} />
         </div>
 
         {canEdit && (
