@@ -1,14 +1,19 @@
 "use client";
 
 import { useRouter } from "next/router";
+import { Settings } from "lucide-react";
+
+import { useAuth } from "@/context/AuthContext";
+
+import { useSpaces } from "@/hooks/space/useSpaces";
 
 import BackButton from "@/components/ui/back-button";
+import { Button } from "@/components/ui/button";
+
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import PageHeaderSkeleton from "@/components/skeletons/PageHeaderSkeleton";
 import MetaCardsSkeleton from "@/components/skeletons/MetaCardsSkeleton";
-
-import { useSpaces } from "@/hooks/space/useSpaces";
 
 import MembersTab from "@/components/tabs/MembersTab";
 import ActivityTab from "@/components/tabs/ActivityTab";
@@ -16,6 +21,8 @@ import OverviewTab from "@/components/tabs/OverviewTab";
 
 export default function SpacePage() {
   const router = useRouter();
+
+  const { user } = useAuth();
 
   const { space: slug, tab } = router.query;
 
@@ -32,20 +39,29 @@ export default function SpacePage() {
 
   const base = `/space/${slug}`;
 
+  /* ========================================
+     LOADING
+  ======================================== */
+
   if (isLoading) {
     return (
       <div className="mx-auto max-w-6xl space-y-4 p-4">
-        {" "}
-        <PageHeaderSkeleton /> <MetaCardsSkeleton />{" "}
+        <PageHeaderSkeleton />
+
+        <MetaCardsSkeleton />
       </div>
     );
   }
 
+  /* ========================================
+     ERROR
+  ======================================== */
+
   if (error || !space) {
     return (
       <div className="mx-auto max-w-6xl py-16 text-center">
-        {" "}
         <h2 className="text-xl font-semibold">Space not found</h2>
+
         <p className="mt-2 text-muted-foreground">
           The requested space does not exist.
         </p>
@@ -53,15 +69,65 @@ export default function SpacePage() {
     );
   }
 
+  /* ========================================
+     SPACE PERMISSIONS
+  ======================================== */
+
+  /*
+   * Owner is determined from the Space itself.
+   */
+
+  const isOwner = user?.id === space.owner_user_id;
+
+  /*
+   * Space admin is determined from the
+   * current user's membership.
+   */
+
+  const isAdmin = space.current_user_role === "admin";
+
+  /*
+   * Both owners and Space admins can access
+   * the Space administration page.
+   */
+
+  const canManage = isOwner || isAdmin;
+
   return (
     <div className="mx-auto max-w-6xl">
+      {/* ======================================
+          HEADER
+      ====================================== */}
+
       <div className="sticky top-0 z-40 border-b bg-background backdrop-blur">
         <div className="flex h-14 items-center gap-3 px-4 sm:h-16">
           <BackButton />
 
-          <h1 className="truncate font-semibold sm:text-lg">{space.name}</h1>
+          <h1 className="min-w-0 flex-1 truncate font-semibold sm:text-lg">
+            {space.name}
+          </h1>
+
+          {/* ==================================
+              SPACE ADMINISTRATION
+          ================================== */}
+
+          {canManage && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="shrink-0"
+              aria-label="Space administration"
+              onClick={() => router.push(`/space/${space.slug}/admin`)}
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
+
+      {/* ======================================
+          TABS
+      ====================================== */}
 
       <div className="sticky top-14 z-30 p-2 sm:top-16">
         <Tabs value={activeTab}>
@@ -93,15 +159,31 @@ export default function SpacePage() {
         </Tabs>
       </div>
 
+      {/* ======================================
+          CONTENT
+      ====================================== */}
+
       <div className="mx-4 space-y-4 p-4">
         <Tabs value={activeTab}>
+          {/* ==================================
+              OVERVIEW
+          ================================== */}
+
           <TabsContent value="overview">
             <OverviewTab space={space} />
           </TabsContent>
 
+          {/* ==================================
+              MEMBERS
+          ================================== */}
+
           <TabsContent value="members">
             <MembersTab spaceId={space.id} spaceSlug={space.slug} />
           </TabsContent>
+
+          {/* ==================================
+              ACTIVITY
+          ================================== */}
 
           <TabsContent value="activity">
             <ActivityTab spaceId={space.id} />
