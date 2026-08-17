@@ -16,33 +16,8 @@ import { useAuth } from "@/context/AuthContext";
 
 import BackButton from "@/components/ui/back-button";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
-
-import { Badge } from "@/components/ui/badge";
-
-/* ========================================
-   STATUS CONFIG
-======================================== */
-
-const STATUS_CONFIG = {
-  pending: {
-    label: "Pending Review",
-    icon: Clock3,
-    className: "bg-amber-100 text-amber-900 border-amber-300",
-  },
-
-  approved: {
-    label: "Approved",
-    icon: CheckCircle2,
-    className: "bg-green-100 text-green-900 border-green-300",
-  },
-
-  rejected: {
-    label: "Rejected",
-    icon: XCircle,
-    className: "bg-red-100 text-red-900 border-red-300",
-  },
-};
 
 /* ========================================
    PAGE
@@ -73,8 +48,18 @@ export default function SpaceApplicationPage() {
 
       const { data, error } = await supabase
         .from("space_application")
-        .select("*")
+        .select(
+          `
+          *,
+          official_category:category_id (
+            id,
+            name,
+            slug
+          )
+        `,
+        )
         .eq("id", id)
+        .eq("applicant_user_id", user.id)
         .single();
 
       if (error || !data) {
@@ -135,9 +120,11 @@ export default function SpaceApplicationPage() {
     );
   }
 
-  const status = STATUS_CONFIG[application.status] || STATUS_CONFIG.pending;
+  /* ======================================
+     STATUS
+  ====================================== */
 
-  const StatusIcon = status.icon;
+  const status = application.status;
 
   /* ======================================
      PAGE
@@ -161,21 +148,20 @@ export default function SpaceApplicationPage() {
               HERO
           ================================== */}
 
-          <Card className="overflow-hidden rounded-[32px] border-4 bg-gradient-to-br from-primary/10 via-background to-pink-100">
+          <Card className="overflow-hidden rounded-[32px] border-4">
             <CardContent className="space-y-6 p-8">
               <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 rounded-full border-2 bg-background px-4 py-2 text-sm font-medium">
-                  <Building2 className="h-4 w-4" />
-                  Civic Space Application
-                </div>
-
                 <div>
                   <h1 className="text-4xl tracking-tight">
                     Application Submitted
                   </h1>
 
                   <p className="mt-2 text-muted-foreground">
-                    Your application is currently under review.
+                    {status === "approved"
+                      ? "Your Space application has been approved."
+                      : status === "rejected"
+                        ? "Your Space application was not approved."
+                        : "Your application is currently under review."}
                   </p>
                 </div>
               </div>
@@ -188,24 +174,24 @@ export default function SpaceApplicationPage() {
 
           <Card className="rounded-[32px] border-4">
             <CardContent className="space-y-8 p-8">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <div className="text-sm text-muted-foreground">
-                    Application Reference
-                  </div>
+              {/* ==============================
+                  STATUS
+              ============================== */}
 
-                  <div className="mt-1 text-3xl tracking-tight">
-                    #{application.id.slice(0, 8).toUpperCase()}
-                  </div>
+              <ApplicationStatus status={status} />
+
+              {/* ==============================
+                  APPLICATION REFERENCE
+              ============================== */}
+
+              <div>
+                <div className="text-sm text-muted-foreground">
+                  Application Reference
                 </div>
 
-                <Badge
-                  className={`flex items-center gap-2 rounded-full border-2 px-4 py-2 text-sm ${status.className} `}
-                >
-                  <StatusIcon className="h-4 w-4" />
-
-                  {status.label}
-                </Badge>
+                <div className="mt-1 text-3xl tracking-tight">
+                  #{application.id.slice(0, 8).toUpperCase()}
+                </div>
               </div>
 
               {/* ==============================
@@ -224,7 +210,17 @@ export default function SpaceApplicationPage() {
                 />
 
                 {application.category && (
-                  <InfoItem label="Category" value={application.category} />
+                  <InfoItem
+                    label="What you told us you stand for"
+                    value={application.category}
+                  />
+                )}
+
+                {application.official_category && (
+                  <InfoItem
+                    label="Official Citizen Action category"
+                    value={application.official_category.name}
+                  />
                 )}
 
                 <InfoItem
@@ -241,32 +237,112 @@ export default function SpaceApplicationPage() {
                   MESSAGE
               ============================== */}
 
-              <div className="rounded-3xl border-2 bg-muted/40 p-5">
-                <div className="font-semibold">What happens next?</div>
+              {status === "pending" && (
+                <div className="rounded-3xl border bg-muted/40 p-5">
+                  <div className="font-semibold">What happens next?</div>
 
-                <div className="mt-2 text-sm text-muted-foreground">
-                  Our team reviews applications to ensure spaces represent
-                  genuine civic initiatives, organizations, or community
-                  efforts.
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    Our team reviews applications to ensure spaces represent
+                    genuine civic initiatives, organizations, or community
+                    efforts.
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {status === "approved" && (
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    href={`/space/${application.proposed_slug}`}
+                    className="shadow-xs inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                  >
+                    Visit your Space
+                  </Link>
+                </div>
+              )}
+
+              {status === "rejected" && application.admin_notes && (
+                <div className="rounded-3xl border bg-muted/40 p-5">
+                  <div className="font-semibold">Review notes</div>
+
+                  <div className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
+                    {application.admin_notes}
+                  </div>
+                </div>
+              )}
 
               {/* ==============================
                   CTA
               ============================== */}
 
-              <div className="flex flex-wrap gap-3">
-                <Link href="/">
-                  <div className="rounded-2xl border-2 bg-background px-5 py-3 font-medium transition hover:-translate-y-0.5">
+              {status !== "approved" && (
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    href="/"
+                    className="shadow-xs inline-flex items-center justify-center rounded-md border bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+                  >
                     Explore Feed
-                  </div>
-                </Link>
-              </div>
+                  </Link>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
       </div>
     </>
+  );
+}
+
+/* ========================================
+   APPLICATION STATUS
+======================================== */
+
+function ApplicationStatus({ status }) {
+  if (status === "approved") {
+    return (
+      <Alert variant="success" className="flex items-start gap-3">
+        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
+
+        <div className="space-y-1">
+          <AlertTitle>Application approved</AlertTitle>
+
+          <AlertDescription>
+            Your Space has been approved. You can now visit your Space and start
+            using it.
+          </AlertDescription>
+        </div>
+      </Alert>
+    );
+  }
+
+  if (status === "rejected") {
+    return (
+      <Alert variant="destructive" className="flex items-start gap-3">
+        <XCircle className="mt-0.5 h-5 w-5 shrink-0" />
+
+        <div className="space-y-1">
+          <AlertTitle>Application rejected</AlertTitle>
+
+          <AlertDescription>
+            Your application was not approved by the Citizen Action team.
+          </AlertDescription>
+        </div>
+      </Alert>
+    );
+  }
+
+  return (
+    <Alert variant="warning" className="flex items-start gap-3">
+      <Clock3 className="mt-0.5 h-5 w-5 shrink-0" />
+
+      <div className="space-y-1">
+        <AlertTitle>Pending review</AlertTitle>
+
+        <AlertDescription>
+          Your application has been submitted and is waiting for review by the
+          Citizen Action team.
+        </AlertDescription>
+      </div>
+    </Alert>
   );
 }
 

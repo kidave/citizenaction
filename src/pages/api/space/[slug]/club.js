@@ -36,14 +36,11 @@ export default async function handler(req, res) {
     } = await supabase.auth.getUser(accessToken);
 
     if (authError || !user) {
-      console.error("Auth error:", authError);
       return res.status(401).json({
         error: "You must be logged in to create a club",
         details: authError?.message || "Invalid authentication token",
       });
     }
-
-    console.log("Authenticated user:", user.email);
 
     // Get space
     const { data: space, error: spaceError } = await supabase
@@ -53,7 +50,6 @@ export default async function handler(req, res) {
       .single();
 
     if (spaceError || !space) {
-      console.error("Space error:", spaceError);
       return res.status(404).json({ error: "Space not found" });
     }
 
@@ -161,9 +157,6 @@ export default async function handler(req, res) {
       .single();
 
     if (ccError) {
-      // If club fails, try club table
-      console.log("club insert failed, trying club table:", ccError.message);
-
       const { data: regularClub, error: cError } = await supabase
         .from("club")
         .insert({

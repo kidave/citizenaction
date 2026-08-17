@@ -8,11 +8,15 @@ export const spaceApplicationSchema = z.object({
     .min(3)
     .regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers and hyphens"),
 
-  category: z.string().optional(),
+  category: z
+    .string()
+    .trim()
+    .min(3, "Tell us what this Space stands for")
+    .max(500, "Please keep this under 500 characters"),
 
   email: z.string().email("Invalid email address"),
 
-  contact_number: z.string().min(7),
+  contact_number: z.string().min(7, "Invalid contact number"),
 
   address: z.string().optional(),
 
@@ -20,7 +24,7 @@ export const spaceApplicationSchema = z.object({
 
   description: z.string().min(20, "Please add a short description"),
 
-  justification: z.string().min(20, "Tell us why this space should exist"),
+  justification: z.string().min(20, "Tell us why this Space should exist"),
 
   social_links: z
     .array(

@@ -140,7 +140,7 @@ export default function ApplySpace() {
       }
 
       toast.success("Application submitted successfully");
-      router.push(`/space/application/${data.id}`);
+      router.push(`/application/space/${data.id}`);
     } catch (err) {
       toast.error("Something went wrong");
     }
@@ -372,7 +372,8 @@ export default function ApplySpace() {
                       key={index}
                       type="button"
                       onClick={() => removeSocialLink(index)}
-                      className="rounded-full border-2 bg-muted px-3 py-1.5 text-sm transition hover:bg-destructive hover:text-white"
+                      className="rounded-full"
+                      variant="outline"
                     >
                       {social.platform}: {social.value}
                     </Button>

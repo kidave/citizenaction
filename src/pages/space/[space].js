@@ -100,7 +100,7 @@ export default function SpacePage() {
           </TabsContent>
 
           <TabsContent value="members">
-            <MembersTab spaceId={space.id} />
+            <MembersTab spaceId={space.id} spaceSlug={space.slug} />
           </TabsContent>
 
           <TabsContent value="activity">
