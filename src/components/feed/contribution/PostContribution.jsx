@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 
 import ContributionCard from "@/components/feed/contribution/ContributionCard";
 import EditorModal from "@/components/feed/editor/EditorModal";
@@ -8,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
 import { useDeleteContribution } from "@/hooks/contribution/useDeleteContribution";
-import { usePostContribution } from "@/hooks/feed/usePostContribution";
+import { useContribution } from "@/hooks/feed/useContribution";
 
 export default function PostContribution({ post }) {
   const { user } = useAuth();
@@ -22,17 +23,20 @@ export default function PostContribution({ post }) {
     data: contributions = [],
     isLoading,
     error,
-  } = usePostContribution(post?.id);
+  } = useContribution(post?.id);
 
   if (!post?.id) return null;
 
-  const myContribution = contributions.find((c) => c.author_id === user?.id);
+  const myContribution = contributions.find(
+    (contribution) => contribution.author_id === user?.id,
+  );
 
   async function handleDelete(contribution) {
     if (!confirm("Delete this contribution?")) return;
 
     try {
       await deleteContribution(contribution.id);
+
       toast.success("Contribution deleted");
     } catch (error) {
       console.error("Failed to delete contribution", {

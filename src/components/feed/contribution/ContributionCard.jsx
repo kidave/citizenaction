@@ -1,7 +1,5 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
-
 import { UserIdentity } from "@/components/profile/UserIdentity";
 import formatDate from "@/utils/date/formatDate";
 import PostActions from "@/components/feed/post/PostActions";
@@ -18,6 +16,7 @@ export default function ContributionCard({
   onDelete,
 }) {
   if (!contribution) return null;
+
   const formattedDate = formatDate(contribution.created_at);
 
   return (
@@ -27,9 +26,9 @@ export default function ContributionCard({
 
         <div className="flex items-start justify-between gap-3">
           <UserIdentity
-            username={contribution.username}
-            name={contribution.name}
-            avatar={contribution.avatar_url}
+            username={contribution.author_username}
+            name={contribution.author_name}
+            avatar={contribution.author_avatar}
             createdAt={formattedDate}
           />
 
@@ -58,6 +57,8 @@ export default function ContributionCard({
           forceExpanded
           showBadge={false}
         />
+
+        {/* Metadata */}
 
         <PostMetadata
           post={{
