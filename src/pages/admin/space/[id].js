@@ -281,7 +281,7 @@ export default function SpaceApplicationAdminPage() {
           ================================== */}
 
           <Button variant="ghost" asChild className="px-0">
-            <Link href="/admin/application/space">
+            <Link href="/admin?tab=applications">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to applications
             </Link>
