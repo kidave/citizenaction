@@ -32,24 +32,31 @@ export default function GoogleOneTap() {
     router.pathname === "/auth/privacy";
 
   const initializeOneTap = useCallback(async () => {
-    if (shouldSkip) return;
-
-    if (!window.google?.accounts?.id) {
-      console.warn("Google Identity Services is not available.");
+    if (shouldSkip) {
       return;
     }
 
-    if (!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
+    if (!window.google?.accounts?.id) {
+      console.warn("Google Identity Services is not available yet.");
+      return;
+    }
+
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
+    if (!clientId) {
       console.error("NEXT_PUBLIC_GOOGLE_CLIENT_ID is not configured.");
       return;
     }
 
     try {
+      /*
+       * Don't show One Tap to users who are already
+       * authenticated with Citizen Action.
+       */
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
-      // Don't show One Tap to authenticated users.
       if (session) {
         return;
       }
@@ -58,13 +65,14 @@ export default function GoogleOneTap() {
       const hashedNonce = await hashNonce(nonce);
 
       window.google.accounts.id.initialize({
-        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+        client_id: clientId,
 
         nonce: hashedNonce,
 
         callback: async (response) => {
           try {
             if (!response?.credential) {
+              console.warn("Google One Tap returned no credential.");
               return;
             }
 
@@ -83,19 +91,37 @@ export default function GoogleOneTap() {
               return;
             }
 
-            // AuthContext should receive the session
-            // through supabase.auth.onAuthStateChange().
+            /*
+             * AuthContext receives the new session through
+             * Supabase's onAuthStateChange listener.
+             */
           } catch (error) {
             console.error("Google One Tap authentication failed", {
               message: error?.message,
             });
           }
         },
-
-        use_fedcm_for_prompt: true,
       });
 
-      window.google.accounts.id.prompt();
+      /*
+       * Ask Google to display One Tap.
+       *
+       * The callback is intentionally only used for
+       * diagnostics. With FedCM, Google controls much
+       * of the prompt lifecycle and some old display
+       * notifications are unavailable.
+       */
+      window.google.accounts.id.prompt((notification) => {
+        if (notification?.isSkippedMoment?.()) {
+          console.info("Google One Tap was skipped.");
+        }
+
+        if (notification?.isDismissedMoment?.()) {
+          console.info("Google One Tap was dismissed.", {
+            reason: notification.getDismissedReason?.(),
+          });
+        }
+      });
     } catch (error) {
       console.error("Failed to initialize Google One Tap", {
         message: error?.message,
@@ -109,7 +135,12 @@ export default function GoogleOneTap() {
       return;
     }
 
-    // Google script may already be loaded.
+    /*
+     * If GIS has already loaded, initialize immediately.
+     *
+     * Otherwise, the Next.js Script onLoad handler below
+     * will initialize it when the script finishes loading.
+     */
     if (window.google?.accounts?.id) {
       initializeOneTap();
     }

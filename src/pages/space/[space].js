@@ -45,7 +45,7 @@ export default function SpacePage() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-6xl space-y-4 p-4">
+      <div className="mx-auto max-w-6xl space-y-4 p-2">
         <PageHeaderSkeleton />
 
         <MetaCardsSkeleton />
@@ -131,7 +131,7 @@ export default function SpacePage() {
 
       <div className="sticky top-14 z-30 p-2 sm:top-16">
         <Tabs value={activeTab}>
-          <TabsList className="mx-6 flex w-auto">
+          <TabsList className="flex w-auto">
             <TabsTrigger
               value="overview"
               onClick={() => router.push(base)}
@@ -163,7 +163,7 @@ export default function SpacePage() {
           CONTENT
       ====================================== */}
 
-      <div className="mx-4 space-y-4 p-4">
+      <div className="space-y-4 p-2">
         <Tabs value={activeTab}>
           {/* ==================================
               OVERVIEW

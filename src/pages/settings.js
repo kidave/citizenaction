@@ -43,8 +43,8 @@ export default function SettingsPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={changeTab}>
-        <div className="sticky top-14 z-30 overflow-x-auto p-2 sm:top-16">
-          <TabsList className="mx-6 flex w-max">
+        <div className="sticky top-14 z-30 flex justify-center overflow-x-auto p-2 sm:top-16">
+          <TabsList className="flex w-max">
             <TabsTrigger value="account" className="flex-1">
               Account
             </TabsTrigger>
@@ -71,9 +71,11 @@ export default function SettingsPage() {
           </TabsList>
         </div>
 
-        <div className="mx-4 space-y-4 sm:p-4">
+        <div className="w-full px-4 py-6">
           <TabsContent value="account">
-            <EditProfile />
+            <div className="mx-auto w-full max-w-lg">
+              <EditProfile />
+            </div>
           </TabsContent>
 
           <TabsContent value="appearance">

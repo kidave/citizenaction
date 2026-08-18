@@ -37,7 +37,7 @@ export default function RightSidebar() {
             <span className="font-medium text-foreground">Walking Project</span>{" "}
             under{" "}
             <span className="font-medium text-foreground">
-              Mumbai Sustainability Center
+              Mumbai Sustainability Center{" "}
             </span>
             focused on walkability.
           </SidebarGroupContent>

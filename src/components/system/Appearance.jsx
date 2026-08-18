@@ -41,6 +41,10 @@ export default function Appearance() {
           <RadioGroupItem value="space" id="space" />
           <Label htmlFor="space">Space</Label>
         </div>
+        <div className="flex items-center gap-3">
+          <RadioGroupItem value="vintage" id="vintage" />
+          <Label htmlFor="vintage">Vintage</Label>
+        </div>
       </RadioGroup>
     </article>
   );

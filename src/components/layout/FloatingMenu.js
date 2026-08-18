@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { AnimatePresence, motion } from "framer-motion";
-import { Home, Settings, Menu, X, User } from "lucide-react";
+import { Home, Settings, Menu, X, PanelLeft } from "lucide-react";
 
 import InstallAppButton from "@/components/layout/InstallAppButton";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,7 @@ export default function FloatingMenu() {
       },
     },
     {
-      icon: user ? User : Menu,
+      icon: PanelLeft,
       label: user ? "Profile" : "Menu",
       onClick: () => {
         toggleSidebar();

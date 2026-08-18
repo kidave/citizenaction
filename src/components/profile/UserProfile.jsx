@@ -2,20 +2,24 @@
 
 import { useState } from "react";
 
-import { useRouter } from "next/router";
 import Link from "next/link";
 
 import { MoreVertical, AlertTriangle } from "lucide-react";
-import { supabase } from "@/lib/supabase/client";
+
 import { usePublicProfile } from "@/hooks/user/usePublicProfile";
+import { useDeleteAccountRequest } from "@/hooks/user/useDeleteAccountRequest";
+
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
 import {
   Dialog,
   DialogContent,
@@ -24,40 +28,38 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+
 import { Button } from "@/components/ui/button";
+
 import { Skeleton } from "@/components/ui/skeleton";
+
 import { Separator } from "@/components/ui/separator";
+
 import { toast } from "sonner";
 
-export default function UserProfile() {
-  const router = useRouter();
-
-  const { username } = router.query;
-
+export default function UserProfile({ username }) {
   const [deleteOpen, setDeleteOpen] = useState(false);
-
-  const [submitting, setSubmitting] = useState(false);
 
   const { data: profile, isLoading, error } = usePublicProfile(username);
 
+  const { requestAccountDeletion, isSubmitting } = useDeleteAccountRequest();
+
   const handleDeleteRequest = async () => {
+    if (!profile) {
+      return;
+    }
+
     try {
-      setSubmitting(true);
-
-      const { error } = await supabase.from("delete_account_requests").insert({
+      await requestAccountDeletion({
         username: profile.username,
-        user_id: profile.user_id,
+        userId: profile.user_id,
       });
-
-      if (error) throw error;
 
       toast.success("Account deletion request submitted");
 
       setDeleteOpen(false);
     } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setSubmitting(false);
+      toast.error(err?.message || "Unable to submit account deletion request");
     }
   };
 
@@ -67,7 +69,7 @@ export default function UserProfile() {
 
   if (error || !profile) {
     return (
-      <div className="p-10 text-center text-muted-foreground">
+      <div className="px-4 py-16 text-center text-muted-foreground">
         User not found
       </div>
     );
@@ -75,82 +77,101 @@ export default function UserProfile() {
 
   return (
     <>
-      <div className="flex justify-center px-4 py-4">
-        <div className="w-full max-w-lg">
-          <Card className="relative">
-            {profile.is_self && (
-              <div className="absolute right-3 top-3">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
+      <div className="px-4 py-6">
+        <Card className="relative">
+          {/* ======================================
+              SELF PROFILE ACTIONS
+          ====================================== */}
 
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <Link href="/settings/profile">Edit Profile</Link>
-                    </DropdownMenuItem>
+          {profile.is_self && (
+            <div className="absolute right-3 top-3">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Profile options"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
 
-                    <DropdownMenuItem
-                      className="text-red-600 focus:text-red-600"
-                      onClick={() => setDeleteOpen(true)}
-                    >
-                      Request Account Deletion
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings?tab=account">Edit Profile</Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    className="text-red-600 focus:text-red-600"
+                    onClick={() => setDeleteOpen(true)}
+                  >
+                    Request Account Deletion
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
+
+          {/* ======================================
+              AVATAR
+          ====================================== */}
+
+          <div className="flex justify-center pt-8">
+            <Avatar className="h-24 w-24">
+              <AvatarImage src={profile.avatar_url || undefined} />
+
+              <AvatarFallback>
+                {profile.name?.charAt(0)?.toUpperCase() || "U"}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+
+          {/* ======================================
+              IDENTITY
+          ====================================== */}
+
+          <CardHeader className="space-y-1 pb-2 pt-4 text-center">
+            <h2 className="text-lg font-semibold">{profile.name}</h2>
+
+            <p className="text-sm text-muted-foreground">@{profile.username}</p>
+          </CardHeader>
+
+          <Separator />
+
+          {/* ======================================
+              PROFILE INFORMATION
+          ====================================== */}
+
+          <CardContent className="space-y-4 pt-6">
+            {profile.email && (
+              <ProfileItem label="Email" value={profile.email} />
             )}
 
-            <div className="flex justify-center pt-8">
-              <Avatar className="h-24 w-24">
-                <AvatarImage src={profile.avatar_url || undefined} />
-                <AvatarFallback>
-                  {profile.name?.[0]?.toUpperCase() || "U"}
-                </AvatarFallback>
-              </Avatar>
-            </div>
+            {profile.mobile && (
+              <ProfileItem label="Phone" value={`+${profile.mobile}`} />
+            )}
 
-            {/* Identity */}
-            <CardHeader className="space-y-1 pb-2 pt-4 text-center">
-              <h2 className="text-lg font-semibold">{profile.name}</h2>
+            <ProfileItem
+              label="Designation"
+              value={profile.designation || "N/A"}
+            />
 
-              <p className="text-sm text-muted-foreground">
-                @{profile.username}
-              </p>
-            </CardHeader>
+            <ProfileItem label="Locality" value={profile.locality || "N/A"} />
 
             <Separator />
 
-            <CardContent className="space-y-4 pt-6">
-              {profile.email && (
-                <ProfileItem label="Email" value={profile.email} />
-              )}
-
-              {profile.mobile && (
-                <ProfileItem label="Phone" value={`+${profile.mobile}`} />
-              )}
-
-              <ProfileItem
-                label="Designation"
-                value={profile.designation || "N/A"}
-              />
-
-              <ProfileItem label="Locality" value={profile.locality || "N/A"} />
-
-              <Separator />
-
-              <ProfileItem
-                label="Member Since"
-                value={new Date(profile.created_at).toLocaleDateString()}
-              />
-            </CardContent>
-          </Card>
-        </div>
+            <ProfileItem
+              label="Member Since"
+              value={new Date(profile.created_at).toLocaleDateString()}
+            />
+          </CardContent>
+        </Card>
       </div>
 
-      {/* DELETE REQUEST DIALOG */}
+      {/* ======================================
+          DELETE REQUEST DIALOG
+      ====================================== */}
+
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -176,7 +197,7 @@ export default function UserProfile() {
             <Button
               variant="outline"
               onClick={() => setDeleteOpen(false)}
-              disabled={submitting}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
@@ -184,9 +205,9 @@ export default function UserProfile() {
             <Button
               variant="destructive"
               onClick={handleDeleteRequest}
-              disabled={submitting}
+              disabled={isSubmitting}
             >
-              {submitting ? "Submitting..." : "Submit Request"}
+              {isSubmitting ? "Submitting..." : "Submit Request"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -207,30 +228,23 @@ function ProfileItem({ label, value }) {
 
 function ProfileSkeleton() {
   return (
-    <div className="flex min-h-dvh justify-center bg-muted/30 px-4 py-10">
-      <div className="w-full max-w-lg">
-        <div className="mb-4 flex justify-between">
-          <Skeleton className="h-10 w-10" />
-          <Skeleton className="h-10 w-10" />
+    <div className="px-4 py-6">
+      <Card>
+        <div className="flex justify-center pt-8">
+          <Skeleton className="h-24 w-24 rounded-full" />
         </div>
 
-        <Card>
-          <div className="flex justify-center pt-8">
-            <Skeleton className="h-24 w-24 rounded-full" />
-          </div>
+        <CardHeader className="space-y-2 pb-2 pt-4 text-center">
+          <Skeleton className="mx-auto h-5 w-40" />
+          <Skeleton className="mx-auto h-4 w-24" />
+        </CardHeader>
 
-          <CardHeader className="space-y-2 pb-2 pt-4 text-center">
-            <Skeleton className="mx-auto h-5 w-40" />
-            <Skeleton className="mx-auto h-4 w-24" />
-          </CardHeader>
-
-          <CardContent className="space-y-4 pt-6">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
-          </CardContent>
-        </Card>
-      </div>
+        <CardContent className="space-y-4 pt-6">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+        </CardContent>
+      </Card>
     </div>
   );
 }
