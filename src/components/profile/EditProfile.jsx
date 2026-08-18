@@ -27,7 +27,7 @@ export default function EditProfile() {
 
   const { user } = useAuth();
 
-  const { data: profile, isLoading, refetch } = useMyProfile();
+  const { data: profile, isLoading } = useMyProfile();
 
   const { updateProfile, isUpdating } = useUpdateProfile();
 
@@ -42,8 +42,14 @@ export default function EditProfile() {
     is_mobile_public: false,
   });
 
+  /* ======================================
+     LOAD PROFILE
+  ====================================== */
+
   useEffect(() => {
-    if (!profile) return;
+    if (!profile) {
+      return;
+    }
 
     setForm({
       name: profile.name || "",
@@ -57,12 +63,20 @@ export default function EditProfile() {
     });
   }, [profile]);
 
+  /* ======================================
+     UPDATE FIELD
+  ====================================== */
+
   const updateField = (field, value) => {
     setForm((current) => ({
       ...current,
       [field]: value,
     }));
   };
+
+  /* ======================================
+     SAVE
+  ====================================== */
 
   const handleSave = async () => {
     if (!user?.id || !profile) {
@@ -73,6 +87,7 @@ export default function EditProfile() {
 
     if (!username) {
       toast.error("Username cannot be empty");
+
       return;
     }
 
@@ -93,8 +108,6 @@ export default function EditProfile() {
         is_mobile_public: form.is_mobile_public,
       });
 
-      await refetch();
-
       toast.success("Profile updated");
 
       router.replace(`/user/${updatedProfile.username}`);
@@ -102,6 +115,10 @@ export default function EditProfile() {
       toast.error(err?.message || "Unable to update profile");
     }
   };
+
+  /* ======================================
+     LOADING
+  ====================================== */
 
   if (isLoading || !profile) {
     return <EditProfileSkeleton />;
@@ -113,12 +130,12 @@ export default function EditProfile() {
           AVATAR
       ====================================== */}
 
-      <div className="flex justify-center pt-8">
-        <Avatar className="h-24 w-24">
+      <div className="flex justify-center pt-7">
+        <Avatar className="h-20 w-20 sm:h-24 sm:w-24">
           <AvatarImage src={profile.avatar_url || undefined} />
 
           <AvatarFallback>
-            {profile.name?.[0]?.toUpperCase() || "U"}
+            {profile.name?.charAt(0)?.toUpperCase() || "U"}
           </AvatarFallback>
         </Avatar>
       </div>
@@ -127,7 +144,7 @@ export default function EditProfile() {
           FORM
       ====================================== */}
 
-      <CardContent className="space-y-6 p-6 sm:p-8">
+      <CardContent className="space-y-5 p-4 sm:p-6">
         {/* NAME */}
 
         <div className="space-y-2">
@@ -150,6 +167,10 @@ export default function EditProfile() {
             value={form.username}
             onChange={(event) => updateField("username", event.target.value)}
           />
+
+          <p className="text-xs text-muted-foreground">
+            Your username is used for your profile URL.
+          </p>
         </div>
 
         {/* DESIGNATION */}
@@ -228,14 +249,18 @@ export default function EditProfile() {
   );
 }
 
+/* ============================================
+   SKELETON
+============================================ */
+
 function EditProfileSkeleton() {
   return (
     <Card className="w-full">
-      <div className="flex justify-center pt-8">
-        <Skeleton className="h-24 w-24 rounded-full" />
+      <div className="flex justify-center pt-7">
+        <Skeleton className="h-20 w-20 rounded-full sm:h-24 sm:w-24" />
       </div>
 
-      <CardContent className="space-y-4 p-6 sm:p-8">
+      <CardContent className="space-y-5 p-4 sm:p-6">
         <Skeleton className="h-10 w-full" />
         <Skeleton className="h-10 w-full" />
         <Skeleton className="h-10 w-full" />

@@ -1,15 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { Loader2, Settings, Users } from "lucide-react";
 
-import { supabase } from "@/lib/supabase/client";
-
-import { useAuth } from "@/context/AuthContext";
+import { useSpaceAdmin } from "@/hooks/space/useSpaceAdmin";
 
 import BackButton from "@/components/ui/back-button";
 
@@ -27,154 +23,23 @@ import SpaceMembersSettings from "@/components/space/SpaceMembersSettings";
 export default function SpaceAdminPage() {
   const router = useRouter();
 
-  const { user, loading: authLoading } = useAuth();
-
   const { space: slug, tab } = router.query;
 
-  const [space, setSpace] = useState(null);
-
-  const [pendingApplications, setPendingApplications] = useState(0);
-
-  const [loading, setLoading] = useState(true);
-
-  const [accessDenied, setAccessDenied] = useState(false);
+  const { space, isLoading, error, accessDenied, isOwner } =
+    useSpaceAdmin(slug);
 
   const activeTab = tab || "applications";
-
-  /* ========================================
-     LOAD SPACE + PERMISSIONS
-  ======================================== */
-
-  useEffect(() => {
-    if (!router.isReady || !slug || authLoading) {
-      return;
-    }
-
-    async function loadAdmin() {
-      setLoading(true);
-      setAccessDenied(false);
-
-      /* ======================================
-         SPACE
-      ====================================== */
-
-      const { data: spaceData, error: spaceError } = await supabase
-        .from("space")
-        .select(
-          `
-            id,
-            name,
-            slug,
-            description,
-            owner_user_id,
-            logo_url,
-            is_active
-          `,
-        )
-        .eq("slug", slug)
-        .eq("is_active", true)
-        .single();
-
-      if (spaceError || !spaceData) {
-        console.error("[SPACE ADMIN] Space error:", spaceError);
-
-        setLoading(false);
-
-        return;
-      }
-
-      /* ======================================
-         OWNER
-      ====================================== */
-
-      const isOwner = user?.id === spaceData.owner_user_id;
-
-      /* ======================================
-         CURRENT USER ROLE
-      ====================================== */
-
-      let currentUserRole = null;
-
-      if (user?.id) {
-        const { data: membership, error: membershipError } = await supabase
-          .from("space_member")
-          .select("role, is_active, is_suspended")
-          .eq("space_id", spaceData.id)
-          .eq("user_id", user.id)
-          .eq("is_active", true)
-          .eq("is_suspended", false)
-          .maybeSingle();
-
-        if (membershipError) {
-          console.error("[SPACE ADMIN] Membership error:", membershipError);
-
-          setLoading(false);
-
-          return;
-        }
-
-        currentUserRole = membership?.role || null;
-      }
-
-      /* ======================================
-         PERMISSIONS
-      ====================================== */
-
-      const isAdmin = currentUserRole === "admin";
-
-      const canManage = isOwner || isAdmin;
-
-      if (!canManage) {
-        setAccessDenied(true);
-        setLoading(false);
-
-        return;
-      }
-
-      /* ======================================
-         PENDING APPLICATION COUNT
-      ====================================== */
-
-      const { count, error: applicationError } = await supabase
-        .from("space_member_application")
-        .select("id", {
-          count: "exact",
-          head: true,
-        })
-        .eq("space_id", spaceData.id)
-        .eq("status", "pending");
-
-      if (applicationError) {
-        console.error(
-          "[SPACE ADMIN] Application count error:",
-          applicationError,
-        );
-      }
-
-      setSpace({
-        ...spaceData,
-        current_user_role: currentUserRole,
-        is_owner: isOwner,
-        is_admin: isAdmin,
-      });
-
-      setPendingApplications(count || 0);
-
-      setLoading(false);
-    }
-
-    loadAdmin();
-  }, [router.isReady, slug, user?.id, authLoading]);
-
-  /* ========================================
-     TAB CHANGE
-  ======================================== */
 
   function changeTab(value) {
     router.push(
       {
         pathname: `/space/${slug}/admin`,
-        query: value === "applications" ? {} : { tab: value },
+        query:
+          value === "applications"
+            ? {}
+            : {
+                tab: value,
+              },
       },
       undefined,
       {
@@ -184,19 +49,25 @@ export default function SpaceAdminPage() {
   }
 
   /* ========================================
-     AUTH LOADING
+     LOADING
   ======================================== */
 
-  if (authLoading) {
+  if (isLoading) {
     return <PageLoader />;
   }
 
   /* ========================================
-     PAGE LOADING
+     ERROR
   ======================================== */
 
-  if (loading) {
-    return <PageLoader />;
+  if (error) {
+    return (
+      <div className="w-full px-4 py-16 text-center">
+        <h1 className="text-xl font-semibold">Space not found</h1>
+
+        <p className="mt-2 text-sm text-muted-foreground">{error}</p>
+      </div>
+    );
   }
 
   /* ========================================
@@ -219,7 +90,7 @@ export default function SpaceAdminPage() {
 
               <Link
                 href={`/space/${slug}`}
-                className="mt-6 inline-flex rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+                className="mt-6 inline-flex rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
               >
                 Back to Space
               </Link>
@@ -230,30 +101,14 @@ export default function SpaceAdminPage() {
     );
   }
 
-  /* ========================================
-     SPACE NOT FOUND
-  ======================================== */
-
   if (!space) {
-    return (
-      <div className="w-full px-4 py-16 text-center">
-        <h1 className="text-xl font-semibold">Space not found</h1>
-
-        <p className="mt-2 text-muted-foreground">
-          The requested Space does not exist.
-        </p>
-      </div>
-    );
+    return null;
   }
-
-  /* ========================================
-     PAGE
-  ======================================== */
 
   return (
     <div className="w-full">
       {/* ======================================
-          FULL-WIDTH HEADER
+          FULL WIDTH HEADER
       ====================================== */}
 
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
@@ -268,37 +123,23 @@ export default function SpaceAdminPage() {
             <div className="text-xs text-muted-foreground">Administration</div>
           </div>
 
-          <Badge variant="secondary">
-            {space.is_owner ? "Owner" : "Admin"}
-          </Badge>
+          <Badge variant="secondary">{isOwner ? "Owner" : "Admin"}</Badge>
         </div>
       </header>
 
       {/* ======================================
-          TABS
+          FULL WIDTH TABS
       ====================================== */}
 
       <Tabs value={activeTab} onValueChange={changeTab}>
         <div className="sticky top-14 z-30 overflow-x-auto border-b bg-background p-2 sm:top-16">
           <div className="flex min-w-full justify-center">
             <TabsList className="flex w-max">
-              {/* APPLICATIONS */}
-
               <TabsTrigger value="applications" className="gap-2">
                 Applications
-                {pendingApplications > 0 && (
-                  <Badge
-                    variant="destructive"
-                    className="h-5 min-w-5 rounded-full px-1.5 text-[10px]"
-                  >
-                    {pendingApplications}
-                  </Badge>
-                )}
               </TabsTrigger>
 
-              {/* SETTINGS */}
-
-              {space.is_owner && (
+              {isOwner && (
                 <TabsTrigger value="settings" className="gap-2">
                   <Settings className="h-3.5 w-3.5" />
                   Settings
@@ -312,23 +153,12 @@ export default function SpaceAdminPage() {
             CONTENT
         ====================================== */}
 
-        <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6">
-          {/* ====================================
-              APPLICATIONS
-          ==================================== */}
-
+        <main className="mx-auto w-full max-w-4xl p-2">
           <TabsContent value="applications">
-            <SpaceMemberApplications
-              space={space}
-              onPendingCountChange={setPendingApplications}
-            />
+            <SpaceMemberApplications space={space} />
           </TabsContent>
 
-          {/* ====================================
-              SETTINGS
-          ==================================== */}
-
-          {space.is_owner && (
+          {isOwner && (
             <TabsContent value="settings">
               <SpaceSettingsContent spaceSlug={space.slug} />
             </TabsContent>
@@ -340,15 +170,13 @@ export default function SpaceAdminPage() {
 }
 
 /* ============================================
-   SPACE SETTINGS CONTENT
+   SETTINGS
 ============================================ */
 
 function SpaceSettingsContent({ spaceSlug }) {
   return (
     <Tabs defaultValue="general">
-      {/* SETTINGS SUB-TABS */}
-
-      <div className="mb-6 overflow-x-auto">
+      <div className="overflow-x-auto">
         <TabsList className="flex w-max">
           <TabsTrigger value="general">General</TabsTrigger>
 
@@ -356,13 +184,9 @@ function SpaceSettingsContent({ spaceSlug }) {
         </TabsList>
       </div>
 
-      {/* GENERAL */}
-
       <TabsContent value="general">
         <SpaceGeneralSettings spaceSlug={spaceSlug} />
       </TabsContent>
-
-      {/* MEMBERS */}
 
       <TabsContent value="members">
         <SpaceMembersSettings spaceSlug={spaceSlug} />
@@ -372,7 +196,7 @@ function SpaceSettingsContent({ spaceSlug }) {
 }
 
 /* ============================================
-   PAGE LOADER
+   LOADER
 ============================================ */
 
 function PageLoader() {

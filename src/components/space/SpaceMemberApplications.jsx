@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 import Link from "next/link";
 
 import { ArrowRight, Clock3, UserPlus } from "lucide-react";
 
-import { supabase } from "@/lib/supabase/client";
+import { useSpaceApplications } from "@/hooks/space/useSpaceApplications";
 
 import {
   Card,
@@ -20,87 +18,11 @@ import { Badge } from "@/components/ui/badge";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export default function SpaceMemberApplications({
-  space,
-  onPendingCountChange,
-}) {
-  const [applications, setApplications] = useState([]);
+export default function SpaceMemberApplications({ space }) {
+  const { pendingApplications, pendingCount, isLoading, error } =
+    useSpaceApplications(space?.id);
 
-  const [loading, setLoading] = useState(true);
-
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (!space?.id) {
-      return;
-    }
-
-    async function loadApplications() {
-      setLoading(true);
-      setError(null);
-
-      const { data, error: applicationError } = await supabase
-        .from("space_member_application")
-        .select(
-          `
-          id,
-          space_id,
-          applicant_user_id,
-          message,
-          status,
-          created_at,
-          applicant:applicant_user_id (
-            user_id,
-            name,
-            username,
-            avatar_url
-          )
-        `,
-        )
-        .eq("space_id", space.id)
-        .eq("status", "pending")
-        .order("created_at", {
-          ascending: true,
-        });
-
-      if (applicationError) {
-        console.error(
-          "[MEMBER APPLICATIONS] Application error:",
-          applicationError,
-        );
-
-        setError(applicationError.message || "Unable to load applications.");
-
-        setApplications([]);
-
-        if (onPendingCountChange) {
-          onPendingCountChange(0);
-        }
-
-        setLoading(false);
-
-        return;
-      }
-
-      const result = data || [];
-
-      setApplications(result);
-
-      if (onPendingCountChange) {
-        onPendingCountChange(result.length);
-      }
-
-      setLoading(false);
-    }
-
-    loadApplications();
-  }, [space?.id, onPendingCountChange]);
-
-  /* ========================================
-     LOADING
-  ======================================== */
-
-  if (loading) {
+  if (isLoading) {
     return (
       <Card>
         <CardContent className="flex min-h-40 items-center justify-center">
@@ -111,10 +33,6 @@ export default function SpaceMemberApplications({
       </Card>
     );
   }
-
-  /* ========================================
-     ERROR
-  ======================================== */
 
   if (error) {
     return (
@@ -128,11 +46,7 @@ export default function SpaceMemberApplications({
     );
   }
 
-  /* ========================================
-     EMPTY
-  ======================================== */
-
-  if (applications.length === 0) {
+  if (pendingCount === 0) {
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-16 text-center">
@@ -151,10 +65,6 @@ export default function SpaceMemberApplications({
     );
   }
 
-  /* ========================================
-     APPLICATION LIST
-  ======================================== */
-
   return (
     <Card>
       <CardHeader>
@@ -167,52 +77,44 @@ export default function SpaceMemberApplications({
             </CardDescription>
           </div>
 
-          <Badge variant="secondary">{applications.length}</Badge>
+          <Badge variant="secondary">{pendingCount}</Badge>
         </div>
       </CardHeader>
 
       <CardContent className="p-0">
         <div className="divide-y">
-          {applications.map((application) => {
+          {pendingApplications.map((application) => {
             const applicant = application.applicant;
 
-            const applicantName = applicant?.name || "Unknown user";
+            const name = applicant?.name || "Unknown user";
 
-            const applicantUsername = applicant?.username;
-
-            const initials = applicantName
-              .split(" ")
-              .map((part) => part[0])
-              .join("")
-              .slice(0, 2)
-              .toUpperCase();
+            const initials =
+              name
+                .split(" ")
+                .map((part) => part[0])
+                .join("")
+                .slice(0, 2)
+                .toUpperCase() || "U";
 
             return (
               <Link
                 key={application.id}
                 href={`/space/${space.slug}/admin/application/member/${application.id}`}
-                className="block transition-colors hover:bg-muted/40"
+                className="block hover:bg-muted/40"
               >
                 <div className="flex items-center gap-4 px-4 py-4 sm:px-6">
-                  {/* AVATAR */}
-
                   <Avatar className="h-11 w-11 shrink-0">
-                    <AvatarImage
-                      src={applicant?.avatar_url || undefined}
-                      alt={applicantName}
-                    />
+                    <AvatarImage src={applicant?.avatar_url || undefined} />
 
-                    <AvatarFallback>{initials || "U"}</AvatarFallback>
+                    <AvatarFallback>{initials}</AvatarFallback>
                   </Avatar>
 
-                  {/* USER */}
-
                   <div className="min-w-0 flex-1">
-                    <div className="truncate font-medium">{applicantName}</div>
+                    <div className="truncate font-medium">{name}</div>
 
-                    {applicantUsername && (
+                    {applicant?.username && (
                       <div className="truncate text-sm text-muted-foreground">
-                        @{applicantUsername}
+                        @{applicant.username}
                       </div>
                     )}
 
@@ -222,8 +124,6 @@ export default function SpaceMemberApplications({
                       {formatDate(application.created_at)}
                     </div>
                   </div>
-
-                  {/* STATUS */}
 
                   <Badge
                     variant="secondary"
@@ -243,14 +143,8 @@ export default function SpaceMemberApplications({
   );
 }
 
-/* ============================================
-   DATE
-============================================ */
-
 function formatDate(value) {
-  if (!value) {
-    return "";
-  }
+  if (!value) return "";
 
   return new Intl.DateTimeFormat("en-GB", {
     day: "numeric",

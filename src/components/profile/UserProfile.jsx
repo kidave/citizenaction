@@ -44,6 +44,10 @@ export default function UserProfile({ username }) {
 
   const { requestAccountDeletion, isSubmitting } = useDeleteAccountRequest();
 
+  /* ======================================
+     DELETE ACCOUNT
+  ====================================== */
+
   const handleDeleteRequest = async () => {
     if (!profile) {
       return;
@@ -52,6 +56,7 @@ export default function UserProfile({ username }) {
     try {
       await requestAccountDeletion({
         username: profile.username,
+
         userId: profile.user_id,
       });
 
@@ -63,13 +68,21 @@ export default function UserProfile({ username }) {
     }
   };
 
+  /* ======================================
+     LOADING
+  ====================================== */
+
   if (isLoading) {
     return <ProfileSkeleton />;
   }
 
+  /* ======================================
+     ERROR
+  ====================================== */
+
   if (error || !profile) {
     return (
-      <div className="px-4 py-16 text-center text-muted-foreground">
+      <div className="py-16 text-center text-muted-foreground">
         User not found
       </div>
     );
@@ -77,96 +90,111 @@ export default function UserProfile({ username }) {
 
   return (
     <>
-      <div className="px-4 py-6">
-        <Card className="relative">
-          {/* ======================================
-              SELF PROFILE ACTIONS
-          ====================================== */}
+      {/* ======================================
+          PROFILE CARD
+      ====================================== */}
 
-          {profile.is_self && (
-            <div className="absolute right-3 top-3">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Profile options"
+      <Card className="relative w-full">
+        {/* ======================================
+            SELF PROFILE ACTIONS
+        ====================================== */}
+
+        {profile.is_self && (
+          <div className="absolute right-3 top-3 z-10">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Profile options"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end">
+                {/* EDIT PROFILE */}
+
+                <DropdownMenuItem asChild>
+                  <Link
+                    href={{
+                      pathname: `/user/${profile.username}`,
+                      query: {
+                        edit: "true",
+                      },
+                    }}
                   >
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
+                    Edit Profile
+                  </Link>
+                </DropdownMenuItem>
 
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings?tab=account">Edit Profile</Link>
-                  </DropdownMenuItem>
+                {/* DELETE ACCOUNT */}
 
-                  <DropdownMenuItem
-                    className="text-red-600 focus:text-red-600"
-                    onClick={() => setDeleteOpen(true)}
-                  >
-                    Request Account Deletion
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                <DropdownMenuItem
+                  className="text-red-600 focus:text-red-600"
+                  onClick={() => setDeleteOpen(true)}
+                >
+                  Request Account Deletion
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
+
+        {/* ======================================
+            AVATAR
+        ====================================== */}
+
+        <div className="flex justify-center pt-7 sm:pt-8">
+          <Avatar className="h-20 w-20 sm:h-24 sm:w-24">
+            <AvatarImage src={profile.avatar_url || undefined} />
+
+            <AvatarFallback>
+              {profile.name?.charAt(0)?.toUpperCase() || "U"}
+            </AvatarFallback>
+          </Avatar>
+        </div>
+
+        {/* ======================================
+            IDENTITY
+        ====================================== */}
+
+        <CardHeader className="space-y-1 pb-4 pt-4 text-center">
+          <h2 className="text-lg font-semibold">
+            {profile.name || "Unnamed user"}
+          </h2>
+
+          <p className="text-sm text-muted-foreground">@{profile.username}</p>
+        </CardHeader>
+
+        <Separator />
+
+        {/* ======================================
+            PROFILE INFORMATION
+        ====================================== */}
+
+        <CardContent className="space-y-4 p-4 sm:p-6">
+          {profile.email && <ProfileItem label="Email" value={profile.email} />}
+
+          {profile.mobile && (
+            <ProfileItem label="Phone" value={`+${profile.mobile}`} />
           )}
 
-          {/* ======================================
-              AVATAR
-          ====================================== */}
+          <ProfileItem
+            label="Designation"
+            value={profile.designation || "N/A"}
+          />
 
-          <div className="flex justify-center pt-8">
-            <Avatar className="h-24 w-24">
-              <AvatarImage src={profile.avatar_url || undefined} />
+          <ProfileItem label="Locality" value={profile.locality || "N/A"} />
 
-              <AvatarFallback>
-                {profile.name?.charAt(0)?.toUpperCase() || "U"}
-              </AvatarFallback>
-            </Avatar>
-          </div>
+          <Separator className="my-2" />
 
-          {/* ======================================
-              IDENTITY
-          ====================================== */}
-
-          <CardHeader className="space-y-1 pb-2 pt-4 text-center">
-            <h2 className="text-lg font-semibold">{profile.name}</h2>
-
-            <p className="text-sm text-muted-foreground">@{profile.username}</p>
-          </CardHeader>
-
-          <Separator />
-
-          {/* ======================================
-              PROFILE INFORMATION
-          ====================================== */}
-
-          <CardContent className="space-y-4 pt-6">
-            {profile.email && (
-              <ProfileItem label="Email" value={profile.email} />
-            )}
-
-            {profile.mobile && (
-              <ProfileItem label="Phone" value={`+${profile.mobile}`} />
-            )}
-
-            <ProfileItem
-              label="Designation"
-              value={profile.designation || "N/A"}
-            />
-
-            <ProfileItem label="Locality" value={profile.locality || "N/A"} />
-
-            <Separator />
-
-            <ProfileItem
-              label="Member Since"
-              value={new Date(profile.created_at).toLocaleDateString()}
-            />
-          </CardContent>
-        </Card>
-      </div>
+          <ProfileItem
+            label="Member Since"
+            value={formatDate(profile.created_at)}
+          />
+        </CardContent>
+      </Card>
 
       {/* ======================================
           DELETE REQUEST DIALOG
@@ -216,35 +244,64 @@ export default function UserProfile({ username }) {
   );
 }
 
+/* ============================================
+   PROFILE ITEM
+============================================ */
+
 function ProfileItem({ label, value }) {
   return (
-    <div className="flex items-start justify-between gap-4">
-      <span className="text-sm text-muted-foreground">{label}</span>
+    <div className="flex items-start justify-between gap-6">
+      <span className="shrink-0 text-sm text-muted-foreground">{label}</span>
 
-      <span className="text-right text-sm font-medium">{value}</span>
+      <span className="min-w-0 break-words text-right text-sm font-medium">
+        {value}
+      </span>
     </div>
   );
 }
 
+/* ============================================
+   DATE
+============================================ */
+
+function formatDate(value) {
+  if (!value) {
+    return "N/A";
+  }
+
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(value));
+}
+
+/* ============================================
+   SKELETON
+============================================ */
+
 function ProfileSkeleton() {
   return (
-    <div className="px-4 py-6">
-      <Card>
-        <div className="flex justify-center pt-8">
-          <Skeleton className="h-24 w-24 rounded-full" />
-        </div>
+    <Card className="w-full">
+      <div className="flex justify-center pt-7 sm:pt-8">
+        <Skeleton className="h-20 w-20 rounded-full sm:h-24 sm:w-24" />
+      </div>
 
-        <CardHeader className="space-y-2 pb-2 pt-4 text-center">
-          <Skeleton className="mx-auto h-5 w-40" />
-          <Skeleton className="mx-auto h-4 w-24" />
-        </CardHeader>
+      <CardHeader className="space-y-2 pb-4 pt-4 text-center">
+        <Skeleton className="mx-auto h-5 w-40" />
 
-        <CardContent className="space-y-4 pt-6">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-full" />
-        </CardContent>
-      </Card>
-    </div>
+        <Skeleton className="mx-auto h-4 w-24" />
+      </CardHeader>
+
+      <Separator />
+
+      <CardContent className="space-y-4 p-4 sm:p-6">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-full" />
+      </CardContent>
+    </Card>
   );
 }

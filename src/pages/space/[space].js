@@ -129,7 +129,7 @@ export default function SpacePage() {
           TABS
       ====================================== */}
 
-      <div className="sticky top-14 z-30 p-2 sm:top-16">
+      <div className="sticky top-14 z-30 border-b bg-background p-2 sm:top-16">
         <Tabs value={activeTab}>
           <TabsList className="flex w-auto">
             <TabsTrigger
@@ -163,7 +163,7 @@ export default function SpacePage() {
           CONTENT
       ====================================== */}
 
-      <div className="space-y-4 p-2">
+      <div className="space-y-4 p-2 sm:p-4">
         <Tabs value={activeTab}>
           {/* ==================================
               OVERVIEW

@@ -16,7 +16,7 @@ export default function PrivacyPolicy({}) {
       {/* Intro */}
       <section className="mb-10">
         <p>
-          Walking Project respects your privacy and is committed to protecting
+          Citizen Action respects your privacy and is committed to protecting
           your personal information. This Privacy Policy explains how we
           collect, use, and share your information when you use our platform and
           services.

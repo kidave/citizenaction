@@ -6,8 +6,6 @@ import BackButton from "@/components/ui/back-button";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import EditProfile from "@/components/profile/EditProfile";
-
 import Appearance from "@/components/system/Appearance";
 import Notifications from "@/components/system/Notification";
 import Support from "@/components/system/Support";
@@ -17,13 +15,15 @@ import PrivacyPolicy from "@/components/system/PrivacyPolicy";
 export default function SettingsPage() {
   const router = useRouter();
 
-  const activeTab = router.query.tab || "account";
+  const activeTab = router.query.tab || "appearance";
 
   function changeTab(value) {
     router.push(
       {
         pathname: "/settings",
-        query: value === "account" ? {} : { tab: value },
+        query: {
+          tab: value,
+        },
       },
       undefined,
       {
@@ -34,70 +34,63 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto w-full">
-      <div className="sticky top-0 z-40 border-b bg-background">
+      {/* ======================================
+          FULL-WIDTH HEADER
+      ====================================== */}
+
+      <header className="sticky top-0 z-40 border-b bg-background">
         <div className="flex h-14 items-center gap-3 px-4 sm:h-16">
           <BackButton />
 
           <h1 className="truncate font-semibold sm:text-lg">Settings</h1>
         </div>
-      </div>
+      </header>
+
+      {/* ======================================
+          TABS
+      ====================================== */}
 
       <Tabs value={activeTab} onValueChange={changeTab}>
-        <div className="sticky top-14 z-30 flex justify-center overflow-x-auto p-2 sm:top-16">
+        <div className="sticky top-14 z-30 flex justify-center overflow-x-auto border-b bg-background p-2 sm:top-16">
           <TabsList className="flex w-max">
-            <TabsTrigger value="account" className="flex-1">
-              Account
-            </TabsTrigger>
+            <TabsTrigger value="appearance">Appearance</TabsTrigger>
 
-            <TabsTrigger value="appearance" className="flex-1">
-              Appearance
-            </TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
 
-            <TabsTrigger value="notifications" className="flex-1">
-              Notifications
-            </TabsTrigger>
+            <TabsTrigger value="privacy">Privacy</TabsTrigger>
 
-            <TabsTrigger value="privacy" className="flex-1">
-              Privacy
-            </TabsTrigger>
+            <TabsTrigger value="support">Support</TabsTrigger>
 
-            <TabsTrigger value="support" className="flex-1">
-              Support
-            </TabsTrigger>
-
-            <TabsTrigger value="about" className="flex-1">
-              About
-            </TabsTrigger>
+            <TabsTrigger value="about">About</TabsTrigger>
           </TabsList>
         </div>
 
-        <div className="w-full px-4 py-6">
-          <TabsContent value="account">
-            <div className="mx-auto w-full max-w-lg">
-              <EditProfile />
-            </div>
-          </TabsContent>
+        {/* ======================================
+            CONTENT
+        ====================================== */}
 
-          <TabsContent value="appearance">
-            <Appearance />
-          </TabsContent>
+        <TabsContent value="appearance" className="mx-auto max-w-lg p-2 sm:p-4">
+          <Appearance />
+        </TabsContent>
 
-          <TabsContent value="notifications">
-            <Notifications />
-          </TabsContent>
+        <TabsContent
+          value="notifications"
+          className="mx-auto max-w-lg p-2 sm:p-4"
+        >
+          <Notifications />
+        </TabsContent>
 
-          <TabsContent value="privacy">
-            <PrivacyPolicy />
-          </TabsContent>
+        <TabsContent value="privacy" className="mx-auto max-w-2xl p-2 sm:p-4">
+          <PrivacyPolicy />
+        </TabsContent>
 
-          <TabsContent value="support">
-            <Support />
-          </TabsContent>
+        <TabsContent value="support" className="mx-auto max-w-lg p-2 sm:p-4">
+          <Support />
+        </TabsContent>
 
-          <TabsContent value="about">
-            <About />
-          </TabsContent>
-        </div>
+        <TabsContent value="about" className="mx-auto max-w-lg p-2 sm:p-4">
+          <About />
+        </TabsContent>
       </Tabs>
     </div>
   );
