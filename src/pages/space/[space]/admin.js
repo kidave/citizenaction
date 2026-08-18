@@ -2,17 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-import { useRouter } from "next/router";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
-import {
-  ArrowRight,
-  FileText,
-  Loader2,
-  Settings,
-  Users,
-  UserPlus,
-} from "lucide-react";
+import { Loader2, Settings, Users } from "lucide-react";
 
 import { supabase } from "@/lib/supabase/client";
 
@@ -20,22 +13,23 @@ import { useAuth } from "@/context/AuthContext";
 
 import BackButton from "@/components/ui/back-button";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { Badge } from "@/components/ui/badge";
+
+import { Card, CardContent } from "@/components/ui/card";
+
+import SpaceMemberApplications from "@/components/space/SpaceMemberApplications";
+
+import SpaceGeneralSettings from "@/components/space/SpaceGeneralSettings";
+import SpaceMembersSettings from "@/components/space/SpaceMembersSettings";
 
 export default function SpaceAdminPage() {
   const router = useRouter();
 
   const { user, loading: authLoading } = useAuth();
 
-  const { space: slug } = router.query;
+  const { space: slug, tab } = router.query;
 
   const [space, setSpace] = useState(null);
 
@@ -45,8 +39,10 @@ export default function SpaceAdminPage() {
 
   const [accessDenied, setAccessDenied] = useState(false);
 
+  const activeTab = tab || "applications";
+
   /* ========================================
-     LOAD
+     LOAD SPACE + PERMISSIONS
   ======================================== */
 
   useEffect(() => {
@@ -58,50 +54,44 @@ export default function SpaceAdminPage() {
       setLoading(true);
       setAccessDenied(false);
 
-      /*
-       * ======================================
-       * LOAD SPACE
-       * ======================================
-       */
+      /* ======================================
+         SPACE
+      ====================================== */
 
       const { data: spaceData, error: spaceError } = await supabase
         .from("space")
         .select(
           `
-          id,
-          name,
-          slug,
-          description,
-          owner_user_id,
-          logo_url,
-          is_active
-        `,
+            id,
+            name,
+            slug,
+            description,
+            owner_user_id,
+            logo_url,
+            is_active
+          `,
         )
         .eq("slug", slug)
         .eq("is_active", true)
         .single();
 
       if (spaceError || !spaceData) {
-        console.error("SPACE ADMIN - SPACE ERROR", spaceError);
+        console.error("[SPACE ADMIN] Space error:", spaceError);
 
         setLoading(false);
 
         return;
       }
 
-      /*
-       * ======================================
-       * OWNER
-       * ======================================
-       */
+      /* ======================================
+         OWNER
+      ====================================== */
 
       const isOwner = user?.id === spaceData.owner_user_id;
 
-      /*
-       * ======================================
-       * CURRENT USER ROLE
-       * ======================================
-       */
+      /* ======================================
+         CURRENT USER ROLE
+      ====================================== */
 
       let currentUserRole = null;
 
@@ -116,7 +106,7 @@ export default function SpaceAdminPage() {
           .maybeSingle();
 
         if (membershipError) {
-          console.error("SPACE ADMIN - MEMBERSHIP ERROR", membershipError);
+          console.error("[SPACE ADMIN] Membership error:", membershipError);
 
           setLoading(false);
 
@@ -126,11 +116,9 @@ export default function SpaceAdminPage() {
         currentUserRole = membership?.role || null;
       }
 
-      /*
-       * ======================================
-       * ACCESS
-       * ======================================
-       */
+      /* ======================================
+         PERMISSIONS
+      ====================================== */
 
       const isAdmin = currentUserRole === "admin";
 
@@ -143,18 +131,9 @@ export default function SpaceAdminPage() {
         return;
       }
 
-      setSpace({
-        ...spaceData,
-        current_user_role: currentUserRole,
-        is_owner: isOwner,
-        is_admin: isAdmin,
-      });
-
-      /*
-       * ======================================
-       * PENDING APPLICATIONS
-       * ======================================
-       */
+      /* ======================================
+         PENDING APPLICATION COUNT
+      ====================================== */
 
       const { count, error: applicationError } = await supabase
         .from("space_member_application")
@@ -167,10 +146,17 @@ export default function SpaceAdminPage() {
 
       if (applicationError) {
         console.error(
-          "SPACE ADMIN - APPLICATION COUNT ERROR",
+          "[SPACE ADMIN] Application count error:",
           applicationError,
         );
       }
+
+      setSpace({
+        ...spaceData,
+        current_user_role: currentUserRole,
+        is_owner: isOwner,
+        is_admin: isAdmin,
+      });
 
       setPendingApplications(count || 0);
 
@@ -179,6 +165,23 @@ export default function SpaceAdminPage() {
 
     loadAdmin();
   }, [router.isReady, slug, user?.id, authLoading]);
+
+  /* ========================================
+     TAB CHANGE
+  ======================================== */
+
+  function changeTab(value) {
+    router.push(
+      {
+        pathname: `/space/${slug}/admin`,
+        query: value === "applications" ? {} : { tab: value },
+      },
+      undefined,
+      {
+        shallow: true,
+      },
+    );
+  }
 
   /* ========================================
      AUTH LOADING
@@ -202,24 +205,27 @@ export default function SpaceAdminPage() {
 
   if (accessDenied) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-16">
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <Users className="h-8 w-8 text-muted-foreground" />
+      <div className="w-full px-4 py-16">
+        <div className="mx-auto max-w-3xl">
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <Users className="h-8 w-8 text-muted-foreground" />
 
-            <h1 className="mt-4 text-xl font-semibold">Access denied</h1>
+              <h1 className="mt-4 text-xl font-semibold">Access denied</h1>
 
-            <p className="mt-2 max-w-md text-sm text-muted-foreground">
-              You do not have permission to manage this Space.
-            </p>
+              <p className="mt-2 max-w-md text-sm text-muted-foreground">
+                You do not have permission to manage this Space.
+              </p>
 
-            <Link href={`/space/${slug}`} className="mt-6">
-              <span className="inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted">
+              <Link
+                href={`/space/${slug}`}
+                className="mt-6 inline-flex rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+              >
                 Back to Space
-              </span>
-            </Link>
-          </CardContent>
-        </Card>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -230,7 +236,7 @@ export default function SpaceAdminPage() {
 
   if (!space) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+      <div className="w-full px-4 py-16 text-center">
         <h1 className="text-xl font-semibold">Space not found</h1>
 
         <p className="mt-2 text-muted-foreground">
@@ -245,9 +251,9 @@ export default function SpaceAdminPage() {
   ======================================== */
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="w-full">
       {/* ======================================
-          HEADER
+          FULL-WIDTH HEADER
       ====================================== */}
 
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
@@ -269,130 +275,100 @@ export default function SpaceAdminPage() {
       </header>
 
       {/* ======================================
-          CONTENT
+          TABS
       ====================================== */}
 
-      <main className="space-y-6 px-4 py-6">
-        {/* ====================================
-            INTRO
-        ==================================== */}
+      <Tabs value={activeTab} onValueChange={changeTab}>
+        <div className="sticky top-14 z-30 overflow-x-auto border-b bg-background p-2 sm:top-16">
+          <div className="flex min-w-full justify-center">
+            <TabsList className="flex w-max">
+              {/* APPLICATIONS */}
 
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Space administration
-          </h1>
+              <TabsTrigger value="applications" className="gap-2">
+                Applications
+                {pendingApplications > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="h-5 min-w-5 rounded-full px-1.5 text-[10px]"
+                  >
+                    {pendingApplications}
+                  </Badge>
+                )}
+              </TabsTrigger>
 
-          <p className="mt-1 text-sm text-muted-foreground">
-            Manage membership, applications and other Space administration
-            tasks.
-          </p>
+              {/* SETTINGS */}
+
+              {space.is_owner && (
+                <TabsTrigger value="settings" className="gap-2">
+                  <Settings className="h-3.5 w-3.5" />
+                  Settings
+                </TabsTrigger>
+              )}
+            </TabsList>
+          </div>
         </div>
 
-        {/* ====================================
-            MEMBER APPLICATIONS
-        ==================================== */}
+        {/* ======================================
+            CONTENT
+        ====================================== */}
 
-        <AdminSection
-          href={`/space/${space.slug}/admin/application/member`}
-          icon={UserPlus}
-          title="Member applications"
-          description="Review people who want to become members of this Space."
-          count={pendingApplications}
-          countLabel="pending"
-        />
+        <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6">
+          {/* ====================================
+              APPLICATIONS
+          ==================================== */}
 
-        {/* ====================================
-            POSTS
-        ==================================== */}
+          <TabsContent value="applications">
+            <SpaceMemberApplications
+              space={space}
+              onPendingCountChange={setPendingApplications}
+            />
+          </TabsContent>
 
-        <AdminSection
-          disabled
-          icon={FileText}
-          title="Posts"
-          description="Manage posts published in this Space."
-          comingSoon
-        />
+          {/* ====================================
+              SETTINGS
+          ==================================== */}
 
-        {/* ====================================
-            SETTINGS
-        ==================================== */}
-
-        {space.is_owner && (
-          <AdminSection
-            href={`/space/${space.slug}/settings`}
-            icon={Settings}
-            title="Space settings"
-            description="Manage Space information, branding and members."
-          />
-        )}
-      </main>
+          {space.is_owner && (
+            <TabsContent value="settings">
+              <SpaceSettingsContent spaceSlug={space.slug} />
+            </TabsContent>
+          )}
+        </main>
+      </Tabs>
     </div>
   );
 }
 
 /* ============================================
-   ADMIN SECTION
+   SPACE SETTINGS CONTENT
 ============================================ */
 
-function AdminSection({
-  href,
-  icon: Icon,
-  title,
-  description,
-  count,
-  countLabel,
-  disabled = false,
-  comingSoon = false,
-}) {
-  const content = (
-    <Card
-      className={
-        disabled ? "opacity-60" : "transition-colors hover:bg-muted/40"
-      }
-    >
-      <CardContent className="flex items-center gap-4 p-5">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border bg-muted">
-          <Icon className="h-5 w-5" />
-        </div>
+function SpaceSettingsContent({ spaceSlug }) {
+  return (
+    <Tabs defaultValue="general">
+      {/* SETTINGS SUB-TABS */}
 
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h2 className="font-medium">{title}</h2>
+      <div className="mb-6 overflow-x-auto">
+        <TabsList className="flex w-max">
+          <TabsTrigger value="general">General</TabsTrigger>
 
-            {typeof count === "number" && count > 0 && (
-              <Badge variant="destructive" className="rounded-full">
-                {count}
-              </Badge>
-            )}
+          <TabsTrigger value="members">Members</TabsTrigger>
+        </TabsList>
+      </div>
 
-            {comingSoon && (
-              <Badge variant="secondary" className="text-xs">
-                Coming soon
-              </Badge>
-            )}
-          </div>
+      {/* GENERAL */}
 
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+      <TabsContent value="general">
+        <SpaceGeneralSettings spaceSlug={spaceSlug} />
+      </TabsContent>
 
-          {typeof count === "number" && (
-            <p className="mt-2 text-xs text-muted-foreground">
-              {count} {countLabel}
-            </p>
-          )}
-        </div>
+      {/* MEMBERS */}
 
-        {!disabled && (
-          <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-        )}
-      </CardContent>
-    </Card>
+      <TabsContent value="members">
+        <SpaceMembersSettings spaceSlug={spaceSlug} />
+      </TabsContent>
+    </Tabs>
   );
-
-  if (disabled) {
-    return content;
-  }
-
-  return <Link href={href}>{content}</Link>;
 }
 
 /* ============================================
