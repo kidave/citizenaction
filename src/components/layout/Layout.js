@@ -1,6 +1,5 @@
 "use client";
 
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { useRouter } from "next/router";
 
 import AppShell from "./AppShell";
@@ -18,9 +17,5 @@ function LayoutContent({ children }) {
 }
 
 export default function Layout({ children }) {
-  return (
-    <SidebarProvider>
-      <LayoutContent>{children}</LayoutContent>
-    </SidebarProvider>
-  );
+  return <LayoutContent>{children}</LayoutContent>;
 }
