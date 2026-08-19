@@ -12,7 +12,6 @@ import Layout from "@/components/layout/Layout";
 import GoogleOneTap from "@/components/auth/GoogleOneTap";
 import ErrorBoundary from "@/components/system/ErrorBoundary";
 import RouteLoader from "@/components/system/RouteLoader";
-import FloatingMenu from "@/components/layout/FloatingMenu";
 
 import { Toaster } from "sonner";
 
@@ -78,8 +77,6 @@ function MyApp({ Component, pageProps }) {
                   <main className="w-full min-w-0">
                     {getLayout(<Component {...pageProps} />)}
                   </main>
-
-                  <FloatingMenu />
                 </ErrorBoundary>
 
                 <Toaster richColors position="top-right" />

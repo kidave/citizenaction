@@ -6,10 +6,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarRail,
-  SidebarGroup,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
 } from "@/components/ui/sidebar";
 
 import { LogoSwitcher } from "@/components/layout/LogoSwitcher";
@@ -30,6 +26,7 @@ export default function LeftSidebar() {
       <SidebarFooter>
         <Profile />
       </SidebarFooter>
+
       <SidebarRail />
     </Sidebar>
   );

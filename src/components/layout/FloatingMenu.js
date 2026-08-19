@@ -12,13 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function FloatingMenu() {
   const router = useRouter();
-  const sidebar = useSidebar();
-  const { toggleSidebar } = sidebar;
-
-  console.log("FLOATING MENU SIDEBAR:", {
-    state: sidebar.state,
-    isMobile: sidebar.isMobile,
-  });
+  const { toggleSidebar } = useSidebar();
   const { user } = useAuth();
 
   const [open, setOpen] = useState(false);
@@ -80,7 +74,6 @@ export default function FloatingMenu() {
               </motion.div>
             ))}
 
-            {/* INSTALL CITIZEN ACTION */}
             <motion.div
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}

@@ -12,6 +12,7 @@ import {
   SidebarGroupContent,
   SidebarRail,
 } from "@/components/ui/sidebar";
+
 import { ThemeSwitcher } from "@/styles/ThemeSwitcher";
 
 export default function RightSidebar() {
@@ -21,14 +22,15 @@ export default function RightSidebar() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-sm font-semibold">Appearance</h2>
+
             <p className="text-xs text-muted-foreground">Theme preferences</p>
           </div>
 
           <ThemeSwitcher />
         </div>
       </SidebarHeader>
+
       <SidebarContent>
-        {/* About */}
         <SidebarGroup>
           <SidebarGroupLabel>About</SidebarGroupLabel>
 
@@ -37,13 +39,12 @@ export default function RightSidebar() {
             <span className="font-medium text-foreground">Walking Project</span>{" "}
             under{" "}
             <span className="font-medium text-foreground">
-              Mumbai Sustainability Center{" "}
-            </span>
+              Mumbai Sustainability Center
+            </span>{" "}
             focused on walkability.
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Social */}
         <SidebarGroup>
           <SidebarGroupLabel>Connect</SidebarGroupLabel>
 

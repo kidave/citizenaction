@@ -25,10 +25,7 @@ export default function AppShell({ children }) {
           <CenterColumn>{children}</CenterColumn>
         </SidebarInset>
 
-        {/* IMPORTANT:
-            FloatingMenu is INSIDE the left provider.
-            Therefore useSidebar() means LEFT sidebar.
-        */}
+        {/* FloatingMenu belongs to the LEFT sidebar provider */}
         <FloatingMenu />
       </SidebarProvider>
 
@@ -36,7 +33,7 @@ export default function AppShell({ children }) {
 
       {showRightSidebar && (
         <div className="hidden xl:flex">
-          <SidebarProvider className="w-[16rem]">
+          <SidebarProvider>
             <RightSidebar />
           </SidebarProvider>
         </div>
