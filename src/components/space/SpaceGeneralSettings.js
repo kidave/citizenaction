@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 
-import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
-import { supabase } from "@/lib/supabase/client";
+import { toast } from "sonner";
+
+import { useSpaces } from "@/hooks/space/useSpaces";
+import { useUpdateSpace } from "@/hooks/space/useUpdateSpace";
 
 import {
   Card,
@@ -16,16 +18,45 @@ import {
 } from "@/components/ui/card";
 
 import { Input } from "@/components/ui/input";
+
 import { Textarea } from "@/components/ui/textarea";
+
 import { Label } from "@/components/ui/label";
+
 import { Button } from "@/components/ui/button";
 
 export default function SpaceGeneralSettings({ spaceSlug }) {
-  const [space, setSpace] = useState(null);
+  /* ========================================
+     SPACE
+  ======================================== */
 
-  const [loading, setLoading] = useState(true);
+  const {
+    data: space,
+    isLoading,
+    error,
+  } = useSpaces({
+    slug: spaceSlug,
 
-  const [saving, setSaving] = useState(false);
+    privateAccess: true,
+
+    /*
+     * Admins should still be able to
+     * access settings for an inactive Space.
+     */
+    includeInactive: true,
+
+    enabled: !!spaceSlug,
+  });
+
+  /* ========================================
+     UPDATE
+  ======================================== */
+
+  const { updateSpace, isUpdating } = useUpdateSpace();
+
+  /* ========================================
+     FORM
+  ======================================== */
 
   const [form, setForm] = useState({
     name: "",
@@ -40,68 +71,37 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
   });
 
   /* ========================================
-     LOAD
+     LOAD FORM
   ======================================== */
 
   useEffect(() => {
-    if (!spaceSlug) {
+    if (!space) {
       return;
     }
 
-    async function loadSpace() {
-      setLoading(true);
+    setForm({
+      name: space.name || "",
 
-      const { data, error } = await supabase
-        .from("space")
-        .select(
-          `
-          id,
-          name,
-          slug,
-          description,
-          email,
-          website,
-          contact_number,
-          logo_url,
-          cover_url,
-          primary_color
-        `,
-        )
-        .eq("slug", spaceSlug)
-        .single();
+      slug: space.slug || "",
 
-      if (error) {
-        console.error(error);
+      description: space.description || "",
 
-        toast.error("Unable to load Space settings.");
+      email: space.email || "",
 
-        setLoading(false);
+      website: space.website || "",
 
-        return;
-      }
+      contact_number: space.contact_number || "",
 
-      setSpace(data);
+      logo_url: space.logo_url || "",
 
-      setForm({
-        name: data.name || "",
-        slug: data.slug || "",
-        description: data.description || "",
-        email: data.email || "",
-        website: data.website || "",
-        contact_number: data.contact_number || "",
-        logo_url: data.logo_url || "",
-        cover_url: data.cover_url || "",
-        primary_color: data.primary_color || "",
-      });
+      cover_url: space.cover_url || "",
 
-      setLoading(false);
-    }
-
-    loadSpace();
-  }, [spaceSlug]);
+      primary_color: space.primary_color || "",
+    });
+  }, [space]);
 
   /* ========================================
-     CHANGE
+     UPDATE FIELD
   ======================================== */
 
   function updateField(field, value) {
@@ -112,7 +112,7 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
   }
 
   /* ========================================
-     SAVE
+     SUBMIT
   ======================================== */
 
   async function handleSubmit(event) {
@@ -122,83 +122,94 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
       return;
     }
 
-    if (!form.name.trim()) {
+    /* ------------------------------
+       VALIDATION
+    ------------------------------ */
+
+    const name = form.name.trim();
+
+    const slug = form.slug.trim();
+
+    const email = form.email.trim();
+
+    if (!name) {
       toast.error("Space name is required.");
+
       return;
     }
 
-    if (!form.email.trim()) {
+    if (!slug) {
+      toast.error("Space URL is required.");
+
+      return;
+    }
+
+    if (!email) {
       toast.error("Space email is required.");
+
       return;
     }
 
-    setSaving(true);
+    try {
+      await updateSpace({
+        spaceId: space.id,
 
-    /*
-     * We intentionally update only editable
-     * Space information.
-     *
-     * owner_user_id
-     * category_id
-     * is_active
-     *
-     * are NOT editable here.
-     */
+        name,
 
-    const { error } = await supabase
-      .from("space")
-      .update({
-        name: form.name.trim(),
-        slug: form.slug.trim(),
+        slug,
+
         description: form.description.trim() || null,
-        email: form.email.trim(),
+
+        email,
+
         website: form.website.trim() || null,
+
         contact_number: form.contact_number.trim() || null,
+
         logo_url: form.logo_url.trim() || null,
+
         cover_url: form.cover_url.trim() || null,
+
         primary_color: form.primary_color.trim() || null,
-      })
-      .eq("id", space.id);
+      });
 
-    setSaving(false);
-
-    if (error) {
+      toast.success("Space settings saved.");
+    } catch (error) {
       console.error(error);
 
-      if (error.code === "23505") {
+      if (error?.code === "23505") {
         toast.error("That Space URL is already in use.");
       } else {
-        toast.error(error.message || "Unable to save Space settings.");
+        toast.error(error?.message || "Unable to save Space settings.");
       }
-
-      return;
     }
-
-    toast.success("Space settings saved.");
-
-    setSpace((current) => ({
-      ...current,
-      name: form.name.trim(),
-      slug: form.slug.trim(),
-      description: form.description.trim() || null,
-      email: form.email.trim(),
-      website: form.website.trim() || null,
-      contact_number: form.contact_number.trim() || null,
-      logo_url: form.logo_url.trim() || null,
-      cover_url: form.cover_url.trim() || null,
-      primary_color: form.primary_color.trim() || null,
-    }));
   }
 
   /* ========================================
      LOADING
   ======================================== */
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card>
         <CardContent className="flex min-h-40 items-center justify-center">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  /* ========================================
+     ERROR
+  ======================================== */
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <p className="font-medium">Unable to load Space settings.</p>
+
+          <p className="mt-1 text-sm text-muted-foreground">{error.message}</p>
         </CardContent>
       </Card>
     );
@@ -214,6 +225,10 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* ======================================
+          GENERAL
+      ====================================== */}
+
       <Card>
         <CardHeader>
           <CardTitle>General</CardTitle>
@@ -233,7 +248,7 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
               id="space-name"
               value={form.name}
               onChange={(event) => updateField("name", event.target.value)}
-              disabled={saving}
+              disabled={isUpdating}
             />
           </div>
 
@@ -243,7 +258,9 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
             <Label htmlFor="space-slug">Space URL</Label>
 
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">/space/</span>
+              <span className="shrink-0 text-sm text-muted-foreground">
+                /space/
+              </span>
 
               <Input
                 id="space-slug"
@@ -254,7 +271,7 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
                     event.target.value.toLowerCase().replace(/\s+/g, "-"),
                   )
                 }
-                disabled={saving}
+                disabled={isUpdating}
               />
             </div>
 
@@ -276,15 +293,20 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
               }
               rows={5}
               maxLength={2000}
-              disabled={saving}
+              disabled={isUpdating}
             />
 
             <div className="text-right text-xs text-muted-foreground">
-              {form.description.length}/2000
+              {form.description.length}
+              /2000
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* ======================================
+          CONTACT
+      ====================================== */}
 
       <Card>
         <CardHeader>
@@ -296,6 +318,8 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
         </CardHeader>
 
         <CardContent className="space-y-6">
+          {/* EMAIL */}
+
           <div className="space-y-2">
             <Label htmlFor="space-email">Email</Label>
 
@@ -304,9 +328,11 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
               type="email"
               value={form.email}
               onChange={(event) => updateField("email", event.target.value)}
-              disabled={saving}
+              disabled={isUpdating}
             />
           </div>
+
+          {/* WEBSITE */}
 
           <div className="space-y-2">
             <Label htmlFor="space-website">Website</Label>
@@ -317,9 +343,11 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
               placeholder="https://example.com"
               value={form.website}
               onChange={(event) => updateField("website", event.target.value)}
-              disabled={saving}
+              disabled={isUpdating}
             />
           </div>
+
+          {/* CONTACT NUMBER */}
 
           <div className="space-y-2">
             <Label htmlFor="space-contact">Contact number</Label>
@@ -330,11 +358,15 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
               onChange={(event) =>
                 updateField("contact_number", event.target.value)
               }
-              disabled={saving}
+              disabled={isUpdating}
             />
           </div>
         </CardContent>
       </Card>
+
+      {/* ======================================
+          APPEARANCE
+      ====================================== */}
 
       <Card>
         <CardHeader>
@@ -346,6 +378,8 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
         </CardHeader>
 
         <CardContent className="space-y-6">
+          {/* LOGO */}
+
           <div className="space-y-2">
             <Label htmlFor="space-logo">Logo URL</Label>
 
@@ -354,9 +388,11 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
               type="url"
               value={form.logo_url}
               onChange={(event) => updateField("logo_url", event.target.value)}
-              disabled={saving}
+              disabled={isUpdating}
             />
           </div>
+
+          {/* COVER */}
 
           <div className="space-y-2">
             <Label htmlFor="space-cover">Cover URL</Label>
@@ -366,9 +402,11 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
               type="url"
               value={form.cover_url}
               onChange={(event) => updateField("cover_url", event.target.value)}
-              disabled={saving}
+              disabled={isUpdating}
             />
           </div>
+
+          {/* PRIMARY COLOR */}
 
           <div className="space-y-2">
             <Label htmlFor="space-primary-color">Primary color</Label>
@@ -380,15 +418,26 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
               onChange={(event) =>
                 updateField("primary_color", event.target.value)
               }
-              disabled={saving}
+              disabled={isUpdating}
             />
           </div>
         </CardContent>
       </Card>
 
+      {/* ======================================
+          SAVE
+      ====================================== */}
+
       <div className="flex justify-end">
-        <Button type="submit" disabled={saving}>
-          {saving ? "Saving..." : "Save changes"}
+        <Button type="submit" disabled={isUpdating}>
+          {isUpdating ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            "Save changes"
+          )}
         </Button>
       </div>
     </form>
