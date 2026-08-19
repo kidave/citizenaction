@@ -8,17 +8,18 @@ import {
   AlertTriangle,
   FileText,
   Users,
-  UserRound,
+  MessageSquare,
 } from "lucide-react";
 
 import { usePublicProfile } from "@/hooks/user/usePublicProfile";
 import { useDeleteAccountRequest } from "@/hooks/user/useDeleteAccountRequest";
+import { useUserProfileStats } from "@/hooks/user/useUserProfileStats";
 
 import UserPosts from "./UserPosts";
 import UserSpaces from "./UserSpaces";
 import UserContributions from "./UserContributions";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import UserProfileSkeleton from "@/components/skeletons/UserProfileSkeleton";
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
@@ -40,10 +41,6 @@ import {
 
 import { Button } from "@/components/ui/button";
 
-import { Skeleton } from "@/components/ui/skeleton";
-
-import { Separator } from "@/components/ui/separator";
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { toast } from "sonner";
@@ -52,39 +49,30 @@ export default function UserProfile({ username }) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("posts");
 
-  const { data: profile, isLoading, error } = usePublicProfile(username);
-
-  const { requestAccountDeletion, isSubmitting } = useDeleteAccountRequest();
-
   /* ======================================
-     DELETE ACCOUNT
+     PROFILE
   ====================================== */
 
-  const handleDeleteRequest = async () => {
-    if (!profile) {
-      return;
-    }
+  const { data: profile, isLoading, error } = usePublicProfile(username);
 
-    try {
-      await requestAccountDeletion({
-        username: profile.username,
-        userId: profile.user_id,
-      });
+  /* ======================================
+     PROFILE STATS
+  ====================================== */
 
-      toast.success("Account deletion request submitted");
+  const { data: stats } = useUserProfileStats(profile?.user_id);
 
-      setDeleteOpen(false);
-    } catch (err) {
-      toast.error(err?.message || "Unable to submit account deletion request");
-    }
-  };
+  /* ======================================
+     ACCOUNT DELETION
+  ====================================== */
+
+  const { requestAccountDeletion, isSubmitting } = useDeleteAccountRequest();
 
   /* ======================================
      LOADING
   ====================================== */
 
   if (isLoading) {
-    return <ProfileSkeleton />;
+    return <UserProfileSkeleton />;
   }
 
   /* ======================================
@@ -99,18 +87,45 @@ export default function UserProfile({ username }) {
     );
   }
 
+  /* ======================================
+     DISPLAY DATA
+  ====================================== */
+
   const displayName = profile.name || "Unnamed user";
 
   const initials = profile.name?.charAt(0)?.toUpperCase() || "U";
 
+  /* ======================================
+     DELETE ACCOUNT
+  ====================================== */
+
+  const handleDeleteRequest = async () => {
+    try {
+      await requestAccountDeletion({
+        username: profile.username,
+        userId: profile.user_id,
+      });
+
+      toast.success("Account deletion request submitted");
+
+      setDeleteOpen(false);
+    } catch (err) {
+      toast.error(err?.message || "Unable to submit account deletion request");
+    }
+  };
+
   return (
     <>
-      <div className="mx-auto w-full max-w-[720px]">
+      {/* ======================================
+          PROFILE
+      ====================================== */}
+
+      <div className="w-full">
         {/* ======================================
             PROFILE HEADER
         ====================================== */}
 
-        <section className="px-4 pb-5 pt-6 sm:px-0 sm:pt-8">
+        <section className="px-4 pb-5 pt-6 sm:px-6 sm:pt-8">
           <div className="flex items-start gap-5 sm:gap-8">
             {/* AVATAR */}
 
@@ -141,7 +156,7 @@ export default function UserProfile({ username }) {
                   </p>
                 </div>
 
-                {/* SELF ACTIONS */}
+                {/* SELF PROFILE MENU */}
 
                 {profile.is_self && (
                   <DropdownMenu>
@@ -157,6 +172,8 @@ export default function UserProfile({ username }) {
                     </DropdownMenuTrigger>
 
                     <DropdownMenuContent align="end">
+                      {/* EDIT PROFILE */}
+
                       <DropdownMenuItem asChild>
                         <Link
                           href={{
@@ -170,6 +187,8 @@ export default function UserProfile({ username }) {
                         </Link>
                       </DropdownMenuItem>
 
+                      {/* DELETE ACCOUNT */}
+
                       <DropdownMenuItem
                         className="text-red-600 focus:text-red-600"
                         onClick={() => setDeleteOpen(true)}
@@ -181,31 +200,61 @@ export default function UserProfile({ username }) {
                 )}
               </div>
 
-              {/* STATS */}
+              {/* ======================================
+                  STATS
+              ====================================== */}
 
               <div className="mt-5 flex items-center gap-5 sm:gap-8">
-                <ProfileStat label="Posts" value="—" />
+                {/* POSTS */}
 
-                <ProfileStat label="Contributions" value="—" />
+                <div>
+                  <p className="text-base font-semibold">
+                    {stats?.post_count ?? 0}
+                  </p>
 
-                <ProfileStat label="Spaces" value="—" />
+                  <p className="text-xs text-muted-foreground">Post</p>
+                </div>
+
+                {/* CONTRIBUTIONS */}
+
+                <div>
+                  <p className="text-base font-semibold">
+                    {stats?.contribution_count ?? 0}
+                  </p>
+
+                  <p className="text-xs text-muted-foreground">Contribution</p>
+                </div>
+
+                {/* SPACES */}
+
+                <div>
+                  <p className="text-base font-semibold">
+                    {stats?.space_count ?? 0}
+                  </p>
+
+                  <p className="text-xs text-muted-foreground">Space</p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* SHORT PROFILE SUMMARY */}
+          {/* ======================================
+              SUMMARY
+          ====================================== */}
 
-          <div className="mt-5 space-y-1">
-            {profile.designation && (
-              <p className="text-sm font-medium">{profile.designation}</p>
-            )}
+          {(profile.designation || profile.locality) && (
+            <div className="mt-5 space-y-1">
+              {profile.designation && (
+                <p className="text-sm font-medium">{profile.designation}</p>
+              )}
 
-            {profile.locality && (
-              <p className="text-sm text-muted-foreground">
-                {profile.locality}
-              </p>
-            )}
-          </div>
+              {profile.locality && (
+                <p className="text-sm text-muted-foreground">
+                  {profile.locality}
+                </p>
+              )}
+            </div>
+          )}
         </section>
 
         {/* ======================================
@@ -213,15 +262,32 @@ export default function UserProfile({ username }) {
         ====================================== */}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="h-12 w-full justify-around rounded-none border-y bg-transparent p-0">
+          {/* TAB NAVIGATION */}
+
+          <TabsList className="h-12 w-full rounded-none border-y bg-transparent p-0">
+            {/* POSTS */}
+
             <TabsTrigger
               value="posts"
               className="h-full flex-1 gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent"
             >
               <FileText className="h-4 w-4" />
 
-              <span className="hidden sm:inline">Posts</span>
+              <span className="hidden sm:inline">Post</span>
             </TabsTrigger>
+
+            {/* CONTRIBUTIONS */}
+
+            <TabsTrigger
+              value="contributions"
+              className="h-full flex-1 gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent"
+            >
+              <MessageSquare className="h-4 w-4" />
+
+              <span className="hidden sm:inline">Contribution</span>
+            </TabsTrigger>
+
+            {/* SPACES */}
 
             <TabsTrigger
               value="spaces"
@@ -229,106 +295,38 @@ export default function UserProfile({ username }) {
             >
               <Users className="h-4 w-4" />
 
-              <span className="hidden sm:inline">Spaces</span>
-            </TabsTrigger>
-
-            <TabsTrigger
-              value="profile"
-              className="h-full flex-1 gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent"
-            >
-              <UserRound className="h-4 w-4" />
-
-              <span className="hidden sm:inline">Profile</span>
+              <span className="hidden sm:inline">Space</span>
             </TabsTrigger>
           </TabsList>
 
           {/* ======================================
-              POSTS TAB
+              POSTS
           ====================================== */}
 
           <TabsContent value="posts" className="mt-0">
-            <div className="space-y-8 py-5">
-              {/* POSTS */}
-
-              <section>
-                <div className="px-4 pb-3 sm:px-0">
-                  <h2 className="text-sm font-semibold">Posts</h2>
-
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    Posts made by {displayName}
-                  </p>
-                </div>
-
-                <UserPosts userId={profile.user_id} />
-              </section>
-
-              {/* CONTRIBUTIONS */}
-
-              <section>
-                <div className="px-4 pb-3 sm:px-0">
-                  <h2 className="text-sm font-semibold">Contributions</h2>
-
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    Contributions made by {displayName}
-                  </p>
-                </div>
-
-                <UserContributions userId={profile.user_id} />
-              </section>
-            </div>
+            <UserPosts userId={profile.user_id} />
           </TabsContent>
 
           {/* ======================================
-              SPACES TAB
+              CONTRIBUTIONS
           ====================================== */}
 
-          <TabsContent value="spaces" className="mt-0 px-4 py-5 sm:px-0">
+          <TabsContent value="contributions" className="mt-0">
+            <UserContributions userId={profile.user_id} />
+          </TabsContent>
+
+          {/* ======================================
+              SPACES
+          ====================================== */}
+
+          <TabsContent value="spaces" className="mt-0">
             <UserSpaces userId={profile.user_id} />
-          </TabsContent>
-
-          {/* ======================================
-              PROFILE TAB
-          ====================================== */}
-
-          <TabsContent value="profile" className="mt-0 px-4 py-5 sm:px-0">
-            <Card>
-              <CardHeader>
-                <h2 className="text-sm font-semibold">Profile information</h2>
-              </CardHeader>
-
-              <CardContent className="space-y-4">
-                {profile.email && (
-                  <ProfileItem label="Email" value={profile.email} />
-                )}
-
-                {profile.mobile && (
-                  <ProfileItem label="Phone" value={`+${profile.mobile}`} />
-                )}
-
-                <ProfileItem
-                  label="Designation"
-                  value={profile.designation || "N/A"}
-                />
-
-                <ProfileItem
-                  label="Locality"
-                  value={profile.locality || "N/A"}
-                />
-
-                <Separator />
-
-                <ProfileItem
-                  label="Member Since"
-                  value={formatDate(profile.created_at)}
-                />
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
       </div>
 
       {/* ======================================
-          DELETE REQUEST DIALOG
+          DELETE ACCOUNT DIALOG
       ====================================== */}
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
@@ -372,89 +370,5 @@ export default function UserProfile({ username }) {
         </DialogContent>
       </Dialog>
     </>
-  );
-}
-
-/* ============================================
-   PROFILE STAT
-============================================ */
-
-function ProfileStat({ label, value }) {
-  return (
-    <div className="min-w-0">
-      <p className="text-base font-semibold">{value}</p>
-
-      <p className="text-xs text-muted-foreground">{label}</p>
-    </div>
-  );
-}
-
-/* ============================================
-   PROFILE ITEM
-============================================ */
-
-function ProfileItem({ label, value }) {
-  return (
-    <div className="flex items-start justify-between gap-6">
-      <span className="shrink-0 text-sm text-muted-foreground">{label}</span>
-
-      <span className="min-w-0 break-words text-right text-sm font-medium">
-        {value}
-      </span>
-    </div>
-  );
-}
-
-/* ============================================
-   DATE
-============================================ */
-
-function formatDate(value) {
-  if (!value) {
-    return "N/A";
-  }
-
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value));
-}
-
-/* ============================================
-   SKELETON
-============================================ */
-
-function ProfileSkeleton() {
-  return (
-    <div className="mx-auto w-full max-w-[720px]">
-      <div className="px-4 pb-5 pt-6 sm:px-0 sm:pt-8">
-        <div className="flex items-start gap-5 sm:gap-8">
-          <Skeleton className="h-20 w-20 shrink-0 rounded-full sm:h-28 sm:w-28" />
-
-          <div className="flex-1 space-y-3">
-            <Skeleton className="h-6 w-40" />
-            <Skeleton className="h-4 w-24" />
-
-            <div className="flex gap-7 pt-2">
-              <Skeleton className="h-8 w-12" />
-              <Skeleton className="h-8 w-12" />
-              <Skeleton className="h-8 w-12" />
-            </div>
-          </div>
-        </div>
-
-        <Skeleton className="mt-5 h-4 w-32" />
-        <Skeleton className="mt-2 h-4 w-24" />
-      </div>
-
-      <div className="h-12 border-y" />
-
-      <div className="space-y-4 px-4 py-6">
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
-      </div>
-    </div>
   );
 }

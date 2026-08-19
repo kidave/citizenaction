@@ -40,7 +40,7 @@ export default function PublicProfilePage() {
           CONTENT
       ====================================== */}
 
-      <main className="mx-auto w-full max-w-xl p-2 sm:p-4">
+      <main className="mx-auto w-full">
         {isEditing ? <EditProfile /> : <UserProfile username={username} />}
       </main>
     </div>

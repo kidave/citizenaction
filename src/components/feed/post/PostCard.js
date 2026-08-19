@@ -21,6 +21,7 @@ export default function PostCard({
   post,
   onEdit,
   onDelete,
+  profileMode,
   forceExpanded = false,
   borderless = false,
   edgeToEdgeMobile = false,
@@ -76,62 +77,52 @@ export default function PostCard({
           canEdit={canEdit}
           onEdit={onEdit}
           onDelete={onDelete}
+          profileMode={profileMode}
         />
 
         {post.attachments?.length > 0 && (
-          <div className="overflow-hidden">
+          <div className="overflow-hidden rounded-3xl">
             <PostAttachments attachments={post.attachments} />
           </div>
         )}
-        <div
-          className={
-            !forceExpanded
-              ? "cursor-pointer transition-opacity hover:opacity-90"
-              : "transition-opacity"
-          }
-          onClick={
-            !forceExpanded
-              ? (e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleNavigate();
-                }
-              : undefined
-          }
-        >
-          <div className="sm:rounded-3xl sm:bg-muted sm:p-4">
-            <PostContent
-              post={post}
-              onNavigate={handleNavigate}
-              forceExpanded={forceExpanded}
-            />
 
-            <PostMetadata
+        <div
+          className="cursor-pointer transition-opacity hover:opacity-90"
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            handleNavigate();
+          }}
+        >
+          <div
+            className={
+              profileMode
+                ? "rounded-2xl bg-muted p-4"
+                : "sm:rounded-3xl sm:bg-muted sm:p-4"
+            }
+          >
+            <PostContent
               post={post}
               status={status}
               forceExpanded={forceExpanded}
             />
-
-            <PostTimeline post={post} />
           </div>
         </div>
 
-        {post.links?.length > 0 &&
-          (forceExpanded || !post.attachments?.length) && (
-            <div className="overflow-hidden">
-              <PostLinks links={post.links} />
-            </div>
-          )}
+        {!profileMode && (
+          <div className="sm:rounded-3xl sm:bg-muted sm:p-2">
+            <PostFooter
+              post={post}
+              forceExpanded={forceExpanded}
+              queryKey={["feed"]}
+            />
+          </div>
+        )}
 
-        <div className="sm:rounded-3xl sm:bg-muted sm:p-2">
-          <PostFooter
-            post={post}
-            forceExpanded={forceExpanded}
-            queryKey={["feed"]}
-          />
-        </div>
-
-        {forceExpanded && <PostContribution post={post} queryKey={["feed"]} />}
+        {!profileMode && forceExpanded && (
+          <PostContribution post={post} queryKey={["feed"]} />
+        )}
       </div>
     </Card>
   );
