@@ -12,7 +12,13 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function FloatingMenu() {
   const router = useRouter();
-  const { toggleSidebar } = useSidebar();
+  const sidebar = useSidebar();
+  const { toggleSidebar } = sidebar;
+
+  console.log("FLOATING MENU SIDEBAR:", {
+    state: sidebar.state,
+    isMobile: sidebar.isMobile,
+  });
   const { user } = useAuth();
 
   const [open, setOpen] = useState(false);
