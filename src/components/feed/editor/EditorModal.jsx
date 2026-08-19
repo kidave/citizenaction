@@ -23,6 +23,7 @@ export default function EditorModal({
   mode = "post",
   item = null,
   post = null,
+  initialSpace = null,
 }) {
   const { data: profile, isLoading: profileLoading } = useMyProfile();
 
@@ -36,7 +37,7 @@ export default function EditorModal({
    * =========================================================
    */
 
-  const postEditor = usePostEditor(mode === "post" ? item : null);
+  const postEditor = usePostEditor(mode === "post" ? item : null, initialSpace);
 
   const contributionEditor = useContributionEditor(
     mode === "contribution" ? item : null,
@@ -68,10 +69,6 @@ export default function EditorModal({
         </DialogContent>
       ) : (
         <DialogContent className="flex h-full w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-2xl sm:rounded-xl">
-          {/* =================================================
-              HEADER
-          ================================================= */}
-
           <EditorHeader
             mode={mode}
             profile={profile}
@@ -79,36 +76,13 @@ export default function EditorModal({
             spaces={spaces}
           />
 
-          {/* =================================================
-              MAIN EDITOR
-          ================================================= */}
-
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4">
-              {/* =================================================
-                  POST TYPE
-
-                  Only posts have Action / Report / Update /
-                  Event / Meeting.
-              ================================================= */}
-
               {mode === "post" && (
                 <div className="mb-3 shrink-0">
                   <EditorType type={editor.type} setType={editor.setType} />
                 </div>
               )}
-
-              {/* =================================================
-                  CONTENT
-
-                  The editor type determines whether this is:
-
-                  Action  → plain text
-                  Report  → Editor.js
-                  Update  → Editor.js
-                  Event   → plain text
-                  Meeting → plain text
-              ================================================= */}
 
               <EditorContent
                 type={editor.type}
@@ -125,10 +99,6 @@ export default function EditorModal({
               />
             </div>
 
-            {/* =================================================
-                ATTACHMENTS
-            ================================================= */}
-
             <EditorAttachments
               attachments={editor.attachments}
               setAttachments={editor.setAttachments}
@@ -136,10 +106,6 @@ export default function EditorModal({
               setOpen={setAttachmentsOpen}
             />
           </div>
-
-          {/* =================================================
-              FOOTER
-          ================================================= */}
 
           <EditorFooter
             mode={mode}

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 
-import Image from "next/image";
+import { Check, Search } from "lucide-react";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
@@ -10,7 +10,15 @@ import { Input } from "@/components/ui/input";
 
 import { Button } from "@/components/ui/button";
 
-import { Check, Search } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import SpaceCard from "@/components/space/SpaceCard";
 
 export default function SpaceExplorer({
   open,
@@ -20,58 +28,122 @@ export default function SpaceExplorer({
   setSelectedSpaces,
 }) {
   const [search, setSearch] = useState("");
+  const [categorySlug, setCategorySlug] = useState("");
+
+  /* ======================================
+     CATEGORIES
+  ====================================== */
+
+  const categories = useMemo(() => {
+    const map = new Map();
+
+    spaces.forEach((space) => {
+      if (!space.category_id || !space.category_slug) {
+        return;
+      }
+
+      if (!map.has(space.category_id)) {
+        map.set(space.category_id, {
+          id: space.category_id,
+          slug: space.category_slug,
+          name: space.category_name,
+        });
+      }
+    });
+
+    return Array.from(map.values());
+  }, [spaces]);
+
+  /* ======================================
+     FILTER SPACES
+  ====================================== */
 
   const filteredSpaces = useMemo(() => {
-    if (!search.trim()) {
-      return spaces;
-    }
+    const query = search.trim().toLowerCase();
 
-    return spaces.filter((space) =>
-      space.name?.toLowerCase().includes(search.toLowerCase()),
-    );
-  }, [spaces, search]);
+    return spaces.filter((space) => {
+      /* SEARCH */
 
-  function isSelected(spaceId) {
-    return selectedSpaces.some((s) => s.id === spaceId);
-  }
+      const matchesSearch =
+        !query ||
+        space.name?.toLowerCase().includes(query) ||
+        space.description?.toLowerCase().includes(query);
 
-  function toggleSpace(space) {
+      if (!matchesSearch) {
+        return false;
+      }
+
+      /* CATEGORY */
+
+      const matchesCategory =
+        !categorySlug || space.category_slug === categorySlug;
+
+      return matchesCategory;
+    });
+  }, [spaces, search, categorySlug]);
+
+  /* ======================================
+     SELECTION
+  ====================================== */
+
+  const isSelected = (spaceId) => {
+    return selectedSpaces.some((space) => space.id === spaceId);
+  };
+
+  const toggleSpace = (space) => {
     if (isSelected(space.id)) {
-      setSelectedSpaces(selectedSpaces.filter((s) => s.id !== space.id));
+      setSelectedSpaces(
+        selectedSpaces.filter((selected) => selected.id !== space.id),
+      );
 
       return;
     }
 
     setSelectedSpaces([...selectedSpaces, space]);
-  }
+  };
+
+  /* ======================================
+     GLOBAL
+  ====================================== */
+
+  const handleGlobal = () => {
+    setSelectedSpaces([]);
+  };
+
+  /* ======================================
+     CLOSE
+  ====================================== */
+
+  const handleClose = () => {
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-full w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[85vh] sm:max-w-5xl sm:rounded-2xl">
-        {/* TOP BAR */}
-        <div className="flex items-center justify-between gap-4 border-b p-4">
+        {/* ======================================
+            HEADER
+        ====================================== */}
+
+        <div className="flex items-center justify-between gap-3 border-b p-4">
           {/* LEFT */}
+
           <div className="flex min-w-0 items-center gap-3">
             {/* GLOBAL */}
+
             <Button
               type="button"
-              onClick={() => setSelectedSpaces([])}
-              className="flex shrink-0 items-center gap-3 rounded-full border px-4 py-2 transition-all hover:bg-muted/40"
+              variant={selectedSpaces.length === 0 ? "default" : "outline"}
+              onClick={handleGlobal}
+              className="shrink-0 gap-2 rounded-full"
             >
-              <div className="text-sm font-medium">Global</div>
+              <span>Global</span>
 
-              <div
-                className={`flex h-5 w-5 items-center justify-center rounded-full border transition-all ${
-                  selectedSpaces.length === 0
-                    ? `border-primary bg-primary text-primary-foreground`
-                    : `border-muted-foreground`
-                } `}
-              >
-                {selectedSpaces.length === 0 && <Check className="h-3 w-3" />}
-              </div>
+              {selectedSpaces.length === 0 && <Check className="h-4 w-4" />}
             </Button>
 
             {/* SELECTED SPACES */}
+
             {selectedSpaces.length > 0 && (
               <div className="flex min-w-0 items-center -space-x-2">
                 {selectedSpaces.slice(0, 5).map((space) => (
@@ -80,15 +152,14 @@ export default function SpaceExplorer({
                     className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border-2 border-background bg-muted"
                   >
                     {space.logo_url ? (
-                      <Image
+                      <img
                         src={space.logo_url}
-                        alt={space.name}
-                        fill
-                        className="object-cover"
+                        alt=""
+                        className="h-full w-full object-cover"
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-xs font-medium">
-                        {space.name?.[0]}
+                        {space.name?.charAt(0)?.toUpperCase() || "S"}
                       </div>
                     )}
                   </div>
@@ -104,86 +175,96 @@ export default function SpaceExplorer({
           </div>
 
           {/* RIGHT */}
+
           <div className="flex shrink-0 items-center gap-2">
             <Button
+              type="button"
               variant="outline"
               size="sm"
-              onClick={() => onOpenChange(false)}
+              onClick={handleClose}
             >
               Cancel
             </Button>
 
-            <Button size="sm" onClick={() => onOpenChange(false)}>
+            <Button type="button" size="sm" onClick={handleClose}>
               Done
             </Button>
           </div>
         </div>
 
-        {/* SEARCH */}
-        <div className="border-b p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        {/* ======================================
+            FILTERS
+        ====================================== */}
 
-            <Input
-              placeholder="Search spaces..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
+        <div className="border-b p-4">
+          <div className="flex w-full items-center gap-2">
+            {/* SEARCH */}
+
+            <div className="relative min-w-0 flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+
+              <Input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search spaces..."
+                aria-label="Search spaces"
+                className="h-10 rounded-xl pl-9"
+              />
+            </div>
+
+            {/* CATEGORY */}
+
+            <Select
+              value={categorySlug || "all"}
+              onValueChange={(value) =>
+                setCategorySlug(value === "all" ? "" : value)
+              }
+            >
+              <SelectTrigger className="h-10 w-[150px] shrink-0 rounded-xl sm:w-[180px]">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.slug}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
-        {/* CONTENT */}
-        <div className="flex-1 overflow-y-auto p-4">
-          {/* SPACE GRID */}
-          <div className="grid grid-cols-4 gap-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7">
-            {filteredSpaces.map((space) => {
-              const selected = isSelected(space.id);
+        {/* ======================================
+            CONTENT
+        ====================================== */}
 
-              return (
-                <Button
+        <div className="min-h-0 flex-1 overflow-y-auto p-4">
+          {filteredSpaces.length === 0 ? (
+            <div className="flex min-h-[240px] items-center justify-center text-center">
+              <div>
+                <p className="font-medium">No Spaces found</p>
+
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Try another search or category.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {filteredSpaces.map((space) => (
+                <SpaceCard
                   key={space.id}
-                  type="button"
-                  onClick={() => toggleSpace(space)}
-                  className="group flex flex-col items-center gap-2"
-                >
-                  {/* TILE */}
-                  <div
-                    className={`relative h-16 w-16 overflow-hidden rounded-2xl border transition-all ${
-                      selected
-                        ? `border-primary ring-2 ring-primary/20`
-                        : `border-border group-hover:border-primary/40`
-                    } `}
-                  >
-                    {space.logo_url ? (
-                      <Image
-                        src={space.logo_url}
-                        alt={space.name}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-muted text-lg font-semibold">
-                        {space.name?.[0]}
-                      </div>
-                    )}
-
-                    {/* CHECK */}
-                    {selected && (
-                      <div className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
-                        <Check className="h-3 w-3" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* LABEL */}
-                  <div className="line-clamp-2 max-w-[72px] text-center text-xs leading-tight">
-                    {space.name}
-                  </div>
-                </Button>
-              );
-            })}
-          </div>
+                  space={space}
+                  selectable
+                  selected={isSelected(space.id)}
+                  onSelect={toggleSpace}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

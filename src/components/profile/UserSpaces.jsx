@@ -39,7 +39,7 @@ export default function UserSpaces({ userId }) {
   }
 
   return (
-    <div className="grid grid-cols-3 gap-2 p-2 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+    <div className="mx-auto grid max-w-3xl grid-cols-3 gap-2 p-2 sm:grid-cols-4">
       {spaces.map((space) => (
         <UserSpaceCard key={space.id} space={space} />
       ))}

@@ -62,7 +62,7 @@ export default function UserContributions({ userId }) {
   }
 
   return (
-    <div className="space-y-2 p-2">
+    <div className="mx-auto max-w-3xl space-y-2 p-2">
       {contributions.map((contribution) => (
         <Link
           key={contribution.id}

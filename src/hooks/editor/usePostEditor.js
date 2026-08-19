@@ -10,27 +10,46 @@ import { useDeletePost } from "@/hooks/post/useDeletePost";
 
 import { postSchema } from "@/schemas/feed/postSchema";
 
-export function usePostEditor(post = null) {
-  const editor = useEditor(post);
+export function usePostEditor(item = null, initialSpace = null) {
+  /*
+   * =========================================
+   * EDITOR
+   * =========================================
+   *
+   * initialSpace is passed into useEditor so
+   * the editor itself owns the selected Space.
+   */
+
+  const editor = useEditor(item, initialSpace);
 
   const { createPost } = useCreatePost();
+
   const { updatePost } = useUpdatePost();
+
   const { deletePost } = useDeletePost();
+
+  /* =========================================
+     SUBMIT
+  ========================================= */
 
   async function submit(onSuccess) {
     if (!editor.content.trim()) {
       toast.error("Enter content.");
+
       return;
     }
 
     const result = postSchema.safeParse({
       type: editor.type,
+
       start_at: editor.start_at,
+
       end_at: editor.end_at,
     });
 
     if (!result.success) {
       toast.error(result.error.errors[0].message);
+
       return;
     }
 
@@ -73,9 +92,10 @@ export function usePostEditor(post = null) {
     };
 
     try {
-      if (post) {
+      if (item) {
         await updatePost({
-          postId: post.id,
+          postId: item.id,
+
           postData: payload,
         });
       } else {
@@ -86,7 +106,9 @@ export function usePostEditor(post = null) {
     } catch (error) {
       console.error("Failed to save post", {
         message: error?.message,
+
         code: error?.code,
+
         status: error?.status,
       });
 
@@ -94,16 +116,25 @@ export function usePostEditor(post = null) {
     }
   }
 
+  /* =========================================
+     DELETE
+  ========================================= */
+
   async function remove(onSuccess) {
-    if (!post) return;
+    if (!item) {
+      return;
+    }
 
     try {
-      await deletePost(post.id);
+      await deletePost(item.id);
+
       onSuccess?.();
     } catch (error) {
       console.error("Failed to delete post", {
         message: error?.message,
+
         code: error?.code,
+
         status: error?.status,
       });
 

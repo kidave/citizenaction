@@ -6,11 +6,13 @@ import { useAuth } from "@/context/AuthContext";
 
 import { extractContentMeta } from "@/utils/text/contentMeta";
 
-export function useEditor(item = null) {
+export function useEditor(item = null, initialSpace = null) {
   const { user } = useAuth();
 
   const [spaces, setSpaces] = useState([]);
+
   const [is_global, setIsGlobal] = useState(false);
+
   const [governance, setSelectedAuthorities] = useState([]);
 
   const [type, setType] = useState("action");
@@ -23,6 +25,7 @@ export function useEditor(item = null) {
   // ==========================================================
 
   const [contentJson, setContentJson] = useState(null);
+
   const [contentFormat, setContentFormat] = useState("text");
 
   const [attachments, setAttachments] = useState([]);
@@ -122,44 +125,99 @@ export function useEditor(item = null) {
   };
 
   // ==========================================================
-  // Load Existing Item
+  // Load Existing Item / Initial Space
   // ==========================================================
 
   useEffect(() => {
-    setSpaces(item?.spaces ?? []);
+    /*
+     * ========================================================
+     * EDIT EXISTING POST
+     * ========================================================
+     *
+     * Existing post spaces always take priority.
+     */
 
-    setIsGlobal(item?.is_global ?? false);
+    if (item) {
+      setSpaces(item.spaces ?? []);
 
-    setSelectedAuthorities(item?.governance ?? []);
+      setIsGlobal(item.is_global ?? false);
 
-    setType(item?.type ?? "action");
+      setSelectedAuthorities(item.governance ?? []);
 
-    setTitle(item?.title ?? "");
+      setType(item.type ?? "action");
 
-    setContent(item?.content ?? "");
+      setTitle(item.title ?? "");
 
-    // --------------------------------------------------------
-    // Structured content
-    // --------------------------------------------------------
+      setContent(item.content ?? "");
 
-    setContentJson(item?.content_json ?? null);
+      setContentJson(item.content_json ?? null);
 
-    setContentFormat(item?.content_format === "editorjs" ? "editorjs" : "text");
+      setContentFormat(
+        item.content_format === "editorjs" ? "editorjs" : "text",
+      );
 
-    replaceAttachments(item?.attachments ?? []);
+      replaceAttachments(item.attachments ?? []);
 
-    replaceLinks(item?.links ?? []);
+      replaceLinks(item.links ?? []);
 
-    setStartAt(item?.start_at ?? null);
+      setStartAt(item.start_at ?? null);
 
-    setEndAt(item?.end_at ?? null);
+      setEndAt(item.end_at ?? null);
 
-    setLat(item?.lat ?? null);
+      setLat(item.lat ?? null);
 
-    setLng(item?.lng ?? null);
+      setLng(item.lng ?? null);
 
-    setAddress(item?.address ?? null);
-  }, [item]);
+      setAddress(item.address ?? null);
+
+      return;
+    }
+
+    /*
+     * ========================================================
+     * NEW POST
+     * ========================================================
+     *
+     * If the editor was opened from a Space page,
+     * automatically select that Space.
+     */
+
+    if (initialSpace) {
+      setSpaces([initialSpace]);
+
+      setIsGlobal(false);
+    } else {
+      setSpaces([]);
+
+      setIsGlobal(false);
+    }
+
+    setSelectedAuthorities([]);
+
+    setType("action");
+
+    setTitle("");
+
+    setContent("");
+
+    setContentJson(null);
+
+    setContentFormat("text");
+
+    replaceAttachments([]);
+
+    replaceLinks([]);
+
+    setStartAt(null);
+
+    setEndAt(null);
+
+    setLat(null);
+
+    setLng(null);
+
+    setAddress(null);
+  }, [item, initialSpace]);
 
   // ==========================================================
   // Editor Data
@@ -172,24 +230,30 @@ export function useEditor(item = null) {
       author_id: user?.id ?? null,
 
       title,
+
       content,
 
       content_json: contentJson,
+
       content_format: contentFormat,
 
       attachments,
+
       links,
 
       start_at,
+
       end_at,
 
       lat,
+
       lng,
 
       address,
 
       metadata: {
         extracted_links,
+
         hashtags,
       },
 
@@ -221,58 +285,91 @@ export function useEditor(item = null) {
   ]);
 
   return {
+    // ========================================================
     // Type
+    // ========================================================
+
     type,
     setType,
 
+    // ========================================================
     // Content
+    // ========================================================
+
     title,
     setTitle,
 
     content,
     setContent,
 
+    // ========================================================
     // Structured content
+    // ========================================================
+
     contentJson,
     setContentJson,
 
     contentFormat,
     setContentFormat,
 
+    // ========================================================
     // Attachments
+    // ========================================================
+
     attachments,
+
     attachmentCount,
+
     hasAttachments,
 
     setAttachments,
+
     replaceAttachments,
 
     addAttachments,
+
     removeAttachment,
+
     clearAttachments,
+
     updateAttachment,
+
     moveAttachment,
 
+    // ========================================================
     // Links
+    // ========================================================
+
     links,
 
     setLinks,
+
     replaceLinks,
 
     addLinks,
+
     removeLink,
+
     clearLinks,
+
     updateLink,
+
     moveLink,
 
+    // ========================================================
     // Dates
+    // ========================================================
+
     start_at,
     setStartAt,
 
     end_at,
     setEndAt,
 
+    // ========================================================
     // Location
+    // ========================================================
+
     lat,
     setLat,
 
@@ -282,17 +379,27 @@ export function useEditor(item = null) {
     address,
     setAddress,
 
+    // ========================================================
     // Spaces
+    // ========================================================
+
     spaces,
     setSpaces,
 
     is_global,
     setIsGlobal,
 
+    // ========================================================
+    // Governance
+    // ========================================================
+
     governance,
     setSelectedAuthorities,
 
+    // ========================================================
     // Helpers
+    // ========================================================
+
     editorData,
 
     getEditorData: () => editorData,

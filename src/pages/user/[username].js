@@ -15,7 +15,7 @@ export default function PublicProfilePage() {
   const isEditing = edit === "true";
 
   return (
-    <div className="min-h-dvh w-full">
+    <div className="mx-auto min-h-dvh max-w-6xl">
       {/* ======================================
           FULL-WIDTH HEADER
       ====================================== */}

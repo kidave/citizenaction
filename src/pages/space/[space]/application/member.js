@@ -12,7 +12,7 @@ import { toast } from "sonner";
 
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/context/AuthContext";
-
+import AuthCard from "@/components/auth/AuthCard";
 import BackButton from "@/components/ui/back-button";
 
 import {
