@@ -1,13 +1,22 @@
 "use client";
 
 import { useState } from "react";
-
 import Link from "next/link";
 
-import { MoreVertical, AlertTriangle } from "lucide-react";
+import {
+  MoreVertical,
+  AlertTriangle,
+  FileText,
+  Users,
+  UserRound,
+} from "lucide-react";
 
 import { usePublicProfile } from "@/hooks/user/usePublicProfile";
 import { useDeleteAccountRequest } from "@/hooks/user/useDeleteAccountRequest";
+
+import UserPosts from "./UserPosts";
+import UserSpaces from "./UserSpaces";
+import UserContributions from "./UserContributions";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
@@ -35,10 +44,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { Separator } from "@/components/ui/separator";
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { toast } from "sonner";
 
 export default function UserProfile({ username }) {
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("posts");
 
   const { data: profile, isLoading, error } = usePublicProfile(username);
 
@@ -56,7 +68,6 @@ export default function UserProfile({ username }) {
     try {
       await requestAccountDeletion({
         username: profile.username,
-
         userId: profile.user_id,
       });
 
@@ -88,113 +99,233 @@ export default function UserProfile({ username }) {
     );
   }
 
+  const displayName = profile.name || "Unnamed user";
+
+  const initials = profile.name?.charAt(0)?.toUpperCase() || "U";
+
   return (
     <>
-      {/* ======================================
-          PROFILE CARD
-      ====================================== */}
-
-      <Card className="relative w-full">
+      <div className="mx-auto w-full max-w-[720px]">
         {/* ======================================
-            SELF PROFILE ACTIONS
+            PROFILE HEADER
         ====================================== */}
 
-        {profile.is_self && (
-          <div className="absolute right-3 top-3 z-10">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Profile options"
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
+        <section className="px-4 pb-5 pt-6 sm:px-0 sm:pt-8">
+          <div className="flex items-start gap-5 sm:gap-8">
+            {/* AVATAR */}
 
-              <DropdownMenuContent align="end">
-                {/* EDIT PROFILE */}
+            <Avatar className="h-20 w-20 shrink-0 sm:h-28 sm:w-28">
+              <AvatarImage
+                src={profile.avatar_url || undefined}
+                alt={displayName}
+              />
 
-                <DropdownMenuItem asChild>
-                  <Link
-                    href={{
-                      pathname: `/user/${profile.username}`,
-                      query: {
-                        edit: "true",
-                      },
-                    }}
-                  >
-                    Edit Profile
-                  </Link>
-                </DropdownMenuItem>
+              <AvatarFallback className="text-xl sm:text-3xl">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
 
-                {/* DELETE ACCOUNT */}
+            {/* PROFILE INFO */}
 
-                <DropdownMenuItem
-                  className="text-red-600 focus:text-red-600"
-                  onClick={() => setDeleteOpen(true)}
-                >
-                  Request Account Deletion
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="min-w-0 flex-1">
+              {/* NAME + ACTIONS */}
+
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h1 className="truncate text-xl font-semibold sm:text-2xl">
+                    {displayName}
+                  </h1>
+
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    @{profile.username}
+                  </p>
+                </div>
+
+                {/* SELF ACTIONS */}
+
+                {profile.is_self && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Profile options"
+                        className="shrink-0"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href={{
+                            pathname: `/user/${profile.username}`,
+                            query: {
+                              edit: "true",
+                            },
+                          }}
+                        >
+                          Edit Profile
+                        </Link>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem
+                        className="text-red-600 focus:text-red-600"
+                        onClick={() => setDeleteOpen(true)}
+                      >
+                        Request Account Deletion
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+
+              {/* STATS */}
+
+              <div className="mt-5 flex items-center gap-5 sm:gap-8">
+                <ProfileStat label="Posts" value="—" />
+
+                <ProfileStat label="Contributions" value="—" />
+
+                <ProfileStat label="Spaces" value="—" />
+              </div>
+            </div>
           </div>
-        )}
+
+          {/* SHORT PROFILE SUMMARY */}
+
+          <div className="mt-5 space-y-1">
+            {profile.designation && (
+              <p className="text-sm font-medium">{profile.designation}</p>
+            )}
+
+            {profile.locality && (
+              <p className="text-sm text-muted-foreground">
+                {profile.locality}
+              </p>
+            )}
+          </div>
+        </section>
 
         {/* ======================================
-            AVATAR
+            TABS
         ====================================== */}
 
-        <div className="flex justify-center pt-7 sm:pt-8">
-          <Avatar className="h-20 w-20 sm:h-24 sm:w-24">
-            <AvatarImage src={profile.avatar_url || undefined} />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="h-12 w-full justify-around rounded-none border-y bg-transparent p-0">
+            <TabsTrigger
+              value="posts"
+              className="h-full flex-1 gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent"
+            >
+              <FileText className="h-4 w-4" />
 
-            <AvatarFallback>
-              {profile.name?.charAt(0)?.toUpperCase() || "U"}
-            </AvatarFallback>
-          </Avatar>
-        </div>
+              <span className="hidden sm:inline">Posts</span>
+            </TabsTrigger>
 
-        {/* ======================================
-            IDENTITY
-        ====================================== */}
+            <TabsTrigger
+              value="spaces"
+              className="h-full flex-1 gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent"
+            >
+              <Users className="h-4 w-4" />
 
-        <CardHeader className="space-y-1 pb-4 pt-4 text-center">
-          <h2 className="text-lg font-semibold">
-            {profile.name || "Unnamed user"}
-          </h2>
+              <span className="hidden sm:inline">Spaces</span>
+            </TabsTrigger>
 
-          <p className="text-sm text-muted-foreground">@{profile.username}</p>
-        </CardHeader>
+            <TabsTrigger
+              value="profile"
+              className="h-full flex-1 gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent"
+            >
+              <UserRound className="h-4 w-4" />
 
-        <Separator />
+              <span className="hidden sm:inline">Profile</span>
+            </TabsTrigger>
+          </TabsList>
 
-        {/* ======================================
-            PROFILE INFORMATION
-        ====================================== */}
+          {/* ======================================
+              POSTS TAB
+          ====================================== */}
 
-        <CardContent className="space-y-4 p-4 sm:p-6">
-          {profile.email && <ProfileItem label="Email" value={profile.email} />}
+          <TabsContent value="posts" className="mt-0">
+            <div className="space-y-8 py-5">
+              {/* POSTS */}
 
-          {profile.mobile && (
-            <ProfileItem label="Phone" value={`+${profile.mobile}`} />
-          )}
+              <section>
+                <div className="px-4 pb-3 sm:px-0">
+                  <h2 className="text-sm font-semibold">Posts</h2>
 
-          <ProfileItem
-            label="Designation"
-            value={profile.designation || "N/A"}
-          />
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Posts made by {displayName}
+                  </p>
+                </div>
 
-          <ProfileItem label="Locality" value={profile.locality || "N/A"} />
+                <UserPosts userId={profile.user_id} />
+              </section>
 
-          <Separator className="my-2" />
+              {/* CONTRIBUTIONS */}
 
-          <ProfileItem
-            label="Member Since"
-            value={formatDate(profile.created_at)}
-          />
-        </CardContent>
-      </Card>
+              <section>
+                <div className="px-4 pb-3 sm:px-0">
+                  <h2 className="text-sm font-semibold">Contributions</h2>
+
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Contributions made by {displayName}
+                  </p>
+                </div>
+
+                <UserContributions userId={profile.user_id} />
+              </section>
+            </div>
+          </TabsContent>
+
+          {/* ======================================
+              SPACES TAB
+          ====================================== */}
+
+          <TabsContent value="spaces" className="mt-0 px-4 py-5 sm:px-0">
+            <UserSpaces userId={profile.user_id} />
+          </TabsContent>
+
+          {/* ======================================
+              PROFILE TAB
+          ====================================== */}
+
+          <TabsContent value="profile" className="mt-0 px-4 py-5 sm:px-0">
+            <Card>
+              <CardHeader>
+                <h2 className="text-sm font-semibold">Profile information</h2>
+              </CardHeader>
+
+              <CardContent className="space-y-4">
+                {profile.email && (
+                  <ProfileItem label="Email" value={profile.email} />
+                )}
+
+                {profile.mobile && (
+                  <ProfileItem label="Phone" value={`+${profile.mobile}`} />
+                )}
+
+                <ProfileItem
+                  label="Designation"
+                  value={profile.designation || "N/A"}
+                />
+
+                <ProfileItem
+                  label="Locality"
+                  value={profile.locality || "N/A"}
+                />
+
+                <Separator />
+
+                <ProfileItem
+                  label="Member Since"
+                  value={formatDate(profile.created_at)}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
 
       {/* ======================================
           DELETE REQUEST DIALOG
@@ -245,6 +376,20 @@ export default function UserProfile({ username }) {
 }
 
 /* ============================================
+   PROFILE STAT
+============================================ */
+
+function ProfileStat({ label, value }) {
+  return (
+    <div className="min-w-0">
+      <p className="text-base font-semibold">{value}</p>
+
+      <p className="text-xs text-muted-foreground">{label}</p>
+    </div>
+  );
+}
+
+/* ============================================
    PROFILE ITEM
 ============================================ */
 
@@ -282,26 +427,34 @@ function formatDate(value) {
 
 function ProfileSkeleton() {
   return (
-    <Card className="w-full">
-      <div className="flex justify-center pt-7 sm:pt-8">
-        <Skeleton className="h-20 w-20 rounded-full sm:h-24 sm:w-24" />
+    <div className="mx-auto w-full max-w-[720px]">
+      <div className="px-4 pb-5 pt-6 sm:px-0 sm:pt-8">
+        <div className="flex items-start gap-5 sm:gap-8">
+          <Skeleton className="h-20 w-20 shrink-0 rounded-full sm:h-28 sm:w-28" />
+
+          <div className="flex-1 space-y-3">
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-4 w-24" />
+
+            <div className="flex gap-7 pt-2">
+              <Skeleton className="h-8 w-12" />
+              <Skeleton className="h-8 w-12" />
+              <Skeleton className="h-8 w-12" />
+            </div>
+          </div>
+        </div>
+
+        <Skeleton className="mt-5 h-4 w-32" />
+        <Skeleton className="mt-2 h-4 w-24" />
       </div>
 
-      <CardHeader className="space-y-2 pb-4 pt-4 text-center">
-        <Skeleton className="mx-auto h-5 w-40" />
+      <div className="h-12 border-y" />
 
-        <Skeleton className="mx-auto h-4 w-24" />
-      </CardHeader>
-
-      <Separator />
-
-      <CardContent className="space-y-4 p-4 sm:p-6">
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-full" />
-      </CardContent>
-    </Card>
+      <div className="space-y-4 px-4 py-6">
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+      </div>
+    </div>
   );
 }
