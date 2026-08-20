@@ -119,6 +119,15 @@ export default function PostCard({
           </div>
         </div>
 
+        {/* LINKS */}
+        {post.links?.length > 0 &&
+          (forceExpanded || !post.attachments?.length) && (
+            <div className="overflow-hidden">
+              <PostLinks links={post.links} />
+            </div>
+          )}
+
+        {/* FOOTER */}
         {!profileMode && (
           <div className="sm:rounded-3xl">
             <PostFooter
@@ -129,6 +138,7 @@ export default function PostCard({
           </div>
         )}
 
+        {/* CONTRIBUTION */}
         {!profileMode && forceExpanded && (
           <PostContribution post={post} queryKey={["feed"]} />
         )}

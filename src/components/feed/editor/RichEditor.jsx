@@ -14,36 +14,24 @@ import {
 export default function RichEditor({
   title,
   setTitle,
-
   content,
   setContent,
-
   contentJson,
   setContentJson,
-
   setContentFormat,
-
   attachments,
   addAttachments,
-
   onFocus,
-
   editorConfig,
 }) {
   const holderRef = useRef(null);
   const editorRef = useRef(null);
 
-  /*
-   * Editor state refs
-   */
   const valuesRef = useRef({
     content,
     contentJson,
   });
 
-  /*
-   * Attachment callback ref
-   */
   const addAttachmentsRef = useRef(addAttachments);
 
   useEffect(() => {
@@ -132,46 +120,23 @@ export default function RichEditor({
               uploader: {
                 uploadByFile: async (file) => {
                   const attachmentId = crypto.randomUUID();
-
                   const previewUrl = URL.createObjectURL(file);
 
-                  /*
-                   * Add to the existing attachment system.
-                   */
                   addAttachmentsRef.current({
                     attachmentId,
-
                     file,
-
                     file_name: file.name,
-
                     mime_type: file.type,
-
                     file_size: file.size,
-
                     public_url: previewUrl,
-
                     preview_url: previewUrl,
-
                     width: null,
-
                     height: null,
-
                     duration: null,
-
                     source: "editorjs",
-
                     editorjs: true,
                   });
 
-                  /*
-                   * Editor.js needs an immediate URL
-                   * so it can display the image.
-                   *
-                   * This URL will later be replaced
-                   * with the permanent Supabase URL
-                   * during publish/update.
-                   */
                   return {
                     success: 1,
 
@@ -212,11 +177,9 @@ export default function RichEditor({
           const saved = await api.saver.save();
 
           const blocks = saved?.blocks || [];
-
           const feedText = editorBlocksToFeedText(blocks);
 
           setContent(feedText);
-
           setContentFormat("editorjs");
 
           setContentJson({
@@ -245,25 +208,30 @@ export default function RichEditor({
       }
 
       editorRef.current = null;
-
       holderElement.innerHTML = "";
     };
   }, [editorConfig.placeholder, setContent, setContentFormat, setContentJson]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3">
-      <Input
-        placeholder={`${editorConfig.label} title...`}
-        value={title}
-        onChange={(event) => setTitle(event.target.value)}
-        className="h-10 shrink-0 bg-muted"
-        onFocus={onFocus}
-      />
+    <div className="flex min-h-0 flex-1 flex-col">
+      {/* TITLE */}
+
+      <div className="p-2">
+        <Input
+          placeholder={`${editorConfig.label} title...`}
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+          className="h-10 bg-muted"
+          onFocus={onFocus}
+        />
+      </div>
+
+      {/* RICH CONTENT */}
 
       <div
         ref={holderRef}
         onFocus={onFocus}
-        className="editorjs-container min-h-0 flex-1 overflow-y-auto rounded-md bg-muted px-4 py-3"
+        className="editorjs-container flex-1 overflow-y-auto px-16"
       />
     </div>
   );

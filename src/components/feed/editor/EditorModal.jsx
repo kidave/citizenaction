@@ -12,7 +12,6 @@ import { usePostEditor } from "@/hooks/editor/usePostEditor";
 import { useContributionEditor } from "@/hooks/editor/useContributionEditor";
 
 import EditorHeader from "./EditorHeader";
-import EditorType from "./EditorType";
 import EditorContent from "./EditorContent";
 import EditorAttachments from "./EditorAttachments";
 import EditorFooter from "./EditorFooter";
@@ -63,26 +62,24 @@ export default function EditorModal({
         }
       }}
     >
-      {loading ? (
-        <DialogContent className="flex h-full w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-2xl sm:rounded-xl">
+      <DialogContent className="flex h-full w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-2xl sm:rounded-xl">
+        {loading ? (
           <EditorModalSkeleton />
-        </DialogContent>
-      ) : (
-        <DialogContent className="flex h-full w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-2xl sm:rounded-xl">
-          <EditorHeader
-            mode={mode}
-            profile={profile}
-            editor={editor}
-            spaces={spaces}
-          />
+        ) : (
+          <>
+            {/* HEADER */}
 
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4">
-              {mode === "post" && (
-                <div className="mb-3 shrink-0">
-                  <EditorType type={editor.type} setType={editor.setType} />
-                </div>
-              )}
+            <EditorHeader
+              mode={mode}
+              profile={profile}
+              editor={editor}
+              spaces={spaces}
+            />
+
+            {/* CONTENT + ATTACHMENTS */}
+
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+              {/* EDITOR */}
 
               <EditorContent
                 type={editor.type}
@@ -97,24 +94,28 @@ export default function EditorModal({
                 addAttachments={editor.addAttachments}
                 onFocus={() => setAttachmentsOpen(false)}
               />
+
+              {/* ATTACHMENTS */}
+
+              <EditorAttachments
+                attachments={editor.attachments}
+                setAttachments={editor.setAttachments}
+                open={attachmentsOpen}
+                setOpen={setAttachmentsOpen}
+              />
             </div>
 
-            <EditorAttachments
-              attachments={editor.attachments}
-              setAttachments={editor.setAttachments}
-              open={attachmentsOpen}
-              setOpen={setAttachmentsOpen}
-            />
-          </div>
+            {/* FOOTER */}
 
-          <EditorFooter
-            mode={mode}
-            item={item}
-            editor={editor}
-            onClose={onClose}
-          />
-        </DialogContent>
-      )}
+            <EditorFooter
+              mode={mode}
+              item={item}
+              editor={editor}
+              onClose={onClose}
+            />
+          </>
+        )}
+      </DialogContent>
     </Dialog>
   );
 }
