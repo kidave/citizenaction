@@ -37,7 +37,7 @@ export default function CreatePostTrigger({ onCreate }) {
           duration: 0.2,
         }}
       >
-        <div className="mx-auto flex w-full max-w-4xl items-center gap-3 px-4 py-2 sm:px-6">
+        <div className="mx-auto flex w-full max-w-4xl items-center gap-3 p-4">
           {/* AVATAR */}
 
           {user && profile ? (
@@ -77,7 +77,7 @@ export default function CreatePostTrigger({ onCreate }) {
           >
             <Card className="group flex w-full items-center justify-between gap-3 rounded-2xl bg-muted px-4 py-3 transition-colors">
               <div className="min-w-0">
-                <div className="flex items-center gap-2 text-sm">
+                <div className="text-md flex items-center gap-2">
                   <Sparkles className="h-4 w-4 shrink-0" />
 
                   <span className="truncate">
@@ -87,7 +87,7 @@ export default function CreatePostTrigger({ onCreate }) {
                   </span>
                 </div>
 
-                <div className="mt-1 truncate text-xs text-muted-foreground">
+                <div className="mt-1 truncate text-sm text-muted-foreground">
                   Document meetings, reports, updates and events
                 </div>
               </div>

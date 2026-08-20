@@ -184,7 +184,7 @@ export default function PostFooter({ post, queryKey, forceExpanded = false }) {
   return (
     <>
       <TooltipProvider>
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <div className="text-md flex items-center justify-between text-muted-foreground">
           {/* ----------------------------------------
               Contributors
           ----------------------------------------- */}

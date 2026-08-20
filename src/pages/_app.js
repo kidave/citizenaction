@@ -1,6 +1,6 @@
 import Head from "next/head";
 import { useEffect } from "react";
-
+import { Playfair_Display } from "next/font/google";
 import "@/styles/main.css";
 import ThemeProvider from "@/styles/ThemeProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -26,6 +26,11 @@ const queryClient = new QueryClient({
   },
 });
 
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+});
+
 function MyApp({ Component, pageProps }) {
   const getLayout = Component.getLayout || ((page) => page);
 
@@ -38,7 +43,7 @@ function MyApp({ Component, pageProps }) {
   }, []);
 
   return (
-    <>
+    <div className={playfair.variable}>
       <Head>
         <title key="title">Citizen Action - Mumbai Sustainability Center</title>
 
@@ -85,7 +90,7 @@ function MyApp({ Component, pageProps }) {
           </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>
-    </>
+    </div>
   );
 }
 

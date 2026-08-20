@@ -4,7 +4,7 @@ import EditorBlock from "./EditorBlock";
 
 export default function EditorRenderer({
   blocks = [],
-  className = "space-y-4 text-sm",
+  className = "space-y-4 text-lg",
 }) {
   if (!blocks.length) {
     return null;

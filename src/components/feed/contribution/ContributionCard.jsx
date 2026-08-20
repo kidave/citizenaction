@@ -20,8 +20,8 @@ export default function ContributionCard({
   const formattedDate = formatDate(contribution.created_at);
 
   return (
-    <div className="md:rounded-3xl md:bg-muted">
-      <div className="flex flex-col gap-2 px-0 py-1 md:p-4">
+    <div className="md:rounded-3xl">
+      <div className="flex flex-col gap-2">
         {/* Header */}
 
         <div className="flex items-start justify-between gap-3">

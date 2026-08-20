@@ -100,7 +100,7 @@ export default function FeedFilters({
   return (
     <div
       ref={searchContainerRef}
-      className="relative flex w-full items-center gap-2 px-4 py-2 sm:px-0"
+      className="relative flex w-full items-center gap-2 px-2"
     >
       {/* ================================= */}
       {/* SEARCH */}
@@ -171,11 +171,11 @@ export default function FeedFilters({
           {/* Loading */}
 
           {searchLoading ? (
-            <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+            <div className="text-md px-4 py-6 text-center text-muted-foreground">
               Searching...
             </div>
           ) : results.length === 0 ? (
-            <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+            <div className="text-md px-4 py-6 text-center text-muted-foreground">
               No posts found.
             </div>
           ) : (
@@ -220,7 +220,7 @@ export default function FeedFilters({
                   <div className="min-w-0 flex-1">
                     {/* POST TITLE */}
 
-                    <p className="line-clamp-2 text-sm font-medium">
+                    <p className="text-md line-clamp-2 font-medium">
                       {post.title}
                     </p>
 

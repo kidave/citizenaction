@@ -39,7 +39,7 @@ export default function UserPosts({ userId }) {
   }
 
   return (
-    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5">
+    <div className="grid grid-cols-3 gap-0.5 sm:grid-cols-4 md:grid-cols-5">
       {posts.map((post) => (
         <UserPostCard key={post.id} post={post} />
       ))}

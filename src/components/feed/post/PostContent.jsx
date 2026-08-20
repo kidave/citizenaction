@@ -1,11 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import Linkify from "linkify-react";
 
 import truncateContent from "@/utils/text/truncateContent";
 
 import EditorRenderer from "@/components/editor/EditorRenderer";
-import { editorBlocksToText } from "@/components/editor/editorUtils";
 
 function LinkifiedText({ children }) {
   return (
@@ -35,6 +35,32 @@ function LinkifiedText({ children }) {
   );
 }
 
+function PostTitle({ title }) {
+  if (!title) return null;
+
+  return (
+    <div className="border-l-4 border-primary pl-4">
+      <h2 className="font-serif text-xl leading-snug tracking-tight">
+        {title}
+      </h2>
+    </div>
+  );
+}
+
+function ReadMore({ post }) {
+  if (!post?.slug) return null;
+
+  return (
+    <Link
+      href={`/post/${post.slug}`}
+      className="ml-2 inline-flex items-center font-medium text-primary hover:underline"
+      onClick={(e) => e.stopPropagation()}
+    >
+      Read more
+    </Link>
+  );
+}
+
 function PlainPostContent({ post, onNavigate, forceExpanded }) {
   const content = post.content || "";
 
@@ -43,22 +69,10 @@ function PlainPostContent({ post, onNavigate, forceExpanded }) {
   const displayContent = forceExpanded || !isLong ? content : truncatedText;
 
   return (
-    <div className="whitespace-pre-wrap text-sm">
+    <div className="whitespace-pre-wrap text-lg">
       <LinkifiedText>{displayContent}</LinkifiedText>
 
-      {!forceExpanded && isLong && (
-        <button
-          type="button"
-          className="ml-2 cursor-pointer font-medium hover:underline"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onNavigate?.();
-          }}
-        >
-          Read more
-        </button>
-      )}
+      {!forceExpanded && isLong && <ReadMore post={post} />}
     </div>
   );
 }
@@ -70,30 +84,9 @@ function RichPostContent({ post, onNavigate, forceExpanded }) {
     return null;
   }
 
-  // =========================================================
-  // SINGLE POST
-  // Render the complete Editor.js document.
-  // Images + captions are visible.
-  // =========================================================
-
   if (forceExpanded) {
     return <EditorRenderer blocks={blocks} />;
   }
-
-  // =========================================================
-  // FEED
-  // Never render Editor.js blocks.
-  //
-  // This means:
-  // - images are hidden
-  // - image captions are hidden
-  // - tables are hidden
-  // - embeds are hidden
-  // - headers/list formatting are hidden
-  //
-  // post.content is the plain-text representation generated
-  // from the Editor.js document.
-  // =========================================================
 
   const content = post.content || "";
 
@@ -102,22 +95,10 @@ function RichPostContent({ post, onNavigate, forceExpanded }) {
   const displayContent = isLong ? truncatedText : content;
 
   return (
-    <div className="whitespace-pre-wrap text-sm">
+    <div className="whitespace-pre-wrap text-lg">
       <LinkifiedText>{displayContent}</LinkifiedText>
 
-      {isLong && (
-        <button
-          type="button"
-          className="ml-2 cursor-pointer font-medium hover:underline"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onNavigate?.();
-          }}
-        >
-          Read more
-        </button>
-      )}
+      {isLong && <ReadMore post={post} />}
     </div>
   );
 }
@@ -143,8 +124,8 @@ export default function PostContent({
       }}
       className={!forceExpanded ? "cursor-pointer" : ""}
     >
-      <div className="space-y-3">
-        {title && <div className="mb-2 font-medium">{title}</div>}
+      <div className="space-y-4">
+        <PostTitle title={title} />
 
         {isEditorJS ? (
           <RichPostContent

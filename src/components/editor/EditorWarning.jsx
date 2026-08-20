@@ -12,7 +12,7 @@ export default function EditorWarning({ data }) {
       )}
 
       {data?.message && (
-        <div className="mt-1 text-sm text-muted-foreground">
+        <div className="mt-1 text-lg text-muted-foreground">
           <EditorRichText html={data.message} />
         </div>
       )}

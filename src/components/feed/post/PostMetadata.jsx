@@ -99,7 +99,7 @@ export default function PostMetadata({ post, forceExpanded = false }) {
         <>
           {start && (
             <>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+              <div className="text-md flex flex-wrap items-center gap-x-4 gap-y-2 text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <CalendarDays className="h-4 w-4 shrink-0" />
                   <span>{format(start, "d MMMM yyyy")}</span>
@@ -124,7 +124,7 @@ export default function PostMetadata({ post, forceExpanded = false }) {
           {/* ADDRESS */}
 
           {config.showAddress && post.address && (
-            <div className="flex items-start gap-2 text-sm text-muted-foreground">
+            <div className="text-md flex items-start gap-2 text-muted-foreground">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
 
               <span>{post.address}</span>
@@ -138,7 +138,7 @@ export default function PostMetadata({ post, forceExpanded = false }) {
               href={post.links}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+              className="text-md inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition hover:opacity-90"
             >
               <Video className="h-4 w-4" />
               Join Now

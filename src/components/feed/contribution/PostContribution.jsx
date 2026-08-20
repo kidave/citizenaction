@@ -46,7 +46,7 @@ export default function PostContribution({ post }) {
 
   if (isLoading) {
     return (
-      <div className="text-sm text-muted-foreground">
+      <div className="text-md text-muted-foreground">
         Loading contributions...
       </div>
     );
@@ -54,7 +54,7 @@ export default function PostContribution({ post }) {
 
   if (error) {
     return (
-      <div className="text-sm text-red-500">Failed to load contributions.</div>
+      <div className="text-md text-red-500">Failed to load contributions.</div>
     );
   }
 

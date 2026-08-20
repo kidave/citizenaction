@@ -52,7 +52,7 @@ export default function Feed() {
 
   return (
     <>
-      <div className="mx-auto flex w-full min-w-0 max-w-[720px] flex-col gap-0 py-0 sm:gap-4 sm:p-4">
+      <div className="mx-auto flex w-full max-w-[720px] flex-col">
         {/* ================================= */}
         {/* CREATE POST */}
         {/* ================================= */}
@@ -91,19 +91,19 @@ export default function Feed() {
           /* EMPTY STATE */
           /* ================================= */
 
-          <Card className="p-8 text-center">
+          <div className="p-8 text-center">
             {categorySlug ? (
               <>
                 <p className="font-medium">No posts found</p>
 
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="text-md mt-1 text-muted-foreground">
                   Try selecting another category.
                 </p>
               </>
             ) : (
               <p>No posts yet. Be the first to share!</p>
             )}
-          </Card>
+          </div>
         ) : (
           /* ================================= */
           /* POSTS */

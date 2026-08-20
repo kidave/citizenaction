@@ -4,7 +4,79 @@ import { useRouter } from "next/router";
 
 import { Card } from "@/components/ui/card";
 
-import AutoImageCarousel from "@/components/attachment/AutoImageCarousel";
+function getPreviewUrl(attachment) {
+  if (!attachment) return null;
+
+  const mime = attachment.mime_type || "";
+  const fileName = attachment.file_name || "";
+  const extension = fileName.split(".").pop()?.toLowerCase();
+
+  // Direct image
+  if (mime.startsWith("image/") && attachment.public_url) {
+    return attachment.public_url;
+  }
+
+  // PDF thumbnail
+  if (
+    (mime === "application/pdf" || extension === "pdf") &&
+    attachment.thumbnail_url
+  ) {
+    return attachment.thumbnail_url;
+  }
+
+  return null;
+}
+
+function AttachmentPreview({ attachments }) {
+  const candidates = Array.isArray(attachments)
+    ? attachments
+        .map((attachment) => ({
+          attachment,
+          url: getPreviewUrl(attachment),
+        }))
+        .filter((item) => item.url)
+    : [];
+
+  const [firstCandidate] = candidates;
+
+  if (!firstCandidate) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-muted">
+        <span className="text-4xl text-muted-foreground/30">+</span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={firstCandidate.url}
+      alt=""
+      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+      onError={(event) => {
+        // Try the next usable attachment if the first preview fails.
+        const currentIndex = candidates.findIndex(
+          (item) => item.url === event.currentTarget.src,
+        );
+
+        const nextCandidate = candidates[currentIndex + 1];
+
+        if (nextCandidate) {
+          event.currentTarget.src = nextCandidate.url;
+          return;
+        }
+
+        // Nothing else can be displayed.
+        event.currentTarget.style.display = "none";
+
+        const fallback = event.currentTarget.parentElement?.querySelector(
+          "[data-preview-fallback]",
+        );
+
+        fallback?.classList.remove("hidden");
+      }}
+    />
+  );
+}
 
 export default function UserPostCard({ post }) {
   const router = useRouter();
@@ -17,9 +89,7 @@ export default function UserPostCard({ post }) {
     Array.isArray(post.attachments) && post.attachments.length > 0;
 
   const handleNavigate = () => {
-    if (!post.slug) {
-      return;
-    }
+    if (!post.slug) return;
 
     router.push(`/post/${post.slug}`);
   };
@@ -29,11 +99,20 @@ export default function UserPostCard({ post }) {
       onClick={handleNavigate}
       className="group relative aspect-[3/4] cursor-pointer overflow-hidden rounded-none border-0 bg-muted p-0 shadow-none"
     >
-      {/* IMAGE */}
+      {/* IMAGE / ATTACHMENT PREVIEW */}
 
       <div className="absolute inset-0">
         {hasAttachments ? (
-          <AutoImageCarousel attachments={post.attachments} />
+          <>
+            <AttachmentPreview attachments={post.attachments} />
+
+            <div
+              data-preview-fallback
+              className="absolute inset-0 hidden items-center justify-center bg-muted"
+            >
+              <span className="text-4xl text-muted-foreground/30">+</span>
+            </div>
+          </>
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-muted">
             <span className="text-4xl text-muted-foreground/30">+</span>

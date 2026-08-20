@@ -9,7 +9,7 @@ export default function EditorTable({ content = [] }) {
 
   return (
     <div className="my-4 overflow-x-auto rounded-xl border">
-      <table className="w-full min-w-[480px] border-collapse text-sm">
+      <table className="w-full min-w-[480px] border-collapse text-lg">
         <tbody>
           {content.map((row, rowIndex) => (
             <tr

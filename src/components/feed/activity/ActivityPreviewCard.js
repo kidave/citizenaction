@@ -61,7 +61,7 @@ export default function ActivityPreviewCard({ post }) {
 
             {/* TITLE */}
 
-            <div className="absolute bottom-2 left-2 right-2 line-clamp-2 text-sm font-medium text-white">
+            <div className="text-md absolute bottom-2 left-2 right-2 line-clamp-2 font-medium text-white">
               {post.title || "Untitled"}
             </div>
 
@@ -90,9 +90,9 @@ export default function ActivityPreviewCard({ post }) {
           duration: 0.18,
         }}
       >
-        <CardHeader className="space-y-2">
+        <div className="space-y-2 p-4 text-sm">
           {(post.content || post.title) && (
-            <div className="line-clamp-2 text-sm leading-relaxed text-black">
+            <div className="line-clamp-2 leading-relaxed text-black">
               {post.content || post.title}
             </div>
           )}
@@ -104,7 +104,7 @@ export default function ActivityPreviewCard({ post }) {
 
             <span>{format(new Date(startDate), "d MMMM yyyy")}</span>
           </div>
-        </CardHeader>
+        </div>
       </motion.div>
 
       {/* =====================================================
@@ -146,11 +146,11 @@ export default function ActivityPreviewCard({ post }) {
         {/* TOP */}
 
         <div className="flex-1 overflow-hidden p-4">
-          <div className="line-clamp-2 text-sm font-semibold">
+          <div className="text-md line-clamp-2 font-semibold">
             {post.title || "Untitled"}
           </div>
 
-          <div className="mt-4 text-sm leading-relaxed">
+          <div className="text-md mt-4 leading-relaxed">
             <div className="line-clamp-[12]">
               {post.content || "No additional content."}
             </div>
