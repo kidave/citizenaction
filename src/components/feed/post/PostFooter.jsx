@@ -32,7 +32,7 @@ export default function PostFooter({ post, queryKey, forceExpanded = false }) {
   const stats = post.stats ?? {};
 
   const supportCount = stats.support_count ?? 0;
-  const contributorCount = stats.contributor_count ?? 0;
+  const contributionCount = stats.contribution_count ?? 0;
 
   const supported = stats.is_supported ?? false;
 
@@ -190,7 +190,7 @@ export default function PostFooter({ post, queryKey, forceExpanded = false }) {
           ----------------------------------------- */}
 
           <div className="flex items-center gap-2">
-            {contributorCount > 0 && (
+            {contributors.length > 0 && (
               <div
                 onClick={(event) => {
                   // Prevent the post/card click handler
@@ -237,7 +237,7 @@ export default function PostFooter({ post, queryKey, forceExpanded = false }) {
                 >
                   <Orbit className="h-4 w-4" />
 
-                  {contributorCount}
+                  {contributionCount}
                 </Button>
               </TooltipTrigger>
 

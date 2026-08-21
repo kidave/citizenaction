@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 
 import {
   Avatar,
@@ -19,7 +18,10 @@ export default function ContributorAvatarGroup({ contributors = [] }) {
 
   const uniqueContributors = Array.from(
     new Map(
-      contributors.map((contributor) => [contributor.id, contributor]),
+      contributors.map((contributor) => [
+        contributor.user_id ?? contributor.id ?? contributor.name,
+        contributor,
+      ]),
     ).values(),
   );
 
@@ -27,7 +29,7 @@ export default function ContributorAvatarGroup({ contributors = [] }) {
 
   const visibleUsers = uniqueContributors.slice(0, maxVisible);
 
-  const hiddenCount = uniqueContributors.length - maxVisible;
+  const hiddenCount = Math.max(uniqueContributors.length - maxVisible, 0);
 
   return (
     <>
@@ -38,12 +40,17 @@ export default function ContributorAvatarGroup({ contributors = [] }) {
         }}
       >
         <AvatarGroup>
-          {visibleUsers.map((contributor) => {
-            const avatar = contributor.avatar || contributor.avatar_url;
+          {visibleUsers.map((contributor, index) => {
+            const avatar = contributor.avatar_url || contributor.avatar || null;
+
+            const key =
+              contributor.user_id ??
+              contributor.id ??
+              `${contributor.name}-${index}`;
 
             return (
               <Avatar
-                key={contributor.id}
+                key={key}
                 className="h-7 w-7 cursor-pointer transition-all hover:z-20 hover:scale-110"
                 onClick={(event) => {
                   event.stopPropagation();

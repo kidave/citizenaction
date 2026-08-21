@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+
 import { supabase } from "@/lib/supabase/client";
 
 export function useSpaceFeed(spaceId) {
@@ -10,30 +11,35 @@ export function useSpaceFeed(spaceId) {
     enabled: !!spaceId,
 
     queryFn: async () => {
-      const { data: cards, error: cardsError } = await supabase
-        .from("feed_card_view")
-        .select("*")
-        .eq("space_id", spaceId)
-        .order("created_at", { ascending: false });
+      // =========================================
+      // POSTS
+      // =========================================
 
-      if (cardsError) {
-        throw cardsError;
+      const { data: posts, error: postsError } = await supabase.rpc(
+        "get_space_posts",
+        {
+          p_space_id: spaceId,
+        },
+      );
+
+      if (postsError) {
+        throw postsError;
       }
 
-      if (!cards?.length) {
+      if (!posts?.length) {
         return [];
       }
 
-      const ids = cards.map((post) => post.id);
+      const postIds = posts.map((post) => post.id);
 
-      // -----------------------------
-      // Stats
-      // -----------------------------
+      // =========================================
+      // STATS
+      // =========================================
 
       const { data: stats, error: statsError } = await supabase.rpc(
         "get_post_stats",
         {
-          p_post_ids: ids,
+          p_post_ids: postIds,
         },
       );
 
@@ -41,27 +47,27 @@ export function useSpaceFeed(spaceId) {
         throw statsError;
       }
 
-      // -----------------------------
-      // Contributors
-      // -----------------------------
+      // =========================================
+      // CONTRIBUTORS
+      // =========================================
 
       const { data: contributors, error: contributorsError } =
         await supabase.rpc("get_post_contributors", {
-          p_post_ids: ids,
+          p_post_ids: postIds,
         });
 
       if (contributorsError) {
         throw contributorsError;
       }
 
-      // -----------------------------
-      // Governance
-      // -----------------------------
+      // =========================================
+      // GOVERNANCE
+      // =========================================
 
       const { data: governance, error: governanceError } = await supabase.rpc(
         "get_post_governance",
         {
-          p_post_ids: ids,
+          p_post_ids: postIds,
         },
       );
 
@@ -69,9 +75,9 @@ export function useSpaceFeed(spaceId) {
         throw governanceError;
       }
 
-      // -----------------------------
-      // Maps
-      // -----------------------------
+      // =========================================
+      // MAP RESULTS
+      // =========================================
 
       const statsMap = new Map(
         (stats || []).map((item) => [item.post_id, item]),
@@ -85,23 +91,23 @@ export function useSpaceFeed(spaceId) {
         (governance || []).map((item) => [item.post_id, item.governance]),
       );
 
-      // -----------------------------
-      // Merge
-      // -----------------------------
+      // =========================================
+      // MERGE
+      // =========================================
 
-      return cards.map((card) => ({
-        ...card,
+      return posts.map((post) => ({
+        ...post,
 
-        stats: statsMap.get(card.id) ?? {
+        stats: statsMap.get(post.id) ?? {
           support_count: 0,
           contribution_count: 0,
           contributor_count: 0,
           is_supported: false,
         },
 
-        contributors: contributorsMap.get(card.id) ?? [],
+        contributors: contributorsMap.get(post.id) ?? [],
 
-        governance: governanceMap.get(card.id) ?? [],
+        governance: governanceMap.get(post.id) ?? [],
       }));
     },
 

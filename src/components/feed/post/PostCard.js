@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+
 import PostCardSkeleton from "@/components/skeletons/PostCardSkeleton";
+
 import { useAuth } from "@/context/AuthContext";
 
 import PostHeader from "./PostHeader";
@@ -12,7 +14,9 @@ import PostTimeline from "./PostTimeline";
 import PostAttachments from "./PostAttachments";
 import PostLinks from "./PostLinks";
 import PostFooter from "./PostFooter";
+
 import PostContribution from "@/components/feed/contribution/PostContribution";
+
 import getPostStatus from "@/utils/feed/getPostStatus";
 
 export default function PostCard({
@@ -54,7 +58,9 @@ export default function PostCard({
     );
   }
 
-  if (!post) return null;
+  if (!post) {
+    return null;
+  }
 
   const canEdit = post.permissions?.can_manage || post.author_id === user?.id;
 
@@ -68,23 +74,35 @@ export default function PostCard({
 
   return (
     <div
-      className={`relative overflow-hidden border-b p-2 transition-all duration-300 ${borderless ? "border-0 shadow-none" : ""} ${post.type || ""} `}
+      className={`relative overflow-hidden border-b p-2 transition-all duration-300 ${
+        borderless ? "border-0 shadow-none" : ""
+      } ${post.type || ""}`}
     >
       <div className="relative z-10 flex flex-col gap-4 p-2">
+        {/* ========================================
+            HEADER
+        ======================================== */}
+
         <PostHeader
           post={post}
-          status={status}
           canEdit={canEdit}
           onEdit={onEdit}
           onDelete={onDelete}
-          profileMode={profileMode}
         />
+
+        {/* ========================================
+            ATTACHMENTS
+        ======================================== */}
 
         {post.attachments?.length > 0 && (
           <div className="overflow-hidden rounded-3xl">
             <PostAttachments attachments={post.attachments} />
           </div>
         )}
+
+        {/* ========================================
+            CONTENT
+        ======================================== */}
 
         <div
           className={
@@ -119,7 +137,10 @@ export default function PostCard({
           </div>
         </div>
 
-        {/* LINKS */}
+        {/* ========================================
+            LINKS
+        ======================================== */}
+
         {post.links?.length > 0 &&
           (forceExpanded || !post.attachments?.length) && (
             <div className="overflow-hidden">
@@ -127,20 +148,26 @@ export default function PostCard({
             </div>
           )}
 
-        {/* FOOTER */}
+        {/* ========================================
+            FOOTER
+        ======================================== */}
+
         {!profileMode && (
           <div className="sm:rounded-3xl">
             <PostFooter
               post={post}
               forceExpanded={forceExpanded}
-              queryKey={["feed"]}
+              queryKey={queryKey ?? ["feed"]}
             />
           </div>
         )}
 
-        {/* CONTRIBUTION */}
+        {/* ========================================
+            CONTRIBUTION
+        ======================================== */}
+
         {!profileMode && forceExpanded && (
-          <PostContribution post={post} queryKey={["feed"]} />
+          <PostContribution post={post} queryKey={queryKey ?? ["feed"]} />
         )}
       </div>
     </div>

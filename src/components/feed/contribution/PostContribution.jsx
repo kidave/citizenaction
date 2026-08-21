@@ -75,7 +75,7 @@ export default function PostContribution({ post }) {
       <div className="space-y-4 pb-4">
         {contributions.map((contribution) => {
           const canEdit =
-            post.can_manage || contribution.author_id === user?.id;
+            contribution.can_manage || contribution.author_id === user?.id;
 
           return (
             <ContributionCard

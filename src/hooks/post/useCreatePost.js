@@ -37,8 +37,7 @@ export function useCreatePost() {
         const { data, error } = await supabase.rpc("create_post", {
           p_type: postData.type,
 
-          p_space_id:
-            postData.spaces?.length > 0 ? postData.spaces[0].id : null,
+          p_space_ids: postData.spaces?.map((space) => space.id) ?? [],
 
           p_title: postData.title,
 
@@ -146,8 +145,7 @@ export function useCreatePost() {
 
               p_type: postData.type,
 
-              p_space_id:
-                postData.spaces?.length > 0 ? postData.spaces[0].id : null,
+              p_space_ids: postData.spaces?.map((space) => space.id) ?? [],
 
               p_title: postData.title,
 

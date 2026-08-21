@@ -1,12 +1,14 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
+
 import { createServerSupabase } from "@/lib/supabase/server";
+
 import { usePost } from "@/hooks/feed/usePost";
+import { useDeletePost } from "@/hooks/post/useDeletePost";
 
 import PostCard from "@/components/feed/post/PostCard";
 import EditorModal from "@/components/feed/editor/EditorModal";
-import { useDeletePost } from "@/hooks/post/useDeletePost";
 import BackButton from "@/components/ui/back-button";
 
 export async function getServerSideProps({ params }) {
@@ -14,15 +16,15 @@ export async function getServerSideProps({ params }) {
 
   const { slug } = params;
 
-  // ---------------------------------------------------------
-  // Resolve slug -> post id
-  // ---------------------------------------------------------
+  // =========================================================
+  // RESOLVE SLUG → POST ID
+  // =========================================================
 
   const { data: postRow, error: slugError } = await supabase
     .from("post")
     .select("id")
     .eq("slug", slug)
-    .single();
+    .maybeSingle();
 
   if (slugError || !postRow) {
     return {
@@ -30,16 +32,16 @@ export async function getServerSideProps({ params }) {
     };
   }
 
-  // ---------------------------------------------------------
-  // Load full post
-  // ---------------------------------------------------------
+  // =========================================================
+  // LOAD POST
+  // =========================================================
 
   const { data, error } = await supabase.rpc("get_post", {
     p_post_id: postRow.id,
   });
 
   if (error) {
-    console.error(error);
+    console.error("Failed to load post:", error);
 
     return {
       notFound: true,
@@ -62,6 +64,10 @@ export async function getServerSideProps({ params }) {
   };
 }
 
+// =========================================================
+// SEO HELPERS
+// =========================================================
+
 function cleanText(text) {
   if (!text) return "";
 
@@ -78,7 +84,7 @@ function getDescription(post) {
     return "Citizen Action";
   }
 
-  return clean.length > 140 ? clean.slice(0, 140) + "..." : clean;
+  return clean.length > 140 ? `${clean.slice(0, 140)}...` : clean;
 }
 
 function getImage(attachments = []) {
@@ -89,24 +95,29 @@ function getImage(attachments = []) {
   }
 
   const image = attachments.find(
-    (a) => a.public_url && a.mime_type?.startsWith("image/"),
+    (attachment) =>
+      attachment?.public_url && attachment?.mime_type?.startsWith("image/"),
   );
 
-  if (image) {
-    return image.public_url;
-  }
-
-  return fallback;
+  return image?.public_url || fallback;
 }
 
-export default function SinglePostPage({ postId, initialPost }) {
-  const { deletePost } = useDeletePost();
+// =========================================================
+// PAGE
+// =========================================================
 
+export default function SinglePostPage({ postId, initialPost }) {
   const router = useRouter();
+
+  const { deletePost } = useDeletePost();
 
   const [editingPost, setEditingPost] = useState(null);
 
-  const { data: post, isLoading } = usePost(postId, initialPost);
+  const { data: post, isLoading, isError } = usePost(postId, initialPost);
+
+  // =========================================================
+  // LOADING
+  // =========================================================
 
   if (isLoading || !post) {
     return (
@@ -116,18 +127,36 @@ export default function SinglePostPage({ postId, initialPost }) {
     );
   }
 
+  // =========================================================
+  // ERROR
+  // =========================================================
+
+  if (isError) {
+    return (
+      <div className="mx-auto w-full max-w-4xl px-4 py-16 text-center">
+        <p className="text-sm text-muted-foreground">
+          Unable to load this post.
+        </p>
+      </div>
+    );
+  }
+
+  // =========================================================
+  // SEO
+  // =========================================================
+
   const title = post.title || "Citizen Action";
+
   const description = getDescription(post);
+
   const image = getImage(post.attachments);
 
   const url = `https://citizenaction.in/post/${post.slug}`;
 
-  const canEdit = post?.permissions?.can_manage ?? false;
-
   return (
     <>
       <Head>
-        <title key="title">{title}</title>
+        <title>{title}</title>
 
         <meta name="description" content={description} />
 
@@ -164,36 +193,57 @@ export default function SinglePostPage({ postId, initialPost }) {
         <meta name="twitter:url" content={url} />
       </Head>
 
+      {/* =====================================================
+          PAGE
+      ===================================================== */}
+
       <div className="flex min-h-dvh w-full flex-col">
+        {/* ===================================================
+            HEADER
+        =================================================== */}
+
         <div className="sticky top-0 z-40 border-b bg-background">
           <div className="mx-auto flex h-14 max-w-4xl items-center px-3 sm:h-16 sm:px-4">
             <BackButton />
 
-            <span className="min-w-0 flex-1 truncate">{post.title}</span>
+            <span className="min-w-0 flex-1 truncate">
+              {post.title || "Post"}
+            </span>
           </div>
         </div>
+
+        {/* ===================================================
+            POST
+        =================================================== */}
 
         <div className="flex w-full justify-center">
           <div className="w-full max-w-4xl">
             <PostCard
               post={post}
-              canEdit={canEdit}
               borderless
+              forceExpanded
               onEdit={() => setEditingPost(post)}
               onDelete={async () => {
-                await deletePost(post.id);
+                try {
+                  await deletePost(post.id);
 
-                router.push("/");
+                  router.push("/");
+                } catch (error) {
+                  console.error("Failed to delete post:", error);
+                }
               }}
-              forceExpanded
             />
           </div>
         </div>
 
+        {/* ===================================================
+            EDITOR
+        =================================================== */}
+
         {editingPost && (
           <EditorModal
             mode="post"
-            isOpen={!!editingPost}
+            isOpen={true}
             onClose={() => setEditingPost(null)}
             item={editingPost}
           />

@@ -19,13 +19,22 @@ export default function EntityListSheet({
   items = [],
   type = "contributors",
 }) {
-  if (!items?.length) return null;
-
-  const uniqueItems = Array.from(
-    new Map(items.map((item) => [item.id, item])).values(),
-  );
+  if (!items?.length) {
+    return null;
+  }
 
   const isContributors = type === "contributors";
+
+  const uniqueItems = Array.from(
+    new Map(
+      items.map((item, index) => {
+        const key =
+          item.user_id ?? item.id ?? `${item.name ?? "unknown"}-${index}`;
+
+        return [key, item];
+      }),
+    ).values(),
+  );
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -47,11 +56,20 @@ export default function EntityListSheet({
 
         <div className="mt-6 overflow-y-auto">
           <div className="space-y-2">
-            {uniqueItems.map((item) => {
-              if (isContributors) {
-                const avatar = item.avatar || item.avatar_url;
+            {uniqueItems.map((item, index) => {
+              /* =========================================
+                 CONTRIBUTORS
+              ========================================= */
 
-                const username = item.username;
+              if (isContributors) {
+                const avatar = item.avatar_url || item.avatar || null;
+
+                const username = item.username || null;
+
+                const key =
+                  item.user_id ??
+                  item.id ??
+                  `${item.name ?? "unknown"}-${index}`;
 
                 const content = (
                   <>
@@ -77,18 +95,22 @@ export default function EntityListSheet({
                   </>
                 );
 
-                return username ? (
-                  <Link
-                    key={item.id}
-                    href={`/user/${username}`}
-                    onClick={() => onOpenChange(false)}
-                    className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-muted"
-                  >
-                    {content}
-                  </Link>
-                ) : (
+                if (username) {
+                  return (
+                    <Link
+                      key={key}
+                      href={`/user/${username}`}
+                      onClick={() => onOpenChange(false)}
+                      className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-muted"
+                    >
+                      {content}
+                    </Link>
+                  );
+                }
+
+                return (
                   <div
-                    key={item.id}
+                    key={key}
                     className="flex items-center gap-3 rounded-xl p-2"
                   >
                     {content}
@@ -96,9 +118,15 @@ export default function EntityListSheet({
                 );
               }
 
+              /* =========================================
+                 GOVERNANCE / AUTHORITIES
+              ========================================= */
+
+              const key = item.id ?? `${item.label ?? "unknown"}-${index}`;
+
               return (
                 <div
-                  key={item.id}
+                  key={key}
                   className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-muted"
                 >
                   <Avatar className="h-10 w-10 shrink-0">
