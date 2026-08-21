@@ -231,7 +231,7 @@ export default function RichEditor({
       <div
         ref={holderRef}
         onFocus={onFocus}
-        className="editorjs-container flex-1 overflow-y-auto px-16"
+        className="editorjs-container flex-1 overflow-y-auto px-2 sm:px-16"
       />
     </div>
   );

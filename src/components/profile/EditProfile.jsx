@@ -2,22 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { useUpdateProfile } from "@/hooks/user/useUpdateProfile";
 
-import { Card, CardContent } from "@/components/ui/card";
-
+import { CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-
 import { Button } from "@/components/ui/button";
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
 import { Switch } from "@/components/ui/switch";
-
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { toast } from "sonner";
@@ -87,7 +82,6 @@ export default function EditProfile() {
 
     if (!username) {
       toast.error("Username cannot be empty");
-
       return;
     }
 
@@ -96,15 +90,13 @@ export default function EditProfile() {
         userId: user.id,
 
         name: form.name.trim(),
-
         username,
-
         designation: form.designation.trim(),
-
         locality: form.locality.trim(),
 
-        is_email_public: form.is_email_public,
+        mobile: form.mobile.trim(),
 
+        is_email_public: form.is_email_public,
         is_mobile_public: form.is_mobile_public,
       });
 
@@ -125,7 +117,7 @@ export default function EditProfile() {
   }
 
   return (
-    <Card className="w-full">
+    <div className="mx-auto max-w-2xl">
       {/* ======================================
           AVATAR
       ====================================== */}
@@ -144,8 +136,10 @@ export default function EditProfile() {
           FORM
       ====================================== */}
 
-      <CardContent className="space-y-5 p-4 sm:p-6">
-        {/* NAME */}
+      <CardContent className="grid grid-cols-1 gap-5 p-4 sm:grid-cols-2 sm:p-6">
+        {/* ======================================
+            NAME
+        ====================================== */}
 
         <div className="space-y-2">
           <Label htmlFor="profile-name">Name</Label>
@@ -157,7 +151,9 @@ export default function EditProfile() {
           />
         </div>
 
-        {/* USERNAME */}
+        {/* ======================================
+            USERNAME
+        ====================================== */}
 
         <div className="space-y-2">
           <Label htmlFor="profile-username">Username</Label>
@@ -173,7 +169,9 @@ export default function EditProfile() {
           </p>
         </div>
 
-        {/* DESIGNATION */}
+        {/* ======================================
+            DESIGNATION
+        ====================================== */}
 
         <div className="space-y-2">
           <Label htmlFor="profile-designation">Designation</Label>
@@ -185,7 +183,9 @@ export default function EditProfile() {
           />
         </div>
 
-        {/* LOCALITY */}
+        {/* ======================================
+            LOCALITY
+        ====================================== */}
 
         <div className="space-y-2">
           <Label htmlFor="profile-locality">Locality</Label>
@@ -206,8 +206,32 @@ export default function EditProfile() {
             <Input id="profile-email" value={form.email} disabled />
           </div>
 
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-sm">Public Email</span>
+          <div
+            className={cn(
+              "flex items-center justify-between rounded-md border px-3 py-2.5 transition-colors",
+              form.is_email_public
+                ? "border-success/30 bg-success/5"
+                : "border-destructive/30 bg-destructive/5",
+            )}
+          >
+            <div className="space-y-0.5">
+              <p
+                className={cn(
+                  "text-sm font-medium",
+                  form.is_email_public ? "text-success" : "text-destructive",
+                )}
+              >
+                {form.is_email_public
+                  ? "Visible on your profile"
+                  : "Hidden from your profile"}
+              </p>
+
+              <p className="text-xs text-muted-foreground">
+                {form.is_email_public
+                  ? "Others can see your email"
+                  : "Only you can see your email"}
+              </p>
+            </div>
 
             <Switch
               checked={form.is_email_public}
@@ -224,11 +248,39 @@ export default function EditProfile() {
           <div className="space-y-2">
             <Label htmlFor="profile-mobile">Mobile</Label>
 
-            <Input id="profile-mobile" value={form.mobile} disabled />
+            <Input
+              id="profile-mobile"
+              value={form.mobile}
+              onChange={(event) => updateField("mobile", event.target.value)}
+            />
           </div>
 
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-sm">Public Mobile</span>
+          <div
+            className={cn(
+              "flex items-center justify-between rounded-md border px-3 py-2.5 transition-colors",
+              form.is_mobile_public
+                ? "border-success/30 bg-success/5"
+                : "border-destructive/30 bg-destructive/5",
+            )}
+          >
+            <div className="space-y-0.5">
+              <p
+                className={cn(
+                  "text-sm font-medium",
+                  form.is_mobile_public ? "text-success" : "text-destructive",
+                )}
+              >
+                {form.is_mobile_public
+                  ? "Visible on your profile"
+                  : "Hidden from your profile"}
+              </p>
+
+              <p className="text-xs text-muted-foreground">
+                {form.is_mobile_public
+                  ? "Others can see your mobile number"
+                  : "Only you can see your mobile number"}
+              </p>
+            </div>
 
             <Switch
               checked={form.is_mobile_public}
@@ -239,13 +291,19 @@ export default function EditProfile() {
           </div>
         </div>
 
-        {/* SAVE */}
+        {/* ======================================
+            SAVE
+        ====================================== */}
 
-        <Button className="w-full" onClick={handleSave} disabled={isUpdating}>
+        <Button
+          className="w-full sm:col-span-2"
+          onClick={handleSave}
+          disabled={isUpdating}
+        >
           {isUpdating ? "Saving..." : "Save Changes"}
         </Button>
       </CardContent>
-    </Card>
+    </div>
   );
 }
 
@@ -255,19 +313,70 @@ export default function EditProfile() {
 
 function EditProfileSkeleton() {
   return (
-    <Card className="w-full">
+    <div className="mx-auto max-w-2xl">
+      {/* Avatar */}
+
       <div className="flex justify-center pt-7">
         <Skeleton className="h-20 w-20 rounded-full sm:h-24 sm:w-24" />
       </div>
 
-      <CardContent className="space-y-5 p-4 sm:p-6">
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
+      {/* Form */}
+
+      <CardContent className="grid grid-cols-1 gap-5 p-4 sm:grid-cols-2 sm:p-6">
+        {/* Name */}
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+
+        {/* Username */}
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-3 w-56" />
+        </div>
+
+        {/* Designation */}
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+
+        {/* Locality */}
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+
+        {/* Email */}
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-6 w-11 rounded-full" />
+          </div>
+        </div>
+
+        {/* Mobile */}
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-6 w-11 rounded-full" />
+          </div>
+        </div>
+
+        {/* Save */}
+        <Skeleton className="h-10 w-full sm:col-span-2" />
       </CardContent>
-    </Card>
+    </div>
   );
 }

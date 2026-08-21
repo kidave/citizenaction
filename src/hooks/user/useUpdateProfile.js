@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { supabase } from "@/lib/supabase/client";
 
 export function useUpdateProfile() {
+  const queryClient = useQueryClient();
+
   const [isUpdating, setIsUpdating] = useState(false);
 
   const updateProfile = async ({
@@ -13,6 +16,7 @@ export function useUpdateProfile() {
     username,
     designation,
     locality,
+    mobile,
     is_email_public,
     is_mobile_public,
   }) => {
@@ -26,16 +30,23 @@ export function useUpdateProfile() {
           username,
           designation,
           locality,
+          mobile,
           is_email_public,
           is_mobile_public,
         })
         .eq("user_id", userId)
-        .select()
+        .select("*")
         .single();
 
       if (error) {
         throw error;
       }
+
+      queryClient.setQueryData(["my-profile", userId], data);
+
+      await queryClient.invalidateQueries({
+        queryKey: ["public-profile"],
+      });
 
       return data;
     } finally {
