@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, ArrowUpRight, History } from "lucide-react";
 import { format } from "date-fns";
@@ -22,14 +23,62 @@ import PageHeaderSkeleton from "@/components/skeletons/PageHeaderSkeleton";
 import AutoImageCarousel from "@/components/attachment/AutoImageCarousel";
 
 const NATURAL_TEXT = {
-  space_created: ["This is where the story began", "This is where the work started", "The first page of the story", "The beginning of something local", "This is where it all came together"],
-  member_joined: ["Someone new joined the team", "Another person came on board", "The team grew a little stronger", "A new contributor joined in", "Another pair of hands joined the effort"],
-  report: ["A piece of work took shape", "The team moved an idea forward", "Something useful came together", "The team put its findings on record", "The work turned into something concrete"],
-  meeting: ["The team sat down to work through it", "People came together to figure it out", "A conversation moved the work forward", "The right people got around the table", "The team made time to work through the details"],
-  event: ["The team showed up", "The team stepped into the wider conversation", "The work met the real world", "The team took part in the moment", "The team was there for it"],
-  action: ["Something was done", "The team moved from words to action", "A small step became a real action", "The team followed through", "The work moved into the real world"],
-  announcement: ["Something important was shared", "The team had an update to share", "A new chapter was announced", "The team shared where things stood", "A useful update made its way out"],
-  post: ["A moment worth keeping", "Something the team wanted on record", "Another piece of the story", "A moment from along the way", "One more chapter in the journey"],
+  space_created: [
+    "This is where the story began",
+    "This is where the work started",
+    "The first page of the story",
+    "The beginning of something local",
+    "This is where it all came together",
+  ],
+  member_joined: [
+    "Someone new joined the team",
+    "Another person came on board",
+    "The team grew a little stronger",
+    "A new contributor joined in",
+    "Another pair of hands joined the effort",
+  ],
+  report: [
+    "A piece of work took shape",
+    "The team moved an idea forward",
+    "Something useful came together",
+    "The team put its findings on record",
+    "The work turned into something concrete",
+  ],
+  meeting: [
+    "The team sat down to work through it",
+    "People came together to figure it out",
+    "A conversation moved the work forward",
+    "The right people got around the table",
+    "The team made time to work through the details",
+  ],
+  event: [
+    "The team showed up",
+    "The team stepped into the wider conversation",
+    "The work met the real world",
+    "The team took part in the moment",
+    "The team was there for it",
+  ],
+  action: [
+    "Something was done",
+    "The team moved from words to action",
+    "A small step became a real action",
+    "The team followed through",
+    "The work moved into the real world",
+  ],
+  announcement: [
+    "Something important was shared",
+    "The team had an update to share",
+    "A new chapter was announced",
+    "The team shared where things stood",
+    "A useful update made its way out",
+  ],
+  post: [
+    "A moment worth keeping",
+    "Something the team wanted on record",
+    "Another piece of the story",
+    "A moment from along the way",
+    "One more chapter in the journey",
+  ],
 };
 
 const GOVERNANCE_TEXT = {
@@ -40,46 +89,67 @@ const GOVERNANCE_TEXT = {
   person: ["with", "alongside", "in conversation with"],
 };
 
-const TIMELINE_PALETTE = [
-  { base: "#2563eb", soft: "#dbeafe" },
-  { base: "#16a34a", soft: "#dcfce7" },
-  { base: "#d97706", soft: "#fef3c7" },
-  { base: "#7c3aed", soft: "#ede9fe" },
-  { base: "#db2777", soft: "#fce7f3" },
+const TIMELINE_COLORS = [
+  { line: "#2563eb", soft: "rgba(37,99,235,0.16)", dark: "#1d4ed8" },
+  { line: "#059669", soft: "rgba(5,150,105,0.16)", dark: "#047857" },
+  { line: "#d97706", soft: "rgba(217,119,6,0.16)", dark: "#b45309" },
+  { line: "#7c3aed", soft: "rgba(124,58,237,0.16)", dark: "#6d28d9" },
+  { line: "#db2777", soft: "rgba(219,39,119,0.16)", dark: "#be185d" },
 ];
 
-function safeArray(value) { return Array.isArray(value) ? value : []; }
+function safeArray(value) {
+  return Array.isArray(value) ? value : [];
+}
 
 function pickVariant(event, items) {
   const key = String(event.event_id || event.post_id || event.title || "timeline");
   let hash = 0;
-  for (let index = 0; index < key.length; index += 1) hash = (hash * 31 + key.charCodeAt(index)) >>> 0;
+
+  for (let index = 0; index < key.length; index += 1) {
+    hash = (hash * 31 + key.charCodeAt(index)) >>> 0;
+  }
+
   return items[hash % items.length];
 }
 
-function paletteFor(index) { return TIMELINE_PALETTE[index % TIMELINE_PALETTE.length]; }
-
 function naturalLabel(event) {
-  return `${pickVariant(event, NATURAL_TEXT[event.event_type] || NATURAL_TEXT.post)}: ${event.title || "this moment"}.`;
+  const title = event.title || "this moment";
+  return `${pickVariant(event, NATURAL_TEXT[event.event_type] || NATURAL_TEXT.post)}: ${title}.`;
 }
 
 function governanceSentence(event, teamName) {
   const governance = safeArray(event.governance_entities);
   if (!governance.length) return null;
+
   const item = governance[0];
   const name = item.short_name || item.label || "an authority";
   const type = item.entity_type || "authority";
   const phrase = pickVariant(event, GOVERNANCE_TEXT[type] || GOVERNANCE_TEXT.authority);
   const relationship = String(item.relationship_type || "").toLowerCase();
   const actor = teamName || "The team";
-  if (relationship.includes("respons") || relationship.includes("owner") || relationship.includes("jurisdiction")) return `${actor} worked under ${name}.`;
-  if (relationship.includes("collabor") || relationship.includes("partner")) return `${actor} worked alongside ${name}.`;
-  if (relationship.includes("engag")) return `${actor} was in conversation with ${name}.`;
+
+  if (
+    relationship.includes("respons") ||
+    relationship.includes("owner") ||
+    relationship.includes("jurisdiction")
+  ) {
+    return `${actor} worked under ${name}.`;
+  }
+
+  if (relationship.includes("collabor") || relationship.includes("partner")) {
+    return `${actor} worked alongside ${name}.`;
+  }
+
+  if (relationship.includes("engag")) {
+    return `${actor} was in conversation with ${name}.`;
+  }
+
   return `${actor} worked ${phrase} ${name}.`;
 }
 
 function MemberIdentity({ event, light = false }) {
   if (event.event_type !== "member_joined") return null;
+
   return (
     <div className={`flex items-center gap-2 ${light ? "text-white/85" : "text-foreground"}`}>
       <Avatar className={`h-9 w-9 border ${light ? "border-white/20" : "border-border"}`}>
@@ -97,11 +167,16 @@ function MemberIdentity({ event, light = false }) {
 function GovernanceRow({ event, light = false }) {
   const governance = safeArray(event.governance_entities);
   if (!governance.length) return null;
+
   return (
     <div className={`flex flex-wrap items-center gap-2 ${light ? "text-white/80" : "text-muted-foreground"}`}>
       {governance.slice(0, 4).map((item) => (
         <div key={item.id} className={`flex items-center gap-2 rounded-full border px-2.5 py-1.5 backdrop-blur ${light ? "border-white/15 bg-white/5" : "border-border bg-background/70"}`}>
-          {item.image_url ? <img src={item.image_url} alt="" className="h-5 w-5 rounded-full object-contain" /> : <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[9px] font-semibold">{(item.short_name || item.label || "G").charAt(0)}</div>}
+          {item.image_url ? (
+            <img src={item.image_url} alt="" className="h-5 w-5 rounded-full object-contain" />
+          ) : (
+            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[9px] font-semibold">{(item.short_name || item.label || "G").charAt(0)}</div>
+          )}
           <span className="max-w-32 truncate text-[11px] font-medium">{item.short_name || item.label}</span>
         </div>
       ))}
@@ -111,16 +186,27 @@ function GovernanceRow({ event, light = false }) {
 
 function LinkList({ links = [] }) {
   if (!links.length) return null;
+
   return (
-    <div className="flex flex-col gap-3">
+    <div className="space-y-3">
       {links.slice(0, 4).map((link) => (
-        <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="group flex items-center gap-3 rounded-2xl border bg-background p-3 transition hover:bg-muted/60">
-          {link.image_url ? <img src={link.image_url} alt="" className="h-16 w-24 shrink-0 rounded-xl object-cover" /> : <div className="flex h-16 w-24 shrink-0 items-center justify-center rounded-xl bg-muted text-xs text-muted-foreground">Link</div>}
-          <div className="min-w-0 flex-1">
-            <div className="line-clamp-2 text-sm font-medium leading-5">{link.title || link.hostname || link.url}</div>
-            <div className="mt-1 truncate text-xs text-muted-foreground">{link.url}</div>
+        <a
+          key={link.id}
+          href={link.url}
+          target="_blank"
+          rel="noreferrer"
+          className="group block overflow-hidden rounded-2xl border bg-background transition hover:bg-muted/40"
+        >
+          {link.image_url ? (
+            <img src={link.image_url} alt="" className="h-40 w-full object-cover" />
+          ) : null}
+          <div className="flex items-center justify-between gap-4 px-4 py-3">
+            <div className="min-w-0">
+              <div className="truncate text-xs font-medium text-muted-foreground">{link.title || link.hostname || link.url}</div>
+              <div className="mt-1 truncate text-xs text-muted-foreground/80">{link.url}</div>
+            </div>
+            <ArrowUpRight className="h-4 w-4 shrink-0 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </div>
-          <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-hover:text-foreground" />
         </a>
       ))}
     </div>
@@ -131,6 +217,7 @@ function EventDialog({ event, teamName, open, onOpenChange }) {
   const imageAttachments = safeArray(event.attachments).filter((item) => item?.mime_type?.startsWith("image/"));
   const links = safeArray(event.links);
   const governanceCopy = governanceSentence(event, teamName);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[88vh] max-w-4xl overflow-y-auto rounded-[30px] border bg-background p-0">
@@ -145,10 +232,26 @@ function EventDialog({ event, teamName, open, onOpenChange }) {
               </div>
             </div>
           ) : null}
+
           <div className="space-y-5 p-6 sm:p-8">
-            {!imageAttachments.length ? <div><div className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">{format(new Date(event.occurred_at), "d MMMM yyyy")}</div><DialogTitle className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{event.title}</DialogTitle></div> : null}
+            {!imageAttachments.length ? (
+              <div>
+                <div className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">{format(new Date(event.occurred_at), "d MMMM yyyy")}</div>
+                <DialogTitle className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{event.title}</DialogTitle>
+              </div>
+            ) : null}
+
             <DialogDescription className="text-base leading-7 text-muted-foreground">{event.description || naturalLabel(event)}</DialogDescription>
-            {event.event_type === "member_joined" ? <MemberIdentity event={event} /> : event.actor_name ? <div className="flex items-center gap-2 text-sm text-muted-foreground"><Avatar className="h-8 w-8 border"><AvatarImage src={event.actor_avatar} alt={event.actor_name} /><AvatarFallback>{event.actor_name.charAt(0).toUpperCase()}</AvatarFallback></Avatar><span>{event.actor_name}</span></div> : null}
+
+            {event.event_type === "member_joined" ? (
+              <MemberIdentity event={event} />
+            ) : event.actor_name ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Avatar className="h-8 w-8 border"><AvatarImage src={event.actor_avatar} alt={event.actor_name} /><AvatarFallback>{event.actor_name.charAt(0).toUpperCase()}</AvatarFallback></Avatar>
+                <span>{event.actor_name}</span>
+              </div>
+            ) : null}
+
             {governanceCopy ? <p className="text-sm leading-6 text-muted-foreground">{governanceCopy}</p> : null}
             <GovernanceRow event={event} />
             {event.address ? <div className="rounded-2xl border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">{event.address}</div> : null}
@@ -164,14 +267,24 @@ export default function SpaceTimelinePage() {
   const router = useRouter();
   const railRef = useRef(null);
   const { space: slug } = router.query;
+
   const { data: space, isLoading, error } = useSpaces({ slug, enabled: !!slug });
   const { data: timeline = [], isLoading: timelineLoading } = useSpaceTimeline(space?.id);
+
   const [filter, setFilter] = useState("all");
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [focusIndex, setFocusIndex] = useState(0);
+  const [activeMonth, setActiveMonth] = useState(null);
 
-  const filteredEvents = useMemo(() => timeline.filter((event) => filter === "all" || event.event_type === filter), [timeline, filter]);
-  const years = useMemo(() => Array.from(new Set(filteredEvents.map((event) => new Date(event.occurred_at).getFullYear()))).sort((a, b) => a - b), [filteredEvents]);
+  const filteredEvents = useMemo(
+    () => timeline.filter((event) => filter === "all" || event.event_type === filter),
+    [timeline, filter],
+  );
+
+  const years = useMemo(
+    () => Array.from(new Set(filteredEvents.map((event) => new Date(event.occurred_at).getFullYear()))).sort((a, b) => a - b),
+    [filteredEvents],
+  );
+
   const monthMarkers = useMemo(() => {
     const seen = new Set();
     return filteredEvents.reduce((markers, event, index) => {
@@ -179,38 +292,23 @@ export default function SpaceTimelinePage() {
       const key = format(date, "yyyy-MM");
       if (seen.has(key)) return markers;
       seen.add(key);
-      markers.push({ key, label: format(date, "MMM yyyy"), year: date.getFullYear(), index });
+      markers.push({
+        key,
+        label: format(date, "MMM yyyy"),
+        year: date.getFullYear(),
+        index,
+      });
       return markers;
     }, []);
   }, [filteredEvents]);
+
   const teamName = space?.name ? `${space.name} team` : "The team";
+  const activeMonthIndex = activeMonth ? monthMarkers.findIndex((month) => month.key === activeMonth) : -1;
 
   useEffect(() => {
     const rail = railRef.current;
     if (!rail) return undefined;
-    const handleScroll = () => {
-      const cards = Array.from(rail.querySelectorAll("[data-event-index]"));
-      if (!cards.length) return;
-      const center = rail.scrollLeft + rail.clientWidth / 2;
-      let nearest = 0;
-      let distance = Number.POSITIVE_INFINITY;
-      cards.forEach((card, index) => {
-        const rect = card.getBoundingClientRect();
-        const railRect = rail.getBoundingClientRect();
-        const cardCenter = rect.left - railRect.left + rail.scrollLeft + rect.width / 2;
-        const nextDistance = Math.abs(cardCenter - center);
-        if (nextDistance < distance) { distance = nextDistance; nearest = Number(card.dataset.eventIndex ?? index); }
-      });
-      setFocusIndex(nearest);
-    };
-    handleScroll();
-    rail.addEventListener("scroll", handleScroll, { passive: true });
-    return () => rail.removeEventListener("scroll", handleScroll);
-  }, [filteredEvents.length]);
 
-  useEffect(() => {
-    const rail = railRef.current;
-    if (!rail) return undefined;
     const handleWheel = (event) => {
       if (Math.abs(event.deltaY) <= Math.abs(event.deltaX) || Math.abs(event.deltaY) < 2) return;
       const atStart = rail.scrollLeft <= 0 && event.deltaY < 0;
@@ -219,18 +317,59 @@ export default function SpaceTimelinePage() {
       event.preventDefault();
       rail.scrollLeft += event.deltaY;
     };
+
+    const handleScroll = () => {
+      const children = rail.querySelectorAll("[data-month]");
+      let closest = null;
+      let distance = Infinity;
+      const center = rail.scrollLeft + rail.clientWidth / 2;
+      children.forEach((child) => {
+        const childCenter = child.offsetLeft + child.offsetWidth / 2;
+        const diff = Math.abs(childCenter - center);
+        if (diff < distance) {
+          distance = diff;
+          closest = child.dataset.month;
+        }
+      });
+      if (closest) setActiveMonth(closest);
+    };
+
     rail.addEventListener("wheel", handleWheel, { passive: false });
-    return () => rail.removeEventListener("wheel", handleWheel);
-  }, []);
+    rail.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
 
-  const jump = (direction) => railRef.current?.scrollBy({ left: direction * Math.max(window.innerWidth * 0.72, 460), behavior: "smooth" });
-  const jumpToYear = (year) => railRef.current?.querySelector(`[data-year="${year}"]`)?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-  const jumpToMonth = (monthKey) => railRef.current?.querySelector(`[data-month="${monthKey}"]`)?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    return () => {
+      rail.removeEventListener("wheel", handleWheel);
+      rail.removeEventListener("scroll", handleScroll);
+    };
+  }, [filteredEvents.length]);
 
-  if (isLoading || timelineLoading) return <div className="min-h-dvh bg-background"><PageHeaderSkeleton /></div>;
-  if (error || !space) return <div className="flex min-h-dvh items-center justify-center bg-background px-6 text-center"><div><h1 className="text-2xl font-semibold">Space not found</h1><p className="mt-2 text-muted-foreground">The requested Space does not exist.</p></div></div>;
+  const jump = (direction) => {
+    railRef.current?.scrollBy({ left: direction * Math.max(window.innerWidth * 0.72, 460), behavior: "smooth" });
+  };
 
-  const focusedPalette = paletteFor(focusIndex);
+  const jumpToYear = (year) => {
+    railRef.current?.querySelector(`[data-year="${year}"]`)?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  };
+
+  const jumpToMonth = (monthKey) => {
+    railRef.current?.querySelector(`[data-month="${monthKey}"]`)?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  };
+
+  if (isLoading || timelineLoading) {
+    return <div className="min-h-dvh bg-background"><PageHeaderSkeleton /></div>;
+  }
+
+  if (error || !space) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-background px-6 text-center">
+        <div>
+          <h1 className="text-2xl font-semibold">Space not found</h1>
+          <p className="mt-2 text-muted-foreground">The requested Space does not exist.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-dvh overflow-hidden bg-background">
@@ -243,7 +382,10 @@ export default function SpaceTimelinePage() {
       <div className="relative z-10 flex min-h-dvh flex-col">
         <header className="flex items-center gap-3 border-b border-border/70 px-4 py-3 sm:px-6 lg:px-8">
           <BackButton />
-          <div className="min-w-0 flex-1"><div className="truncate text-sm font-medium">{space.name}</div><div className="text-xs text-muted-foreground">The story so far</div></div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-medium">{space.name}</div>
+            <div className="text-xs text-muted-foreground">The story so far</div>
+          </div>
           <Button variant="ghost" asChild className="rounded-full"><Link href={`/space/${space.slug}`}>Back to {space.name}</Link></Button>
         </header>
 
@@ -259,39 +401,63 @@ export default function SpaceTimelinePage() {
             </div>
 
             <div className="mt-8 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex items-center gap-2 overflow-x-auto pb-1">{years.map((year) => <button key={year} type="button" onClick={() => jumpToYear(year)} className="shrink-0 rounded-full border border-border bg-background/70 px-4 py-2 text-xs font-medium text-muted-foreground transition hover:border-foreground/20 hover:text-foreground">{year}</button>)}</div>
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:justify-end">{["all", "member_joined", "report", "meeting", "event", "action", "announcement"].map((value) => <button key={value} type="button" onClick={() => setFilter(value)} className={`shrink-0 rounded-full px-4 py-2 text-xs font-medium transition ${filter === value ? "bg-foreground text-background" : "bg-muted text-muted-foreground hover:text-foreground"}`}>{value === "all" ? "Everything" : value === "member_joined" ? "People" : value === "announcement" ? "Updates" : value === "report" ? "Reports" : `${value.charAt(0).toUpperCase()}${value.slice(1)}s`}</button>)}</div>
+              <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                {years.map((year) => <button key={year} type="button" onClick={() => jumpToYear(year)} className="shrink-0 rounded-full border border-border bg-background/70 px-4 py-2 text-xs font-medium text-muted-foreground transition hover:border-foreground/20 hover:text-foreground">{year}</button>)}
+              </div>
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:justify-end">
+                {["all", "member_joined", "report", "meeting", "event", "action", "announcement"].map((value) => (
+                  <button key={value} type="button" onClick={() => setFilter(value)} className={`shrink-0 rounded-full px-4 py-2 text-xs font-medium transition ${filter === value ? "bg-foreground text-background" : "bg-muted text-muted-foreground hover:text-foreground"}`}>
+                    {value === "all" ? "Everything" : value === "member_joined" ? "People" : value === "announcement" ? "Updates" : value === "report" ? "Reports" : `${value.charAt(0).toUpperCase()}${value.slice(1)}s`}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="mt-6 flex items-center gap-2 overflow-x-auto pb-1">{monthMarkers.map((month, index) => { const palette = paletteFor(index); return <button key={month.key} type="button" onClick={() => jumpToMonth(month.key)} className="flex shrink-0 items-center gap-2 rounded-full border border-border bg-background/70 px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition hover:text-foreground"><span className="h-2 w-2 rounded-full" style={{ backgroundColor: palette.base }} />{month.label}</button>; })}</div>
+            {monthMarkers.length ? (
+              <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-1">
+                {monthMarkers.map((month, index) => {
+                  const color = TIMELINE_COLORS[month.year % TIMELINE_COLORS.length];
+                  return (
+                    <button key={month.key} type="button" onClick={() => jumpToMonth(month.key)} className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-medium transition ${activeMonth === month.key ? "text-foreground shadow-sm" : "text-muted-foreground"}`} style={{ borderColor: color.soft, background: activeMonth === month.key ? color.soft : "transparent" }}>{month.label}</button>
+                  );
+                })}
+              </div>
+            ) : null}
           </section>
 
           <section className="relative flex-1 pb-12">
-            <div ref={railRef} className="scrollbar-hide relative h-[64vh] min-h-[500px] overflow-x-auto overflow-y-hidden px-[7vw] py-6 sm:px-[8vw]">
-              <div className="relative flex min-w-max items-center gap-12 py-20" style={{ minHeight: "100%" }}>
-                <div className="pointer-events-none absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-muted/80" />
-                <motion.div className="pointer-events-none absolute left-0 top-1/2 h-[4px] -translate-y-1/2 rounded-full" animate={{ backgroundColor: focusedPalette.base, width: `${((focusIndex + 1) / Math.max(filteredEvents.length, 1)) * 100}%` }} transition={{ duration: 0.7, ease: "easeOut" }} style={{ maxWidth: "100%" }} />
+            <div ref={railRef} className="scrollbar-hide flex h-[64vh] min-h-[500px] items-stretch gap-0 overflow-x-auto overflow-y-hidden px-[7vw] py-6 sm:px-[8vw]">
+              <div className="relative flex min-w-max items-center py-24">
+                <div className="absolute left-0 right-0 top-1/2 h-[3px] rounded-full bg-muted" />
 
-                {filteredEvents.map((event, index) => {
+                {filteredEvents.map((event, eventIndex) => {
                   const date = new Date(event.occurred_at);
                   const monthKey = format(date, "yyyy-MM");
                   const monthIndex = monthMarkers.findIndex((month) => month.key === monthKey);
-                  const palette = paletteFor(monthIndex >= 0 ? monthIndex : index);
-                  const above = index % 2 === 0;
+                  const color = TIMELINE_COLORS[(date.getFullYear() + monthIndex) % TIMELINE_COLORS.length];
                   const imageAttachments = safeArray(event.attachments).filter((item) => item?.mime_type?.startsWith("image/"));
                   const governance = safeArray(event.governance_entities);
                   const governanceCopy = governanceSentence(event, teamName);
-                  const isFocused = index === focusIndex;
+                  const above = eventIndex % 2 === 0;
+                  const isActive = activeMonth === monthKey;
 
                   return (
-                    <div key={event.event_id} data-event-index={index} data-year={date.getFullYear()} data-month={monthKey} className="relative h-[560px] w-[360px] shrink-0 sm:w-[400px]">
-                      <div className="absolute left-1/2 top-1/2 z-0 h-px w-[72px] -translate-y-1/2" style={{ background: `linear-gradient(90deg, transparent, ${palette.base}99)` }} />
-                      <motion.div className="absolute left-1/2 z-0 w-[2px] -translate-x-1/2" animate={{ backgroundColor: isFocused ? palette.base : `${palette.base}77` }} transition={{ duration: 0.3 }} style={above ? { top: "calc(50% - 92px)", height: "92px" } : { top: "50%", height: "92px" }} />
+                    <div key={event.event_id} data-year={date.getFullYear()} className="relative flex h-[560px] w-[410px] shrink-0 flex-col items-center justify-center">
+                      <div className="absolute left-1/2 top-1/2 z-[1] h-[calc(50%-130px)] w-px -translate-x-1/2" style={{ top: above ? undefined : "50%", bottom: above ? "50%" : undefined, background: `linear-gradient(${above ? "to bottom" : "to top"}, ${color.line}, transparent)` }} />
 
-                      <motion.button type="button" onClick={() => setSelectedEvent(event)} className="group absolute left-1/2 z-10 h-[220px] w-[330px] -translate-x-1/2 overflow-hidden rounded-[30px] border border-border/70 bg-muted text-left transition duration-300 hover:-translate-y-1 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary sm:h-[240px] sm:w-[360px]" style={above ? { bottom: "50%", marginBottom: "22px" } : { top: "50%", marginTop: "22px" }} animate={isFocused ? { boxShadow: `0 0 0 2px ${palette.base}35, 0 16px 36px rgba(0,0,0,0.12)` } : { boxShadow: "0 4px 20px rgba(0,0,0,0.06)" }} initial={{ opacity: 0, y: above ? 16 : -16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.15 }} transition={{ duration: 0.45, delay: Math.min(index * 0.02, 0.16) }}>
+                      <motion.button
+                        type="button"
+                        onClick={() => setSelectedEvent(event)}
+                        className={`group relative z-10 h-[230px] w-[350px] overflow-hidden rounded-[30px] border bg-muted text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary ${above ? "mb-[205px]" : "mt-[205px]"}`}
+                        style={{ borderColor: isActive ? color.line : "rgba(148,163,184,0.25)", boxShadow: isActive ? `0 0 0 1px ${color.line}, 0 0 28px ${color.soft}` : undefined }}
+                        initial={{ opacity: 0, y: above ? 16 : -16 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, amount: 0.2 }}
+                        transition={{ duration: 0.4, delay: Math.min(eventIndex * 0.025, 0.12) }}
+                      >
                         {imageAttachments.length ? <AutoImageCarousel attachments={imageAttachments} /> : <div className="absolute inset-0 bg-gradient-to-br from-muted via-background to-muted-foreground/10" />}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
-                        <div className="absolute left-4 top-4 rounded-full px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-white shadow-sm backdrop-blur" style={{ backgroundColor: `${palette.base}dd` }}>{format(date, "d MMM")}</div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent transition duration-300 group-hover:from-black/80" />
+                        <div className="absolute left-4 top-4 rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white backdrop-blur" style={{ background: `${color.dark}cc` }}>{format(date, "d MMM")}</div>
                         {governance.length ? <div className="absolute right-4 top-4 flex -space-x-1.5">{governance.slice(0, 3).map((item) => item.image_url ? <img key={item.id} src={item.image_url} alt="" className="h-7 w-7 rounded-full border-2 border-black/30 bg-white/90 object-contain" /> : <div key={item.id} className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-black/20 bg-white/90 text-[9px] font-semibold text-foreground">{(item.short_name || item.label || "G").charAt(0)}</div>)}</div> : null}
                         {event.event_type === "member_joined" ? <div className="absolute left-4 bottom-20 flex items-center gap-2 rounded-full bg-black/35 px-2 py-1.5 text-white backdrop-blur"><Avatar className="h-7 w-7 border border-white/20"><AvatarImage src={event.actor_avatar} alt={event.actor_name || ""} /><AvatarFallback>{event.actor_name?.charAt(0)?.toUpperCase() || "U"}</AvatarFallback></Avatar><span className="max-w-[170px] truncate text-xs font-medium">{event.actor_name || "New member"}</span></div> : null}
                         <div className="absolute inset-x-4 bottom-4 text-white"><div className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/70">{pickVariant(event, NATURAL_TEXT[event.event_type] || NATURAL_TEXT.post)}</div><div className="mt-1 line-clamp-2 text-lg font-semibold leading-tight">{event.title}</div>{governanceCopy ? <div className="mt-1 line-clamp-1 text-xs text-white/60">{governanceCopy}</div> : null}</div>
@@ -299,6 +465,18 @@ export default function SpaceTimelinePage() {
                     </div>
                   );
                 })}
+
+                <div className="pointer-events-none absolute inset-x-0 top-1/2 z-[2] h-[3px] overflow-hidden rounded-full bg-muted">
+                  {activeMonthIndex >= 0 ? (
+                    <motion.div
+                      className="h-full rounded-full"
+                      initial={false}
+                      animate={{ width: `${Math.max(8, ((activeMonthIndex + 1) / Math.max(monthMarkers.length, 1)) * 100)}%` }}
+                      transition={{ duration: 0.55, ease: "easeOut" }}
+                      style={{ background: `linear-gradient(90deg, ${TIMELINE_COLORS[0].line}, ${TIMELINE_COLORS[(activeMonthIndex + 1) % TIMELINE_COLORS.length].line})` }}
+                    />
+                  ) : null}
+                </div>
               </div>
             </div>
           </section>
