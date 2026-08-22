@@ -7,6 +7,12 @@ export const TIMELINE_COLORS = [
 ];
 
 export function getTimelineColor(year, monthIndex = 0) {
-  const index = Math.abs(Number(year || 0) + Number(monthIndex || 0)) % TIMELINE_COLORS.length;
+  const index = Math.abs(Number(year || 0) * 12 + Number(monthIndex || 0)) % TIMELINE_COLORS.length;
   return TIMELINE_COLORS[index];
+}
+
+export function getTimelineColorForMonth(monthKey, monthMarkers = []) {
+  const index = Math.max(0, monthMarkers.findIndex((month) => month.key === monthKey));
+  const year = Number(String(monthKey || "0").slice(0, 4));
+  return getTimelineColor(year, index);
 }
