@@ -18,6 +18,10 @@ function getPreferredOrientation(value, width) {
     : TIMELINE_ORIENTATION.HORIZONTAL;
 }
 
+function monthLabelPosition(above) {
+  return above ? "bottom-[382px]" : "top-[362px]";
+}
+
 export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth, onMonthChange, onSelectEvent }) {
   const [preference, setPreference] = useState(TIMELINE_ORIENTATION.AUTO);
   const [width, setWidth] = useState(1440);
@@ -109,41 +113,20 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
 
   const renderToggle = () => (
     <div className="flex items-center gap-1 rounded-full border bg-background/80 p-1 backdrop-blur">
-      <Button
-        type="button"
-        variant={preference === TIMELINE_ORIENTATION.AUTO ? "secondary" : "ghost"}
-        size="icon"
-        className="h-8 w-8 rounded-full"
-        onClick={() => setPreference(TIMELINE_ORIENTATION.AUTO)}
-        title="Automatic timeline layout"
-      >
+      <Button type="button" variant={preference === TIMELINE_ORIENTATION.AUTO ? "secondary" : "ghost"} size="icon" className="h-8 w-8 rounded-full" onClick={() => setPreference(TIMELINE_ORIENTATION.AUTO)} title="Automatic timeline layout">
         <Monitor className="h-3.5 w-3.5" />
       </Button>
-      <Button
-        type="button"
-        variant={preference === TIMELINE_ORIENTATION.HORIZONTAL ? "secondary" : "ghost"}
-        size="icon"
-        className="h-8 w-8 rounded-full"
-        onClick={() => setPreference(TIMELINE_ORIENTATION.HORIZONTAL)}
-        title="Horizontal timeline"
-      >
+      <Button type="button" variant={preference === TIMELINE_ORIENTATION.HORIZONTAL ? "secondary" : "ghost"} size="icon" className="h-8 w-8 rounded-full" onClick={() => setPreference(TIMELINE_ORIENTATION.HORIZONTAL)} title="Horizontal timeline">
         <Columns3 className="h-3.5 w-3.5" />
       </Button>
-      <Button
-        type="button"
-        variant={preference === TIMELINE_ORIENTATION.VERTICAL ? "secondary" : "ghost"}
-        size="icon"
-        className="h-8 w-8 rounded-full"
-        onClick={() => setPreference(TIMELINE_ORIENTATION.VERTICAL)}
-        title="Vertical timeline"
-      >
+      <Button type="button" variant={preference === TIMELINE_ORIENTATION.VERTICAL ? "secondary" : "ghost"} size="icon" className="h-8 w-8 rounded-full" onClick={() => setPreference(TIMELINE_ORIENTATION.VERTICAL)} title="Vertical timeline">
         <Rows3 className="h-3.5 w-3.5" />
       </Button>
     </div>
   );
 
-  const monthFilter = (
-    <div className="flex gap-2 overflow-x-auto pb-1">
+  const monthFilter = (vertical = false) => (
+    <div className={vertical ? "flex flex-col gap-2" : "flex gap-2 overflow-x-auto pb-1"}>
       {monthMarkers.map((month) => {
         const color = getTimelineColorForMonth(month.key, monthMarkers);
         const active = month.key === activeMonth;
@@ -153,10 +136,7 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
             type="button"
             onClick={() => jumpToMonth(month.key)}
             className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-medium transition ${active ? "text-foreground shadow-sm" : "text-muted-foreground"}`}
-            style={{
-              borderColor: active ? color.line : color.glow,
-              background: active ? color.glow : "transparent",
-            }}
+            style={{ borderColor: active ? color.line : color.glow, background: active ? color.glow : "transparent" }}
           >
             {month.label}
           </button>
@@ -167,69 +147,51 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
 
   if (orientation === TIMELINE_ORIENTATION.VERTICAL) {
     return (
-      <section className="mx-auto w-full max-w-6xl pb-20 px-4 sm:px-6 lg:px-8">
+      <section className="mx-auto w-full max-w-7xl pb-20 px-4 sm:px-6 lg:px-8">
         <div className="mb-5 flex items-center justify-between gap-4">
           <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Timeline layout</div>
           {renderToggle()}
         </div>
 
-        <div className="relative md:pl-28">
-          <aside className="mb-6 md:sticky md:top-24 md:float-left md:ml-[-7rem] md:w-24">
+        <div className="relative md:pl-40">
+          <aside className="mb-6 md:fixed md:left-6 md:top-32 md:z-20 md:w-28">
             <div className="text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">Months</div>
-            <div className="mt-3 max-h-[70vh] overflow-y-auto pr-1">
-              <div className="flex gap-2 overflow-x-auto md:flex-col md:overflow-x-visible">{monthFilter}</div>
+            <div className="mt-3 max-h-[72vh] overflow-y-auto pr-1">
+              {monthFilter(true)}
             </div>
           </aside>
 
           <div className="relative mx-auto max-w-5xl">
             <div className="pointer-events-none absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-border md:block" />
-            <div
-              className="pointer-events-none absolute left-1/2 top-0 hidden w-px -translate-x-1/2 md:block"
-              style={{
-                height: `${progress}%`,
-                background: activeColor.line,
-                boxShadow: `0 0 14px ${activeColor.glow}`,
-              }}
-            />
+            <div className="pointer-events-none absolute left-1/2 top-0 hidden w-px -translate-x-1/2 md:block" style={{ height: `${progress}%`, background: activeColor.line, boxShadow: `0 0 14px ${activeColor.glow}` }} />
 
-            <div className="space-y-14 md:space-y-20">
+            <div className="space-y-24 md:space-y-28">
               {events.map((event, index) => {
                 const date = new Date(event.occurred_at);
                 const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
                 const monthIndex = monthMarkers.findIndex((month) => month.key === monthKey);
                 const color = getTimelineColorForMonth(monthKey, monthMarkers);
                 const active = activeMonth === monthKey;
-                const above = index % 2 === 0;
+                const left = index % 2 === 0;
 
                 return (
-                  <div key={event.event_id} className="relative grid items-center md:grid-cols-[1fr_96px_1fr] md:gap-0" data-month={monthKey}>
-                    <div className={`${above ? "md:col-start-1 md:pr-10" : "md:col-start-3 md:pl-10"}`}>
-                      <TimelineCard
-                        event={event}
-                        above={above}
-                        active={active}
-                        color={color}
-                        onSelect={onSelectEvent}
-                        orientation={TIMELINE_ORIENTATION.VERTICAL}
-                        monthIndex={Math.max(monthIndex, 0)}
-                      />
+                  <div key={event.event_id} data-month={monthKey} className="relative min-h-[300px] md:grid md:grid-cols-[1fr_180px_1fr] md:items-center">
+                    <div className={left ? "md:col-start-1 md:pr-12" : "md:col-start-3 md:pl-12"}>
+                      <TimelineCard event={event} active={active} color={color} onSelect={onSelectEvent} orientation={TIMELINE_ORIENTATION.VERTICAL} monthIndex={Math.max(monthIndex, 0)} />
                     </div>
 
-                    <div className="relative z-20 hidden min-h-[250px] md:flex md:items-center md:justify-center">
-                      <div
-                        className="absolute left-1/2 top-1/2 h-px w-12 -translate-y-1/2"
-                        style={{ background: active ? color.line : "hsl(var(--border))" }}
-                      />
-                      <motion.div
-                        className="relative h-3.5 w-3.5 rounded-full border-2 bg-background"
-                        animate={{ scale: active ? 1.25 : 1 }}
-                        transition={{ duration: 0.2 }}
-                        style={{ borderColor: active ? color.line : "hsl(var(--border))", boxShadow: active ? `0 0 16px ${color.glow}` : undefined }}
-                      />
+                    <div className="relative hidden min-h-[300px] md:block md:col-start-2">
+                      <div className="absolute left-1/2 top-1/2 z-10 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 bg-background" style={{ borderColor: active ? color.line : "hsl(var(--border))", boxShadow: active ? `0 0 16px ${color.glow}` : undefined }} />
+                      <div className="absolute left-1/2 top-1/2 h-px w-16 -translate-y-1/2" style={{ background: active ? color.line : "hsl(var(--border))", transformOrigin: left ? "right center" : "left center" }} />
+                      <div className={`absolute top-1/2 -translate-y-1/2 ${left ? "right-0 mr-12" : "left-0 ml-12"}`}>
+                        <div className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: active ? color.line : "hsl(var(--muted-foreground))" }}>
+                          {monthMarkers[monthIndex]?.label}
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="mt-3 md:hidden">
-                      <div className="ml-4 h-8 w-px bg-border" />
+                    <div className="md:hidden">
+                      <div className="mt-4 ml-4 h-8 w-px" style={{ background: color.line }} />
                     </div>
                   </div>
                 );
@@ -245,28 +207,13 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
     <section className="relative pb-16">
       <div className="mb-5 flex items-center justify-between gap-4 px-5 sm:px-8 lg:px-12">
         <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Timeline layout</div>
-        <div className="flex items-center gap-2">
-          {renderToggle()}
-          <Button variant="outline" size="icon" className="rounded-full" onClick={() => jumpHorizontal(-1)}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" className="rounded-full" onClick={() => jumpHorizontal(1)}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
+        <div className="flex items-center gap-2">{renderToggle()}<Button variant="outline" size="icon" className="rounded-full" onClick={() => jumpHorizontal(-1)}><ChevronLeft className="h-4 w-4" /></Button><Button variant="outline" size="icon" className="rounded-full" onClick={() => jumpHorizontal(1)}><ChevronRight className="h-4 w-4" /></Button></div>
       </div>
 
       <div ref={railRef} className="scrollbar-hide overflow-x-auto overflow-y-hidden px-[7vw] py-8 sm:px-[8vw]">
         <div className="relative mx-auto flex min-w-max items-center">
-          <div className="pointer-events-none absolute left-0 right-0 top-[320px] z-0 h-[3px] rounded-full bg-muted/90" />
-          <Progress value={progress} className="pointer-events-none absolute left-0 right-0 top-[320px] z-0">
-            <ProgressTrack className="h-[3px] bg-transparent">
-              <ProgressIndicator
-                className="h-full transition-none"
-                style={{ background: activeColor.line, boxShadow: `0 0 12px ${activeColor.glow}` }}
-              />
-            </ProgressTrack>
-          </Progress>
+          <div className="pointer-events-none absolute left-0 right-0 top-[340px] z-0 h-[3px] rounded-full bg-muted/90" />
+          <Progress value={progress} className="pointer-events-none absolute left-0 right-0 top-[340px] z-0"><ProgressTrack className="h-[3px] bg-transparent"><ProgressIndicator className="h-full transition-none" style={{ background: activeColor.line, boxShadow: `0 0 12px ${activeColor.glow}` }} /></ProgressTrack></Progress>
 
           {events.map((event, index) => {
             const date = new Date(event.occurred_at);
@@ -275,30 +222,20 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
             const color = getTimelineColorForMonth(monthKey, monthMarkers);
             const active = activeMonth === monthKey;
             const above = index % 2 === 0;
+            const monthLabel = monthMarkers[monthIndex]?.label;
 
             return (
-              <div key={event.event_id} data-month={monthKey} className="relative w-[430px] shrink-0 px-5">
-                <div className="relative h-[700px]">
-                  <div
-                    aria-hidden="true"
-                    className="pointer-events-none absolute left-1/2 top-[320px] z-[2] h-20 w-px -translate-x-1/2"
-                    style={{
-                      top: above ? "260px" : "320px",
-                      background: active ? color.line : "hsl(var(--border))",
-                      boxShadow: active ? `0 0 10px ${color.glow}` : undefined,
-                    }}
-                  />
+              <div key={event.event_id} data-month={monthKey} className="relative w-[460px] shrink-0 px-5">
+                <div className="relative h-[720px]">
+                  <div className={`absolute left-1/2 z-10 w-[390px] -translate-x-1/2 ${above ? "bottom-[390px]" : "top-[390px]"}`}>
+                    <TimelineCard event={event} active={active} color={color} onSelect={onSelectEvent} orientation={TIMELINE_ORIENTATION.HORIZONTAL} monthIndex={Math.max(monthIndex, 0)} />
+                  </div>
 
-                  <div className={`absolute left-1/2 w-[390px] -translate-x-1/2 ${above ? "bottom-[380px]" : "top-[360px]"}`}>
-                    <TimelineCard
-                      event={event}
-                      above={above}
-                      active={active}
-                      color={color}
-                      onSelect={onSelectEvent}
-                      orientation={TIMELINE_ORIENTATION.HORIZONTAL}
-                      monthIndex={Math.max(monthIndex, 0)}
-                    />
+                  <div className="absolute left-1/2 top-[340px] z-20 h-px w-16 -translate-x-1/2" style={{ background: active ? color.line : "hsl(var(--border))" }} />
+                  <div className="absolute left-1/2 top-[340px] z-20 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 bg-background" style={{ borderColor: active ? color.line : "hsl(var(--border))", boxShadow: active ? `0 0 16px ${color.glow}` : undefined }} />
+                  <div className={`absolute left-1/2 z-20 -translate-x-1/2 ${above ? "bottom-[360px]" : "top-[360px]"}`}>
+                    <div className="h-10 w-px" style={{ background: active ? color.line : "hsl(var(--border))" }} />
+                    <div className={`mt-2 whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.16em] ${active ? "opacity-100" : "opacity-70"}`} style={{ color: active ? color.line : "hsl(var(--muted-foreground))" }}>{monthLabel}</div>
                   </div>
                 </div>
               </div>
@@ -307,7 +244,7 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
         </div>
       </div>
 
-      <div className="mt-4 px-5 sm:px-8 lg:px-12">{monthFilter}</div>
+      <div className="mt-4 px-5 sm:px-8 lg:px-12">{monthFilter(false)}</div>
     </section>
   );
 }
