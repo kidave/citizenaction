@@ -7,7 +7,8 @@ import AppShell from "./AppShell";
 function LayoutContent({ children }) {
   const { pathname } = useRouter();
 
-  const useShell = pathname !== "/about";
+  const isTimelinePage = /^\/space\/[^/]+\/timeline(?:\/)?$/.test(pathname);
+  const useShell = pathname !== "/about" && !isTimelinePage;
 
   if (!useShell) {
     return children;
