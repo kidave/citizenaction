@@ -12,9 +12,7 @@ export function useContributionEditor(contribution = null, post = null) {
   const editor = useEditor(contribution);
 
   const { createContribution } = useCreateContribution();
-
   const { updateContribution } = useUpdateContribution();
-
   const { deleteContribution } = useDeleteContribution();
 
   async function submit(onSuccess) {
@@ -32,27 +30,18 @@ export function useContributionEditor(contribution = null, post = null) {
 
     const payload = {
       title: data.title ?? null,
-
       content: data.content ?? null,
-
+      content_json: data.contentJson ?? null,
+      content_format: data.contentFormat ?? "text",
       contribution_type: contribution?.contribution_type ?? "comment",
-
       status: contribution?.status ?? null,
-
       attachments: data.attachments ?? [],
-
       links: data.links ?? [],
-
       start_at: data.start_at ?? null,
-
       end_at: data.end_at ?? null,
-
       lat: data.lat ?? null,
-
       lng: data.lng ?? null,
-
       address: data.address ?? null,
-
       metadata: data.metadata ?? {},
     };
 
@@ -60,15 +49,12 @@ export function useContributionEditor(contribution = null, post = null) {
       if (contribution) {
         await updateContribution({
           contributionId: contribution.id,
-
           postId: post.id,
-
           contributionData: payload,
         });
       } else {
         await createContribution({
           postId: post.id,
-
           contributionData: payload,
         });
       }
@@ -92,7 +78,6 @@ export function useContributionEditor(contribution = null, post = null) {
 
     try {
       await deleteContribution(contribution);
-
       onSuccess?.();
     } catch (error) {
       console.error("Failed to delete contribution", {
@@ -107,9 +92,7 @@ export function useContributionEditor(contribution = null, post = null) {
 
   return {
     ...editor,
-
     submit,
-
     remove,
   };
 }
