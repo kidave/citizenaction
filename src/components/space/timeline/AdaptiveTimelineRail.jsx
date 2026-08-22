@@ -22,6 +22,8 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
   const [preference, setPreference] = useState(TIMELINE_ORIENTATION.AUTO);
   const [width, setWidth] = useState(1440);
   const railRef = useRef(null);
+  const verticalRef = useRef(null);
+  const verticalScrollFrame = useRef(null);
 
   useEffect(() => {
     const update = () => setWidth(window.innerWidth);
@@ -58,8 +60,61 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
         closest = node.dataset.month;
       }
     });
-    if (closest) onMonthChange(closest);
+    if (closest && closest !== activeMonth) onMonthChange(closest);
   };
+
+  const updateVerticalActiveMonth = () => {
+    if (orientation !== TIMELINE_ORIENTATION.VERTICAL) return;
+    const container = verticalRef.current;
+    if (!container) return;
+
+    const nodes = container.querySelectorAll("[data-month]");
+    if (!nodes.length) return;
+
+    // The event closest to the visual reading line becomes the active month.
+    // This keeps the filter, rail progress and card highlight in sync with
+    // ordinary page scrolling, not only with filter clicks.
+    const readingLine = window.innerHeight * 0.42;
+    let closest = null;
+    let distance = Infinity;
+
+    nodes.forEach((node) => {
+      const rect = node.getBoundingClientRect();
+      const center = rect.top + rect.height / 2;
+      const diff = Math.abs(center - readingLine);
+      if (diff < distance) {
+        distance = diff;
+        closest = node.dataset.month;
+      }
+    });
+
+    if (closest && closest !== activeMonth) onMonthChange(closest);
+  };
+
+  useEffect(() => {
+    if (orientation !== TIMELINE_ORIENTATION.VERTICAL) return undefined;
+
+    const onScroll = () => {
+      if (verticalScrollFrame.current) return;
+      verticalScrollFrame.current = window.requestAnimationFrame(() => {
+        verticalScrollFrame.current = null;
+        updateVerticalActiveMonth();
+      });
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    onScroll();
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (verticalScrollFrame.current) {
+        window.cancelAnimationFrame(verticalScrollFrame.current);
+        verticalScrollFrame.current = null;
+      }
+    };
+  }, [orientation, events.length, monthMarkers.length]);
 
   useEffect(() => {
     const rail = railRef.current;
@@ -81,7 +136,7 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
       rail.removeEventListener("wheel", onWheel);
       rail.removeEventListener("scroll", handleScroll);
     };
-  }, [orientation, monthMarkers.length]);
+  }, [orientation, monthMarkers.length, activeMonth]);
 
   const jumpHorizontal = (direction) => {
     railRef.current?.scrollBy({
@@ -100,8 +155,10 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
       return;
     }
 
-    const target = document.querySelector(`[data-month="${monthKey}"]`);
-    target?.scrollIntoView({ behavior: "smooth", block: "center" });
+    verticalRef.current?.querySelector(`[data-month="${monthKey}"]`)?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
     onMonthChange(monthKey);
   };
 
@@ -141,19 +198,19 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
 
   if (orientation === TIMELINE_ORIENTATION.VERTICAL) {
     return (
-      <section className="mx-auto w-full max-w-7xl pb-20 px-4 sm:px-6 lg:px-8">
+      <section className="mx-auto w-full max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
         <div className="mb-5 flex items-center justify-between gap-4">
           <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Timeline layout</div>
           {renderToggle()}
         </div>
 
-        <div className="relative md:pl-44">
-          <aside className="md:sticky md:top-24 md:z-20 md:float-left md:ml-[-11rem] md:w-36">
+        <div className="grid items-start gap-8 md:grid-cols-[150px_minmax(0,1fr)]">
+          <aside className="md:sticky md:top-24 md:z-30 md:self-start">
             <div className="text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">Months</div>
-            <div className="mt-3 max-h-[70vh] overflow-y-auto pr-1">{monthFilter(true)}</div>
+            <div className="mt-3 max-h-[calc(100vh-8rem)] overflow-y-auto pr-1">{monthFilter(true)}</div>
           </aside>
 
-          <div className="relative mx-auto max-w-5xl">
+          <div ref={verticalRef} className="relative min-w-0">
             <div className="pointer-events-none absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-border md:block" />
             <div
               className="pointer-events-none absolute left-1/2 top-0 hidden w-px -translate-x-1/2 md:block"
@@ -172,7 +229,7 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
 
                 return (
                   <div key={event.event_id} data-month={monthKey} className="relative min-h-[300px] md:grid md:grid-cols-[minmax(0,1fr)_220px_minmax(0,1fr)] md:items-center">
-                    <div className={left ? "md:col-start-1 md:pr-14" : "md:col-start-3 md:pl-14"}>
+                    <div className={left ? "md:col-start-1 md:pr-16" : "md:col-start-3 md:pl-16"}>
                       <TimelineCard
                         event={event}
                         active={active}
@@ -184,17 +241,9 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
                     </div>
 
                     <div className="relative hidden min-h-[300px] md:col-start-2 md:block">
+                      {/* The branch always starts at the spine marker and points toward the card. */}
                       <div
-                        className={`absolute top-1/2 -translate-y-1/2 ${left ? "right-0 mr-10" : "left-0 ml-10"}`}
-                        style={{ color: active ? color.line : "hsl(var(--muted-foreground))" }}
-                      >
-                        <div className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.16em]">
-                          {monthLabel}
-                        </div>
-                      </div>
-
-                      <div
-                        className={`absolute top-1/2 h-px -translate-y-1/2 ${left ? "left-0 right-1/2 ml-2 mr-2" : "left-1/2 right-0 ml-2 mr-2"}`}
+                        className={`absolute top-1/2 h-px -translate-y-1/2 ${left ? "left-0 w-1/2" : "left-1/2 w-1/2"}`}
                         style={{ background: active ? color.line : "hsl(var(--border))", boxShadow: active ? `0 0 8px ${color.glow}` : undefined }}
                       />
 
@@ -204,6 +253,22 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
                         transition={{ duration: 0.2 }}
                         style={{ borderColor: active ? color.line : "hsl(var(--border))", boxShadow: active ? `0 0 16px ${color.glow}` : undefined }}
                       />
+
+                      {/* Date sits in the empty space beside the card, with a deliberate gap from the spine. */}
+                      <div
+                        className={`absolute top-1/2 z-30 -translate-y-1/2 bg-background/95 px-2 ${left ? "right-1/2 mr-3" : "left-1/2 ml-3"}`}
+                      >
+                        <div
+                          className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.16em]"
+                          style={{ color: active ? color.line : "hsl(var(--muted-foreground))" }}
+                        >
+                          {monthLabel}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="md:hidden">
+                      <div className="ml-4 mt-4 h-8 w-px" style={{ background: color.line }} />
                     </div>
                   </div>
                 );
