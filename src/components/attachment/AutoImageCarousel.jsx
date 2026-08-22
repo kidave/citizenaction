@@ -54,6 +54,7 @@ export default function AutoImageCarousel({ attachments = [] }) {
             alt="activity"
             fill
             className="object-cover"
+            unoptimized
           />
         </motion.div>
       </AnimatePresence>
