@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, ArrowUpRight, History } from "lucide-react";
@@ -120,7 +120,11 @@ function governanceSentence(event, teamName) {
   const relationship = String(item.relationship_type || "").toLowerCase();
   const actor = teamName || "The team";
 
-  if (relationship.includes("respons") || relationship.includes("owner") || relationship.includes("jurisdiction")) {
+  if (
+    relationship.includes("respons") ||
+    relationship.includes("owner") ||
+    relationship.includes("jurisdiction")
+  ) {
     return `${actor} worked under ${name}.`;
   }
 
@@ -159,18 +163,11 @@ function GovernanceRow({ event, light = false }) {
   return (
     <div className={`flex flex-wrap items-center gap-2 ${light ? "text-white/80" : "text-muted-foreground"}`}>
       {governance.slice(0, 4).map((item) => (
-        <div
-          key={item.id}
-          className={`flex items-center gap-2 rounded-full border px-2.5 py-1.5 backdrop-blur ${
-            light ? "border-white/15 bg-white/5" : "border-border bg-background/70"
-          }`}
-        >
+        <div key={item.id} className={`flex items-center gap-2 rounded-full border px-2.5 py-1.5 backdrop-blur ${light ? "border-white/15 bg-white/5" : "border-border bg-background/70"}`}>
           {item.image_url ? (
             <img src={item.image_url} alt="" className="h-5 w-5 rounded-full object-contain" />
           ) : (
-            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[9px] font-semibold">
-              {(item.short_name || item.label || "G").charAt(0)}
-            </div>
+            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[9px] font-semibold">{(item.short_name || item.label || "G").charAt(0)}</div>
           )}
           <span className="max-w-32 truncate text-[11px] font-medium">{item.short_name || item.label}</span>
         </div>
@@ -179,25 +176,20 @@ function GovernanceRow({ event, light = false }) {
   );
 }
 
-function LinkList({ links, light = false }) {
+function LinkList({ links = [] }) {
   if (!links.length) return null;
 
   return (
-    <div className={`space-y-2 ${light ? "text-white/80" : "text-muted-foreground"}`}>
+    <div className="flex flex-wrap gap-2">
       {links.slice(0, 4).map((link) => (
         <a
           key={link.id}
           href={link.url}
           target="_blank"
           rel="noreferrer"
-          className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-xs transition ${
-            light
-              ? "border-white/15 bg-white/5 hover:bg-white/10"
-              : "border-border bg-background hover:bg-muted"
-          }`}
-          onClick={(event) => event.stopPropagation()}
+          className="inline-flex max-w-full items-center gap-1.5 rounded-full border bg-background px-3 py-2 text-xs font-medium transition hover:bg-muted"
         >
-          <span className="min-w-0 flex-1 truncate">{link.url}</span>
+          <span className="max-w-[320px] truncate sm:max-w-[480px]">{link.url}</span>
           <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
         </a>
       ))}
@@ -239,10 +231,7 @@ function EventDialog({ event, teamName, open, onOpenChange }) {
               <MemberIdentity event={event} />
             ) : event.actor_name ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Avatar className="h-8 w-8 border">
-                  <AvatarImage src={event.actor_avatar} alt={event.actor_name} />
-                  <AvatarFallback>{event.actor_name.charAt(0).toUpperCase()}</AvatarFallback>
-                </Avatar>
+                <Avatar className="h-8 w-8 border"><AvatarImage src={event.actor_avatar} alt={event.actor_name} /><AvatarFallback>{event.actor_name.charAt(0).toUpperCase()}</AvatarFallback></Avatar>
                 <span>{event.actor_name}</span>
               </div>
             ) : null}
@@ -281,12 +270,17 @@ export default function SpaceTimelinePage() {
 
   const monthMarkers = useMemo(() => {
     const seen = new Set();
-    return filteredEvents.reduce((markers, event) => {
+    return filteredEvents.reduce((markers, event, index) => {
       const date = new Date(event.occurred_at);
       const key = format(date, "yyyy-MM");
       if (seen.has(key)) return markers;
       seen.add(key);
-      markers.push({ key, label: format(date, "MMM yyyy"), year: date.getFullYear() });
+      markers.push({
+        key,
+        label: format(date, "MMM yyyy"),
+        year: date.getFullYear(),
+        index,
+      });
       return markers;
     }, []);
   }, [filteredEvents]);
@@ -316,6 +310,10 @@ export default function SpaceTimelinePage() {
 
   const jumpToYear = (year) => {
     railRef.current?.querySelector(`[data-year="${year}"]`)?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  };
+
+  const jumpToMonth = (monthKey) => {
+    railRef.current?.querySelector(`[data-month="${monthKey}"]`)?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
   };
 
   if (isLoading || timelineLoading) {
@@ -377,99 +375,93 @@ export default function SpaceTimelinePage() {
           </section>
 
           <section className="relative flex-1 pb-12">
-            <div ref={railRef} className="scrollbar-hide flex h-[64vh] min-h-[500px] items-stretch gap-0 overflow-x-auto overflow-y-hidden px-[7vw] py-6 sm:px-[8vw]">
-              <div className="relative flex min-w-max items-center py-20">
-                <div className="absolute left-0 right-0 top-1/2 h-px bg-border/80" />
-
-                {monthMarkers.map((month, monthIndex) => (
-                  <div key={month.key} data-year={month.year} className="relative flex w-[24rem] shrink-0 flex-col items-center">
-                    <div className="absolute left-1/2 top-1/2 z-20 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-foreground shadow-[0_0_0_5px_hsl(var(--background))]" />
-                    <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full border bg-background/95 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground shadow-sm backdrop-blur">
-                      {month.label}
-                    </div>
-
-                    <div className="flex h-[580px] w-full flex-col items-center justify-between">
-                      {filteredEvents
-                        .filter((event) => format(new Date(event.occurred_at), "yyyy-MM") === month.key)
-                        .map((event, eventIndex) => {
-                          const imageAttachments = safeArray(event.attachments).filter((item) => item?.mime_type?.startsWith("image/"));
-                          const governance = safeArray(event.governance_entities);
-                          const governanceCopy = governanceSentence(event, teamName);
-                          const above = (eventIndex + monthIndex) % 2 === 0;
-
-                          return (
-                            <div key={event.event_id} className={`relative flex w-full justify-center ${above ? "items-end pb-8" : "items-start pt-8"} h-[48%]`}>
-                              <div className={`absolute left-1/2 w-px bg-border ${above ? "top-1/2 bottom-0" : "top-0 bottom-1/2"}`} />
-
-                              <motion.button
-                                type="button"
-                                onClick={() => setSelectedEvent(event)}
-                                className="group relative z-10 h-[220px] w-[330px] shrink-0 overflow-hidden rounded-[30px] border border-border/70 bg-muted text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary sm:h-[240px] sm:w-[360px]"
-                                initial={{ opacity: 0, y: above ? 20 : -20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, amount: 0.2 }}
-                                transition={{ duration: 0.45, delay: Math.min(eventIndex * 0.04, 0.16) }}
-                              >
-                                {imageAttachments.length ? (
-                                  <AutoImageCarousel attachments={imageAttachments} />
-                                ) : (
-                                  <div className="absolute inset-0 bg-gradient-to-br from-muted via-background to-muted-foreground/10" />
-                                )}
-
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent transition duration-300 group-hover:from-black/80" />
-
-                                <div className="absolute left-4 top-4 rounded-full bg-black/35 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-white backdrop-blur">
-                                  {format(new Date(event.occurred_at), "d MMM")}
-                                </div>
-
-                                {governance.length ? (
-                                  <div className="absolute right-4 top-4 flex -space-x-1.5">
-                                    {governance.slice(0, 3).map((item) => item.image_url ? (
-                                      <img key={item.id} src={item.image_url} alt="" className="h-7 w-7 rounded-full border-2 border-black/30 bg-white/90 object-contain" />
-                                    ) : (
-                                      <div key={item.id} className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-black/20 bg-white/90 text-[9px] font-semibold text-foreground">{(item.short_name || item.label || "G").charAt(0)}</div>
-                                    ))}
-                                  </div>
-                                ) : null}
-
-                                {event.event_type === "member_joined" ? (
-                                  <div className="absolute left-4 bottom-20 flex items-center gap-2 rounded-full bg-black/35 px-2 py-1.5 text-white backdrop-blur">
-                                    <Avatar className="h-7 w-7 border border-white/20">
-                                      <AvatarImage src={event.actor_avatar} alt={event.actor_name || ""} />
-                                      <AvatarFallback>{event.actor_name?.charAt(0)?.toUpperCase() || "U"}</AvatarFallback>
-                                    </Avatar>
-                                    <span className="max-w-[170px] truncate text-xs font-medium">{event.actor_name || "New member"}</span>
-                                  </div>
-                                ) : null}
-
-                                <div className="absolute inset-x-4 bottom-4 text-white">
-                                  <div className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/70">{pickVariant(event, NATURAL_TEXT[event.event_type] || NATURAL_TEXT.post)}</div>
-                                  <div className="mt-1 line-clamp-2 text-lg font-semibold leading-tight">{event.title}</div>
-                                  {governanceCopy ? <div className="mt-1 line-clamp-1 text-xs text-white/60">{governanceCopy}</div> : null}
-                                </div>
-                              </motion.button>
-                            </div>
-                          );
-                        })}
-                    </div>
+            <div ref={railRef} className="scrollbar-hide relative h-[64vh] min-h-[540px] overflow-x-auto overflow-y-hidden px-[7vw] py-8 sm:px-[8vw]">
+              <div className="relative flex h-full min-w-max items-center">
+                <div className="relative h-full min-w-max" style={{ width: `${Math.max(filteredEvents.length, 1) * 430}px` }}>
+                  <div className="absolute left-0 right-0 top-1/2 h-[5px] -translate-y-1/2 overflow-hidden rounded-full bg-muted">
+                    <motion.div
+                      className="absolute inset-y-0 left-0 w-[42%] rounded-full bg-gradient-to-r from-primary/20 via-primary/70 to-primary"
+                      animate={{ x: ["-10%", "165%"] }}
+                      transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+                    />
                   </div>
-                ))}
+
+                  <div className="absolute left-0 right-0 top-1/2 flex -translate-y-1/2 items-center">
+                    {monthMarkers.map((month, monthIndex) => {
+                      const position = month.index / Math.max(filteredEvents.length - 1, 1);
+                      return (
+                        <button
+                          key={month.key}
+                          type="button"
+                          data-month={month.key}
+                          data-year={month.year}
+                          onClick={() => jumpToMonth(month.key)}
+                          className="absolute top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-2"
+                          style={{ left: `${position * 100}%` }}
+                        >
+                          <span className="h-4 w-4 rounded-full border-[3px] border-background bg-foreground shadow-[0_0_0_4px_hsl(var(--background))]" />
+                          <span className="whitespace-nowrap rounded-full border bg-background/95 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground shadow-sm backdrop-blur">
+                            {month.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {filteredEvents.map((event, index) => {
+                    const imageAttachments = safeArray(event.attachments).filter((item) => item?.mime_type?.startsWith("image/"));
+                    const governance = safeArray(event.governance_entities);
+                    const governanceCopy = governanceSentence(event, teamName);
+                    const above = index % 2 === 0;
+                    const left = `${(index + 0.5) * 430}px`;
+
+                    return (
+                      <motion.button
+                        key={event.event_id}
+                        type="button"
+                        data-event="true"
+                        onClick={() => setSelectedEvent(event)}
+                        className={`group absolute left-0 z-10 h-[230px] w-[360px] -translate-x-1/2 overflow-hidden rounded-[30px] border border-border/70 bg-muted text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary sm:h-[250px] sm:w-[390px] ${above ? "bottom-[calc(50%+42px)]" : "top-[calc(50%+42px)]"}`}
+                        style={{ left }}
+                        initial={{ opacity: 0, y: above ? 20 : -20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, amount: 0.15 }}
+                        transition={{ duration: 0.45, delay: Math.min(index * 0.025, 0.16) }}
+                      >
+                        {imageAttachments.length ? <AutoImageCarousel attachments={imageAttachments} /> : <div className="absolute inset-0 bg-gradient-to-br from-muted via-background to-muted-foreground/10" />}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent transition duration-300 group-hover:from-black/80" />
+
+                        <div className="absolute left-4 top-4 rounded-full bg-black/35 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-white backdrop-blur">{format(new Date(event.occurred_at), "d MMM")}</div>
+
+                        {governance.length ? (
+                          <div className="absolute right-4 top-4 flex -space-x-1.5">
+                            {governance.slice(0, 3).map((item) => item.image_url ? <img key={item.id} src={item.image_url} alt="" className="h-7 w-7 rounded-full border-2 border-black/30 bg-white/90 object-contain" /> : <div key={item.id} className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-black/20 bg-white/90 text-[9px] font-semibold text-foreground">{(item.short_name || item.label || "G").charAt(0)}</div>)}
+                          </div>
+                        ) : null}
+
+                        {event.event_type === "member_joined" ? (
+                          <div className="absolute left-4 bottom-20 flex items-center gap-2 rounded-full bg-black/35 px-2 py-1.5 text-white backdrop-blur">
+                            <Avatar className="h-7 w-7 border border-white/20"><AvatarImage src={event.actor_avatar} alt={event.actor_name || ""} /><AvatarFallback>{event.actor_name?.charAt(0)?.toUpperCase() || "U"}</AvatarFallback></Avatar>
+                            <span className="max-w-[180px] truncate text-xs font-medium">{event.actor_name || "New member"}</span>
+                          </div>
+                        ) : null}
+
+                        <div className="absolute inset-x-4 bottom-4 text-white">
+                          <div className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/70">{pickVariant(event, NATURAL_TEXT[event.event_type] || NATURAL_TEXT.post)}</div>
+                          <div className="mt-1 line-clamp-2 text-lg font-semibold leading-tight">{event.title}</div>
+                          {governanceCopy ? <div className="mt-1 line-clamp-1 text-xs text-white/60">{governanceCopy}</div> : null}
+                        </div>
+                      </motion.button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </section>
         </main>
       </div>
 
-      {selectedEvent ? (
-        <EventDialog
-          event={selectedEvent}
-          teamName={teamName}
-          open={!!selectedEvent}
-          onOpenChange={(open) => {
-            if (!open) setSelectedEvent(null);
-          }}
-        />
-      ) : null}
+      {selectedEvent ? <EventDialog event={selectedEvent} teamName={teamName} open={!!selectedEvent} onOpenChange={(open) => { if (!open) setSelectedEvent(null); }} /> : null}
     </div>
   );
 }
