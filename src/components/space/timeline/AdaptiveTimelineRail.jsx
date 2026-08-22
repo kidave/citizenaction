@@ -62,7 +62,7 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
 
   const handleVerticalScroll = () => {
     if (orientation !== TIMELINE_ORIENTATION.VERTICAL) return;
-    const nodes = document.querySelectorAll("[data-month]");
+    const nodes = document.querySelectorAll("[data-timeline-event]");
     const readingLine = window.innerHeight * 0.42;
     let closest = null;
     let distance = Infinity;
@@ -90,7 +90,7 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
       window.removeEventListener("resize", onScroll);
       window.cancelAnimationFrame(frame);
     };
-  }, [orientation, events.length, monthMarkers.length]);
+  }, [orientation, events.length]);
 
   useEffect(() => {
     const rail = railRef.current;
@@ -131,7 +131,7 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
       return;
     }
 
-    document.querySelector(`[data-month="${monthKey}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    document.querySelector(`[data-timeline-event][data-month="${monthKey}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
     onMonthChange(monthKey);
   };
 
@@ -149,13 +149,7 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
         const color = getTimelineColorForMonth(month.key, monthMarkers);
         const active = month.key === activeMonth;
         return (
-          <button
-            key={month.key}
-            type="button"
-            onClick={() => jumpToMonth(month.key)}
-            className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-medium transition ${active ? "text-foreground shadow-sm" : "text-muted-foreground"}`}
-            style={{ borderColor: active ? color.line : color.glow, background: active ? color.glow : "transparent" }}
-          >{month.label}</button>
+          <button key={month.key} type="button" onClick={() => jumpToMonth(month.key)} className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-medium transition ${active ? "text-foreground shadow-sm" : "text-muted-foreground"}`} style={{ borderColor: active ? color.line : color.glow, background: active ? color.glow : "transparent" }}>{month.label}</button>
         );
       })}
     </div>
@@ -186,38 +180,19 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
                 const monthIndex = monthMarkers.findIndex((month) => month.key === monthKey);
                 const color = getTimelineColorForMonth(monthKey, monthMarkers);
                 const active = activeMonth === monthKey;
-                const left = index % 2 === 0;
+                const cardOnLeft = index % 2 === 0;
                 const monthLabel = monthMarkers[monthIndex]?.label;
 
                 return (
-                  <div key={event.event_id} data-month={monthKey} className="relative md:grid md:min-h-[280px] md:grid-cols-[minmax(0,1fr)_minmax(220px,260px)_minmax(0,1fr)] md:items-center">
-                    <div className={left ? "md:col-start-1" : "md:col-start-3"}>
-                      <TimelineCard
-                        event={event}
-                        active={active}
-                        color={color}
-                        onSelect={onSelectEvent}
-                        orientation={TIMELINE_ORIENTATION.VERTICAL}
-                        monthIndex={Math.max(monthIndex, 0)}
-                      />
+                  <div key={event.event_id} data-timeline-event data-month={monthKey} className="relative md:grid md:min-h-[300px] md:grid-cols-[minmax(0,1fr)_220px_minmax(0,1fr)] md:items-center">
+                    <div className={cardOnLeft ? "md:col-start-1 md:pr-12" : "md:col-start-3 md:pl-12"}>
+                      <TimelineCard event={event} active={active} color={color} onSelect={onSelectEvent} orientation={TIMELINE_ORIENTATION.VERTICAL} monthIndex={Math.max(monthIndex, 0)} />
                     </div>
 
-                    <div className="relative hidden h-[280px] md:col-start-2 md:block">
-                      {left ? (
-                        <>
-                          <div className="absolute left-0 top-1/2 h-px w-1/2" style={{ background: active ? color.line : "hsl(var(--border))" }} />
-                          <div className="absolute right-0 top-1/2 h-px w-1/2" style={{ background: active ? color.line : "hsl(var(--border))" }} />
-                          <div className="absolute left-[-1px] top-1/2 h-px w-8 -translate-x-full" style={{ background: active ? color.line : "hsl(var(--border))" }} />
-                          <div className="absolute right-0 top-1/2 w-1/2 -translate-x-1/2 text-right text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: active ? color.line : "hsl(var(--muted-foreground))" }}>{monthLabel}</div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="absolute left-0 top-1/2 h-px w-1/2" style={{ background: active ? color.line : "hsl(var(--border))" }} />
-                          <div className="absolute right-0 top-1/2 h-px w-1/2" style={{ background: active ? color.line : "hsl(var(--border))" }} />
-                          <div className="absolute left-0 top-1/2 w-1/2 -translate-x-1/2 text-left text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: active ? color.line : "hsl(var(--muted-foreground))" }}>{monthLabel}</div>
-                          <div className="absolute right-[-1px] top-1/2 h-px w-8 translate-x-full" style={{ background: active ? color.line : "hsl(var(--border))" }} />
-                        </>
-                      )}
+                    <div className="relative hidden h-[300px] md:col-start-2 md:block">
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: active ? color.line : "hsl(var(--muted-foreground))" }}>{monthLabel}</div>
+                      </div>
                     </div>
                   </div>
                 );
