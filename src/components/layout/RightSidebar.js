@@ -97,15 +97,18 @@ export default function RightSidebar() {
               About
             </Link>
 
-            <Link href="/auth/privacy" className="hover:text-foreground">
+            <Link href="/privacy" className="hover:text-foreground">
               Privacy
             </Link>
 
-            <Link href="/auth/terms" className="hover:text-foreground">
+            <Link href="/privacy" className="hover:text-foreground">
               Terms
             </Link>
 
-            <Link href="/settings/contact" className="hover:text-foreground">
+            <Link
+              href="/settings?tab=support"
+              className="hover:text-foreground"
+            >
               Contact
             </Link>
           </div>
