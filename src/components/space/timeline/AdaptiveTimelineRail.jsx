@@ -171,7 +171,17 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
 
           <div className="relative mx-auto max-w-5xl">
             <div className="pointer-events-none absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-border md:block" />
-            <div className="pointer-events-none absolute left-1/2 top-0 hidden w-px -translate-x-1/2 md:block" style={{ height: `${progress}%`, background: activeColor.line, boxShadow: `0 0 14px ${activeColor.glow}` }} />
+            <Progress
+              value={progress}
+              className="pointer-events-none absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 md:block [&_[data-slot=progress-track]]:h-full [&_[data-slot=progress-indicator]]:w-px"
+            >
+              <ProgressTrack className="h-full w-px bg-transparent">
+                <ProgressIndicator
+                  className="h-full w-px origin-top transition-[height,background-color,box-shadow] duration-1000 ease-out"
+                  style={{ background: activeColor.line, boxShadow: `0 0 14px ${activeColor.glow}` }}
+                />
+              </ProgressTrack>
+            </Progress>
 
             <div className="space-y-28 md:space-y-32">
               {events.map((event, index) => {
@@ -185,13 +195,13 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
 
                 return (
                   <div key={event.event_id} data-timeline-event data-month={monthKey} className="relative md:grid md:min-h-[300px] md:grid-cols-[minmax(0,1fr)_220px_minmax(0,1fr)] md:items-center">
-                    <div className={cardOnLeft ? "md:col-start-1 md:pr-12" : "md:col-start-3 md:pl-12"}>
+                    <div className={cardOnLeft ? "md:col-start-1" : "md:col-start-3"}>
                       <TimelineCard event={event} active={active} color={color} onSelect={onSelectEvent} orientation={TIMELINE_ORIENTATION.VERTICAL} monthIndex={Math.max(monthIndex, 0)} />
                     </div>
 
-                    <div className="relative hidden h-[300px] md:col-start-2 md:block">
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-center text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: active ? color.line : "hsl(var(--muted-foreground))" }}>{monthLabel}</div>
+                    <div className="relative hidden h-[300px] md:col-start-2 md:flex md:items-center md:justify-center">
+                      <div className="w-[120px] text-center text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: active ? color.line : "hsl(var(--muted-foreground))" }}>
+                        {monthLabel}
                       </div>
                     </div>
                   </div>
