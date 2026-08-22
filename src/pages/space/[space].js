@@ -3,13 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 
-import { Settings, UserPlus, Plus } from "lucide-react";
+import { Settings, UserPlus, Plus, History } from "lucide-react";
 
 import EditorModal from "@/components/feed/editor/EditorModal";
 
 import { useAuth } from "@/context/AuthContext";
 import { useSpaces } from "@/hooks/space/useSpaces";
-import { useSpaceTimeline } from "@/hooks/space/useSpaceTimeline";
 
 import BackButton from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
@@ -28,33 +27,20 @@ import MetaCardsSkeleton from "@/components/skeletons/MetaCardsSkeleton";
 import MembersTab from "@/components/space/tabs/MembersTab";
 import ActivityTab from "@/components/space/tabs/ActivityTab";
 import OverviewTab from "@/components/space/tabs/OverviewTab";
-import SpaceTimeline from "@/components/space/timeline/SpaceTimeline";
 
 export default function SpacePage() {
   const router = useRouter();
-
   const { user } = useAuth();
-
   const [editorOpen, setEditorOpen] = useState(false);
 
   const { space: slug, tab } = router.query;
 
-  const {
-    data: space,
-    isLoading,
-    error,
-  } = useSpaces({
+  const { data: space, isLoading, error } = useSpaces({
     slug,
     enabled: !!slug,
   });
 
-  const {
-    data: timeline = [],
-    isLoading: timelineLoading,
-  } = useSpaceTimeline(space?.id);
-
   const activeTab = tab || "overview";
-
   const base = `/space/${slug}`;
 
   if (isLoading) {
@@ -88,12 +74,28 @@ export default function SpacePage() {
         <div className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
           <div className="flex h-14 items-center gap-3 px-4 sm:h-16">
             <BackButton />
-
             <h1 className="min-w-0 flex-1 truncate font-semibold sm:text-lg">
               {space.name}
             </h1>
 
             <div className="flex shrink-0 items-center gap-1">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="shrink-0"
+                    aria-label="View Space timeline"
+                    onClick={() => router.push(`${base}/timeline`)}
+                  >
+                    <History className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>View timeline</p>
+                </TooltipContent>
+              </Tooltip>
+
               {user && (
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -165,13 +167,6 @@ export default function SpacePage() {
                 Overview
               </TabsTrigger>
               <TabsTrigger
-                value="timeline"
-                onClick={() => router.push(`${base}?tab=timeline`)}
-                className="flex-1"
-              >
-                Timeline
-              </TabsTrigger>
-              <TabsTrigger
                 value="members"
                 onClick={() => router.push(`${base}?tab=members`)}
                 className="flex-1"
@@ -194,21 +189,9 @@ export default function SpacePage() {
             <TabsContent value="overview">
               <OverviewTab space={space} />
             </TabsContent>
-
-            <TabsContent value="timeline">
-              {timelineLoading ? (
-                <div className="rounded-[28px] border bg-card p-8 text-sm text-muted-foreground">
-                  Loading Space history…
-                </div>
-              ) : (
-                <SpaceTimeline space={space} events={timeline} />
-              )}
-            </TabsContent>
-
             <TabsContent value="members">
               <MembersTab spaceId={space.id} spaceSlug={space.slug} />
             </TabsContent>
-
             <TabsContent value="activity">
               <ActivityTab spaceId={space.id} />
             </TabsContent>
