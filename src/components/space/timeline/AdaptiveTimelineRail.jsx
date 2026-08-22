@@ -18,10 +18,6 @@ function getPreferredOrientation(value, width) {
     : TIMELINE_ORIENTATION.HORIZONTAL;
 }
 
-function monthLabelPosition(above) {
-  return above ? "bottom-[382px]" : "top-[362px]";
-}
-
 export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth, onMonthChange, onSelectEvent }) {
   const [preference, setPreference] = useState(TIMELINE_ORIENTATION.AUTO);
   const [width, setWidth] = useState(1440);
@@ -104,10 +100,8 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
       return;
     }
 
-    document.querySelector(`[data-month="${monthKey}"]`)?.scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-    });
+    const target = document.querySelector(`[data-month="${monthKey}"]`);
+    target?.scrollIntoView({ behavior: "smooth", block: "center" });
     onMonthChange(monthKey);
   };
 
@@ -153,19 +147,20 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
           {renderToggle()}
         </div>
 
-        <div className="relative md:pl-40">
-          <aside className="mb-6 md:fixed md:left-6 md:top-32 md:z-20 md:w-28">
+        <div className="relative md:pl-44">
+          <aside className="md:sticky md:top-24 md:z-20 md:float-left md:ml-[-11rem] md:w-36">
             <div className="text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">Months</div>
-            <div className="mt-3 max-h-[72vh] overflow-y-auto pr-1">
-              {monthFilter(true)}
-            </div>
+            <div className="mt-3 max-h-[70vh] overflow-y-auto pr-1">{monthFilter(true)}</div>
           </aside>
 
           <div className="relative mx-auto max-w-5xl">
             <div className="pointer-events-none absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-border md:block" />
-            <div className="pointer-events-none absolute left-1/2 top-0 hidden w-px -translate-x-1/2 md:block" style={{ height: `${progress}%`, background: activeColor.line, boxShadow: `0 0 14px ${activeColor.glow}` }} />
+            <div
+              className="pointer-events-none absolute left-1/2 top-0 hidden w-px -translate-x-1/2 md:block"
+              style={{ height: `${progress}%`, background: activeColor.line, boxShadow: `0 0 14px ${activeColor.glow}` }}
+            />
 
-            <div className="space-y-24 md:space-y-28">
+            <div className="space-y-28 md:space-y-32">
               {events.map((event, index) => {
                 const date = new Date(event.occurred_at);
                 const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
@@ -173,25 +168,42 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
                 const color = getTimelineColorForMonth(monthKey, monthMarkers);
                 const active = activeMonth === monthKey;
                 const left = index % 2 === 0;
+                const monthLabel = monthMarkers[monthIndex]?.label;
 
                 return (
-                  <div key={event.event_id} data-month={monthKey} className="relative min-h-[300px] md:grid md:grid-cols-[1fr_180px_1fr] md:items-center">
-                    <div className={left ? "md:col-start-1 md:pr-12" : "md:col-start-3 md:pl-12"}>
-                      <TimelineCard event={event} active={active} color={color} onSelect={onSelectEvent} orientation={TIMELINE_ORIENTATION.VERTICAL} monthIndex={Math.max(monthIndex, 0)} />
+                  <div key={event.event_id} data-month={monthKey} className="relative min-h-[300px] md:grid md:grid-cols-[minmax(0,1fr)_220px_minmax(0,1fr)] md:items-center">
+                    <div className={left ? "md:col-start-1 md:pr-14" : "md:col-start-3 md:pl-14"}>
+                      <TimelineCard
+                        event={event}
+                        active={active}
+                        color={color}
+                        onSelect={onSelectEvent}
+                        orientation={TIMELINE_ORIENTATION.VERTICAL}
+                        monthIndex={Math.max(monthIndex, 0)}
+                      />
                     </div>
 
-                    <div className="relative hidden min-h-[300px] md:block md:col-start-2">
-                      <div className="absolute left-1/2 top-1/2 z-10 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 bg-background" style={{ borderColor: active ? color.line : "hsl(var(--border))", boxShadow: active ? `0 0 16px ${color.glow}` : undefined }} />
-                      <div className="absolute left-1/2 top-1/2 h-px w-16 -translate-y-1/2" style={{ background: active ? color.line : "hsl(var(--border))", transformOrigin: left ? "right center" : "left center" }} />
-                      <div className={`absolute top-1/2 -translate-y-1/2 ${left ? "right-0 mr-12" : "left-0 ml-12"}`}>
-                        <div className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: active ? color.line : "hsl(var(--muted-foreground))" }}>
-                          {monthMarkers[monthIndex]?.label}
+                    <div className="relative hidden min-h-[300px] md:col-start-2 md:block">
+                      <div
+                        className={`absolute top-1/2 -translate-y-1/2 ${left ? "right-0 mr-10" : "left-0 ml-10"}`}
+                        style={{ color: active ? color.line : "hsl(var(--muted-foreground))" }}
+                      >
+                        <div className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.16em]">
+                          {monthLabel}
                         </div>
                       </div>
-                    </div>
 
-                    <div className="md:hidden">
-                      <div className="mt-4 ml-4 h-8 w-px" style={{ background: color.line }} />
+                      <div
+                        className={`absolute top-1/2 h-px -translate-y-1/2 ${left ? "left-0 right-1/2 ml-2 mr-2" : "left-1/2 right-0 ml-2 mr-2"}`}
+                        style={{ background: active ? color.line : "hsl(var(--border))", boxShadow: active ? `0 0 8px ${color.glow}` : undefined }}
+                      />
+
+                      <motion.div
+                        className="absolute left-1/2 top-1/2 z-20 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 bg-background"
+                        animate={{ scale: active ? 1.2 : 1 }}
+                        transition={{ duration: 0.2 }}
+                        style={{ borderColor: active ? color.line : "hsl(var(--border))", boxShadow: active ? `0 0 16px ${color.glow}` : undefined }}
+                      />
                     </div>
                   </div>
                 );
@@ -213,7 +225,9 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
       <div ref={railRef} className="scrollbar-hide overflow-x-auto overflow-y-hidden px-[7vw] py-8 sm:px-[8vw]">
         <div className="relative mx-auto flex min-w-max items-center">
           <div className="pointer-events-none absolute left-0 right-0 top-[340px] z-0 h-[3px] rounded-full bg-muted/90" />
-          <Progress value={progress} className="pointer-events-none absolute left-0 right-0 top-[340px] z-0"><ProgressTrack className="h-[3px] bg-transparent"><ProgressIndicator className="h-full transition-none" style={{ background: activeColor.line, boxShadow: `0 0 12px ${activeColor.glow}` }} /></ProgressTrack></Progress>
+          <Progress value={progress} className="pointer-events-none absolute left-0 right-0 top-[340px] z-0">
+            <ProgressTrack className="h-[3px] bg-transparent"><ProgressIndicator className="h-full transition-none" style={{ background: activeColor.line, boxShadow: `0 0 12px ${activeColor.glow}` }} /></ProgressTrack>
+          </Progress>
 
           {events.map((event, index) => {
             const date = new Date(event.occurred_at);
@@ -228,15 +242,22 @@ export default function AdaptiveTimelineRail({ events, monthMarkers, activeMonth
               <div key={event.event_id} data-month={monthKey} className="relative w-[460px] shrink-0 px-5">
                 <div className="relative h-[720px]">
                   <div className={`absolute left-1/2 z-10 w-[390px] -translate-x-1/2 ${above ? "bottom-[390px]" : "top-[390px]"}`}>
-                    <TimelineCard event={event} active={active} color={color} onSelect={onSelectEvent} orientation={TIMELINE_ORIENTATION.HORIZONTAL} monthIndex={Math.max(monthIndex, 0)} />
+                    <div className={`relative ${above ? "pb-12" : "pt-12"}`}>
+                      <div className={`absolute left-1/2 z-20 -translate-x-1/2 whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.16em] ${above ? "bottom-2" : "top-2"}`} style={{ color: active ? color.line : "hsl(var(--muted-foreground))" }}>
+                        {monthLabel}
+                      </div>
+                      <TimelineCard event={event} active={active} color={color} onSelect={onSelectEvent} orientation={TIMELINE_ORIENTATION.HORIZONTAL} monthIndex={Math.max(monthIndex, 0)} />
+                    </div>
                   </div>
 
-                  <div className="absolute left-1/2 top-[340px] z-20 h-px w-16 -translate-x-1/2" style={{ background: active ? color.line : "hsl(var(--border))" }} />
-                  <div className="absolute left-1/2 top-[340px] z-20 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 bg-background" style={{ borderColor: active ? color.line : "hsl(var(--border))", boxShadow: active ? `0 0 16px ${color.glow}` : undefined }} />
-                  <div className={`absolute left-1/2 z-20 -translate-x-1/2 ${above ? "bottom-[360px]" : "top-[360px]"}`}>
-                    <div className="h-10 w-px" style={{ background: active ? color.line : "hsl(var(--border))" }} />
-                    <div className={`mt-2 whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.16em] ${active ? "opacity-100" : "opacity-70"}`} style={{ color: active ? color.line : "hsl(var(--muted-foreground))" }}>{monthLabel}</div>
-                  </div>
+                  <div
+                    className="absolute left-1/2 top-[340px] z-20 h-px w-16 -translate-x-1/2"
+                    style={{ background: active ? color.line : "hsl(var(--border))", boxShadow: active ? `0 0 8px ${color.glow}` : undefined }}
+                  />
+                  <div
+                    className="absolute left-1/2 top-[340px] z-20 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 bg-background"
+                    style={{ borderColor: active ? color.line : "hsl(var(--border))", boxShadow: active ? `0 0 16px ${color.glow}` : undefined }}
+                  />
                 </div>
               </div>
             );
