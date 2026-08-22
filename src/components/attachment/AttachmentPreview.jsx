@@ -16,22 +16,38 @@ import {
 
 import { getPdfThumbnail } from "@/utils/media/getPdfThumbnail";
 
+function getAttachmentUrl(attachment) {
+  return (
+    attachment?.public_url ||
+    attachment?.publicUrl ||
+    attachment?.url ||
+    attachment?.preview_url ||
+    null
+  );
+}
+
+function getAttachmentMimeType(attachment) {
+  return attachment?.mime_type || attachment?.mimeType || attachment?.type || "";
+}
+
 export default function AttachmentPreview({ attachment }) {
   const [pdfThumbnail, setPdfThumbnail] = useState(null);
+
+  const publicUrl = getAttachmentUrl(attachment);
+  const mime = getAttachmentMimeType(attachment);
 
   useEffect(() => {
     let mounted = true;
 
     async function loadThumbnail() {
-      if (
-        attachment?.mime_type === "application/pdf" &&
-        attachment?.public_url
-      ) {
-        const thumbnail = await getPdfThumbnail(attachment.public_url);
+      if (mime === "application/pdf" && publicUrl) {
+        const thumbnail = await getPdfThumbnail(publicUrl);
 
         if (mounted) {
           setPdfThumbnail(thumbnail);
         }
+      } else {
+        setPdfThumbnail(null);
       }
     }
 
@@ -40,27 +56,26 @@ export default function AttachmentPreview({ attachment }) {
     return () => {
       mounted = false;
     };
-  }, [attachment?.mime_type, attachment?.public_url]);
+  }, [mime, publicUrl]);
 
   if (!attachment) return null;
-
-  const mime = attachment.mime_type || "";
 
   /* ==========================================
      IMAGE
   ========================================== */
 
-  if (mime.startsWith("image/")) {
+  if (mime.startsWith("image/") && publicUrl) {
     return (
       <>
         <Image
-          src={attachment.public_url}
-          alt={attachment.file_name || ""}
+          src={publicUrl}
+          alt={attachment.file_name || attachment.fileName || ""}
           fill
           placeholder="empty"
           loading="lazy"
           sizes="320px"
           className="object-cover"
+          unoptimized
         />
 
         <AttachmentBadge credit={attachment.credit_name} />
