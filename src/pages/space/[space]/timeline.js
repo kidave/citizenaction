@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, ArrowUpRight, History } from "lucide-react";
@@ -24,7 +24,7 @@ const NATURAL_TEXT = {
     "This is where it all came together",
   ],
   member_joined: [
-    "Someone new joined the work",
+    "Someone new joined the team",
     "Another person came on board",
     "The team grew a little stronger",
     "A new contributor joined in",
@@ -32,7 +32,7 @@ const NATURAL_TEXT = {
   ],
   report: [
     "A piece of work took shape",
-    "The Space moved an idea forward",
+    "The team moved an idea forward",
     "Something useful came together",
     "The team put its findings on record",
     "The work turned into something concrete",
@@ -45,29 +45,29 @@ const NATURAL_TEXT = {
     "The team made time to work through the details",
   ],
   event: [
-    "The Space showed up",
+    "The team showed up",
     "The team stepped into the wider conversation",
     "The work met the real world",
-    "The Space took part in the moment",
+    "The team took part in the moment",
     "The team was there for it",
   ],
   action: [
     "Something was done",
-    "The Space moved from words to action",
+    "The team moved from words to action",
     "A small step became a real action",
     "The team followed through",
     "The work moved into the real world",
   ],
   announcement: [
     "Something important was shared",
-    "The Space had an update to share",
+    "The team had an update to share",
     "A new chapter was announced",
     "The team shared where things stood",
     "A useful update made its way out",
   ],
   post: [
     "A moment worth keeping",
-    "Something the Space wanted on record",
+    "Something the team wanted on record",
     "Another piece of the story",
     "A moment from along the way",
     "One more chapter in the journey",
@@ -102,7 +102,7 @@ function naturalLabel(event) {
   return `${pickVariant(event, NATURAL_TEXT[event.event_type] || NATURAL_TEXT.post)}: ${title}.`;
 }
 
-function governanceSentence(event) {
+function governanceSentence(event, teamName) {
   const governance = safeArray(event.governance_entities);
   if (!governance.length) return null;
 
@@ -110,21 +110,22 @@ function governanceSentence(event) {
   const name = item.short_name || item.label || "an authority";
   const type = item.entity_type || "authority";
   const phrase = pickVariant(event, GOVERNANCE_TEXT[type] || GOVERNANCE_TEXT.authority);
-
   const relationship = String(item.relationship_type || "").toLowerCase();
+  const actor = teamName || "The team";
+
   if (relationship.includes("respons") || relationship.includes("owner") || relationship.includes("jurisdiction")) {
-    return `This sits ${phrase} ${name}.`;
+    return `${actor} worked under ${name}.`;
   }
 
   if (relationship.includes("collabor") || relationship.includes("partner")) {
-    return `The Space worked alongside ${name}.`;
+    return `${actor} worked alongside ${name}.`;
   }
 
   if (relationship.includes("engag")) {
-    return `The Space was in conversation with ${name}.`;
+    return `${actor} was in conversation with ${name}.`;
   }
 
-  return `The Space worked ${phrase} ${name}.`;
+  return `${actor} worked ${phrase} ${name}.`;
 }
 
 function GovernanceRow({ event, light = false }) {
@@ -154,10 +155,27 @@ function GovernanceRow({ event, light = false }) {
   );
 }
 
-function EventDetail({ event }) {
+function MemberIdentity({ event, light = false }) {
+  if (event.event_type !== "member_joined" || !event.member_user_id) return null;
+
+  return (
+    <div className={`mt-4 flex items-center gap-2 ${light ? "text-white/85" : "text-foreground"}`}>
+      <Avatar className={`h-8 w-8 border ${light ? "border-white/20" : "border-border"}`}>
+        <AvatarImage src={event.actor_avatar} alt={event.actor_name || ""} />
+        <AvatarFallback>{event.actor_name?.charAt(0)?.toUpperCase() || "U"}</AvatarFallback>
+      </Avatar>
+      <div className="min-w-0">
+        <div className="truncate text-sm font-medium">{event.actor_name || "New member"}</div>
+        <div className={`text-[11px] ${light ? "text-white/55" : "text-muted-foreground"}`}>{event.role || "Member"}</div>
+      </div>
+    </div>
+  );
+}
+
+function EventDetail({ event, teamName }) {
   const image = getImage(event);
   const links = safeArray(event.links);
-  const governanceCopy = governanceSentence(event);
+  const governanceCopy = governanceSentence(event, teamName);
 
   return (
     <motion.div
@@ -177,10 +195,11 @@ function EventDetail({ event }) {
             <p className="mt-3 max-w-2xl text-sm leading-6 text-white/75 sm:text-base">
               {event.description || naturalLabel(event)}
             </p>
+            <MemberIdentity event={event} light />
             {governanceCopy ? <p className="mt-3 max-w-2xl text-sm text-white/60">{governanceCopy}</p> : null}
           </div>
 
-          {event.actor_name ? (
+          {event.actor_name && event.event_type !== "member_joined" ? (
             <div className="flex shrink-0 items-center gap-2 text-sm text-white/80">
               <Avatar className="h-8 w-8 border border-white/20">
                 <AvatarImage src={event.actor_avatar} alt="" />
@@ -239,6 +258,24 @@ export default function SpaceTimelinePage() {
   );
 
   const activeEvent = filteredEvents.find((event) => event.event_id === activeId) || null;
+  const teamName = space?.name ? `${space.name} team` : "The team";
+
+  useEffect(() => {
+    const rail = railRef.current;
+    if (!rail) return undefined;
+
+    const handleWheel = (event) => {
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX) || Math.abs(event.deltaY) < 2) return;
+      const atStart = rail.scrollLeft <= 0 && event.deltaY < 0;
+      const atEnd = rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 1 && event.deltaY > 0;
+      if (atStart || atEnd) return;
+      event.preventDefault();
+      rail.scrollLeft += event.deltaY;
+    };
+
+    rail.addEventListener("wheel", handleWheel, { passive: false });
+    return () => rail.removeEventListener("wheel", handleWheel);
+  }, []);
 
   const jump = (direction) => {
     railRef.current?.scrollBy({ left: direction * Math.max(window.innerWidth * 0.72, 460), behavior: "smooth" });
@@ -272,9 +309,9 @@ export default function SpaceTimelinePage() {
           <BackButton />
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-medium">{space.name}</div>
-            <div className="text-xs text-muted-foreground">Space history</div>
+            <div className="text-xs text-muted-foreground">The story so far</div>
           </div>
-          <Button variant="ghost" asChild className="rounded-full"><Link href={`/space/${space.slug}`}>Back to Space</Link></Button>
+          <Button variant="ghost" asChild className="rounded-full"><Link href={`/space/${space.slug}`}>Back to {space.name}</Link></Button>
         </header>
 
         <main className="flex min-h-0 flex-1 flex-col">
@@ -283,7 +320,7 @@ export default function SpaceTimelinePage() {
               <div className="max-w-4xl">
                 <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground"><History className="h-3.5 w-3.5" />The story so far</div>
                 <h1 className="mt-4 text-5xl font-semibold tracking-tight sm:text-7xl lg:text-8xl">{space.name}</h1>
-                <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">A visual record of the people, places and moments that shaped this Space.</p>
+                <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">A visual record of the people, places and moments that shaped the {space.name} team.</p>
               </div>
               <div className="flex shrink-0 items-center gap-2"><Button variant="outline" size="icon" className="rounded-full" onClick={() => jump(-1)}><ArrowLeft className="h-4 w-4" /></Button><Button variant="outline" size="icon" className="rounded-full" onClick={() => jump(1)}><ArrowRight className="h-4 w-4" /></Button></div>
             </div>
@@ -311,25 +348,29 @@ export default function SpaceTimelinePage() {
                 const image = getImage(event);
                 const year = new Date(event.occurred_at).getFullYear();
                 const selected = activeId === event.event_id;
-                const governanceCopy = governanceSentence(event);
+                const governanceCopy = governanceSentence(event, teamName);
                 return (
                   <motion.button key={event.event_id} type="button" data-year={year} onClick={() => setActiveId((current) => (current === event.event_id ? null : event.event_id))} className="group relative h-[360px] w-[280px] shrink-0 snap-center overflow-hidden rounded-[30px] border border-border/70 bg-muted text-left shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary sm:h-[390px] sm:w-[310px] lg:w-[330px]" initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.5, delay: Math.min(index * 0.025, 0.18) }}>
                     {image ? <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.035]" /> : <div className="absolute inset-0 bg-gradient-to-br from-muted via-background to-muted-foreground/10" />}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent opacity-80 transition duration-500 group-hover:from-black/70" />
                     <div className="absolute left-5 top-5 rounded-full bg-black/35 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-white backdrop-blur">{format(new Date(event.occurred_at), "yyyy")}</div>
 
+                    {event.event_type === "member_joined" && event.actor_name ? (
+                      <div className="absolute right-5 top-5 flex items-center gap-2 rounded-full bg-black/35 px-2 py-1.5 text-white backdrop-blur">
+                        <Avatar className="h-7 w-7 border border-white/25"><AvatarImage src={event.actor_avatar} alt={event.actor_name} /><AvatarFallback>{event.actor_name.charAt(0).toUpperCase()}</AvatarFallback></Avatar>
+                        <span className="max-w-24 truncate text-[10px] font-medium">{event.actor_name}</span>
+                      </div>
+                    ) : safeArray(event.governance_entities).length ? (
+                      <div className="absolute right-5 top-5 flex -space-x-1.5">{safeArray(event.governance_entities).slice(0, 3).map((item) => item.image_url ? <img key={item.id} src={item.image_url} alt="" className="h-7 w-7 rounded-full border-2 border-black/30 bg-white/90 object-contain" /> : <div key={item.id} className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-black/20 bg-white/90 text-[9px] font-semibold text-foreground">{(item.short_name || item.label || "G").charAt(0)}</div>)}</div>
+                    ) : null}
+
                     <div className="absolute inset-x-5 bottom-5 text-white transition duration-300 group-hover:translate-y-[-4px]">
                       <div className="text-xs font-medium uppercase tracking-[0.16em] text-white/70">{pickVariant(event, NATURAL_TEXT[event.event_type] || NATURAL_TEXT.post)}</div>
                       <div className="mt-2 line-clamp-2 text-xl font-semibold leading-tight">{event.title}</div>
                       <div className="mt-2 max-h-0 overflow-hidden text-sm leading-6 text-white/75 opacity-0 transition-all duration-300 group-hover:max-h-20 group-hover:opacity-100">{event.description || naturalLabel(event)}</div>
                       {governanceCopy ? <div className="mt-2 max-h-0 overflow-hidden text-xs leading-5 text-white/65 opacity-0 transition-all duration-300 group-hover:max-h-16 group-hover:opacity-100">{governanceCopy}</div> : null}
+                      {event.event_type === "member_joined" ? <MemberIdentity event={event} light /> : null}
                     </div>
-
-                    {safeArray(event.governance_entities).length ? (
-                      <div className="absolute right-5 top-5 flex -space-x-1.5">
-                        {safeArray(event.governance_entities).slice(0, 3).map((item) => item.image_url ? <img key={item.id} src={item.image_url} alt="" className="h-7 w-7 rounded-full border-2 border-black/30 bg-white/90 object-contain" /> : <div key={item.id} className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-black/20 bg-white/90 text-[9px] font-semibold text-foreground">{(item.short_name || item.label || "G").charAt(0)}</div>)}
-                      </div>
-                    ) : null}
 
                     {selected ? <div className="absolute right-5 bottom-5 rounded-full bg-white px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-black shadow-lg">Selected</div> : null}
                   </motion.button>
@@ -337,7 +378,7 @@ export default function SpaceTimelinePage() {
               })}
             </div>
             <div className="pointer-events-none absolute left-[8vw] right-[8vw] top-1/2 hidden h-px -translate-y-1/2 bg-border/70 lg:block" />
-            <AnimatePresence>{activeEvent ? <EventDetail key={activeEvent.event_id} event={activeEvent} /> : null}</AnimatePresence>
+            <AnimatePresence>{activeEvent ? <EventDetail key={activeEvent.event_id} event={activeEvent} teamName={teamName} /> : null}</AnimatePresence>
           </section>
         </main>
       </div>
