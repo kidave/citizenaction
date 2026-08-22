@@ -12,6 +12,25 @@ import AttachmentCarousel from "@/components/attachment/AttachmentCarousel";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
+function normalizeAttachment(attachment) {
+  if (!attachment) return null;
+
+  const publicUrl =
+    attachment.public_url ||
+    attachment.publicUrl ||
+    attachment.url ||
+    attachment.preview_url ||
+    null;
+
+  const mimeType = attachment.mime_type || attachment.type || "";
+
+  return {
+    ...attachment,
+    public_url: publicUrl,
+    mime_type: mimeType,
+  };
+}
+
 export default function PostAttachments({ attachments = [], links = [] }) {
   const [openImages, setOpenImages] = useState(false);
   const [openPdf, setOpenPdf] = useState(false);
@@ -19,36 +38,40 @@ export default function PostAttachments({ attachments = [], links = [] }) {
   const [selectedPdf, setSelectedPdf] = useState(null);
   const [startIndex, setStartIndex] = useState(0);
 
+  const normalizedAttachments = useMemo(
+    () => attachments.map(normalizeAttachment).filter(Boolean),
+    [attachments],
+  );
+
   const images = useMemo(() => {
-    return attachments.filter((attachment) =>
+    return normalizedAttachments.filter((attachment) =>
       attachment?.mime_type?.startsWith("image/"),
     );
-  }, [attachments]);
+  }, [normalizedAttachments]);
 
   const imageSlides = useMemo(() => {
-    return images.map((image) => ({
-      src: image.public_url,
-      alt: image.file_name || "",
-      width: image.width || undefined,
-      height: image.height || undefined,
-    }));
+    return images
+      .filter((image) => image.public_url)
+      .map((image) => ({
+        src: image.public_url,
+        alt: image.file_name || "",
+        width: image.width || undefined,
+        height: image.height || undefined,
+      }));
   }, [images]);
 
-  if (!attachments.length && !links.length) {
+  if (!normalizedAttachments.length && !links.length) {
     return null;
   }
 
   const handleAttachmentClick = (index) => {
-    const attachment = attachments[index];
+    const attachment = normalizedAttachments[index];
 
     if (!attachment) return;
 
     const mime = attachment.mime_type || "";
-
     const extension = attachment.file_name?.split(".").pop()?.toLowerCase();
-
     const isImage = mime.startsWith("image/");
-
     const isPdf = mime === "application/pdf" || extension === "pdf";
 
     if (isImage) {
@@ -57,9 +80,7 @@ export default function PostAttachments({ attachments = [], links = [] }) {
       );
 
       setStartIndex(imageIndex >= 0 ? imageIndex : 0);
-
       setOpenImages(true);
-
       return;
     }
 
@@ -72,15 +93,11 @@ export default function PostAttachments({ attachments = [], links = [] }) {
   return (
     <>
       <AttachmentCarousel
-        attachments={attachments}
+        attachments={normalizedAttachments}
         links={links}
         showMetadata={false}
         onAttachmentClick={handleAttachmentClick}
       />
-
-      {/* =====================================================
-          IMAGE LIGHTBOX
-      ===================================================== */}
 
       <Lightbox
         open={openImages}
@@ -88,19 +105,12 @@ export default function PostAttachments({ attachments = [], links = [] }) {
         index={startIndex}
         slides={imageSlides}
         plugins={[Zoom]}
-        carousel={{
-          finite: true,
-        }}
+        carousel={{ finite: true }}
         render={{
           buttonPrev: imageSlides.length > 1 ? undefined : () => null,
-
           buttonNext: imageSlides.length > 1 ? undefined : () => null,
         }}
       />
-
-      {/* =====================================================
-          PDF VIEWER
-      ===================================================== */}
 
       <Dialog open={openPdf} onOpenChange={setOpenPdf}>
         <DialogContent className="h-[90vh] max-w-5xl overflow-hidden p-0">
