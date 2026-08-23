@@ -28,6 +28,10 @@ export function useFeed({ categorySlug = "" } = {}) {
       let query = supabase
         .from("feed_card_view")
         .select("*")
+        .order("start_at", {
+          ascending: false,
+          nullsFirst: false,
+        })
         .order("created_at", {
           ascending: false,
         });
