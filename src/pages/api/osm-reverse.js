@@ -6,20 +6,37 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
-      {
-        headers: {
-          "User-Agent": "CitizenActionApp/1.0",
-        },
+    const url = new URL("https://nominatim.openstreetmap.org/reverse");
+    url.searchParams.set("format", "json");
+    url.searchParams.set("lat", String(lat));
+    url.searchParams.set("lon", String(lng));
+
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "CitizenActionApp/1.0",
+        Accept: "application/json",
       },
-    );
+    });
+
+    const contentType = response.headers.get("content-type") || "";
+
+    if (!response.ok || !contentType.includes("application/json")) {
+      const body = await response.text();
+
+      console.error("Reverse geocoding returned a non-JSON response", {
+        status: response.status,
+        contentType,
+        body: body.slice(0, 500),
+      });
+
+      return res.status(502).json({});
+    }
 
     const data = await response.json();
 
-    res.status(200).json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({});
+    return res.status(200).json(data);
+  } catch (error) {
+    console.error("Reverse geocoding failed", error);
+    return res.status(500).json({});
   }
 }
