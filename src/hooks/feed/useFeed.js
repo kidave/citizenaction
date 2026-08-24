@@ -61,43 +61,38 @@ export function useFeed({ categorySlug = "" } = {}) {
       const ids = cards.map((post) => post.id);
 
       // --------------------------------
-      // Fetch stats
+      // Fetch feed enrichments concurrently
       // --------------------------------
 
-      const { data: stats, error: statsError } = await supabase.rpc(
-        "get_post_stats",
-        {
-          p_post_ids: ids,
-        },
-      );
+      const [statsResult, contributorsResult, governanceResult] =
+        await Promise.all([
+          supabase.rpc("get_post_stats", {
+            p_post_ids: ids,
+          }),
+
+          supabase.rpc("get_post_contributors", {
+            p_post_ids: ids,
+          }),
+
+          supabase.rpc("get_post_governance", {
+            p_post_ids: ids,
+          }),
+        ]);
+
+      const { data: stats, error: statsError } = statsResult;
 
       if (statsError) {
         throw statsError;
       }
 
-      // --------------------------------
-      // Fetch contributors
-      // --------------------------------
-
       const { data: contributors, error: contributorsError } =
-        await supabase.rpc("get_post_contributors", {
-          p_post_ids: ids,
-        });
+        contributorsResult;
 
       if (contributorsError) {
         throw contributorsError;
       }
 
-      // --------------------------------
-      // Fetch governance
-      // --------------------------------
-
-      const { data: governance, error: governanceError } = await supabase.rpc(
-        "get_post_governance",
-        {
-          p_post_ids: ids,
-        },
-      );
+      const { data: governance, error: governanceError } = governanceResult;
 
       if (governanceError) {
         throw governanceError;
