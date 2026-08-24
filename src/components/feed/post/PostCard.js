@@ -17,8 +17,6 @@ import PostFooter from "./PostFooter";
 
 import PostContribution from "@/components/feed/contribution/PostContribution";
 
-import getPostStatus from "@/utils/feed/getPostStatus";
-
 export default function PostCard({
   post,
   onEdit,
@@ -63,8 +61,6 @@ export default function PostCard({
   }
 
   const canEdit = post.permissions?.can_manage || post.author_id === user?.id;
-
-  const status = getPostStatus(post, mounted ? now : null);
 
   const handleNavigate = () => {
     sessionStorage.setItem("feed-scroll", window.scrollY.toString());
@@ -127,11 +123,7 @@ export default function PostCard({
               forceExpanded={forceExpanded}
             />
 
-            <PostMetadata
-              post={post}
-              status={status}
-              forceExpanded={forceExpanded}
-            />
+            <PostMetadata post={post} forceExpanded={forceExpanded} />
 
             <PostTimeline post={post} />
           </div>

@@ -1,154 +1,61 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, Clock3, MapPin, Video } from "lucide-react";
-import { format, formatDistanceToNowStrict } from "date-fns";
-import PostCalendarActions from "@/components/shared/PostCalendarActions";
-import getPostTypeConfig from "@/utils/feed/getPostTypeConfig";
-import getPostStatus from "@/utils/feed/getPostStatus";
-
-const pillStyles = {
-  live: `
-    text-red-700
-    bg-red-50
-    border-red-200
-  `,
-
-  countdown: `
-    text-blue-700
-    bg-blue-50
-    border-blue-100
-  `,
-};
-
-function StatusPill({ type, children, pulse = false }) {
-  return (
-    <div
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${pillStyles[type]} `}
-    >
-      <div
-        className={`h-2 w-2 rounded-full ${
-          type === "live" ? "bg-red-500" : "bg-blue-500"
-        } ${pulse ? "animate-pulse" : ""} `}
-      />
-
-      <span>{children}</span>
-    </div>
-  );
-}
+import { CalendarDays, Clock3, MapPin } from "lucide-react";
+import { format } from "date-fns";
 
 export default function PostMetadata({ post, forceExpanded = false }) {
-  const [mounted, setMounted] = useState(false);
+  if (!forceExpanded) return null;
 
-  const [now, setNow] = useState(new Date());
+  const start = post?.start_at ? new Date(post.start_at) : null;
+  const end = post?.end_at ? new Date(post.end_at) : null;
 
-  useEffect(() => {
-    setMounted(true);
+  const hasAddress = Boolean(post?.address);
 
-    const interval = setInterval(() => {
-      setNow(new Date());
-    }, 1000);
+  const mapUrl = hasAddress
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        post.address,
+      )}`
+    : null;
 
-    return () => clearInterval(interval);
-  }, []);
-
-  const config = getPostTypeConfig(post.type);
-  const status = useMemo(
-    () => getPostStatus(post, mounted ? now : null),
-
-    [post, now, mounted],
-  );
-
-  const start = post.start_at ? new Date(post.start_at) : null;
-  const end = post.end_at ? new Date(post.end_at) : null;
-
-  const compactMode = !forceExpanded;
-  const showCountdown =
-    mounted && status?.key === "upcoming" && status?.countdown;
+  if (!start && !hasAddress) return null;
 
   return (
-    <div className="gap-2 space-y-2">
-      {/* STATUS */}
+    <div className="space-y-2 text-sm text-muted-foreground">
+      {/* DATE + TIME */}
 
-      <div className="flex flex-wrap items-center gap-2">
-        {post.status && !config.lifecycle && (
-          <StatusPill type="countdown">{post.status}</StatusPill>
-        )}
+      {start && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <div className="flex items-center gap-2">
+            <CalendarDays className="h-4 w-4 shrink-0" />
+            <span>{format(start, "d MMMM yyyy")}</span>
+          </div>
 
-        {status?.key === "live" && (
-          <StatusPill type="live" pulse>
-            LIVE NOW
-          </StatusPill>
-        )}
+          <div className="flex items-center gap-2">
+            <Clock3 className="h-4 w-4 shrink-0" />
 
-        {showCountdown && (
-          <StatusPill type="countdown">
-            Starts in {formatDistanceToNowStrict(start)}
-          </StatusPill>
-        )}
-      </div>
+            <span>
+              {format(start, "h:mm a")}
+              {end && <> - {format(end, "h:mm a")}</>}
+            </span>
+          </div>
+        </div>
+      )}
 
-      {/* FEED MODE */}
+      {/* ADDRESS */}
 
-      {compactMode && null}
+      {hasAddress && (
+        <a
+          href={mapUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-start gap-2 transition-colors hover:text-foreground"
+        >
+          <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
 
-      {/* EXPANDED MODE */}
-
-      {!compactMode && (
-        <>
-          {start && (
-            <>
-              <div className="text-md flex flex-wrap items-center gap-x-4 gap-y-2 text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <CalendarDays className="h-4 w-4 shrink-0" />
-                  <span>{format(start, "d MMMM yyyy")}</span>
-                </div>
-
-                {config.showTime && (
-                  <div className="flex items-center gap-2">
-                    <Clock3 className="h-4 w-4 shrink-0" />
-
-                    <span>
-                      {format(start, "h:mm a")}
-                      {end && <> - {format(end, "h:mm a")}</>}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {showCountdown && <PostCalendarActions post={post} />}
-            </>
-          )}
-
-          {/* ADDRESS */}
-
-          {config.showAddress && post.address && (
-            <div className="text-md flex items-start gap-2 text-muted-foreground">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-
-              <span>{post.address}</span>
-            </div>
-          )}
-
-          {/* JOIN */}
-
-          {config.showJoin && post.links && status?.key === "live" && (
-            <Link
-              href={post.links}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-md inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition hover:opacity-90"
-            >
-              <Video className="h-4 w-4" />
-              Join Now
-            </Link>
-          )}
-
-          {/* CALENDAR */}
-
-          {showCountdown && <PostCalendarActions post={post} />}
-        </>
+          <span className="underline-offset-4 hover:underline">
+            {post.address}
+          </span>
+        </a>
       )}
     </div>
   );
