@@ -11,6 +11,11 @@ export function usePost(postId, initialPost) {
 
     initialData: initialPost,
 
+    staleTime: 1000 * 60 * 5,
+
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_post", {
         p_post_id: postId,
@@ -22,7 +27,5 @@ export function usePost(postId, initialPost) {
 
       return Array.isArray(data) ? data[0] : data;
     },
-
-    staleTime: 1000 * 60 * 5,
   });
 }
