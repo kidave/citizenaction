@@ -15,9 +15,34 @@ function makeFileName(originalName) {
   return `${crypto.randomUUID()}-${safeName}`;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Generic Upload                                                              */
-/* -------------------------------------------------------------------------- */
+function buildImageTransformUrl(publicUrl, { width, quality = 75 } = {}) {
+  if (!publicUrl || !width) {
+    return publicUrl;
+  }
+
+  try {
+    const url = new URL(publicUrl);
+
+    const marker = "/storage/v1/object/public/";
+    const markerIndex = url.pathname.indexOf(marker);
+
+    if (markerIndex === -1) {
+      return publicUrl;
+    }
+
+    url.pathname = url.pathname.replace(
+      marker,
+      "/storage/v1/render/image/public/",
+    );
+
+    url.searchParams.set("width", String(width));
+    url.searchParams.set("quality", String(quality));
+
+    return url.toString();
+  } catch {
+    return publicUrl;
+  }
+}
 
 async function uploadAttachment({
   bucket,
@@ -38,16 +63,17 @@ async function uploadAttachment({
   }
 
   const fileName = makeFileName(file.name);
-
   const storagePath = `${ownerId}/${fileName}`;
 
-  const { error } = await supabase.storage
-    .from(bucket)
-    .upload(storagePath, file, {
+  const { error } = await supabase.storage.from(bucket).upload(
+    storagePath,
+    file,
+    {
       upsert: false,
-      cacheControl: "3600",
+      cacheControl: "31536000",
       contentType: file.type || "application/octet-stream",
-    });
+    },
+  );
 
   if (error) {
     throw error;
@@ -55,18 +81,19 @@ async function uploadAttachment({
 
   const { data } = supabase.storage.from(bucket).getPublicUrl(storagePath);
 
+  const publicUrl = data.publicUrl;
+  const isImage = file.type?.startsWith("image/");
+
   return {
-    /*
-     * IMPORTANT
-     *
-     * This connects an Editor.js image block
-     * to the uploaded attachment.
-     */
     attachmentId,
 
     storage_path: storagePath,
 
-    public_url: data.publicUrl,
+    public_url: publicUrl,
+
+    preview_url: isImage
+      ? buildImageTransformUrl(publicUrl, { width: 1600, quality: 80 })
+      : publicUrl,
 
     file_name: file.name,
 
@@ -84,10 +111,6 @@ async function uploadAttachment({
   };
 }
 
-/* -------------------------------------------------------------------------- */
-/* Generic Multiple Upload                                                     */
-/* -------------------------------------------------------------------------- */
-
 async function uploadAttachments({ bucket, ownerId, attachments = [] }) {
   if (!Array.isArray(attachments) || attachments.length === 0) {
     return [];
@@ -97,32 +120,18 @@ async function uploadAttachments({ bucket, ownerId, attachments = [] }) {
     attachments.map((attachment) =>
       uploadAttachment({
         bucket,
-
         ownerId,
-
         file: attachment.file ?? attachment,
-
-        /*
-         * Preserve the Editor.js attachment ID.
-         *
-         * Normal attachments simply get null.
-         */
         attachmentId: attachment.attachmentId ?? null,
       }),
     ),
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Wrappers                                                                    */
-/* -------------------------------------------------------------------------- */
-
 export function uploadPostAttachments(postId, attachments) {
   return uploadAttachments({
     bucket: BUCKETS.POST,
-
     ownerId: postId,
-
     attachments,
   });
 }
@@ -130,16 +139,10 @@ export function uploadPostAttachments(postId, attachments) {
 export function uploadContributionAttachments(contributionId, attachments) {
   return uploadAttachments({
     bucket: BUCKETS.CONTRIBUTION,
-
     ownerId: contributionId,
-
     attachments,
   });
 }
-
-/* -------------------------------------------------------------------------- */
-/* Delete                                                                      */
-/* -------------------------------------------------------------------------- */
 
 export async function deleteAttachments(bucket, paths = []) {
   const validPaths = paths.filter(Boolean);
@@ -154,10 +157,6 @@ export async function deleteAttachments(bucket, paths = []) {
     throw error;
   }
 }
-
-/* -------------------------------------------------------------------------- */
-/* Delete By Owner                                                             */
-/* -------------------------------------------------------------------------- */
 
 export async function deletePostAttachmentsByPostId(postId) {
   if (!postId) {
@@ -207,10 +206,6 @@ export async function deleteContributionAttachmentsByContributionId(
   await deleteContributionAttachments(paths);
 }
 
-/* -------------------------------------------------------------------------- */
-/* Delete Wrappers                                                             */
-/* -------------------------------------------------------------------------- */
-
 export function deletePostAttachments(paths) {
   return deleteAttachments(BUCKETS.POST, paths);
 }
@@ -218,10 +213,6 @@ export function deletePostAttachments(paths) {
 export function deleteContributionAttachments(paths) {
   return deleteAttachments(BUCKETS.CONTRIBUTION, paths);
 }
-
-/* -------------------------------------------------------------------------- */
-/* Helpers                                                                     */
-/* -------------------------------------------------------------------------- */
 
 export function getAttachmentPaths(attachments = []) {
   return attachments
