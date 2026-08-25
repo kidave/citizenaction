@@ -73,9 +73,9 @@ export default function AttachmentPreview({ attachment }) {
           fill
           placeholder="empty"
           loading="lazy"
-          sizes="320px"
+          sizes="(max-width: 640px) 100vw, 768px"
+          quality={75}
           className="object-cover"
-          unoptimized
         />
 
         <AttachmentBadge credit={attachment.credit_name} />
