@@ -53,8 +53,9 @@ export default function AutoImageCarousel({ attachments = [] }) {
             src={images[index]}
             alt="activity"
             fill
+            sizes="(max-width: 768px) 100vw, 768px"
+            quality={75}
             className="object-cover"
-            unoptimized
           />
         </motion.div>
       </AnimatePresence>
