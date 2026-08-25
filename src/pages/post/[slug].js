@@ -16,32 +16,12 @@ export async function getServerSideProps({ params }) {
 
   const { slug } = params;
 
-  // =========================================================
-  // RESOLVE SLUG → POST ID
-  // =========================================================
-
-  const { data: postRow, error: slugError } = await supabase
-    .from("post")
-    .select("id")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  if (slugError || !postRow) {
-    return {
-      notFound: true,
-    };
-  }
-
-  // =========================================================
-  // LOAD POST
-  // =========================================================
-
-  const { data, error } = await supabase.rpc("get_post", {
-    p_post_id: postRow.id,
+  const { data, error } = await supabase.rpc("get_post_by_slug", {
+    p_slug: slug,
   });
 
   if (error) {
-    console.error("Failed to load post:", error);
+    console.error("Failed to load post by slug:", error);
 
     return {
       notFound: true,
@@ -115,10 +95,6 @@ export default function SinglePostPage({ postId, initialPost }) {
 
   const { data: post, isLoading, isError } = usePost(postId, initialPost);
 
-  // =========================================================
-  // LOADING
-  // =========================================================
-
   if (isLoading || !post) {
     return (
       <div className="mx-auto w-full max-w-4xl">
@@ -126,10 +102,6 @@ export default function SinglePostPage({ postId, initialPost }) {
       </div>
     );
   }
-
-  // =========================================================
-  // ERROR
-  // =========================================================
 
   if (isError) {
     return (
@@ -141,80 +113,43 @@ export default function SinglePostPage({ postId, initialPost }) {
     );
   }
 
-  // =========================================================
-  // SEO
-  // =========================================================
-
   const title = post.title || "Citizen Action";
-
   const description = getDescription(post);
-
   const image = getImage(post.attachments);
-
   const url = `https://citizenaction.in/post/${post.slug}`;
 
   return (
     <>
       <Head>
         <title>{title}</title>
-
         <meta name="description" content={description} />
-
         <link rel="canonical" href={url} />
-
         <meta property="og:type" content="article" />
-
         <meta property="og:site_name" content="Citizen Action" />
-
         <meta property="og:title" content={title} />
-
         <meta property="og:description" content={description} />
-
         <meta property="og:url" content={url} />
-
         <meta property="og:image" content={image} />
-
         <meta property="og:image:secure_url" content={image} />
-
         <meta property="og:image:width" content="1200" />
-
         <meta property="og:image:height" content="630" />
-
         <meta property="og:image:type" content="image/jpeg" />
-
         <meta name="twitter:card" content="summary_large_image" />
-
         <meta name="twitter:title" content={title} />
-
         <meta name="twitter:description" content={description} />
-
         <meta name="twitter:image" content={image} />
-
         <meta name="twitter:url" content={url} />
       </Head>
 
-      {/* =====================================================
-          PAGE
-      ===================================================== */}
-
       <div className="flex min-h-dvh w-full flex-col">
-        {/* ===================================================
-            HEADER
-        =================================================== */}
-
         <div className="sticky top-0 z-40 border-b bg-background">
           <div className="mx-auto flex h-14 max-w-4xl items-center px-3 sm:h-16 sm:px-4">
             <BackButton />
-
             <span className="min-w-0 flex-1 truncate">
               {post.title || "Post"}
             </span>
           </div>
         </div>
-
-        {/* ===================================================
-            POST
-        =================================================== */}
 
         <div className="flex w-full justify-center">
           <div className="w-full max-w-4xl">
@@ -226,7 +161,6 @@ export default function SinglePostPage({ postId, initialPost }) {
               onDelete={async () => {
                 try {
                   await deletePost(post.id);
-
                   router.push("/");
                 } catch (error) {
                   console.error("Failed to delete post:", error);
@@ -235,10 +169,6 @@ export default function SinglePostPage({ postId, initialPost }) {
             />
           </div>
         </div>
-
-        {/* ===================================================
-            EDITOR
-        =================================================== */}
 
         {editingPost && (
           <EditorModal
