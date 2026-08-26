@@ -13,8 +13,7 @@ import EditorDateTime from "./EditorDateTime";
 import EditorAddress from "./EditorAddress";
 
 export default function EditorFooter({ mode, item, editor, onClose }) {
-  const showDateTime = mode === "post" && editor.type === "event";
-  const showAddress = mode === "post" && editor.type === "event";
+  const isPost = mode === "post";
 
   return (
     <div className="border-t bg-background/95 px-2 py-2 backdrop-blur sm:p-3">
@@ -32,8 +31,8 @@ export default function EditorFooter({ mode, item, editor, onClose }) {
             }
           />
 
-          {showDateTime && <EditorDateTime editor={editor} />}
-          {showAddress && <EditorAddress editor={editor} />}
+          {isPost && <EditorDateTime editor={editor} />}
+          {isPost && <EditorAddress editor={editor} />}
 
           <LinkManager value={editor.links} onChange={editor.setLinks} />
         </div>
