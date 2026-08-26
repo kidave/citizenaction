@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Info, CalendarDays, ListOrdered, FileText, Megaphone } from "lucide-react";
+import { CalendarDays, ListOrdered, FileText, Megaphone } from "lucide-react";
 
 import VisibilitySelector from "@/components/space/VisibilitySelector";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -32,28 +32,27 @@ export default function EditorHeader({
 
   return (
     <TooltipProvider>
-      <div className="flex shrink-0 items-center justify-between gap-3 border-b px-3 py-2">
-        <div className="flex min-w-0 items-center gap-2">
-          <Image
-            src={profile?.avatar_url || "/user1.png"}
-            width={34}
-            height={34}
-            className="shrink-0 rounded-full"
-            alt=""
-          />
+      <div className="flex shrink-0 items-center gap-2 border-b px-3 py-2 pr-12 sm:pr-12">
+        <Image
+          src={profile?.avatar_url || "/user1.png"}
+          width={34}
+          height={34}
+          className="shrink-0 rounded-full"
+          alt=""
+        />
 
-          {mode === "post" && (
-            <VisibilitySelector editor={editor} spaces={spaces} />
-          )}
-        </div>
+        {mode === "post" && (
+          <VisibilitySelector editor={editor} spaces={spaces} />
+        )}
 
-        <div className="flex min-w-0 items-center gap-1">
+        <div className="ml-auto flex min-w-0 items-center gap-1">
           {showTypeSelector && (
             <ToggleGroup
               type="single"
               value={currentType}
               onValueChange={(value) => value && editor.setType(value)}
               className="gap-0"
+              aria-label="Post type"
             >
               {TYPE_OPTIONS.map((option) => {
                 const Icon = option.icon;
@@ -77,17 +76,6 @@ export default function EditorHeader({
               })}
             </ToggleGroup>
           )}
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="hidden sm:inline-flex items-center justify-center text-muted-foreground">
-                <Info className="h-4 w-4" />
-              </span>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              Start typing for a regular action post.
-            </TooltipContent>
-          </Tooltip>
         </div>
       </div>
     </TooltipProvider>
