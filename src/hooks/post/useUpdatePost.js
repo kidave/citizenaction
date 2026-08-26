@@ -17,7 +17,7 @@ export function useUpdatePost() {
         const { data: existingAttachments, error: existingAttachmentsError } = await supabase
           .from("attachment")
           .select(`
-            id, storage_path, thumbnail_path, public_url, file_name, mime_type,
+            id, storage_path, thumbnail_path, thumbnail_url, public_url, file_name, mime_type,
             file_size, width, height, duration, sort_order, credit_name, credit_url
           `)
           .eq("post_id", postId)
@@ -36,7 +36,6 @@ export function useUpdatePost() {
             const editorAttachment = editorAttachments.find(
               (item) => item?.storage_path === attachment.storage_path,
             );
-
             return {
               storage_path: attachment.storage_path,
               thumbnail_path: attachment.thumbnail_path ?? null,
@@ -60,7 +59,6 @@ export function useUpdatePost() {
 
         if (newFiles.length) {
           toast.loading("Uploading attachments...", { id: "update-post" });
-
           const uploaded = await uploadPostAttachments(postId, newFiles);
           newUploadedAttachments = uploaded.map((uploadedAttachment, index) => ({
             ...uploadedAttachment,
@@ -79,7 +77,6 @@ export function useUpdatePost() {
         );
 
         toast.loading("Updating post...", { id: "update-post" });
-
         const { data: updatedPost, error: updateError } = await supabase.rpc("update_post", {
           p_post_id: postId,
           p_type: postData.type,
@@ -96,7 +93,6 @@ export function useUpdatePost() {
           p_address: postData.address ?? null,
           p_governance_ids: postData.governance?.map((g) => g.id) ?? [],
         });
-
         if (updateError) throw updateError;
 
         const { error: attachmentError } = await supabase.rpc("upsert_post_attachments", {
@@ -130,10 +126,7 @@ export function useUpdatePost() {
         const removedAttachments = existingAttachments.filter(
           (attachment) => attachment.storage_path && !finalStoragePaths.has(attachment.storage_path),
         );
-
-        if (removedAttachments.length) {
-          await deletePostAttachments(removedAttachments);
-        }
+        if (removedAttachments.length) await deletePostAttachments(removedAttachments);
 
         return updatedPost;
       } catch (error) {
