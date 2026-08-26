@@ -28,15 +28,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
 
 import { supabase } from "@/lib/supabase/client";
 
@@ -68,56 +60,39 @@ function createFallbackLink(url) {
 
 export default function LinkManager({ value = [], onChange }) {
   const isMobile = useIsMobile();
-
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [links, setLinks] = useState(Array.isArray(value) ? value : []);
-
   const [resolving, setResolving] = useState(false);
 
   useEffect(() => {
     setLinks(Array.isArray(value) ? value : []);
   }, [value]);
 
-  // ==========================================================
-  // Resolve link
-  // ==========================================================
-
   async function resolveLink(url) {
     setResolving(true);
 
     try {
       const { data, error } = await supabase.functions.invoke("resolve-link", {
-        body: {
-          url,
-        },
+        body: { url },
       });
 
-      if (error) {
-        throw error;
-      }
-
-      if (!data?.link) {
-        throw new Error("No link data returned");
-      }
+      if (error) throw error;
+      if (!data?.link) throw new Error("No link data returned");
 
       return data.link;
     } catch (error) {
+      console.error("Failed to resolve link:", error);
       return createFallbackLink(url);
     } finally {
       setResolving(false);
     }
   }
 
-  // ==========================================================
-  // Add
-  // ==========================================================
-
   async function handleAdd() {
     if (resolving) return;
 
     const url = normalizeUrl(draft);
-
     if (!url) return;
 
     try {
@@ -133,174 +108,141 @@ export default function LinkManager({ value = [], onChange }) {
       return;
     }
 
-    try {
-      const resolvedLink = await resolveLink(url);
-
-      const newLink = {
+    const resolvedLink = await resolveLink(url);
+    const nextLinks = [
+      ...links,
+      {
         ...resolvedLink,
         sort_order: links.length,
-      };
+      },
+    ];
 
-      const nextLinks = [...links, newLink];
-
-      setLinks(nextLinks);
-      onChange?.(nextLinks);
-      setDraft("");
-    } catch (error) {
-      console.error("Failed to add link:", error);
-    }
+    setLinks(nextLinks);
+    onChange?.(nextLinks);
+    setDraft("");
   }
-
-  // ==========================================================
-  // Remove
-  // ==========================================================
 
   function handleRemove(index) {
     const nextLinks = links
       .filter((_, i) => i !== index)
-      .map((link, index) => ({
-        ...link,
-        sort_order: index,
-      }));
+      .map((link, sort_order) => ({ ...link, sort_order }));
 
     setLinks(nextLinks);
     onChange?.(nextLinks);
   }
 
-  // ==========================================================
-  // Move
-  // ==========================================================
-
   function moveLink(from, to) {
-    if (to < 0 || to >= links.length) {
-      return;
-    }
+    if (to < 0 || to >= links.length) return;
 
     const nextLinks = [...links];
-
     const [item] = nextLinks.splice(from, 1);
-
     nextLinks.splice(to, 0, item);
 
-    const normalizedLinks = nextLinks.map((link, index) => ({
+    const normalizedLinks = nextLinks.map((link, sort_order) => ({
       ...link,
-      sort_order: index,
+      sort_order,
     }));
 
     setLinks(normalizedLinks);
     onChange?.(normalizedLinks);
   }
 
-  // ==========================================================
-  // Clear
-  // ==========================================================
-
   function handleClear() {
     setLinks([]);
     onChange?.([]);
   }
 
-  // ==========================================================
-  // Link row
-  // ==========================================================
-
   function LinkRow({ link, index }) {
+    const previewImage = link.image_url || link.icon_url;
+
     return (
-      <div className="flex min-w-0 items-center gap-3 rounded-xl border p-3">
-        {/* Provider icon */}
+      <div className="overflow-hidden rounded-xl border">
+        <div className="flex min-w-0 items-center gap-3 p-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
+            {link.icon_url ? (
+              <img
+                src={link.icon_url}
+                alt=""
+                className="h-5 w-5 object-contain"
+              />
+            ) : (
+              <Link2 className="h-4 w-4" />
+            )}
+          </div>
 
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
-          {link.icon_url ? (
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-medium">
+              {link.title || getLinkTypeLabel(link.type)}
+            </div>
+            <div className="truncate text-xs text-muted-foreground">
+              {link.hostname || getHostname(link.url)}
+            </div>
+          </div>
+
+          <div className="flex shrink-0 items-center">
+            <Button type="button" variant="ghost" size="icon" asChild>
+              <a
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Open link"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </Button>
+
+            <div className="hidden flex-col sm:flex">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                disabled={index === 0}
+                onClick={() => moveLink(index, index - 1)}
+              >
+                <ChevronUp className="h-3 w-3" />
+              </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                disabled={index === links.length - 1}
+                onClick={() => moveLink(index, index + 1)}
+              >
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </div>
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => handleRemove(index)}
+              aria-label="Remove link"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {link.image_url && previewImage ? (
+          <div className="border-t bg-muted/20">
             <img
-              src={link.icon_url}
-              alt=""
-              className="h-5 w-5 object-contain"
+              src={link.image_url}
+              alt={link.title || "Link preview"}
+              className="h-28 w-full object-cover"
+              loading="lazy"
             />
-          ) : (
-            <Link2 className="h-4 w-4" />
-          )}
-        </div>
-
-        {/* Content */}
-
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-medium">
-            {link.title || getLinkTypeLabel(link.type)}
           </div>
-
-          <div className="truncate text-xs text-muted-foreground">
-            {link.hostname || getHostname(link.url)}
-          </div>
-        </div>
-
-        {/* Actions */}
-
-        <div className="flex shrink-0 items-center">
-          {/* Open */}
-
-          <Button type="button" variant="ghost" size="icon" asChild>
-            <a
-              href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Open link"
-            >
-              <ExternalLink className="h-4 w-4" />
-            </a>
-          </Button>
-
-          {/* Move */}
-
-          <div className="hidden flex-col sm:flex">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              disabled={index === 0}
-              onClick={() => moveLink(index, index - 1)}
-              aria-label="Move link up"
-            >
-              <ChevronUp className="h-3 w-3" />
-            </Button>
-
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              disabled={index === links.length - 1}
-              onClick={() => moveLink(index, index + 1)}
-              aria-label="Move link down"
-            >
-              <ChevronDown className="h-3 w-3" />
-            </Button>
-          </div>
-
-          {/* Remove */}
-
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => handleRemove(index)}
-            aria-label="Remove link"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
+        ) : null}
       </div>
     );
   }
 
-  // ==========================================================
-  // Main content
-  // ==========================================================
-
   const content = (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* Add URL */}
-
       <div className="shrink-0 space-y-2 border-b p-4">
         <div className="flex gap-2">
           <Input
@@ -310,10 +252,7 @@ export default function LinkManager({ value = [], onChange }) {
             onKeyDown={(event) => {
               if (event.key === "Enter") {
                 event.preventDefault();
-
-                if (!resolving) {
-                  handleAdd();
-                }
+                if (!resolving) handleAdd();
               }
             }}
             placeholder="https://..."
@@ -345,8 +284,6 @@ export default function LinkManager({ value = [], onChange }) {
           automatically recognized.
         </p>
       </div>
-
-      {/* Links */}
 
       <div className="min-h-0 flex-1 overflow-y-auto p-4">
         {links.length > 0 ? (
@@ -381,8 +318,6 @@ export default function LinkManager({ value = [], onChange }) {
         )}
       </div>
 
-      {/* Done */}
-
       <div className="shrink-0 border-t p-4">
         <Button
           type="button"
@@ -395,10 +330,6 @@ export default function LinkManager({ value = [], onChange }) {
       </div>
     </div>
   );
-
-  // ==========================================================
-  // Mobile
-  // ==========================================================
 
   return (
     <>
@@ -413,7 +344,6 @@ export default function LinkManager({ value = [], onChange }) {
               onClick={() => setOpen(true)}
             >
               <Link2 className="h-4 w-4" />
-
               {links.length > 0 && (
                 <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground">
                   {links.length}
@@ -421,7 +351,6 @@ export default function LinkManager({ value = [], onChange }) {
               )}
             </Button>
           </TooltipTrigger>
-
           <TooltipContent>Manage links</TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -431,7 +360,6 @@ export default function LinkManager({ value = [], onChange }) {
           <DialogHeader className="shrink-0 border-b p-5">
             <DialogTitle>Add links</DialogTitle>
           </DialogHeader>
-
           {content}
         </DialogContent>
       </Dialog>
