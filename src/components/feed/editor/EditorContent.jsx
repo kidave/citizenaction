@@ -1,27 +1,25 @@
 "use client";
 
-import PlainEditor from "./PlainEditor";
-import RichEditor from "./RichEditor";
+import dynamic from "next/dynamic";
 
+import PlainEditor from "./PlainEditor";
 import { getEditorTypeConfig } from "./editorTypes";
+
+const RichEditor = dynamic(() => import("./RichEditor"), {
+  ssr: false,
+});
 
 export default function EditorContent({
   type = "action",
-
   title,
   setTitle,
-
   content,
   setContent,
-
   contentJson,
   setContentJson,
-
   setContentFormat,
-
   attachments,
   addAttachments,
-
   onFocus,
 }) {
   const editorConfig = getEditorTypeConfig(type);
