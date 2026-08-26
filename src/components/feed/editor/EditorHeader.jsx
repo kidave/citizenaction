@@ -26,8 +26,8 @@ export default function EditorHeader({
       )}
 
       {mode === "post" && !editor?.editorTypeLocked && (
-        <div className="ml-auto min-w-0">
-          <EditorType type={editor.type} setType={editor.setType} compact />
+        <div className="ml-auto min-w-0 max-w-[calc(100%-130px)] overflow-hidden">
+          <EditorType type={editor.type} setType={editor.setType} />
         </div>
       )}
     </div>
