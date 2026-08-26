@@ -127,6 +127,31 @@ export function useEditor(item = null, initialSpace = null) {
   // ==========================================================
   // Load Existing Item / Initial Space
   // ==========================================================
+  const normalizeAttachment = (attachment) => {
+    if (!attachment) return null;
+
+    return {
+      ...attachment,
+
+      file_name: attachment.file_name ?? attachment.file?.name ?? "",
+
+      mime_type: attachment.mime_type ?? attachment.file?.type ?? "",
+
+      file_size: attachment.file_size ?? attachment.file?.size ?? null,
+
+      credit_name: attachment.credit_name ?? "",
+
+      credit_url: attachment.credit_url ?? "",
+
+      width: attachment.width ?? null,
+
+      height: attachment.height ?? null,
+
+      duration: attachment.duration ?? null,
+
+      sort_order: attachment.sort_order ?? 0,
+    };
+  };
 
   useEffect(() => {
     /*
@@ -156,7 +181,9 @@ export function useEditor(item = null, initialSpace = null) {
         item.content_format === "editorjs" ? "editorjs" : "text",
       );
 
-      replaceAttachments(item.attachments ?? []);
+      replaceAttachments(
+        (item.attachments ?? []).map(normalizeAttachment).filter(Boolean),
+      );
 
       replaceLinks(item.links ?? []);
 

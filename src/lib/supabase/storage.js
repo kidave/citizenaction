@@ -1,4 +1,5 @@
 import { supabase } from "./client";
+import { prepareAttachment } from "@/utils/media/prepareAttachment";
 
 const BUCKETS = {
   POST: "post",
@@ -62,18 +63,21 @@ async function uploadAttachment({
     throw new Error("Missing file");
   }
 
-  const fileName = makeFileName(file.name);
+  // Prepare the file before upload.
+  // Images are compressed here.
+  // PDFs and other files currently pass through unchanged.
+  const preparedFile = await prepareAttachment(file);
+
+  const fileName = makeFileName(preparedFile.name);
   const storagePath = `${ownerId}/${fileName}`;
 
-  const { error } = await supabase.storage.from(bucket).upload(
-    storagePath,
-    file,
-    {
+  const { error } = await supabase.storage
+    .from(bucket)
+    .upload(storagePath, preparedFile, {
       upsert: false,
       cacheControl: "31536000",
-      contentType: file.type || "application/octet-stream",
-    },
-  );
+      contentType: preparedFile.type || "application/octet-stream",
+    });
 
   if (error) {
     throw error;
@@ -82,7 +86,8 @@ async function uploadAttachment({
   const { data } = supabase.storage.from(bucket).getPublicUrl(storagePath);
 
   const publicUrl = data.publicUrl;
-  const isImage = file.type?.startsWith("image/");
+
+  const isImage = preparedFile.type?.startsWith("image/");
 
   return {
     attachmentId,
@@ -92,14 +97,17 @@ async function uploadAttachment({
     public_url: publicUrl,
 
     preview_url: isImage
-      ? buildImageTransformUrl(publicUrl, { width: 1600, quality: 80 })
+      ? buildImageTransformUrl(publicUrl, {
+          width: 1600,
+          quality: 80,
+        })
       : publicUrl,
 
-    file_name: file.name,
+    file_name: preparedFile.name,
 
-    mime_type: file.type,
+    mime_type: preparedFile.type,
 
-    file_size: file.size,
+    file_size: preparedFile.size,
 
     width: null,
 

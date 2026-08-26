@@ -85,16 +85,12 @@ export function useCreatePost() {
           /*
            * Preserve credit information from the editor.
            */
-          uploadedAttachments = uploadedAttachments.map((attachment) => {
-            const original = postData.attachments.find(
-              (a) => a.attachmentId === attachment.attachmentId,
-            );
+          uploadedAttachments = uploadedAttachments.map((attachment, index) => {
+            const original = postData.attachments[index];
 
             return {
               ...attachment,
-
               credit_name: original?.credit_name ?? null,
-
               credit_url: original?.credit_url ?? null,
             };
           });
