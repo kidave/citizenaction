@@ -1,6 +1,11 @@
 "use client";
 
-import { Bell, CalendarDays, FileText, ListOrdered } from "lucide-react";
+import {
+  Bell,
+  CalendarDays,
+  FileText,
+  ListOrdered,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -23,7 +28,7 @@ export default function EditorType({ type, setType }) {
     <TooltipProvider delayDuration={250}>
       <ButtonGroup
         aria-label="Post type"
-        className="ml-2 shrink-0 rounded-lg border bg-muted/30 p-0.5"
+        className="ml-3 shrink-0 gap-1 rounded-lg border bg-muted/30 p-1"
       >
         {TYPES.map(({ value, label, icon: Icon }) => {
           const selected = type === value;
@@ -39,8 +44,9 @@ export default function EditorType({ type, setType }) {
                   aria-pressed={selected}
                   onClick={() => setType(value)}
                   className={[
-                    "h-8 w-8 rounded-md p-0 transition-colors",
-                    "hover:bg-background hover:text-foreground",
+                    "h-8 w-8 rounded-md p-0 transition-all duration-150",
+                    "hover:bg-background/90 hover:text-foreground hover:shadow-sm",
+                    "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
                     selected
                       ? "bg-background text-foreground shadow-sm ring-1 ring-border"
                       : "text-muted-foreground",
