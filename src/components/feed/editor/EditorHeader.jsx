@@ -32,7 +32,7 @@ export default function EditorHeader({
 
   return (
     <TooltipProvider>
-      <div className="flex shrink-0 items-center gap-2 border-b px-3 py-2 pr-12 sm:pr-12">
+      <div className="flex min-w-0 shrink-0 items-center gap-2 border-b px-3 py-2 pr-12 sm:pr-12">
         <Image
           src={profile?.avatar_url || "/user1.png"}
           width={34}
@@ -45,38 +45,36 @@ export default function EditorHeader({
           <VisibilitySelector editor={editor} spaces={spaces} />
         )}
 
-        <div className="ml-auto flex min-w-0 items-center gap-1">
-          {showTypeSelector && (
-            <ToggleGroup
-              type="single"
-              value={currentType}
-              onValueChange={(value) => value && editor.setType(value)}
-              className="gap-0"
-              aria-label="Post type"
-            >
-              {TYPE_OPTIONS.map((option) => {
-                const Icon = option.icon;
+        {showTypeSelector && (
+          <ToggleGroup
+            type="single"
+            value={currentType}
+            onValueChange={(value) => value && editor.setType(value)}
+            className="ml-auto shrink-0 gap-0.5"
+            aria-label="Post type"
+          >
+            {TYPE_OPTIONS.map((option) => {
+              const Icon = option.icon;
 
-                return (
-                  <Tooltip key={option.value}>
-                    <TooltipTrigger asChild>
-                      <ToggleGroupItem
-                        value={option.value}
-                        aria-label={option.label}
-                        className="h-8 w-8 rounded-md p-0"
-                      >
-                        <Icon className="h-4 w-4" />
-                      </ToggleGroupItem>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">
-                      {option.label}
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              })}
-            </ToggleGroup>
-          )}
-        </div>
+              return (
+                <Tooltip key={option.value}>
+                  <TooltipTrigger asChild>
+                    <ToggleGroupItem
+                      value={option.value}
+                      aria-label={option.label}
+                      className="h-8 w-8 rounded-md p-0"
+                    >
+                      <Icon className="h-4 w-4" />
+                    </ToggleGroupItem>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    {option.label}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </ToggleGroup>
+        )}
       </div>
     </TooltipProvider>
   );
