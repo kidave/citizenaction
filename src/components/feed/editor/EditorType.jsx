@@ -1,13 +1,6 @@
 "use client";
 
-import { EDITOR_TYPE_CONFIG } from "./editorTypes";
-
-import {
-  Bell,
-  CalendarDays,
-  FileWarning,
-  Presentation,
-} from "lucide-react";
+import { Bell, CalendarDays, FileText, ListOrdered } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -19,38 +12,36 @@ import {
 } from "@/components/ui/tooltip";
 
 const TYPES = [
-  { value: "report", icon: FileWarning },
-  { value: "update", icon: Bell },
-  { value: "event", icon: CalendarDays },
-  { value: "meeting", icon: Presentation },
+  { value: "report", label: "Write a report", icon: FileText },
+  { value: "update", label: "Post an update", icon: Bell },
+  { value: "event", label: "Add an event", icon: CalendarDays },
+  { value: "meeting", label: "Add a meeting", icon: ListOrdered },
 ];
 
 export default function EditorType({ type, setType }) {
   return (
     <TooltipProvider>
-      <ButtonGroup aria-label="Post type">
-        {TYPES.map((item) => {
-          const Icon = item.icon;
-          const config = EDITOR_TYPE_CONFIG[item.value];
-          const selected = type === item.value;
+      <ButtonGroup aria-label="Post type" className="shrink-0">
+        {TYPES.map(({ value, label, icon: Icon }) => {
+          const selected = type === value;
 
           return (
-            <Tooltip key={item.value}>
+            <Tooltip key={value}>
               <TooltipTrigger asChild>
                 <Button
                   type="button"
                   variant={selected ? "secondary" : "ghost"}
                   size="icon-sm"
-                  aria-label={config.label}
+                  aria-label={label}
                   aria-pressed={selected}
-                  onClick={() => setType(item.value)}
+                  onClick={() => setType(value)}
                   className="shrink-0"
                 >
                   <Icon />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                <p className="text-xs">{config.label}</p>
+                <p className="text-xs">{label}</p>
               </TooltipContent>
             </Tooltip>
           );
