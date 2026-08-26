@@ -3,19 +3,19 @@
 import { EDITOR_TYPE_CONFIG } from "./editorTypes";
 
 import {
-  FileWarning,
   Bell,
   CalendarDays,
+  FileWarning,
   Presentation,
 } from "lucide-react";
 
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-
+import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import {
   Tooltip,
-  TooltipTrigger,
   TooltipContent,
   TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip";
 
 const TYPES = [
@@ -28,30 +28,26 @@ const TYPES = [
 export default function EditorType({ type, setType }) {
   return (
     <TooltipProvider>
-      <ToggleGroup
-        type="single"
-        value={type}
-        onValueChange={(value) => {
-          if (value) setType(value);
-        }}
-        variant="outline"
-        size="sm"
-        className="shrink-0"
-      >
+      <ButtonGroup aria-label="Post type">
         {TYPES.map((item) => {
           const Icon = item.icon;
           const config = EDITOR_TYPE_CONFIG[item.value];
+          const selected = type === item.value;
 
           return (
             <Tooltip key={item.value}>
               <TooltipTrigger asChild>
-                <ToggleGroupItem
-                  value={item.value}
+                <Button
+                  type="button"
+                  variant={selected ? "secondary" : "ghost"}
+                  size="icon-sm"
                   aria-label={config.label}
-                  className="h-8 w-8 shrink-0 p-0"
+                  aria-pressed={selected}
+                  onClick={() => setType(item.value)}
+                  className="shrink-0"
                 >
-                  <Icon className="h-4 w-4" />
-                </ToggleGroupItem>
+                  <Icon />
+                </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom">
                 <p className="text-xs">{config.label}</p>
@@ -59,7 +55,7 @@ export default function EditorType({ type, setType }) {
             </Tooltip>
           );
         })}
-      </ToggleGroup>
+      </ButtonGroup>
     </TooltipProvider>
   );
 }
