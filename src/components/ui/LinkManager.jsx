@@ -15,23 +15,19 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
 import { supabase } from "@/lib/supabase/client";
-
 import {
   detectLinkType,
   getHostname,
@@ -39,11 +35,8 @@ import {
   normalizeUrl,
 } from "@/utils/text/detectLinkType";
 
-import { useIsMobile } from "@/hooks/use-mobile";
-
 function createFallbackLink(url) {
   const normalizedUrl = normalizeUrl(url);
-
   return {
     url: normalizedUrl,
     type: detectLinkType(normalizedUrl),
@@ -58,8 +51,21 @@ function createFallbackLink(url) {
   };
 }
 
+function mergeWebsiteFallback(link, websiteMetadata) {
+  if (!websiteMetadata) return link;
+
+  return {
+    ...link,
+    title: link.title || websiteMetadata.title || null,
+    description: link.description || websiteMetadata.description || null,
+    image_url: link.image_url || websiteMetadata.image_url || null,
+    icon_url: link.icon_url || websiteMetadata.icon_url || null,
+    provider_name: link.provider_name || websiteMetadata.provider_name || null,
+    provider_url: link.provider_url || websiteMetadata.provider_url || null,
+  };
+}
+
 export default function LinkManager({ value = [], onChange }) {
-  const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [links, setLinks] = useState(Array.isArray(value) ? value : []);
@@ -80,7 +86,27 @@ export default function LinkManager({ value = [], onChange }) {
       if (error) throw error;
       if (!data?.link) throw new Error("No link data returned");
 
-      return data.link;
+      let resolvedLink = data.link;
+
+      if (!resolvedLink.image_url || !resolvedLink.icon_url || !resolvedLink.title) {
+        const hostname = resolvedLink.hostname || getHostname(url);
+
+        if (hostname) {
+          const { data: websiteMetadata, error: metadataError } = await supabase
+            .from("website_metadata")
+            .select(
+              "title, description, image_url, icon_url, provider_name, provider_url",
+            )
+            .eq("hostname", hostname)
+            .maybeSingle();
+
+          if (!metadataError) {
+            resolvedLink = mergeWebsiteFallback(resolvedLink, websiteMetadata);
+          }
+        }
+      }
+
+      return resolvedLink;
     } catch (error) {
       console.error("Failed to resolve link:", error);
       return createFallbackLink(url);
@@ -102,7 +128,6 @@ export default function LinkManager({ value = [], onChange }) {
     }
 
     const alreadyExists = links.some((link) => normalizeUrl(link.url) === url);
-
     if (alreadyExists) {
       setDraft("");
       return;
@@ -153,8 +178,6 @@ export default function LinkManager({ value = [], onChange }) {
   }
 
   function LinkRow({ link, index }) {
-    const previewImage = link.image_url || link.icon_url;
-
     return (
       <div className="overflow-hidden rounded-xl border">
         <div className="flex min-w-0 items-center gap-3 p-3">
@@ -227,7 +250,7 @@ export default function LinkManager({ value = [], onChange }) {
           </div>
         </div>
 
-        {link.image_url && previewImage ? (
+        {link.image_url ? (
           <div className="border-t bg-muted/20">
             <img
               src={link.image_url}
