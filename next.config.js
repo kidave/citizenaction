@@ -21,6 +21,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "i.ytimg.com",
       },
+      {
+        protocol: "https",
+        hostname: "static.toiimg.com",
+      },
     ],
   },
 
@@ -30,8 +34,8 @@ const nextConfig = {
     const ContentSecurityPolicy = `
       default-src 'self';
 
-      script-src 'self' ${isDev ? "'unsafe-eval'" : ""} 
-        https://accounts.google.com 
+      script-src 'self' ${isDev ? "'unsafe-eval'" : ""}
+        https://accounts.google.com
         https://apis.google.com;
 
       style-src 'self' 'unsafe-inline';
@@ -41,6 +45,7 @@ const nextConfig = {
         blob:
         https://lh3.googleusercontent.com
         https://*.supabase.co
+        https://static.toiimg.com
         https://a.tile.openstreetmap.org
         https://b.tile.openstreetmap.org
         https://c.tile.openstreetmap.org

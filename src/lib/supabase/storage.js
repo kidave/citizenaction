@@ -1,129 +1,91 @@
 import { supabase } from "./client";
 import { prepareAttachment } from "@/utils/media/prepareAttachment";
+import { getPdfThumbnail } from "@/utils/media/pdfThumbnail";
 
-const BUCKETS = {
-  POST: "post",
-  CONTRIBUTION: "contribution",
-};
+const BUCKETS = { POST: "post", CONTRIBUTION: "contribution" };
 
 function sanitizeFileName(name) {
   return name.replace(/[^a-zA-Z0-9._-]/g, "_");
 }
 
 function makeFileName(originalName) {
-  const safeName = sanitizeFileName(originalName || "file");
-
-  return `${crypto.randomUUID()}-${safeName}`;
+  return `${crypto.randomUUID()}-${sanitizeFileName(originalName || "file")}`;
 }
 
 function buildImageTransformUrl(publicUrl, { width, quality = 75 } = {}) {
-  if (!publicUrl || !width) {
-    return publicUrl;
-  }
-
+  if (!publicUrl || !width) return publicUrl;
   try {
     const url = new URL(publicUrl);
-
     const marker = "/storage/v1/object/public/";
-    const markerIndex = url.pathname.indexOf(marker);
-
-    if (markerIndex === -1) {
-      return publicUrl;
-    }
-
-    url.pathname = url.pathname.replace(
-      marker,
-      "/storage/v1/render/image/public/",
-    );
-
+    if (!url.pathname.includes(marker)) return publicUrl;
+    url.pathname = url.pathname.replace(marker, "/storage/v1/render/image/public/");
     url.searchParams.set("width", String(width));
     url.searchParams.set("quality", String(quality));
-
     return url.toString();
   } catch {
     return publicUrl;
   }
 }
 
-async function uploadAttachment({
-  bucket,
-  ownerId,
-  file,
-  attachmentId = null,
-}) {
-  if (!bucket) {
-    throw new Error("Missing bucket");
-  }
+async function uploadFile(bucket, path, file) {
+  const { error } = await supabase.storage.from(bucket).upload(path, file, {
+    upsert: false,
+    cacheControl: "31536000",
+    contentType: file.type || "application/octet-stream",
+  });
+  if (error) throw error;
 
-  if (!ownerId) {
-    throw new Error("Missing ownerId");
-  }
+  return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+}
 
-  if (!file) {
-    throw new Error("Missing file");
-  }
+async function uploadAttachment({ bucket, ownerId, file, attachmentId = null }) {
+  if (!bucket) throw new Error("Missing bucket");
+  if (!ownerId) throw new Error("Missing ownerId");
+  if (!file) throw new Error("Missing file");
 
-  // Prepare the file before upload.
-  // Images are compressed here.
-  // PDFs and other files currently pass through unchanged.
   const preparedFile = await prepareAttachment(file);
-
   const fileName = makeFileName(preparedFile.name);
   const storagePath = `${ownerId}/${fileName}`;
-
-  const { error } = await supabase.storage
-    .from(bucket)
-    .upload(storagePath, preparedFile, {
-      upsert: false,
-      cacheControl: "31536000",
-      contentType: preparedFile.type || "application/octet-stream",
-    });
-
-  if (error) {
-    throw error;
-  }
-
-  const { data } = supabase.storage.from(bucket).getPublicUrl(storagePath);
-
-  const publicUrl = data.publicUrl;
-
+  const publicUrl = await uploadFile(bucket, storagePath, preparedFile);
   const isImage = preparedFile.type?.startsWith("image/");
+
+  let thumbnailPath = null;
+  let thumbnailUrl = null;
+
+  if (preparedFile.type === "application/pdf" && typeof window !== "undefined") {
+    try {
+      const thumbnail = await getPdfThumbnail(preparedFile);
+      if (thumbnail) {
+        const thumbnailName = `${crypto.randomUUID()}-${sanitizeFileName(thumbnail.name)}`;
+        thumbnailPath = `${ownerId}/thumbnails/${thumbnailName}`;
+        thumbnailUrl = await uploadFile(bucket, thumbnailPath, thumbnail);
+      }
+    } catch (error) {
+      console.warn("PDF thumbnail generation failed; keeping original PDF", error);
+    }
+  }
 
   return {
     attachmentId,
-
     storage_path: storagePath,
-
     public_url: publicUrl,
-
     preview_url: isImage
-      ? buildImageTransformUrl(publicUrl, {
-          width: 1600,
-          quality: 80,
-        })
-      : publicUrl,
-
+      ? buildImageTransformUrl(publicUrl, { width: 1600, quality: 80 })
+      : thumbnailUrl || publicUrl,
+    thumbnail_path: thumbnailPath,
+    thumbnail_url: thumbnailUrl,
     file_name: preparedFile.name,
-
     mime_type: preparedFile.type,
-
     file_size: preparedFile.size,
-
     width: null,
-
     height: null,
-
     duration: null,
-
     sort_order: null,
   };
 }
 
 async function uploadAttachments({ bucket, ownerId, attachments = [] }) {
-  if (!Array.isArray(attachments) || attachments.length === 0) {
-    return [];
-  }
-
+  if (!Array.isArray(attachments) || attachments.length === 0) return [];
   return Promise.all(
     attachments.map((attachment) =>
       uploadAttachment({
@@ -137,81 +99,46 @@ async function uploadAttachments({ bucket, ownerId, attachments = [] }) {
 }
 
 export function uploadPostAttachments(postId, attachments) {
-  return uploadAttachments({
-    bucket: BUCKETS.POST,
-    ownerId: postId,
-    attachments,
-  });
+  return uploadAttachments({ bucket: BUCKETS.POST, ownerId: postId, attachments });
 }
 
 export function uploadContributionAttachments(contributionId, attachments) {
-  return uploadAttachments({
-    bucket: BUCKETS.CONTRIBUTION,
-    ownerId: contributionId,
-    attachments,
-  });
+  return uploadAttachments({ bucket: BUCKETS.CONTRIBUTION, ownerId: contributionId, attachments });
 }
 
-export async function deleteAttachments(bucket, paths = []) {
-  const validPaths = paths.filter(Boolean);
+export async function deleteAttachments(bucket, attachments = []) {
+  const values = Array.isArray(attachments) ? attachments : [];
+  const paths = values
+    .map((item) => typeof item === "string" ? item : item?.storage_path)
+    .filter(Boolean);
+  const thumbnailPaths = values
+    .map((item) => typeof item === "string" ? null : item?.thumbnail_path)
+    .filter(Boolean);
+  const allPaths = [...new Set([...paths, ...thumbnailPaths])];
+  if (!allPaths.length) return;
+  const { error } = await supabase.storage.from(bucket).remove(allPaths);
+  if (error) throw error;
+}
 
-  if (!validPaths.length) {
-    return;
-  }
-
-  const { error } = await supabase.storage.from(bucket).remove(validPaths);
-
-  if (error) {
-    throw error;
-  }
+async function getAttachmentsForOwner(column, id) {
+  const { data, error } = await supabase
+    .from("attachment")
+    .select("storage_path, thumbnail_path")
+    .eq(column, id);
+  if (error) throw error;
+  return data || [];
 }
 
 export async function deletePostAttachmentsByPostId(postId) {
-  if (!postId) {
-    throw new Error("Missing postId");
-  }
-
-  const { data, error } = await supabase
-    .from("attachment")
-    .select("storage_path")
-    .eq("post_id", postId);
-
-  if (error) {
-    throw error;
-  }
-
-  const paths = getAttachmentPaths(data);
-
-  if (!paths.length) {
-    return;
-  }
-
-  await deletePostAttachments(paths);
+  if (!postId) throw new Error("Missing postId");
+  const attachments = await getAttachmentsForOwner("post_id", postId);
+  if (attachments.length) await deletePostAttachments(attachments);
 }
 
-export async function deleteContributionAttachmentsByContributionId(
-  contributionId,
-) {
-  if (!contributionId) {
-    throw new Error("Missing contributionId");
-  }
-
-  const { data, error } = await supabase
-    .from("attachment")
-    .select("storage_path")
-    .eq("contribution_id", contributionId);
-
-  if (error) {
-    throw error;
-  }
-
-  const paths = getAttachmentPaths(data);
-
-  if (!paths.length) {
-    return;
-  }
-
-  await deleteContributionAttachments(paths);
+export async function deleteContributionAttachmentsByContributionId(contributionId) {
+  if (!contributionId) throw new Error("Missing contributionId");
+  const attachments = await getAttachmentsForOwner("contribution_id", contributionId);
+  if (attachments.length) await deleteContributionAttachments(attachments);
 }
 
 export function deletePostAttachments(paths) {
@@ -223,55 +150,17 @@ export function deleteContributionAttachments(paths) {
 }
 
 export function getAttachmentPaths(attachments = []) {
-  return attachments
-    .map((attachment) => attachment.storage_path)
-    .filter(Boolean);
+  return attachments.map((attachment) => attachment.storage_path).filter(Boolean);
 }
 
 export function getFileCategory(mimeType) {
-  if (mimeType?.startsWith("image/")) {
-    return "image";
-  }
-
-  if (mimeType?.startsWith("video/")) {
-    return "video";
-  }
-
-  if (mimeType === "application/pdf") {
-    return "pdf";
-  }
-
-  if (mimeType?.includes("word")) {
-    return "document";
-  }
-
-  if (mimeType?.includes("spreadsheet")) {
-    return "spreadsheet";
-  }
-
-  if (mimeType?.includes("excel")) {
-    return "spreadsheet";
-  }
-
-  if (mimeType?.includes("presentation")) {
-    return "presentation";
-  }
-
-  if (mimeType?.includes("powerpoint")) {
-    return "presentation";
-  }
-
-  if (mimeType?.startsWith("text/")) {
-    return "text";
-  }
-
-  if (mimeType?.includes("zip")) {
-    return "archive";
-  }
-
-  if (mimeType?.includes("rar")) {
-    return "archive";
-  }
-
+  if (mimeType?.startsWith("image/")) return "image";
+  if (mimeType?.startsWith("video/")) return "video";
+  if (mimeType === "application/pdf") return "pdf";
+  if (mimeType?.includes("word")) return "document";
+  if (mimeType?.includes("spreadsheet") || mimeType?.includes("excel")) return "spreadsheet";
+  if (mimeType?.includes("presentation") || mimeType?.includes("powerpoint")) return "presentation";
+  if (mimeType?.startsWith("text/")) return "text";
+  if (mimeType?.includes("zip") || mimeType?.includes("rar")) return "archive";
   return "file";
 }
