@@ -73,29 +73,31 @@ export function useUpdatePost() {
           .filter((attachment) =>
             editorStoragePaths.has(attachment.storage_path),
           )
-          .map((attachment) => ({
-            storage_path: attachment.storage_path,
+          .map((attachment) => {
+            const editorAttachment = editorAttachments.find(
+              (item) => item?.storage_path === attachment.storage_path,
+            );
 
-            public_url: attachment.public_url,
+            return {
+              storage_path: attachment.storage_path,
+              public_url: attachment.public_url,
+              file_name: attachment.file_name,
+              mime_type: attachment.mime_type,
+              file_size: attachment.file_size,
+              width: attachment.width,
+              height: attachment.height,
+              duration: attachment.duration,
+              sort_order: attachment.sort_order ?? 0,
 
-            file_name: attachment.file_name,
+              // IMPORTANT:
+              // Use the value currently edited in the editor.
+              credit_name:
+                editorAttachment?.credit_name ?? attachment.credit_name ?? null,
 
-            mime_type: attachment.mime_type,
-
-            file_size: attachment.file_size,
-
-            width: attachment.width,
-
-            height: attachment.height,
-
-            duration: attachment.duration,
-
-            sort_order: attachment.sort_order ?? 0,
-
-            credit_name: attachment.credit_name ?? null,
-
-            credit_url: attachment.credit_url ?? null,
-          }));
+              credit_url:
+                editorAttachment?.credit_url ?? attachment.credit_url ?? null,
+            };
+          });
 
         // ==========================================================
         // 4. Find genuinely new files

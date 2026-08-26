@@ -86,8 +86,13 @@ export default function AttachmentCard({
 
           <div className="space-y-0.5 text-xs text-muted-foreground">
             <p>
-              {getFileExtension(attachment.file_name)} •{" "}
-              {formatFileSize(attachment.file_size)}
+              {getFileExtension(
+                attachment.file_name || attachment.file?.name || "",
+              )}{" "}
+              •{" "}
+              {formatFileSize(
+                attachment.file_size ?? attachment.file?.size ?? null,
+              )}
             </p>
 
             {attachment.credit_name && (

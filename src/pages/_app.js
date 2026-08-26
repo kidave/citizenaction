@@ -4,7 +4,8 @@ import { Playfair_Display } from "next/font/google";
 import "@/styles/main.css";
 import ThemeProvider from "@/styles/ThemeProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { AuthProvider } from "@/context/AuthContext";
 import { MediaProvider } from "@/context/MediaContext";
 
@@ -90,6 +91,8 @@ function MyApp({ Component, pageProps }) {
           </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>
+      <Analytics mode="production" />
+      <SpeedInsights />
     </div>
   );
 }
