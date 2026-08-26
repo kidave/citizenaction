@@ -18,9 +18,7 @@ import {
 } from "@/components/ui/tooltip";
 
 import { Button } from "@/components/ui/button";
-
 import { DateTimePicker } from "@/components/ui/date-time";
-
 import { CalendarDays } from "lucide-react";
 
 export default function EditorDateTime({ editor }) {
@@ -40,25 +38,8 @@ export default function EditorDateTime({ editor }) {
     return items.length ? items : ["Set date & time"];
   }, [editor.start_at, editor.end_at]);
 
-  const fields = [
-    {
-      label: "Starts",
-      value: editor.start_at,
-      setter: editor.setStartAt,
-    },
-    {
-      label: "Ends",
-      value: editor.end_at,
-      setter: editor.setEndAt,
-    },
-  ];
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {/* ================================================= */}
-      {/* TOOLBAR BUTTON */}
-      {/* ================================================= */}
-
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -79,44 +60,36 @@ export default function EditorDateTime({ editor }) {
         </Tooltip>
       </TooltipProvider>
 
-      {/* ================================================= */}
-      {/* DIALOG */}
-      {/* ================================================= */}
-
       <DialogContent className="top-[4%] flex max-h-[92vh] min-h-[520px] w-[calc(100%-2rem)] translate-y-0 flex-col gap-0 overflow-hidden p-0 sm:max-w-xl">
-        {/* ================================================= */}
-        {/* HEADER */}
-        {/* ================================================= */}
-
         <DialogHeader className="shrink-0 border-b px-5 py-4">
           <DialogTitle>Date & time</DialogTitle>
         </DialogHeader>
 
-        {/* ================================================= */}
-        {/* SCROLLABLE CONTENT */}
-        {/* ================================================= */}
-
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="grid grid-cols-1 gap-6 p-5 sm:grid-cols-2">
-            {fields.map(({ label, value, setter }) => (
-              <div key={label} className="space-y-3">
-                <div className="text-sm font-medium">{label}</div>
+            <div className="space-y-3">
+              <div className="text-sm font-medium">Starts</div>
+              <DateTimePicker
+                value={editor.start_at ? new Date(editor.start_at) : null}
+                onDateChange={(nextValue) =>
+                  editor.setStartAt(nextValue ? nextValue.toISOString() : null)
+                }
+                mode="datetime"
+              />
+            </div>
 
-                <DateTimePicker
-                  value={value ? new Date(value) : null}
-                  onDateChange={(nextValue) =>
-                    setter(nextValue ? nextValue.toISOString() : null)
-                  }
-                  mode="datetime"
-                />
-              </div>
-            ))}
+            <div className="space-y-3">
+              <div className="text-sm font-medium">Ends</div>
+              <DateTimePicker
+                value={editor.end_at ? new Date(editor.end_at) : null}
+                onDateChange={(nextValue) =>
+                  editor.setEndAt(nextValue ? nextValue.toISOString() : null)
+                }
+                mode="datetime"
+              />
+            </div>
           </div>
         </div>
-
-        {/* ================================================= */}
-        {/* FOOTER */}
-        {/* ================================================= */}
 
         <div className="flex shrink-0 justify-between border-t px-5 py-4">
           <Button
