@@ -34,11 +34,7 @@ export const postSchema = z
       const start = new Date(data.start_at);
       const end = new Date(data.end_at);
 
-      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-        return;
-      }
-
-      if (end < start) {
+      if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) && end < start) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["end_at"],
