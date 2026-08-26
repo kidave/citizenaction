@@ -15,8 +15,6 @@ export default function PlainEditor({
 }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* TITLE */}
-
       <div className="p-2">
         <Input
           placeholder={`${editorConfig.label} title...`}
@@ -27,8 +25,6 @@ export default function PlainEditor({
         />
       </div>
 
-      {/* CONTENT */}
-
       <Textarea
         placeholder={editorConfig.placeholder}
         value={content || ""}
@@ -37,7 +33,22 @@ export default function PlainEditor({
 
           setContent(value);
           setContentFormat("text");
-          setContentJson(null);
+
+          setContentJson(
+            value.trim()
+              ? {
+                  time: Date.now(),
+                  blocks: [
+                    {
+                      type: "paragraph",
+                      data: {
+                        text: value,
+                      },
+                    },
+                  ],
+                }
+              : null,
+          );
         }}
         onFocus={onFocus}
         className="min-h-0 flex-1 resize-none border-none p-2 focus-visible:ring-0"
