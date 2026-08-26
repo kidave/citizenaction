@@ -12,7 +12,6 @@ import { useContributionEditor } from "@/hooks/editor/useContributionEditor";
 import EditorHeader from "./EditorHeader";
 import EditorAttachments from "./EditorAttachments";
 import EditorFooter from "./EditorFooter";
-import PostTypeChooser from "./PostTypeChooser";
 
 const EditorContent = dynamic(() => import("./EditorContent"), {
   ssr: false,
@@ -39,12 +38,6 @@ export default function EditorModal({
   const editor = mode === "post" ? postEditor : contributionEditor;
   const [attachmentsOpen, setAttachmentsOpen] = useState(false);
 
-  const hasStartedWriting = Boolean(
-    editor.title?.trim() || editor.content?.trim(),
-  );
-
-  const showTypeChooser = mode === "post" && !item && !hasStartedWriting;
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="flex h-full w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-2xl sm:rounded-xl">
@@ -59,13 +52,6 @@ export default function EditorModal({
               spaces={spaces}
             />
 
-            {showTypeChooser && (
-              <PostTypeChooser
-                value={editor.type}
-                onChange={editor.setType}
-              />
-            )}
-
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
               <EditorContent
                 type={editor.type}
@@ -75,7 +61,7 @@ export default function EditorModal({
                 setContent={editor.setContent}
                 contentJson={editor.contentJson}
                 setContentJson={editor.setContentJson}
-                setContentFormat={editor.contentFormat}
+                setContentFormat={editor.setContentFormat}
                 attachments={editor.attachments}
                 addAttachments={editor.addAttachments}
                 onFocus={() => setAttachmentsOpen(false)}
