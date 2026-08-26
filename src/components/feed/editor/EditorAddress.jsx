@@ -1,244 +1,184 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { MapPin, Check, Pencil } from "lucide-react";
 
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-import { Button } from "@/components/ui/button";
-
-import { MapPin, LocateFixed } from "lucide-react";
-
 import LocationSearchInput from "@/components/shared/LocationSearchInput";
-
-import LocationMapPreview from "@/components/shared/LocationMapPreview";
 
 export default function EditorAddress({ editor }) {
   const [open, setOpen] = useState(false);
-
-  const [loadingGPS, setLoadingGPS] = useState(false);
-
+  const [suggestion, setSuggestion] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
   const debounceRef = useRef(null);
+  const lastQueryRef = useRef("");
 
-  const summary = useMemo(() => {
-    return editor.address ? [editor.address] : ["Set location"];
-  }, [editor.address]);
+  useEffect(() => {
+    if (!navigator.geolocation) return;
 
-  // =====================================================
-  // REVERSE GEOCODE
-  // =====================================================
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setUserLocation({ lat: coords.latitude, lng: coords.longitude });
+      },
+      () => {},
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 },
+    );
+  }, []);
 
-  async function reverseGeocode(lat, lng) {
-    try {
-      const res = await fetch(`/api/osm-reverse?lat=${lat}&lng=${lng}`);
-
-      const data = await res.json();
-
-      if (data?.display_name) {
-        editor.setAddress(data.display_name);
-      }
-    } catch {}
-  }
-
-  // =====================================================
-  // MAP CHANGE
-  // =====================================================
-
-  async function handleMapChange(lat, lng) {
-    editor.setLat(lat);
-    editor.setLng(lng);
-
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-
-    debounceRef.current = setTimeout(() => {
-      reverseGeocode(lat, lng);
-    }, 400);
-  }
-
-  // =====================================================
-  // SEARCH SELECT
-  // =====================================================
-
-  function handleSelect(loc) {
-    editor.setLat(loc.lat);
-    editor.setLng(loc.lng);
-
-    editor.setAddress(loc.address);
-  }
-
-  // =====================================================
-  // GPS
-  // =====================================================
-
-  function handleUseCurrentLocation() {
-    if (!navigator.geolocation) {
-      toast.error("Location is not supported by this browser.");
+  useEffect(() => {
+    const address = editor.address?.trim();
+    if (!address || editor.lat || editor.lng) {
+      setSuggestion(null);
       return;
     }
 
-    setLoadingGPS(true);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const { latitude: lat, longitude: lng } = position.coords;
+    debounceRef.current = setTimeout(async () => {
+      if (address === lastQueryRef.current) return;
+      lastQueryRef.current = address;
 
-          editor.setLat(lat);
-          editor.setLng(lng);
-
-          await reverseGeocode(lat, lng);
-        } catch (error) {
-          console.error("Reverse geocoding failed", {
-            message: error?.message,
-            code: error?.code,
-          });
-
-          toast.error("We couldn't determine the address for your location.");
-        } finally {
-          setLoadingGPS(false);
+      setLoading(true);
+      try {
+        const params = new URLSearchParams({ q: address });
+        if (userLocation) {
+          params.set("lat", String(userLocation.lat));
+          params.set("lng", String(userLocation.lng));
         }
-      },
-      (error) => {
-        console.warn("Unable to get current location", {
-          code: error.code,
-          message: error.message,
+
+        const response = await fetch(`/api/osm?${params.toString()}`);
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const results = Array.isArray(data) ? data : data?.results || [];
+        const first = results[0];
+        if (!first) return;
+
+        const lat = Number(first.lat);
+        const lng = Number(first.lon ?? first.lng);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+        setSuggestion({
+          lat,
+          lng,
+          address: first.display_name || first.address || address,
+          name: first.name || first.display_name?.split(",")[0] || address,
         });
+      } catch (error) {
+        console.warn("Location suggestion failed", error);
+      } finally {
+        setLoading(false);
+      }
+    }, 500);
 
-        setLoadingGPS(false);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [editor.address, editor.lat, editor.lng, userLocation]);
 
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            toast.error(
-              "Location permission was denied. Please allow location access and try again.",
-            );
-            break;
+  function applySuggestion() {
+    if (!suggestion) return;
 
-          case error.POSITION_UNAVAILABLE:
-            toast.error("Your current location could not be determined.");
-            break;
+    editor.setLat(suggestion.lat);
+    editor.setLng(suggestion.lng);
+    editor.setAddress(suggestion.address);
+    setSuggestion(null);
+  }
 
-          case error.TIMEOUT:
-            toast.error("Location request timed out. Please try again.");
-            break;
-
-          default:
-            toast.error("Unable to get your current location.");
-        }
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      },
-    );
+  function clearLocation() {
+    editor.setLat(null);
+    editor.setLng(null);
+    editor.setAddress(null);
+    setSuggestion(null);
+    lastQueryRef.current = "";
   }
 
   return (
     <>
-      {/* TRIGGER */}
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
+            <Button
+              type="button"
+              variant={editor.address ? "secondary" : "ghost"}
+              size="icon"
+              className="shrink-0"
+              onClick={() => setOpen(true)}
+              aria-label={editor.address ? "Change location" : "Add location"}
+            >
               <MapPin className="h-5 w-5" />
             </Button>
           </TooltipTrigger>
-
-          <TooltipContent side="bottom" align="start">
-            <div className="space-y-1 text-xs">
-              {summary.map((item, i) => (
-                <div key={i}>{item}</div>
-              ))}
-            </div>
+          <TooltipContent side="bottom">
+            {editor.address || "Add location"}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
-      {/* MODAL */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="h-dvh max-w-none overflow-hidden rounded-none p-0">
-          <div className="relative h-full w-full overflow-hidden">
-            {/* MAP */}
-
-            <LocationMapPreview
-              lat={editor.lat || 19.076}
-              lng={editor.lng || 72.8777}
-              onChange={handleMapChange}
-            />
-
-            {/* OVERLAY LAYOUT */}
-
-            <div className="pointer-events-none absolute inset-0 z-[1000] flex flex-col justify-between p-2 sm:p-4">
-              {/* =====================================================
-                  TOP SEARCH
-              ===================================================== */}
-
-              <div className="pointer-events-auto w-full sm:ml-12 sm:w-[380px]">
-                <div className="rounded-xl border bg-background p-2 shadow-lg">
-                  <LocationSearchInput
-                    value={editor.address || ""}
-                    onChange={editor.setAddress}
-                    onSelect={handleSelect}
-                    loadingGPS={loadingGPS}
-                    onUseCurrentLocation={handleUseCurrentLocation}
-                  />
-                </div>
-              </div>
-
-              {/* =====================================================
-                  BOTTOM CARD
-              ===================================================== */}
-
-              <div className="pointer-events-auto w-full sm:mx-auto sm:max-w-[520px]">
-                <div className="overflow-hidden rounded-2xl border bg-background shadow-xl backdrop-blur">
-                  <div className="flex items-start gap-3 p-4">
-                    <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-
-                    <div className="min-w-0">
-                      <div className="text-sm font-medium">
-                        Selected Location
-                      </div>
-
-                      <div className="line-clamp-2 break-words text-sm text-muted-foreground">
-                        {editor.address || "Move map or search"}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-2 border-t p-3">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        editor.setLat(null);
-                        editor.setLng(null);
-                        editor.setAddress(null);
-                      }}
-                    >
-                      Clear
-                    </Button>
-
-                    <div className="flex gap-2">
-                      <Button variant="outline" onClick={() => setOpen(false)}>
-                        Cancel
-                      </Button>
-
-                      <Button onClick={() => setOpen(false)}>Done</Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+      {suggestion && !editor.lat && !editor.lng && (
+        <div className="absolute bottom-14 left-2 right-2 z-20 sm:left-auto sm:right-4 sm:w-[420px]">
+          <div className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2 shadow-md">
+            <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">{suggestion.name}</p>
+              <p className="truncate text-xs text-muted-foreground">{suggestion.address}</p>
             </div>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={applySuggestion}
+              className="shrink-0"
+            >
+              <Check className="mr-1 h-4 w-4" />
+              Use
+            </Button>
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="ghost"
+              onClick={() => setOpen(true)}
+              aria-label="Change location"
+              className="shrink-0"
+            >
+              <Pencil />
+            </Button>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
+
+      {open && (
+        <div className="fixed inset-x-3 bottom-20 z-[70] rounded-xl border bg-background p-3 shadow-xl sm:left-auto sm:right-6 sm:w-[420px]">
+          <LocationSearchInput
+            value={editor.address || ""}
+            onChange={(value) => {
+              editor.setAddress(value);
+              editor.setLat(null);
+              editor.setLng(null);
+            }}
+            onSelect={(location) => {
+              editor.setLat(location.lat);
+              editor.setLng(location.lng);
+              editor.setAddress(location.address);
+              setSuggestion(null);
+              setOpen(false);
+            }}
+          />
+
+          <div className="mt-2 flex justify-end gap-2">
+            <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
+              Close
+            </Button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
