@@ -60,26 +60,16 @@ export function useUpdatePost() {
         );
 
         const retainedAttachments = existingAttachments
-          .filter((attachment) =>
-            editorStoragePaths.has(attachment.storage_path),
-          )
+          .filter((attachment) => editorStoragePaths.has(attachment.storage_path))
           .map((attachment) => {
             const editorAttachment = editorAttachments.find(
               (item) => item?.storage_path === attachment.storage_path,
             );
 
             return {
-              storage_path: attachment.storage_path,
+              ...attachment,
               thumbnail_path: attachment.thumbnail_path ?? null,
               thumbnail_url: attachment.thumbnail_url ?? null,
-              public_url: attachment.public_url,
-              file_name: attachment.file_name,
-              mime_type: attachment.mime_type,
-              file_size: attachment.file_size,
-              width: attachment.width,
-              height: attachment.height,
-              duration: attachment.duration,
-              sort_order: attachment.sort_order ?? 0,
               credit_name:
                 editorAttachment?.credit_name ?? attachment.credit_name ?? null,
               credit_url:
@@ -98,24 +88,19 @@ export function useUpdatePost() {
 
           const uploaded = await uploadPostAttachments(postId, newFiles);
 
-          newUploadedAttachments = uploaded.map((uploadedAttachment, index) => {
-            const original = newFiles[index];
-
-            return {
-              ...uploadedAttachment,
-              credit_name: original?.credit_name ?? null,
-              credit_url: original?.credit_url ?? null,
-            };
-          });
+          newUploadedAttachments = uploaded.map((uploadedAttachment, index) => ({
+            ...uploadedAttachment,
+            credit_name: newFiles[index]?.credit_name ?? null,
+            credit_url: newFiles[index]?.credit_url ?? null,
+          }));
         }
 
-        const finalAttachments = [
-          ...retainedAttachments,
-          ...newUploadedAttachments,
-        ].map((attachment, index) => ({
-          ...attachment,
-          sort_order: index,
-        }));
+        const finalAttachments = [...retainedAttachments, ...newUploadedAttachments].map(
+          (attachment, index) => ({
+            ...attachment,
+            sort_order: index,
+          }),
+        );
 
         const resolvedContentJson = resolveEditorImageUrls(
           postData.content_json,
