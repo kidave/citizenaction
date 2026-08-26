@@ -46,6 +46,7 @@ const nextConfig = {
         https://lh3.googleusercontent.com
         https://*.supabase.co
         https://static.toiimg.com
+        https://i.ytimg.com
         https://a.tile.openstreetmap.org
         https://b.tile.openstreetmap.org
         https://c.tile.openstreetmap.org
