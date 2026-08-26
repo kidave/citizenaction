@@ -7,10 +7,7 @@ import Zoom from "yet-another-react-lightbox/plugins/zoom";
 
 import "yet-another-react-lightbox/styles.css";
 
-import PDFViewer from "@/components/attachment/PDFViewer";
 import AttachmentCarousel from "@/components/attachment/AttachmentCarousel";
-
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 function normalizeAttachment(attachment) {
   if (!attachment) return null;
@@ -33,9 +30,6 @@ function normalizeAttachment(attachment) {
 
 export default function PostAttachments({ attachments = [], links = [] }) {
   const [openImages, setOpenImages] = useState(false);
-  const [openPdf, setOpenPdf] = useState(false);
-
-  const [selectedPdf, setSelectedPdf] = useState(null);
   const [startIndex, setStartIndex] = useState(0);
 
   const normalizedAttachments = useMemo(
@@ -67,10 +61,11 @@ export default function PostAttachments({ attachments = [], links = [] }) {
   const handleAttachmentClick = (index) => {
     const attachment = normalizedAttachments[index];
 
-    if (!attachment) return;
+    if (!attachment?.public_url) return;
 
     const mime = attachment.mime_type || "";
     const extension = attachment.file_name?.split(".").pop()?.toLowerCase();
+
     const isImage = mime.startsWith("image/");
     const isPdf = mime === "application/pdf" || extension === "pdf";
 
@@ -85,9 +80,13 @@ export default function PostAttachments({ attachments = [], links = [] }) {
     }
 
     if (isPdf) {
-      setSelectedPdf(attachment);
-      setOpenPdf(true);
+      window.open(attachment.public_url, "_blank", "noopener,noreferrer");
+
+      return;
     }
+
+    // Other file types can also be opened directly.
+    window.open(attachment.public_url, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -111,14 +110,6 @@ export default function PostAttachments({ attachments = [], links = [] }) {
           buttonNext: imageSlides.length > 1 ? undefined : () => null,
         }}
       />
-
-      <Dialog open={openPdf} onOpenChange={setOpenPdf}>
-        <DialogContent className="h-[90vh] max-w-5xl overflow-hidden p-0">
-          {selectedPdf?.public_url && (
-            <PDFViewer fileUrl={selectedPdf.public_url} />
-          )}
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
