@@ -32,39 +32,8 @@ export function formatSuggestedDate(date) {
   }).format(date);
 }
 
-export function extractDateCandidate(text) {
-  if (!text) return null;
-
-  const monthNames = Object.keys(MONTHS).join("|");
-  const monthDayPattern = new RegExp(
-    `\\b(\\d{1,2})(?:st|nd|rd|th)?\\s+(${monthNames})(?:\\s*,?\\s*(\\d{4}))?\\b`,
-    "i",
-  );
-
-  const dayMonthPattern = new RegExp(
-    `\\b(${monthNames})\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:\\s*,?\\s*(\\d{4}))?\\b`,
-    "i",
-  );
-
-  let match = text.match(monthDayPattern);
-  let day;
-  let month;
-  let year;
-
-  if (match) {
-    day = Number(match[1]);
-    month = MONTHS[match[2].toLowerCase()];
-    year = normalizeYear(match[3]);
-  } else {
-    match = text.match(dayMonthPattern);
-    if (!match) return null;
-
-    month = MONTHS[match[1].toLowerCase()];
-    day = Number(match[2]);
-    year = normalizeYear(match[3]);
-  }
-
-  const date = new Date(year, month, day);
+function buildDate(day, month, year) {
+  const date = new Date(year, month, day, 12, 0, 0, 0);
 
   if (
     date.getFullYear() !== year ||
@@ -74,34 +43,86 @@ export function extractDateCandidate(text) {
     return null;
   }
 
-  return {
-    type: "date",
-    value: date.toISOString(),
-    label: formatSuggestedDate(date),
-  };
+  return date;
+}
+
+export function extractDateCandidates(text = "") {
+  if (!text) return [];
+
+  const monthNames = Object.keys(MONTHS).join("|");
+  const current = currentYear();
+  const candidates = [];
+
+  const dayMonthPattern = new RegExp(
+    `\\b(\\d{1,2})(?:st|nd|rd|th)?\\s+(${monthNames})(?:\\s*,?\\s*(\\d{4}))?\\b`,
+    "gi",
+  );
+
+  const monthDayPattern = new RegExp(
+    `\\b(${monthNames})\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:\\s*,?\\s*(\\d{4}))?\\b`,
+    "gi",
+  );
+
+  for (const match of text.matchAll(dayMonthPattern)) {
+    const day = Number(match[1]);
+    const month = MONTHS[match[2].toLowerCase()];
+    const year = normalizeYear(match[3]);
+    const value = buildDate(day, month, year);
+    if (value) candidates.push({ type: "date", value: value.toISOString(), label: formatSuggestedDate(value), source: match[0] });
+  }
+
+  for (const match of text.matchAll(monthDayPattern)) {
+    const month = MONTHS[match[1].toLowerCase()];
+    const day = Number(match[2]);
+    const year = normalizeYear(match[3]);
+    const value = buildDate(day, month, year);
+    if (value) candidates.push({ type: "date", value: value.toISOString(), label: formatSuggestedDate(value), source: match[0] });
+  }
+
+  return candidates.filter(
+    (candidate, index, list) =>
+      list.findIndex((item) => item.value === candidate.value) === index,
+  );
+}
+
+export function extractDateCandidate(text) {
+  return extractDateCandidates(text)[0] ?? null;
+}
+
+function cleanLocation(value) {
+  return value
+    .replace(/\b(?:on|at|near|in)\s+$/i, "")
+    .replace(/[,:;]+$/, "")
+    .trim();
+}
+
+export function extractLocationCandidates(text = "") {
+  if (!text) return [];
+
+  const patterns = [
+    /\b(?:at|near|in)\s+([A-Za-z][^.!?\n]{2,80})/gi,
+    /\b(?:venue|location|place)\s*[:\-]\s*([^.!?\n]{3,80})/gi,
+    /\b((?:[^.!?\n]+\s+)?(?:Road|Rd|Street|St|Circle|Junction|Gymkhana|Ground|Garden|Park|School|College|Station|Hospital|Market|Office)\b(?:\s+[^.!?\n]{0,50})?)/gi,
+  ];
+
+  const candidates = [];
+
+  for (const pattern of patterns) {
+    for (const match of text.matchAll(pattern)) {
+      const query = cleanLocation(match[1] || match[0]);
+      if (query.length >= 3) candidates.push({ type: "location", query, source: match[0] });
+    }
+  }
+
+  const unique = new Map();
+  candidates.forEach((candidate) => {
+    const key = candidate.query.toLowerCase();
+    if (!unique.has(key)) unique.set(key, candidate);
+  });
+
+  return Array.from(unique.values());
 }
 
 export function extractLocationCandidate(text) {
-  if (!text) return null;
-
-  const patterns = [
-    /(?:at|near|in|on)\s+([^.!?\n]{3,100})/i,
-    /(?:venue|location|place)\s*[:\-]\s*([^.!?\n]{3,100})/i,
-  ];
-
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (!match) continue;
-
-    const value = match[1].trim().replace(/[,:;]+$/, "");
-
-    if (value.length < 3) continue;
-
-    return {
-      type: "location",
-      query: value,
-    };
-  }
-
-  return null;
+  return extractLocationCandidates(text)[0] ?? null;
 }
