@@ -32,19 +32,12 @@ export default function CreatePostTrigger({ onCreate }) {
 
   return (
     <>
-      <motion.div
-        transition={{
-          duration: 0.2,
-        }}
-      >
+      <motion.div transition={{ duration: 0.2 }}>
         <div className="mx-auto flex w-full max-w-4xl items-center gap-3 p-4">
-          {/* AVATAR */}
-
           {user && profile ? (
             <Link href={`/user/${profile.username}`}>
               <Avatar className="h-10 w-10 cursor-pointer border-2">
                 <AvatarImage src={profile.avatar_url || undefined} />
-
                 <AvatarFallback>
                   {profile.name?.charAt(0) || "U"}
                 </AvatarFallback>
@@ -68,8 +61,6 @@ export default function CreatePostTrigger({ onCreate }) {
             </Avatar>
           )}
 
-          {/* CREATE TRIGGER */}
-
           <button
             type="button"
             onClick={handleClick}
@@ -79,16 +70,13 @@ export default function CreatePostTrigger({ onCreate }) {
               <div className="min-w-0">
                 <div className="text-md flex items-center gap-2">
                   <Sparkles className="h-4 w-4 shrink-0" />
-
                   <span className="truncate">
-                    {user
-                      ? "Document your action"
-                      : "Login to document your action"}
+                    {user ? "What would you like to add?" : "Login to add something"}
                   </span>
                 </div>
 
                 <div className="mt-1 truncate text-sm text-muted-foreground">
-                  Document meetings, reports, updates and events
+                  Add an event, meeting, report or update — or just start writing.
                 </div>
               </div>
 
@@ -103,7 +91,7 @@ export default function CreatePostTrigger({ onCreate }) {
       <LoginModal
         open={showLogin}
         onOpenChange={setShowLogin}
-        message="You need to be signed in to document your action"
+        message="You need to be signed in to add something"
       />
     </>
   );
