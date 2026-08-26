@@ -1,73 +1,41 @@
 "use client";
 
-import {
-  Megaphone,
-  CalendarDays,
-  ListOrdered,
-  Zap,
-} from "lucide-react";
-
-import { Button } from "@/components/ui/button";
+import { Megaphone, CalendarDays, ListOrdered, FileText } from "lucide-react";
 
 const OPTIONS = [
   {
-    value: "action",
-    label: "Write a post",
-    description: "Share an update, observation or action.",
-    icon: Zap,
-  },
-  {
     value: "event",
     label: "Add an event",
-    description: "Add date, time and location.",
+    description: "Something happening at a time and place.",
     icon: CalendarDays,
   },
   {
     value: "meeting",
-    label: "Add minutes of meeting",
-    description: "Create an ordered record of a meeting.",
+    label: "Add a meeting",
+    description: "A formal meeting with officials or a group.",
     icon: ListOrdered,
   },
   {
+    value: "report",
+    label: "Write a report",
+    description: "Create a detailed document, project report or proposal.",
+    icon: FileText,
+  },
+  {
     value: "update",
-    label: "Add an announcement",
-    description: "Publish a formal, detailed announcement.",
+    label: "Post an update",
+    description: "Share an announcement, development or important update.",
     icon: Megaphone,
   },
 ];
 
-export default function PostTypeChooser({ value, onChange, compact = false }) {
-  if (compact) {
-    return (
-      <div className="flex flex-wrap items-center gap-1">
-        {OPTIONS.map((option) => {
-          const Icon = option.icon;
-          const selected = value === option.value;
-
-          return (
-            <Button
-              key={option.value}
-              type="button"
-              variant={selected ? "secondary" : "ghost"}
-              size="sm"
-              onClick={() => onChange(option.value)}
-              className="h-8 gap-1.5"
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {option.label.replace("Write a ", "").replace("Add ", "")}
-            </Button>
-          );
-        })}
-      </div>
-    );
-  }
-
+export default function PostTypeChooser({ value, onChange }) {
   return (
     <div className="border-b bg-muted/20 px-4 py-4">
       <div className="mb-3">
-        <div className="text-sm font-semibold">What are you adding?</div>
+        <div className="text-sm font-semibold">What would you like to add?</div>
         <div className="text-xs text-muted-foreground">
-          Choose what you want to create. You can start writing immediately.
+          Or just start writing below for a regular post.
         </div>
       </div>
 
