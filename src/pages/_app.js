@@ -43,6 +43,20 @@ function MyApp({ Component, pageProps }) {
     }
   }, []);
 
+  useEffect(() => {
+    const splash = document.getElementById("app-splash");
+
+    if (!splash) return;
+
+    splash.classList.add("is-hidden");
+
+    const timeoutId = window.setTimeout(() => {
+      splash.remove();
+    }, 220);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
   return (
     <div className={playfair.variable}>
       <Head>
