@@ -3,7 +3,6 @@
 import { EDITOR_TYPE_CONFIG } from "./editorTypes";
 
 import {
-  Orbit,
   FileWarning,
   Bell,
   CalendarDays,
@@ -16,74 +15,51 @@ import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
+  TooltipProvider,
 } from "@/components/ui/tooltip";
 
 const TYPES = [
-  {
-    value: "action",
-    icon: Orbit,
-  },
-  {
-    value: "report",
-    icon: FileWarning,
-  },
-  {
-    value: "update",
-    icon: Bell,
-  },
-  {
-    value: "event",
-    icon: CalendarDays,
-  },
-  {
-    value: "meeting",
-    icon: Presentation,
-  },
+  { value: "report", icon: FileWarning },
+  { value: "update", icon: Bell },
+  { value: "event", icon: CalendarDays },
+  { value: "meeting", icon: Presentation },
 ];
 
 export default function EditorType({ type, setType }) {
   return (
-    <div className="scrollbar-hide w-full overflow-x-auto">
+    <TooltipProvider>
       <ToggleGroup
         type="single"
         value={type}
         onValueChange={(value) => {
-          if (value) {
-            setType(value);
-          }
+          if (value) setType(value);
         }}
         variant="outline"
-        className="w-max min-w-max flex-nowrap justify-start"
+        size="sm"
+        className="shrink-0"
       >
-        {TYPES.map((item, index) => {
+        {TYPES.map((item) => {
           const Icon = item.icon;
           const config = EDITOR_TYPE_CONFIG[item.value];
 
           return (
-            <ToggleGroupItem
-              key={item.value}
-              value={item.value}
-              className={`shrink-0 gap-2 rounded-none ${
-                index === 0 ? "rounded-l-md" : ""
-              } ${index === TYPES.length - 1 ? "rounded-r-md" : "border-r-0"}`}
-            >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="flex cursor-pointer items-center gap-2 whitespace-nowrap">
-                    <Icon className="h-4 w-4 shrink-0" />
-
-                    <span>{config.label}</span>
-                  </span>
-                </TooltipTrigger>
-
-                <TooltipContent>
-                  <p className="max-w-[200px] text-xs">{config.placeholder}</p>
-                </TooltipContent>
-              </Tooltip>
-            </ToggleGroupItem>
+            <Tooltip key={item.value}>
+              <TooltipTrigger asChild>
+                <ToggleGroupItem
+                  value={item.value}
+                  aria-label={config.label}
+                  className="h-8 w-8 shrink-0 p-0"
+                >
+                  <Icon className="h-4 w-4" />
+                </ToggleGroupItem>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p className="text-xs">{config.label}</p>
+              </TooltipContent>
+            </Tooltip>
           );
         })}
       </ToggleGroup>
-    </div>
+    </TooltipProvider>
   );
 }
