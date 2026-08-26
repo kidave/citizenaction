@@ -5,14 +5,13 @@ import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 
 import { extractContentMeta } from "@/utils/text/contentMeta";
+import { getEditorTypeConfig } from "@/components/feed/editor/editorTypes";
 
 export function useEditor(item = null, initialSpace = null) {
   const { user } = useAuth();
 
   const [spaces, setSpaces] = useState([]);
-
   const [is_global, setIsGlobal] = useState(false);
-
   const [governance, setSelectedAuthorities] = useState([]);
 
   const [type, setType] = useState("action");
@@ -20,12 +19,7 @@ export function useEditor(item = null, initialSpace = null) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
-  // ==========================================================
-  // Structured content
-  // ==========================================================
-
   const [contentJson, setContentJson] = useState(null);
-
   const [contentFormat, setContentFormat] = useState("text");
 
   const [attachments, setAttachments] = useState([]);
@@ -40,13 +34,20 @@ export function useEditor(item = null, initialSpace = null) {
 
   const [links, setLinks] = useState([]);
 
+  const setEditorType = (nextType) => {
+    const normalizedType = nextType || "action";
+    const config = getEditorTypeConfig(normalizedType);
+
+    setType(normalizedType);
+    setContentFormat(config.rich ? "editorjs" : "text");
+  };
+
   // ==========================================================
   // Attachment Helpers
   // ==========================================================
 
   const addAttachments = (files) => {
     const list = Array.isArray(files) ? files : [files];
-
     setAttachments((prev) => [...prev, ...list]);
   };
 
@@ -71,17 +72,13 @@ export function useEditor(item = null, initialSpace = null) {
   const moveAttachment = (from, to) => {
     setAttachments((prev) => {
       const next = [...prev];
-
       const [item] = next.splice(from, 1);
-
       next.splice(to, 0, item);
-
       return next;
     });
   };
 
   const attachmentCount = attachments.length;
-
   const hasAttachments = attachmentCount > 0;
 
   // ==========================================================
@@ -90,7 +87,6 @@ export function useEditor(item = null, initialSpace = null) {
 
   const addLinks = (newLinks) => {
     const list = Array.isArray(newLinks) ? newLinks : [newLinks];
-
     setLinks((prev) => [...prev, ...list]);
   };
 
@@ -115,68 +111,49 @@ export function useEditor(item = null, initialSpace = null) {
   const moveLink = (from, to) => {
     setLinks((prev) => {
       const next = [...prev];
-
       const [item] = next.splice(from, 1);
-
       next.splice(to, 0, item);
-
       return next;
     });
   };
 
   // ==========================================================
-  // Load Existing Item / Initial Space
+  // Attachment normalization
   // ==========================================================
+
   const normalizeAttachment = (attachment) => {
     if (!attachment) return null;
 
     return {
       ...attachment,
-
       file_name: attachment.file_name ?? attachment.file?.name ?? "",
-
       mime_type: attachment.mime_type ?? attachment.file?.type ?? "",
-
       file_size: attachment.file_size ?? attachment.file?.size ?? null,
-
       credit_name: attachment.credit_name ?? "",
-
       credit_url: attachment.credit_url ?? "",
-
       width: attachment.width ?? null,
-
       height: attachment.height ?? null,
-
       duration: attachment.duration ?? null,
-
       sort_order: attachment.sort_order ?? 0,
     };
   };
 
-  useEffect(() => {
-    /*
-     * ========================================================
-     * EDIT EXISTING POST
-     * ========================================================
-     *
-     * Existing post spaces always take priority.
-     */
+  // ==========================================================
+  // Load Existing Item / Initial Space
+  // ==========================================================
 
+  useEffect(() => {
     if (item) {
       setSpaces(item.spaces ?? []);
-
       setIsGlobal(item.is_global ?? false);
-
       setSelectedAuthorities(item.governance ?? []);
 
-      setType(item.type ?? "action");
+      const itemType = item.type ?? "action";
+      setType(itemType);
 
       setTitle(item.title ?? "");
-
       setContent(item.content ?? "");
-
       setContentJson(item.content_json ?? null);
-
       setContentFormat(
         item.content_format === "editorjs" ? "editorjs" : "text",
       );
@@ -184,65 +161,37 @@ export function useEditor(item = null, initialSpace = null) {
       replaceAttachments(
         (item.attachments ?? []).map(normalizeAttachment).filter(Boolean),
       );
-
       replaceLinks(item.links ?? []);
 
       setStartAt(item.start_at ?? null);
-
       setEndAt(item.end_at ?? null);
-
       setLat(item.lat ?? null);
-
       setLng(item.lng ?? null);
-
       setAddress(item.address ?? null);
 
       return;
     }
 
-    /*
-     * ========================================================
-     * NEW POST
-     * ========================================================
-     *
-     * If the editor was opened from a Space page,
-     * automatically select that Space.
-     */
-
     if (initialSpace) {
       setSpaces([initialSpace]);
-
       setIsGlobal(false);
     } else {
       setSpaces([]);
-
       setIsGlobal(false);
     }
 
     setSelectedAuthorities([]);
-
     setType("action");
-
     setTitle("");
-
     setContent("");
-
     setContentJson(null);
-
     setContentFormat("text");
-
     replaceAttachments([]);
-
     replaceLinks([]);
-
     setStartAt(null);
-
     setEndAt(null);
-
     setLat(null);
-
     setLng(null);
-
     setAddress(null);
   }, [item, initialSpace]);
 
@@ -255,41 +204,24 @@ export function useEditor(item = null, initialSpace = null) {
 
     return {
       author_id: user?.id ?? null,
-
       title,
-
       content,
-
       content_json: contentJson,
-
       content_format: contentFormat,
-
       attachments,
-
       links,
-
       start_at,
-
       end_at,
-
       lat,
-
       lng,
-
       address,
-
       metadata: {
         extracted_links,
-
         hashtags,
       },
-
       spaces,
-
       is_global,
-
       governance,
-
       type,
     };
   }, [
@@ -312,16 +244,8 @@ export function useEditor(item = null, initialSpace = null) {
   ]);
 
   return {
-    // ========================================================
-    // Type
-    // ========================================================
-
     type,
-    setType,
-
-    // ========================================================
-    // Content
-    // ========================================================
+    setType: setEditorType,
 
     title,
     setTitle,
@@ -329,106 +253,53 @@ export function useEditor(item = null, initialSpace = null) {
     content,
     setContent,
 
-    // ========================================================
-    // Structured content
-    // ========================================================
-
     contentJson,
     setContentJson,
 
     contentFormat,
     setContentFormat,
 
-    // ========================================================
-    // Attachments
-    // ========================================================
-
     attachments,
-
     attachmentCount,
-
     hasAttachments,
-
     setAttachments,
-
     replaceAttachments,
-
     addAttachments,
-
     removeAttachment,
-
     clearAttachments,
-
     updateAttachment,
-
     moveAttachment,
 
-    // ========================================================
-    // Links
-    // ========================================================
-
     links,
-
     setLinks,
-
     replaceLinks,
-
     addLinks,
-
     removeLink,
-
     clearLinks,
-
     updateLink,
-
     moveLink,
-
-    // ========================================================
-    // Dates
-    // ========================================================
 
     start_at,
     setStartAt,
-
     end_at,
     setEndAt,
 
-    // ========================================================
-    // Location
-    // ========================================================
-
     lat,
     setLat,
-
     lng,
     setLng,
-
     address,
     setAddress,
 
-    // ========================================================
-    // Spaces
-    // ========================================================
-
     spaces,
     setSpaces,
-
     is_global,
     setIsGlobal,
-
-    // ========================================================
-    // Governance
-    // ========================================================
 
     governance,
     setSelectedAuthorities,
 
-    // ========================================================
-    // Helpers
-    // ========================================================
-
     editorData,
-
     getEditorData: () => editorData,
   };
 }
