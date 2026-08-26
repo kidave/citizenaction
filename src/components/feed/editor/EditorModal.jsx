@@ -12,6 +12,7 @@ import { useContributionEditor } from "@/hooks/editor/useContributionEditor";
 import EditorHeader from "./EditorHeader";
 import EditorAttachments from "./EditorAttachments";
 import EditorFooter from "./EditorFooter";
+import EditorContextSuggestions from "./EditorContextSuggestions";
 
 const EditorContent = dynamic(() => import("./EditorContent"), {
   ssr: false,
@@ -40,7 +41,7 @@ export default function EditorModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="flex h-full w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-2xl sm:rounded-xl">
+      <DialogContent className="flex h-full w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 pr-1 sm:h-[90vh] sm:max-w-2xl sm:rounded-xl">
         {loading ? (
           <EditorModalSkeleton />
         ) : (
@@ -51,6 +52,8 @@ export default function EditorModal({
               editor={editor}
               spaces={spaces}
             />
+
+            {mode === "post" && <EditorContextSuggestions editor={editor} />}
 
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
               <EditorContent
