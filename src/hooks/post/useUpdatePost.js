@@ -184,13 +184,6 @@ export function useUpdatePost() {
           throw linkError;
         }
 
-        const oldAttachmentsByPath = new Map(
-          existingAttachments.map((attachment) => [
-            attachment.storage_path,
-            attachment,
-          ]),
-        );
-
         const finalStoragePaths = new Set(
           finalAttachments
             .map((attachment) => attachment.storage_path)
@@ -206,8 +199,6 @@ export function useUpdatePost() {
         if (removedAttachments.length) {
           await deletePostAttachments(removedAttachments);
         }
-
-        void oldAttachmentsByPath;
 
         return updatedPost;
       } catch (error) {
