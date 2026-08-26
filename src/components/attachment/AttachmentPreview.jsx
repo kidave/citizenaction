@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 import Image from "next/image";
 
 import {
@@ -13,8 +11,6 @@ import {
   Paperclip,
   Presentation,
 } from "lucide-react";
-
-import { getPdfThumbnail } from "@/utils/media/getPdfThumbnail";
 
 function getAttachmentUrl(attachment) {
   return (
@@ -31,44 +27,17 @@ function getAttachmentMimeType(attachment) {
 }
 
 export default function AttachmentPreview({ attachment }) {
-  const [pdfThumbnail, setPdfThumbnail] = useState(null);
+  if (!attachment) return null;
 
   const publicUrl = getAttachmentUrl(attachment);
   const mime = getAttachmentMimeType(attachment);
-
-  useEffect(() => {
-    let mounted = true;
-
-    async function loadThumbnail() {
-      if (mime === "application/pdf" && publicUrl) {
-        const thumbnail = await getPdfThumbnail(publicUrl);
-
-        if (mounted) {
-          setPdfThumbnail(thumbnail);
-        }
-      } else {
-        setPdfThumbnail(null);
-      }
-    }
-
-    loadThumbnail();
-
-    return () => {
-      mounted = false;
-    };
-  }, [mime, publicUrl]);
-
-  if (!attachment) return null;
-
-  /* ==========================================
-     IMAGE
-  ========================================== */
+  const thumbnailUrl = attachment?.thumbnail_url || attachment?.thumbnailUrl || null;
 
   if (mime.startsWith("image/") && publicUrl) {
     return (
       <>
         <Image
-          src={publicUrl}
+          src={attachment.preview_url || publicUrl}
           alt={attachment.file_name || attachment.fileName || ""}
           fill
           placeholder="empty"
@@ -77,32 +46,26 @@ export default function AttachmentPreview({ attachment }) {
           quality={75}
           className="object-cover"
         />
-
         <AttachmentBadge credit={attachment.credit_name} />
       </>
     );
   }
 
-  /* ==========================================
-     PDF
-  ========================================== */
-
   if (mime === "application/pdf") {
-    if (pdfThumbnail) {
+    if (thumbnailUrl) {
       return (
         <>
           <Image
-            src={pdfThumbnail}
-            alt=""
+            src={thumbnailUrl}
+            alt={attachment.file_name || "PDF preview"}
             fill
             placeholder="empty"
             loading="lazy"
-            unoptimized
+            sizes="(max-width: 640px) 100vw, 768px"
+            quality={70}
             className="object-cover"
           />
-
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-
           <AttachmentBadge type="PDF" credit={attachment.credit_name} />
         </>
       );
@@ -118,14 +81,9 @@ export default function AttachmentPreview({ attachment }) {
     );
   }
 
-  /* ==========================================
-     WORD
-  ========================================== */
-
   if (
     mime === "application/msword" ||
-    mime ===
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
   ) {
     return (
       <PreviewFallback
@@ -136,10 +94,6 @@ export default function AttachmentPreview({ attachment }) {
       />
     );
   }
-
-  /* ==========================================
-     EXCEL
-  ========================================== */
 
   if (mime.includes("spreadsheet") || mime.includes("excel")) {
     return (
@@ -152,10 +106,6 @@ export default function AttachmentPreview({ attachment }) {
     );
   }
 
-  /* ==========================================
-     POWERPOINT
-  ========================================== */
-
   if (mime.includes("presentation") || mime.includes("powerpoint")) {
     return (
       <PreviewFallback
@@ -167,10 +117,6 @@ export default function AttachmentPreview({ attachment }) {
     );
   }
 
-  /* ==========================================
-     TEXT
-  ========================================== */
-
   if (mime.startsWith("text/")) {
     return (
       <PreviewFallback
@@ -181,15 +127,7 @@ export default function AttachmentPreview({ attachment }) {
     );
   }
 
-  /* ==========================================
-     ZIP
-  ========================================== */
-
-  if (
-    mime.includes("zip") ||
-    mime.includes("compressed") ||
-    mime.includes("rar")
-  ) {
+  if (mime.includes("zip") || mime.includes("compressed") || mime.includes("rar")) {
     return (
       <PreviewFallback
         attachment={attachment}
@@ -198,10 +136,6 @@ export default function AttachmentPreview({ attachment }) {
       />
     );
   }
-
-  /* ==========================================
-     GENERIC FILE
-  ========================================== */
 
   return (
     <PreviewFallback
@@ -212,20 +146,13 @@ export default function AttachmentPreview({ attachment }) {
   );
 }
 
-function PreviewFallback({
-  attachment,
-  icon,
-  label,
-  color = "text-muted-foreground",
-}) {
+function PreviewFallback({ attachment, icon, label, color = "text-muted-foreground" }) {
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-muted to-muted/50">
       <div className={color}>{icon}</div>
-
       <span className="mt-3 text-xs font-semibold tracking-wide text-muted-foreground">
         {label}
       </span>
-
       <AttachmentBadge type={label} credit={attachment?.credit_name} />
     </div>
   );
