@@ -20,8 +20,11 @@ const TYPES = [
 
 export default function EditorType({ type, setType }) {
   return (
-    <TooltipProvider>
-      <ButtonGroup aria-label="Post type" className="shrink-0">
+    <TooltipProvider delayDuration={250}>
+      <ButtonGroup
+        aria-label="Post type"
+        className="ml-2 shrink-0 rounded-lg border bg-muted/30 p-0.5"
+      >
         {TYPES.map(({ value, label, icon: Icon }) => {
           const selected = type === value;
 
@@ -30,18 +33,24 @@ export default function EditorType({ type, setType }) {
               <TooltipTrigger asChild>
                 <Button
                   type="button"
-                  variant={selected ? "secondary" : "ghost"}
+                  variant="ghost"
                   size="icon-sm"
                   aria-label={label}
                   aria-pressed={selected}
                   onClick={() => setType(value)}
-                  className="shrink-0"
+                  className={[
+                    "h-8 w-8 rounded-md p-0 transition-colors",
+                    "hover:bg-background hover:text-foreground",
+                    selected
+                      ? "bg-background text-foreground shadow-sm ring-1 ring-border"
+                      : "text-muted-foreground",
+                  ].join(" ")}
                 >
-                  <Icon />
+                  <Icon className="size-4" strokeWidth={1.8} />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p className="text-xs">{label}</p>
+              <TooltipContent side="bottom" align="center">
+                {label}
               </TooltipContent>
             </Tooltip>
           );
