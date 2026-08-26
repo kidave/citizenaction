@@ -75,7 +75,7 @@ export default function EditorModal({
                 setContent={editor.setContent}
                 contentJson={editor.contentJson}
                 setContentJson={editor.setContentJson}
-                setContentFormat={editor.setContentFormat}
+                setContentFormat={editor.contentFormat}
                 attachments={editor.attachments}
                 addAttachments={editor.addAttachments}
                 onFocus={() => setAttachmentsOpen(false)}
