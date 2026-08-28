@@ -53,6 +53,18 @@ function formatMonthInputValue(value) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
+function formatSuggestionValue(value, precision) {
+  const date = toValidDate(value);
+  if (!date) return "";
+  return precision === "datetime"
+    ? formatSuggestedDate(date)
+    : date.toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+}
+
 export default function EditorContextSuggestions({ editor }) {
   const text = `${editor.title || ""}\n${editor.content || ""}`;
   const dateCandidate = useMemo(() => extractDateCandidate(text), [text]);
@@ -134,7 +146,18 @@ export default function EditorContextSuggestions({ editor }) {
     };
   }, [dateCandidate]);
 
-  const showDate = Boolean(validDateCandidate && !editor.start_at && !dismissed.date);
+  // start_at/end_at are the event-level date fields. Once a start has been
+  // accepted, only suggest an end when the detected candidate actually gives
+  // us an end. Do not turn every later date in a long report into an event end.
+  const isEndDateSuggestion = Boolean(
+    editor.start_at && !editor.end_at && validDateCandidate?.endValue,
+  );
+
+  const showDate = Boolean(
+    validDateCandidate &&
+      !dismissed.date &&
+      (!editor.start_at || isEndDateSuggestion),
+  );
   const showLocation = Boolean(
     locationCandidate && !editor.address && !dismissed.location && locationResult,
   );
@@ -162,6 +185,17 @@ export default function EditorContextSuggestions({ editor }) {
     const date = toValidDate(dateValue);
     if (!date) return;
 
+    if (isEndDateSuggestion) {
+      const endDate = toValidDate(dateEndValue || validDateCandidate.endValue);
+      const startDate = toValidDate(editor.start_at);
+      if (!endDate || !startDate || endDate < startDate) return;
+
+      editor.setEndAt(endDate.toISOString());
+      editor.setDatePrecision?.(validDateCandidate.precision || "date");
+      setEditingDate(false);
+      return;
+    }
+
     editor.setStartAt(date.toISOString());
 
     const endDate = toValidDate(dateEndValue || validDateCandidate.endValue);
@@ -188,12 +222,19 @@ export default function EditorContextSuggestions({ editor }) {
     setLocationEditorOpen(true);
   }
 
-  const dateSuggestionText =
-    validDateCandidate?.precision === "month"
-      ? validDateCandidate.label
-      : formatDateRange(validDateCandidate?.value, validDateCandidate?.endValue);
+  const suggestionValue = isEndDateSuggestion
+    ? validDateCandidate?.endValue
+    : validDateCandidate?.value;
 
-  const isMonthSuggestion = validDateCandidate?.precision === "month";
+  const dateSuggestionText =
+    isEndDateSuggestion
+      ? formatSuggestionValue(suggestionValue, validDateCandidate?.precision)
+      : validDateCandidate?.precision === "month"
+        ? validDateCandidate.label
+        : formatDateRange(validDateCandidate?.value, validDateCandidate?.endValue);
+
+  const isMonthSuggestion =
+    validDateCandidate?.precision === "month" && !isEndDateSuggestion;
 
   return (
     <>
@@ -215,11 +256,15 @@ export default function EditorContextSuggestions({ editor }) {
                     <>
                       <Input
                         type="datetime-local"
-                        value={dateValue}
-                        onChange={(event) => setDateValue(event.target.value)}
+                        value={isEndDateSuggestion ? dateEndValue : dateValue}
+                        onChange={(event) =>
+                          isEndDateSuggestion
+                            ? setDateEndValue(event.target.value)
+                            : setDateValue(event.target.value)
+                        }
                         className="h-7 w-[190px] px-2 text-xs"
                       />
-                      {validDateCandidate?.endValue && (
+                      {!isEndDateSuggestion && validDateCandidate?.endValue && (
                         <Input
                           type="datetime-local"
                           value={dateEndValue}
@@ -238,8 +283,10 @@ export default function EditorContextSuggestions({ editor }) {
                 </>
               ) : (
                 <>
-                  <span>Use {dateSuggestionText}?</span>
-                  <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={acceptDate} aria-label="Use suggested date">
+                  <span>
+                    Use {dateSuggestionText}{isEndDateSuggestion ? " as end" : ""}?
+                  </span>
+                  <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={acceptDate} aria-label={isEndDateSuggestion ? "Use suggested end date" : "Use suggested date"}>
                     <Check className="h-3.5 w-3.5" />
                   </Button>
                   <button type="button" className="text-muted-foreground hover:text-foreground" onClick={() => setEditingDate(true)}>
