@@ -22,6 +22,7 @@ export default function EditorAddress({
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [userLocation, setUserLocation] = useState(null);
+  const [snapshot, setSnapshot] = useState(null);
   const reverseDebounceRef = useRef(null);
 
   const isControlled = typeof openOverride === "boolean";
@@ -30,6 +31,11 @@ export default function EditorAddress({
   useEffect(() => {
     if (pickerOpen) {
       setSearchValue(initialQuery || editor.address || "");
+      setSnapshot({
+        address: editor.address ?? null,
+        lat: editor.lat ?? null,
+        lng: editor.lng ?? null,
+      });
     }
   }, [editor.address, initialQuery, pickerOpen]);
 
@@ -62,13 +68,8 @@ export default function EditorAddress({
     editor.setLat(lat);
     editor.setLng(lng);
 
-    if (reverseDebounceRef.current) {
-      clearTimeout(reverseDebounceRef.current);
-    }
-
-    reverseDebounceRef.current = setTimeout(() => {
-      reverseGeocode(lat, lng);
-    }, 350);
+    if (reverseDebounceRef.current) clearTimeout(reverseDebounceRef.current);
+    reverseDebounceRef.current = setTimeout(() => reverseGeocode(lat, lng), 350);
   }
 
   function handleSelect(location) {
@@ -76,7 +77,6 @@ export default function EditorAddress({
     editor.setLng(location.lng);
     editor.setAddress(location.address || location.name || "");
     setSearchValue(location.address || location.name || "");
-    // Intentionally keep the map dialog open. User presses Done when ready.
   }
 
   function handleUseCurrentLocation() {
@@ -98,6 +98,19 @@ export default function EditorAddress({
     setSearchValue("");
   }
 
+  function cancelLocationEdit() {
+    if (snapshot) {
+      editor.setLat(snapshot.lat);
+      editor.setLng(snapshot.lng);
+      editor.setAddress(snapshot.address);
+    }
+    setPickerOpen(false);
+  }
+
+  function finishLocationEdit() {
+    setPickerOpen(false);
+  }
+
   return (
     <>
       {!isControlled && (
@@ -113,7 +126,7 @@ export default function EditorAddress({
         </Button>
       )}
 
-      <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+      <Dialog open={pickerOpen} onOpenChange={(value) => (value ? setPickerOpen(true) : cancelLocationEdit())}>
         <DialogContent className="h-dvh max-w-none overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-5xl sm:rounded-xl">
           <div className="relative h-full w-full overflow-hidden">
             <LocationMapPreview
@@ -150,12 +163,15 @@ export default function EditorAddress({
                   </div>
                 </div>
                 <div className="flex items-center justify-between border-t p-3">
-                  <Button type="button" variant="outline" onClick={clearLocation}>
-                    Clear
-                  </Button>
-                  <Button type="button" onClick={() => setPickerOpen(false)}>
-                    Done
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button type="button" variant="outline" onClick={clearLocation}>
+                      Clear
+                    </Button>
+                    <Button type="button" variant="ghost" onClick={cancelLocationEdit}>
+                      Cancel
+                    </Button>
+                  </div>
+                  <Button type="button" onClick={finishLocationEdit}>Done</Button>
                 </div>
               </div>
             </div>
