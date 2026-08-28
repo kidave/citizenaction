@@ -2,10 +2,11 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import { MapPin } from "lucide-react";
+import { MapPin, Search, X } from "lucide-react";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import LocationSearchInput from "@/components/shared/LocationSearchInput";
 
 const LocationMapPreview = dynamic(
@@ -20,8 +21,11 @@ export default function EditorAddress({
   initialQuery = "",
 }) {
   const [open, setOpen] = useState(false);
+  const [searchMode, setSearchMode] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [userLocation, setUserLocation] = useState(null);
+  const [loadingGPS, setLoadingGPS] = useState(false);
+  const [showLocationDrawer, setShowLocationDrawer] = useState(false);
   const [snapshot, setSnapshot] = useState(null);
   const reverseDebounceRef = useRef(null);
 
@@ -30,7 +34,9 @@ export default function EditorAddress({
 
   useEffect(() => {
     if (pickerOpen) {
+      setSearchMode(false);
       setSearchValue(initialQuery || editor.address || "");
+      setShowLocationDrawer(Boolean(editor.address));
       setSnapshot({
         address: editor.address ?? null,
         lat: editor.lat ?? null,
@@ -67,6 +73,8 @@ export default function EditorAddress({
   function handleMapChange(lat, lng) {
     editor.setLat(lat);
     editor.setLng(lng);
+    editor.setAddress(null);
+    setShowLocationDrawer(true);
 
     if (reverseDebounceRef.current) clearTimeout(reverseDebounceRef.current);
     reverseDebounceRef.current = setTimeout(() => reverseGeocode(lat, lng), 350);
@@ -77,16 +85,26 @@ export default function EditorAddress({
     editor.setLng(location.lng);
     editor.setAddress(location.address || location.name || "");
     setSearchValue(location.address || location.name || "");
+    setSearchMode(false);
+    setShowLocationDrawer(true);
   }
 
   function handleUseCurrentLocation() {
-    navigator.geolocation?.getCurrentPosition(
+    if (!navigator.geolocation) return;
+
+    setLoadingGPS(true);
+    navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
+        setUserLocation({ lat: coords.latitude, lng: coords.longitude });
         editor.setLat(coords.latitude);
         editor.setLng(coords.longitude);
+        editor.setAddress(null);
+        setSearchMode(false);
+        setShowLocationDrawer(true);
         await reverseGeocode(coords.latitude, coords.longitude);
+        setLoadingGPS(false);
       },
-      () => {},
+      () => setLoadingGPS(false),
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 },
     );
   }
@@ -96,6 +114,7 @@ export default function EditorAddress({
     editor.setLng(null);
     editor.setAddress(null);
     setSearchValue("");
+    setShowLocationDrawer(false);
   }
 
   function cancelLocationEdit() {
@@ -104,10 +123,12 @@ export default function EditorAddress({
       editor.setLng(snapshot.lng);
       editor.setAddress(snapshot.address);
     }
+    setSearchMode(false);
     setPickerOpen(false);
   }
 
   function finishLocationEdit() {
+    setSearchMode(false);
     setPickerOpen(false);
   }
 
@@ -126,55 +147,90 @@ export default function EditorAddress({
         </Button>
       )}
 
-      <Dialog open={pickerOpen} onOpenChange={(value) => (value ? setPickerOpen(true) : cancelLocationEdit())}>
-        <DialogContent className="h-dvh max-w-none overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-5xl sm:rounded-xl">
+      <Dialog
+        open={pickerOpen}
+        onOpenChange={(value) => (value ? setPickerOpen(true) : cancelLocationEdit())}
+      >
+        <DialogContent
+          className="h-dvh max-w-none overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-5xl sm:rounded-xl [&>button]:right-3 [&>button]:top-3 [&>button]:z-[2000] [&>button]:h-10 [&>button]:w-10 [&>button]:rounded-full [&>button]:bg-background [&>button]:opacity-100 [&>button]:shadow-lg"
+        >
           <div className="relative h-full w-full overflow-hidden">
-            <LocationMapPreview
-              lat={editor.lat ?? userLocation?.lat ?? 19.076}
-              lng={editor.lng ?? userLocation?.lng ?? 72.8777}
-              onChange={handleMapChange}
-            />
-
-            <div className="absolute left-3 right-3 top-3 z-[1000] sm:left-12 sm:right-auto sm:w-[380px]">
-              <div className="rounded-xl border bg-background p-2 shadow-lg">
-                <LocationSearchInput
-                  value={searchValue || editor.address || ""}
-                  onChange={(value) => {
-                    setSearchValue(value);
-                    editor.setAddress(value);
-                    editor.setLat(null);
-                    editor.setLng(null);
-                  }}
-                  onSelect={handleSelect}
+            {searchMode ? (
+              <LocationSearchInput
+                value={searchValue}
+                onChange={(value) => {
+                  setSearchValue(value);
+                }}
+                onSelect={handleSelect}
+                onUseCurrentLocation={handleUseCurrentLocation}
+                loadingGPS={loadingGPS}
+                onBack={() => setSearchMode(false)}
+                onCancel={() => setSearchMode(false)}
+              />
+            ) : (
+              <>
+                <LocationMapPreview
+                  lat={editor.lat ?? userLocation?.lat ?? 19.076}
+                  lng={editor.lng ?? userLocation?.lng ?? 72.8777}
+                  onChange={handleMapChange}
                   onUseCurrentLocation={handleUseCurrentLocation}
+                  loadingGPS={loadingGPS}
                 />
-              </div>
-            </div>
 
-            <div className="absolute bottom-3 left-3 right-3 z-[1000] sm:left-1/2 sm:right-auto sm:w-[520px] sm:-translate-x-1/2">
-              <div className="overflow-hidden rounded-2xl border bg-background shadow-xl">
-                <div className="flex items-start gap-3 p-4">
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium">Selected location</div>
-                    <div className="line-clamp-2 text-sm text-muted-foreground">
-                      {editor.address || "Move the map or search"}
-                    </div>
-                  </div>
+                <div className="absolute left-3 right-16 top-3 z-[1000] sm:left-12 sm:right-auto sm:w-[420px]">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setSearchMode(true)}
+                    className="h-12 w-full justify-start gap-3 rounded-full bg-background px-4 text-left shadow-lg hover:bg-background"
+                  >
+                    <Search className="h-5 w-5 shrink-0 text-muted-foreground" />
+                    <span className="truncate text-sm text-muted-foreground">
+                      {editor.address || "Search here"}
+                    </span>
+                  </Button>
                 </div>
-                <div className="flex items-center justify-between border-t p-3">
-                  <div className="flex items-center gap-2">
-                    <Button type="button" variant="outline" onClick={clearLocation}>
-                      Clear
-                    </Button>
-                    <Button type="button" variant="ghost" onClick={cancelLocationEdit}>
-                      Cancel
-                    </Button>
-                  </div>
-                  <Button type="button" onClick={finishLocationEdit}>Done</Button>
-                </div>
-              </div>
-            </div>
+
+                {showLocationDrawer && (
+                  <Card className="absolute bottom-3 left-3 right-3 z-[1000] rounded-2xl border bg-background/95 shadow-2xl backdrop-blur sm:left-1/2 sm:right-auto sm:w-[520px] sm:-translate-x-1/2">
+                    <CardContent className="p-4">
+                      <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-muted" />
+                      <div className="flex items-start gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-base font-medium">
+                            {editor.address || "Selected location"}
+                          </div>
+                          <div className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                            {editor.address
+                              ? "Location selected from the map"
+                              : "Finding the address…"}
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setShowLocationDrawer(false)}
+                          aria-label="Hide selected location"
+                          className="shrink-0 rounded-full"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+
+                      <div className="mt-3 flex items-center gap-2">
+                        <Button type="button" className="flex-1" onClick={finishLocationEdit}>
+                          Use location
+                        </Button>
+                        <Button type="button" variant="outline" onClick={clearLocation}>
+                          Clear
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>
