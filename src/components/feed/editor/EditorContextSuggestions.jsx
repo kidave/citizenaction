@@ -12,12 +12,14 @@ import {
   formatSuggestedDate,
 } from "@/utils/editor/contextSuggestions";
 
-function toDateInputValue(value) {
+function toDateTimeLocalValue(value) {
   if (!value) return "";
+
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
 
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  const pad = (number) => String(number).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 export default function EditorContextSuggestions({ editor }) {
@@ -41,7 +43,7 @@ export default function EditorContextSuggestions({ editor }) {
     setEditingDate(false);
     setLocationEditorQuery(locationCandidate?.query || "");
     setDateValue(
-      dateCandidate?.value ? toDateInputValue(dateCandidate.value) : "",
+      dateCandidate?.value ? toDateTimeLocalValue(dateCandidate.value) : "",
     );
   }, [dateCandidate?.value, locationCandidate?.query]);
 
@@ -100,12 +102,15 @@ export default function EditorContextSuggestions({ editor }) {
   function acceptDate() {
     if (!dateValue) return;
 
-    const [year, month, day] = dateValue.split("-").map(Number);
-    const date = new Date(year, month - 1, day, 12);
-
+    const date = new Date(dateValue);
     if (Number.isNaN(date.getTime())) return;
 
     editor.setStartAt(date.toISOString());
+
+    if (!editor.end_at && dateCandidate?.endValue) {
+      editor.setEndAt(dateCandidate.endValue);
+    }
+
     setEditingDate(false);
   }
 
@@ -115,11 +120,12 @@ export default function EditorContextSuggestions({ editor }) {
     editor.setLat(locationResult.lat);
     editor.setLng(locationResult.lng);
     editor.setAddress(locationResult.address);
-    setLocationEditorOpen(false);
   }
 
   function openLocationPicker() {
-    setLocationEditorQuery(locationResult?.address || locationCandidate?.query || editor.address || "");
+    setLocationEditorQuery(
+      locationResult?.address || locationCandidate?.query || editor.address || "",
+    );
     setLocationEditorOpen(true);
   }
 
@@ -132,17 +138,32 @@ export default function EditorContextSuggestions({ editor }) {
               <CalendarDays className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               {editingDate ? (
                 <>
-                  <Input type="date" value={dateValue} onChange={(event) => setDateValue(event.target.value)} className="h-7 w-[138px] px-2 text-xs" />
-                  <Button type="button" size="sm" className="h-7 px-2" onClick={acceptDate}>Save</Button>
-                  <button type="button" className="text-muted-foreground hover:text-foreground" onClick={() => setEditingDate(false)}>Cancel</button>
+                  <Input
+                    type="datetime-local"
+                    value={dateValue}
+                    onChange={(event) => setDateValue(event.target.value)}
+                    className="h-7 w-[190px] px-2 text-xs"
+                  />
+                  <Button type="button" size="sm" className="h-7 px-2" onClick={acceptDate}>
+                    Save
+                  </Button>
+                  <button type="button" className="text-muted-foreground hover:text-foreground" onClick={() => setEditingDate(false)}>
+                    Cancel
+                  </button>
                 </>
               ) : (
                 <>
-                  <span>Use {formatSuggestedDate(new Date(dateCandidate.value))}?</span>
+                  <span>
+                    Use {formatSuggestedDate(new Date(dateCandidate.value))}
+                    {dateCandidate.endValue && "?"}
+                    {!dateCandidate.endValue && "?"}
+                  </span>
                   <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={acceptDate} aria-label="Use suggested date">
                     <Check className="h-3.5 w-3.5" />
                   </Button>
-                  <button type="button" className="text-muted-foreground hover:text-foreground" onClick={() => setEditingDate(true)}>Edit</button>
+                  <button type="button" className="text-muted-foreground hover:text-foreground" onClick={() => setEditingDate(true)}>
+                    Edit
+                  </button>
                   <button type="button" className="text-muted-foreground hover:text-foreground" onClick={() => setDismissed((prev) => ({ ...prev, date: true }))} aria-label="Dismiss date suggestion">
                     <X className="h-3.5 w-3.5" />
                   </button>
