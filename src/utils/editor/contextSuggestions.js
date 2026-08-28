@@ -96,6 +96,29 @@ const NUMBER_WORDS = {
   twelve: 12,
 };
 
+function startOfReferenceDay(reference) {
+  const date = new Date(reference);
+  date.setHours(12, 0, 0, 0);
+  return date;
+}
+
+function inferExplicitStart(text, reference) {
+  if (!text) return null;
+
+  // Chrono can interpret the duration itself ("3 days") as a date-like
+  // result. When the sentence explicitly anchors the event to today/tomorrow,
+  // that anchor must win over the duration token.
+  const anchored = text.match(
+    /\b(?:starting\s+from|starting|from)\s+(today|tomorrow|yesterday)\b/i,
+  );
+
+  if (!anchored) return null;
+
+  const phrase = anchored[1].toLowerCase();
+  const parsed = chrono.parseDate(phrase, reference, { forwardDate: true });
+  return safeDate(parsed);
+}
+
 function inferDurationEnd(text, start, result) {
   const safeStart = safeDate(start);
   if (!safeStart || !text) return null;
@@ -137,12 +160,14 @@ export function extractDateCandidates(text = "") {
   const results = chrono.parse(text, reference, {
     forwardDate: false,
   });
+  const explicitStart = inferExplicitStart(text, reference);
 
   return results
     .map((result) => {
-      const start = safeDate(result.start?.date?.());
-      if (!start) return null;
+      const chronoStart = safeDate(result.start?.date?.());
+      if (!chronoStart) return null;
 
+      const start = explicitStart || chronoStart;
       const precision = detectPrecision(result);
       const explicitEnd = safeDate(result.end?.date?.());
       const inferredEnd = explicitEnd ? null : inferDurationEnd(text, start, result);
