@@ -1,27 +1,11 @@
-const MONTHS = {
-  january: 0,
-  february: 1,
-  march: 2,
-  april: 3,
-  may: 4,
-  june: 5,
-  july: 6,
-  august: 7,
-  september: 8,
-  october: 9,
-  november: 10,
-  december: 11,
-};
+import * as chrono from "chrono-node";
 
 function currentYear() {
   return new Date().getFullYear();
 }
 
-function normalizeYear(year) {
-  if (!year) return currentYear();
-  const value = Number(year);
-  if (value < 100) return 2000 + value;
-  return value;
+function referenceDate() {
+  return new Date();
 }
 
 export function formatSuggestedDate(date) {
@@ -29,60 +13,73 @@ export function formatSuggestedDate(date) {
     day: "numeric",
     month: "long",
     year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
   }).format(date);
 }
 
-function buildDate(day, month, year) {
-  const date = new Date(year, month, day, 12, 0, 0, 0);
+function formatSuggestedDateOnly(date) {
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
 
-  if (
-    date.getFullYear() !== year ||
-    date.getMonth() !== month ||
-    date.getDate() !== day
-  ) {
-    return null;
-  }
-
-  return date;
+function formatSuggestedTime(date) {
+  return new Intl.DateTimeFormat("en-IN", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
 }
 
 export function extractDateCandidates(text = "") {
-  if (!text) return [];
+  if (!text?.trim()) return [];
 
-  const monthNames = Object.keys(MONTHS).join("|");
-  const current = currentYear();
-  const candidates = [];
+  const reference = referenceDate();
+  const results = chrono.parse(text, reference, {
+    forwardDate: false,
+  });
 
-  const dayMonthPattern = new RegExp(
-    `\\b(\\d{1,2})(?:st|nd|rd|th)?\\s+(${monthNames})(?:\\s*,?\\s*(\\d{4}))?\\b`,
-    "gi",
-  );
+  const candidates = results
+    .map((result) => {
+      const start = result.start?.date?.();
+      if (!(start instanceof Date) || Number.isNaN(start.getTime())) {
+        return null;
+      }
 
-  const monthDayPattern = new RegExp(
-    `\\b(${monthNames})\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:\\s*,?\\s*(\\d{4}))?\\b`,
-    "gi",
-  );
+      const hasTime = Boolean(
+        result.start?.isCertain?.("hour") ||
+          result.start?.isCertain?.("minute") ||
+          result.text?.match(/\b(?:am|pm|a\.m\.|p\.m\.)\b/i),
+      );
 
-  for (const match of text.matchAll(dayMonthPattern)) {
-    const day = Number(match[1]);
-    const month = MONTHS[match[2].toLowerCase()];
-    const year = normalizeYear(match[3]);
-    const value = buildDate(day, month, year);
-    if (value) candidates.push({ type: "date", value: value.toISOString(), label: formatSuggestedDate(value), source: match[0] });
-  }
+      const end = result.end?.date?.() || null;
 
-  for (const match of text.matchAll(monthDayPattern)) {
-    const month = MONTHS[match[1].toLowerCase()];
-    const day = Number(match[2]);
-    const year = normalizeYear(match[3]);
-    const value = buildDate(day, month, year);
-    if (value) candidates.push({ type: "date", value: value.toISOString(), label: formatSuggestedDate(value), source: match[0] });
-  }
+      return {
+        type: "date",
+        value: start.toISOString(),
+        endValue: end instanceof Date && !Number.isNaN(end.getTime())
+          ? end.toISOString()
+          : null,
+        label: hasTime ? formatSuggestedDate(start) : formatSuggestedDateOnly(start),
+        timeLabel: hasTime ? formatSuggestedTime(start) : null,
+        source: result.text,
+        index: result.index,
+        hasTime,
+      };
+    })
+    .filter(Boolean)
+    .filter(
+      (candidate, index, list) =>
+        list.findIndex(
+          (item) =>
+            item.value === candidate.value &&
+            item.endValue === candidate.endValue,
+        ) === index,
+    );
 
-  return candidates.filter(
-    (candidate, index, list) =>
-      list.findIndex((item) => item.value === candidate.value) === index,
-  );
+  return candidates;
 }
 
 export function extractDateCandidate(text) {
@@ -110,7 +107,9 @@ export function extractLocationCandidates(text = "") {
   for (const pattern of patterns) {
     for (const match of text.matchAll(pattern)) {
       const query = cleanLocation(match[1] || match[0]);
-      if (query.length >= 3) candidates.push({ type: "location", query, source: match[0] });
+      if (query.length >= 3) {
+        candidates.push({ type: "location", query, source: match[0] });
+      }
     }
   }
 
@@ -126,3 +125,5 @@ export function extractLocationCandidates(text = "") {
 export function extractLocationCandidate(text) {
   return extractLocationCandidates(text)[0] ?? null;
 }
+
+export { currentYear };
