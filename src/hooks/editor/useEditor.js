@@ -26,6 +26,7 @@ export function useEditor(item = null, initialSpace = null) {
 
   const [start_at, setStartAt] = useState(null);
   const [end_at, setEndAt] = useState(null);
+  const [datePrecision, setDatePrecision] = useState(null);
 
   const [lat, setLat] = useState(null);
   const [lng, setLng] = useState(null);
@@ -40,11 +41,11 @@ export function useEditor(item = null, initialSpace = null) {
 
     setType(normalizedType);
     setContentFormat(config.rich ? "editorjs" : "text");
-  };
 
-  // ==========================================================
-  // Attachment Helpers
-  // ==========================================================
+    if (normalizedType !== "event" && normalizedType !== "meeting") {
+      setEndAt(null);
+    }
+  };
 
   const addAttachments = (files) => {
     const list = Array.isArray(files) ? files : [files];
@@ -81,10 +82,6 @@ export function useEditor(item = null, initialSpace = null) {
   const attachmentCount = attachments.length;
   const hasAttachments = attachmentCount > 0;
 
-  // ==========================================================
-  // Link Helpers
-  // ==========================================================
-
   const addLinks = (newLinks) => {
     const list = Array.isArray(newLinks) ? newLinks : [newLinks];
     setLinks((prev) => [...prev, ...list]);
@@ -117,10 +114,6 @@ export function useEditor(item = null, initialSpace = null) {
     });
   };
 
-  // ==========================================================
-  // Attachment normalization
-  // ==========================================================
-
   const normalizeAttachment = (attachment) => {
     if (!attachment) return null;
 
@@ -137,10 +130,6 @@ export function useEditor(item = null, initialSpace = null) {
       sort_order: attachment.sort_order ?? 0,
     };
   };
-
-  // ==========================================================
-  // Load Existing Item / Initial Space
-  // ==========================================================
 
   useEffect(() => {
     if (item) {
@@ -165,6 +154,7 @@ export function useEditor(item = null, initialSpace = null) {
 
       setStartAt(item.start_at ?? null);
       setEndAt(item.end_at ?? null);
+      setDatePrecision(item.metadata?.date_precision ?? null);
       setLat(item.lat ?? null);
       setLng(item.lng ?? null);
       setAddress(item.address ?? null);
@@ -190,14 +180,11 @@ export function useEditor(item = null, initialSpace = null) {
     replaceLinks([]);
     setStartAt(null);
     setEndAt(null);
+    setDatePrecision(null);
     setLat(null);
     setLng(null);
     setAddress(null);
   }, [item, initialSpace]);
-
-  // ==========================================================
-  // Editor Data
-  // ==========================================================
 
   const editorData = useMemo(() => {
     const { extracted_links, hashtags } = extractContentMeta(content);
@@ -218,6 +205,7 @@ export function useEditor(item = null, initialSpace = null) {
       metadata: {
         extracted_links,
         hashtags,
+        ...(datePrecision ? { date_precision: datePrecision } : {}),
       },
       spaces,
       is_global,
@@ -234,6 +222,7 @@ export function useEditor(item = null, initialSpace = null) {
     links,
     start_at,
     end_at,
+    datePrecision,
     lat,
     lng,
     address,
@@ -283,6 +272,8 @@ export function useEditor(item = null, initialSpace = null) {
     setStartAt,
     end_at,
     setEndAt,
+    datePrecision,
+    setDatePrecision,
 
     lat,
     setLat,
