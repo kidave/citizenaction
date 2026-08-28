@@ -67,6 +67,8 @@ export default function EditorContextSuggestions({ editor }) {
   }
 
   function acceptLocation() {
+    // Quick accept only stores the user's text. The full picker is still
+    // available through Edit or the footer location button for exact OSM selection.
     editor.setAddress(locationEditorQuery || locationCandidate?.query || "");
     setLocationEditorOpen(false);
   }
