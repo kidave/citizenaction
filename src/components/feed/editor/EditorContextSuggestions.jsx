@@ -12,24 +12,26 @@ import {
   formatSuggestedDate,
 } from "@/utils/editor/contextSuggestions";
 
+function toValidDate(value) {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 function toDateTimeLocalValue(value) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
+  const date = toValidDate(value);
+  if (!date) return "";
 
   const pad = (number) => String(number).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 function formatDateRange(start, end) {
-  if (!end) return formatSuggestedDate(start);
+  const startDate = toValidDate(start);
+  if (!startDate) return "";
 
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-
-  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
-    return formatSuggestedDate(startDate);
-  }
+  const endDate = toValidDate(end);
+  if (!endDate) return formatSuggestedDate(startDate);
 
   const sameYear = startDate.getFullYear() === endDate.getFullYear();
   const sameMonth = sameYear && startDate.getMonth() === endDate.getMonth();
@@ -46,9 +48,8 @@ function formatDateRange(start, end) {
 }
 
 function formatMonthInputValue(value) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
+  const date = toValidDate(value);
+  if (!date) return "";
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
@@ -75,19 +76,9 @@ export default function EditorContextSuggestions({ editor }) {
     setEditingDate(false);
     setLocationEditorQuery(locationCandidate?.query || "");
 
-    if (dateCandidate?.value) {
-      setDateValue(toDateTimeLocalValue(dateCandidate.value));
-      setMonthValue(formatMonthInputValue(dateCandidate.value));
-    } else {
-      setDateValue("");
-      setMonthValue("");
-    }
-
-    setDateEndValue(
-      dateCandidate?.endValue
-        ? toDateTimeLocalValue(dateCandidate.endValue)
-        : "",
-    );
+    setDateValue(toDateTimeLocalValue(dateCandidate?.value));
+    setMonthValue(formatMonthInputValue(dateCandidate?.value));
+    setDateEndValue(toDateTimeLocalValue(dateCandidate?.endValue));
   }, [dateCandidate?.value, dateCandidate?.endValue, locationCandidate?.query]);
 
   useEffect(() => {
@@ -132,10 +123,18 @@ export default function EditorContextSuggestions({ editor }) {
     };
   }, [dismissed.location, editor.address, locationCandidate?.query]);
 
-  const showDate = Boolean(
-    dateCandidate && !editor.start_at && !dismissed.date,
-  );
+  const validDateCandidate = useMemo(() => {
+    if (!dateCandidate) return null;
+    const value = toValidDate(dateCandidate.value);
+    if (!value) return null;
+    return {
+      ...dateCandidate,
+      value: value.toISOString(),
+      endValue: toValidDate(dateCandidate.endValue)?.toISOString() || null,
+    };
+  }, [dateCandidate]);
 
+  const showDate = Boolean(validDateCandidate && !editor.start_at && !dismissed.date);
   const showLocation = Boolean(
     locationCandidate && !editor.address && !dismissed.location && locationResult,
   );
@@ -143,13 +142,15 @@ export default function EditorContextSuggestions({ editor }) {
   if (!showDate && !showLocation && !locationEditorOpen) return null;
 
   function acceptDate() {
-    if (dateCandidate?.precision === "month") {
+    if (!validDateCandidate) return;
+
+    if (validDateCandidate.precision === "month") {
       if (!monthValue) return;
       const [year, month] = monthValue.split("-").map(Number);
+      if (!year || !month) return;
+
       const firstDay = new Date(year, month - 1, 1, 12, 0, 0, 0);
       const lastDay = new Date(year, month, 0, 23, 59, 59, 999);
-
-      if (Number.isNaN(firstDay.getTime()) || Number.isNaN(lastDay.getTime())) return;
 
       editor.setStartAt(firstDay.toISOString());
       editor.setEndAt(lastDay.toISOString());
@@ -158,21 +159,17 @@ export default function EditorContextSuggestions({ editor }) {
       return;
     }
 
-    if (!dateValue) return;
-
-    const date = new Date(dateValue);
-    if (Number.isNaN(date.getTime())) return;
+    const date = toValidDate(dateValue);
+    if (!date) return;
 
     editor.setStartAt(date.toISOString());
 
-    if (dateCandidate?.endValue) {
-      const endDate = dateEndValue ? new Date(dateEndValue) : new Date(dateCandidate.endValue);
-      if (!Number.isNaN(endDate.getTime())) {
-        editor.setEndAt(endDate.toISOString());
-      }
+    const endDate = toValidDate(dateEndValue || validDateCandidate.endValue);
+    if (endDate && endDate >= date) {
+      editor.setEndAt(endDate.toISOString());
     }
 
-    editor.setDatePrecision?.(dateCandidate?.precision || "date");
+    editor.setDatePrecision?.(validDateCandidate.precision || "date");
     setEditingDate(false);
   }
 
@@ -192,11 +189,11 @@ export default function EditorContextSuggestions({ editor }) {
   }
 
   const dateSuggestionText =
-    dateCandidate?.precision === "month"
-      ? dateCandidate.label
-      : formatDateRange(dateCandidate.value, dateCandidate.endValue);
+    validDateCandidate?.precision === "month"
+      ? validDateCandidate.label
+      : formatDateRange(validDateCandidate?.value, validDateCandidate?.endValue);
 
-  const isMonthSuggestion = dateCandidate?.precision === "month";
+  const isMonthSuggestion = validDateCandidate?.precision === "month";
 
   return (
     <>
@@ -222,7 +219,7 @@ export default function EditorContextSuggestions({ editor }) {
                         onChange={(event) => setDateValue(event.target.value)}
                         className="h-7 w-[190px] px-2 text-xs"
                       />
-                      {dateCandidate?.endValue && (
+                      {validDateCandidate?.endValue && (
                         <Input
                           type="datetime-local"
                           value={dateEndValue}
