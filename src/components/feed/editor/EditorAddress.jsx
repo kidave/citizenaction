@@ -75,7 +75,9 @@ export default function EditorAddress({
     editor.setLat(location.lat);
     editor.setLng(location.lng);
     editor.setAddress(location.address || location.name || "");
-    setPickerOpen(false);
+    // Keep the picker open after selecting a search result so the user can
+    // review or adjust the pin before pressing Done.
+    setSearchValue(location.address || location.name || "");
   }
 
   function handleUseCurrentLocation() {
