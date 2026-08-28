@@ -1,16 +1,17 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import { MapPin, Check, Pencil } from "lucide-react";
+import { MapPin } from "lucide-react";
 
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import LocationSearchInput from "@/components/shared/LocationSearchInput";
+
+const LocationMapPreview = dynamic(
+  () => import("@/components/shared/LocationMapPreview"),
+  { ssr: false },
+);
 
 export default function EditorAddress({
   editor,
@@ -19,21 +20,18 @@ export default function EditorAddress({
   initialQuery = "",
 }) {
   const [open, setOpen] = useState(false);
-  const [suggestion, setSuggestion] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [userLocation, setUserLocation] = useState(null);
   const [searchValue, setSearchValue] = useState("");
-  const debounceRef = useRef(null);
-  const lastQueryRef = useRef("");
+  const [userLocation, setUserLocation] = useState(null);
+  const reverseDebounceRef = useRef(null);
 
   const isControlled = typeof openOverride === "boolean";
   const pickerOpen = isControlled ? openOverride : open;
 
   useEffect(() => {
-    if (isControlled && openOverride) {
+    if (pickerOpen) {
       setSearchValue(initialQuery || editor.address || "");
     }
-  }, [editor.address, initialQuery, isControlled, openOverride]);
+  }, [editor.address, initialQuery, pickerOpen]);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -48,168 +46,121 @@ export default function EditorAddress({
   }, []);
 
   function setPickerOpen(value) {
-    if (isControlled) {
-      onOpenChange?.(value);
-    } else {
-      setOpen(value);
-    }
+    if (isControlled) onOpenChange?.(value);
+    else setOpen(value);
   }
 
-  useEffect(() => {
-    const address = searchValue?.trim();
-    if (!pickerOpen || !address || editor.lat || editor.lng) {
-      if (!pickerOpen) setSuggestion(null);
-      return;
+  async function reverseGeocode(lat, lng) {
+    try {
+      const response = await fetch(`/api/osm-reverse?lat=${lat}&lng=${lng}`);
+      const data = await response.json();
+      if (data?.display_name) editor.setAddress(data.display_name);
+    } catch {}
+  }
+
+  function handleMapChange(lat, lng) {
+    editor.setLat(lat);
+    editor.setLng(lng);
+
+    if (reverseDebounceRef.current) {
+      clearTimeout(reverseDebounceRef.current);
     }
 
-    if (debounceRef.current) clearTimeout(debounceRef.current);
+    reverseDebounceRef.current = setTimeout(() => {
+      reverseGeocode(lat, lng);
+    }, 350);
+  }
 
-    debounceRef.current = setTimeout(async () => {
-      if (address === lastQueryRef.current) return;
-      lastQueryRef.current = address;
-
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({ q: address });
-        if (userLocation) {
-          params.set("lat", String(userLocation.lat));
-          params.set("lng", String(userLocation.lng));
-        }
-
-        const response = await fetch(`/api/osm?${params.toString()}`);
-        if (!response.ok) return;
-
-        const data = await response.json();
-        const results = Array.isArray(data) ? data : data?.results || [];
-        const first = results[0];
-        if (!first) return;
-
-        const lat = Number(first.lat);
-        const lng = Number(first.lon ?? first.lng);
-        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-
-        setSuggestion({
-          lat,
-          lng,
-          address: first.display_name || first.address || address,
-          name: first.name || first.display_name?.split(",")[0] || address,
-        });
-      } catch (error) {
-        console.warn("Location suggestion failed", error);
-      } finally {
-        setLoading(false);
-      }
-    }, 500);
-
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [editor.address, editor.lat, editor.lng, pickerOpen, searchValue, userLocation]);
-
-  function applySuggestion() {
-    if (!suggestion) return;
-
-    editor.setLat(suggestion.lat);
-    editor.setLng(suggestion.lng);
-    editor.setAddress(suggestion.address);
-    setSuggestion(null);
+  function handleSelect(location) {
+    editor.setLat(location.lat);
+    editor.setLng(location.lng);
+    editor.setAddress(location.address || location.name || "");
     setPickerOpen(false);
+  }
+
+  function handleUseCurrentLocation() {
+    navigator.geolocation?.getCurrentPosition(
+      async ({ coords }) => {
+        editor.setLat(coords.latitude);
+        editor.setLng(coords.longitude);
+        await reverseGeocode(coords.latitude, coords.longitude);
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 },
+    );
   }
 
   function clearLocation() {
     editor.setLat(null);
     editor.setLng(null);
     editor.setAddress(null);
-    setSuggestion(null);
-    lastQueryRef.current = "";
     setSearchValue("");
   }
 
   return (
     <>
       {!isControlled && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                variant={editor.address ? "secondary" : "ghost"}
-                size="icon"
-                className="shrink-0"
-                onClick={() => setPickerOpen(true)}
-                aria-label={editor.address ? "Change location" : "Add location"}
-              >
-                <MapPin className="h-5 w-5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              {editor.address || "Add location"}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Button
+          type="button"
+          variant={editor.address ? "secondary" : "ghost"}
+          size="icon"
+          className="shrink-0"
+          onClick={() => setPickerOpen(true)}
+          aria-label={editor.address ? "Change location" : "Add location"}
+        >
+          <MapPin className="h-5 w-5" />
+        </Button>
       )}
 
-      {!isControlled && suggestion && !editor.lat && !editor.lng && (
-        <div className="absolute bottom-14 left-2 right-2 z-20 sm:left-auto sm:right-4 sm:w-[420px]">
-          <div className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2 shadow-md">
-            <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">{suggestion.name}</p>
-              <p className="truncate text-xs text-muted-foreground">{suggestion.address}</p>
+      <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+        <DialogContent className="h-dvh max-w-none overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-5xl sm:rounded-xl">
+          <div className="relative h-full w-full overflow-hidden">
+            <LocationMapPreview
+              lat={editor.lat ?? userLocation?.lat ?? 19.076}
+              lng={editor.lng ?? userLocation?.lng ?? 72.8777}
+              onChange={handleMapChange}
+            />
+
+            <div className="absolute left-3 right-3 top-3 z-[1000] sm:left-12 sm:right-auto sm:w-[380px]">
+              <div className="rounded-xl border bg-background p-2 shadow-lg">
+                <LocationSearchInput
+                  value={searchValue || editor.address || ""}
+                  onChange={(value) => {
+                    setSearchValue(value);
+                    editor.setAddress(value);
+                    editor.setLat(null);
+                    editor.setLng(null);
+                  }}
+                  onSelect={handleSelect}
+                  onUseCurrentLocation={handleUseCurrentLocation}
+                />
+              </div>
             </div>
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              onClick={applySuggestion}
-              className="shrink-0"
-            >
-              <Check className="mr-1 h-4 w-4" />
-              Use
-            </Button>
-            <Button
-              type="button"
-              size="icon-sm"
-              variant="ghost"
-              onClick={() => setPickerOpen(true)}
-              aria-label="Change location"
-              className="shrink-0"
-            >
-              <Pencil />
-            </Button>
-          </div>
-        </div>
-      )}
 
-      {pickerOpen && (
-        <div className="fixed inset-x-3 bottom-20 z-[70] rounded-xl border bg-background p-3 shadow-xl sm:left-auto sm:right-6 sm:w-[420px]">
-          <LocationSearchInput
-            value={searchValue || editor.address || ""}
-            onChange={(value) => {
-              setSearchValue(value);
-              editor.setAddress(value);
-              editor.setLat(null);
-              editor.setLng(null);
-            }}
-            onSelect={(location) => {
-              editor.setLat(location.lat);
-              editor.setLng(location.lng);
-              editor.setAddress(location.address);
-              setSuggestion(null);
-              setPickerOpen(false);
-            }}
-          />
-
-          <div className="mt-2 flex justify-end gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={clearLocation}>
-              Clear
-            </Button>
-            <Button type="button" variant="ghost" size="sm" onClick={() => setPickerOpen(false)}>
-              Close
-            </Button>
+            <div className="absolute bottom-3 left-3 right-3 z-[1000] sm:left-1/2 sm:right-auto sm:w-[520px] sm:-translate-x-1/2">
+              <div className="overflow-hidden rounded-2xl border bg-background shadow-xl">
+                <div className="flex items-start gap-3 p-4">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium">Selected location</div>
+                    <div className="line-clamp-2 text-sm text-muted-foreground">
+                      {editor.address || "Move the map or search"}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between border-t p-3">
+                  <Button type="button" variant="outline" onClick={clearLocation}>
+                    Clear
+                  </Button>
+                  <Button type="button" onClick={() => setPickerOpen(false)}>
+                    Done
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
