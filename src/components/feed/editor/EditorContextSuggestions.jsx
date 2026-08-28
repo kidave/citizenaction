@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Check, MapPin, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -32,13 +32,13 @@ export default function EditorContextSuggestions({ editor }) {
   const [editingDate, setEditingDate] = useState(false);
   const [dateValue, setDateValue] = useState("");
   const [locationEditorOpen, setLocationEditorOpen] = useState(false);
-  const [locationEditor, setLocationEditor] = useState(null);
-  const locationButtonRef = useRef(null);
+  const [locationEditorQuery, setLocationEditorQuery] = useState("");
 
   useEffect(() => {
     setDismissed({ date: false, location: false });
     setEditingDate(false);
     setLocationEditorOpen(false);
+    setLocationEditorQuery(locationCandidate?.query || "");
     setDateValue(
       dateCandidate?.value ? toDateInputValue(dateCandidate.value) : "",
     );
@@ -67,12 +67,12 @@ export default function EditorContextSuggestions({ editor }) {
   }
 
   function acceptLocation() {
-    const button = locationButtonRef.current;
-    if (button) {
-      button.click();
-      return;
-    }
+    editor.setAddress(locationEditorQuery || locationCandidate?.query || "");
+    setLocationEditorOpen(false);
+  }
 
+  function openLocationPicker() {
+    setLocationEditorQuery(locationCandidate?.query || "");
     setLocationEditorOpen(true);
   }
 
@@ -156,7 +156,7 @@ export default function EditorContextSuggestions({ editor }) {
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6"
-                onClick={acceptLocation}
+                onClick={openLocationPicker}
                 aria-label="Use suggested location"
               >
                 <Check className="h-3.5 w-3.5" />
@@ -164,10 +164,7 @@ export default function EditorContextSuggestions({ editor }) {
               <button
                 type="button"
                 className="text-muted-foreground hover:text-foreground"
-                onClick={() => {
-                  setLocationEditorOpen(true);
-                  setLocationEditor({ address: locationCandidate.query });
-                }}
+                onClick={openLocationPicker}
               >
                 Edit
               </button>
@@ -186,15 +183,12 @@ export default function EditorContextSuggestions({ editor }) {
         </div>
       </div>
 
-      <div className="hidden">
-        <EditorAddress
-          editor={editor}
-          triggerRef={locationButtonRef}
-          openOverride={locationEditorOpen}
-          onOpenChange={setLocationEditorOpen}
-          initialQuery={locationEditor?.address || locationCandidate?.query || ""}
-        />
-      </div>
+      <EditorAddress
+        editor={editor}
+        openOverride={locationEditorOpen}
+        initialQuery={locationEditorQuery}
+        onOpenChange={setLocationEditorOpen}
+      />
     </>
   );
 }
