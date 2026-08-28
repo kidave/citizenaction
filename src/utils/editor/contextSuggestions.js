@@ -79,6 +79,57 @@ function detectPrecision(result) {
   return "date";
 }
 
+const NUMBER_WORDS = {
+  a: 1,
+  an: 1,
+  one: 1,
+  two: 2,
+  three: 3,
+  four: 4,
+  five: 5,
+  six: 6,
+  seven: 7,
+  eight: 8,
+  nine: 9,
+  ten: 10,
+  eleven: 11,
+  twelve: 12,
+};
+
+function inferDurationEnd(text, start, result) {
+  const safeStart = safeDate(start);
+  if (!safeStart || !text) return null;
+
+  // Look for a duration close to the detected start date. This handles
+  // natural event wording such as "starting from today for a week" and
+  // "on 2nd September for 3 days" without inventing an end date otherwise.
+  const resultStart = Number.isFinite(result?.index) ? result.index : 0;
+  const resultEnd = resultStart + String(result?.text || "").length;
+  const nearbyText = `${text.slice(Math.max(0, resultStart - 80), resultEnd + 100)} ${text}`;
+  const match = nearbyText.match(
+    /\bfor\s+(a|an|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d+)\s+(day|days|week|weeks|month|months)\b/i,
+  );
+
+  if (!match) return null;
+
+  const rawAmount = match[1].toLowerCase();
+  const amount = NUMBER_WORDS[rawAmount] ?? Number(rawAmount);
+  const unit = match[2].toLowerCase();
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+
+  const end = new Date(safeStart);
+
+  if (unit.startsWith("day")) {
+    end.setDate(end.getDate() + amount);
+  } else if (unit.startsWith("week")) {
+    end.setDate(end.getDate() + amount * 7);
+  } else {
+    end.setMonth(end.getMonth() + amount);
+  }
+
+  return safeDate(end);
+}
+
 export function extractDateCandidates(text = "") {
   if (!text?.trim()) return [];
 
@@ -93,7 +144,9 @@ export function extractDateCandidates(text = "") {
       if (!start) return null;
 
       const precision = detectPrecision(result);
-      const end = safeDate(result.end?.date?.());
+      const explicitEnd = safeDate(result.end?.date?.());
+      const inferredEnd = explicitEnd ? null : inferDurationEnd(text, start, result);
+      const end = explicitEnd || inferredEnd;
       const hasTime = precision === "datetime";
 
       let label = formatSuggestedDateOnly(start);
