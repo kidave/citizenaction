@@ -155,10 +155,12 @@ export default function EditorAddress({
 
       <Dialog
         open={pickerOpen}
-        onOpenChange={(value) => (value ? setPickerOpen(true) : cancelLocationEdit())}
+        onOpenChange={(value) =>
+          value ? setPickerOpen(true) : cancelLocationEdit()
+        }
       >
         <DialogContent
-          className="h-dvh max-w-none overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-5xl sm:rounded-xl [&>button]:right-3 [&>button]:top-3 [&>button]:z-[2000] [&>button]:h-10 [&>button]:w-10 [&>button]:rounded-full [&>button]:border [&>button]:border-border [&>button]:bg-background [&>button]:opacity-100 [&>button]:shadow-lg"
+          className="h-dvh max-w-none overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-5xl sm:rounded-xl [&>button]:right-3 [&>button]:top-3 [&>button]:z-[2000] [&>button]:flex [&>button]:h-10 [&>button]:w-10 [&>button]:items-center [&>button]:justify-center [&>button]:rounded-full [&>button]:border [&>button]:border-border [&>button]:bg-background [&>button]:p-0 [&>button]:opacity-100 [&>button]:shadow-lg"
         >
           <div className="relative h-full w-full overflow-hidden">
             {searchMode ? (
@@ -173,13 +175,15 @@ export default function EditorAddress({
               />
             ) : (
               <>
-                <LocationMapPreview
-                  lat={editor.lat ?? userLocation?.lat ?? 19.076}
-                  lng={editor.lng ?? userLocation?.lng ?? 72.8777}
-                  onChange={handleMapChange}
-                  onUseCurrentLocation={handleUseCurrentLocation}
-                  loadingGPS={loadingGPS}
-                />
+                <div className="h-full w-full [&_button[aria-label='Use current location']]:hidden">
+                  <LocationMapPreview
+                    lat={editor.lat ?? userLocation?.lat ?? 19.076}
+                    lng={editor.lng ?? userLocation?.lng ?? 72.8777}
+                    onChange={handleMapChange}
+                    onUseCurrentLocation={handleUseCurrentLocation}
+                    loadingGPS={loadingGPS}
+                  />
+                </div>
 
                 <div className="absolute left-3 right-16 top-3 z-[1000] sm:left-12 sm:right-auto sm:w-[420px]">
                   <Button
