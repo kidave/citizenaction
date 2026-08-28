@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import { MapPin, Search, X } from "lucide-react";
+import { ChevronUp, MapPin, Search } from "lucide-react";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ export default function EditorAddress({
   const [userLocation, setUserLocation] = useState(null);
   const [loadingGPS, setLoadingGPS] = useState(false);
   const [showLocationDrawer, setShowLocationDrawer] = useState(false);
+  const [drawerMinimized, setDrawerMinimized] = useState(false);
   const [snapshot, setSnapshot] = useState(null);
   const reverseDebounceRef = useRef(null);
 
@@ -33,17 +34,18 @@ export default function EditorAddress({
   const pickerOpen = isControlled ? openOverride : open;
 
   useEffect(() => {
-    if (pickerOpen) {
-      setSearchMode(false);
-      setSearchValue(initialQuery || editor.address || "");
-      setShowLocationDrawer(Boolean(editor.address));
-      setSnapshot({
-        address: editor.address ?? null,
-        lat: editor.lat ?? null,
-        lng: editor.lng ?? null,
-      });
-    }
-  }, [editor.address, initialQuery, pickerOpen]);
+    if (!pickerOpen) return;
+
+    setSearchMode(false);
+    setSearchValue(initialQuery || editor.address || "");
+    setShowLocationDrawer(Boolean(editor.address));
+    setDrawerMinimized(false);
+    setSnapshot({
+      address: editor.address ?? null,
+      lat: editor.lat ?? null,
+      lng: editor.lng ?? null,
+    });
+  }, [editor.address, editor.lat, editor.lng, initialQuery, pickerOpen]);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -75,18 +77,21 @@ export default function EditorAddress({
     editor.setLng(lng);
     editor.setAddress(null);
     setShowLocationDrawer(true);
+    setDrawerMinimized(false);
 
     if (reverseDebounceRef.current) clearTimeout(reverseDebounceRef.current);
     reverseDebounceRef.current = setTimeout(() => reverseGeocode(lat, lng), 350);
   }
 
   function handleSelect(location) {
+    const address = location.address || location.name || "";
     editor.setLat(location.lat);
     editor.setLng(location.lng);
-    editor.setAddress(location.address || location.name || "");
-    setSearchValue(location.address || location.name || "");
+    editor.setAddress(address);
+    setSearchValue(address);
     setSearchMode(false);
     setShowLocationDrawer(true);
+    setDrawerMinimized(false);
   }
 
   function handleUseCurrentLocation() {
@@ -101,6 +106,7 @@ export default function EditorAddress({
         editor.setAddress(null);
         setSearchMode(false);
         setShowLocationDrawer(true);
+        setDrawerMinimized(false);
         await reverseGeocode(coords.latitude, coords.longitude);
         setLoadingGPS(false);
       },
@@ -152,15 +158,13 @@ export default function EditorAddress({
         onOpenChange={(value) => (value ? setPickerOpen(true) : cancelLocationEdit())}
       >
         <DialogContent
-          className="h-dvh max-w-none overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-5xl sm:rounded-xl [&>button]:right-3 [&>button]:top-3 [&>button]:z-[2000] [&>button]:h-10 [&>button]:w-10 [&>button]:rounded-full [&>button]:bg-background [&>button]:opacity-100 [&>button]:shadow-lg"
+          className="h-dvh max-w-none overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-5xl sm:rounded-xl [&>button]:right-3 [&>button]:top-3 [&>button]:z-[2000] [&>button]:h-10 [&>button]:w-10 [&>button]:rounded-full [&>button]:border [&>button]:border-border [&>button]:bg-background [&>button]:opacity-100 [&>button]:shadow-lg"
         >
           <div className="relative h-full w-full overflow-hidden">
             {searchMode ? (
               <LocationSearchInput
                 value={searchValue}
-                onChange={(value) => {
-                  setSearchValue(value);
-                }}
+                onChange={setSearchValue}
                 onSelect={handleSelect}
                 onUseCurrentLocation={handleUseCurrentLocation}
                 loadingGPS={loadingGPS}
@@ -192,42 +196,91 @@ export default function EditorAddress({
                 </div>
 
                 {showLocationDrawer && (
-                  <Card className="absolute bottom-3 left-3 right-3 z-[1000] rounded-2xl border bg-background/95 shadow-2xl backdrop-blur sm:left-1/2 sm:right-auto sm:w-[520px] sm:-translate-x-1/2">
-                    <CardContent className="p-4">
-                      <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-muted" />
-                      <div className="flex items-start gap-3">
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate text-base font-medium">
-                            {editor.address || "Selected location"}
-                          </div>
-                          <div className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-                            {editor.address
-                              ? "Location selected from the map"
-                              : "Finding the address…"}
-                          </div>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setShowLocationDrawer(false)}
-                          aria-label="Hide selected location"
-                          className="shrink-0 rounded-full"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
+                  <div className="absolute inset-x-3 bottom-3 z-[1000] sm:left-1/2 sm:right-auto sm:w-[520px] sm:-translate-x-1/2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={handleUseCurrentLocation}
+                      disabled={loadingGPS}
+                      aria-label="Use current location"
+                      className="absolute bottom-full right-0 mb-3 h-12 w-12 rounded-full border bg-background shadow-xl"
+                    >
+                      <MapPin className="h-5 w-5" />
+                    </Button>
 
-                      <div className="mt-3 flex items-center gap-2">
-                        <Button type="button" className="flex-1" onClick={finishLocationEdit}>
-                          Use location
-                        </Button>
-                        <Button type="button" variant="outline" onClick={clearLocation}>
-                          Clear
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                    <Card className="rounded-2xl border bg-background/95 shadow-2xl backdrop-blur">
+                      {drawerMinimized ? (
+                        <button
+                          type="button"
+                          onClick={() => setDrawerMinimized(false)}
+                          className="flex w-full items-center gap-3 px-4 py-3 text-left"
+                          aria-label="Expand selected location"
+                        >
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted">
+                            <MapPin className="h-4 w-4" />
+                          </span>
+                          <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                            {editor.address || "Selected location"}
+                          </span>
+                          <ChevronUp className="h-5 w-5 shrink-0 text-muted-foreground" />
+                        </button>
+                      ) : (
+                        <CardContent className="p-4">
+                          <button
+                            type="button"
+                            onClick={() => setDrawerMinimized(true)}
+                            className="mb-3 flex w-full justify-center py-1"
+                            aria-label="Minimize selected location"
+                          >
+                            <span className="h-1.5 w-10 rounded-full bg-muted" />
+                          </button>
+
+                          <div className="min-w-0">
+                            <div className="truncate text-base font-medium">
+                              {editor.address || "Selected location"}
+                            </div>
+                            <div className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                              {editor.address
+                                ? "Location selected from the map"
+                                : "Finding the address…"}
+                            </div>
+                          </div>
+
+                          <div className="mt-3 flex items-center gap-2">
+                            <Button
+                              type="button"
+                              className="flex-1"
+                              onClick={finishLocationEdit}
+                            >
+                              Use location
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={clearLocation}
+                            >
+                              Clear
+                            </Button>
+                          </div>
+                        </CardContent>
+                      )}
+                    </Card>
+                  </div>
+                )}
+
+                {!showLocationDrawer && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={handleUseCurrentLocation}
+                    disabled={loadingGPS}
+                    aria-label="Use current location"
+                    className="absolute bottom-6 right-4 z-[1000] h-12 w-12 rounded-full border bg-background shadow-xl"
+                  >
+                    <MapPin className="h-5 w-5" />
+                  </Button>
                 )}
               </>
             )}
