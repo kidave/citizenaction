@@ -72,7 +72,7 @@ export default function EditorContextSuggestions({ editor }) {
   }
 
   function openLocationPicker() {
-    setLocationEditorQuery(locationCandidate?.query || "");
+    setLocationEditorQuery(locationCandidate?.query || editor.address || "");
     setLocationEditorOpen(true);
   }
 
@@ -156,7 +156,7 @@ export default function EditorContextSuggestions({ editor }) {
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6"
-                onClick={openLocationPicker}
+                onClick={acceptLocation}
                 aria-label="Use suggested location"
               >
                 <Check className="h-3.5 w-3.5" />
