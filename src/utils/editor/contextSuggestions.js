@@ -8,36 +8,54 @@ function referenceDate() {
   return new Date();
 }
 
+function safeDate(value) {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 export function formatSuggestedDate(date) {
+  const safe = safeDate(date);
+  if (!safe) return "";
+
   return new Intl.DateTimeFormat("en-IN", {
     day: "numeric",
     month: "long",
     year: "numeric",
     hour: "numeric",
     minute: "2-digit",
-  }).format(date);
+  }).format(safe);
 }
 
 function formatSuggestedDateOnly(date) {
+  const safe = safeDate(date);
+  if (!safe) return "";
+
   return new Intl.DateTimeFormat("en-IN", {
     day: "numeric",
     month: "long",
     year: "numeric",
-  }).format(date);
+  }).format(safe);
 }
 
 function formatSuggestedMonth(date) {
+  const safe = safeDate(date);
+  if (!safe) return "";
+
   return new Intl.DateTimeFormat("en-IN", {
     month: "long",
     year: "numeric",
-  }).format(date);
+  }).format(safe);
 }
 
 function formatSuggestedTime(date) {
+  const safe = safeDate(date);
+  if (!safe) return "";
+
   return new Intl.DateTimeFormat("en-IN", {
     hour: "numeric",
     minute: "2-digit",
-  }).format(date);
+  }).format(safe);
 }
 
 function detectPrecision(result) {
@@ -51,9 +69,6 @@ function detectPrecision(result) {
 
   if (hasTime) return "datetime";
 
-  // Chrono represents an input such as "September" as a month-level
-  // reference. Preserve that precision instead of turning it into an
-  // arbitrary first-of-month date in the UI.
   const normalized = text.trim().toLowerCase();
   const monthOnly = /^(?:the\s+)?(?:january|february|march|april|may|june|july|august|september|october|november|december)(?:\s+\d{4})?$/i.test(
     normalized,
@@ -74,13 +89,11 @@ export function extractDateCandidates(text = "") {
 
   return results
     .map((result) => {
-      const start = result.start?.date?.();
-      if (!(start instanceof Date) || Number.isNaN(start.getTime())) {
-        return null;
-      }
+      const start = safeDate(result.start?.date?.());
+      if (!start) return null;
 
       const precision = detectPrecision(result);
-      const end = result.end?.date?.() || null;
+      const end = safeDate(result.end?.date?.());
       const hasTime = precision === "datetime";
 
       let label = formatSuggestedDateOnly(start);
@@ -91,10 +104,7 @@ export function extractDateCandidates(text = "") {
         type: "date",
         precision,
         value: start.toISOString(),
-        endValue:
-          end instanceof Date && !Number.isNaN(end.getTime())
-            ? end.toISOString()
-            : null,
+        endValue: end ? end.toISOString() : null,
         label,
         timeLabel: hasTime ? formatSuggestedTime(start) : null,
         source: result.text,
