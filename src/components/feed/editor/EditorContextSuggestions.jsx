@@ -14,12 +14,25 @@ import {
 
 function toDateTimeLocalValue(value) {
   if (!value) return "";
-
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
 
   const pad = (number) => String(number).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function getSuggestionText(candidate) {
+  if (!candidate) return "";
+
+  if (candidate.precision === "month") {
+    return candidate.label;
+  }
+
+  if (candidate.endValue) {
+    return `${candidate.label} → ${formatSuggestedDate(new Date(candidate.endValue))}`;
+  }
+
+  return candidate.label;
 }
 
 export default function EditorContextSuggestions({ editor }) {
@@ -107,9 +120,14 @@ export default function EditorContextSuggestions({ editor }) {
 
     editor.setStartAt(date.toISOString());
 
-    if (!editor.end_at && dateCandidate?.endValue) {
+    if (dateCandidate?.endValue && !editor.end_at) {
       editor.setEndAt(dateCandidate.endValue);
     }
+
+    editor.setMetadata?.({
+      ...(editor.metadata || {}),
+      date_precision: dateCandidate?.precision || "date",
+    });
 
     setEditingDate(false);
   }
@@ -128,6 +146,8 @@ export default function EditorContextSuggestions({ editor }) {
     );
     setLocationEditorOpen(true);
   }
+
+  const dateSuggestionText = getSuggestionText(dateCandidate);
 
   return (
     <>
@@ -153,11 +173,7 @@ export default function EditorContextSuggestions({ editor }) {
                 </>
               ) : (
                 <>
-                  <span>
-                    Use {formatSuggestedDate(new Date(dateCandidate.value))}
-                    {dateCandidate.endValue && "?"}
-                    {!dateCandidate.endValue && "?"}
-                  </span>
+                  <span>Use {dateSuggestionText}?</span>
                   <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={acceptDate} aria-label="Use suggested date">
                     <Check className="h-3.5 w-3.5" />
                   </Button>
