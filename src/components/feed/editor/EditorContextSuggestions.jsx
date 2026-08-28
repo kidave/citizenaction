@@ -21,18 +21,35 @@ function toDateTimeLocalValue(value) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-function getSuggestionText(candidate) {
-  if (!candidate) return "";
+function formatDateRange(start, end) {
+  if (!end) return formatSuggestedDate(start);
 
-  if (candidate.precision === "month") {
-    return candidate.label;
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+    return formatSuggestedDate(startDate);
   }
 
-  if (candidate.endValue) {
-    return `${candidate.label} → ${formatSuggestedDate(new Date(candidate.endValue))}`;
+  const sameYear = startDate.getFullYear() === endDate.getFullYear();
+  const sameMonth = sameYear && startDate.getMonth() === endDate.getMonth();
+
+  if (sameMonth) {
+    return `${startDate.toLocaleDateString("en-IN", { day: "numeric", month: "long" })} → ${endDate.toLocaleDateString("en-IN", { day: "numeric", year: "numeric" })}`;
   }
 
-  return candidate.label;
+  if (sameYear) {
+    return `${startDate.toLocaleDateString("en-IN", { day: "numeric", month: "long" })} → ${endDate.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}`;
+  }
+
+  return `${formatSuggestedDate(startDate)} → ${formatSuggestedDate(endDate)}`;
+}
+
+function formatMonthInputValue(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
 export default function EditorContextSuggestions({ editor }) {
@@ -46,6 +63,8 @@ export default function EditorContextSuggestions({ editor }) {
   const [dismissed, setDismissed] = useState({ date: false, location: false });
   const [editingDate, setEditingDate] = useState(false);
   const [dateValue, setDateValue] = useState("");
+  const [monthValue, setMonthValue] = useState("");
+  const [dateEndValue, setDateEndValue] = useState("");
   const [locationEditorOpen, setLocationEditorOpen] = useState(false);
   const [locationEditorQuery, setLocationEditorQuery] = useState("");
   const [locationResult, setLocationResult] = useState(null);
@@ -55,10 +74,21 @@ export default function EditorContextSuggestions({ editor }) {
     setDismissed({ date: false, location: false });
     setEditingDate(false);
     setLocationEditorQuery(locationCandidate?.query || "");
-    setDateValue(
-      dateCandidate?.value ? toDateTimeLocalValue(dateCandidate.value) : "",
+
+    if (dateCandidate?.value) {
+      setDateValue(toDateTimeLocalValue(dateCandidate.value));
+      setMonthValue(formatMonthInputValue(dateCandidate.value));
+    } else {
+      setDateValue("");
+      setMonthValue("");
+    }
+
+    setDateEndValue(
+      dateCandidate?.endValue
+        ? toDateTimeLocalValue(dateCandidate.endValue)
+        : "",
     );
-  }, [dateCandidate?.value, locationCandidate?.query]);
+  }, [dateCandidate?.value, dateCandidate?.endValue, locationCandidate?.query]);
 
   useEffect(() => {
     const query = locationCandidate?.query?.trim();
@@ -113,6 +143,21 @@ export default function EditorContextSuggestions({ editor }) {
   if (!showDate && !showLocation && !locationEditorOpen) return null;
 
   function acceptDate() {
+    if (dateCandidate?.precision === "month") {
+      if (!monthValue) return;
+      const [year, month] = monthValue.split("-").map(Number);
+      const firstDay = new Date(year, month - 1, 1, 12, 0, 0, 0);
+      const lastDay = new Date(year, month, 0, 23, 59, 59, 999);
+
+      if (Number.isNaN(firstDay.getTime()) || Number.isNaN(lastDay.getTime())) return;
+
+      editor.setStartAt(firstDay.toISOString());
+      editor.setEndAt(lastDay.toISOString());
+      editor.setDatePrecision?.("month");
+      setEditingDate(false);
+      return;
+    }
+
     if (!dateValue) return;
 
     const date = new Date(dateValue);
@@ -120,15 +165,14 @@ export default function EditorContextSuggestions({ editor }) {
 
     editor.setStartAt(date.toISOString());
 
-    if (dateCandidate?.endValue && !editor.end_at) {
-      editor.setEndAt(dateCandidate.endValue);
+    if (dateCandidate?.endValue) {
+      const endDate = dateEndValue ? new Date(dateEndValue) : new Date(dateCandidate.endValue);
+      if (!Number.isNaN(endDate.getTime())) {
+        editor.setEndAt(endDate.toISOString());
+      }
     }
 
-    editor.setMetadata?.({
-      ...(editor.metadata || {}),
-      date_precision: dateCandidate?.precision || "date",
-    });
-
+    editor.setDatePrecision?.(dateCandidate?.precision || "date");
     setEditingDate(false);
   }
 
@@ -147,7 +191,12 @@ export default function EditorContextSuggestions({ editor }) {
     setLocationEditorOpen(true);
   }
 
-  const dateSuggestionText = getSuggestionText(dateCandidate);
+  const dateSuggestionText =
+    dateCandidate?.precision === "month"
+      ? dateCandidate.label
+      : formatDateRange(dateCandidate.value, dateCandidate.endValue);
+
+  const isMonthSuggestion = dateCandidate?.precision === "month";
 
   return (
     <>
@@ -158,12 +207,31 @@ export default function EditorContextSuggestions({ editor }) {
               <CalendarDays className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               {editingDate ? (
                 <>
-                  <Input
-                    type="datetime-local"
-                    value={dateValue}
-                    onChange={(event) => setDateValue(event.target.value)}
-                    className="h-7 w-[190px] px-2 text-xs"
-                  />
+                  {isMonthSuggestion ? (
+                    <Input
+                      type="month"
+                      value={monthValue}
+                      onChange={(event) => setMonthValue(event.target.value)}
+                      className="h-7 w-[150px] px-2 text-xs"
+                    />
+                  ) : (
+                    <>
+                      <Input
+                        type="datetime-local"
+                        value={dateValue}
+                        onChange={(event) => setDateValue(event.target.value)}
+                        className="h-7 w-[190px] px-2 text-xs"
+                      />
+                      {dateCandidate?.endValue && (
+                        <Input
+                          type="datetime-local"
+                          value={dateEndValue}
+                          onChange={(event) => setDateEndValue(event.target.value)}
+                          className="h-7 w-[190px] px-2 text-xs"
+                        />
+                      )}
+                    </>
+                  )}
                   <Button type="button" size="sm" className="h-7 px-2" onClick={acceptDate}>
                     Save
                   </Button>
