@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeft, LocateFixed, Loader2, MapPin, X } from "lucide-react";
+import { ArrowLeft, Loader2, MapPin, X } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,6 @@ export default function LocationSearchInput({
   value,
   onChange,
   onBack,
-  onCancel,
 }) {
   const [query, setQuery] = useState(value || "");
   const [results, setResults] = useState([]);
@@ -96,15 +95,6 @@ export default function LocationSearchInput({
             <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
           )}
         </div>
-
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={onCancel}
-          className="shrink-0 px-2 text-sm"
-        >
-          Cancel
-        </Button>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
@@ -144,8 +134,6 @@ export default function LocationSearchInput({
 
         {query.trim().length < 3 && (
           <div className="flex flex-col items-center gap-3 px-5 py-10 text-center text-sm text-muted-foreground">
-            <LocateFixed className="h-5 w-5" />
-            <span>Search for a place, road or address</span>
             <Button
               type="button"
               variant="outline"
