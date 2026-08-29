@@ -31,7 +31,9 @@ export default function LocationSearchInput({
     const delay = setTimeout(async () => {
       try {
         setLoading(true);
-        const res = await fetch(`/api/osm?q=${encodeURIComponent(query.trim())}`);
+        const res = await fetch(
+          `/api/osm?q=${encodeURIComponent(query.trim())}`,
+        );
         if (!res.ok) throw new Error(`Location search failed (${res.status})`);
         const data = await res.json();
         setResults(Array.isArray(data) ? data : []);
@@ -119,7 +121,7 @@ export default function LocationSearchInput({
               <span className="block truncate text-sm font-medium text-foreground">
                 {place.name || place.display_name?.split(",")[0]}
               </span>
-              <span className="mt-0.5 block line-clamp-2 text-sm text-muted-foreground">
+              <span className="mt-0.5 line-clamp-2 block text-sm text-muted-foreground">
                 {place.display_name}
               </span>
             </span>
@@ -140,7 +142,9 @@ export default function LocationSearchInput({
               size="sm"
               onClick={onUseCurrentLocation}
             >
-              {loadingGPS ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              {loadingGPS ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
               Use my location
             </Button>
           </div>

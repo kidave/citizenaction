@@ -2,14 +2,13 @@ export const EDITOR_TYPE_CONFIG = {
   action: {
     label: "Action",
     rich: false,
-    placeholder:
-      "What happened? What needs to change? Tell people what action is needed.",
+    placeholder: "Document your action",
   },
 
   event: {
     label: "Event",
     rich: true,
-    placeholder: "Describe the event, why it matters and what people should know.",
+    placeholder: "Share event details",
     requiresDateTime: true,
     requiresLocation: true,
   },
@@ -17,19 +16,19 @@ export const EDITOR_TYPE_CONFIG = {
   meeting: {
     label: "Meeting",
     rich: true,
-    placeholder: "Record what was discussed, decided and assigned.",
+    placeholder: "Share minutes of meeting",
   },
 
   report: {
     label: "Report",
     rich: true,
-    placeholder: "Document the issue, evidence, findings, project or proposal.",
+    placeholder: "Add a policy suggestion, project or guidelines",
   },
 
   update: {
     label: "Update",
     rich: true,
-    placeholder: "Share an announcement, development or important update.",
+    placeholder: "Share major update or announcement",
   },
 };
 
@@ -42,7 +41,7 @@ export function getEditorTypeConfig(type) {
     EDITOR_TYPE_CONFIG[type] ?? {
       label: "Action",
       rich: false,
-      placeholder: "What happened? What needs to change?",
+      placeholder: "Document your action",
     }
   );
 }

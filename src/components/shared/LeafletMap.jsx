@@ -42,22 +42,6 @@ export default function LeafletMap({
         <MapController lat={lat} lng={lng} onChange={onChange} />
         <Marker position={[lat, lng]} icon={markerIcon} />
       </MapContainer>
-
-      <Button
-        type="button"
-        variant="outline"
-        size="icon"
-        onClick={onUseCurrentLocation}
-        disabled={loadingGPS}
-        aria-label="Use current location"
-        className="absolute bottom-24 right-4 z-[1000] h-12 w-12 rounded-full bg-background shadow-lg hover:bg-background"
-      >
-        {loadingGPS ? (
-          <Loader2 className="h-5 w-5 animate-spin" />
-        ) : (
-          <LocateFixed className="h-5 w-5" />
-        )}
-      </Button>
     </div>
   );
 }
