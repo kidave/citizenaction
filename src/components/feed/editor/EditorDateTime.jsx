@@ -44,7 +44,11 @@ export default function EditorDateTime({ editor }) {
         <Tooltip>
           <TooltipTrigger asChild>
             <DialogTrigger asChild>
-              <Button type="button" variant="ghost" size="icon">
+              <Button
+                type="button"
+                variant={editor.start_at || editor.end_at ? "" : "ghost"}
+                size="icon"
+              >
                 <CalendarDays className="h-5 w-5" />
               </Button>
             </DialogTrigger>

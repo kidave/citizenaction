@@ -1,19 +1,19 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import SelectedLocation from "@/components/shared/SelectedLocation";
 import { useEffect, useRef, useState } from "react";
 import { Search, MapPin } from "lucide-react";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+
 import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-} from "@/components/ui/drawer";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import LocationSearchInput from "@/components/shared/LocationSearchInput";
 
@@ -165,7 +165,10 @@ export default function EditorAddress({
         const lat = coords.latitude;
         const lng = coords.longitude;
 
-        setUserLocation({ lat, lng });
+        setUserLocation({
+          lat,
+          lng,
+        });
 
         editor.setLat(lat);
         editor.setLng(lng);
@@ -221,45 +224,33 @@ export default function EditorAddress({
     setPickerOpen(false);
   }
 
-  const selectedLocationContent = (
-    <>
-      <div className="min-w-0">
-        <div className="truncate text-base font-medium">
-          {editor.address || "Selected location"}
-        </div>
-
-        {!editor.address && (
-          <div className="mt-1 text-sm text-muted-foreground">
-            Finding the address…
-          </div>
-        )}
-      </div>
-
-      <div className="mt-4 flex items-center gap-2">
-        <Button type="button" className="flex-1" onClick={finishLocationEdit}>
-          Use location
-        </Button>
-
-        <Button type="button" variant="outline" onClick={clearLocation}>
-          Clear
-        </Button>
-      </div>
-    </>
-  );
+  const locationSummary = editor.address ? editor.address : "Set location";
 
   return (
     <>
       {!isControlled && (
-        <Button
-          type="button"
-          variant={editor.address ? "secondary" : "ghost"}
-          size="icon"
-          className="shrink-0"
-          onClick={() => setPickerOpen(true)}
-          aria-label={editor.address ? "Change location" : "Add location"}
-        >
-          <MapPin className="h-5 w-5" />
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                size="icon"
+                variant={editor.address ? "" : "ghost"}
+                className="shrink-0"
+                onClick={() => setPickerOpen(true)}
+                aria-label={editor.address ? "Change location" : "Add location"}
+              >
+                <MapPin className="h-5 w-5" />
+              </Button>
+            </TooltipTrigger>
+
+            <TooltipContent side="bottom" align="start" className="max-w-sm">
+              <span className="block max-w-[280px] truncate">
+                {locationSummary}
+              </span>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       )}
 
       <Dialog
@@ -277,7 +268,7 @@ export default function EditorAddress({
             searchMode
               ? "[&>button]:hidden"
               : "[&>button]:right-3 [&>button]:top-3 [&>button]:z-[2000] [&>button]:flex [&>button]:h-10 [&>button]:w-10 [&>button]:items-center [&>button]:justify-center [&>button]:rounded-full [&>button]:border [&>button]:border-border [&>button]:bg-background [&>button]:p-0 [&>button]:opacity-100 [&>button]:shadow-lg"
-          } `}
+          }`}
         >
           <div className="relative h-full w-full overflow-hidden">
             {searchMode ? (
@@ -302,7 +293,6 @@ export default function EditorAddress({
                   />
                 </div>
 
-                {/* Search */}
                 <div className="absolute left-3 right-16 top-3 z-[1000] sm:left-12 sm:right-auto sm:w-[420px]">
                   <Button
                     type="button"
@@ -318,52 +308,22 @@ export default function EditorAddress({
                   </Button>
                 </div>
 
-                {showLocationDrawer && (
-                  <>
-                    {/* MOBILE ONLY */}
-                    {isMobile && (
-                      <Drawer
-                        open={showLocationDrawer}
-                        onOpenChange={(drawerOpen) => {
-                          setShowLocationDrawer(drawerOpen);
+                <SelectedLocation
+                  address={editor.address}
+                  open={showLocationDrawer}
+                  isMobile={isMobile}
+                  snapPoint={drawerSnap}
+                  onSnapPointChange={setDrawerSnap}
+                  onOpenChange={(drawerOpen) => {
+                    setShowLocationDrawer(drawerOpen);
 
-                          if (!drawerOpen) {
-                            setDrawerSnap(null);
-                          }
-                        }}
-                        snapPoints={["110px", 0.45]}
-                        activeSnapPoint={drawerSnap}
-                        setActiveSnapPoint={setDrawerSnap}
-                        shouldScaleBackground={false}
-                      >
-                        <DrawerContent className="z-[1100] max-h-[45vh] border-t bg-background px-4 pb-6">
-                          <DrawerHeader className="sr-only">
-                            <DrawerTitle>Selected location</DrawerTitle>
-
-                            <DrawerDescription>
-                              Review the location before adding it to the post.
-                            </DrawerDescription>
-                          </DrawerHeader>
-
-                          <div className="mx-auto mb-4 mt-1 h-1.5 w-10 rounded-full bg-muted" />
-
-                          {selectedLocationContent}
-                        </DrawerContent>
-                      </Drawer>
-                    )}
-
-                    {/* DESKTOP ONLY */}
-                    {!isMobile && (
-                      <div className="absolute bottom-4 left-1/2 z-[1000] w-[520px] -translate-x-1/2">
-                        <Card className="rounded-2xl border bg-background/95 shadow-2xl backdrop-blur">
-                          <CardContent className="p-4">
-                            {selectedLocationContent}
-                          </CardContent>
-                        </Card>
-                      </div>
-                    )}
-                  </>
-                )}
+                    if (!drawerOpen) {
+                      setDrawerSnap(null);
+                    }
+                  }}
+                  onUseLocation={finishLocationEdit}
+                  onClear={clearLocation}
+                />
               </>
             )}
           </div>

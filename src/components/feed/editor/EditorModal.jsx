@@ -16,7 +16,6 @@ import EditorContextSuggestions from "./EditorContextSuggestions";
 
 const EditorContent = dynamic(() => import("./EditorContent"), {
   ssr: false,
-  loading: () => <EditorModalSkeleton />,
 });
 
 export default function EditorModal({
