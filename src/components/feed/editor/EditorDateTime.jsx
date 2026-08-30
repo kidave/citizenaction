@@ -46,7 +46,9 @@ export default function EditorDateTime({ editor }) {
             <DialogTrigger asChild>
               <Button
                 type="button"
-                variant={editor.start_at || editor.end_at ? "" : "ghost"}
+                variant={
+                  editor.start_at || editor.end_at ? "secondary" : "ghost"
+                }
                 size="icon"
               >
                 <CalendarDays className="h-5 w-5" />

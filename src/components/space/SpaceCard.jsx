@@ -59,12 +59,10 @@ export default function SpaceCard({
 
             {space.logo_url && (
               <div className="absolute bottom-3 left-3 z-20">
-                <Image
+                <img
                   src={space.logo_url}
                   alt={`${space.name} logo`}
-                  width={44}
-                  height={44}
-                  className="h-11 w-11 rounded-md border bg-background object-contain"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted object-contain sm:h-12 sm:w-12"
                 />
               </div>
             )}
@@ -80,12 +78,10 @@ export default function SpaceCard({
         ) : (
           <div className="relative flex h-36 items-center justify-center bg-muted">
             {space.logo_url ? (
-              <Image
+              <img
                 src={space.logo_url}
                 alt={`${space.name} logo`}
-                width={72}
-                height={72}
-                className="h-16 w-16 rounded-xl object-contain"
+                className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted object-contain sm:h-20 sm:w-20"
               />
             ) : (
               <span className="text-2xl font-semibold text-muted-foreground">

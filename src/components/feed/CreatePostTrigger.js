@@ -71,12 +71,13 @@ export default function CreatePostTrigger({ onCreate }) {
                 <div className="text-md flex items-center gap-2">
                   <Sparkles className="h-4 w-4 shrink-0" />
                   <span className="truncate">
-                    {user ? "What would you like to add?" : "Login to add something"}
+                    {user ? "Create a Document" : "Login to Document"}
                   </span>
                 </div>
 
                 <div className="mt-1 truncate text-sm text-muted-foreground">
-                  Add an event, meeting, report or update — or just start writing.
+                  Post an update, write a report, document your meetings, event
+                  and action.
                 </div>
               </div>
 
