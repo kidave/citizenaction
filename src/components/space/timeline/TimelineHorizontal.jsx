@@ -13,9 +13,9 @@ export default function TimelineHorizontal({
   return (
     <div
       ref={railRef}
-      className="scrollbar-hide overflow-x-auto overflow-y-hidden px-[7vw] py-8 sm:px-[8vw]"
+      className="scrollbar-hide overflow-x-auto overflow-y-hidden px-[4vw] py-2 sm:px-[4vw]"
     >
-      <div className="relative mx-auto flex min-w-max items-center gap-16">
+      <div className="relative mx-auto flex min-w-max gap-16">
         <TimelineProgressRail
           progress={progress}
           color={color}

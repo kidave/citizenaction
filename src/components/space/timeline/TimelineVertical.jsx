@@ -17,7 +17,7 @@ export default function TimelineVertical({
       ref={timelineRef}
       className="mx-auto w-full max-w-7xl px-4 pb-20 sm:px-6 lg:px-8"
     >
-      <div className="relative md:pl-40">
+      <div className="relative py-2 md:pl-40">
         {/* MONTHS */}
 
         <aside className="md:sticky md:top-24 md:z-20 md:float-left md:ml-[-10rem] md:w-32">

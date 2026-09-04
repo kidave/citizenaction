@@ -36,19 +36,10 @@ export default function TimelineEvent({
       <div
         data-month={monthKey}
         data-timeline-event
-        className="relative flex w-[350px] shrink-0 flex-col"
+        className="relative flex w-[320px] shrink-0 flex-col"
       >
-        <div className={index % 2 === 0 ? "mb-[170px]" : "mt-[170px]"}>
+        <div className={index % 2 === 0 ? "mb-[340px]" : "mt-[140px]"}>
           {card}
-        </div>
-
-        <div
-          className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.16em]"
-          style={{
-            color: active ? color.line : "hsl(var(--muted-foreground))",
-          }}
-        >
-          {month?.label}
         </div>
       </div>
     );

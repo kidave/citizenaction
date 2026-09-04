@@ -12,7 +12,7 @@ export default function TimelineProgressRail({
       className={
         isVertical
           ? "pointer-events-none absolute inset-y-0 left-1/2 z-0 hidden w-px -translate-x-1/2 md:block"
-          : "pointer-events-none absolute left-0 right-0 top-[340px] z-0 h-[3px]"
+          : "pointer-events-none absolute left-0 right-0 top-[230px] z-0 h-[3px]"
       }
       aria-hidden="true"
     >

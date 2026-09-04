@@ -132,35 +132,6 @@ export default function SpaceTimeline({
                 the {space?.name} team.
               </p>
             </div>
-
-            {/* ===============================================
-                YEARS + FILTERS
-            =============================================== */}
-
-            <div className="mt-8 flex flex-col gap-3">
-              {/* YEARS */}
-
-              {years.length > 0 && (
-                <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                  {years.map((year) => (
-                    <span
-                      key={year}
-                      className="shrink-0 rounded-full border border-border bg-background/70 px-4 py-2 text-xs font-medium text-muted-foreground"
-                    >
-                      {year}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* FILTERS */}
-
-              <TimelineFilters
-                months={monthMarkers}
-                activeMonth={activeMonth}
-                onSelect={jumpToMonth}
-              />
-            </div>
           </section>
 
           {/* =================================================
