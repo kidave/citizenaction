@@ -33,7 +33,7 @@ export default function PostHeader({ post, canEdit, onEdit, onDelete }) {
           RIGHT SIDE
       ========================================== */}
 
-      <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+      <div className="mr-6 flex min-w-0 flex-wrap items-center justify-end gap-2">
         {/* ========================================
             SPACES
         ======================================== */}

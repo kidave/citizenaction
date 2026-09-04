@@ -1,6 +1,7 @@
 "use client";
 
 import { Save } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 
@@ -13,7 +14,18 @@ import EditorDateTime from "./EditorDateTime";
 import EditorAddress from "./EditorAddress";
 
 export default function EditorFooter({ mode, item, editor, onClose }) {
+  const router = useRouter();
   const isPost = mode === "post";
+
+  const handleSuccess = (post) => {
+    onClose();
+
+    // Only navigate when creating a new post.
+    // Updates should simply close the editor.
+    if (isPost && !item && post?.slug) {
+      router.push(`/post/${post.slug}`);
+    }
+  };
 
   return (
     <div className="border-t bg-background/95 px-2 py-2 backdrop-blur sm:p-3">
@@ -39,7 +51,7 @@ export default function EditorFooter({ mode, item, editor, onClose }) {
 
         <Button
           type="button"
-          onClick={() => editor.submit(onClose)}
+          onClick={() => editor.submit(handleSuccess)}
           className="shrink-0"
         >
           <Save className="mr-2 h-4 w-4" />

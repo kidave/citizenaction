@@ -41,20 +41,9 @@ export default function EntityListSheet({
       <SheetContent side="right" className="w-full overflow-hidden sm:max-w-md">
         <SheetHeader>
           <SheetTitle>{title}</SheetTitle>
-
-          <SheetDescription>
-            {uniqueItems.length}{" "}
-            {isContributors
-              ? uniqueItems.length === 1
-                ? "contributor"
-                : "contributors"
-              : uniqueItems.length === 1
-                ? "authority"
-                : "authorities"}
-          </SheetDescription>
         </SheetHeader>
 
-        <div className="mt-6 overflow-y-auto">
+        <div className="mt-2 overflow-y-auto">
           <div className="space-y-2">
             {uniqueItems.map((item, index) => {
               /* =========================================

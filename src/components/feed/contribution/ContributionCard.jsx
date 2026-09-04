@@ -20,54 +20,50 @@ export default function ContributionCard({
   const formattedDate = formatDate(contribution.created_at);
 
   return (
-    <div className="md:rounded-3xl">
-      <div className="flex flex-col gap-2">
-        {/* Header */}
+    <div className="flex flex-col gap-2 sm:rounded-3xl sm:bg-muted sm:p-4">
+      {/* Header */}
 
-        <div className="flex items-start justify-between gap-3">
-          <UserIdentity
-            username={contribution.author_username}
-            name={contribution.author_name}
-            avatar={contribution.author_avatar}
-            createdAt={formattedDate}
-          />
-
-          {canEdit && (
-            <PostActions canEdit onEdit={onEdit} onDelete={onDelete} />
-          )}
-        </div>
-
-        {/* Attachments */}
-
-        {contribution.attachments?.length > 0 && (
-          <div className="overflow-hidden rounded-none md:rounded-2xl">
-            <PostAttachments attachments={contribution.attachments} />
-          </div>
-        )}
-
-        {/* Content */}
-
-        <PostContent
-          post={{
-            ...contribution,
-            title: contribution.title,
-            content: contribution.content,
-            type: "contribution",
-          }}
-          forceExpanded
-          showBadge={false}
+      <div className="flex items-start justify-between gap-3">
+        <UserIdentity
+          username={contribution.author_username}
+          name={contribution.author_name}
+          avatar={contribution.author_avatar}
+          createdAt={formattedDate}
         />
 
-        {/* Metadata */}
-
-        <PostMetadata
-          post={{
-            ...contribution,
-            type: "contribution",
-          }}
-          forceExpanded
-        />
+        {canEdit && <PostActions canEdit onEdit={onEdit} onDelete={onDelete} />}
       </div>
+
+      {/* Attachments */}
+
+      {contribution.attachments?.length > 0 && (
+        <div className="overflow-hidden rounded-none md:rounded-2xl">
+          <PostAttachments attachments={contribution.attachments} />
+        </div>
+      )}
+
+      {/* Content */}
+
+      <PostContent
+        post={{
+          ...contribution,
+          title: contribution.title,
+          content: contribution.content,
+          type: "contribution",
+        }}
+        forceExpanded
+        showBadge={false}
+      />
+
+      {/* Metadata */}
+
+      <PostMetadata
+        post={{
+          ...contribution,
+          type: "contribution",
+        }}
+        forceExpanded
+      />
     </div>
   );
 }

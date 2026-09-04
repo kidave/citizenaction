@@ -65,7 +65,7 @@ export default function GovernanceAvatarGroup({
       <EntityListSheet
         open={open}
         onOpenChange={setOpen}
-        title="Tagged Authorities"
+        title="Governance"
         items={uniqueAuthorities}
         type="authorities"
       />

@@ -68,16 +68,10 @@ export default function CreatePostTrigger({ onCreate }) {
           >
             <Card className="group flex w-full items-center justify-between gap-3 rounded-2xl bg-muted px-4 py-3 transition-colors">
               <div className="min-w-0">
-                <div className="text-md flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 shrink-0" />
+                <div className="text-md flex items-center">
                   <span className="truncate">
                     {user ? "Create a Document" : "Login to Document"}
                   </span>
-                </div>
-
-                <div className="mt-1 truncate text-sm text-muted-foreground">
-                  Post an update, write a report, document your meetings, event
-                  and action.
                 </div>
               </div>
 

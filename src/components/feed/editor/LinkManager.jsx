@@ -37,7 +37,7 @@ export default function LinkManager({ value = [], onChange }) {
           <TooltipTrigger asChild>
             <Button
               type="button"
-              variant={links.length > 0 ? "" : "ghost"}
+              variant={links.length > 0 ? "secondary" : "ghost"}
               size="icon"
               className="relative shrink-0"
               onClick={() => setOpen(true)}

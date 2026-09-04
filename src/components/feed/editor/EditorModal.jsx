@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import EditorModalSkeleton from "@/components/skeletons/EditorModalSkeleton";
@@ -29,6 +30,8 @@ export default function EditorModal({
   const { data: profile, isLoading: profileLoading } = useMyProfile();
   const { data: spaces = [], isLoading: spacesLoading } = useSpaces();
   const loading = profileLoading || spacesLoading;
+
+  const router = useRouter();
 
   const postEditor = usePostEditor(mode === "post" ? item : null, initialSpace);
   const contributionEditor = useContributionEditor(
@@ -82,6 +85,13 @@ export default function EditorModal({
               item={item}
               editor={editor}
               onClose={onClose}
+              onCreated={(post) => {
+                onClose();
+
+                if (post?.slug) {
+                  router.push(`/post/${post.slug}`);
+                }
+              }}
             />
           </>
         )}

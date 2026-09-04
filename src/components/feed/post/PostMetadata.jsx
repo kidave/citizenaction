@@ -20,7 +20,7 @@ export default function PostMetadata({ post, forceExpanded = false }) {
   if (!start && !hasAddress) return null;
 
   return (
-    <div className="space-y-2 text-sm text-muted-foreground">
+    <div className="mt-4 space-y-2 text-sm text-muted-foreground">
       {/* DATE + TIME */}
 
       {start && (

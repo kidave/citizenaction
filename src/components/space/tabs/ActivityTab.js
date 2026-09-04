@@ -191,35 +191,6 @@ export default function ActivityTab({ spaceId }) {
             Clear
           </Button>
         </div>
-
-        {/* LEGEND */}
-
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1 text-xs lg:shrink-0">
-          <div className="flex items-center gap-1">
-            <span className="h-3 w-3 rounded-sm bg-red-500" />
-            <span>Action</span>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <span className="h-3 w-3 rounded-sm bg-yellow-500" />
-            <span>Meeting</span>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <span className="h-3 w-3 rounded-sm bg-blue-500" />
-            <span>Report</span>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <span className="h-3 w-3 rounded-sm bg-green-500" />
-            <span>Event</span>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <span className="h-3 w-3 rounded-sm bg-pink-500" />
-            <span>Update</span>
-          </div>
-        </div>
       </div>
 
       {/* =====================================================

@@ -100,15 +100,10 @@ export default function SpaceAvatarGroup({ spaces = [] }) {
           }}
         >
           <SheetHeader>
-            <SheetTitle>Spaces</SheetTitle>
-
-            <SheetDescription>
-              {uniqueSpaces.length}{" "}
-              {uniqueSpaces.length === 1 ? "Space" : "Spaces"}
-            </SheetDescription>
+            <SheetTitle>Space</SheetTitle>
           </SheetHeader>
 
-          <div className="mt-6 overflow-y-auto">
+          <div className="mt-2 overflow-y-auto">
             <div className="space-y-2">
               {uniqueSpaces.map((space) => (
                 <Link
@@ -137,12 +132,6 @@ export default function SpaceAvatarGroup({ spaces = [] }) {
                     <div className="truncate text-sm font-medium">
                       {space.name || "Unnamed Space"}
                     </div>
-
-                    {space.slug && (
-                      <div className="truncate text-xs text-muted-foreground">
-                        /{space.slug}
-                      </div>
-                    )}
                   </div>
                 </Link>
               ))}

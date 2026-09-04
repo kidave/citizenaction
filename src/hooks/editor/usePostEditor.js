@@ -64,16 +64,18 @@ export function usePostEditor(item = null, initialSpace = null) {
     };
 
     try {
+      let savedPost;
+
       if (item) {
-        await updatePost({
+        savedPost = await updatePost({
           postId: item.id,
           postData: payload,
         });
       } else {
-        await createPost(payload);
+        savedPost = await createPost(payload);
       }
 
-      onSuccess?.();
+      onSuccess?.(savedPost);
     } catch (error) {
       console.error("Failed to save post", {
         message: error?.message,
