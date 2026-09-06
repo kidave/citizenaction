@@ -5,12 +5,15 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from "@/components/ui/sheet";
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-
 import Link from "next/link";
+
+function getGovernanceHref(item) {
+  if (!item?.slug) return null;
+  return `/governance/${item.slug}`;
+}
 
 export default function EntityListSheet({
   open,
@@ -19,9 +22,7 @@ export default function EntityListSheet({
   items = [],
   type = "contributors",
 }) {
-  if (!items?.length) {
-    return null;
-  }
+  if (!items?.length) return null;
 
   const isContributors = type === "contributors";
 
@@ -29,8 +30,7 @@ export default function EntityListSheet({
     new Map(
       items.map((item, index) => {
         const key =
-          item.user_id ?? item.id ?? `${item.name ?? "unknown"}-${index}`;
-
+          item.user_id ?? item.id ?? `${item.name ?? item.label ?? "unknown"}-${index}`;
         return [key, item];
       }),
     ).values(),
@@ -46,15 +46,9 @@ export default function EntityListSheet({
         <div className="mt-2 overflow-y-auto">
           <div className="space-y-2">
             {uniqueItems.map((item, index) => {
-              /* =========================================
-                 CONTRIBUTORS
-              ========================================= */
-
               if (isContributors) {
                 const avatar = item.avatar_url || item.avatar || null;
-
                 const username = item.username || null;
-
                 const key =
                   item.user_id ??
                   item.id ??
@@ -64,7 +58,6 @@ export default function EntityListSheet({
                   <>
                     <Avatar className="h-10 w-10 shrink-0">
                       <AvatarImage src={avatar || undefined} />
-
                       <AvatarFallback>
                         {item.name?.charAt(0)?.toUpperCase() || "U"}
                       </AvatarFallback>
@@ -98,45 +91,53 @@ export default function EntityListSheet({
                 }
 
                 return (
-                  <div
-                    key={key}
-                    className="flex items-center gap-3 rounded-xl p-2"
-                  >
+                  <div key={key} className="flex items-center gap-3 rounded-xl p-2">
                     {content}
                   </div>
                 );
               }
 
-              /* =========================================
-                 GOVERNANCE / AUTHORITIES
-              ========================================= */
-
-              const key = item.id ?? `${item.label ?? "unknown"}-${index}`;
-
-              return (
-                <div
-                  key={key}
-                  className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-muted"
-                >
+              const key = item.id ?? `${item.label ?? item.name ?? "unknown"}-${index}`;
+              const href = getGovernanceHref(item);
+              const governanceContent = (
+                <>
                   <Avatar className="h-10 w-10 shrink-0">
                     <AvatarImage src={item.image_url || undefined} />
-
                     <AvatarFallback>
-                      {item.label?.charAt(0)?.toUpperCase() || "G"}
+                      {(item.label || item.name)?.charAt(0)?.toUpperCase() || "G"}
                     </AvatarFallback>
                   </Avatar>
 
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium">
-                      {item.label || "Unknown authority"}
+                      {item.label || item.name || "Unknown governance entity"}
                     </div>
 
-                    {item.entity_type && (
+                    {(item.entity_type || item.unit_type) && (
                       <div className="text-xs text-muted-foreground">
-                        {item.entity_type.toUpperCase()}
+                        {(item.unit_type || item.entity_type).toUpperCase()}
                       </div>
                     )}
                   </div>
+                </>
+              );
+
+              if (href) {
+                return (
+                  <Link
+                    key={key}
+                    href={href}
+                    onClick={() => onOpenChange(false)}
+                    className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-muted"
+                  >
+                    {governanceContent}
+                  </Link>
+                );
+              }
+
+              return (
+                <div key={key} className="flex items-center gap-3 rounded-xl p-2">
+                  {governanceContent}
                 </div>
               );
             })}
