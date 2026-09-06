@@ -14,7 +14,7 @@ export function usePostGovernance(postId) {
           `
           governance (
             id,
-            label,
+            name,
             short_name,
             slug,
             image_url,
@@ -26,7 +26,15 @@ export function usePostGovernance(postId) {
 
       if (error) throw error;
 
-      return data?.map((row) => row.governance).filter(Boolean) || [];
+      return (
+        data
+          ?.map((row) =>
+            row.governance
+              ? { ...row.governance, label: row.governance.name }
+              : null,
+          )
+          .filter(Boolean) || []
+      );
     },
   });
 }
