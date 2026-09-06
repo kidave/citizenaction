@@ -25,20 +25,29 @@ function formatType(value) {
 export default function GovernanceCard({ entity, onOpen }) {
   const label = getGovernanceLabel(entity);
   const type = formatType(entity?.entity_type);
+  const isClickable = typeof onOpen === "function";
+
+  const handleOpen = () => {
+    if (isClickable) onOpen(entity);
+  };
 
   return (
     <Card
-      role={onOpen ? "button" : undefined}
-      tabIndex={onOpen ? 0 : undefined}
-      onClick={() => onOpen?.(entity)}
+      role={isClickable ? "link" : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      onClick={handleOpen}
       onKeyDown={(event) => {
-        if (!onOpen) return;
+        if (!isClickable) return;
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          onOpen(entity);
+          handleOpen();
         }
       }}
-      className="group cursor-pointer border p-4 transition-colors hover:bg-accent/50 focus:outline-none focus:ring-2 focus:ring-ring"
+      className={`group border p-4 transition-colors ${
+        isClickable
+          ? "cursor-pointer hover:bg-accent/50 focus:outline-none focus:ring-2 focus:ring-ring"
+          : ""
+      }`}
     >
       <div className="flex items-start gap-3">
         <Avatar className="h-10 w-10 shrink-0 rounded-lg">
