@@ -19,7 +19,11 @@ export function useGovernance({
       });
 
       if (error) throw error;
-      return data || [];
+
+      return (data || []).map((entity) => ({
+        ...entity,
+        image_url: entity.image_url || entity.metadata?.image_url || null,
+      }));
     },
   });
 }
