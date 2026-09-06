@@ -1,5 +1,4 @@
 "use client";
-
 import { useRouter } from "next/router";
 import { useAuth } from "@/context/AuthContext";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
@@ -19,8 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-
-import { LogIn } from "lucide-react";
+import { ShieldCheck, LogIn } from "lucide-react";
 
 export function Profile() {
   const router = useRouter();
@@ -44,8 +42,6 @@ export function Profile() {
     router.push("/");
   };
 
-  /* ------------------ NOT LOGGED IN ------------------ */
-
   if (!user) {
     return (
       <SidebarMenu>
@@ -63,8 +59,6 @@ export function Profile() {
     );
   }
 
-  /* ------------------ LOADING PROFILE ------------------ */
-
   if (isLoading || !profile) {
     return (
       <SidebarMenu>
@@ -72,7 +66,7 @@ export function Profile() {
           <SidebarMenuButton size="lg">
             <Avatar className="h-8 w-8 rounded-lg">
               <AvatarFallback>
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-r-transparent"></div>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-r-transparent" />
               </AvatarFallback>
             </Avatar>
           </SidebarMenuButton>
@@ -81,7 +75,7 @@ export function Profile() {
     );
   }
 
-  /* ------------------ LOGGED IN ------------------ */
+  const isAdmin = profile.role === "admin";
 
   return (
     <SidebarMenu>
@@ -108,15 +102,26 @@ export function Profile() {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent side="top" align="end" className="w-56">
-            <DropdownMenuItem
-              onClick={() => router.push(`/user/${profile.username}`)}
-            >
+            <DropdownMenuItem onClick={() => router.push(`/user/${profile.username}`)}>
               Profile
             </DropdownMenuItem>
 
             <DropdownMenuItem onClick={() => router.push("/settings")}>
               Settings
             </DropdownMenuItem>
+
+            {isAdmin && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push("/admin")}>
+                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  Administration
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/admin/governance")}>
+                  Governance Review
+                </DropdownMenuItem>
+              </>
+            )}
 
             <DropdownMenuSeparator />
 
