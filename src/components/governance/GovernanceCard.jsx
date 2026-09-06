@@ -26,6 +26,7 @@ export default function GovernanceCard({ entity, onOpen }) {
   const label = getGovernanceLabel(entity);
   const type = formatType(entity?.entity_type);
   const isClickable = typeof onOpen === "function";
+  const imageUrl = entity?.image_url || entity?.metadata?.image_url || null;
 
   const handleOpen = () => {
     if (isClickable) onOpen(entity);
@@ -51,7 +52,7 @@ export default function GovernanceCard({ entity, onOpen }) {
     >
       <div className="flex items-start gap-3">
         <Avatar className="h-10 w-10 shrink-0 rounded-lg">
-          <AvatarImage src={entity?.image_url || undefined} alt="" />
+          <AvatarImage src={imageUrl || undefined} alt="" />
           <AvatarFallback className="rounded-lg text-xs">
             {getInitials(entity?.name || label)}
           </AvatarFallback>
