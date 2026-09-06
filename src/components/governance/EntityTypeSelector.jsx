@@ -2,43 +2,41 @@
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
+const TYPES = [
+  ["all", "All"],
+  ["authority", "Authority"],
+  ["unit", "Unit"],
+  ["organisation", "Organisation"],
+  ["committee", "Committee"],
+  ["person", "Person"],
+  ["position", "Role"],
+  ["programme", "Programme"],
+  ["project", "Project"],
+];
+
 export default function EntityTypeSelector({ value, onChange }) {
   return (
-    <div className="flex justify-end">
+    <div className="overflow-x-auto">
       <ToggleGroup
         type="single"
         value={value}
-        onValueChange={(v) => v && onChange(v)}
+        onValueChange={(next) => next && onChange(next)}
         variant="outline"
+        className="w-max"
       >
-        <ToggleGroupItem
-          value="all"
-          className="rounded-none border-r-0 first:rounded-l-md"
-        >
-          All
-        </ToggleGroupItem>
-
-        <ToggleGroupItem value="authority" className="rounded-none border-r-0">
-          Authority
-        </ToggleGroupItem>
-
-        <ToggleGroupItem value="department" className="rounded-none border-r-0">
-          Department
-        </ToggleGroupItem>
-
-        <ToggleGroupItem
-          value="designation"
-          className="rounded-none border-r-0"
-        >
-          Role
-        </ToggleGroupItem>
-
-        <ToggleGroupItem
-          value="person"
-          className="rounded-none last:rounded-r-md"
-        >
-          Person
-        </ToggleGroupItem>
+        {TYPES.map(([type, label], index) => (
+          <ToggleGroupItem
+            key={type}
+            value={type}
+            className={`rounded-none ${
+              index < TYPES.length - 1 ? "border-r-0" : ""
+            } ${index === 0 ? "rounded-l-md" : ""} ${
+              index === TYPES.length - 1 ? "rounded-r-md" : ""
+            }`}
+          >
+            {label}
+          </ToggleGroupItem>
+        ))}
       </ToggleGroup>
     </div>
   );
