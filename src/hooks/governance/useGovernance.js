@@ -6,6 +6,7 @@ export function useGovernance({
   scopeCode,
   search,
   entityType,
+  parentId = null,
   enabled = true,
 } = {}) {
   return useQuery({
@@ -15,29 +16,18 @@ export function useGovernance({
       scopeCode,
       search,
       entityType,
+      parentId,
     ],
     enabled,
     queryFn: async () => {
-      let query = supabase
-        .from("governance_view")
-        .select("*")
-        .order("label", { ascending: true });
-
-      if (scopeType && scopeCode) {
-        query = query
-          .eq("geo_scope_type", scopeType)
-          .eq("geo_scope_code", scopeCode);
-      }
-
-      if (entityType && entityType !== "all") {
-        query = query.eq("entity_type", entityType);
-      }
-
-      if (search) {
-        query = query.ilike("label", `%${search}%`);
-      }
-
-      const { data, error } = await query;
+      const { data, error } = await supabase.rpc("get_governance_directory", {
+        p_search: search || null,
+        p_parent_entity_id: parentId || null,
+        p_scope_type: scopeType || null,
+        p_scope_code: scopeCode || null,
+        p_entity_type: entityType && entityType !== "all" ? entityType : null,
+        p_limit: 100,
+      });
 
       if (error) throw error;
       return data || [];
