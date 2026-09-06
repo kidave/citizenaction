@@ -7,54 +7,25 @@ export function useGovernanceTree({
   parentId = null,
   scopes = [],
   search,
+  entityType = null,
   enabled = true,
-}) {
+} = {}) {
+  const scope = scopes?.[0] || {};
+
   return useQuery({
-    queryKey: ["governance-tree", parentId, scopes, search],
+    queryKey: ["governance-tree", parentId, scope.type, scope.code, search, entityType],
     enabled,
     queryFn: async () => {
-      let query = supabase.from("governance_view").select("*").order("label");
+      const { data, error } = await supabase.rpc("get_governance_directory", {
+        p_search: search || null,
+        p_parent_entity_id: parentId || null,
+        p_scope_type: scope.type || null,
+        p_scope_code: scope.code || null,
+        p_entity_type: entityType && entityType !== "all" ? entityType : null,
+        p_limit: 100,
+      });
 
-      /* -------------------------
-         HIERARCHY
-      ------------------------- */
-      if (parentId) {
-        query = query.eq("parent_id", parentId);
-      } else {
-        query = query.is("parent_id", null);
-      }
-
-      /* -------------------------
-         SCOPES (NEW LOGIC)
-      ------------------------- */
-      if (scopes?.length > 0) {
-        const conditions = scopes.map((s) => {
-          /* -------------------------
-            ALL STATES CASE
-          ------------------------- */
-          if (s.type === "state" && !s.code) {
-            return `geo_scope_type.eq.state`;
-          }
-
-          /* -------------------------
-            NORMAL
-          ------------------------- */
-          return `and(geo_scope_type.eq.${s.type},geo_scope_code.eq.${s.code})`;
-        });
-
-        query = query.or(conditions.join(","));
-      }
-
-      /* -------------------------
-         SEARCH
-      ------------------------- */
-      if (search) {
-        query = query.ilike("label", `%${search}%`);
-      }
-
-      const { data, error } = await query;
       if (error) throw error;
-
       return data || [];
     },
   });
