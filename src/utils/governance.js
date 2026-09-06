@@ -1,5 +1,6 @@
 export function getGovernanceHref(entity) {
-  if (!entity?.slug) return null;
+  if (!entity?.slug && !entity?.path) return null;
+  if (entity.path) return entity.path;
   return `/governance/${entity.slug}`;
 }
 
