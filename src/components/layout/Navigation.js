@@ -10,6 +10,7 @@ import {
   Info,
   MapPinned,
   ChevronRight,
+  Landmark,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { LoginModal } from "@/components/auth/LoginModal";
@@ -30,6 +31,7 @@ import {
 } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSpaces } from "@/hooks/space/useSpaces";
+import { useMyProfile } from "@/hooks/user/useMyProfile";
 
 export function Navigation({ onCreatePost }) {
   const router = useRouter();
@@ -39,14 +41,16 @@ export function Navigation({ onCreatePost }) {
   });
 
   const { user } = useAuth();
+  const { data: profile } = useMyProfile();
   const [showLogin, setShowLogin] = useState(false);
+
+  const isAdmin = profile?.role === "admin";
 
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Explore</SidebarGroupLabel>
 
       <SidebarMenu>
-        {/* SEARCH (page only) */}
         <SidebarMenuItem>
           <SidebarMenuButton
             tooltip="Search"
@@ -67,7 +71,6 @@ export function Navigation({ onCreatePost }) {
           </SidebarMenuButton>
         </SidebarMenuItem>
 
-        {/* (collapsible, expanded only) */}
         <Collapsible
           defaultOpen
           className="group/collapsible group-data-[collapsible=icon]:hidden"
@@ -108,7 +111,51 @@ export function Navigation({ onCreatePost }) {
           </SidebarMenuItem>
         </Collapsible>
 
-        {/* DIRECT REGION LINK */}
+        <Collapsible
+          defaultOpen={router.pathname.startsWith("/governance")}
+          className="group/collapsible group-data-[collapsible=icon]:hidden"
+        >
+          <SidebarMenuItem>
+            <CollapsibleTrigger asChild>
+              <SidebarMenuButton>
+                <Landmark />
+                <span>Governance</span>
+                <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
+              </SidebarMenuButton>
+            </CollapsibleTrigger>
+
+            <CollapsibleContent>
+              <SidebarMenuSub>
+                <SidebarMenuSubItem>
+                  <SidebarMenuSubButton
+                    onClick={() => router.push("/governance")}
+                  >
+                    <span>Governance Directory</span>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
+
+                <SidebarMenuSubItem>
+                  <SidebarMenuSubButton
+                    onClick={() => router.push("/governance")}
+                  >
+                    <span>Suggest a Change</span>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
+
+                {isAdmin && (
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton
+                      onClick={() => router.push("/admin/governance")}
+                    >
+                      <span>Governance Administration</span>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                )}
+              </SidebarMenuSub>
+            </CollapsibleContent>
+          </SidebarMenuItem>
+        </Collapsible>
+
         <SidebarMenuItem>
           <SidebarMenuButton
             tooltip="Land-Based Classification Standards"
@@ -131,6 +178,8 @@ export function Navigation({ onCreatePost }) {
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
+
+      <LoginModal open={showLogin} onOpenChange={setShowLogin} />
     </SidebarGroup>
   );
 }
