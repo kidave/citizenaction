@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import EntityTypeSelector from "@/components/governance/EntityTypeSelector";
 import GovernanceContributionDialog from "@/components/governance/GovernanceContributionDialog";
-import AuthorityCard from "@/components/governance/AuthorityCard";
+import GovernanceCard from "@/components/governance/GovernanceCard";
 import { useGovernance } from "@/hooks/governance/useGovernance";
 
 export default function GovernancePage() {
@@ -41,7 +41,14 @@ export default function GovernancePage() {
       {!isLoading && !error && data.length === 0 && <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">No governance entities found.</CardContent></Card>}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {data.map((entity) => <AuthorityCard key={entity.id} entity={entity} isSelected={false} onOpen={() => entity.slug && router.push(`/governance/${entity.slug}`)} />)}
+        {data.map((entity) => (
+          <GovernanceCard
+            key={entity.id}
+            entity={entity}
+            isSelected={false}
+            onOpen={() => entity.path && router.push(entity.path)}
+          />
+        ))}
       </div>
 
       {data.length > 0 && <div className="flex items-center justify-between border-t pt-4 text-xs text-muted-foreground"><span>{data.length} governance records</span><Badge variant="outline">Community maintained</Badge></div>}
