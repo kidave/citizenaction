@@ -1,5 +1,5 @@
-import { useRouter } from "next/router";
 import { useState } from "react";
+import { useRouter } from "next/router";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ export default function GovernancePage() {
   const [showSuggest, setShowSuggest] = useState(false);
   const [summary, setSummary] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
+  const [name, setName] = useState("");
 
   const { data = [], isLoading, error } = useGovernance({
     search,
@@ -29,14 +30,20 @@ export default function GovernancePage() {
       return;
     }
 
+    const action = name.trim() ? "add" : "edit";
+
     await submitContribution({
       summary,
-      action: "edit",
-      proposedChanges: {},
+      action,
+      proposedEntityType: entityType !== "all" ? entityType : "unit",
+      proposedChanges: {
+        ...(name.trim() ? { name: name.trim() } : {}),
+      },
       sourceUrl: sourceUrl || null,
     });
 
     setSummary("");
+    setName("");
     setSourceUrl("");
     setShowSuggest(false);
   };
@@ -58,6 +65,11 @@ export default function GovernancePage() {
 
         {showSuggest && (
           <div className="space-y-3 rounded-xl border p-4">
+            <Input
+              placeholder="Name for a new governance record (optional)"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+            />
             <Input
               placeholder="What should be added or corrected?"
               value={summary}
@@ -104,7 +116,6 @@ export default function GovernancePage() {
             key={entity.id}
             entity={entity}
             isSelected={false}
-            onToggle={() => {}}
             onOpen={() => router.push(entity.slug ? `/governance/${entity.slug}` : "/governance")}
           />
         ))}
