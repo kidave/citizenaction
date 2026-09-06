@@ -1,45 +1,72 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import Image from "next/image";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@/components/ui/tooltip";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { getGovernanceLabel } from "@/utils/governance";
 
-export default function GovernanceCard({ entity, isSelected, onToggle, onOpen }) {
+function getInitials(value) {
+  return (
+    value
+      ?.split(" ")
+      .filter(Boolean)
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "G"
+  );
+}
+
+function formatType(value) {
+  if (!value) return "Governance";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+export default function GovernanceCard({ entity, onOpen }) {
   const label = getGovernanceLabel(entity);
+  const type = formatType(entity?.entity_type);
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Card
-          className={`flex cursor-pointer items-center gap-3 border p-3 ${
-            isSelected ? "border-primary bg-primary/5" : "hover:bg-accent"
-          }`}
-          onClick={() => onOpen?.(entity)}
-        >
-          <Checkbox
-            checked={!!isSelected}
-            onCheckedChange={() => onToggle?.(entity)}
-            onClick={(event) => event.stopPropagation()}
-          />
+    <Card
+      role={onOpen ? "button" : undefined}
+      tabIndex={onOpen ? 0 : undefined}
+      onClick={() => onOpen?.(entity)}
+      onKeyDown={(event) => {
+        if (!onOpen) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpen(entity);
+        }
+      }}
+      className="group cursor-pointer border p-4 transition-colors hover:bg-accent/50 focus:outline-none focus:ring-2 focus:ring-ring"
+    >
+      <div className="flex items-start gap-3">
+        <Avatar className="h-10 w-10 shrink-0 rounded-lg">
+          <AvatarImage src={entity?.image_url || undefined} alt="" />
+          <AvatarFallback className="rounded-lg text-xs">
+            {getInitials(entity?.name || label)}
+          </AvatarFallback>
+        </Avatar>
 
-          <Image
-            src={entity?.image_url || "/user1.png"}
-            width={32}
-            height={32}
-            alt=""
-            className={entity?.entity_type === "person" ? "rounded-full" : "rounded-md"}
-          />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="truncate font-medium group-hover:underline">{label}</h3>
+            <Badge variant="outline" className="shrink-0 text-[10px] font-normal">
+              {type}
+            </Badge>
+          </div>
 
-          <div className="flex-1 truncate text-sm">{label}</div>
-        </Card>
-      </TooltipTrigger>
-      <TooltipContent>{entity?.name || label}</TooltipContent>
-    </Tooltip>
+          {entity?.short_name && entity.short_name !== entity.name && (
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">{entity.short_name}</p>
+          )}
+
+          {entity?.parent_name && (
+            <p className="mt-2 truncate text-xs text-muted-foreground">
+              Part of {entity.parent_name}
+            </p>
+          )}
+        </div>
+      </div>
+    </Card>
   );
 }
