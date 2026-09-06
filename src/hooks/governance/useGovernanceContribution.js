@@ -11,9 +11,9 @@ export function useGovernanceContribution() {
     mutationFn: async ({
       summary,
       action = "edit",
+      proposedGovernanceId = null,
+      proposedParentId = null,
       proposedEntityType = null,
-      proposedEntityId = null,
-      proposedParentEntityId = null,
       proposedChanges = {},
       sourceUrl = null,
       sourceNotes = null,
@@ -21,9 +21,9 @@ export function useGovernanceContribution() {
       const { data, error } = await supabase.rpc("submit_governance_contribution", {
         p_summary: summary,
         p_action: action,
+        p_proposed_governance_id: proposedGovernanceId,
+        p_proposed_parent_id: proposedParentId,
         p_proposed_entity_type: proposedEntityType,
-        p_proposed_entity_id: proposedEntityId,
-        p_proposed_parent_entity_id: proposedParentEntityId,
         p_proposed_changes: proposedChanges,
         p_source_url: sourceUrl,
         p_source_notes: sourceNotes,
