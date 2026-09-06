@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronLeft } from "lucide-react";
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import GovernanceCard from "./GovernanceCard";
 import EntityTypeSelector from "./EntityTypeSelector";
 import { useGovernance } from "@/hooks/governance/useGovernance";
+import { getGovernanceLabel } from "@/utils/governance";
 
 export default function GovernanceExplorer({
   selected = [],
@@ -23,6 +26,9 @@ export default function GovernanceExplorer({
     enabled: true,
   });
 
+  const open = (entity) => setStack((prev) => [...prev, entity]);
+  const navigateBack = () => setStack((prev) => prev.slice(0, -1));
+
   const toggle = (entity) => {
     const exists = selected.some((item) => item.id === entity.id);
     onChange(
@@ -31,9 +37,6 @@ export default function GovernanceExplorer({
         : [...selected, entity],
     );
   };
-
-  const open = (entity) => setStack((prev) => [...prev, entity]);
-  const navigateBack = () => setStack((prev) => prev.slice(0, -1));
 
   const selectedIds = new Set(selected.map((item) => item.id));
   const visibleItems = data.filter((item) => !selectedIds.has(item.id));
@@ -49,64 +52,51 @@ export default function GovernanceExplorer({
         <EntityTypeSelector value={entityType} onChange={setEntityType} />
       </div>
 
-      {stack.length > 0 && (
-        <div className="flex items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2">
+      {currentParent && (
+        <div className="flex items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={navigateBack}
+            aria-label="Back"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
           <div className="min-w-0 truncate text-sm">
             <span className="text-muted-foreground">Inside </span>
-            <span className="font-medium">{currentParent?.name}</span>
+            <span className="font-medium">{getGovernanceLabel(currentParent)}</span>
           </div>
-          <Button type="button" variant="ghost" size="sm" onClick={navigateBack}>
-            Back
-          </Button>
         </div>
       )}
 
       {selected.length > 0 && (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-          {selected.map((entity) => (
-            <GovernanceCard
-              key={entity.id}
-              entity={entity}
-              isSelected
-              onToggle={toggle}
-              onOpen={open}
-            />
-          ))}
+        <div className="space-y-2">
+          <div className="text-xs font-medium text-muted-foreground">Selected</div>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {selected.map((entity) => (
+              <div key={entity.id} className="cursor-pointer" onClick={() => toggle(entity)}>
+                <GovernanceCard entity={entity} />
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
-      <div className="grid max-h-[400px] grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3 lg:grid-cols-4">
-        {isLoading && (
-          <p className="col-span-full text-sm text-muted-foreground">Loading...</p>
-        )}
-        {error && (
-          <p className="col-span-full text-sm text-destructive">
-            Failed to load governance data.
-          </p>
-        )}
-        {!isLoading && !error && visibleItems.length === 0 && (
-          <p className="col-span-full py-6 text-center text-sm text-muted-foreground">
-            No governance entities found
-          </p>
-        )}
+      {isLoading && <p className="text-sm text-muted-foreground">Loading...</p>}
+      {error && <p className="text-sm text-destructive">Failed to load governance data.</p>}
+
+      {!isLoading && !error && visibleItems.length === 0 && (
+        <p className="py-6 text-center text-sm text-muted-foreground">
+          No governance entities found.
+        </p>
+      )}
+
+      <div className="grid max-h-[420px] grid-cols-1 gap-2 overflow-y-auto sm:grid-cols-2">
         {visibleItems.map((entity) => (
-          <GovernanceCard
-            key={entity.id}
-            entity={entity}
-            isSelected={false}
-            onToggle={toggle}
-            onOpen={open}
-          />
+          <GovernanceCard key={entity.id} entity={entity} onOpen={open} />
         ))}
       </div>
-
-      {stack.length > 0 && (
-        <div className="flex justify-end">
-          <Button type="button" variant="ghost" onClick={() => setStack([])} className="text-xs text-primary">
-            Reset hierarchy
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
