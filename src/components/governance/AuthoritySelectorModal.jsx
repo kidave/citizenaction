@@ -6,9 +6,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
 import { Button } from "@/components/ui/button";
-import AuthorityExplorer from "./AuthorityExplorer";
+import GovernanceExplorer from "./GovernanceExplorer";
 
 export default function AuthoritySelectorModal({
   open,
@@ -16,25 +15,20 @@ export default function AuthoritySelectorModal({
   selected,
   onChange,
   onSubmit,
-  context,
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Tag Authority</DialogTitle>
+          <DialogTitle>Tag Governance</DialogTitle>
         </DialogHeader>
 
-        <AuthorityExplorer
-          selected={selected}
-          onChange={onChange}
-          context={context}
-        />
+        <GovernanceExplorer selected={selected} onChange={onChange} />
 
         <Button
           className="mt-4 w-full"
           onClick={() => {
-            onSubmit?.(selected); // optional safety
+            onSubmit?.(selected);
             onOpenChange(false);
           }}
         >
