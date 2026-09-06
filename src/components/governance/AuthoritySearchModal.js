@@ -6,18 +6,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-
 import { useState } from "react";
 import { useGovernance } from "@/hooks/governance/useGovernance";
-
 import { UserIdentity } from "@/components/profile/UserIdentity";
-
-import ScopeSelector from "@/components/shared/ScopeSelector";
 import Image from "next/image";
 
 export default function AuthoritySearchModal({
@@ -30,33 +25,20 @@ export default function AuthoritySearchModal({
 }) {
   const [search, setSearch] = useState("");
 
-  const [scope, setScope] = useState({
-    scope_type: "",
-    scope_code: "",
-  });
-
   const { data: directory = [], isLoading } = useGovernance({
-    scopeType: scope.scope_type || null,
-    scopeCode: scope.scope_code || null,
     search,
     entityType: "all",
     enabled: open,
   });
 
   function handleToggle(item) {
-    const exists = selected.find((e) => e.id === item.id);
-
-    if (exists) {
-      onChange([]);
-    } else {
-      onChange([item]);
-    }
+    const exists = selected.some((e) => e.id === item.id);
+    onChange(exists ? selected.filter((e) => e.id !== item.id) : [...selected, item]);
   }
 
   function getTaggedUser(entityId) {
     const found = existingAuthorities.find((e) => e.id === entityId);
     if (!found || !found.tagged_by) return null;
-
     return {
       username: found.tagged_by_username,
       name: found.tagged_by_name,
@@ -67,75 +49,51 @@ export default function AuthoritySearchModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col p-0">
-        {/* HEADER */}
         <DialogHeader className="border-b p-4">
-          <DialogTitle>Manage Authority</DialogTitle>
+          <DialogTitle>Manage Governance</DialogTitle>
         </DialogHeader>
 
-        {/* BODY */}
         <div className="flex-1 space-y-3 overflow-y-auto p-4">
-          {/* SEARCH */}
           <Input
-            placeholder="Search authority..."
+            placeholder="Search governance..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
 
-          {/* SCOPE */}
-          <ScopeSelector value={scope} onChange={setScope} />
-
-          {/* RESULTS */}
           <div className="space-y-2">
-            {isLoading && (
-              <p className="text-sm text-muted-foreground">Loading...</p>
-            )}
+            {isLoading && <p className="text-sm text-muted-foreground">Loading...</p>}
 
             {!isLoading && directory.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                No authorities found.
-              </p>
+              <p className="text-sm text-muted-foreground">No governance records found.</p>
             )}
 
             {directory.map((item) => {
-              const isSelected = selected.find((e) => e.id === item.id);
-
+              const isSelected = selected.some((e) => e.id === item.id);
               const taggedUser = getTaggedUser(item.id);
+              const label = item.short_name || item.label || item.name;
 
               return (
                 <Card
                   key={item.id}
                   className={`cursor-pointer border p-3 ${
-                    isSelected
-                      ? "border-primary bg-primary/5"
-                      : "hover:bg-accent"
+                    isSelected ? "border-primary bg-primary/5" : "hover:bg-accent"
                   }`}
                   onClick={() => handleToggle(item)}
                 >
                   <div className="flex items-center gap-3">
-                    <Checkbox checked={!!isSelected} />
-
+                    <Checkbox checked={isSelected} />
                     <Image
                       src={item.image_url || "/user1.png"}
                       width={32}
                       height={32}
                       alt=""
-                      className={
-                        item.entity_type === "person"
-                          ? "rounded-full"
-                          : "rounded-md"
-                      }
+                      className={item.entity_type === "person" ? "rounded-full" : "rounded-md"}
                     />
-
                     <div className="flex-1 space-y-1">
-                      {/* LABEL */}
-                      <div className="text-sm font-medium">{item.label}</div>
-
+                      <div className="text-sm font-medium">{label}</div>
                       {taggedUser && (
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">
-                            Tagged by
-                          </span>
-
+                          <span className="text-xs text-muted-foreground">Tagged by</span>
                           <UserIdentity {...taggedUser} size="sm" hideName />
                         </div>
                       )}
@@ -147,12 +105,11 @@ export default function AuthoritySearchModal({
           </div>
         </div>
 
-        {/* FOOTER */}
         <div className="border-t p-4">
           <Button
             className="w-full"
             onClick={() => {
-              onSubmit(selected.slice(0, 1));
+              onSubmit(selected);
               onOpenChange(false);
             }}
           >
