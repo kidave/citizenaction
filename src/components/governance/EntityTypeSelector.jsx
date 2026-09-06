@@ -5,11 +5,17 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 const TYPES = [
   ["all", "All"],
   ["authority", "Authority"],
-  ["unit", "Unit"],
+  ["ministry", "Ministry"],
+  ["department", "Department"],
   ["organisation", "Organisation"],
   ["committee", "Committee"],
+  ["office", "Office"],
+  ["division", "Division"],
+  ["unit", "Unit"],
+  ["ward", "Ward"],
+  ["station", "Station"],
   ["person", "Person"],
-  ["position", "Role"],
+  ["position", "Position"],
   ["programme", "Programme"],
   ["project", "Project"],
 ];
@@ -28,11 +34,7 @@ export default function EntityTypeSelector({ value, onChange }) {
           <ToggleGroupItem
             key={type}
             value={type}
-            className={`rounded-none ${
-              index < TYPES.length - 1 ? "border-r-0" : ""
-            } ${index === 0 ? "rounded-l-md" : ""} ${
-              index === TYPES.length - 1 ? "rounded-r-md" : ""
-            }`}
+            className={`rounded-none ${index < TYPES.length - 1 ? "border-r-0" : ""} ${index === 0 ? "rounded-l-md" : ""} ${index === TYPES.length - 1 ? "rounded-r-md" : ""}`}
           >
             {label}
           </ToggleGroupItem>
