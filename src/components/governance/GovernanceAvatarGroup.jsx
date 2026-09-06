@@ -1,20 +1,15 @@
 "use client";
 
 import { useState } from "react";
-
 import {
   Avatar,
   AvatarImage,
   AvatarFallback,
   AvatarGroup,
 } from "@/components/ui/avatar";
-
 import EntityListSheet from "@/components/profile/EntityListSheet";
 
-export default function GovernanceAvatarGroup({
-  authorities = [],
-  maxVisible = 5,
-}) {
+export default function GovernanceAvatarGroup({ authorities = [], maxVisible = 5 }) {
   const [open, setOpen] = useState(false);
 
   if (!authorities?.length) return null;
@@ -22,10 +17,8 @@ export default function GovernanceAvatarGroup({
   const uniqueAuthorities = Array.from(
     new Map(authorities.map((authority) => [authority.id, authority])).values(),
   );
-
   const visible = uniqueAuthorities.slice(0, maxVisible);
-
-  const hiddenCount = uniqueAuthorities.length - maxVisible;
+  const hiddenCount = Math.max(uniqueAuthorities.length - maxVisible, 0);
 
   return (
     <>
@@ -41,9 +34,10 @@ export default function GovernanceAvatarGroup({
               }}
             >
               <AvatarImage src={authority.image_url || undefined} />
-
               <AvatarFallback>
-                {authority.label?.charAt(0)?.toUpperCase() || "G"}
+                {(authority.short_name || authority.label || authority.name || "G")
+                  ?.charAt(0)
+                  ?.toUpperCase()}
               </AvatarFallback>
             </Avatar>
           ))}
