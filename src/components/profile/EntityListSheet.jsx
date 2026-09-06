@@ -6,14 +6,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import Link from "next/link";
-
-function getGovernanceHref(item) {
-  if (!item?.slug) return null;
-  return `/governance/${item.slug}`;
-}
+import { getGovernanceHref, getGovernanceLabel } from "@/utils/governance";
 
 export default function EntityListSheet({
   open,
@@ -25,12 +20,10 @@ export default function EntityListSheet({
   if (!items?.length) return null;
 
   const isContributors = type === "contributors";
-
   const uniqueItems = Array.from(
     new Map(
       items.map((item, index) => {
-        const key =
-          item.user_id ?? item.id ?? `${item.name ?? item.label ?? "unknown"}-${index}`;
+        const key = item.user_id ?? item.id ?? `${item.name ?? item.label ?? "unknown"}-${index}`;
         return [key, item];
       }),
     ).values(),
@@ -49,70 +42,45 @@ export default function EntityListSheet({
               if (isContributors) {
                 const avatar = item.avatar_url || item.avatar || null;
                 const username = item.username || null;
-                const key =
-                  item.user_id ??
-                  item.id ??
-                  `${item.name ?? "unknown"}-${index}`;
-
+                const key = item.user_id ?? item.id ?? `${item.name ?? "unknown"}-${index}`;
                 const content = (
                   <>
                     <Avatar className="h-10 w-10 shrink-0">
                       <AvatarImage src={avatar || undefined} />
-                      <AvatarFallback>
-                        {item.name?.charAt(0)?.toUpperCase() || "U"}
-                      </AvatarFallback>
+                      <AvatarFallback>{item.name?.charAt(0)?.toUpperCase() || "U"}</AvatarFallback>
                     </Avatar>
-
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-medium">
-                        {item.name || "Anonymous"}
-                      </div>
-
-                      {username && (
-                        <div className="truncate text-xs text-muted-foreground">
-                          @{username}
-                        </div>
-                      )}
+                      <div className="truncate text-sm font-medium">{item.name || "Anonymous"}</div>
+                      {username && <div className="truncate text-xs text-muted-foreground">@{username}</div>}
                     </div>
                   </>
                 );
 
-                if (username) {
-                  return (
-                    <Link
-                      key={key}
-                      href={`/user/${username}`}
-                      onClick={() => onOpenChange(false)}
-                      className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-muted"
-                    >
-                      {content}
-                    </Link>
-                  );
-                }
-
-                return (
-                  <div key={key} className="flex items-center gap-3 rounded-xl p-2">
+                return username ? (
+                  <Link
+                    key={key}
+                    href={`/user/${username}`}
+                    onClick={() => onOpenChange(false)}
+                    className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-muted"
+                  >
                     {content}
-                  </div>
+                  </Link>
+                ) : (
+                  <div key={key} className="flex items-center gap-3 rounded-xl p-2">{content}</div>
                 );
               }
 
               const key = item.id ?? `${item.label ?? item.name ?? "unknown"}-${index}`;
               const href = getGovernanceHref(item);
+              const label = getGovernanceLabel(item);
               const governanceContent = (
                 <>
                   <Avatar className="h-10 w-10 shrink-0">
                     <AvatarImage src={item.image_url || undefined} />
-                    <AvatarFallback>
-                      {(item.label || item.name)?.charAt(0)?.toUpperCase() || "G"}
-                    </AvatarFallback>
+                    <AvatarFallback>{label?.charAt(0)?.toUpperCase() || "G"}</AvatarFallback>
                   </Avatar>
-
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium">
-                      {item.label || item.name || "Unknown governance entity"}
-                    </div>
-
+                    <div className="truncate text-sm font-medium">{label}</div>
                     {(item.entity_type || item.unit_type) && (
                       <div className="text-xs text-muted-foreground">
                         {(item.unit_type || item.entity_type).toUpperCase()}
@@ -122,23 +90,17 @@ export default function EntityListSheet({
                 </>
               );
 
-              if (href) {
-                return (
-                  <Link
-                    key={key}
-                    href={href}
-                    onClick={() => onOpenChange(false)}
-                    className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-muted"
-                  >
-                    {governanceContent}
-                  </Link>
-                );
-              }
-
-              return (
-                <div key={key} className="flex items-center gap-3 rounded-xl p-2">
+              return href ? (
+                <Link
+                  key={key}
+                  href={href}
+                  onClick={() => onOpenChange(false)}
+                  className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-muted"
+                >
                   {governanceContent}
-                </div>
+                </Link>
+              ) : (
+                <div key={key} className="flex items-center gap-3 rounded-xl p-2">{governanceContent}</div>
               );
             })}
           </div>
