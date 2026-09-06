@@ -1,5 +1,3 @@
-// hooks/feed/usePostGovernance.js
-
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
@@ -9,7 +7,6 @@ export function usePostGovernance(postId) {
   return useQuery({
     queryKey: ["post-governance", postId],
     enabled: !!postId,
-
     queryFn: async () => {
       const { data, error } = await supabase
         .from("post_governance")
@@ -18,7 +15,10 @@ export function usePostGovernance(postId) {
           governance (
             id,
             label,
-            image_url
+            short_name,
+            slug,
+            image_url,
+            entity_type
           )
         `,
         )
@@ -26,7 +26,7 @@ export function usePostGovernance(postId) {
 
       if (error) throw error;
 
-      return data?.map((d) => d.governance) || [];
+      return data?.map((row) => row.governance).filter(Boolean) || [];
     },
   });
 }
