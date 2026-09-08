@@ -1,4 +1,4 @@
-import { ExternalLink, GitBranch, Pencil, Plus } from "lucide-react";
+import { ExternalLink, GitBranch } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { getGovernanceLabel } from "@/utils/governance";
 
 function formatType(entity) {
-  const type = entity?.unit_type || entity?.entity_type;
+  const type = entity?.entity_type || entity?.unit_type;
   if (!type) return "Governance";
   if (type === "other") return "Organisation";
   return type.charAt(0).toUpperCase() + type.slice(1);
@@ -30,15 +30,13 @@ export default function GovernanceEntityModal({
   entity,
   parent,
   children = [],
+  canEdit = false,
   onEdit,
-  onAddChild,
-  onAddParent,
   onSelect,
 }) {
   if (!entity) return null;
 
   const label = getGovernanceLabel(entity);
-  const type = formatType(entity);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -52,10 +50,10 @@ export default function GovernanceEntityModal({
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <DialogTitle className="text-xl">{label}</DialogTitle>
-                <Badge variant="outline">{type}</Badge>
+                <Badge variant="outline">{formatType(entity)}</Badge>
               </div>
               <DialogDescription className="mt-1">
-                Explore this entity and suggest a change without editing the live record.
+                Explore where this entity sits in the governance structure.
               </DialogDescription>
             </div>
           </div>
@@ -111,31 +109,18 @@ export default function GovernanceEntityModal({
           </section>
 
           {entity.website && (
-            <a
-              href={entity.website}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center text-sm font-medium hover:underline"
-            >
+            <a href={entity.website} target="_blank" rel="noreferrer" className="inline-flex items-center text-sm font-medium hover:underline">
               Official website
               <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
             </a>
           )}
         </div>
 
-        <DialogFooter className="gap-2 sm:justify-between">
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => onAddChild?.(entity)}>
-              <Plus className="mr-2 h-4 w-4" /> Add child
-            </Button>
-            <Button variant="outline" onClick={() => onAddParent?.(entity)}>
-              <GitBranch className="mr-2 h-4 w-4" /> Add parent
-            </Button>
-          </div>
-          <Button onClick={() => onEdit?.(entity)}>
-            <Pencil className="mr-2 h-4 w-4" /> Suggest an edit
-          </Button>
-        </DialogFooter>
+        {canEdit && (
+          <DialogFooter>
+            <Button onClick={() => onEdit?.(entity)}>Edit governance entity</Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );

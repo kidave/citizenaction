@@ -1,18 +1,27 @@
-import { useMemo, useState } from "react";
-import { ChevronDown, ChevronRight, GitBranch, MoreHorizontal, Plus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronDown, ChevronRight, Landmark, Network } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { getGovernanceHref, getGovernanceLabel } from "@/utils/governance";
+import { getGovernanceLabel } from "@/utils/governance";
+
+const TEXT_TYPES = new Set(["ministry", "department", "person"]);
+
+function formatType(entity) {
+  const type = entity?.entity_type || entity?.unit_type;
+  if (!type) return "Governance";
+  if (type === "other") return "Organisation";
+  return type.charAt(0).toUpperCase() + type.slice(1);
+}
+
+function getInitials(value) {
+  return value?.split(" ").filter(Boolean).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "G";
+}
 
 function buildTree(records) {
-  const nodes = new Map();
+  const nodes = new Map((records || []).map((record) => [record.id, { ...record, children: [] }]));
   const roots = [];
-
-  (records || []).forEach((record) => {
-    nodes.set(record.id, { ...record, children: [] });
-  });
 
   nodes.forEach((node) => {
     if (node.parent_id && nodes.has(node.parent_id)) {
@@ -22,161 +31,179 @@ function buildTree(records) {
     }
   });
 
-  const sortNodes = (items) => {
+  const sort = (items) => {
     items.sort((a, b) => getGovernanceLabel(a).localeCompare(getGovernanceLabel(b)));
-    items.forEach((item) => sortNodes(item.children));
+    items.forEach((item) => sort(item.children));
   };
 
-  sortNodes(roots);
+  sort(roots);
+
+  roots.sort((a, b) => {
+    const rank = (node) => {
+      const name = getGovernanceLabel(node).toLowerCase();
+      if (name === "government of india") return 0;
+      if (name === "government of maharashtra") return 1;
+      return 2;
+    };
+    return rank(a) - rank(b) || getGovernanceLabel(a).localeCompare(getGovernanceLabel(b));
+  });
+
   return roots;
 }
 
-function formatType(node) {
-  const type = node?.unit_type || node?.entity_type;
-  if (!type) return "Governance";
-  if (type === "other") return "Organisation";
-  return type.charAt(0).toUpperCase() + type.slice(1);
+function getAncestorIds(records, selectedId) {
+  if (!selectedId) return [];
+  const byId = new Map(records.map((record) => [record.id, record]));
+  const ids = [];
+  let current = byId.get(selectedId);
+  const seen = new Set();
+
+  while (current?.parent_id && !seen.has(current.parent_id)) {
+    seen.add(current.parent_id);
+    ids.push(current.parent_id);
+    current = byId.get(current.parent_id);
+  }
+
+  return ids;
 }
 
-function TreeNode({ node, depth = 0, selectedId, onSelect, onAddChild, onAddParent }) {
-  const [open, setOpen] = useState(depth === 0);
-  const label = getGovernanceLabel(node);
-  const href = getGovernanceHref(node);
-  const isSelected = selectedId === node.id;
-  const isTextOnly = ["ministry", "department", "person"].includes(node.entity_type);
+function TreeNode({ node, expandedIds, onToggle, selectedId, onSelect }) {
   const hasChildren = node.children.length > 0;
+  const expanded = expandedIds.has(node.id);
+  const selected = selectedId === node.id;
+  const textOnly = TEXT_TYPES.has(node.entity_type);
+  const label = getGovernanceLabel(node);
 
-  const select = () => onSelect(node);
+  const handleSelect = () => {
+    onSelect?.(node);
+    if (hasChildren) onToggle(node.id);
+  };
 
   return (
-    <li className="relative">
-      <div className="flex items-center gap-1.5">
-        {hasChildren ? (
+    <li className="flex min-w-0 flex-col items-center">
+      <div className="flex items-center gap-2">
+        {textOnly ? (
           <button
             type="button"
-            aria-label={open ? `Collapse ${label}` : `Expand ${label}`}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md hover:bg-accent"
-            onClick={() => setOpen((value) => !value)}
-          >
-            {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-          </button>
-        ) : (
-          <span className="w-7 shrink-0" />
-        )}
-
-        {isTextOnly ? (
-          <button
-            type="button"
-            onClick={select}
+            onClick={handleSelect}
             className={cn(
-              "min-w-0 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent",
-              isSelected && "bg-accent ring-1 ring-ring/50",
+              "group rounded-md px-3 py-2 text-center transition-colors hover:bg-muted",
+              selected && "bg-accent ring-1 ring-primary/25",
             )}
           >
-            <span className="font-medium">{label}</span>
-            <span className="ml-2 text-xs text-muted-foreground">{formatType(node)}</span>
+            <span className="block whitespace-nowrap text-sm font-medium">{label}</span>
+            <span className="mt-0.5 block text-xs text-muted-foreground">{formatType(node)}</span>
           </button>
         ) : (
           <button
             type="button"
-            onClick={select}
+            onClick={handleSelect}
             className={cn(
-              "group flex min-w-0 items-center gap-2 rounded-lg border bg-card px-3 py-2 text-left shadow-sm transition-colors hover:bg-accent",
-              isSelected && "border-primary bg-accent ring-1 ring-primary/20",
+              "group flex min-w-[190px] max-w-[260px] items-center gap-3 rounded-xl border bg-card px-4 py-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
+              selected && "border-primary ring-2 ring-primary/15",
             )}
           >
-            <span className="min-w-0 truncate text-sm font-medium">{label}</span>
-            <Badge variant="outline" className="shrink-0 text-[10px] font-normal">
-              {formatType(node)}
-            </Badge>
+            <Avatar className="h-10 w-10 shrink-0 rounded-lg">
+              <AvatarImage src={node.image_url || undefined} alt="" />
+              <AvatarFallback className="rounded-lg bg-muted">
+                {node.entity_type === "authority" ? <Landmark className="h-4 w-4" /> : getInitials(label)}
+              </AvatarFallback>
+            </Avatar>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-semibold">{label}</span>
+              <span className="mt-0.5 block text-xs text-muted-foreground">{formatType(node)}</span>
+            </span>
           </button>
         )}
 
-        {isSelected && (
-          <div className="flex items-center gap-1 pl-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              onClick={(event) => {
-                event.stopPropagation();
-                onAddChild(node);
-              }}
-              title="Add child"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              <span className="sr-only">Add child</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              onClick={(event) => {
-                event.stopPropagation();
-                onAddParent(node);
-              }}
-              title="Add parent"
-            >
-              <MoreHorizontal className="h-3.5 w-3.5" />
-              <span className="sr-only">Add parent</span>
-            </Button>
-          </div>
+        {hasChildren && (
+          <button
+            type="button"
+            onClick={() => onToggle(node.id)}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
+            aria-label={expanded ? `Collapse ${label}` : `Expand ${label}`}
+          >
+            {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </button>
         )}
       </div>
 
-      {hasChildren && open ? (
-        <ul className="ml-3 mt-1 space-y-1 border-l pl-4">
-          {node.children.map((child) => (
-            <TreeNode
-              key={child.id}
-              node={child}
-              depth={depth + 1}
-              selectedId={selectedId}
-              onSelect={onSelect}
-              onAddChild={onAddChild}
-              onAddParent={onAddParent}
-            />
-          ))}
-        </ul>
-      ) : null}
+      {hasChildren && expanded && (
+        <div className="relative mt-8 pt-6">
+          <span className="absolute left-1/2 top-0 h-6 w-px -translate-x-1/2 bg-border" />
+          <ul className="flex min-w-max items-start justify-center gap-10">
+            {node.children.map((child) => (
+              <li key={child.id} className="relative pt-0">
+                <span className="absolute left-1/2 top-[-24px] h-6 w-px -translate-x-1/2 bg-border" />
+                <TreeNode
+                  node={child}
+                  expandedIds={expandedIds}
+                  onToggle={onToggle}
+                  selectedId={selectedId}
+                  onSelect={onSelect}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </li>
   );
 }
 
-export default function GovernanceFamilyTree({
-  records,
-  selectedId = null,
-  onSelect,
-  onAddChild,
-  onAddParent,
-  className,
-}) {
+function TreeBranch({ root, ...props }) {
+  return <TreeNode node={root} {...props} />;
+}
+
+export default function GovernanceFamilyTree({ records = [], selectedId = null, onSelect, className }) {
   const roots = useMemo(() => buildTree(records), [records]);
+  const [expandedIds, setExpandedIds] = useState(() => new Set());
+
+  useEffect(() => {
+    const ancestors = getAncestorIds(records, selectedId);
+    if (!ancestors.length) return;
+    setExpandedIds((current) => {
+      const next = new Set(current);
+      ancestors.forEach((id) => next.add(id));
+      return next;
+    });
+  }, [records, selectedId]);
+
+  const toggle = (id) => {
+    setExpandedIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   if (!roots.length) return null;
 
   return (
-    <div className={cn("min-w-0", className)}>
-      <div className="mb-4 flex items-center gap-2">
-        <GitBranch className="h-4 w-4 text-muted-foreground" />
+    <div className={cn("w-full", className)}>
+      <div className="mb-5 flex items-center gap-2">
+        <Network className="h-4 w-4 text-muted-foreground" />
         <div>
           <h2 className="text-sm font-semibold">Governance structure</h2>
-          <p className="text-xs text-muted-foreground">Select an entity to explore its place in the hierarchy.</p>
+          <p className="text-xs text-muted-foreground">Click an entity to open its details and explore what sits beneath it.</p>
         </div>
       </div>
 
-      <ul className="space-y-2">
-        {roots.map((root) => (
-          <TreeNode
-            key={root.id}
-            node={root}
-            selectedId={selectedId}
-            onSelect={onSelect}
-            onAddChild={onAddChild}
-            onAddParent={onAddParent}
-          />
-        ))}
-      </ul>
+      <div className="w-full overflow-auto rounded-2xl border bg-background/50 p-8 sm:p-12">
+        <div className="flex min-w-max items-start justify-center gap-16">
+          {roots.map((root) => (
+            <TreeBranch
+              key={root.id}
+              root={root}
+              expandedIds={expandedIds}
+              onToggle={toggle}
+              selectedId={selectedId}
+              onSelect={onSelect}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
