@@ -1,13 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
-import { Pencil, Plus, Trash2, GitBranch, Map, FileText } from "lucide-react";
+import { GitBranch, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useGovernance } from "@/hooks/governance/useGovernance";
 import { useGovernanceContribution } from "@/hooks/governance/useGovernanceContribution";
 
@@ -29,13 +41,38 @@ const TYPES = [
 ];
 
 const ACTIONS = [
-  { value: "add", label: "Add record", icon: Plus },
-  { value: "edit", label: "Correct record", icon: Pencil },
-  { value: "move", label: "Move in hierarchy", icon: GitBranch },
-  { value: "delete", label: "Request removal", icon: Trash2 },
+  {
+    value: "add",
+    label: "Add something",
+    description: "A governance body or unit is missing.",
+    icon: Plus,
+  },
+  {
+    value: "edit",
+    label: "Correct information",
+    description: "Something about a record is incorrect or outdated.",
+    icon: Pencil,
+  },
+  {
+    value: "move",
+    label: "Change hierarchy",
+    description: "A record belongs under a different parent.",
+    icon: GitBranch,
+  },
+  {
+    value: "delete",
+    label: "Request removal",
+    description: "A record should no longer be shown.",
+    icon: Trash2,
+  },
 ];
 
-export default function GovernanceContributionDialog({ open, onOpenChange, record = null, defaultParentId = null }) {
+export default function GovernanceContributionDialog({
+  open,
+  onOpenChange,
+  record = null,
+  defaultParentId = null,
+}) {
   const [action, setAction] = useState(record ? "edit" : "add");
   const [name, setName] = useState("");
   const [entityType, setEntityType] = useState("organisation");
@@ -47,6 +84,7 @@ export default function GovernanceContributionDialog({ open, onOpenChange, recor
   const [sourceNotes, setSourceNotes] = useState("");
   const [summary, setSummary] = useState("");
   const [geomGeojson, setGeomGeojson] = useState("");
+  const [showMore, setShowMore] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -61,18 +99,32 @@ export default function GovernanceContributionDialog({ open, onOpenChange, recor
     setSourceNotes("");
     setSummary("");
     setGeomGeojson("");
+    setShowMore(false);
   }, [open, record, defaultParentId]);
 
-  const { data: parentOptions = [] } = useGovernance({ search: "", entityType: "all", enabled: open });
+  const { data: parentOptions = [] } = useGovernance({
+    search: "",
+    entityType: "all",
+    includeAll: true,
+    enabled: open,
+  });
   const { submitContribution, isSubmitting } = useGovernanceContribution();
 
-  const actionMeta = useMemo(() => ACTIONS.find((item) => item.value === action) || ACTIONS[0], [action]);
+  const actionMeta = useMemo(
+    () => ACTIONS.find((item) => item.value === action) || ACTIONS[0],
+    [action]
+  );
   const isDelete = action === "delete";
   const isMove = action === "move";
 
   async function submit() {
-    if (action !== "delete" && !name.trim()) throw new Error("A governance name is required");
-    if (!summary.trim()) throw new Error("Please describe the change");
+    if (action !== "delete" && !name.trim()) {
+      throw new Error("Please enter the governance name");
+    }
+
+    if (!summary.trim()) {
+      throw new Error("Please tell us what should change");
+    }
 
     await submitContribution({
       summary: summary.trim(),
@@ -96,73 +148,243 @@ export default function GovernanceContributionDialog({ open, onOpenChange, recor
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>{record ? "Suggest a governance change" : "Suggest governance data"}</DialogTitle>
+          <DialogTitle>
+            {record ? "Suggest a change" : "Help improve Governance"}
+          </DialogTitle>
           <DialogDescription>
-            Your suggestion is reviewed by an administrator before the public governance model changes.
+            Tell us what is wrong or missing. An administrator will review your suggestion before anything changes.
           </DialogDescription>
         </DialogHeader>
 
         {!record && (
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {ACTIONS.map(({ value, label, icon: Icon }) => (
-              <Button key={value} type="button" variant={action === value ? "default" : "outline"} className="justify-start" onClick={() => setAction(value)}>
-                <Icon className="mr-2 h-4 w-4" />
-                {label}
-              </Button>
-            ))}
-          </div>
+          <section className="space-y-3">
+            <div>
+              <h3 className="text-sm font-medium">What would you like to do?</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Choose the option that best describes your suggestion.
+              </p>
+            </div>
+
+            <div className="grid gap-2 sm:grid-cols-2">
+              {ACTIONS.map(({ value, label, description: actionDescription, icon: Icon }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setAction(value)}
+                  className={`rounded-lg border p-3 text-left transition-colors hover:bg-muted/50 ${
+                    action === value ? "border-primary bg-primary/5" : ""
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-medium">{label}</span>
+                      <span className="mt-0.5 block text-xs leading-5 text-muted-foreground">
+                        {actionDescription}
+                      </span>
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
         )}
 
-        <div className="rounded-lg border bg-muted/20 p-3 text-sm">
-          <div className="font-medium">{actionMeta.label}</div>
-          <div className="mt-1 text-muted-foreground">This will create a review item only. It will not change live governance data until approved.</div>
+        <div className="rounded-lg border bg-muted/20 p-3">
+          <div className="text-sm font-medium">{actionMeta.label}</div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Your suggestion goes to review. It will not change the live governance data immediately.
+          </p>
         </div>
 
         {!isDelete && !isMove && (
-          <Tabs defaultValue="record" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="record"><FileText className="mr-2 h-4 w-4" />Record</TabsTrigger>
-              <TabsTrigger value="hierarchy"><GitBranch className="mr-2 h-4 w-4" />Hierarchy</TabsTrigger>
-              <TabsTrigger value="boundary"><Map className="mr-2 h-4 w-4" />Boundary</TabsTrigger>
-            </TabsList>
-            <TabsContent value="record" className="space-y-4 pt-4">
-              <div className="space-y-2"><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Ministry of Railways" /></div>
-              <div className="space-y-2"><Label>Type</Label><Select value={entityType} onValueChange={setEntityType}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{TYPES.map(([value,label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select></div>
-              <div className="space-y-2"><Label>Short name</Label><Input value={shortName} onChange={(e) => setShortName(e.target.value)} placeholder="Optional" /></div>
-              <div className="space-y-2"><Label>Description</Label><Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What this body is responsible for..." /></div>
-              <div className="space-y-2"><Label>Official website</Label><Input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://..." /></div>
-            </TabsContent>
-            <TabsContent value="hierarchy" className="space-y-4 pt-4">
-              <div className="space-y-2"><Label>Parent governance record</Label><Select value={parentId || "root"} onValueChange={(v) => setParentId(v === "root" ? null : v)}><SelectTrigger><SelectValue placeholder="Choose parent" /></SelectTrigger><SelectContent><SelectItem value="root">No parent (top-level)</SelectItem>{parentOptions.filter((item) => item.id !== record?.id).map((item) => <SelectItem key={item.id} value={item.id}>{item.label || item.name}</SelectItem>)}</SelectContent></Select></div>
-              <p className="text-xs text-muted-foreground">The hierarchy is intentionally flexible: a governance record can sit under any other governance record.</p>
-            </TabsContent>
-            <TabsContent value="boundary" className="space-y-4 pt-4">
-              <div className="space-y-2"><Label>GeoJSON boundary</Label><Textarea className="min-h-40 font-mono text-xs" value={geomGeojson} onChange={(e) => setGeomGeojson(e.target.value)} placeholder='{"type":"MultiPolygon","coordinates":[...]}' /></div>
-              <p className="text-xs text-muted-foreground">Paste a Polygon or MultiPolygon GeoJSON geometry. It will be stored as the governance unit boundary in PostGIS after approval.</p>
-            </TabsContent>
-          </Tabs>
+          <section className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="governance-name">Governance name</Label>
+              <Input
+                id="governance-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Ministry of Railways"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="governance-type">What type is it?</Label>
+              <Select value={entityType} onValueChange={setEntityType}>
+                <SelectTrigger id="governance-type">
+                  <SelectValue placeholder="Choose a type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TYPES.map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="governance-summary">What should we change?</Label>
+              <Textarea
+                id="governance-summary"
+                value={summary}
+                onChange={(e) => setSummary(e.target.value)}
+                placeholder="For example: The official name has changed to..."
+              />
+            </div>
+          </section>
         )}
 
         {isMove && (
-          <div className="space-y-4">
-            <div className="space-y-2"><Label>New parent</Label><Select value={parentId || "root"} onValueChange={(v) => setParentId(v === "root" ? null : v)}><SelectTrigger><SelectValue placeholder="Choose parent" /></SelectTrigger><SelectContent><SelectItem value="root">No parent (top-level)</SelectItem>{parentOptions.filter((item) => item.id !== record?.id).map((item) => <SelectItem key={item.id} value={item.id}>{item.label || item.name}</SelectItem>)}</SelectContent></Select></div>
-          </div>
+          <section className="space-y-3">
+            <div>
+              <Label>Where should this record belong?</Label>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Choose its new parent in the governance hierarchy.
+              </p>
+            </div>
+            <Select
+              value={parentId || "root"}
+              onValueChange={(value) => setParentId(value === "root" ? null : value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Choose parent" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="root">Top level — no parent</SelectItem>
+                {parentOptions
+                  .filter((item) => item.id !== record?.id)
+                  .map((item) => (
+                    <SelectItem key={item.id} value={item.id}>
+                      {item.label || item.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+            <div className="space-y-2">
+              <Label htmlFor="governance-move-summary">Why should it move?</Label>
+              <Textarea
+                id="governance-move-summary"
+                value={summary}
+                onChange={(e) => setSummary(e.target.value)}
+                placeholder="Explain why the hierarchy should change."
+              />
+            </div>
+          </section>
         )}
 
-        {isDelete && <p className="text-sm text-muted-foreground">Request removal of <span className="font-medium text-foreground">{record?.name}</span>. An administrator will verify the request before removing the record.</p>}
+        {isDelete && (
+          <section className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              You are suggesting that <span className="font-medium text-foreground">{record?.name}</span> should be removed from the governance directory.
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="governance-delete-summary">Why should it be removed?</Label>
+              <Textarea
+                id="governance-delete-summary"
+                value={summary}
+                onChange={(e) => setSummary(e.target.value)}
+                placeholder="Explain what is wrong with this record."
+              />
+            </div>
+          </section>
+        )}
 
-        <div className="space-y-4 border-t pt-4">
-          <div className="space-y-2"><Label>What should change?</Label><Textarea value={summary} onChange={(e) => setSummary(e.target.value)} placeholder="Explain the change and why it is needed." /></div>
-          <div className="space-y-2"><Label>Source URL</Label><Input value={sourceUrl} onChange={(e) => setSourceUrl(e.target.value)} placeholder="Official source, OSM page, government document, etc." /></div>
-          <div className="space-y-2"><Label>Source notes</Label><Textarea value={sourceNotes} onChange={(e) => setSourceNotes(e.target.value)} placeholder="Optional notes about the evidence." /></div>
-        </div>
+        {!isMove && !isDelete && (
+          <section className="space-y-3">
+            <Button
+              type="button"
+              variant="ghost"
+              className="px-0 text-sm"
+              onClick={() => setShowMore((value) => !value)}
+            >
+              {showMore ? "Hide additional details" : "Add more details (optional)"}
+            </Button>
+
+            {showMore && (
+              <div className="space-y-4 rounded-lg border bg-muted/10 p-4">
+                <div className="space-y-2">
+                  <Label htmlFor="governance-short-name">Short name</Label>
+                  <Input
+                    id="governance-short-name"
+                    value={shortName}
+                    onChange={(e) => setShortName(e.target.value)}
+                    placeholder="Optional"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="governance-description">Description</Label>
+                  <Textarea
+                    id="governance-description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="What does this body do?"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="governance-website">Official website</Label>
+                  <Input
+                    id="governance-website"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="governance-source">Source URL</Label>
+                  <Input
+                    id="governance-source"
+                    value={sourceUrl}
+                    onChange={(e) => setSourceUrl(e.target.value)}
+                    placeholder="Official source, government page, document, etc."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="governance-source-notes">Source notes</Label>
+                  <Textarea
+                    id="governance-source-notes"
+                    value={sourceNotes}
+                    onChange={(e) => setSourceNotes(e.target.value)}
+                    placeholder="Optional notes about your source."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="governance-geometry">Boundary GeoJSON</Label>
+                  <Textarea
+                    id="governance-geometry"
+                    className="min-h-28 font-mono text-xs"
+                    value={geomGeojson}
+                    onChange={(e) => setGeomGeojson(e.target.value)}
+                    placeholder='Optional Polygon or MultiPolygon GeoJSON'
+                  />
+                </div>
+              </div>
+            )}
+          </section>
+        )}
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button type="button" disabled={isSubmitting} onClick={async () => { try { await submit(); } catch (error) { /* hook reports API errors */ } }}>
-            {isSubmitting ? "Submitting..." : "Submit for review"}
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            disabled={isSubmitting}
+            onClick={async () => {
+              try {
+                await submit();
+              } catch (error) {
+                // The contribution hook is responsible for reporting API errors.
+              }
+            }}
+          >
+            {isSubmitting ? "Sending..." : "Send suggestion"}
           </Button>
         </DialogFooter>
       </DialogContent>
