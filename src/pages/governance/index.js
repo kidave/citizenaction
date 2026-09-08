@@ -6,7 +6,6 @@ import GovernanceEntityModal from "@/components/governance/GovernanceEntityModal
 import GovernanceFamilyTree from "@/components/governance/GovernanceFamilyTree";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import { useGovernance } from "@/hooks/governance/useGovernance";
-import { useMyProfile } from "@/hooks/user/useMyProfile";
 
 function matchesSearch(entity, query) {
   if (!query) return true;
@@ -26,7 +25,6 @@ export default function GovernancePage() {
     entityType: "all",
     includeAll: true,
   });
-  const { data: profile } = useMyProfile();
 
   const visibleRecords = useMemo(() => {
     if (!search.trim()) return data;
@@ -49,7 +47,7 @@ export default function GovernancePage() {
   }, [data, search]);
 
   const selected = data.find((entity) => entity.id === selectedId) || null;
-  const children = useMemo(
+  const childEntities = useMemo(
     () => (selected ? data.filter((entity) => entity.parent_id === selected.id) : []),
     [data, selected],
   );
@@ -120,8 +118,8 @@ export default function GovernancePage() {
         }}
         entity={selected}
         parent={parent}
-        children={children}
-        canEdit={profile?.role === "admin"}
+        childEntities={childEntities}
+        canEdit={false}
         onSelect={selectEntity}
       />
     </div>

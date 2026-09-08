@@ -29,7 +29,7 @@ export default function GovernanceEntityModal({
   onOpenChange,
   entity,
   parent,
-  children = [],
+  childEntities = [],
   canEdit = false,
   onEdit,
   onSelect,
@@ -87,11 +87,11 @@ export default function GovernanceEntityModal({
           <section>
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Children</p>
-              <span className="text-xs text-muted-foreground">{children.length}</span>
+              <span className="text-xs text-muted-foreground">{childEntities.length}</span>
             </div>
-            {children.length > 0 ? (
+            {childEntities.length > 0 ? (
               <div className="mt-2 space-y-1.5">
-                {children.map((child) => (
+                {childEntities.map((child) => (
                   <button
                     type="button"
                     key={child.id}
