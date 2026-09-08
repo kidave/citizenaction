@@ -3,76 +3,36 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 
-import { Loader2, Settings, Users } from "lucide-react";
+import { Loader2, Users } from "lucide-react";
 
 import { useSpaceAdmin } from "@/hooks/space/useSpaceAdmin";
 
 import BackButton from "@/components/ui/back-button";
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
 import { Badge } from "@/components/ui/badge";
-
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 import SpaceMemberApplications from "@/components/space/SpaceMemberApplications";
-
 import SpaceGeneralSettings from "@/components/space/SpaceGeneralSettings";
 import SpaceMembersSettings from "@/components/space/SpaceMembersSettings";
 
 export default function SpaceAdminPage() {
   const router = useRouter();
+  const { space: slug } = router.query;
 
-  const { space: slug, tab } = router.query;
-
-  const { space, isLoading, error, accessDenied, isOwner } =
-    useSpaceAdmin(slug);
-
-  const activeTab = tab || "applications";
-
-  function changeTab(value) {
-    router.push(
-      {
-        pathname: `/space/${slug}/admin`,
-        query:
-          value === "applications"
-            ? {}
-            : {
-                tab: value,
-              },
-      },
-      undefined,
-      {
-        shallow: true,
-      },
-    );
-  }
-
-  /* ========================================
-     LOADING
-  ======================================== */
+  const { space, isLoading, error, accessDenied, isOwner } = useSpaceAdmin(slug);
 
   if (isLoading) {
     return <PageLoader />;
   }
 
-  /* ========================================
-     ERROR
-  ======================================== */
-
   if (error) {
     return (
       <div className="w-full px-4 py-16 text-center">
         <h1 className="text-xl font-semibold">Space not found</h1>
-
         <p className="mt-2 text-sm text-muted-foreground">{error}</p>
       </div>
     );
   }
-
-  /* ========================================
-     ACCESS DENIED
-  ======================================== */
 
   if (accessDenied) {
     return (
@@ -81,13 +41,10 @@ export default function SpaceAdminPage() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12 text-center">
               <Users className="h-8 w-8 text-muted-foreground" />
-
               <h1 className="mt-4 text-xl font-semibold">Access denied</h1>
-
               <p className="mt-2 max-w-md text-sm text-muted-foreground">
                 You do not have permission to manage this Space.
               </p>
-
               <Link
                 href={`/space/${slug}`}
                 className="mt-6 inline-flex rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
@@ -107,97 +64,55 @@ export default function SpaceAdminPage() {
 
   return (
     <div className="w-full">
-      {/* ======================================
-          FULL WIDTH HEADER
-      ====================================== */}
-
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
         <div className="flex h-14 items-center gap-3 px-4 sm:h-16">
           <BackButton />
-
           <div className="min-w-0 flex-1">
-            <div className="truncate font-semibold sm:text-lg">
-              {space.name}
-            </div>
-
+            <div className="truncate font-semibold sm:text-lg">{space.name}</div>
             <div className="text-xs text-muted-foreground">Administration</div>
           </div>
-
           <Badge variant="secondary">{isOwner ? "Owner" : "Admin"}</Badge>
         </div>
       </header>
 
-      {/* ======================================
-          FULL WIDTH TABS
-      ====================================== */}
+      <main className="mx-auto w-full max-w-4xl space-y-8 px-4 py-6 sm:px-6 sm:py-8">
+        {isOwner && (
+          <section className="space-y-3">
+            <div>
+              <h2 className="text-lg font-semibold">Space settings</h2>
+              <p className="text-sm text-muted-foreground">
+                Manage the identity and public information for this Space.
+              </p>
+            </div>
+            <SpaceGeneralSettings spaceSlug={space.slug} />
+          </section>
+        )}
 
-      <Tabs value={activeTab} onValueChange={changeTab}>
-        <div className="sticky top-14 z-30 overflow-x-auto border-b bg-background p-2 sm:top-16">
-          <div className="flex min-w-full justify-center">
-            <TabsList className="flex w-max">
-              <TabsTrigger value="applications" className="gap-2">
-                Applications
-              </TabsTrigger>
-
-              {isOwner && (
-                <TabsTrigger value="settings" className="gap-2">
-                  <Settings className="h-3.5 w-3.5" />
-                  Settings
-                </TabsTrigger>
-              )}
-            </TabsList>
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-lg font-semibold">Member applications</h2>
+            <p className="text-sm text-muted-foreground">
+              Review people requesting to join this Space.
+            </p>
           </div>
-        </div>
+          <SpaceMemberApplications space={space} />
+        </section>
 
-        {/* ======================================
-            CONTENT
-        ====================================== */}
-
-        <main className="mx-auto w-full max-w-4xl p-2">
-          <TabsContent value="applications">
-            <SpaceMemberApplications space={space} />
-          </TabsContent>
-
-          {isOwner && (
-            <TabsContent value="settings">
-              <SpaceSettingsContent spaceSlug={space.slug} />
-            </TabsContent>
-          )}
-        </main>
-      </Tabs>
+        {isOwner && (
+          <section className="space-y-3">
+            <div>
+              <h2 className="text-lg font-semibold">Members</h2>
+              <p className="text-sm text-muted-foreground">
+                Manage Space membership and roles.
+              </p>
+            </div>
+            <SpaceMembersSettings spaceSlug={space.slug} />
+          </section>
+        )}
+      </main>
     </div>
   );
 }
-
-/* ============================================
-   SETTINGS
-============================================ */
-
-function SpaceSettingsContent({ spaceSlug }) {
-  return (
-    <Tabs defaultValue="general">
-      <div className="overflow-x-auto">
-        <TabsList className="flex w-max">
-          <TabsTrigger value="general">General</TabsTrigger>
-
-          <TabsTrigger value="members">Members</TabsTrigger>
-        </TabsList>
-      </div>
-
-      <TabsContent value="general">
-        <SpaceGeneralSettings spaceSlug={spaceSlug} />
-      </TabsContent>
-
-      <TabsContent value="members">
-        <SpaceMembersSettings spaceSlug={spaceSlug} />
-      </TabsContent>
-    </Tabs>
-  );
-}
-
-/* ============================================
-   LOADER
-============================================ */
 
 function PageLoader() {
   return (
