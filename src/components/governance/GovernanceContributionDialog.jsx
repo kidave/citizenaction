@@ -47,10 +47,6 @@ const ACTIONS = [
   { value: "delete", label: "Request removal", description: "Tell us why an entity should no longer appear.", icon: Trash2 },
 ];
 
-function typeLabel(type) {
-  return TYPES.find(([value]) => value === type)?.[1] || "Governance";
-}
-
 export default function GovernanceContributionDialog({ open, onOpenChange, record = null, defaultParentId = null }) {
   const forcedAction = record?.__suggestAction || null;
   const [step, setStep] = useState(forcedAction || (record ? "edit" : "action"));
@@ -141,7 +137,7 @@ export default function GovernanceContributionDialog({ open, onOpenChange, recor
           <DialogDescription>
             {record
               ? "Make one simple suggestion about this governance entity. An administrator will review it."
-              : "You don't need to fill out a form. Just tell us what you'd like to change in the governance tree."}
+              : "You don&apos;t need to fill out a form. Just tell us what you&apos;d like to change in the governance tree."}
           </DialogDescription>
         </DialogHeader>
 
@@ -199,7 +195,7 @@ export default function GovernanceContributionDialog({ open, onOpenChange, recor
 
         {step === "delete" && (
           <section className="space-y-4">
-            <div className="rounded-lg border bg-muted/20 p-3"><p className="text-sm font-medium">Request removal of {record?.name}</p><p className="mt-1 text-xs text-muted-foreground">We'll review the record before removing anything.</p></div>
+            <div className="rounded-lg border bg-muted/20 p-3"><p className="text-sm font-medium">Request removal of {record?.name}</p><p className="mt-1 text-xs text-muted-foreground">We&apos;ll review the record before removing anything.</p></div>
             <div className="space-y-2"><Label htmlFor="governance-delete-summary">Why should it be removed?</Label><Textarea id="governance-delete-summary" value={summary} onChange={(e) => setSummary(e.target.value)} placeholder="Tell us what is incorrect or no longer valid." autoFocus /></div>
           </section>
         )}
