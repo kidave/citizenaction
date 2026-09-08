@@ -251,7 +251,7 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
 
         <CardContent className="space-y-6">
           <ImageUpload
-            bucket="community-branding"
+            bucket="space"
             path={`space/${space.id}/logo`}
             value={form.logo_url || null}
             onChange={(url) => updateField("logo_url", url || "")}
