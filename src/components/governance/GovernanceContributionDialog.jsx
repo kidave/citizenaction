@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { GitBranch, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, GitBranch, Link2, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,10 +25,10 @@ import { useGovernanceContribution } from "@/hooks/governance/useGovernanceContr
 
 const TYPES = [
   ["authority", "Authority"],
+  ["organisation", "Organisation"],
   ["unit", "Unit"],
   ["ministry", "Ministry"],
   ["department", "Department"],
-  ["organisation", "Organisation"],
   ["committee", "Committee"],
   ["office", "Office"],
   ["division", "Division"],
@@ -44,28 +44,40 @@ const ACTIONS = [
   {
     value: "add",
     label: "Add something",
-    description: "A governance body or unit is missing.",
+    description: "Add a missing governance entity to the tree.",
     icon: Plus,
   },
   {
     value: "edit",
     label: "Correct information",
-    description: "Something about a record is incorrect or outdated.",
+    description: "Fix something about an existing entity.",
     icon: Pencil,
   },
   {
     value: "move",
-    label: "Change hierarchy",
-    description: "A record belongs under a different parent.",
+    label: "Change its place",
+    description: "Move an entity under a different parent.",
     icon: GitBranch,
   },
   {
     value: "delete",
     label: "Request removal",
-    description: "A record should no longer be shown.",
+    description: "Tell us why an entity should no longer appear.",
     icon: Trash2,
   },
 ];
+
+const FLOW = {
+  initial: "action",
+  add: "add",
+  edit: "edit",
+  move: "move",
+  delete: "delete",
+};
+
+function typeLabel(type) {
+  return TYPES.find(([value]) => value === type)?.[1] || "Governance";
+}
 
 export default function GovernanceContributionDialog({
   open,
@@ -73,34 +85,34 @@ export default function GovernanceContributionDialog({
   record = null,
   defaultParentId = null,
 }) {
-  const [action, setAction] = useState(record ? "edit" : "add");
+  const forcedAction = record?.__suggestAction || null;
+  const [step, setStep] = useState(forcedAction ? FLOW[forcedAction] : record ? "edit" : "action");
+  const [action, setAction] = useState(forcedAction || (record ? "edit" : "add"));
   const [name, setName] = useState("");
   const [entityType, setEntityType] = useState("organisation");
-  const [shortName, setShortName] = useState("");
-  const [description, setDescription] = useState("");
-  const [website, setWebsite] = useState("");
   const [parentId, setParentId] = useState(defaultParentId || null);
+  const [summary, setSummary] = useState("");
+  const [selectedField, setSelectedField] = useState("");
+  const [suggestedValue, setSuggestedValue] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
   const [sourceNotes, setSourceNotes] = useState("");
-  const [summary, setSummary] = useState("");
-  const [geomGeojson, setGeomGeojson] = useState("");
   const [showMore, setShowMore] = useState(false);
 
   useEffect(() => {
     if (!open) return;
-    setAction(record ? "edit" : "add");
+    const nextAction = forcedAction || (record ? "edit" : "add");
+    setAction(nextAction);
+    setStep(forcedAction ? FLOW[forcedAction] : record ? "edit" : "action");
     setName(record?.name || "");
     setEntityType(record?.entity_type || "organisation");
-    setShortName(record?.short_name || "");
-    setDescription(record?.description || "");
-    setWebsite(record?.website || "");
     setParentId(record?.parent_id || defaultParentId || null);
+    setSummary("");
+    setSelectedField("");
+    setSuggestedValue("");
     setSourceUrl("");
     setSourceNotes("");
-    setSummary("");
-    setGeomGeojson("");
     setShowMore(false);
-  }, [open, record, defaultParentId]);
+  }, [open, record, defaultParentId, forcedAction]);
 
   const { data: parentOptions = [] } = useGovernance({
     search: "",
@@ -110,35 +122,45 @@ export default function GovernanceContributionDialog({
   });
   const { submitContribution, isSubmitting } = useGovernanceContribution();
 
-  const actionMeta = useMemo(
-    () => ACTIONS.find((item) => item.value === action) || ACTIONS[0],
-    [action]
+  const selectedParent = useMemo(
+    () => parentOptions.find((item) => item.id === parentId) || null,
+    [parentOptions, parentId],
   );
-  const isDelete = action === "delete";
-  const isMove = action === "move";
+
+  function chooseAction(value) {
+    setAction(value);
+    setStep(FLOW[value]);
+  }
 
   async function submit() {
-    if (action !== "delete" && !name.trim()) {
-      throw new Error("Please enter the governance name");
+    if (action === "add" && !name.trim()) {
+      throw new Error("Please enter a name");
+    }
+
+    if (action === "edit" && !selectedField) {
+      throw new Error("Please choose what needs changing");
     }
 
     if (!summary.trim()) {
       throw new Error("Please tell us what should change");
     }
 
+    const proposedChanges = {};
+    if (action === "add") {
+      proposedChanges.name = name.trim();
+      proposedChanges.entity_type = entityType;
+    }
+    if (action === "edit" && suggestedValue.trim()) {
+      proposedChanges[selectedField] = suggestedValue.trim();
+    }
+
     await submitContribution({
       summary: summary.trim(),
       action,
       proposedGovernanceId: record?.id || null,
-      proposedParentId: parentId || null,
-      proposedEntityType: action === "move" || action === "delete" ? null : entityType,
-      proposedChanges: {
-        ...(name.trim() ? { name: name.trim() } : {}),
-        ...(shortName.trim() ? { short_name: shortName.trim() } : {}),
-        ...(description.trim() ? { description: description.trim() } : {}),
-        ...(website.trim() ? { website: website.trim() } : {}),
-        ...(geomGeojson.trim() ? { geom_geojson: geomGeojson.trim() } : {}),
-      },
+      proposedParentId: action === "move" || action === "add" ? parentId || null : null,
+      proposedEntityType: action === "add" ? entityType : null,
+      proposedChanges,
       sourceUrl: sourceUrl.trim() || null,
       sourceNotes: sourceNotes.trim() || null,
     });
@@ -146,46 +168,41 @@ export default function GovernanceContributionDialog({
     onOpenChange(false);
   }
 
+  const title = record ? getRecordTitle(action, record) : "Help improve Governance";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>
-            {record ? "Suggest a change" : "Help improve Governance"}
-          </DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            Tell us what is wrong or missing. An administrator will review your suggestion before anything changes.
+            {record
+              ? "Make one simple suggestion about this governance entity. An administrator will review it."
+              : "You don't need to fill out a form. Just tell us what you'd like to change in the governance tree."}
           </DialogDescription>
         </DialogHeader>
 
-        {!record && (
+        {step === "action" && (
           <section className="space-y-3">
             <div>
               <h3 className="text-sm font-medium">What would you like to do?</h3>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Choose the option that best describes your suggestion.
-              </p>
+              <p className="mt-1 text-xs text-muted-foreground">Choose the option that best matches your suggestion.</p>
             </div>
-
-            <div className="grid gap-2 sm:grid-cols-2">
-              {ACTIONS.map(({ value, label, description: actionDescription, icon: Icon }) => (
+            <div className="grid gap-2">
+              {ACTIONS.map(({ value, label, description, icon: Icon }) => (
                 <button
                   key={value}
                   type="button"
-                  onClick={() => setAction(value)}
-                  className={`rounded-lg border p-3 text-left transition-colors hover:bg-muted/50 ${
-                    action === value ? "border-primary bg-primary/5" : ""
-                  }`}
+                  onClick={() => chooseAction(value)}
+                  className="rounded-lg border p-3 text-left transition-colors hover:bg-accent"
                 >
-                  <div className="flex items-start gap-3">
-                    <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted">
                       <Icon className="h-4 w-4" />
                     </span>
                     <span className="min-w-0">
                       <span className="block text-sm font-medium">{label}</span>
-                      <span className="mt-0.5 block text-xs leading-5 text-muted-foreground">
-                        {actionDescription}
-                      </span>
+                      <span className="mt-0.5 block text-xs text-muted-foreground">{description}</span>
                     </span>
                   </div>
                 </button>
@@ -194,174 +211,199 @@ export default function GovernanceContributionDialog({
           </section>
         )}
 
-        <div className="rounded-lg border bg-muted/20 p-3">
-          <div className="text-sm font-medium">{actionMeta.label}</div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Your suggestion goes to review. It will not change the live governance data immediately.
-          </p>
-        </div>
-
-        {!isDelete && !isMove && (
+        {step === "add" && (
           <section className="space-y-4">
+            <div className="rounded-lg border bg-muted/20 p-3">
+              <p className="text-sm font-medium">Add to the governance tree</p>
+              {selectedParent && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  This will be placed under <span className="font-medium text-foreground">{selectedParent.name}</span>.
+                </p>
+              )}
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="governance-name">Governance name</Label>
+              <Label htmlFor="governance-name">What is it called?</Label>
               <Input
                 id="governance-name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Ministry of Railways"
+                onChange={(event) => setName(event.target.value)}
+                placeholder="e.g. Western Railway"
+                autoFocus
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="governance-type">What type is it?</Label>
+              <Label>What is it?</Label>
               <Select value={entityType} onValueChange={setEntityType}>
-                <SelectTrigger id="governance-type">
+                <SelectTrigger>
                   <SelectValue placeholder="Choose a type" />
                 </SelectTrigger>
                 <SelectContent>
                   {TYPES.map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
+                    <SelectItem key={value} value={value}>{label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="governance-summary">What should we change?</Label>
+              <Label htmlFor="governance-add-summary">Tell us a little more</Label>
               <Textarea
-                id="governance-summary"
+                id="governance-add-summary"
                 value={summary}
-                onChange={(e) => setSummary(e.target.value)}
-                placeholder="For example: The official name has changed to..."
+                onChange={(event) => setSummary(event.target.value)}
+                placeholder="Why should this entity be added?"
               />
             </div>
           </section>
         )}
 
-        {isMove && (
-          <section className="space-y-3">
-            <div>
-              <Label>Where should this record belong?</Label>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Choose its new parent in the governance hierarchy.
-              </p>
+        {step === "edit" && (
+          <section className="space-y-4">
+            <div className="rounded-lg border bg-muted/20 p-3">
+              <p className="text-sm font-medium">{record?.name}</p>
+              <p className="mt-1 text-xs text-muted-foreground">What looks wrong?</p>
             </div>
-            <Select
-              value={parentId || "root"}
-              onValueChange={(value) => setParentId(value === "root" ? null : value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Choose parent" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="root">Top level — no parent</SelectItem>
-                {parentOptions
-                  .filter((item) => item.id !== record?.id)
-                  .map((item) => (
-                    <SelectItem key={item.id} value={item.id}>
-                      {item.label || item.name}
-                    </SelectItem>
+
+            <div className="grid gap-2 sm:grid-cols-2">
+              {[
+                ["name", "Name"],
+                ["short_name", "Short name"],
+                ["description", "Description"],
+                ["website", "Website"],
+                ["image_url", "Logo"],
+                ["entity_type", "Type"],
+              ].map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setSelectedField(value)}
+                  className={`rounded-md border px-3 py-2 text-left text-sm transition-colors hover:bg-accent ${selectedField === value ? "border-primary bg-primary/5" : ""}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {selectedField && selectedField !== "image_url" && (
+              <div className="space-y-2">
+                <Label htmlFor="governance-suggested-value">What should it say instead?</Label>
+                <Textarea
+                  id="governance-suggested-value"
+                  value={suggestedValue}
+                  onChange={(event) => setSuggestedValue(event.target.value)}
+                  placeholder={selectedField === "description" ? "Describe the correct information..." : "Enter the correct information"}
+                  autoFocus
+                />
+              </div>
+            )}
+
+            {selectedField === "image_url" && (
+              <p className="rounded-md bg-muted/40 p-3 text-xs leading-5 text-muted-foreground">
+                Tell us in the explanation what the correct logo should be or provide an official source below. The administrator can review the image change.
+              </p>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="governance-edit-summary">What should we change?</Label>
+              <Textarea
+                id="governance-edit-summary"
+                value={summary}
+                onChange={(event) => setSummary(event.target.value)}
+                placeholder="Explain the correction in your own words."
+              />
+            </div>
+          </section>
+        )}
+
+        {step === "move" && (
+          <section className="space-y-4">
+            <div className="rounded-lg border bg-muted/20 p-3">
+              <p className="text-sm font-medium">Move {record?.name}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Choose where this entity should sit in the tree.</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>New parent</Label>
+              <Select value={parentId || "root"} onValueChange={(value) => setParentId(value === "root" ? null : value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose parent" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="root">Top level — no parent</SelectItem>
+                  {parentOptions.filter((item) => item.id !== record?.id).map((item) => (
+                    <SelectItem key={item.id} value={item.id}>{item.name || item.label}</SelectItem>
                   ))}
-              </SelectContent>
-            </Select>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
+              {selectedParent ? `Move it under ${selectedParent.name}.` : "Move it to the top level."}
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="governance-move-summary">Why should it move?</Label>
               <Textarea
                 id="governance-move-summary"
                 value={summary}
-                onChange={(e) => setSummary(e.target.value)}
+                onChange={(event) => setSummary(event.target.value)}
                 placeholder="Explain why the hierarchy should change."
               />
             </div>
           </section>
         )}
 
-        {isDelete && (
-          <section className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              You are suggesting that <span className="font-medium text-foreground">{record?.name}</span> should be removed from the governance directory.
-            </p>
+        {step === "delete" && (
+          <section className="space-y-4">
+            <div className="rounded-lg border bg-muted/20 p-3">
+              <p className="text-sm font-medium">Request removal of {record?.name}</p>
+              <p className="mt-1 text-xs text-muted-foreground">We'll review the record before removing anything.</p>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="governance-delete-summary">Why should it be removed?</Label>
               <Textarea
                 id="governance-delete-summary"
                 value={summary}
-                onChange={(e) => setSummary(e.target.value)}
-                placeholder="Explain what is wrong with this record."
+                onChange={(event) => setSummary(event.target.value)}
+                placeholder="Tell us what is incorrect or no longer valid."
+                autoFocus
               />
             </div>
           </section>
         )}
 
-        {!isMove && !isDelete && (
-          <section className="space-y-3">
+        {step !== "action" && (
+          <section className="space-y-2">
             <Button
               type="button"
               variant="ghost"
               className="px-0 text-sm"
               onClick={() => setShowMore((value) => !value)}
             >
-              {showMore ? "Hide additional details" : "Add more details (optional)"}
+              <Link2 className="mr-2 h-4 w-4" />
+              {showMore ? "Hide source details" : "Add a source (optional)"}
             </Button>
 
             {showMore && (
-              <div className="space-y-4 rounded-lg border bg-muted/10 p-4">
-                <div className="space-y-2">
-                  <Label htmlFor="governance-short-name">Short name</Label>
-                  <Input
-                    id="governance-short-name"
-                    value={shortName}
-                    onChange={(e) => setShortName(e.target.value)}
-                    placeholder="Optional"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="governance-description">Description</Label>
-                  <Textarea
-                    id="governance-description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="What does this body do?"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="governance-website">Official website</Label>
-                  <Input
-                    id="governance-website"
-                    value={website}
-                    onChange={(e) => setWebsite(e.target.value)}
-                    placeholder="https://..."
-                  />
-                </div>
+              <div className="space-y-3 rounded-lg border bg-muted/10 p-4">
                 <div className="space-y-2">
                   <Label htmlFor="governance-source">Source URL</Label>
                   <Input
                     id="governance-source"
                     value={sourceUrl}
-                    onChange={(e) => setSourceUrl(e.target.value)}
-                    placeholder="Official source, government page, document, etc."
+                    onChange={(event) => setSourceUrl(event.target.value)}
+                    placeholder="Official government page or document"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="governance-source-notes">Source notes</Label>
+                  <Label htmlFor="governance-source-notes">Source note</Label>
                   <Textarea
                     id="governance-source-notes"
                     value={sourceNotes}
-                    onChange={(e) => setSourceNotes(e.target.value)}
-                    placeholder="Optional notes about your source."
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="governance-geometry">Boundary GeoJSON</Label>
-                  <Textarea
-                    id="governance-geometry"
-                    className="min-h-28 font-mono text-xs"
-                    value={geomGeojson}
-                    onChange={(e) => setGeomGeojson(e.target.value)}
-                    placeholder='Optional Polygon or MultiPolygon GeoJSON'
+                    onChange={(event) => setSourceNotes(event.target.value)}
+                    placeholder="Anything useful about the source"
                   />
                 </div>
               </div>
@@ -369,25 +411,36 @@ export default function GovernanceContributionDialog({
           </section>
         )}
 
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            disabled={isSubmitting}
-            onClick={async () => {
-              try {
-                await submit();
-              } catch (error) {
-                // The contribution hook is responsible for reporting API errors.
-              }
-            }}
-          >
-            {isSubmitting ? "Sending..." : "Send suggestion"}
-          </Button>
+        <DialogFooter className="gap-2">
+          {step !== "action" && !record && (
+            <Button type="button" variant="ghost" onClick={() => setStep("action")}>
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back
+            </Button>
+          )}
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          {step !== "action" && (
+            <Button
+              type="button"
+              disabled={isSubmitting}
+              onClick={async () => {
+                try {
+                  await submit();
+                } catch {
+                  // The mutation hook shows the server error. Keep the dialog open for correction.
+                }
+              }}
+            >
+              {isSubmitting ? "Sending..." : "Send suggestion"}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
+}
+
+function getRecordTitle(action, record) {
+  if (action === "move") return `Change where ${record?.name || "this entity"} sits`;
+  if (action === "delete") return `Request removal`;
+  return `Suggest an edit`;
 }
