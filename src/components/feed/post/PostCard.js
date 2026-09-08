@@ -21,6 +21,7 @@ export default function PostCard({
   post,
   onEdit,
   onDelete,
+  canEdit,
   profileMode,
   forceExpanded = false,
   borderless = false,
@@ -60,7 +61,13 @@ export default function PostCard({
     return null;
   }
 
-  const canEdit = post.permissions?.can_manage || post.author_id === user?.id;
+  // Prefer the explicit permission supplied by the parent. This keeps the
+  // UI aligned with the database permission already resolved by the query.
+  // Fall back to the post permission for standalone PostCard callers.
+  const canManage =
+    typeof canEdit === "boolean"
+      ? canEdit
+      : Boolean(post.permissions?.can_manage || post.author_id === user?.id);
 
   const handleNavigate = () => {
     sessionStorage.setItem("feed-scroll", window.scrollY.toString());
@@ -81,7 +88,7 @@ export default function PostCard({
 
         <PostHeader
           post={post}
-          canEdit={canEdit}
+          canEdit={canManage}
           onEdit={onEdit}
           onDelete={onDelete}
         />
