@@ -1,95 +1,221 @@
-import { useState } from "react";
-import { useRouter } from "next/router";
+import { useMemo, useState } from "react";
 import { Plus, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import EntityTypeSelector from "@/components/governance/EntityTypeSelector";
 import GovernanceContributionDialog from "@/components/governance/GovernanceContributionDialog";
-import GovernanceCard from "@/components/governance/GovernanceCard";
+import GovernanceFamilyTree from "@/components/governance/GovernanceFamilyTree";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import { useGovernance } from "@/hooks/governance/useGovernance";
-import { getGovernanceHref } from "@/utils/governance";
+import { getGovernanceHref, getGovernanceLabel } from "@/utils/governance";
+
+function matchesSearch(entity, query) {
+  if (!query) return true;
+  const value = query.toLowerCase();
+  return [entity?.name, entity?.short_name, entity?.entity_type, entity?.unit_type, entity?.parent_name]
+    .filter(Boolean)
+    .some((part) => String(part).toLowerCase().includes(value));
+}
 
 export default function GovernancePage() {
-  const router = useRouter();
   const [search, setSearch] = useState("");
-  const [entityType, setEntityType] = useState("all");
+  const [selectedId, setSelectedId] = useState(null);
   const [showSuggest, setShowSuggest] = useState(false);
+  const [suggestRecord, setSuggestRecord] = useState(null);
+  const [defaultParentId, setDefaultParentId] = useState(null);
 
   const { data = [], isLoading, error } = useGovernance({
-    search,
-    entityType,
+    search: "",
+    entityType: "all",
     includeAll: true,
   });
 
-  const openGovernance = (entity) => {
-    const href = getGovernanceHref(entity);
-    if (href) router.push(href);
+  const visibleRecords = useMemo(
+    () => data.filter((entity) => matchesSearch(entity, search.trim())),
+    [data, search],
+  );
+
+  const selected = data.find((entity) => entity.id === selectedId) || null;
+
+  const children = useMemo(
+    () => (selected ? data.filter((entity) => entity.parent_id === selected.id) : []),
+    [data, selected],
+  );
+
+  const parent = useMemo(
+    () => (selected ? data.find((entity) => entity.id === selected.parent_id) || null : null),
+    [data, selected],
+  );
+
+  const openRecord = (entity) => {
+    setSelectedId(entity?.id || null);
+  };
+
+  const openEdit = (entity) => {
+    setSuggestRecord(entity);
+    setDefaultParentId(null);
+    setShowSuggest(true);
+  };
+
+  const addChild = (entity) => {
+    setSuggestRecord(null);
+    setDefaultParentId(entity?.id || null);
+    setShowSuggest(true);
+  };
+
+  const addParent = (entity) => {
+    setSuggestRecord(entity ? { ...entity, __suggestAction: "move" } : null);
+    setDefaultParentId(null);
+    setShowSuggest(true);
+  };
+
+  const closeSuggest = (open) => {
+    setShowSuggest(open);
+    if (!open) {
+      setSuggestRecord(null);
+      setDefaultParentId(null);
+    }
   };
 
   return (
     <div className="min-h-dvh w-full">
       <GovernancePageHeader items={[{ label: "Governance" }]} />
 
-      <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-6">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Governance directory</h1>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Explore the organisations, authorities and governance units that make up the public model.
-            </p>
-          </div>
+      <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
+          <aside className="w-full shrink-0 lg:sticky lg:top-20 lg:w-72">
+            <div className="rounded-xl border bg-card p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Governance</p>
+                  <h1 className="mt-1 text-lg font-semibold">Explore the structure</h1>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    Select an organisation, authority or unit to see where it belongs.
+                  </p>
+                </div>
+                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => openEdit(null)} title="Suggest a change">
+                  <Plus className="h-4 w-4" />
+                  <span className="sr-only">Suggest a change</span>
+                </Button>
+              </div>
 
-          <Button onClick={() => setShowSuggest(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Suggest a change
-          </Button>
-        </header>
+              <div className="relative mt-4">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="pl-9"
+                  placeholder="Search governance..."
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                />
+              </div>
 
-        <Card>
-          <CardContent className="space-y-4 p-4">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                className="pl-9"
-                placeholder="Search governance..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+              {selected ? (
+                <div className="mt-5 border-t pt-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold">{getGovernanceLabel(selected)}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {selected.unit_type || selected.entity_type || "Governance"}
+                      </p>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => openEdit(selected)}>
+                      Edit
+                    </Button>
+                  </div>
+
+                  {parent && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedId(parent.id)}
+                      className="mt-4 block w-full rounded-md bg-muted/50 p-3 text-left hover:bg-muted"
+                    >
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Parent</p>
+                      <p className="mt-1 text-sm font-medium">{getGovernanceLabel(parent)}</p>
+                    </button>
+                  )}
+
+                  <div className="mt-3">
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Children</p>
+                    {children.length ? (
+                      <div className="mt-2 space-y-1">
+                        {children.map((child) => (
+                          <button
+                            key={child.id}
+                            type="button"
+                            onClick={() => setSelectedId(child.id)}
+                            className="block w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
+                          >
+                            {getGovernanceLabel(child)}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-xs text-muted-foreground">No child entities recorded.</p>
+                    )}
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <Button variant="outline" size="sm" onClick={() => addChild(selected)}>
+                      <Plus className="mr-1.5 h-3.5 w-3.5" /> Add child
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => addParent(selected)}>
+                      Add parent
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-5 border-t pt-4">
+                  <p className="text-sm font-medium">Select an entity</p>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    Click any node in the tree to open its details and suggest an edit.
+                  </p>
+                </div>
+              )}
+
+              <div className="mt-5 border-t pt-4 text-xs text-muted-foreground">
+                {data.length} governance records
+              </div>
             </div>
-            <EntityTypeSelector value={entityType} onChange={setEntityType} />
-          </CardContent>
-        </Card>
+          </aside>
 
-        {isLoading && <div className="text-sm text-muted-foreground">Loading governance...</div>}
-        {error && <div className="text-sm text-destructive">Failed to load governance data.</div>}
+          <section className="min-w-0 flex-1 rounded-xl border bg-card p-4 shadow-sm sm:p-6">
+            {isLoading && <div className="py-16 text-center text-sm text-muted-foreground">Loading governance...</div>}
+            {error && <div className="py-16 text-center text-sm text-destructive">Failed to load governance data.</div>}
 
-        {!isLoading && !error && data.length === 0 && (
-          <Card>
-            <CardContent className="py-14 text-center text-sm text-muted-foreground">
-              No governance entities found.
-            </CardContent>
-          </Card>
-        )}
+            {!isLoading && !error && visibleRecords.length === 0 && (
+              <div className="py-16 text-center">
+                <p className="text-sm font-medium">No governance entities found.</p>
+                <p className="mt-1 text-xs text-muted-foreground">Try another search.</p>
+              </div>
+            )}
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {data.map((entity) => (
-            <GovernanceCard key={entity.id} entity={entity} onOpen={openGovernance} />
-          ))}
+            {!isLoading && !error && visibleRecords.length > 0 && (
+              <>
+                <GovernanceFamilyTree
+                  records={visibleRecords}
+                  selectedId={selectedId}
+                  onSelect={openRecord}
+                  onAddChild={addChild}
+                  onAddParent={addParent}
+                />
+
+                <div className="mt-6 flex items-center justify-between border-t pt-4 text-xs text-muted-foreground">
+                  <span>{visibleRecords.length} shown</span>
+                  <Badge variant="outline">Community maintained</Badge>
+                </div>
+              </>
+            )}
+          </section>
         </div>
-
-        {data.length > 0 && (
-          <div className="flex items-center justify-between border-t pt-4 text-xs text-muted-foreground">
-            <span>{data.length} governance records</span>
-            <Badge variant="outline">Community maintained</Badge>
-          </div>
-        )}
-
-        <GovernanceContributionDialog open={showSuggest} onOpenChange={setShowSuggest} />
       </main>
+
+      <GovernanceContributionDialog
+        open={showSuggest}
+        onOpenChange={closeSuggest}
+        record={suggestRecord}
+        defaultParentId={defaultParentId}
+      />
     </div>
   );
 }
