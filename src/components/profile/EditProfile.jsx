@@ -94,7 +94,7 @@ export default function EditProfile() {
     <div className="mx-auto max-w-2xl">
       <CardContent className="space-y-6 p-4 sm:p-6">
         <ImageUpload
-          bucket="avatars"
+          bucket="profile"
           path={`profile/${user.id}/avatar`}
           value={form.avatar_url || null}
           onChange={(url) => updateField("avatar_url", url || "")}
