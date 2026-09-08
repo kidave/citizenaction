@@ -145,7 +145,7 @@ export default function GovernancePage() {
         </div>
       </main>
 
-      <GovernanceEntityModal open={modalOpen} onOpenChange={setModalOpen} entity={selected} parent={parent} children={children} onEdit={openEdit} onAddChild={addChild} onAddParent={addParent} onSelect={selectEntity} />
+      <GovernanceEntityModal open={modalOpen} onOpenChange={(open) => { setModalOpen(open); if (!open) setSelectedId(null); }} entity={selected} parent={parent} children={children} onEdit={openEdit} onAddChild={addChild} onAddParent={addParent} onSelect={selectEntity} />
       <GovernanceContributionDialog open={showSuggest} onOpenChange={closeSuggest} record={suggestRecord} defaultParentId={defaultParentId} />
     </div>
   );
