@@ -1,12 +1,12 @@
+import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
-import { useQuery } from "@tanstack/react-query";
-import { ExternalLink, GitBranch, Map } from "lucide-react";
-
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
+import GovernanceEntityModal from "@/components/governance/GovernanceEntityModal";
 import GovernanceFamilyTree from "@/components/governance/GovernanceFamilyTree";
+import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
+import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { supabase } from "@/lib/supabase/client";
 import { getGovernanceHref, getGovernanceLabel } from "@/utils/governance";
 
@@ -16,134 +16,149 @@ function getPathSegments(value) {
   return [];
 }
 
-function useGovernanceRecord(slug, enabled) {
-  return useQuery({
-    queryKey: ["governance", slug],
-    enabled,
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_governance_by_slug", {
-        p_slug: slug,
-      });
-      if (error) throw error;
-      return data?.[0] || null;
-    },
-  });
+async function getGovernanceBySlug(slug) {
+  const { data, error } = await supabase.rpc("get_governance_by_slug", { p_slug: slug });
+  if (error) throw error;
+  return data?.[0] || null;
 }
 
-function useGovernanceFamily(enabled) {
-  return useQuery({
+export default function GovernanceRecordPage() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const segments = getPathSegments(router.query.path);
+  const slug = segments[segments.length - 1] || null;
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const { data: profile } = useMyProfile();
+  const canEdit = profile?.role === "admin";
+
+  const { data: governance, isLoading, error } = useQuery({
+    queryKey: ["governance", "record", slug],
+    enabled: !!slug,
+    queryFn: () => getGovernanceBySlug(slug),
+  });
+
+  const { data: family = [], isLoading: familyLoading } = useQuery({
     queryKey: ["governance-family"],
-    enabled,
+    enabled: !!slug && !!governance,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_governance_directory", {
+      const { data, error: familyError } = await supabase.rpc("get_governance_directory", {
         p_search: null,
         p_parent_id: null,
         p_entity_type: null,
         p_limit: 500,
         p_include_all: true,
       });
-      if (error) throw error;
-      return data || [];
+      if (familyError) throw familyError;
+      return (data || []).map((entity) => ({ ...entity, image_url: entity.image_url || entity.metadata?.image_url || null }));
     },
   });
-}
 
-export default function GovernanceRecordPage() {
-  const router = useRouter();
-  const segments = getPathSegments(router.query.path);
-  const slug = segments[segments.length - 1] || null;
+  const byId = useMemo(() => new Map(family.map((item) => [item.id, item])), [family]);
+  const selectedId = governance?.id || null;
 
-  const { data: governance, isLoading, error } = useGovernanceRecord(slug, !!slug);
-  const { data: family = [] } = useGovernanceFamily(!!slug && !isLoading && !error);
+  const lineage = useMemo(() => {
+    if (!governance) return [];
+    const result = [];
+    let current = governance;
+    const seen = new Set();
+    while (current && !seen.has(current.id)) {
+      seen.add(current.id);
+      result.unshift(current);
+      current = current.parent_id ? byId.get(current.parent_id) : null;
+    }
+    return result;
+  }, [governance, byId]);
 
-  if (isLoading) {
+  const treeRecords = useMemo(() => {
+    if (!governance || !family.length) return [];
+    const ids = new Set([governance.id]);
+    const queue = [governance.id];
+    while (queue.length) {
+      const parentId = queue.shift();
+      family.forEach((entity) => {
+        if (entity.parent_id === parentId && !ids.has(entity.id)) {
+          ids.add(entity.id);
+          queue.push(entity.id);
+        }
+      });
+    }
+    return family.filter((entity) => ids.has(entity.id));
+  }, [family, governance]);
+
+  const selectEntity = async (entity) => {
+    if (!entity?.slug) return;
+    const href = getGovernanceHref(entity);
+    if (!href) return;
+    await router.push(href, undefined, { shallow: true });
+    setModalOpen(true);
+  };
+
+  const handleSaved = (updated) => {
+    queryClient.setQueryData(["governance", "record", updated.slug], updated);
+    queryClient.invalidateQueries({ queryKey: ["governance-family"] });
+    queryClient.invalidateQueries({ queryKey: ["governance-directory"] });
+    toast.success("Governance entity updated");
+  };
+
+  if (isLoading || familyLoading) {
     return (
-      <div className="min-h-dvh w-full">
+      <div className="flex min-h-dvh w-full flex-col">
         <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Loading..." }]} />
-        <main className="mx-auto max-w-5xl px-4 py-10 text-sm text-muted-foreground sm:px-6">Loading governance...</main>
+        <main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading governance...</main>
       </div>
     );
   }
 
   if (error || !governance) {
     return (
-      <div className="min-h-dvh w-full">
+      <div className="flex min-h-dvh w-full flex-col">
         <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Not found" }]} />
-        <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-          <h1 className="text-2xl font-semibold">Governance record not found</h1>
-        </main>
+        <main className="flex flex-1 items-center justify-center text-sm">Governance record not found.</main>
       </div>
     );
   }
 
-  const hierarchyHref = governance.parent_slug
-    ? getGovernanceHref({ slug: governance.parent_slug, path: null })
-    : null;
-
-  const lineage = [];
-  const byId = new Map(family.map((item) => [item.id, item]));
-  let current = governance;
-  const seen = new Set();
-
-  while (current && !seen.has(current.id)) {
-    seen.add(current.id);
-    lineage.unshift(current);
-    current = current.parent_id ? byId.get(current.parent_id) : null;
-  }
-
   return (
-    <div className="min-h-dvh w-full">
+    <div className="flex min-h-dvh w-full flex-col">
       <GovernancePageHeader
         items={[
           { label: "Governance", href: "/governance" },
-          ...lineage.slice(0, -1).map((item) => ({
-            label: getGovernanceLabel(item),
-            href: getGovernanceHref(item),
-          })),
-          { label: governance.name || "Governance" },
+          ...lineage.slice(0, -1).map((item) => ({ label: getGovernanceLabel(item), href: getGovernanceHref(item) })),
+          { label: getGovernanceLabel(governance) },
         ]}
       />
 
-      <main className="mx-auto min-h-dvh w-full max-w-5xl space-y-6 px-4 py-8 sm:px-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-              <Avatar className="h-20 w-20 rounded-xl">
-                <AvatarImage src={governance.image_url || undefined} />
-                <AvatarFallback className="rounded-xl text-xl">{governance.name?.charAt(0)?.toUpperCase() || "G"}</AvatarFallback>
-              </Avatar>
-              <div className="min-w-0">
-                <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{governance.entity_type}</div>
-                <h1 className="mt-1 text-3xl font-semibold tracking-tight">{governance.name}</h1>
-                {governance.short_name && governance.short_name !== governance.name && <p className="mt-1 text-sm text-muted-foreground">{governance.short_name}</p>}
-                {governance.description && <p className="mt-4 max-w-3xl text-sm leading-6 text-muted-foreground">{governance.description}</p>}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <main className="flex min-h-0 flex-1 flex-col px-3 py-3 sm:px-5 sm:py-4">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="truncate text-lg font-semibold sm:text-xl">{getGovernanceLabel(governance)}</h1>
+            <p className="text-xs text-muted-foreground">{governance.entity_type?.replace(/_/g, " ") || "Governance"}</p>
+          </div>
+          <span className="shrink-0 text-xs text-muted-foreground">{treeRecords.length} entities in this tree</span>
+        </div>
 
-        {family.length > 0 && <GovernanceFamilyTree records={family} />}
-
-        {governance.parent_id && governance.parent_slug && (
-          <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2 text-base"><GitBranch className="h-4 w-4" />Parent</CardTitle></CardHeader>
-            <CardContent><a href={hierarchyHref || `/governance/${governance.parent_slug}`} className="text-sm font-medium hover:underline">{getGovernanceLabel({ name: governance.parent_name })}</a></CardContent>
-          </Card>
-        )}
-
-        {governance.geom && (
-          <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Map className="h-4 w-4" />Boundary</CardTitle></CardHeader>
-            <CardContent><p className="text-sm text-muted-foreground">This governance unit has a geographic boundary stored in PostGIS.</p></CardContent>
-          </Card>
-        )}
-
-        {governance.website && (
-          <Card>
-            <CardContent className="p-5"><a href={governance.website} target="_blank" rel="noreferrer" className="inline-flex items-center text-sm font-medium hover:underline">Official website <ExternalLink className="ml-1 h-3.5 w-3.5" /></a></CardContent>
-          </Card>
-        )}
+        <div className="min-h-[calc(100vh-9rem)] flex-1">
+          <GovernanceFamilyTree
+            records={treeRecords}
+            selectedId={selectedId}
+            initialExpandedIds={[governance.id]}
+            onSelect={selectEntity}
+            className="min-h-[calc(100vh-9rem)]"
+          />
+        </div>
       </main>
+
+      <GovernanceEntityModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        entity={governance}
+        parent={governance.parent_id ? byId.get(governance.parent_id) || null : null}
+        childEntities={family.filter((entity) => entity.parent_id === governance.id)}
+        canEdit={canEdit}
+        onSelect={selectEntity}
+        onSaved={handleSaved}
+      />
     </div>
   );
 }
