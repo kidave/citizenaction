@@ -10,14 +10,29 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase/client";
+import { useAuth } from "@/context/AuthContext";
 import { getGovernanceLabel } from "@/utils/governance";
 
-const ENTITY_TYPES = ["authority", "organisation", "statutory_body", "zone", "unit", "ministry", "department", "person", "position", "other"];
+const ENTITY_TYPES = [
+  "authority",
+  "unit",
+  "position",
+  "person",
+  "organisation",
+  "committee",
+  "programme",
+  "project",
+  "ministry",
+  "department",
+  "division",
+  "office",
+  "ward",
+  "station",
+];
 
 function formatType(entity) {
   const type = entity?.entity_type || entity?.unit_type;
   if (!type) return "Governance";
-  if (type === "other") return "Organisation";
   return type.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
@@ -44,6 +59,7 @@ export default function GovernanceEntityModal({
   onSelect,
   onSaved,
 }) {
+  const { user } = useAuth();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [draft, setDraft] = useState(null);
@@ -61,7 +77,7 @@ export default function GovernanceEntityModal({
         short_name: entity.short_name || "",
         description: entity.description || "",
         website: entity.website || "",
-        entity_type: entity.entity_type || "other",
+        entity_type: entity.entity_type || "authority",
       });
     }
   }, [open, entity]);
@@ -69,7 +85,6 @@ export default function GovernanceEntityModal({
   if (!entity) return null;
 
   const label = getGovernanceLabel(entity);
-
   const updateDraft = (key, value) => setDraft((current) => ({ ...current, [key]: value }));
 
   const save = async () => {
@@ -87,6 +102,7 @@ export default function GovernanceEntityModal({
         description: draft.description.trim() || null,
         website: draft.website.trim() || null,
         entity_type: draft.entity_type,
+        ...(user?.id ? { updated_by: user.id } : {}),
       })
       .eq("id", entity.id)
       .select("*")
@@ -98,11 +114,11 @@ export default function GovernanceEntityModal({
       return;
     }
 
-    toast.success("Governance entity updated");
     setSaving(false);
     setEditing(false);
     setDraft(null);
     onSaved?.(data);
+    toast.success("Governance entity updated");
   };
 
   return (
@@ -122,14 +138,16 @@ export default function GovernanceEntityModal({
                 <Badge variant="outline">{formatType(entity)}</Badge>
               </div>
             )}
-            {editing ? (
-              <div className="mt-2 flex items-center gap-2">
-                <Select value={draft?.entity_type || "other"} onValueChange={(value) => updateDraft("entity_type", value)}>
-                  <SelectTrigger className="h-8 w-48"><SelectValue /></SelectTrigger>
-                  <SelectContent>{ENTITY_TYPES.map((type) => <SelectItem key={type} value={type}>{type.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())}</SelectItem>)}</SelectContent>
+            {editing && (
+              <div className="mt-2">
+                <Select value={draft?.entity_type || "authority"} onValueChange={(value) => updateDraft("entity_type", value)}>
+                  <SelectTrigger className="h-8 w-52"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {ENTITY_TYPES.map((type) => <SelectItem key={type} value={type}>{formatType({ entity_type: type })}</SelectItem>)}
+                  </SelectContent>
                 </Select>
               </div>
-            ) : null}
+            )}
           </div>
           {canEdit && !editing && (
             <Button type="button" variant="outline" size="sm" onClick={() => setEditing(true)}>
@@ -140,22 +158,12 @@ export default function GovernanceEntityModal({
 
         {editing ? (
           <div className="space-y-4 py-2">
-            <EditableField label="Short name">
-              <Input value={draft?.short_name || ""} onChange={(event) => updateDraft("short_name", event.target.value)} placeholder="Optional" />
-            </EditableField>
-            <EditableField label="Description">
-              <Textarea value={draft?.description || ""} onChange={(event) => updateDraft("description", event.target.value)} rows={4} placeholder="Optional" />
-            </EditableField>
-            <EditableField label="Official website">
-              <Input type="url" value={draft?.website || ""} onChange={(event) => updateDraft("website", event.target.value)} placeholder="https://" />
-            </EditableField>
+            <EditableField label="Short name"><Input value={draft?.short_name || ""} onChange={(event) => updateDraft("short_name", event.target.value)} placeholder="Optional" /></EditableField>
+            <EditableField label="Description"><Textarea value={draft?.description || ""} onChange={(event) => updateDraft("description", event.target.value)} rows={4} placeholder="Optional" /></EditableField>
+            <EditableField label="Official website"><Input type="url" value={draft?.website || ""} onChange={(event) => updateDraft("website", event.target.value)} placeholder="https://" /></EditableField>
             <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={() => { setEditing(false); setDraft(null); }} disabled={saving}>
-                <X className="mr-2 h-4 w-4" />Cancel
-              </Button>
-              <Button type="button" onClick={save} disabled={saving}>
-                <Save className="mr-2 h-4 w-4" />{saving ? "Saving..." : "Save changes"}
-              </Button>
+              <Button type="button" variant="outline" onClick={() => { setEditing(false); setDraft(null); }} disabled={saving}><X className="mr-2 h-4 w-4" />Cancel</Button>
+              <Button type="button" onClick={save} disabled={saving}><Save className="mr-2 h-4 w-4" />{saving ? "Saving..." : "Save changes"}</Button>
             </div>
           </div>
         ) : (
