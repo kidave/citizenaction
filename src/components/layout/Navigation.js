@@ -111,50 +111,12 @@ export function Navigation({ onCreatePost }) {
           </SidebarMenuItem>
         </Collapsible>
 
-        <Collapsible
-          defaultOpen={router.pathname.startsWith("/governance")}
-          className="group/collapsible group-data-[collapsible=icon]:hidden"
-        >
-          <SidebarMenuItem>
-            <CollapsibleTrigger asChild>
-              <SidebarMenuButton>
-                <Landmark />
-                <span>Governance</span>
-                <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
-              </SidebarMenuButton>
-            </CollapsibleTrigger>
-
-            <CollapsibleContent>
-              <SidebarMenuSub>
-                <SidebarMenuSubItem>
-                  <SidebarMenuSubButton
-                    onClick={() => router.push("/governance")}
-                  >
-                    <span>Governance Directory</span>
-                  </SidebarMenuSubButton>
-                </SidebarMenuSubItem>
-
-                <SidebarMenuSubItem>
-                  <SidebarMenuSubButton
-                    onClick={() => router.push("/governance")}
-                  >
-                    <span>Suggest a Change</span>
-                  </SidebarMenuSubButton>
-                </SidebarMenuSubItem>
-
-                {isAdmin && (
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton
-                      onClick={() => router.push("/admin/governance")}
-                    >
-                      <span>Governance Administration</span>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                )}
-              </SidebarMenuSub>
-            </CollapsibleContent>
-          </SidebarMenuItem>
-        </Collapsible>
+        <SidebarMenuItem>
+          <SidebarMenuButton onClick={() => router.push("/governance")}>
+            <Landmark />
+            <span>Governance</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
 
         <SidebarMenuItem>
           <SidebarMenuButton

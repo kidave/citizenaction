@@ -102,7 +102,9 @@ export function Profile() {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent side="top" align="end" className="w-56">
-            <DropdownMenuItem onClick={() => router.push(`/user/${profile.username}`)}>
+            <DropdownMenuItem
+              onClick={() => router.push(`/user/${profile.username}`)}
+            >
               Profile
             </DropdownMenuItem>
 
@@ -114,11 +116,7 @@ export function Profile() {
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => router.push("/admin")}>
-                  <ShieldCheck className="mr-2 h-4 w-4" />
-                  Administration
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push("/admin/governance")}>
-                  Governance Review
+                  Admin
                 </DropdownMenuItem>
               </>
             )}
