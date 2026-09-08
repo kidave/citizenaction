@@ -9,7 +9,6 @@ import GovernanceEntityModal from "@/components/governance/GovernanceEntityModal
 import GovernanceFamilyTree from "@/components/governance/GovernanceFamilyTree";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import { useGovernance } from "@/hooks/governance/useGovernance";
-import { getGovernanceLabel } from "@/utils/governance";
 
 function matchesSearch(entity, query) {
   if (!query) return true;
@@ -33,22 +32,30 @@ export default function GovernancePage() {
     includeAll: true,
   });
 
-  const visibleRecords = useMemo(
-    () => data.filter((entity) => matchesSearch(entity, search.trim())),
-    [data, search],
-  );
+  const visibleRecords = useMemo(() => {
+    if (!search.trim()) return data;
+
+    const query = search.trim();
+    const matches = new Set(data.filter((entity) => matchesSearch(entity, query)).map((entity) => entity.id));
+
+    const byId = new Map(data.map((entity) => [entity.id, entity]));
+    const addAncestors = (entity) => {
+      let current = entity;
+      const seen = new Set();
+      while (current?.parent_id && !seen.has(current.parent_id)) {
+        seen.add(current.parent_id);
+        matches.add(current.parent_id);
+        current = byId.get(current.parent_id);
+      }
+    };
+
+    data.filter((entity) => matches.has(entity.id)).forEach(addAncestors);
+    return data.filter((entity) => matches.has(entity.id));
+  }, [data, search]);
 
   const selected = data.find((entity) => entity.id === selectedId) || null;
-
-  const children = useMemo(
-    () => (selected ? data.filter((entity) => entity.parent_id === selected.id) : []),
-    [data, selected],
-  );
-
-  const parent = useMemo(
-    () => (selected ? data.find((entity) => entity.id === selected.parent_id) || null : null),
-    [data, selected],
-  );
+  const children = useMemo(() => (selected ? data.filter((entity) => entity.parent_id === selected.id) : []), [data, selected]);
+  const parent = useMemo(() => (selected ? data.find((entity) => entity.id === selected.parent_id) || null : null), [data, selected]);
 
   const selectEntity = (entity) => {
     setSelectedId(entity?.id || null);
@@ -84,11 +91,6 @@ export default function GovernancePage() {
     }
   };
 
-  const closeEntity = (open) => {
-    setModalOpen(open);
-    if (!open) setSelectedId(null);
-  };
-
   return (
     <div className="min-h-dvh w-full">
       <GovernancePageHeader items={[{ label: "Governance" }]} />
@@ -101,9 +103,7 @@ export default function GovernancePage() {
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Governance</p>
                   <h1 className="mt-1 text-lg font-semibold">Explore the structure</h1>
-                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                    Select an entity in the tree to see its place, parent and children.
-                  </p>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">Select an entity in the tree to see its place, parent and children.</p>
                 </div>
                 <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => { setSuggestRecord(null); setDefaultParentId(null); setShowSuggest(true); }} title="Suggest a change">
                   <Plus className="h-4 w-4" />
@@ -113,21 +113,11 @@ export default function GovernancePage() {
 
               <div className="relative mt-4">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  className="pl-9"
-                  placeholder="Search governance..."
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                />
+                <Input className="pl-9" placeholder="Search governance..." value={search} onChange={(event) => setSearch(event.target.value)} />
               </div>
 
-              <div className="mt-5 border-t pt-4 text-xs text-muted-foreground">
-                {data.length} governance records
-              </div>
-
-              <div className="mt-4 rounded-lg bg-muted/40 p-3 text-xs leading-5 text-muted-foreground">
-                Click a node to open its details. From there you can suggest an edit or add a parent or child.
-              </div>
+              <div className="mt-5 border-t pt-4 text-xs text-muted-foreground">{data.length} governance records</div>
+              <div className="mt-4 rounded-lg bg-muted/40 p-3 text-xs leading-5 text-muted-foreground">Click a node to open its details. From there you can suggest an edit or add a parent or child.</div>
             </div>
           </aside>
 
@@ -144,14 +134,7 @@ export default function GovernancePage() {
 
             {!isLoading && !error && visibleRecords.length > 0 && (
               <>
-                <GovernanceFamilyTree
-                  records={visibleRecords}
-                  selectedId={selectedId}
-                  onSelect={selectEntity}
-                  onAddChild={addChild}
-                  onAddParent={addParent}
-                />
-
+                <GovernanceFamilyTree records={visibleRecords} selectedId={selectedId} onSelect={selectEntity} onAddChild={addChild} onAddParent={addParent} />
                 <div className="mt-6 flex items-center justify-between border-t pt-4 text-xs text-muted-foreground">
                   <span>{visibleRecords.length} shown</span>
                   <Badge variant="outline">Community maintained</Badge>
@@ -162,24 +145,8 @@ export default function GovernancePage() {
         </div>
       </main>
 
-      <GovernanceEntityModal
-        open={modalOpen}
-        onOpenChange={closeEntity}
-        entity={selected}
-        parent={parent}
-        children={children}
-        onEdit={openEdit}
-        onAddChild={addChild}
-        onAddParent={addParent}
-        onSelect={selectEntity}
-      />
-
-      <GovernanceContributionDialog
-        open={showSuggest}
-        onOpenChange={closeSuggest}
-        record={suggestRecord}
-        defaultParentId={defaultParentId}
-      />
+      <GovernanceEntityModal open={modalOpen} onOpenChange={setModalOpen} entity={selected} parent={parent} children={children} onEdit={openEdit} onAddChild={addChild} onAddParent={addParent} onSelect={selectEntity} />
+      <GovernanceContributionDialog open={showSuggest} onOpenChange={closeSuggest} record={suggestRecord} defaultParentId={defaultParentId} />
     </div>
   );
 }
