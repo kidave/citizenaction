@@ -1,6 +1,9 @@
-import Link from "next/link";
-import { ChevronRight, GitBranch } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ChevronDown, ChevronRight, GitBranch, MoreHorizontal, Plus } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { getGovernanceHref, getGovernanceLabel } from "@/utils/governance";
 
 function buildTree(records) {
@@ -28,36 +31,111 @@ function buildTree(records) {
   return roots;
 }
 
-function TreeNode({ node, depth = 0 }) {
-  const href = getGovernanceHref(node);
+function formatType(node) {
+  const type = node?.unit_type || node?.entity_type;
+  if (!type) return "Governance";
+  if (type === "other") return "Organisation";
+  return type.charAt(0).toUpperCase() + type.slice(1);
+}
+
+function TreeNode({ node, depth = 0, selectedId, onSelect, onAddChild, onAddParent }) {
+  const [open, setOpen] = useState(depth === 0);
   const label = getGovernanceLabel(node);
+  const href = getGovernanceHref(node);
+  const isSelected = selectedId === node.id;
   const isTextOnly = ["ministry", "department", "person"].includes(node.entity_type);
+  const hasChildren = node.children.length > 0;
+
+  const select = () => onSelect(node);
 
   return (
     <li className="relative">
-      <div className="flex items-start gap-2">
-        {depth > 0 ? <ChevronRight className="mt-1 h-3.5 w-3.5 shrink-0 text-muted-foreground" /> : null}
+      <div className="flex items-center gap-1.5">
+        {hasChildren ? (
+          <button
+            type="button"
+            aria-label={open ? `Collapse ${label}` : `Expand ${label}`}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md hover:bg-accent"
+            onClick={() => setOpen((value) => !value)}
+          >
+            {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </button>
+        ) : (
+          <span className="w-7 shrink-0" />
+        )}
 
         {isTextOnly ? (
-          <Link href={href || "#"} className="min-w-0 text-sm hover:underline">
-            <span className="font-medium">{label}</span>
-            <span className="ml-2 text-xs text-muted-foreground">{node.entity_type}</span>
-          </Link>
-        ) : (
-          <Link
-            href={href || "#"}
-            className="inline-flex min-w-0 items-center gap-2 rounded-md border px-2.5 py-1.5 text-sm transition-colors hover:bg-accent"
+          <button
+            type="button"
+            onClick={select}
+            className={cn(
+              "min-w-0 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent",
+              isSelected && "bg-accent ring-1 ring-ring/50",
+            )}
           >
             <span className="font-medium">{label}</span>
-            <span className="text-xs text-muted-foreground">{node.entity_type}</span>
-          </Link>
+            <span className="ml-2 text-xs text-muted-foreground">{formatType(node)}</span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={select}
+            className={cn(
+              "group flex min-w-0 items-center gap-2 rounded-lg border bg-card px-3 py-2 text-left shadow-sm transition-colors hover:bg-accent",
+              isSelected && "border-primary bg-accent ring-1 ring-primary/20",
+            )}
+          >
+            <span className="min-w-0 truncate text-sm font-medium">{label}</span>
+            <Badge variant="outline" className="shrink-0 text-[10px] font-normal">
+              {formatType(node)}
+            </Badge>
+          </button>
+        )}
+
+        {isSelected && (
+          <div className="flex items-center gap-1 pl-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={(event) => {
+                event.stopPropagation();
+                onAddChild(node);
+              }}
+              title="Add child"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span className="sr-only">Add child</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={(event) => {
+                event.stopPropagation();
+                onAddParent(node);
+              }}
+              title="Add parent"
+            >
+              <MoreHorizontal className="h-3.5 w-3.5" />
+              <span className="sr-only">Add parent</span>
+            </Button>
+          </div>
         )}
       </div>
 
-      {node.children.length > 0 ? (
-        <ul className="ml-5 mt-2 space-y-2 border-l pl-4">
+      {hasChildren && open ? (
+        <ul className="ml-3 mt-1 space-y-1 border-l pl-4">
           {node.children.map((child) => (
-            <TreeNode key={child.id} node={child} depth={depth + 1} />
+            <TreeNode
+              key={child.id}
+              node={child}
+              depth={depth + 1}
+              selectedId={selectedId}
+              onSelect={onSelect}
+              onAddChild={onAddChild}
+              onAddParent={onAddParent}
+            />
           ))}
         </ul>
       ) : null}
@@ -65,24 +143,38 @@ function TreeNode({ node, depth = 0 }) {
   );
 }
 
-export default function GovernanceFamilyTree({ records }) {
-  const roots = buildTree(records);
+export default function GovernanceFamilyTree({
+  records,
+  selectedId = null,
+  onSelect,
+  onAddChild,
+  onAddParent,
+  className,
+}) {
+  const roots = useMemo(() => buildTree(records), [records]);
 
   if (!roots.length) return null;
 
   return (
-    <div className="rounded-xl border bg-card p-4 sm:p-5">
+    <div className={cn("min-w-0", className)}>
       <div className="mb-4 flex items-center gap-2">
         <GitBranch className="h-4 w-4 text-muted-foreground" />
         <div>
           <h2 className="text-sm font-semibold">Governance structure</h2>
-          <p className="text-xs text-muted-foreground">See how authorities, ministries, organisations and units relate to one another.</p>
+          <p className="text-xs text-muted-foreground">Select an entity to explore its place in the hierarchy.</p>
         </div>
       </div>
 
-      <ul className="space-y-3">
+      <ul className="space-y-2">
         {roots.map((root) => (
-          <TreeNode key={root.id} node={root} />
+          <TreeNode
+            key={root.id}
+            node={root}
+            selectedId={selectedId}
+            onSelect={onSelect}
+            onAddChild={onAddChild}
+            onAddParent={onAddParent}
+          />
         ))}
       </ul>
     </div>
