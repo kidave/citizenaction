@@ -95,6 +95,18 @@ export default function GovernancePage() {
     if (!open) setSelectedId(null);
   };
 
+  const entityModalProps = {
+    open: modalOpen,
+    onOpenChange: closeEntity,
+    entity: selected,
+    parent,
+    children,
+    onEdit: openEdit,
+    onAddChild: addChild,
+    onAddParent: addParent,
+    onSelect: selectEntity,
+  };
+
   return (
     <div className="min-h-dvh w-full">
       <GovernancePageHeader items={[{ label: "Governance" }]} />
@@ -174,17 +186,7 @@ export default function GovernancePage() {
         </div>
       </main>
 
-      <GovernanceEntityModal
-        open={modalOpen}
-        onOpenChange={closeEntity}
-        entity={selected}
-        parent={parent}
-        children={children}
-        onEdit={openEdit}
-        onAddChild={addChild}
-        onAddParent={addParent}
-        onSelect={selectEntity}
-      />
+      <GovernanceEntityModal {...entityModalProps} />
       <GovernanceContributionDialog
         open={showSuggest}
         onOpenChange={closeSuggest}
