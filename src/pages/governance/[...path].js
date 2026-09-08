@@ -50,7 +50,10 @@ export default function GovernanceRecordPage() {
         p_include_all: true,
       });
       if (familyError) throw familyError;
-      return (data || []).map((entity) => ({ ...entity, image_url: entity.image_url || entity.metadata?.image_url || null }));
+      return (data || []).map((entity) => ({
+        ...entity,
+        image_url: entity.image_url || entity.metadata?.image_url || null,
+      }));
     },
   });
 
@@ -129,24 +132,14 @@ export default function GovernanceRecordPage() {
         ]}
       />
 
-      <main className="flex min-h-0 flex-1 flex-col px-3 py-3 sm:px-5 sm:py-4">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="truncate text-lg font-semibold sm:text-xl">{getGovernanceLabel(governance)}</h1>
-            <p className="text-xs text-muted-foreground">{governance.entity_type?.replace(/_/g, " ") || "Governance"}</p>
-          </div>
-          <span className="shrink-0 text-xs text-muted-foreground">{treeRecords.length} entities in this tree</span>
-        </div>
-
-        <div className="min-h-[calc(100vh-9rem)] flex-1">
-          <GovernanceFamilyTree
-            records={treeRecords}
-            selectedId={selectedId}
-            initialExpandedIds={[governance.id]}
-            onSelect={selectEntity}
-            className="min-h-[calc(100vh-9rem)]"
-          />
-        </div>
+      <main className="min-h-0 flex-1 p-3 sm:p-4">
+        <GovernanceFamilyTree
+          records={treeRecords}
+          selectedId={selectedId}
+          initialExpandedIds={[governance.id]}
+          onSelect={selectEntity}
+          className="min-h-[calc(100vh-5.5rem)]"
+        />
       </main>
 
       <GovernanceEntityModal
