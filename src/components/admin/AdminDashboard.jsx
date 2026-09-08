@@ -21,8 +21,11 @@ export default function AdminDashboard() {
 
   if (authLoading || isLoading) {
     return (
-      <main className="flex min-h-[60vh] items-center justify-center text-sm text-muted-foreground">
-        Loading administration...
+      <main className="min-h-dvh w-full">
+        <AdminPageHeader items={[]} />
+        <div className="flex min-h-[60vh] items-center justify-center px-4 text-sm text-muted-foreground">
+          Loading administration...
+        </div>
       </main>
     );
   }
@@ -30,7 +33,7 @@ export default function AdminDashboard() {
   if (!user) {
     return (
       <main className="min-h-dvh text-sm text-muted-foreground">
-        <AdminPageHeader title="Administration" />
+        <AdminPageHeader items={[]} />
         <div className="mx-auto max-w-4xl px-4 py-10">
           Administrator access required.
         </div>
@@ -41,14 +44,12 @@ export default function AdminDashboard() {
   if (error) {
     return (
       <main className="min-h-dvh">
-        <AdminPageHeader title="Administration" />
+        <AdminPageHeader items={[]} />
         <div className="mx-auto max-w-4xl px-4 py-10">
           <Card>
             <CardContent className="py-10 text-center">
               <p className="font-medium">Unable to load administration.</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Please try again.
-              </p>
+              <p className="mt-1 text-sm text-muted-foreground">Please try again.</p>
             </CardContent>
           </Card>
         </div>
@@ -87,7 +88,7 @@ export default function AdminDashboard() {
 
   return (
     <main className="min-h-dvh w-full">
-      <AdminPageHeader title="Administration" />
+      <AdminPageHeader items={[]} />
 
       <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6">
         <p className="mb-6 text-sm text-muted-foreground">
@@ -116,7 +117,6 @@ export default function AdminDashboard() {
 
               <CardContent className="mt-auto">
                 {!badge && <div className="mb-4 text-3xl font-semibold">{value}</div>}
-
                 <Button asChild variant="outline" className="w-full justify-between">
                   <Link href={href}>
                     {label}
