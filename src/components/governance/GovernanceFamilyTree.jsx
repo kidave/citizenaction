@@ -1,18 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, ChevronRight, Landmark, Network } from "lucide-react";
+import { ChevronDown, ChevronRight, Landmark } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { getGovernanceLabel } from "@/utils/governance";
 
-const TEXT_TYPES = new Set(["ministry", "department", "person"]);
+const TEXT_TYPES = new Set(["ministry", "department", "person", "position"]);
 
 function formatType(entity) {
   const type = entity?.entity_type || entity?.unit_type;
   if (!type) return "Governance";
   if (type === "other") return "Organisation";
-  return type.charAt(0).toUpperCase() + type.slice(1);
+  return type.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 function getInitials(value) {
@@ -24,11 +23,8 @@ function buildTree(records) {
   const roots = [];
 
   nodes.forEach((node) => {
-    if (node.parent_id && nodes.has(node.parent_id)) {
-      nodes.get(node.parent_id).children.push(node);
-    } else {
-      roots.push(node);
-    }
+    if (node.parent_id && nodes.has(node.parent_id)) nodes.get(node.parent_id).children.push(node);
+    else roots.push(node);
   });
 
   const sort = (items) => {
@@ -37,17 +33,6 @@ function buildTree(records) {
   };
 
   sort(roots);
-
-  roots.sort((a, b) => {
-    const rank = (node) => {
-      const name = getGovernanceLabel(node).toLowerCase();
-      if (name === "government of india") return 0;
-      if (name === "government of maharashtra") return 1;
-      return 2;
-    };
-    return rank(a) - rank(b) || getGovernanceLabel(a).localeCompare(getGovernanceLabel(b));
-  });
-
   return roots;
 }
 
@@ -74,20 +59,15 @@ function TreeNode({ node, expandedIds, onToggle, selectedId, onSelect }) {
   const textOnly = TEXT_TYPES.has(node.entity_type);
   const label = getGovernanceLabel(node);
 
-  const handleSelect = () => {
-    onSelect?.(node);
-    if (hasChildren) onToggle(node.id);
-  };
-
   return (
     <li className="flex min-w-0 flex-col items-center">
       <div className="flex items-center gap-2">
         {textOnly ? (
           <button
             type="button"
-            onClick={handleSelect}
+            onClick={() => onSelect?.(node)}
             className={cn(
-              "group rounded-md px-3 py-2 text-center transition-colors hover:bg-muted",
+              "rounded-md px-3 py-2 text-center transition-colors hover:bg-muted",
               selected && "bg-accent ring-1 ring-primary/25",
             )}
           >
@@ -97,9 +77,9 @@ function TreeNode({ node, expandedIds, onToggle, selectedId, onSelect }) {
         ) : (
           <button
             type="button"
-            onClick={handleSelect}
+            onClick={() => onSelect?.(node)}
             className={cn(
-              "group flex min-w-[190px] max-w-[260px] items-center gap-3 rounded-xl border bg-card px-4 py-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
+              "group flex min-w-[190px] max-w-[280px] items-center gap-3 rounded-xl border bg-card px-4 py-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
               selected && "border-primary ring-2 ring-primary/15",
             )}
           >
@@ -135,13 +115,7 @@ function TreeNode({ node, expandedIds, onToggle, selectedId, onSelect }) {
             {node.children.map((child) => (
               <li key={child.id} className="relative pt-0">
                 <span className="absolute left-1/2 top-[-24px] h-6 w-px -translate-x-1/2 bg-border" />
-                <TreeNode
-                  node={child}
-                  expandedIds={expandedIds}
-                  onToggle={onToggle}
-                  selectedId={selectedId}
-                  onSelect={onSelect}
-                />
+                <TreeNode node={child} expandedIds={expandedIds} onToggle={onToggle} selectedId={selectedId} onSelect={onSelect} />
               </li>
             ))}
           </ul>
@@ -151,23 +125,20 @@ function TreeNode({ node, expandedIds, onToggle, selectedId, onSelect }) {
   );
 }
 
-function TreeBranch({ root, ...props }) {
-  return <TreeNode node={root} {...props} />;
-}
-
-export default function GovernanceFamilyTree({ records = [], selectedId = null, onSelect, className }) {
+export default function GovernanceFamilyTree({ records = [], selectedId = null, onSelect, className, initialExpandedIds = [] }) {
   const roots = useMemo(() => buildTree(records), [records]);
-  const [expandedIds, setExpandedIds] = useState(() => new Set());
+  const [expandedIds, setExpandedIds] = useState(() => new Set(initialExpandedIds));
 
   useEffect(() => {
     const ancestors = getAncestorIds(records, selectedId);
-    if (!ancestors.length) return;
     setExpandedIds((current) => {
       const next = new Set(current);
+      initialExpandedIds.forEach((id) => next.add(id));
       ancestors.forEach((id) => next.add(id));
+      if (roots.length === 1) next.add(roots[0].id);
       return next;
     });
-  }, [records, selectedId]);
+  }, [records, selectedId, roots, initialExpandedIds]);
 
   const toggle = (id) => {
     setExpandedIds((current) => {
@@ -181,28 +152,18 @@ export default function GovernanceFamilyTree({ records = [], selectedId = null, 
   if (!roots.length) return null;
 
   return (
-    <div className={cn("w-full", className)}>
-      <div className="mb-5 flex items-center gap-2">
-        <Network className="h-4 w-4 text-muted-foreground" />
-        <div>
-          <h2 className="text-sm font-semibold">Governance structure</h2>
-          <p className="text-xs text-muted-foreground">Click an entity to open its details and explore what sits beneath it.</p>
-        </div>
-      </div>
-
-      <div className="w-full overflow-auto rounded-2xl border bg-background/50 p-8 sm:p-12">
-        <div className="flex min-w-max items-start justify-center gap-16">
-          {roots.map((root) => (
-            <TreeBranch
-              key={root.id}
-              root={root}
-              expandedIds={expandedIds}
-              onToggle={toggle}
-              selectedId={selectedId}
-              onSelect={onSelect}
-            />
-          ))}
-        </div>
+    <div className={cn("h-full w-full overflow-auto rounded-2xl border bg-background/50", className)}>
+      <div className="flex min-h-full min-w-max items-start justify-center gap-16 p-8 sm:p-12">
+        {roots.map((root) => (
+          <TreeNode
+            key={root.id}
+            node={root}
+            expandedIds={expandedIds}
+            onToggle={toggle}
+            selectedId={selectedId}
+            onSelect={onSelect}
+          />
+        ))}
       </div>
     </div>
   );
