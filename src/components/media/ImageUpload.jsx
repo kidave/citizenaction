@@ -58,6 +58,7 @@ export default function ImageUpload({
     setError("");
     setUploading(true);
 
+    const previousValue = value || null;
     const localPreview = URL.createObjectURL(file);
     if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
     objectUrlRef.current = localPreview;
@@ -80,21 +81,41 @@ export default function ImageUpload({
       const { data } = supabase.storage.from(bucket).getPublicUrl(storagePath);
       const publicUrl = data?.publicUrl || null;
 
+      if (!publicUrl) {
+        throw new Error("Image uploaded, but no public URL was returned.");
+      }
+
+      // Persist the URL before treating the upload as successful. This is
+      // important for callers such as governance/space/profile that update a
+      // database record after the Storage upload.
+      if (onChange) {
+        await onChange(publicUrl, storagePath);
+      }
+
       setPreviewUrl(publicUrl);
-      onChange?.(publicUrl, storagePath);
     } catch (uploadError) {
-      setPreviewUrl(value || null);
+      setPreviewUrl(previousValue);
       setError(uploadError?.message || "Unable to upload image.");
     } finally {
       setUploading(false);
     }
   }
 
-  function clear() {
-    setPreviewUrl(null);
+  async function clear() {
     setError("");
-    onChange?.(null, null);
-    if (inputRef.current) inputRef.current.value = "";
+    setUploading(true);
+
+    try {
+      if (onChange) {
+        await onChange(null, null);
+      }
+      setPreviewUrl(null);
+      if (inputRef.current) inputRef.current.value = "";
+    } catch (clearError) {
+      setError(clearError?.message || "Unable to remove image.");
+    } finally {
+      setUploading(false);
+    }
   }
 
   return (
