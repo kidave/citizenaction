@@ -18,7 +18,7 @@ export default function GovernancePageHeader({ items = [] }) {
         <Breadcrumb className="min-w-0 flex-1">
           <BreadcrumbList className="flex-nowrap overflow-hidden">
             {items.map((item, index) => (
-              <React.Fragment key={`${item.label}-${index}`}>
+              <div key={`${item.label}-${index}`} className="contents">
                 {index > 0 && <BreadcrumbSeparator />}
                 <BreadcrumbItem className="min-w-0">
                   {item.href ? (
@@ -33,7 +33,7 @@ export default function GovernancePageHeader({ items = [] }) {
                     </BreadcrumbPage>
                   )}
                 </BreadcrumbItem>
-              </React.Fragment>
+              </div>
             ))}
           </BreadcrumbList>
         </Breadcrumb>
