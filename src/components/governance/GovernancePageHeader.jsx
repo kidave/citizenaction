@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Link from "next/link";
 
 import BackButton from "@/components/ui/back-button";
@@ -18,7 +19,7 @@ export default function GovernancePageHeader({ items = [] }) {
         <Breadcrumb className="min-w-0 flex-1">
           <BreadcrumbList className="flex-nowrap overflow-hidden">
             {items.map((item, index) => (
-              <div key={`${item.label}-${index}`} className="contents">
+              <Fragment key={`${item.label}-${index}`}>
                 {index > 0 && <BreadcrumbSeparator />}
                 <BreadcrumbItem className="min-w-0">
                   {item.href ? (
@@ -33,7 +34,7 @@ export default function GovernancePageHeader({ items = [] }) {
                     </BreadcrumbPage>
                   )}
                 </BreadcrumbItem>
-              </div>
+              </Fragment>
             ))}
           </BreadcrumbList>
         </Breadcrumb>
