@@ -17,7 +17,7 @@ export function useGovernance({
         p_parent_id: parentId || null,
         p_entity_type: entityType && entityType !== "all" ? entityType : null,
         p_include_all: includeAll,
-        p_limit: 100,
+        p_limit: 500,
       });
 
       if (error) throw error;
