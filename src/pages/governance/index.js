@@ -19,7 +19,11 @@ export default function GovernancePage() {
   const [entityType, setEntityType] = useState("all");
   const [showSuggest, setShowSuggest] = useState(false);
 
-  const { data = [], isLoading, error } = useGovernance({ search, entityType });
+  const { data = [], isLoading, error } = useGovernance({
+    search,
+    entityType,
+    includeAll: true,
+  });
 
   const openGovernance = (entity) => {
     const href = getGovernanceHref(entity);
@@ -33,8 +37,9 @@ export default function GovernancePage() {
       <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-6">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="max-w-2xl text-sm text-muted-foreground">
-              Explore the organisations, authorities and governance units that make up the public model. Community contributions are reviewed before publication.
+            <h1 className="text-2xl font-semibold tracking-tight">Governance directory</h1>
+            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+              Explore the organisations, authorities and governance units that make up the public model.
             </p>
           </div>
 
