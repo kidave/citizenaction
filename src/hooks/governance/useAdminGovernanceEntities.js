@@ -29,11 +29,24 @@ export function useAdminGovernanceEntities(enabled = true) {
       });
 
       if (error) throw error;
-      return data;
+
+      const updated = Array.isArray(data) ? data[0] : data;
+      if (!updated?.id) {
+        throw new Error("Governance logo was uploaded but the governance record was not updated.");
+      }
+
+      const { data: fresh, error: refreshError } = await supabase
+        .from("governance")
+        .select("id,name,short_name,slug,image_url,entity_type,status")
+        .eq("id", governanceId)
+        .single();
+
+      if (refreshError) throw refreshError;
+      return fresh;
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["admin-governance-entities"], (current = []) =>
-        current.map((item) => (item.id === data.id ? data : item)),
+        current.map((item) => (item.id === data.id ? { ...item, ...data } : item)),
       );
       queryClient.invalidateQueries({ queryKey: ["governance"] });
     },
