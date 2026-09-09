@@ -14,7 +14,12 @@ import { MoreHorizontal } from "lucide-react";
 
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
-export default function MenuButton({ onEdit, onDelete }) {
+export default function MenuButton({
+  onEdit,
+  onDelete,
+  deleteTitle = "Delete this post?",
+  deleteDescription = "This action cannot be undone. The post and related data will be permanently removed.",
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -54,8 +59,8 @@ export default function MenuButton({ onEdit, onDelete }) {
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
-        title="Delete this post?"
-        description="This action cannot be undone. The post and related data will be permanently removed."
+        title={deleteTitle}
+        description={deleteDescription}
         confirmText="Delete"
         onConfirm={(e) => {
           e?.stopPropagation();
