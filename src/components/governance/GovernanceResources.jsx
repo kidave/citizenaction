@@ -16,6 +16,7 @@ export default function GovernanceResources({ governanceId, attachments = [], li
   const [linkUrl, setLinkUrl] = useState("");
   const [addingLink, setAddingLink] = useState(false);
 
+  const hasResources = attachments.length > 0 || links.length > 0;
   const refresh = () => onChanged?.();
 
   const handleFiles = async (event) => {
@@ -85,7 +86,7 @@ export default function GovernanceResources({ governanceId, attachments = [], li
     }
   };
 
-  const hasResources = attachments.length > 0 || links.length > 0;
+  if (!hasResources && !canEdit) return null;
 
   return (
     <section className="space-y-3">
@@ -105,13 +106,7 @@ export default function GovernanceResources({ governanceId, attachments = [], li
         )}
       </div>
 
-      {hasResources ? (
-        <PostAttachments attachments={attachments} links={links} />
-      ) : (
-        <div className="rounded-lg border border-dashed px-4 py-5 text-center text-sm text-muted-foreground">
-          No documents, images or links added yet.
-        </div>
-      )}
+      {hasResources && <PostAttachments attachments={attachments} links={links} />}
 
       {canEdit && (
         <div className="flex gap-2">
