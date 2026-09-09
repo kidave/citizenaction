@@ -112,10 +112,6 @@ export default function OSMJurisdictionPicker({
   const [lookupLoading, setLookupLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const state = useMemo(
-    () => states.find((item) => String(item.osm_id) === String(stateId)) || null,
-    [states, stateId],
-  );
   const district = useMemo(
     () => districts.find((item) => String(item.osm_id) === String(districtId)) || null,
     [districts, districtId],
