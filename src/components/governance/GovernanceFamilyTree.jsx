@@ -3,20 +3,14 @@ import { ChevronDown, ChevronRight, Landmark } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { getGovernanceLabel, getGovernanceTreeLabel } from "@/utils/governance";
+import {
+  getGovernanceInitials,
+  getGovernanceLabel,
+  getGovernanceTreeLabel,
+  getGovernanceTypeLabel,
+} from "@/utils/governance";
 
 const TEXT_TYPES = new Set(["ministry", "department", "person", "position"]);
-
-function formatType(entity) {
-  const type = entity?.unit_type && entity.unit_type !== "authority" ? entity.unit_type : entity?.entity_type;
-  if (!type) return "Governance";
-  if (type === "other") return "Organisation";
-  return type.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
-function getInitials(value) {
-  return value?.split(" ").filter(Boolean).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "G";
-}
 
 function buildTree(records) {
   const nodes = new Map((records || []).map((record) => [record.id, { ...record, children: [] }]));
@@ -53,6 +47,7 @@ function TreeNode({ node, expandedIds, onToggle, selectedId, onSelect }) {
   const selected = selectedId === node.id;
   const textOnly = TEXT_TYPES.has(node.entity_type);
   const label = getGovernanceTreeLabel(node);
+  const typeLabel = getGovernanceTypeLabel(node);
 
   return (
     <li className="flex min-w-0 flex-col items-center">
@@ -60,17 +55,17 @@ function TreeNode({ node, expandedIds, onToggle, selectedId, onSelect }) {
         {textOnly ? (
           <button type="button" onClick={() => onSelect?.(node)} className={cn("min-w-0 w-[180px] max-w-[220px] rounded-md px-3 py-2 text-center transition-colors hover:bg-muted", selected && "bg-accent ring-1 ring-primary/25")} title={getGovernanceLabel(node)}>
             <span className="block truncate text-sm font-medium">{label}</span>
-            <span className="mt-0.5 block truncate text-xs text-muted-foreground">{formatType(node)}</span>
+            <span className="mt-0.5 block truncate text-xs text-muted-foreground">{typeLabel}</span>
           </button>
         ) : (
           <button type="button" onClick={() => onSelect?.(node)} className={cn("group flex w-[210px] min-w-0 items-center gap-3 rounded-xl border bg-card px-4 py-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md", selected && "border-primary ring-2 ring-primary/15")} title={getGovernanceLabel(node)}>
             <Avatar className="h-10 w-10 shrink-0 rounded-lg">
               <AvatarImage src={node.image_url || undefined} alt="" />
-              <AvatarFallback className="rounded-lg bg-muted">{node.entity_type === "authority" ? <Landmark className="h-4 w-4" /> : getInitials(label)}</AvatarFallback>
+              <AvatarFallback className="rounded-lg bg-muted">{node.entity_type === "authority" ? <Landmark className="h-4 w-4" /> : getGovernanceInitials(label)}</AvatarFallback>
             </Avatar>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-semibold">{label}</span>
-              <span className="mt-0.5 block truncate text-xs text-muted-foreground">{formatType(node)}</span>
+              <span className="mt-0.5 block truncate text-xs text-muted-foreground">{typeLabel}</span>
             </span>
           </button>
         )}
@@ -84,10 +79,7 @@ function TreeNode({ node, expandedIds, onToggle, selectedId, onSelect }) {
 
       {hasChildren && expanded && (
         <div className="mt-8 w-full overflow-visible px-1">
-          <ul
-            className="grid w-full items-start gap-4"
-            style={{ gridTemplateColumns: `repeat(${node.children.length}, minmax(0, 1fr))` }}
-          >
+          <ul className="grid w-full items-start gap-4" style={{ gridTemplateColumns: `repeat(${node.children.length}, minmax(0, 1fr))` }}>
             {node.children.map((child) => (
               <TreeNode key={child.id} node={child} expandedIds={expandedIds} onToggle={onToggle} selectedId={selectedId} onSelect={onSelect} />
             ))}
