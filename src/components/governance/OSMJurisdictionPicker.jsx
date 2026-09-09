@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Check, ChevronRight, Loader2, MapPin, RotateCcw, X } from "lucide-react";
+import { Check, ChevronRight, Loader2, MapPin, RotateCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +18,7 @@ const LeafletMap = dynamic(() => import("@/components/shared/LeafletMap"), {
 });
 
 const DEFAULT_CENTER = { lat: 20.5937, lng: 78.9629 };
-const MAX_MAP_BOUNDARIES = 180;
+const MAX_MAP_BOUNDARIES = 300;
 
 const TYPE_LABELS = {
   4: "State / Union territory",
@@ -60,7 +60,7 @@ function selectionValue(item, geometry) {
 }
 
 async function fetchBoundaryList({ parentOsmId = null, adminLevel = null, localAuthority = null }) {
-  const params = new URLSearchParams({ list: "1", include_geometry: "1" });
+  const params = new URLSearchParams({ list: "1", include_geometry: "1", limit: "500" });
   if (parentOsmId) params.set("parent_osm_id", String(parentOsmId));
   if (adminLevel) params.set("admin_level", String(adminLevel));
   if (localAuthority) params.set("local_authority", localAuthority);
