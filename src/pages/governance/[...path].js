@@ -6,6 +6,7 @@ import GovernanceEntityModal from "@/components/governance/GovernanceEntityModal
 import GovernanceFamilyTree from "@/components/governance/GovernanceFamilyTree";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import GovernanceRelationDialog from "@/components/governance/GovernanceRelationDialog";
+import { useGovernanceCatalog } from "@/hooks/governance/useGovernanceCatalog";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { supabase } from "@/lib/supabase/client";
 import { getGovernanceHref, getGovernanceLabel } from "@/utils/governance";
@@ -17,7 +18,7 @@ function getPathSegments(value) {
 }
 
 async function getGovernanceBySlug(slug) {
-  const { data, error } = await supabase.rpc("get_governance_by_slug", { p_slug: slug });
+  const { data, error } = await supabase.rpc("get_governance_by_slug_v2", { p_slug: slug });
   if (error) throw error;
   return data?.[0] || null;
 }
@@ -27,13 +28,14 @@ export default function GovernanceRecordPage() {
   const queryClient = useQueryClient();
   const segments = getPathSegments(router.query.path);
   const slug = segments[segments.length - 1] || null;
-  const [modalOpen, setModalOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(true);
   const [relationOpen, setRelationOpen] = useState(false);
   const [relationMode, setRelationMode] = useState("add-child");
   const [relationSource, setRelationSource] = useState(null);
 
   const { data: profile } = useMyProfile();
   const canEdit = profile?.role === "admin";
+  const { categories, locations } = useGovernanceCatalog({ enabled: canEdit });
 
   const { data: governance, isLoading, error } = useQuery({
     queryKey: ["governance", "record", slug],
@@ -45,7 +47,7 @@ export default function GovernanceRecordPage() {
     queryKey: ["governance-family"],
     enabled: !!slug && !!governance,
     queryFn: async () => {
-      const { data, error: familyError } = await supabase.rpc("get_governance_directory", {
+      const { data, error: familyError } = await supabase.rpc("get_governance_directory_v2", {
         p_search: null,
         p_parent_id: null,
         p_entity_type: null,
@@ -78,8 +80,16 @@ export default function GovernanceRecordPage() {
 
   const treeRecords = useMemo(() => {
     if (!governance || !family.length) return [];
-    const ids = new Set([governance.id]);
-    const queue = [governance.id];
+    const parentById = new Map(family.map((entity) => [entity.id, entity.parent_id || null]));
+    let rootId = governance.id;
+    const seenAncestors = new Set();
+    while (parentById.get(rootId) && !seenAncestors.has(rootId)) {
+      seenAncestors.add(rootId);
+      rootId = parentById.get(rootId);
+    }
+
+    const ids = new Set([rootId]);
+    const queue = [rootId];
     const childrenByParent = new Map();
     family.forEach((entity) => {
       if (!entity.parent_id) return;
@@ -115,72 +125,27 @@ export default function GovernanceRecordPage() {
 
   const handleChanged = async () => {
     await queryClient.invalidateQueries({ queryKey: ["governance-family"] });
-    await queryClient.invalidateQueries({ queryKey: ["governance-directory"] });
+    await queryClient.invalidateQueries({ queryKey: ["governance-directory-v2"] });
     if (slug) await queryClient.invalidateQueries({ queryKey: ["governance", "record", slug] });
   };
 
   const relationCandidates = family.filter((item) => item.id !== relationSource?.id);
 
   if (isLoading || familyLoading) {
-    return (
-      <div className="flex min-h-dvh w-full flex-col">
-        <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Loading..." }]} />
-        <main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading governance...</main>
-      </div>
-    );
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Loading..." }]} /><main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading governance...</main></div>;
   }
-
   if (error || !governance) {
-    return (
-      <div className="flex min-h-dvh w-full flex-col">
-        <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Not found" }]} />
-        <main className="flex flex-1 items-center justify-center text-sm">Governance record not found.</main>
-      </div>
-    );
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Not found" }]} /><main className="flex flex-1 items-center justify-center text-sm">Governance record not found.</main></div>;
   }
 
   return (
     <div className="flex min-h-dvh w-full flex-col">
-      <GovernancePageHeader
-        items={[
-          { label: "Governance", href: "/governance" },
-          ...lineage.slice(0, -1).map((item) => ({ label: getGovernanceLabel(item), href: getGovernanceHref(item) })),
-          { label: getGovernanceLabel(governance) },
-        ]}
-      />
-
+      <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, ...lineage.slice(0, -1).map((item) => ({ label: getGovernanceLabel(item), href: getGovernanceHref(item) })), { label: getGovernanceLabel(governance) }]} />
       <main className="min-h-0 flex-1 p-3 sm:p-4">
-        <GovernanceFamilyTree
-          records={treeRecords}
-          selectedId={selectedId}
-          initialExpandedIds={[governance.id, ...lineage.map((item) => item.id)]}
-          onSelect={selectEntity}
-          className="min-h-[calc(100vh-5.5rem)]"
-        />
+        <GovernanceFamilyTree records={treeRecords} selectedId={selectedId} initialExpandedIds={lineage.map((item) => item.id)} onSelect={selectEntity} className="min-h-[calc(100vh-5.5rem)]" />
       </main>
-
-      <GovernanceEntityModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        entity={governance}
-        parent={governance.parent_id ? byId.get(governance.parent_id) || null : null}
-        childEntities={family.filter((entity) => entity.parent_id === governance.id)}
-        canEdit={canEdit}
-        onSelect={selectEntity}
-        onSaved={handleChanged}
-        onAddChild={(entity) => openRelation("add-child", entity)}
-        onAddParent={(entity) => openRelation("add-parent", entity)}
-        onChangeParent={(entity) => openRelation("change-parent", entity)}
-      />
-
-      <GovernanceRelationDialog
-        open={relationOpen}
-        onOpenChange={setRelationOpen}
-        mode={relationMode}
-        sourceEntity={relationSource}
-        candidates={relationCandidates}
-        onCompleted={handleChanged}
-      />
+      <GovernanceEntityModal open={modalOpen} onOpenChange={setModalOpen} entity={governance} parent={governance.parent_id ? byId.get(governance.parent_id) || null : null} childEntities={family.filter((entity) => entity.parent_id === governance.id)} canEdit={canEdit} onSelect={selectEntity} onSaved={handleChanged} onAddChild={(entity) => openRelation("add-child", entity)} onAddParent={(entity) => openRelation("add-parent", entity)} onChangeParent={(entity) => openRelation("change-parent", entity)} categories={categories} locations={locations} />
+      <GovernanceRelationDialog open={relationOpen} onOpenChange={setRelationOpen} mode={relationMode} sourceEntity={relationSource} candidates={relationCandidates} categories={categories} locations={locations} onCompleted={handleChanged} />
     </div>
   );
 }
