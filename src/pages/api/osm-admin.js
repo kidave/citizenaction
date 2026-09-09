@@ -47,10 +47,10 @@ function mapElement(element, fallbackLevel = null) {
   };
 }
 
-function buildParentArea(parentOsmId) {
-  const id = Number(parentOsmId);
+function getParentRelationId(value) {
+  const id = Number(value);
   if (!Number.isSafeInteger(id) || id <= 0) return null;
-  return `area(id:${3600000000 + id})`;
+  return id;
 }
 
 export default async function handler(req, res) {
@@ -72,13 +72,12 @@ export default async function handler(req, res) {
 
   const clauses = [];
   const level = adminLevel ? Number(adminLevel) : null;
-  const parentArea = buildParentArea(parentOsmId);
+  const parentRelationId = getParentRelationId(parentOsmId);
 
-  if (parentOsmId && !parentArea) {
+  if (parentOsmId && !parentRelationId) {
     return res.status(400).json({ results: [] });
   }
 
-  const parentFilter = parentArea ? `(${parentArea})` : null;
   const nameFilter = query ? `["name"~"${escapeOverpassRegex(query)}",i]` : "";
   const levelFilter = level ? `["admin_level"="${level}"]` : "";
   const boundaryFilter = boundaryType ? `["boundary"="${escapeOverpassQuoted(boundaryType)}"]` : "";
@@ -86,9 +85,10 @@ export default async function handler(req, res) {
     ? `["local_authority:IN"="${escapeOverpassQuoted(localAuthority)}"]`
     : "";
 
-  if (parentFilter) {
+  if (parentRelationId) {
+    clauses.push(`area(id:${3600000000 + parentRelationId})->.parentArea;`);
     clauses.push(
-      `rel["type"="boundary"]${boundaryFilter}${levelFilter}${localAuthorityFilter}${nameFilter}(area${parentFilter});`,
+      `rel["type"="boundary"]${boundaryFilter}${levelFilter}${localAuthorityFilter}${nameFilter}(area.parentArea);`,
     );
   } else if (level === 2) {
     clauses.push(
@@ -102,7 +102,7 @@ export default async function handler(req, res) {
   }
 
   const output = includeGeometry ? "out tags center geom 200;" : "out tags center 200;";
-  const overpassQuery = `[out:json][timeout:45];(${clauses.join("\n")});${output}`;
+  const overpassQuery = `[out:json][timeout:45];${clauses.join("\n")} ${output}`;
 
   try {
     const response = await fetch("https://overpass-api.de/api/interpreter", {
