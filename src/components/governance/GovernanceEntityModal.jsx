@@ -44,11 +44,6 @@ function Field({ label, children }) {
   return <label className="block space-y-1.5"><span className="text-xs font-medium text-muted-foreground">{label}</span>{children}</label>;
 }
 
-function resolveRelationId(entity, keys) {
-  const metadata = entity?.metadata && typeof entity.metadata === "object" ? entity.metadata : {};
-  return keys.map((key) => entity?.[key] || metadata[key]).find(Boolean) || null;
-}
-
 export default function GovernanceEntityModal({ open, onOpenChange, entity, parent, childEntities = [], canEdit = false, onSelect, onSaved, onDeleted, onAddChild, onAddParent, onChangeParent, categories = [], relatedGovernance = [] }) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -60,8 +55,8 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
   const [locationName, setLocationName] = useState(null);
 
   const loadRelated = async (governanceId) => {
-    const { data, error } = await supabase.from("governance").select("metadata, role_entity_id, head_person_id").eq("id", governanceId).maybeSingle();
-    if (error && error.code !== "42703") throw error;
+    const { data, error } = await supabase.from("governance").select("metadata").eq("id", governanceId).maybeSingle();
+    if (error) throw error;
     return data || null;
   };
 
@@ -103,16 +98,14 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
       category_id: entity.category_id || "",
     });
 
-    Promise.all([loadRelated(entity.id), loadResources(entity.id)])
-      .then(([relationRow]) => {
-        const relationEntity = { ...entity, ...relationRow };
-        const roleId = resolveRelationId(relationEntity, ["role_entity_id", "position_entity_id", "role_id"]);
-        const headId = resolveRelationId(relationEntity, ["head_person_id", "current_head_person_id", "head_id"]);
-        setRoleEntity(roleId ? relatedGovernance.find((item) => item.id === roleId) || null : null);
-        setHeadPerson(headId ? relatedGovernance.find((item) => item.id === headId) || null : null);
-        setLocationName(entity.location_name || relationEntity.location_name || null);
-      })
-      .catch((error) => toast.error(error?.message || "Unable to load governance details"));
+    Promise.all([loadRelated(entity.id), loadResources(entity.id)]).then(([relationRow]) => {
+      const metadata = relationRow?.metadata && typeof relationRow.metadata === "object" ? relationRow.metadata : {};
+      const roleId = entity.role_entity_id || metadata.role_entity_id || metadata.position_entity_id || metadata.role_id || null;
+      const headId = entity.head_person_id || metadata.head_person_id || metadata.current_head_person_id || metadata.head_id || null;
+      setRoleEntity(roleId ? relatedGovernance.find((item) => item.id === roleId) || null : null);
+      setHeadPerson(headId ? relatedGovernance.find((item) => item.id === headId) || null : null);
+      setLocationName(entity.location_name || metadata.location_name || null);
+    }).catch((error) => toast.error(error?.message || "Unable to load governance details"));
   }, [open, entity, relatedGovernance]);
 
   if (!entity) return null;
@@ -170,18 +163,15 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
     onOpenChange?.(false);
   };
 
-  const renderHierarchyItem = (item) => {
-    if (!item) return null;
-    return (
-      <button type="button" onClick={() => onSelect?.(item)} className="flex min-w-0 items-center gap-2 rounded-md px-1 py-1.5 text-left hover:bg-muted">
-        <Avatar className="h-7 w-7 shrink-0 rounded-md"><AvatarImage src={item.image_url || undefined} alt="" /><AvatarFallback className="rounded-md text-[10px]">{getInitials(getGovernanceLabel(item))}</AvatarFallback></Avatar>
-        <span className="min-w-0 truncate text-sm font-medium">{getGovernanceLabel(item)}</span>
-      </button>
-    );
-  };
+  const renderHierarchyItem = (item) => item ? (
+    <button type="button" onClick={() => onSelect?.(item)} className="flex min-w-0 items-center gap-2 rounded-md px-1 py-1.5 text-left hover:bg-muted">
+      <Avatar className="h-7 w-7 shrink-0 rounded-md"><AvatarImage src={item.image_url || undefined} alt="" /><AvatarFallback className="rounded-md text-[10px]">{getInitials(getGovernanceLabel(item))}</AvatarFallback></Avatar>
+      <span className="min-w-0 truncate text-sm font-medium">{getGovernanceLabel(item)}</span>
+    </button>
+  ) : null;
 
   const renderRelation = (title, item) => item ? (
-    <div className="min-w-0"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{title}</p><button type="button" onClick={() => onSelect?.(item)} className="mt-1 block max-w-full truncate text-left text-sm font-medium hover:underline" title={getGovernanceLabel(item)}>{getGovernanceLabel(item)}</button></div>
+    <div className="min-w-0 rounded-lg border bg-muted/30 p-3"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{title}</p><button type="button" onClick={() => onSelect?.(item)} className="mt-1 block max-w-full truncate text-left text-sm font-medium hover:underline" title={getGovernanceLabel(item)}>{getGovernanceLabel(item)}</button></div>
   ) : null;
 
   return (
@@ -211,13 +201,13 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
             <div className="grid grid-cols-2 gap-2">
               <div className="rounded-lg border bg-muted/30 p-3"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Short name</p><p className="mt-1 truncate text-sm font-medium" title={entity.short_name || "—"}>{entity.short_name || "—"}</p></div>
               {roleEntity ? renderRelation("Role", roleEntity) : <div className="rounded-lg border bg-muted/30 p-3"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Entity type</p><p className="mt-1 truncate text-sm font-medium">{formatType(entity)}</p></div>}
-              <div className="rounded-lg border bg-muted/30 p-3">{headPerson ? renderRelation("Head", headPerson) : <><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Valid from</p><p className="mt-1 text-sm font-medium">{entity.valid_from ? new Date(entity.valid_from).toLocaleDateString() : "—"}</p></>}</div>
+              {headPerson ? renderRelation("Head", headPerson) : <div className="rounded-lg border bg-muted/30 p-3"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Valid from</p><p className="mt-1 text-sm font-medium">{entity.valid_from ? new Date(entity.valid_from).toLocaleDateString() : "—"}</p></div>}
               <div className="rounded-lg border bg-muted/30 p-3"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{headPerson ? "Valid from" : "Category"}</p><p className="mt-1 truncate text-sm font-medium">{headPerson ? (entity.valid_from ? new Date(entity.valid_from).toLocaleDateString() : "—") : (categoryName || "—")}</p></div>
             </div>
 
             {entity.description && <section><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">What they do</p><p className="mt-2 text-sm leading-6 text-muted-foreground">{entity.description}</p></section>}
 
-            {(parent || childEntities.length > 0) && <section className="grid gap-3 sm:grid-cols-2">{parent && <div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Parent</p>{renderHierarchyItem(parent)}</div>}{childEntities.length > 0 && <div><div className="flex items-center justify-between"><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Children</p><span className="text-xs text-muted-foreground">{childEntities.length}</span></div><div className="mt-1 space-y-0.5">{childEntities.slice(0, 4).map(renderHierarchyItem)}</div></div>}</section>}
+            {(parent || childEntities.length > 0) && <section className="grid gap-3 sm:grid-cols-2">{parent && <div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Parent</p>{renderHierarchyItem(parent)}</div>}{childEntities.length > 0 && <div><div className="flex items-center justify-between"><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Children</p><span className="text-xs text-muted-foreground">{childEntities.length}</span></div><div className="mt-1 space-y-0.5">{childEntities.slice(0, 4).map((child) => <div key={child.id}>{renderHierarchyItem(child)}</div>)}</div></div>}</section>}
 
             {(attachments.length > 0 || links.length > 0) && <section><div className="flex items-center gap-2"><FileText className="h-4 w-4 text-muted-foreground" /><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Images, documents & links</p></div><div className="mt-2"><PostAttachments attachments={attachments} links={links} /></div></section>}
 
