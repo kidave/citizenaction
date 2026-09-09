@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 
 import GovernanceEntityModal from "@/components/governance/GovernanceEntityModal";
 import GovernanceFamilyTree from "@/components/governance/GovernanceFamilyTree";
@@ -29,7 +28,7 @@ export default function GovernanceRecordPage() {
   const queryClient = useQueryClient();
   const segments = getPathSegments(router.query.path);
   const slug = segments[segments.length - 1] || null;
-  const [modalOpen, setModalOpen] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
   const [relationOpen, setRelationOpen] = useState(false);
   const [relationMode, setRelationMode] = useState("add-child");
   const [relationSource, setRelationSource] = useState(null);
@@ -56,7 +55,10 @@ export default function GovernanceRecordPage() {
         p_include_all: true,
       });
       if (familyError) throw familyError;
-      return (data || []).map((entity) => ({ ...entity, image_url: entity.image_url || entity.metadata?.image_url || null }));
+      return (data || []).map((entity) => ({
+        ...entity,
+        image_url: entity.image_url || entity.metadata?.image_url || null,
+      }));
     },
   });
 
@@ -127,19 +129,11 @@ export default function GovernanceRecordPage() {
     if (slug) await queryClient.invalidateQueries({ queryKey: ["governance", "record", slug] });
   };
 
-  const handleDeleted = async () => {
-    await queryClient.invalidateQueries({ queryKey: ["governance-family"] });
-    await queryClient.invalidateQueries({ queryKey: ["governance-directory-v2"] });
-    toast.success("Governance entity deleted");
-    await router.push("/governance");
-  };
-
   const relationCandidates = family.filter((item) => item.id !== relationSource?.id);
 
   if (isLoading || familyLoading) {
     return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Loading..." }]} /><main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading governance...</main></div>;
   }
-
   if (error || !governance) {
     return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Not found" }]} /><main className="flex flex-1 items-center justify-center text-sm">Governance record not found.</main></div>;
   }
@@ -150,22 +144,7 @@ export default function GovernanceRecordPage() {
       <main className="min-h-0 flex-1 p-3 sm:p-4">
         <GovernanceFamilyTree records={treeRecords} selectedId={selectedId} initialExpandedIds={lineage.map((item) => item.id)} onSelect={selectEntity} className="min-h-[calc(100vh-5.5rem)]" />
       </main>
-      <GovernanceEntityModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        entity={governance}
-        parent={governance.parent_id ? byId.get(governance.parent_id) || null : null}
-        childEntities={family.filter((entity) => entity.parent_id === governance.id)}
-        canEdit={canEdit}
-        onSelect={selectEntity}
-        onSaved={handleChanged}
-        onDeleted={handleDeleted}
-        onAddChild={(entity) => openRelation("add-child", entity)}
-        onAddParent={(entity) => openRelation("add-parent", entity)}
-        onChangeParent={(entity) => openRelation("change-parent", entity)}
-        categories={categories}
-        locations={locations}
-      />
+      <GovernanceEntityModal open={modalOpen} onOpenChange={setModalOpen} entity={governance} parent={governance.parent_id ? byId.get(governance.parent_id) || null : null} childEntities={family.filter((entity) => entity.parent_id === governance.id)} canEdit={canEdit} onSelect={selectEntity} onSaved={handleChanged} onDeleted={handleChanged} onAddChild={(entity) => openRelation("add-child", entity)} onAddParent={(entity) => openRelation("add-parent", entity)} onChangeParent={(entity) => openRelation("change-parent", entity)} categories={categories} locations={locations} />
       <GovernanceRelationDialog open={relationOpen} onOpenChange={setRelationOpen} mode={relationMode} sourceEntity={relationSource} candidates={relationCandidates} categories={categories} locations={locations} onCompleted={handleChanged} />
     </div>
   );

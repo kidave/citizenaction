@@ -3,7 +3,7 @@ import { ChevronDown, ChevronRight, Landmark } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { getGovernanceLabel } from "@/utils/governance";
+import { getGovernanceLabel, getGovernanceTreeLabel } from "@/utils/governance";
 
 const TEXT_TYPES = new Set(["ministry", "department", "person", "position"]);
 
@@ -26,7 +26,7 @@ function buildTree(records) {
     else roots.push(node);
   });
   const sort = (items) => {
-    items.sort((a, b) => getGovernanceLabel(a).localeCompare(getGovernanceLabel(b)));
+    items.sort((a, b) => getGovernanceTreeLabel(a).localeCompare(getGovernanceTreeLabel(b)));
     items.forEach((item) => sort(item.children));
   };
   sort(roots);
@@ -52,18 +52,18 @@ function TreeNode({ node, expandedIds, onToggle, selectedId, onSelect }) {
   const expanded = expandedIds.has(node.id);
   const selected = selectedId === node.id;
   const textOnly = TEXT_TYPES.has(node.entity_type);
-  const label = getGovernanceLabel(node);
+  const label = getGovernanceTreeLabel(node);
 
   return (
     <li className="flex min-w-0 flex-col items-center">
       <div className="flex items-center gap-2">
         {textOnly ? (
-          <button type="button" onClick={() => onSelect?.(node)} className={cn("rounded-md px-3 py-2 text-center transition-colors hover:bg-muted", selected && "bg-accent ring-1 ring-primary/25")}>
+          <button type="button" onClick={() => onSelect?.(node)} className={cn("rounded-md px-3 py-2 text-center transition-colors hover:bg-muted", selected && "bg-accent ring-1 ring-primary/25")} title={getGovernanceLabel(node)}>
             <span className="block max-w-xs whitespace-normal text-sm font-medium">{label}</span>
             <span className="mt-0.5 block text-xs text-muted-foreground">{formatType(node)}</span>
           </button>
         ) : (
-          <button type="button" onClick={() => onSelect?.(node)} className={cn("group flex min-w-[190px] max-w-[280px] items-center gap-3 rounded-xl border bg-card px-4 py-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md", selected && "border-primary ring-2 ring-primary/15")}>
+          <button type="button" onClick={() => onSelect?.(node)} className={cn("group flex min-w-[190px] max-w-[280px] items-center gap-3 rounded-xl border bg-card px-4 py-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md", selected && "border-primary ring-2 ring-primary/15")} title={getGovernanceLabel(node)}>
             <Avatar className="h-10 w-10 shrink-0 rounded-lg">
               <AvatarImage src={node.image_url || undefined} alt="" />
               <AvatarFallback className="rounded-lg bg-muted">{node.entity_type === "authority" ? <Landmark className="h-4 w-4" /> : getInitials(label)}</AvatarFallback>
@@ -76,7 +76,7 @@ function TreeNode({ node, expandedIds, onToggle, selectedId, onSelect }) {
         )}
 
         {hasChildren && (
-          <button type="button" onClick={() => onToggle(node.id)} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border bg-background text-muted-foreground hover:bg-muted hover:text-foreground" aria-label={expanded ? `Collapse ${label}` : `Expand ${label}`}>
+          <button type="button" onClick={() => onToggle(node.id)} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border bg-background text-muted-foreground hover:bg-muted hover:text-foreground" aria-label={expanded ? `Collapse ${getGovernanceLabel(node)}` : `Expand ${getGovernanceLabel(node)}`}>
             {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </button>
         )}
