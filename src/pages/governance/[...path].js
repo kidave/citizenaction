@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 
 import GovernanceEntityModal from "@/components/governance/GovernanceEntityModal";
 import GovernanceFamilyTree from "@/components/governance/GovernanceFamilyTree";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
+import GovernanceRelationDialog from "@/components/governance/GovernanceRelationDialog";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { supabase } from "@/lib/supabase/client";
 import { getGovernanceHref, getGovernanceLabel } from "@/utils/governance";
@@ -28,6 +28,9 @@ export default function GovernanceRecordPage() {
   const segments = getPathSegments(router.query.path);
   const slug = segments[segments.length - 1] || null;
   const [modalOpen, setModalOpen] = useState(false);
+  const [relationOpen, setRelationOpen] = useState(false);
+  const [relationMode, setRelationMode] = useState("add-child");
+  const [relationSource, setRelationSource] = useState(null);
 
   const { data: profile } = useMyProfile();
   const canEdit = profile?.role === "admin";
@@ -77,12 +80,19 @@ export default function GovernanceRecordPage() {
     if (!governance || !family.length) return [];
     const ids = new Set([governance.id]);
     const queue = [governance.id];
+    const childrenByParent = new Map();
+    family.forEach((entity) => {
+      if (!entity.parent_id) return;
+      const children = childrenByParent.get(entity.parent_id) || [];
+      children.push(entity.id);
+      childrenByParent.set(entity.parent_id, children);
+    });
     while (queue.length) {
       const parentId = queue.shift();
-      family.forEach((entity) => {
-        if (entity.parent_id === parentId && !ids.has(entity.id)) {
-          ids.add(entity.id);
-          queue.push(entity.id);
+      (childrenByParent.get(parentId) || []).forEach((childId) => {
+        if (!ids.has(childId)) {
+          ids.add(childId);
+          queue.push(childId);
         }
       });
     }
@@ -97,12 +107,19 @@ export default function GovernanceRecordPage() {
     setModalOpen(true);
   };
 
-  const handleSaved = (updated) => {
-    queryClient.setQueryData(["governance", "record", updated.slug], updated);
-    queryClient.invalidateQueries({ queryKey: ["governance-family"] });
-    queryClient.invalidateQueries({ queryKey: ["governance-directory"] });
-    toast.success("Governance entity updated");
+  const openRelation = (mode, entity) => {
+    setRelationMode(mode);
+    setRelationSource(entity);
+    setRelationOpen(true);
   };
+
+  const handleChanged = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["governance-family"] });
+    await queryClient.invalidateQueries({ queryKey: ["governance-directory"] });
+    if (slug) await queryClient.invalidateQueries({ queryKey: ["governance", "record", slug] });
+  };
+
+  const relationCandidates = family.filter((item) => item.id !== relationSource?.id);
 
   if (isLoading || familyLoading) {
     return (
@@ -136,7 +153,7 @@ export default function GovernanceRecordPage() {
         <GovernanceFamilyTree
           records={treeRecords}
           selectedId={selectedId}
-          initialExpandedIds={[governance.id]}
+          initialExpandedIds={[governance.id, ...lineage.map((item) => item.id)]}
           onSelect={selectEntity}
           className="min-h-[calc(100vh-5.5rem)]"
         />
@@ -150,7 +167,19 @@ export default function GovernanceRecordPage() {
         childEntities={family.filter((entity) => entity.parent_id === governance.id)}
         canEdit={canEdit}
         onSelect={selectEntity}
-        onSaved={handleSaved}
+        onSaved={handleChanged}
+        onAddChild={(entity) => openRelation("add-child", entity)}
+        onAddParent={(entity) => openRelation("add-parent", entity)}
+        onChangeParent={(entity) => openRelation("change-parent", entity)}
+      />
+
+      <GovernanceRelationDialog
+        open={relationOpen}
+        onOpenChange={setRelationOpen}
+        mode={relationMode}
+        sourceEntity={relationSource}
+        candidates={relationCandidates}
+        onCompleted={handleChanged}
       />
     </div>
   );
