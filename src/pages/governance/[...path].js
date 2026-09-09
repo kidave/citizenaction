@@ -14,7 +14,7 @@ import { supabase } from "@/lib/supabase/client";
 import { getGovernanceHref, getGovernanceLabel } from "@/utils/governance";
 
 function getPathSegments(value) { if (Array.isArray(value)) return value.filter(Boolean); if (typeof value === "string") return value.split("/").filter(Boolean); return []; }
-async function getGovernanceBySlug(slug) { const result = await supabase.rpc("get_governance_by_slug_v2", { p_slug: slug }); if (!result || result.error) throw result?.error || new Error("Unable to load governance entity"); return result.data?.[0] || null; }
+async function getGovernanceBySlug(slug) { const result = await supabase.rpc("get_governance_by_slug", { p_slug: slug }); if (!result || result.error) throw result?.error || new Error("Unable to load governance entity"); return result.data?.[0] || null; }
 
 export default function GovernanceRecordPage() {
   const router = useRouter();
@@ -39,7 +39,7 @@ export default function GovernanceRecordPage() {
 
   const { data: family = [], isLoading: familyLoading } = useQuery({
     queryKey: ["governance-family"], enabled: !!slug && !!governance,
-    queryFn: async () => { const result = await supabase.rpc("get_governance_directory_v2", { p_search: null, p_parent_id: null, p_entity_type: null, p_limit: 500, p_include_all: true }); if (!result || result.error) throw result?.error || new Error("Unable to load governance tree"); return (result.data || []).map((entity) => ({ ...entity, image_url: entity.image_url || entity.metadata?.image_url || null })); },
+    queryFn: async () => { const result = await supabase.rpc("get_governance_directory", { p_search: null, p_parent_id: null, p_entity_type: null, p_limit: 500, p_include_all: true }); if (!result || result.error) throw result?.error || new Error("Unable to load governance tree"); return (result.data || []).map((entity) => ({ ...entity, image_url: entity.image_url || entity.metadata?.image_url || null })); },
   });
 
   const byId = useMemo(() => new Map(family.map((item) => [item.id, item])), [family]);
@@ -50,7 +50,7 @@ export default function GovernanceRecordPage() {
   const selectEntity = async (entity) => { if (!entity?.slug) return; const href = getGovernanceHref(entity); if (!href) return; setModalOpen(false); await router.push(href, undefined, { shallow: true }); setModalOpen(true); };
   const openRelation = (mode, entity) => { setRelationMode(mode); setRelationSource(entity); setRelationOpen(true); };
   const openLeadership = (record = null) => { setLeadershipRecord(record); setLeadershipOpen(true); };
-  const handleChanged = async () => { await Promise.all([queryClient.invalidateQueries({ queryKey: ["governance-family"] }), queryClient.invalidateQueries({ queryKey: ["governance-directory-v2"] }), queryClient.invalidateQueries({ queryKey: ["governance-organization", governance?.id] })]); if (slug) await queryClient.invalidateQueries({ queryKey: ["governance", "record", slug] }); };
+  const handleChanged = async () => { await Promise.all([queryClient.invalidateQueries({ queryKey: ["governance-family"] }), queryClient.invalidateQueries({ queryKey: ["governance-directory"] }), queryClient.invalidateQueries({ queryKey: ["governance-organization", governance?.id] })]); if (slug) await queryClient.invalidateQueries({ queryKey: ["governance", "record", slug] }); };
   const relationCandidates = family.filter((item) => item.id !== relationSource?.id);
 
   if (governanceQuery.isLoading || familyLoading) return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Loading..." }]} /><main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading governance...</main></div>;
