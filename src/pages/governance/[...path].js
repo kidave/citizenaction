@@ -144,7 +144,22 @@ export default function GovernanceRecordPage() {
       <main className="min-h-0 flex-1 p-3 sm:p-4">
         <GovernanceFamilyTree records={treeRecords} selectedId={selectedId} initialExpandedIds={lineage.map((item) => item.id)} onSelect={selectEntity} className="min-h-[calc(100vh-5.5rem)]" />
       </main>
-      <GovernanceEntityModal open={modalOpen} onOpenChange={setModalOpen} entity={governance} parent={governance.parent_id ? byId.get(governance.parent_id) || null : null} childEntities={family.filter((entity) => entity.parent_id === governance.id)} canEdit={canEdit} onSelect={selectEntity} onSaved={handleChanged} onDeleted={handleChanged} onAddChild={(entity) => openRelation("add-child", entity)} onAddParent={(entity) => openRelation("add-parent", entity)} onChangeParent={(entity) => openRelation("change-parent", entity)} categories={categories} />
+      <GovernanceEntityModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        entity={governance}
+        parent={governance.parent_id ? byId.get(governance.parent_id) || null : null}
+        childEntities={family.filter((entity) => entity.parent_id === governance.id)}
+        canEdit={canEdit}
+        onSelect={selectEntity}
+        onSaved={handleChanged}
+        onDeleted={handleChanged}
+        onAddChild={(entity) => openRelation("add-child", entity)}
+        onAddParent={(entity) => openRelation("add-parent", entity)}
+        onChangeParent={(entity) => openRelation("change-parent", entity)}
+        categories={categories}
+        relatedGovernance={family}
+      />
       <GovernanceRelationDialog open={relationOpen} onOpenChange={setRelationOpen} mode={relationMode} sourceEntity={relationSource} candidates={relationCandidates} categories={categories} onCompleted={handleChanged} />
     </div>
   );
