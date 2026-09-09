@@ -107,7 +107,7 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
   const updateDraft = (key, value) => setDraft((current) => ({ ...current, [key]: value }));
   const leaderName = leader?.is_vacant ? "Vacant" : leader?.person?.name || leader?.person_name || null;
   const leaderRole = leader?.role?.name || leader?.position_name || null;
-  const jurisdictionName = jurisdiction?.name || null;
+  const jurisdictionName = jurisdiction?.name || entity.jurisdiction || entity.location_name || entity.location_label || entity.address || null;
 
   const save = async () => {
     if (!draft?.name?.trim()) return toast.error("Name is required");
