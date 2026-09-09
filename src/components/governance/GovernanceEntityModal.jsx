@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { MapPin, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -37,12 +37,11 @@ function Field({ label, children }) {
 
 function RelationItem({ entity, onSelect }) {
   if (!entity) return null;
-
   return (
     <button
       type="button"
       onClick={() => onSelect?.(entity)}
-      className="flex min-w-0 items-center gap-2 rounded-lg p-2 text-left transition-colors hover:bg-muted/60"
+      className="flex min-w-0 items-center gap-2 rounded-lg p-2 text-left hover:bg-muted/60"
     >
       <Avatar className="h-8 w-8 shrink-0 rounded-md">
         <AvatarImage src={entity.image_url || undefined} alt="" />
@@ -102,12 +101,8 @@ export default function GovernanceEntityModal({
       website: entity.website || "",
       entity_type: entity.entity_type || "authority",
       status: entity.status || "active",
-      valid_from: entity.valid_from
-        ? new Date(entity.valid_from).toISOString().slice(0, 10)
-        : "",
-      valid_to: entity.valid_to
-        ? new Date(entity.valid_to).toISOString().slice(0, 10)
-        : "",
+      valid_from: entity.valid_from ? new Date(entity.valid_from).toISOString().slice(0, 10) : "",
+      valid_to: entity.valid_to ? new Date(entity.valid_to).toISOString().slice(0, 10) : "",
       image_url: entity.image_url || null,
       category_id: entity.category_id || "",
     });
@@ -116,7 +111,9 @@ export default function GovernanceEntityModal({
   useEffect(() => {
     if (!open || !entity) return;
 
-    const load = async () => {
+    let cancelled = false;
+
+    async function load() {
       try {
         const leaderResult = await supabase.rpc("get_governance_leader_at", {
           p_entity_id: entity.id,
@@ -127,14 +124,15 @@ export default function GovernanceEntityModal({
         }
 
         const current = leaderResult.data?.[0] || null;
+        let nextLeader = null;
         if (current) {
           let role = current.position_governance_id
             ? null
-            : { id: `role-${current.id}`, name: current.position_name, slug: null };
+            : { id: `role-${current.id}`, name: current.position_name };
           let person = current.person_governance_id
             ? null
             : current.person_name
-              ? { id: `person-${current.id}`, name: current.person_name, slug: null }
+              ? { id: `person-${current.id}`, name: current.person_name }
               : null;
           const ids = [current.position_governance_id, current.person_governance_id].filter(Boolean);
 
@@ -143,20 +141,12 @@ export default function GovernanceEntityModal({
               .from("governance")
               .select("id,name,short_name,entity_type,image_url,status,slug")
               .in("id", ids);
-            if (!relatedResult || relatedResult.error) {
-              throw relatedResult?.error || new Error("Unable to load governance leadership links");
-            }
+            if (relatedResult.error) throw relatedResult.error;
             const byId = new Map((relatedResult.data || []).map((item) => [item.id, item]));
-            role = current.position_governance_id
-              ? byId.get(current.position_governance_id) || null
-              : role;
-            person = current.person_governance_id
-              ? byId.get(current.person_governance_id) || null
-              : person;
+            role = current.position_governance_id ? byId.get(current.position_governance_id) || null : role;
+            person = current.person_governance_id ? byId.get(current.person_governance_id) || null : person;
           }
-          setLeader({ ...current, role, person });
-        } else {
-          setLeader(null);
+          nextLeader = { ...current, role, person };
         }
 
         const unitResult = await supabase
@@ -164,60 +154,52 @@ export default function GovernanceEntityModal({
           .select("metadata")
           .eq("entity_id", entity.id)
           .maybeSingle();
-        if (unitResult?.error) throw unitResult.error;
-        setJurisdiction(unitResult?.data?.metadata?.osm_jurisdiction || null);
+        if (unitResult.error) throw unitResult.error;
 
-        const [{ data: attachmentData, error: attachmentError }, { data: linkData, error: linkError }] =
-          await Promise.all([
-            supabase
-              .from("attachment")
-              .select("*")
-              .eq("governance_id", entity.id)
-              .order("sort_order", { ascending: true })
-              .order("created_at", { ascending: true }),
-            supabase
-              .from("link")
-              .select("*")
-              .eq("governance_id", entity.id)
-              .order("sort_order", { ascending: true })
-              .order("created_at", { ascending: true }),
-          ]);
-
+        const [{ data: attachmentData, error: attachmentError }, { data: linkData, error: linkError }] = await Promise.all([
+          supabase
+            .from("attachment")
+            .select("*")
+            .eq("governance_id", entity.id)
+            .order("sort_order", { ascending: true })
+            .order("created_at", { ascending: true }),
+          supabase
+            .from("link")
+            .select("*")
+            .eq("governance_id", entity.id)
+            .order("sort_order", { ascending: true })
+            .order("created_at", { ascending: true }),
+        ]);
         if (attachmentError) throw attachmentError;
         if (linkError) throw linkError;
+
+        if (cancelled) return;
+        setLeader(nextLeader);
+        setJurisdiction(unitResult.data?.metadata?.osm_jurisdiction || null);
         setAttachments(attachmentData || []);
         setLinks(linkData || []);
         setPendingAttachments([]);
       } catch (error) {
-        toast.error(error?.message || "Unable to load governance details");
+        if (!cancelled) toast.error(error?.message || "Unable to load governance details");
       }
-    };
+    }
 
     load();
+    return () => {
+      cancelled = true;
+    };
   }, [open, entity, editing]);
 
   if (!entity) return null;
 
   const label = getGovernanceLabel(entity);
-  const categoryName =
-    categories.find((item) => item.id === entity.category_id)?.name ||
-    entity.category_name ||
-    null;
+  const categoryName = categories.find((item) => item.id === entity.category_id)?.name || entity.category_name || null;
   const currentStatus = draft?.status || entity.status || "active";
   const requiresValidTo = governanceRequiresValidTo(currentStatus);
-  const updateDraft = (key, value) =>
-    setDraft((current) => ({ ...current, [key]: value }));
-  const leaderName = leader?.is_vacant
-    ? "Vacant"
-    : leader?.person?.name || leader?.person_name || null;
+  const leaderName = leader?.is_vacant ? "Vacant" : leader?.person?.name || leader?.person_name || null;
   const leaderRole = leader?.role?.name || leader?.position_name || null;
-  const jurisdictionName =
-    jurisdiction?.name ||
-    entity.jurisdiction ||
-    entity.location_name ||
-    entity.location_label ||
-    entity.address ||
-    null;
+  const jurisdictionName = jurisdiction?.name || entity.jurisdiction || entity.location_name || entity.location_label || entity.address || null;
+  const updateDraft = (key, value) => setDraft((current) => ({ ...current, [key]: value }));
 
   const save = async () => {
     if (!draft?.name?.trim()) return toast.error("Name is required");
@@ -225,9 +207,7 @@ export default function GovernanceEntityModal({
     if (draft.valid_to && draft.valid_from && draft.valid_to < draft.valid_from) {
       return toast.error("Valid to cannot be earlier than valid from");
     }
-    if (requiresValidTo && !draft.valid_to) {
-      return toast.error("Add the date this entity became inactive");
-    }
+    if (requiresValidTo && !draft.valid_to) return toast.error("Add the date this entity became inactive");
 
     try {
       setSaving(true);
@@ -245,9 +225,7 @@ export default function GovernanceEntityModal({
         p_image_url: draft.image_url || null,
         p_category_id: draft.category_id || null,
       });
-      if (!result || result.error) {
-        throw result?.error || new Error("Unable to save governance entity");
-      }
+      if (!result || result.error) throw result?.error || new Error("Unable to save governance entity");
 
       if (jurisdiction?.osm_id && jurisdiction?.name && jurisdiction?.admin_level) {
         const jurisdictionResult = await supabase.rpc("set_governance_jurisdiction", {
@@ -284,10 +262,7 @@ export default function GovernanceEntityModal({
         if (error) throw error;
       }
 
-      const { error: deleteLinksError } = await supabase
-        .from("link")
-        .delete()
-        .eq("governance_id", entity.id);
+      const { error: deleteLinksError } = await supabase.from("link").delete().eq("governance_id", entity.id);
       if (deleteLinksError) throw deleteLinksError;
 
       if (links.length) {
@@ -311,38 +286,31 @@ export default function GovernanceEntityModal({
       setPendingAttachments([]);
       onSaved?.(result.data);
       toast.success("Governance entity updated");
+      return result.data;
     } catch (error) {
       toast.error(error?.message || "Unable to save governance entity");
+      throw error;
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (childEntities.length > 0) {
-      return toast.error("Move the child entities before deleting this entity.");
-    }
-    const result = await supabase.rpc("delete_governance_entity", {
-      p_entity_id: entity.id,
-    });
-    if (!result || result.error) {
-      return toast.error(result?.error?.message || "Unable to delete governance entity");
-    }
+    if (childEntities.length > 0) return toast.error("Move the child entities before deleting this entity.");
+    const result = await supabase.rpc("delete_governance_entity", { p_entity_id: entity.id });
+    if (!result || result.error) return toast.error(result?.error?.message || "Unable to delete governance entity");
     toast.success("Governance entity deleted");
     onDeleted?.(entity);
     onOpenChange?.(false);
   };
 
-  const editor = useMemo(
-    () => ({
-      attachments: pendingAttachments,
-      setAttachments: setPendingAttachments,
-      links,
-      setLinks,
-      submit: save,
-    }),
-    [pendingAttachments, links, draft, jurisdiction, requiresValidTo, saving],
-  );
+  const editor = {
+    attachments: pendingAttachments,
+    setAttachments: setPendingAttachments,
+    links,
+    setLinks,
+    submit: save,
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -350,32 +318,16 @@ export default function GovernanceEntityModal({
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
           <div className="flex items-start gap-3 pr-8">
             <Avatar className="h-12 w-12 shrink-0 rounded-xl">
-              <AvatarImage
-                src={(editing ? draft?.image_url : entity.image_url) || undefined}
-                alt=""
-              />
-              <AvatarFallback className="rounded-xl">
-                {getGovernanceInitials(label)}
-              </AvatarFallback>
+              <AvatarImage src={(editing ? draft?.image_url : entity.image_url) || undefined} alt="" />
+              <AvatarFallback className="rounded-xl">{getGovernanceInitials(label)}</AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
               {editing ? (
-                <Input
-                  autoFocus
-                  value={draft?.name || ""}
-                  onChange={(event) => updateDraft("name", event.target.value)}
-                  className="text-lg font-semibold"
-                />
+                <Input autoFocus value={draft?.name || ""} onChange={(event) => updateDraft("name", event.target.value)} className="text-lg font-semibold" />
               ) : (
                 <>
-                  <h2 className="truncate text-xl font-semibold" title={label}>
-                    {label}
-                  </h2>
-                  {categoryName && (
-                    <p className="mt-0.5 truncate text-sm text-muted-foreground" title={categoryName}>
-                      {categoryName}
-                    </p>
-                  )}
+                  <h2 className="truncate text-xl font-semibold" title={label}>{label}</h2>
+                  {categoryName && <p className="mt-0.5 truncate text-sm text-muted-foreground" title={categoryName}>{categoryName}</p>}
                 </>
               )}
             </div>
@@ -387,11 +339,7 @@ export default function GovernanceEntityModal({
                 onChangeParent={() => onChangeParent?.(entity)}
                 onDelete={handleDelete}
                 deleteTitle={`Delete ${label}?`}
-                deleteDescription={
-                  childEntities.length
-                    ? "Move the child entities before deleting this entity."
-                    : "This permanently removes this governance entity."
-                }
+                deleteDescription={childEntities.length ? "Move the child entities before deleting this entity." : "This permanently removes this governance entity."}
               />
             )}
           </div>
@@ -399,134 +347,47 @@ export default function GovernanceEntityModal({
           {editing ? (
             <div className="space-y-5 py-5">
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Short name">
-                  <Input
-                    value={draft?.short_name || ""}
-                    onChange={(event) => updateDraft("short_name", event.target.value)}
-                  />
-                </Field>
+                <Field label="Short name"><Input value={draft?.short_name || ""} onChange={(event) => updateDraft("short_name", event.target.value)} /></Field>
                 <Field label="Entity type">
-                  <Select
-                    value={draft?.entity_type || "authority"}
-                    onValueChange={(value) => updateDraft("entity_type", value)}
-                  >
+                  <Select value={draft?.entity_type || "authority"} onValueChange={(value) => updateDraft("entity_type", value)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {GOVERNANCE_ENTITY_TYPES.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {formatGovernanceType(type)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
+                    <SelectContent>{GOVERNANCE_ENTITY_TYPES.map((type) => <SelectItem key={type} value={type}>{formatGovernanceType(type)}</SelectItem>)}</SelectContent>
                   </Select>
                 </Field>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Category">
-                  <Select
-                    value={draft?.category_id || "none"}
-                    onValueChange={(value) => updateDraft("category_id", value === "none" ? "" : value)}
-                  >
+                  <Select value={draft?.category_id || "none"} onValueChange={(value) => updateDraft("category_id", value === "none" ? "" : value)}>
                     <SelectTrigger><SelectValue placeholder="Choose a category" /></SelectTrigger>
-                    <SelectContent className="max-h-72">
-                      <SelectItem value="none">No category</SelectItem>
-                      {categories.map((item) => (
-                        <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>
-                      ))}
-                    </SelectContent>
+                    <SelectContent className="max-h-72"><SelectItem value="none">No category</SelectItem>{categories.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent>
                   </Select>
                 </Field>
                 <Field label="Status">
                   <Select value={currentStatus} onValueChange={(value) => updateDraft("status", value)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {GOVERNANCE_STATUS_OPTIONS.map(([value, text]) => (
-                        <SelectItem key={value} value={value}>{text}</SelectItem>
-                      ))}
-                    </SelectContent>
+                    <SelectContent>{GOVERNANCE_STATUS_OPTIONS.map(([value, text]) => <SelectItem key={value} value={value}>{text}</SelectItem>)}</SelectContent>
                   </Select>
                 </Field>
               </div>
 
-              <Field label="What they do">
-                <Textarea
-                  value={draft?.description || ""}
-                  onChange={(event) => updateDraft("description", event.target.value)}
-                  rows={4}
-                />
-              </Field>
-
-              <Field label="Official website">
-                <Input
-                  type="url"
-                  value={draft?.website || ""}
-                  onChange={(event) => updateDraft("website", event.target.value)}
-                  placeholder="https://"
-                />
-              </Field>
+              <Field label="What they do"><Textarea value={draft?.description || ""} onChange={(event) => updateDraft("description", event.target.value)} rows={4} /></Field>
+              <Field label="Official website"><Input type="url" value={draft?.website || ""} onChange={(event) => updateDraft("website", event.target.value)} placeholder="https://" /></Field>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Valid from">
-                  <Input
-                    type="date"
-                    value={draft?.valid_from || ""}
-                    onChange={(event) => updateDraft("valid_from", event.target.value)}
-                  />
-                </Field>
-                <Field label="Valid to">
-                  <Input
-                    type="date"
-                    value={draft?.valid_to || ""}
-                    onChange={(event) => updateDraft("valid_to", event.target.value)}
-                  />
-                </Field>
+                <Field label="Valid from"><Input type="date" value={draft?.valid_from || ""} onChange={(event) => updateDraft("valid_from", event.target.value)} /></Field>
+                <Field label="Valid to"><Input type="date" value={draft?.valid_to || ""} onChange={(event) => updateDraft("valid_to", event.target.value)} /></Field>
               </div>
+              <p className="-mt-3 text-xs text-muted-foreground">{requiresValidTo ? "Enter when this entity closed or was retired." : "Leave Valid to empty while active."}</p>
 
-              <p className="-mt-3 text-xs text-muted-foreground">
-                {requiresValidTo
-                  ? "Enter when this entity closed or was retired."
-                  : "Leave Valid to empty while active."}
-              </p>
+              <Field label="Jurisdiction"><OSMJurisdictionPicker value={jurisdiction} onChange={setJurisdiction} disabled={saving} /></Field>
+              <ImageUpload bucket="governance" path={`governance/${entity.id}/logo`} value={draft?.image_url || null} onChange={(value) => updateDraft("image_url", value || null)} label="Logo" helperText="PNG, JPG or WebP · up to 5 MB" disabled={saving} />
 
-              <Field label="Jurisdiction">
-                <OSMJurisdictionPicker
-                  value={jurisdiction}
-                  onChange={setJurisdiction}
-                  disabled={saving}
-                />
-              </Field>
-
-              <ImageUpload
-                bucket="governance"
-                path={`governance/${entity.id}/logo`}
-                value={draft?.image_url || null}
-                onChange={(value) => updateDraft("image_url", value || null)}
-                label="Logo"
-                helperText="PNG, JPG or WebP · up to 5 MB"
-                disabled={saving}
-              />
-
-              <GovernanceResources
-                governanceId={entity.id}
-                attachments={attachments}
-                links={links}
-                canEdit={false}
-              />
+              <GovernanceResources governanceId={entity.id} attachments={attachments} links={links} canEdit={false} />
 
               <div className="flex justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setEditing(false);
-                    setDraft(null);
-                    setPendingAttachments([]);
-                  }}
-                  disabled={saving}
-                >
-                  <X className="mr-2 h-4 w-4" />
-                  Cancel
+                <Button type="button" variant="outline" onClick={() => { setEditing(false); setDraft(null); setPendingAttachments([]); }} disabled={saving}>
+                  <X className="mr-2 h-4 w-4" />Cancel
                 </Button>
               </div>
             </div>
@@ -534,74 +395,20 @@ export default function GovernanceEntityModal({
             <div className="space-y-5 py-5">
               {(jurisdictionName || leaderName || entity.valid_from || entity.valid_to) && (
                 <div className="grid gap-2 sm:grid-cols-2">
-                  {jurisdictionName && (
-                    <div className="rounded-lg border bg-muted/30 p-3">
-                      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Jurisdiction</p>
-                      <p className="mt-1 flex min-w-0 items-center gap-1 text-sm font-medium">
-                        <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                        <span className="truncate" title={jurisdictionName}>{jurisdictionName}</span>
-                      </p>
-                    </div>
-                  )}
-                  {leaderName && (
-                    <div className="rounded-lg border bg-muted/30 p-3">
-                      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Leader</p>
-                      <p className="mt-1 truncate text-sm font-medium" title={leaderName}>{leaderName}</p>
-                      {leaderRole && <p className="mt-0.5 truncate text-xs text-muted-foreground" title={leaderRole}>{leaderRole}</p>}
-                    </div>
-                  )}
-                  {(entity.valid_from || entity.valid_to) && (
-                    <div className="rounded-lg border bg-muted/30 p-3 sm:col-span-2">
-                      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                        {entity.valid_to ? "Since / until" : "Since"}
-                      </p>
-                      <p className="mt-1 truncate text-sm font-medium">
-                        {entity.valid_from
-                          ? new Date(entity.valid_from).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })
-                          : "—"}
-                        {entity.valid_to
-                          ? ` – ${new Date(entity.valid_to).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}`
-                          : ""}
-                      </p>
-                    </div>
-                  )}
+                  {jurisdictionName && <div className="rounded-lg border bg-muted/30 p-3"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Jurisdiction</p><p className="mt-1 flex min-w-0 items-center gap-1 text-sm font-medium"><MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" /><span className="truncate" title={jurisdictionName}>{jurisdictionName}</span></p></div>}
+                  {leaderName && <div className="rounded-lg border bg-muted/30 p-3"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Leader</p><p className="mt-1 truncate text-sm font-medium" title={leaderName}>{leaderName}</p>{leaderRole && <p className="mt-0.5 truncate text-xs text-muted-foreground" title={leaderRole}>{leaderRole}</p>}</div>}
+                  {(entity.valid_from || entity.valid_to) && <div className="rounded-lg border bg-muted/30 p-3 sm:col-span-2"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{entity.valid_to ? "Since / until" : "Since"}</p><p className="mt-1 truncate text-sm font-medium">{entity.valid_from ? new Date(entity.valid_from).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "—"}{entity.valid_to ? ` – ${new Date(entity.valid_to).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}` : ""}</p></div>}
                 </div>
               )}
 
-              {entity.description && (
-                <section>
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">What they do</p>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{entity.description}</p>
-                </section>
-              )}
+              {entity.description && <section><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">What they do</p><p className="mt-2 text-sm leading-6 text-muted-foreground">{entity.description}</p></section>}
 
-              {(parent || childEntities.length > 0) && (
-                <section className="space-y-3">
-                  {parent && (
-                    <div>
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Under</p>
-                      <RelationItem entity={parent} onSelect={onSelect} />
-                    </div>
-                  )}
-                  {childEntities.length > 0 && (
-                    <div>
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Responsible for</p>
-                      <div className="grid gap-1 sm:grid-cols-2">
-                        {childEntities.map((child) => (
-                          <RelationItem key={child.id} entity={child} onSelect={onSelect} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </section>
-              )}
+              {(parent || childEntities.length > 0) && <section className="space-y-3">
+                {parent && <div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Under</p><RelationItem entity={parent} onSelect={onSelect} /></div>}
+                {childEntities.length > 0 && <div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Responsible for</p><div className="grid gap-1 sm:grid-cols-2">{childEntities.map((child) => <RelationItem key={child.id} entity={child} onSelect={onSelect} />)}</div></div>}
+              </section>}
 
-              <GovernanceResources
-                governanceId={entity.id}
-                attachments={attachments}
-                links={links}
-                canEdit={false}
-              />
+              <GovernanceResources governanceId={entity.id} attachments={attachments} links={links} canEdit={false} />
             </div>
           )}
         </div>
@@ -611,11 +418,7 @@ export default function GovernanceEntityModal({
             mode="governance"
             item={entity}
             editor={editor}
-            onClose={() => {
-              setEditing(false);
-              setDraft(null);
-              setPendingAttachments([]);
-            }}
+            onClose={() => { setEditing(false); setDraft(null); setPendingAttachments([]); }}
           />
         )}
       </DialogContent>
