@@ -56,41 +56,40 @@ function TreeNode({ node, expandedIds, onToggle, selectedId, onSelect }) {
 
   return (
     <li className="flex min-w-0 flex-col items-center">
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 items-center justify-center gap-2">
         {textOnly ? (
-          <button type="button" onClick={() => onSelect?.(node)} className={cn("rounded-md px-3 py-2 text-center transition-colors hover:bg-muted", selected && "bg-accent ring-1 ring-primary/25")} title={getGovernanceLabel(node)}>
-            <span className="block max-w-xs whitespace-normal text-sm font-medium">{label}</span>
-            <span className="mt-0.5 block text-xs text-muted-foreground">{formatType(node)}</span>
+          <button type="button" onClick={() => onSelect?.(node)} className={cn("min-w-0 max-w-[220px] rounded-md px-3 py-2 text-center transition-colors hover:bg-muted", selected && "bg-accent ring-1 ring-primary/25")} title={getGovernanceLabel(node)}>
+            <span className="block truncate text-sm font-medium">{label}</span>
+            <span className="mt-0.5 block truncate text-xs text-muted-foreground">{formatType(node)}</span>
           </button>
         ) : (
-          <button type="button" onClick={() => onSelect?.(node)} className={cn("group flex min-w-[190px] max-w-[280px] items-center gap-3 rounded-xl border bg-card px-4 py-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md", selected && "border-primary ring-2 ring-primary/15")} title={getGovernanceLabel(node)}>
+          <button type="button" onClick={() => onSelect?.(node)} className={cn("group flex w-[210px] min-w-0 items-center gap-3 rounded-xl border bg-card px-4 py-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md", selected && "border-primary ring-2 ring-primary/15")} title={getGovernanceLabel(node)}>
             <Avatar className="h-10 w-10 shrink-0 rounded-lg">
               <AvatarImage src={node.image_url || undefined} alt="" />
               <AvatarFallback className="rounded-lg bg-muted">{node.entity_type === "authority" ? <Landmark className="h-4 w-4" /> : getInitials(label)}</AvatarFallback>
             </Avatar>
-            <span className="min-w-0">
-              <span className="block whitespace-normal text-sm font-semibold">{label}</span>
-              <span className="mt-0.5 block text-xs text-muted-foreground">{formatType(node)}</span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-semibold">{label}</span>
+              <span className="mt-0.5 block truncate text-xs text-muted-foreground">{formatType(node)}</span>
             </span>
           </button>
         )}
 
         {hasChildren && (
-          <button type="button" onClick={() => onToggle(node.id)} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border bg-background text-muted-foreground hover:bg-muted hover:text-foreground" aria-label={expanded ? `Collapse ${getGovernanceLabel(node)}` : `Expand ${getGovernanceLabel(node)}`}>
+          <button type="button" onClick={(event) => { event.stopPropagation(); onToggle(node.id); }} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border bg-background text-muted-foreground hover:bg-muted hover:text-foreground" aria-label={expanded ? `Collapse ${getGovernanceLabel(node)}` : `Expand ${getGovernanceLabel(node)}`}>
             {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </button>
         )}
       </div>
 
       {hasChildren && expanded && (
-        <div className="relative mt-8 pt-6">
-          <span className="absolute left-1/2 top-0 h-6 w-px -translate-x-1/2 bg-border" />
-          <ul className="flex min-w-max items-start justify-center gap-10">
+        <div className="mt-8 w-full">
+          <ul
+            className="grid items-start justify-center gap-6"
+            style={{ gridTemplateColumns: `repeat(${node.children.length}, minmax(180px, 1fr))` }}
+          >
             {node.children.map((child) => (
-              <li key={child.id} className="relative pt-0">
-                <span className="absolute left-1/2 top-[-24px] h-6 w-px -translate-x-1/2 bg-border" />
-                <TreeNode node={child} expandedIds={expandedIds} onToggle={onToggle} selectedId={selectedId} onSelect={onSelect} />
-              </li>
+              <TreeNode key={child.id} node={child} expandedIds={expandedIds} onToggle={onToggle} selectedId={selectedId} onSelect={onSelect} />
             ))}
           </ul>
         </div>
@@ -109,7 +108,7 @@ export default function GovernanceFamilyTree({ records = [], selectedId = null, 
       const next = new Set(current);
       initialExpandedIds.forEach((id) => next.add(id));
       ancestors.forEach((id) => next.add(id));
-      if (roots.length === 1) next.add(roots[0].id);
+      roots.forEach((root) => next.add(root.id));
       return next;
     });
   }, [records, selectedId, roots, initialExpandedIds]);
