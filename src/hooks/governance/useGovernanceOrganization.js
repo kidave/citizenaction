@@ -7,12 +7,14 @@ export function useGovernanceOrganization({ governanceId, asOf = null, enabled =
     queryKey: ["governance-organization", governanceId, asOf],
     enabled: enabled && !!governanceId,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_governance_organization_tree", {
+      const result = await supabase.rpc("get_organization_tree", {
         p_governance_id: governanceId,
         p_at: asOf || new Date().toISOString(),
       });
-      if (error) throw error;
-      return data || [];
+      if (!result || result.error) {
+        throw result?.error || new Error("Unable to load organization");
+      }
+      return result.data || [];
     },
   });
 }
