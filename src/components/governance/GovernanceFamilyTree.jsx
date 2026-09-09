@@ -20,17 +20,12 @@ function buildTree(records) {
   const roots = [];
 
   nodes.forEach((node) => {
-    if (node.parent_id && nodes.has(node.parent_id)) {
-      nodes.get(node.parent_id).children.push(node);
-    } else {
-      roots.push(node);
-    }
+    if (node.parent_id && nodes.has(node.parent_id)) nodes.get(node.parent_id).children.push(node);
+    else roots.push(node);
   });
 
   const sort = (items) => {
-    items.sort((a, b) =>
-      getGovernanceTreeLabel(a).localeCompare(getGovernanceTreeLabel(b)),
-    );
+    items.sort((a, b) => getGovernanceTreeLabel(a).localeCompare(getGovernanceTreeLabel(b)));
     items.forEach((item) => sort(item.children));
   };
 
@@ -40,7 +35,6 @@ function buildTree(records) {
 
 function getAncestorIds(records, selectedId) {
   if (!selectedId) return [];
-
   const byId = new Map(records.map((record) => [record.id, record]));
   const ids = [];
   let current = byId.get(selectedId);
@@ -55,17 +49,27 @@ function getAncestorIds(records, selectedId) {
   return ids;
 }
 
-function TreeNode({
-  node,
-  expandedIds,
-  onToggle,
-  selectedId,
-  onSelect,
-  canEdit,
-  onAddParent,
-  onAddChild,
-  onChangeParent,
-}) {
+function TreeConnector({ count }) {
+  if (!count) return null;
+  const points = Array.from({ length: count }, (_, index) => ((index + 0.5) / count) * 100);
+  const first = points[0];
+  const last = points[points.length - 1];
+
+  return (
+    <svg
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-x-0 top-0 h-10 w-full overflow-visible text-border"
+      viewBox="0 0 100 40"
+      preserveAspectRatio="none"
+    >
+      <path d="M 50 0 L 50 16" fill="none" stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
+      {count > 1 && <path d={`M ${first} 16 L ${last} 16`} fill="none" stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />}
+      {points.map((x) => <path key={x} d={`M ${x} 16 L ${x} 40`} fill="none" stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />)}
+    </svg>
+  );
+}
+
+function TreeNode({ node, expandedIds, onToggle, selectedId, onSelect, canEdit, onAddParent, onAddChild, onChangeParent }) {
   const hasChildren = node.children.length > 0;
   const expanded = expandedIds.has(node.id);
   const selected = selectedId === node.id;
@@ -74,34 +78,27 @@ function TreeNode({
   const actions = canEdit && !textOnly;
 
   return (
-    <li
-      className={cn(
-        "flex min-w-0 flex-col items-center",
-        expanded && hasChildren && "animate-in fade-in-0 duration-300",
-      )}
-    >
+    <li className="flex w-[240px] shrink-0 flex-col items-center">
       <div className="flex w-full min-w-0 items-center justify-center gap-1">
         {textOnly ? (
           <button
             type="button"
             onClick={() => onSelect?.(node)}
             className={cn(
-              "w-full min-w-0 max-w-[220px] rounded-md px-3 py-2 text-center transition-colors hover:bg-muted",
+              "w-full min-w-0 rounded-md px-3 py-2 text-center transition-colors hover:bg-muted",
               selected && "bg-accent ring-1 ring-primary/25",
             )}
             title={getGovernanceLabel(node)}
           >
             <span className="block truncate text-sm font-medium">{label}</span>
-            <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-              {formatGovernanceType(node)}
-            </span>
+            <span className="mt-0.5 block truncate text-xs text-muted-foreground">{formatGovernanceType(node)}</span>
           </button>
         ) : (
           <button
             type="button"
             onClick={() => onSelect?.(node)}
             className={cn(
-              "group flex w-full min-w-0 max-w-[230px] items-center gap-3 rounded-xl border bg-card px-4 py-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
+              "group flex w-full min-w-0 items-center gap-3 rounded-xl border bg-card px-4 py-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
               selected && "border-primary ring-2 ring-primary/15",
             )}
             title={getGovernanceLabel(node)}
@@ -109,18 +106,12 @@ function TreeNode({
             <Avatar className="h-10 w-10 shrink-0 rounded-lg">
               <AvatarImage src={node.image_url || undefined} alt="" />
               <AvatarFallback className="rounded-lg bg-muted">
-                {node.entity_type === "authority" ? (
-                  <Landmark className="h-4 w-4" />
-                ) : (
-                  getGovernanceInitials(label)
-                )}
+                {node.entity_type === "authority" ? <Landmark className="h-4 w-4" /> : getGovernanceInitials(label)}
               </AvatarFallback>
             </Avatar>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-semibold">{label}</span>
-              <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-                {formatGovernanceType(node)}
-              </span>
+              <span className="mt-0.5 block truncate text-xs text-muted-foreground">{formatGovernanceType(node)}</span>
             </span>
           </button>
         )}
@@ -141,30 +132,17 @@ function TreeNode({
               onToggle(node.id);
             }}
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
-            aria-label={
-              expanded
-                ? `Collapse ${getGovernanceLabel(node)}`
-                : `Expand ${getGovernanceLabel(node)}`
-            }
+            aria-label={expanded ? `Collapse ${getGovernanceLabel(node)}` : `Expand ${getGovernanceLabel(node)}`}
           >
-            {expanded ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronRight className="h-4 w-4" />
-            )}
+            {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </button>
         )}
       </div>
 
       {hasChildren && expanded && (
-        <div className="mt-8 w-full overflow-visible px-1 sm:px-2">
-          <ul
-            className={cn(
-              "mx-auto grid w-full items-start justify-items-center",
-              "grid-cols-[repeat(auto-fit,minmax(180px,220px))]",
-              "justify-center gap-x-8 gap-y-8 sm:gap-x-10 sm:gap-y-10",
-            )}
-          >
+        <div className="relative mt-2 w-max pt-10">
+          <TreeConnector count={node.children.length} />
+          <ul className="flex items-start justify-center gap-6">
             {node.children.map((child) => (
               <TreeNode
                 key={child.id}
@@ -198,13 +176,10 @@ export default function GovernanceFamilyTree({
   onChangeParent,
 }) {
   const roots = useMemo(() => buildTree(records), [records]);
-  const [expandedIds, setExpandedIds] = useState(
-    () => new Set(initialExpandedIds),
-  );
+  const [expandedIds, setExpandedIds] = useState(() => new Set(initialExpandedIds));
 
   useEffect(() => {
     const ancestors = getAncestorIds(records, selectedId);
-
     setExpandedIds((current) => {
       const next = new Set(current);
       initialExpandedIds.forEach((id) => next.add(id));
@@ -214,38 +189,34 @@ export default function GovernanceFamilyTree({
     });
   }, [records, selectedId, roots, initialExpandedIds]);
 
-  const toggle = (id) =>
-    setExpandedIds((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  const toggle = (id) => setExpandedIds((current) => {
+    const next = new Set(current);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    return next;
+  });
 
   if (!roots.length) return null;
 
   return (
-    <div
-      className={cn(
-        "h-full w-full overflow-auto rounded-2xl border bg-background/50",
-        className,
-      )}
-    >
-      <div className="flex min-h-full min-w-[720px] items-start justify-center gap-16 p-8 sm:p-12">
-        {roots.map((root) => (
-          <TreeNode
-            key={root.id}
-            node={root}
-            expandedIds={expandedIds}
-            onToggle={toggle}
-            selectedId={selectedId}
-            onSelect={onSelect}
-            canEdit={canEdit}
-            onAddParent={onAddParent}
-            onAddChild={onAddChild}
-            onChangeParent={onChangeParent}
-          />
-        ))}
+    <div className={cn("h-full w-full overflow-auto rounded-2xl border bg-background/50", className)}>
+      <div className="min-h-full min-w-max p-8 sm:p-12">
+        <ul className="flex items-start justify-center gap-10">
+          {roots.map((root) => (
+            <TreeNode
+              key={root.id}
+              node={root}
+              expandedIds={expandedIds}
+              onToggle={toggle}
+              selectedId={selectedId}
+              onSelect={onSelect}
+              canEdit={canEdit}
+              onAddParent={onAddParent}
+              onAddChild={onAddChild}
+              onChangeParent={onChangeParent}
+            />
+          ))}
+        </ul>
       </div>
     </div>
   );
