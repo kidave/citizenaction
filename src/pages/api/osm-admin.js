@@ -61,6 +61,10 @@ export default async function handler(req, res) {
   const boundaryType = typeof req.query.boundary_type === "string" ? req.query.boundary_type.trim() : "";
   const list = req.query.list === "1" || req.query.list === "true";
   const includeGeometry = req.query.include_geometry !== "0";
+  const requestedLimit = Number(req.query.limit || 500);
+  const limit = Number.isSafeInteger(requestedLimit)
+    ? Math.min(Math.max(requestedLimit, 1), 1000)
+    : 500;
 
   if (adminLevel && !/^([2-9]|10)$/.test(adminLevel)) {
     return res.status(400).json({ results: [] });
@@ -101,7 +105,7 @@ export default async function handler(req, res) {
     );
   }
 
-  const output = includeGeometry ? "out tags center geom 200;" : "out tags center 200;";
+  const output = includeGeometry ? `out tags center geom ${limit};` : `out tags center ${limit};`;
   const overpassQuery = `[out:json][timeout:45];${clauses.join("\n")} ${output}`;
 
   try {
