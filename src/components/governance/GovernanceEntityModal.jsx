@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { ExternalLink, Plus, Save, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ExternalLink, FileText, Link2, Plus, Save, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import ImageUpload from "@/components/media/ImageUpload";
 import MenuButton from "@/components/ui/MenuButton";
+import PostAttachments from "@/components/feed/post/PostAttachments";
 import { supabase } from "@/lib/supabase/client";
 import { getGovernanceLabel } from "@/utils/governance";
 
@@ -48,11 +49,26 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [draft, setDraft] = useState(null);
+  const [attachments, setAttachments] = useState([]);
+  const [links, setLinks] = useState([]);
+
+  const loadResources = async (governanceId) => {
+    const [{ data: attachmentData, error: attachmentError }, { data: linkData, error: linkError }] = await Promise.all([
+      supabase.from("attachment").select("*").eq("governance_id", governanceId).order("sort_order", { ascending: true }).order("created_at", { ascending: true }),
+      supabase.from("link").select("*").eq("governance_id", governanceId).order("sort_order", { ascending: true }).order("created_at", { ascending: true }),
+    ]);
+    if (attachmentError) throw attachmentError;
+    if (linkError) throw linkError;
+    setAttachments(attachmentData || []);
+    setLinks(linkData || []);
+  };
 
   useEffect(() => {
     if (!open) {
       setEditing(false);
       setDraft(null);
+      setAttachments([]);
+      setLinks([]);
       return;
     }
     if (entity) {
@@ -69,6 +85,7 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
         image_url: entity.image_url || null,
         category_id: entity.category_id || "",
       });
+      loadResources(entity.id).catch((error) => toast.error(error?.message || "Unable to load governance resources"));
     }
   }, [open, entity]);
 
@@ -161,13 +178,15 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
 
         {editing ? (
           <div className="space-y-5 py-2">
-            <Field label="Entity type">
-              <Select value={draft?.entity_type || "authority"} onValueChange={(value) => updateDraft("entity_type", value)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{ENTITY_TYPES.map((type) => <SelectItem key={type} value={type}>{formatType({ entity_type: type })}</SelectItem>)}</SelectContent>
-              </Select>
-            </Field>
-
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Short name"><Input value={draft?.short_name || ""} onChange={(event) => updateDraft("short_name", event.target.value)} placeholder="Optional" /></Field>
+              <Field label="Entity type">
+                <Select value={draft?.entity_type || "authority"} onValueChange={(value) => updateDraft("entity_type", value)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{ENTITY_TYPES.map((type) => <SelectItem key={type} value={type}>{formatType({ entity_type: type })}</SelectItem>)}</SelectContent>
+                </Select>
+              </Field>
+            </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Category">
                 <Select value={draft?.category_id || "none"} onValueChange={(value) => updateDraft("category_id", value === "none" ? "" : value)}>
@@ -182,19 +201,14 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
                 </Select>
               </Field>
             </div>
-
-            <Field label="Short name"><Input value={draft?.short_name || ""} onChange={(event) => updateDraft("short_name", event.target.value)} placeholder="Optional" /></Field>
             <Field label="Description"><Textarea value={draft?.description || ""} onChange={(event) => updateDraft("description", event.target.value)} rows={4} placeholder="What does this organisation do?" /></Field>
             <Field label="Official website"><Input type="url" value={draft?.website || ""} onChange={(event) => updateDraft("website", event.target.value)} placeholder="https://" /></Field>
-
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Valid from"><Input type="date" value={draft?.valid_from || ""} onChange={(event) => updateDraft("valid_from", event.target.value)} /></Field>
               <Field label="Valid to"><Input type="date" value={draft?.valid_to || ""} onChange={(event) => updateDraft("valid_to", event.target.value)} disabled={!requiresValidTo} /></Field>
             </div>
             <p className="-mt-3 text-xs text-muted-foreground">{requiresValidTo ? "Add the date this entity closed or was retired." : "Valid to stays empty while this entity is active."}</p>
-
             <ImageUpload bucket="governance" path={`governance/${entity.id}/logo`} value={draft?.image_url || null} onChange={(value) => updateDraft("image_url", value || null)} label="Logo" helperText="PNG, JPG or WebP · up to 5 MB" disabled={saving} />
-
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => { setEditing(false); setDraft(null); }} disabled={saving}><X className="mr-2 h-4 w-4" />Cancel</Button>
               <Button type="button" onClick={save} disabled={saving}><Save className="mr-2 h-4 w-4" />{saving ? "Saving..." : "Save changes"}</Button>
@@ -202,7 +216,14 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
           </div>
         ) : (
           <div className="space-y-5">
-            {(categoryName || entity.status) && <div className="grid grid-cols-2 gap-2">{categoryName && <div className="rounded-lg border bg-muted/30 p-3"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Category</p><p className="mt-1 truncate text-sm font-medium" title={categoryName}>{categoryName}</p></div>}<div className="rounded-lg border bg-muted/30 p-3"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Status</p><p className="mt-1 truncate text-sm font-medium capitalize">{currentStatus}</p></div></div>}
+            {(entity.short_name || categoryName || entity.entity_type || entity.status) && (
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-lg border bg-muted/30 p-3"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Short name</p><p className="mt-1 truncate text-sm font-medium" title={entity.short_name || "—"}>{entity.short_name || "—"}</p></div>
+                <div className="rounded-lg border bg-muted/30 p-3"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Entity type</p><p className="mt-1 truncate text-sm font-medium" title={formatType(entity)}>{formatType(entity)}</p></div>
+                <div className="rounded-lg border bg-muted/30 p-3"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Category</p><p className="mt-1 truncate text-sm font-medium" title={categoryName || "—"}>{categoryName || "—"}</p></div>
+                <div className="rounded-lg border bg-muted/30 p-3"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Status</p><p className="mt-1 truncate text-sm font-medium capitalize">{currentStatus}</p></div>
+              </div>
+            )}
 
             {(parent || canEdit) && (
               <section>
@@ -214,6 +235,8 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
             {canEdit && <div className="flex flex-wrap gap-2"><Button type="button" variant="outline" size="sm" onClick={() => onAddParent?.(entity)}><Plus className="mr-2 h-4 w-4" />Add parent</Button><Button type="button" variant="outline" size="sm" onClick={() => onAddChild?.(entity)}><Plus className="mr-2 h-4 w-4" />Add child</Button></div>}
 
             {entity.description && <section><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">What they do</p><p className="mt-2 text-sm leading-6 text-muted-foreground">{entity.description}</p></section>}
+
+            {(attachments.length > 0 || links.length > 0) && <section><div className="flex items-center gap-2"><FileText className="h-4 w-4 text-muted-foreground" /><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Documents & links</p></div><div className="mt-2"><PostAttachments attachments={attachments} links={links} /></div></section>}
 
             <section>
               <div className="flex items-center justify-between gap-3"><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Children</p><span className="text-xs text-muted-foreground">{childEntities.length}</span></div>

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ImageUpload from "@/components/media/ImageUpload";
 import { getGovernanceLabel } from "@/utils/governance";
+import { supabase } from "@/lib/supabase/client";
 
 const TYPES = ["authority", "unit", "position", "person", "organisation", "committee", "programme", "project", "ministry", "department", "division", "office", "ward", "station"];
 const UNIT_TYPES = ["authority", "ministry", "department", "directorate", "division", "zone", "ward", "region", "office", "branch", "station", "court", "bench", "committee", "board", "commission", "unit", "other"];
@@ -41,14 +42,13 @@ function Field({ label, children }) {
   return <label className="block space-y-1.5"><span className="text-xs font-medium text-muted-foreground">{label}</span>{children}</label>;
 }
 
-export default function GovernanceRelationDialog({ open, onOpenChange, mode = "add-child", sourceEntity, candidates = [], categories = [], locations = [], onCompleted }) {
+export default function GovernanceRelationDialog({ open, onOpenChange, mode = "add-child", sourceEntity, candidates = [], categories = [], onCompleted }) {
   const [step, setStep] = useState("choose");
   const [existingId, setExistingId] = useState("");
   const [name, setName] = useState("");
   const [entityType, setEntityType] = useState("unit");
   const [unitType, setUnitType] = useState("unit");
   const [categoryId, setCategoryId] = useState("");
-  const [locationId, setLocationId] = useState("");
   const [imageUrl, setImageUrl] = useState(null);
   const [saving, setSaving] = useState(false);
   const [validFrom, setValidFrom] = useState(new Date().toISOString().slice(0, 10));
@@ -63,7 +63,6 @@ export default function GovernanceRelationDialog({ open, onOpenChange, mode = "a
       setEntityType("unit");
       setUnitType("unit");
       setCategoryId("");
-      setLocationId("");
       setImageUrl(null);
       setSaving(false);
       setValidFrom(new Date().toISOString().slice(0, 10));
@@ -124,7 +123,6 @@ export default function GovernanceRelationDialog({ open, onOpenChange, mode = "a
         valid_from: `${validFrom}T00:00:00Z`,
         valid_to: (status === "inactive" || status === "deprecated") && validTo ? `${validTo}T23:59:59.999Z` : null,
         category_id: categoryId || null,
-        location_id: locationId ? Number(locationId) : null,
         image_url: imageUrl || null,
       }).select("*").single();
       if (governanceError) throw governanceError;
@@ -197,10 +195,7 @@ export default function GovernanceRelationDialog({ open, onOpenChange, mode = "a
                 <Field label="Entity type"><Select value={entityType} onValueChange={setEntityType}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{TYPES.map((type) => <SelectItem key={type} value={type}>{formatType(type)}</SelectItem>)}</SelectContent></Select></Field>
                 <Field label="Structural role"><Select value={unitType} onValueChange={setUnitType}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{UNIT_TYPES.map((type) => <SelectItem key={type} value={type}>{formatType(type)}</SelectItem>)}</SelectContent></Select></Field>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Category"><Select value={categoryId || "none"} onValueChange={(value) => setCategoryId(value === "none" ? "" : value)}><SelectTrigger><SelectValue placeholder="Choose a category" /></SelectTrigger><SelectContent className="max-h-72"><SelectItem value="none">No category</SelectItem>{categories.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent></Select></Field>
-                <Field label="Location"><Select value={locationId || "none"} onValueChange={(value) => setLocationId(value === "none" ? "" : value)}><SelectTrigger><SelectValue placeholder="Choose a location" /></SelectTrigger><SelectContent className="max-h-72"><SelectItem value="none">No location</SelectItem>{locations.map((item) => <SelectItem key={item.id} value={String(item.id)}>{item.name}</SelectItem>)}</SelectContent></Select></Field>
-              </div>
+              <Field label="Category"><Select value={categoryId || "none"} onValueChange={(value) => setCategoryId(value === "none" ? "" : value)}><SelectTrigger><SelectValue placeholder="Choose a category" /></SelectTrigger><SelectContent className="max-h-72"><SelectItem value="none">No category</SelectItem>{categories.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent></Select></Field>
               <div className="grid gap-4 sm:grid-cols-2"><Field label="Valid from"><Input type="date" value={validFrom} onChange={(event) => setValidFrom(event.target.value)} /></Field><Field label="Valid to"><Input type="date" value={validTo} onChange={(event) => setValidTo(event.target.value)} disabled={status === "active"} /></Field></div>
               <Field label="Status"><Select value={status} onValueChange={setStatus}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{STATUS_OPTIONS.map(([value, text]) => <SelectItem key={value} value={value}>{text}</SelectItem>)}</SelectContent></Select></Field>
               <p className="text-xs text-muted-foreground">{status === "active" ? "Leave Valid to empty while this entity remains active." : "Enter the date this entity closed or was retired."}</p>

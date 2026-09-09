@@ -56,9 +56,9 @@ function TreeNode({ node, expandedIds, onToggle, selectedId, onSelect }) {
 
   return (
     <li className="flex min-w-0 flex-col items-center">
-      <div className="flex min-w-0 items-center justify-center gap-2">
+      <div className="flex w-full min-w-0 items-center justify-center gap-2">
         {textOnly ? (
-          <button type="button" onClick={() => onSelect?.(node)} className={cn("min-w-0 max-w-[220px] rounded-md px-3 py-2 text-center transition-colors hover:bg-muted", selected && "bg-accent ring-1 ring-primary/25")} title={getGovernanceLabel(node)}>
+          <button type="button" onClick={() => onSelect?.(node)} className={cn("min-w-0 w-[180px] max-w-[220px] rounded-md px-3 py-2 text-center transition-colors hover:bg-muted", selected && "bg-accent ring-1 ring-primary/25")} title={getGovernanceLabel(node)}>
             <span className="block truncate text-sm font-medium">{label}</span>
             <span className="mt-0.5 block truncate text-xs text-muted-foreground">{formatType(node)}</span>
           </button>
@@ -83,10 +83,10 @@ function TreeNode({ node, expandedIds, onToggle, selectedId, onSelect }) {
       </div>
 
       {hasChildren && expanded && (
-        <div className="mt-8 w-full">
+        <div className="mt-8 w-full overflow-visible px-1">
           <ul
-            className="grid items-start justify-center gap-6"
-            style={{ gridTemplateColumns: `repeat(${node.children.length}, minmax(180px, 1fr))` }}
+            className="grid w-full items-start gap-4"
+            style={{ gridTemplateColumns: `repeat(${node.children.length}, minmax(0, 1fr))` }}
           >
             {node.children.map((child) => (
               <TreeNode key={child.id} node={child} expandedIds={expandedIds} onToggle={onToggle} selectedId={selectedId} onSelect={onSelect} />
@@ -126,7 +126,7 @@ export default function GovernanceFamilyTree({ records = [], selectedId = null, 
 
   return (
     <div className={cn("h-full w-full overflow-auto rounded-2xl border bg-background/50", className)}>
-      <div className="flex min-h-full min-w-max items-start justify-center gap-16 p-8 sm:p-12">
+      <div className="flex min-h-full min-w-[720px] items-start justify-center gap-16 p-8 sm:p-12">
         {roots.map((root) => (
           <TreeNode key={root.id} node={root} expandedIds={expandedIds} onToggle={toggle} selectedId={selectedId} onSelect={onSelect} />
         ))}

@@ -2,7 +2,7 @@ import { supabase } from "./client";
 import { prepareAttachment } from "@/utils/media/prepareAttachment";
 import { getPdfThumbnail } from "@/utils/media/pdfThumbnail";
 
-const BUCKETS = { POST: "post", CONTRIBUTION: "contribution" };
+const BUCKETS = { POST: "post", CONTRIBUTION: "contribution", GOVERNANCE: "governance" };
 
 function sanitizeFileName(name) {
   return name.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -106,6 +106,10 @@ export function uploadContributionAttachments(contributionId, attachments) {
   return uploadAttachments({ bucket: BUCKETS.CONTRIBUTION, ownerId: contributionId, attachments });
 }
 
+export function uploadGovernanceAttachments(governanceId, attachments) {
+  return uploadAttachments({ bucket: BUCKETS.GOVERNANCE, ownerId: governanceId, attachments });
+}
+
 export async function deleteAttachments(bucket, attachments = []) {
   const values = Array.isArray(attachments) ? attachments : [];
   const paths = values
@@ -141,12 +145,22 @@ export async function deleteContributionAttachmentsByContributionId(contribution
   if (attachments.length) await deleteContributionAttachments(attachments);
 }
 
+export async function deleteGovernanceAttachmentsByGovernanceId(governanceId) {
+  if (!governanceId) throw new Error("Missing governanceId");
+  const attachments = await getAttachmentsForOwner("governance_id", governanceId);
+  if (attachments.length) await deleteGovernanceAttachments(attachments);
+}
+
 export function deletePostAttachments(paths) {
   return deleteAttachments(BUCKETS.POST, paths);
 }
 
 export function deleteContributionAttachments(paths) {
   return deleteAttachments(BUCKETS.CONTRIBUTION, paths);
+}
+
+export function deleteGovernanceAttachments(paths) {
+  return deleteAttachments(BUCKETS.GOVERNANCE, paths);
 }
 
 export function getAttachmentPaths(attachments = []) {
