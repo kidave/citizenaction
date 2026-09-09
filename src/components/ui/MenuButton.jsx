@@ -17,11 +17,21 @@ import ConfirmDialog from "@/components/ui/ConfirmDialog";
 export default function MenuButton({
   onEdit,
   onDelete,
+  onAddParent,
+  onAddChild,
+  onChangeParent,
+  editLabel = "Edit",
+  deleteLabel = "Delete",
   deleteTitle = "Delete this post?",
   deleteDescription = "This action cannot be undone. The post and related data will be permanently removed.",
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const run = (callback) => {
+    setMenuOpen(false);
+    callback?.();
+  };
 
   return (
     <>
@@ -33,30 +43,15 @@ export default function MenuButton({
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end">
-          <DropdownMenuItem
-            onClick={(e) => {
-              e.stopPropagation();
-              setMenuOpen(false);
-              onEdit?.();
-            }}
-          >
-            Edit
-          </DropdownMenuItem>
-
-          <DropdownMenuItem
-            className="text-red-500"
-            onClick={(e) => {
-              e.stopPropagation();
-              setMenuOpen(false);
-              setConfirmOpen(true);
-            }}
-          >
-            Delete
-          </DropdownMenuItem>
+          {onEdit && <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onEdit); }}>{editLabel}</DropdownMenuItem>}
+          {onAddParent && <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onAddParent); }}>Add parent</DropdownMenuItem>}
+          {onAddChild && <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onAddChild); }}>Add child</DropdownMenuItem>}
+          {onChangeParent && <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onChangeParent); }}>Change parent</DropdownMenuItem>}
+          {onDelete && <DropdownMenuItem className="text-red-500" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); setConfirmOpen(true); }}>{deleteLabel}</DropdownMenuItem>}
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <ConfirmDialog
+      {onDelete && <ConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
         title={deleteTitle}
@@ -67,7 +62,7 @@ export default function MenuButton({
           onDelete?.();
           setConfirmOpen(false);
         }}
-      />
+      />}
     </>
   );
 }
