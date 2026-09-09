@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-
 import { supabase } from "@/lib/supabase/client";
 
 export function useGovernanceCatalog({ enabled = true } = {}) {
