@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, ChevronRight, Landmark } from "lucide-react";
+import { ChevronDown, ChevronRight, Landmark, Minus, Plus, RotateCcw } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import MenuButton from "@/components/ui/MenuButton";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   getGovernanceLabel,
@@ -12,6 +13,10 @@ import {
 } from "@/utils/governance";
 
 const TEXT_TYPES = new Set(["ministry", "department", "person", "position"]);
+const MIN_ZOOM = 0.65;
+const MAX_ZOOM = 1.4;
+const ZOOM_STEP = 0.1;
+const DEFAULT_ZOOM = 1;
 
 function buildTree(records) {
   const nodes = new Map(
@@ -177,6 +182,7 @@ export default function GovernanceFamilyTree({
 }) {
   const roots = useMemo(() => buildTree(records), [records]);
   const [expandedIds, setExpandedIds] = useState(() => new Set(initialExpandedIds));
+  const [zoom, setZoom] = useState(DEFAULT_ZOOM);
 
   useEffect(() => {
     const ancestors = getAncestorIds(records, selectedId);
@@ -196,27 +202,81 @@ export default function GovernanceFamilyTree({
     return next;
   });
 
+  const changeZoom = (delta) => {
+    setZoom((current) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Number((current + delta).toFixed(2)))));
+  };
+
   if (!roots.length) return null;
 
   return (
-    <div className={cn("h-full w-full overflow-auto rounded-2xl border bg-background/50", className)}>
-      <div className="min-h-full min-w-max p-8 sm:p-12">
-        <ul className="flex items-start justify-center gap-10">
-          {roots.map((root) => (
-            <TreeNode
-              key={root.id}
-              node={root}
-              expandedIds={expandedIds}
-              onToggle={toggle}
-              selectedId={selectedId}
-              onSelect={onSelect}
-              canEdit={canEdit}
-              onAddParent={onAddParent}
-              onAddChild={onAddChild}
-              onChangeParent={onChangeParent}
-            />
-          ))}
-        </ul>
+    <div className={cn("relative h-full w-full overflow-auto rounded-2xl border bg-background/50", className)}>
+      <div className="absolute right-3 top-3 z-20 flex items-center rounded-lg border bg-background/95 p-1 shadow-sm backdrop-blur">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => changeZoom(-ZOOM_STEP)}
+          disabled={zoom <= MIN_ZOOM}
+          aria-label="Zoom out"
+        >
+          <Minus className="h-4 w-4" />
+        </Button>
+        <button
+          type="button"
+          className="min-w-[3.5rem] px-2 text-xs font-medium tabular-nums text-muted-foreground hover:text-foreground"
+          onClick={() => setZoom(DEFAULT_ZOOM)}
+          aria-label="Reset zoom"
+          title="Reset zoom"
+        >
+          {Math.round(zoom * 100)}%
+        </button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => changeZoom(ZOOM_STEP)}
+          disabled={zoom >= MAX_ZOOM}
+          aria-label="Zoom in"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => setZoom(DEFAULT_ZOOM)}
+          disabled={zoom === DEFAULT_ZOOM}
+          aria-label="Reset zoom"
+        >
+          <RotateCcw className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <div className="min-h-full min-w-max p-8 pt-14 sm:p-12 sm:pt-16">
+        <div
+          className="origin-top-left transition-transform duration-150"
+          style={{ transform: `scale(${zoom})` }}
+        >
+          <ul className="flex items-start justify-center gap-10">
+            {roots.map((root) => (
+              <TreeNode
+                key={root.id}
+                node={root}
+                expandedIds={expandedIds}
+                onToggle={toggle}
+                selectedId={selectedId}
+                onSelect={onSelect}
+                canEdit={canEdit}
+                onAddParent={onAddParent}
+                onAddChild={onAddChild}
+                onChangeParent={onChangeParent}
+              />
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );
