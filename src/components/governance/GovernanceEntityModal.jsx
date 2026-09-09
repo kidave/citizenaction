@@ -149,12 +149,12 @@ export default function GovernanceEntityModal({
           nextLeader = { ...current, role, person };
         }
 
-        const unitResult = await supabase
-          .from("governance_unit")
+        const governanceResult = await supabase
+          .from("governance")
           .select("metadata")
-          .eq("entity_id", entity.id)
+          .eq("id", entity.id)
           .maybeSingle();
-        if (unitResult.error) throw unitResult.error;
+        if (governanceResult.error) throw governanceResult.error;
 
         const [{ data: attachmentData, error: attachmentError }, { data: linkData, error: linkError }] = await Promise.all([
           supabase
@@ -175,7 +175,7 @@ export default function GovernanceEntityModal({
 
         if (cancelled) return;
         setLeader(nextLeader);
-        setJurisdiction(unitResult.data?.metadata?.osm_jurisdiction || null);
+        setJurisdiction(governanceResult.data?.metadata?.osm_jurisdiction || null);
         setAttachments(attachmentData || []);
         setLinks(linkData || []);
         setPendingAttachments([]);
