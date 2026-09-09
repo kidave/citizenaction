@@ -12,38 +12,18 @@ import ImageUpload from "@/components/media/ImageUpload";
 import MenuButton from "@/components/ui/MenuButton";
 import GovernanceResources from "@/components/governance/GovernanceResources";
 import { supabase } from "@/lib/supabase/client";
-import { getGovernanceLabel } from "@/utils/governance";
-
-const ENTITY_TYPES = ["authority", "unit", "position", "person", "organisation", "committee", "programme", "project", "ministry", "department", "division", "office", "ward", "station", "zone"];
-const STATUS_OPTIONS = [["active", "Active"], ["inactive", "Inactive"], ["deprecated", "Deprecated"]];
-
-function formatType(entity) {
-  const type = entity?.unit_type && entity.unit_type !== "authority" ? entity.unit_type : entity?.entity_type;
-  if (!type) return "Governance";
-  if (type === "other") return "Organisation";
-  return type.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
-function getInitials(value) {
-  return value?.split(" ").filter(Boolean).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "G";
-}
-
-function toDateInput(value) {
-  return value ? new Date(value).toISOString().slice(0, 10) : "";
-}
-
-function toIsoStart(value) {
-  return value ? new Date(`${value}T00:00:00`).toISOString() : null;
-}
-
-function toIsoEnd(value) {
-  return value ? new Date(`${value}T23:59:59.999`).toISOString() : null;
-}
-
-function formatDate(value) {
-  if (!value) return "—";
-  return new Date(value).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
-}
+import {
+  GOVERNANCE_ENTITY_TYPES,
+  GOVERNANCE_STATUS_OPTIONS,
+  formatGovernanceDate,
+  getGovernanceInitials,
+  getGovernanceLabel,
+  getGovernanceTypeLabel,
+  governanceRequiresValidTo,
+  toGovernanceDateInput,
+  toGovernanceIsoEnd,
+  toGovernanceIsoStart,
+} from "@/utils/governance";
 
 function Field({ label, children }) {
   return <label className="block space-y-1.5"><span className="text-xs font-medium text-muted-foreground">{label}</span>{children}</label>;
@@ -55,8 +35,8 @@ function RelationCard({ label, entity, onSelect }) {
     <button type="button" onClick={() => onSelect?.(entity)} className="min-w-0 rounded-lg border bg-muted/30 p-3 text-left transition-colors hover:bg-muted">
       <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
       <div className="mt-2 flex min-w-0 items-center gap-2">
-        <Avatar className="h-7 w-7 shrink-0 rounded-md"><AvatarImage src={entity.image_url || undefined} alt="" /><AvatarFallback className="rounded-md text-[10px]">{getInitials(entity.name || entity.short_name)}</AvatarFallback></Avatar>
-        <span className="min-w-0 truncate text-sm font-medium" title={entity.name}>{entity.name}</span>
+        <Avatar className="h-7 w-7 shrink-0 rounded-md"><AvatarImage src={entity.image_url || undefined} alt="" /><AvatarFallback className="rounded-md text-[10px]">{getGovernanceInitials(entity.name || entity.short_name)}</AvatarFallback></Avatar>
+        <span className="min-w-0 truncate text-sm font-medium" title={entity.name || entity.short_name}>{entity.name || entity.short_name}</span>
       </div>
     </button>
   );
@@ -87,8 +67,8 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
     if (error) throw error;
 
     const metadata = data?.metadata && typeof data.metadata === "object" ? data.metadata : {};
-    const roleId = governanceId && (metadata.role_entity_id || metadata.position_entity_id || metadata.role_id);
-    const headId = governanceId && (metadata.head_person_id || metadata.current_head_person_id || metadata.head_id);
+    const roleId = metadata.role_entity_id || metadata.position_entity_id || metadata.role_id || null;
+    const headId = metadata.head_person_id || metadata.current_head_person_id || metadata.head_id || null;
     const ids = [roleId, headId].filter(Boolean);
 
     if (!ids.length) {
@@ -103,10 +83,6 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
     const byId = new Map((related || []).map((item) => [item.id, item]));
     setRoleEntity(roleId ? byId.get(roleId) || null : null);
     setHeadPerson(headId ? byId.get(headId) || null : null);
-  };
-
-  const loadDetails = async (governanceId) => {
-    await Promise.all([loadResources(governanceId), loadRelations(governanceId)]);
   };
 
   useEffect(() => {
@@ -129,20 +105,20 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
       website: entity.website || "",
       entity_type: entity.entity_type || "authority",
       status: entity.status || "active",
-      valid_from: toDateInput(entity.valid_from),
-      valid_to: toDateInput(entity.valid_to),
+      valid_from: toGovernanceDateInput(entity.valid_from),
+      valid_to: toGovernanceDateInput(entity.valid_to),
       image_url: entity.image_url || null,
       category_id: entity.category_id || "",
     });
 
-    loadDetails(entity.id).catch((error) => toast.error(error?.message || "Unable to load governance details"));
+    Promise.all([loadResources(entity.id), loadRelations(entity.id)]).catch((error) => toast.error(error?.message || "Unable to load governance details"));
   }, [open, entity]);
 
   if (!entity) return null;
 
   const label = entity.name || getGovernanceLabel(entity);
   const currentStatus = draft?.status || entity.status || "active";
-  const requiresValidTo = currentStatus === "inactive" || currentStatus === "deprecated";
+  const requiresValidTo = governanceRequiresValidTo(currentStatus);
   const categoryName = categories.find((item) => item.id === entity.category_id)?.name || entity.category_name || null;
   const updateDraft = (key, value) => setDraft((current) => ({ ...current, [key]: value }));
 
@@ -159,8 +135,8 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
       website: draft.website.trim() || null,
       entity_type: draft.entity_type,
       status: currentStatus,
-      valid_from: toIsoStart(draft.valid_from),
-      valid_to: requiresValidTo ? toIsoEnd(draft.valid_to) : null,
+      valid_from: toGovernanceIsoStart(draft.valid_from),
+      valid_to: requiresValidTo ? toGovernanceIsoEnd(draft.valid_to) : null,
       image_url: draft.image_url || null,
       category_id: draft.category_id || null,
     }).eq("id", entity.id).select("*").single();
@@ -203,7 +179,7 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
         <div className="flex items-start gap-3 pr-8">
           <Avatar className="h-12 w-12 shrink-0 rounded-xl">
             <AvatarImage src={(editing ? draft?.image_url : entity.image_url) || undefined} alt="" />
-            <AvatarFallback className="rounded-xl">{getInitials(label)}</AvatarFallback>
+            <AvatarFallback className="rounded-xl">{getGovernanceInitials(label)}</AvatarFallback>
           </Avatar>
 
           <div className="min-w-0 flex-1">
@@ -231,11 +207,16 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
           <div className="space-y-5 py-2">
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Short name"><Input value={draft?.short_name || ""} onChange={(event) => updateDraft("short_name", event.target.value)} placeholder="Optional" /></Field>
-              <Field label="Entity type"><Select value={draft?.entity_type || "authority"} onValueChange={(value) => updateDraft("entity_type", value)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{ENTITY_TYPES.map((type) => <SelectItem key={type} value={type}>{formatType({ entity_type: type })}</SelectItem>)}</SelectContent></Select></Field>
+              <Field label="Entity type">
+                <Select value={draft?.entity_type || "authority"} onValueChange={(value) => updateDraft("entity_type", value)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{GOVERNANCE_ENTITY_TYPES.map((type) => <SelectItem key={type} value={type}>{getGovernanceTypeLabel({ entity_type: type })}</SelectItem>)}</SelectContent>
+                </Select>
+              </Field>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Category"><Select value={draft?.category_id || "none"} onValueChange={(value) => updateDraft("category_id", value === "none" ? "" : value)}><SelectTrigger><SelectValue placeholder="Choose a category" /></SelectTrigger><SelectContent className="max-h-72"><SelectItem value="none">No category</SelectItem>{categories.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent></Select></Field>
-              <Field label="Status"><Select value={currentStatus} onValueChange={(value) => updateDraft("status", value)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{STATUS_OPTIONS.map(([value, text]) => <SelectItem key={value} value={value}>{text}</SelectItem>)}</SelectContent></Select></Field>
+              <Field label="Status"><Select value={currentStatus} onValueChange={(value) => updateDraft("status", value)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{GOVERNANCE_STATUS_OPTIONS.map(([value, text]) => <SelectItem key={value} value={value}>{text}</SelectItem>)}</SelectContent></Select></Field>
             </div>
             <Field label="Description"><Textarea value={draft?.description || ""} onChange={(event) => updateDraft("description", event.target.value)} rows={4} placeholder="What does this organisation do?" /></Field>
             <Field label="Official website"><Input type="url" value={draft?.website || ""} onChange={(event) => updateDraft("website", event.target.value)} placeholder="https://" /></Field>
@@ -250,7 +231,7 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
             {(categoryName || entity.valid_from || entity.valid_to || roleEntity || headPerson) && (
               <div className="grid grid-cols-2 gap-2">
                 {categoryName && <div className="rounded-lg border bg-muted/30 p-3"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Category</p><p className="mt-1 truncate text-sm font-medium" title={categoryName}>{categoryName}</p></div>}
-                {(entity.valid_from || entity.valid_to) && <div className="rounded-lg border bg-muted/30 p-3"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{entity.valid_to ? "Founded / ended" : "Founded"}</p><p className="mt-1 truncate text-sm font-medium" title={`${formatDate(entity.valid_from)}${entity.valid_to ? ` – ${formatDate(entity.valid_to)}` : ""}`}>{formatDate(entity.valid_from)}{entity.valid_to ? ` – ${formatDate(entity.valid_to)}` : ""}</p></div>}
+                {(entity.valid_from || entity.valid_to) && <div className="rounded-lg border bg-muted/30 p-3"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{entity.valid_to ? "Founded / ended" : "Founded"}</p><p className="mt-1 truncate text-sm font-medium" title={`${formatGovernanceDate(entity.valid_from)}${entity.valid_to ? ` – ${formatGovernanceDate(entity.valid_to)}` : ""}`}>{formatGovernanceDate(entity.valid_from)}{entity.valid_to ? ` – ${formatGovernanceDate(entity.valid_to)}` : ""}</p></div>}
                 <RelationCard label="Role" entity={roleEntity} onSelect={onSelect} />
                 <RelationCard label="Head" entity={headPerson} onSelect={onSelect} />
               </div>
@@ -258,10 +239,11 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
 
             {entity.description && <section><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">What they do</p><p className="mt-2 text-sm leading-6 text-muted-foreground">{entity.description}</p></section>}
 
-            {(parent || childEntities.length > 0) && <section className="grid gap-3 sm:grid-cols-2">{parent && <div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Parent</p><button type="button" onClick={() => onSelect?.(parent)} className="mt-2 flex w-full min-w-0 items-center gap-2 rounded-lg border p-3 text-left hover:bg-accent"><Avatar className="h-7 w-7 shrink-0 rounded-md"><AvatarImage src={parent.image_url || undefined} alt="" /><AvatarFallback className="rounded-md text-[10px]">{getInitials(parent.name)}</AvatarFallback></Avatar><span className="min-w-0 truncate text-sm font-medium" title={parent.name}>{parent.name}</span></button></div>}{childEntities.length > 0 && <div><div className="flex items-center justify-between"><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Children</p><span className="text-xs text-muted-foreground">{childEntities.length}</span></div><div className="mt-1 max-h-36 space-y-0.5 overflow-y-auto">{childEntities.map((child) => <button type="button" key={child.id} onClick={() => onSelect?.(child)} className="flex w-full min-w-0 items-center gap-2 rounded-md px-1 py-1.5 text-left hover:bg-muted"><Avatar className="h-7 w-7 shrink-0 rounded-md"><AvatarImage src={child.image_url || undefined} alt="" /><AvatarFallback className="rounded-md text-[10px]">{getInitials(child.name)}</AvatarFallback></Avatar><span className="min-w-0 truncate text-sm font-medium" title={child.name}>{child.name}</span></button>)}</div></div>}</section>}
+            {(parent || childEntities.length > 0) && <section className="grid gap-3 sm:grid-cols-2">{parent && <div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Parent</p><button type="button" onClick={() => onSelect?.(parent)} className="mt-1 flex min-w-0 items-center gap-2 rounded-md px-1 py-1.5 text-left hover:bg-muted"><Avatar className="h-7 w-7 shrink-0 rounded-md"><AvatarImage src={parent.image_url || undefined} alt="" /><AvatarFallback className="rounded-md text-[10px]">{getGovernanceInitials(parent.name || parent.short_name)}</AvatarFallback></Avatar><span className="min-w-0 truncate text-sm font-medium">{getGovernanceLabel(parent)}</span></button></div>}{childEntities.length > 0 && <div><div className="flex items-center justify-between"><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Children</p><span className="text-xs text-muted-foreground">{childEntities.length}</span></div><div className="mt-1 space-y-0.5">{childEntities.slice(0, 5).map((child) => <button type="button" key={child.id} onClick={() => onSelect?.(child)} className="flex w-full items-center gap-2 rounded-md px-1 py-1.5 text-left hover:bg-muted"><Avatar className="h-7 w-7 shrink-0 rounded-md"><AvatarImage src={child.image_url || undefined} alt="" /><AvatarFallback className="rounded-md text-[10px]">{getGovernanceInitials(child.name || child.short_name)}</AvatarFallback></Avatar><span className="min-w-0 truncate text-sm font-medium">{getGovernanceLabel(child)}</span></button>)}</div></div>}</section>}
 
             <GovernanceResources governanceId={entity.id} attachments={attachments} links={links} canEdit={false} />
 
+            {entity.valid_to && <p className="text-xs text-muted-foreground">Valid to {formatGovernanceDate(entity.valid_to)}</p>}
             {entity.website && <a href={entity.website} target="_blank" rel="noreferrer" className="inline-flex items-center text-sm font-medium hover:underline">Official website</a>}
           </div>
         )}

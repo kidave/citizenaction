@@ -4,29 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { getGovernanceLabel } from "@/utils/governance";
+import {
+  getGovernanceInitials,
+  getGovernanceLabel,
+  getGovernanceTypeLabel,
+} from "@/utils/governance";
 
-function getInitials(value) {
-  return (
-    value
-      ?.split(" ")
-      .filter(Boolean)
-      .map((part) => part[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase() || "G"
-  );
-}
-
-function formatType(value) {
-  if (!value) return "Governance";
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
+const TEXT_ENTITY_TYPES = new Set(["ministry", "department", "person"]);
 
 export default function GovernanceCard({ entity, onOpen, onSuggestEdit }) {
   const label = getGovernanceLabel(entity);
-  const type = formatType(entity?.entity_type);
-  const isTextOnly = ["ministry", "department", "person"].includes(entity?.entity_type);
+  const type = getGovernanceTypeLabel(entity);
+  const isTextOnly = TEXT_ENTITY_TYPES.has(entity?.entity_type);
   const isClickable = typeof onOpen === "function";
   const imageUrl = entity?.image_url || entity?.metadata?.image_url || null;
 
@@ -63,14 +52,12 @@ export default function GovernanceCard({ entity, onOpen, onSuggestEdit }) {
           handleOpen();
         }
       }}
-      className={`group border p-4 transition-colors ${
-        isClickable ? "cursor-pointer hover:bg-accent/50 focus:outline-none focus:ring-2 focus:ring-ring" : ""
-      }`}
+      className={`group border p-4 transition-colors ${isClickable ? "cursor-pointer hover:bg-accent/50 focus:outline-none focus:ring-2 focus:ring-ring" : ""}`}
     >
       <div className="flex items-start gap-3">
         <Avatar className="h-10 w-10 shrink-0 rounded-lg">
           <AvatarImage src={imageUrl || undefined} alt="" />
-          <AvatarFallback className="rounded-lg text-xs">{getInitials(entity?.name || label)}</AvatarFallback>
+          <AvatarFallback className="rounded-lg bg-muted">{getGovernanceInitials(entity?.name || label)}</AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">

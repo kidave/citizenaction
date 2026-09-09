@@ -23,6 +23,21 @@ async function getGovernanceBySlug(slug) {
   return data?.[0] || null;
 }
 
+async function getGovernanceFamily() {
+  const { data, error } = await supabase.rpc("get_governance_directory_v2", {
+    p_search: null,
+    p_parent_id: null,
+    p_entity_type: null,
+    p_limit: 500,
+    p_include_all: true,
+  });
+  if (error) throw error;
+  return (data || []).map((entity) => ({
+    ...entity,
+    image_url: entity.image_url || entity.metadata?.image_url || null,
+  }));
+}
+
 export default function GovernanceRecordPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -46,20 +61,7 @@ export default function GovernanceRecordPage() {
   const { data: family = [], isLoading: familyLoading } = useQuery({
     queryKey: ["governance-family"],
     enabled: !!slug && !!governance,
-    queryFn: async () => {
-      const { data, error: familyError } = await supabase.rpc("get_governance_directory_v2", {
-        p_search: null,
-        p_parent_id: null,
-        p_entity_type: null,
-        p_limit: 500,
-        p_include_all: true,
-      });
-      if (familyError) throw familyError;
-      return (data || []).map((entity) => ({
-        ...entity,
-        image_url: entity.image_url || entity.metadata?.image_url || null,
-      }));
-    },
+    queryFn: getGovernanceFamily,
   });
 
   const byId = useMemo(() => new Map(family.map((item) => [item.id, item])), [family]);
@@ -110,7 +112,6 @@ export default function GovernanceRecordPage() {
   }, [family, governance]);
 
   const selectEntity = async (entity) => {
-    if (!entity?.slug) return;
     const href = getGovernanceHref(entity);
     if (!href) return;
     await router.push(href, undefined, { shallow: true });

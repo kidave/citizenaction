@@ -7,14 +7,7 @@ import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectory
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import { useGovernance } from "@/hooks/governance/useGovernance";
 import { useGovernanceCatalog } from "@/hooks/governance/useGovernanceCatalog";
-import { getGovernanceLabel } from "@/utils/governance";
-
-const ROOT_TYPES = ["all", "authority", "organisation", "ministry", "department", "unit"];
-
-function formatType(value) {
-  if (!value || value === "all") return "All types";
-  return value.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
-}
+import { getGovernanceLabel, formatGovernanceType, GOVERNANCE_ROOT_TYPES } from "@/utils/governance";
 
 function getDescendantCount(records, rootId) {
   const childrenByParent = new Map();
@@ -43,7 +36,7 @@ function getDescendantCount(records, rootId) {
 export default function GovernancePage() {
   const [search, setSearch] = useState("");
   const [entityType, setEntityType] = useState("all");
-  const [categoryId, setCategoryId] = useState("all");
+  const [categoryId] = useState("all");
   const { categories = [] } = useGovernanceCatalog();
 
   const governanceQuery = useGovernance({
@@ -71,14 +64,7 @@ export default function GovernancePage() {
     const matches = new Set(
       data
         .filter((entity) =>
-          [
-            entity?.name,
-            entity?.short_name,
-            entity?.entity_type,
-            entity?.unit_type,
-            entity?.parent_name,
-            entity?.category_name,
-          ]
+          [entity?.name, entity?.short_name, entity?.entity_type, entity?.unit_type, entity?.parent_name, entity?.category_name]
             .filter(Boolean)
             .join(" ")
             .toLowerCase()
@@ -138,7 +124,7 @@ export default function GovernancePage() {
             </div>
             <Select value={entityType} onValueChange={setEntityType}>
               <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{ROOT_TYPES.map((type) => <SelectItem key={type} value={type}>{formatType(type)}</SelectItem>)}</SelectContent>
+              <SelectContent>{GOVERNANCE_ROOT_TYPES.map((type) => <SelectItem key={type} value={type}>{formatGovernanceType(type)}</SelectItem>)}</SelectContent>
             </Select>
           </div>
 

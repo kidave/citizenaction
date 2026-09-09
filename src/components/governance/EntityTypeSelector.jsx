@@ -1,24 +1,9 @@
 "use client";
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { GOVERNANCE_ENTITY_TYPES, formatGovernanceType } from "@/utils/governance";
 
-const TYPES = [
-  ["all", "All"],
-  ["authority", "Authority"],
-  ["ministry", "Ministry"],
-  ["department", "Department"],
-  ["organisation", "Organisation"],
-  ["committee", "Committee"],
-  ["office", "Office"],
-  ["division", "Division"],
-  ["unit", "Unit"],
-  ["ward", "Ward"],
-  ["station", "Station"],
-  ["person", "Person"],
-  ["position", "Position"],
-  ["programme", "Programme"],
-  ["project", "Project"],
-];
+const TYPES = [["all", "All"], ...GOVERNANCE_ENTITY_TYPES.map((type) => [type, formatGovernanceType(type)])];
 
 export default function EntityTypeSelector({ value, onChange }) {
   return (
