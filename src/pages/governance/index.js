@@ -51,7 +51,6 @@ export default function GovernancePage() {
     entityType: "all",
     includeAll: true,
     categoryId: categoryId === "all" ? null : categoryId,
-    locationId: null,
   });
 
   const data = Array.isArray(governanceQuery.data) ? governanceQuery.data : [];

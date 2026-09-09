@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import MenuButton from "@/components/ui/MenuButton";
@@ -88,6 +88,7 @@ function OrganizationNode({ node, onEdit, onSelect, onDelete }) {
                 className="flex min-w-0 flex-1 items-center gap-3 text-left"
               >
                 <Avatar className="h-10 w-10 shrink-0 rounded-lg">
+                  <AvatarImage src={node.person_avatar_url || undefined} alt="" />
                   <AvatarFallback className="rounded-lg">{getGovernanceInitials(person)}</AvatarFallback>
                 </Avatar>
                 <span className="min-w-0 flex-1">

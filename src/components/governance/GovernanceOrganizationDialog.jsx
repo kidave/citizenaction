@@ -23,6 +23,26 @@ function Field({ label, children }) {
   );
 }
 
+function dateInputValue(value) {
+  if (!value) return "";
+  return String(value).slice(0, 10);
+}
+
+async function findExactProfile(name) {
+  const normalized = name.trim().toLowerCase();
+  if (!normalized) return null;
+
+  const result = await supabase
+    .from("profile")
+    .select("user_id,name,avatar_url")
+    .ilike("name", name.trim())
+    .limit(5);
+
+  if (result.error) throw result.error;
+  const matches = (result.data || []).filter((profile) => profile?.name?.trim().toLowerCase() === normalized);
+  return matches.length === 1 ? matches[0] : null;
+}
+
 export default function GovernanceOrganizationDialog({
   open,
   onOpenChange,
@@ -67,12 +87,8 @@ export default function GovernanceOrganizationDialog({
     setPersonId(record?.person_governance_id || "");
     setPersonName(record?.is_vacant ? "" : record?.person_name || "");
     setReportsToId(record?.parent_id || NONE);
-    setStartedAt(
-      record?.started_at
-        ? new Date(record.started_at).toISOString().slice(0, 10)
-        : new Date().toISOString().slice(0, 10),
-    );
-    setEndedAt(record?.ended_at ? new Date(record.ended_at).toISOString().slice(0, 10) : "");
+    setStartedAt(record?.started_at ? dateInputValue(record.started_at) : new Date().toISOString().slice(0, 10));
+    setEndedAt(dateInputValue(record?.ended_at));
     setIsVacant(!!record?.is_vacant);
     setIsPrimary(!!record?.is_primary);
   }, [open, record]);
@@ -88,9 +104,10 @@ export default function GovernanceOrganizationDialog({
       setSaving(true);
 
       let nextPositionId = positionId;
-      let nextPositionName = positionName.trim();
+      const nextPositionName = positionName.trim();
       let nextPersonId = isVacant ? null : personId;
-      let nextPersonName = isVacant ? "Vacant" : personName.trim();
+      const nextPersonName = isVacant ? "Vacant" : personName.trim();
+      let profileUserId = null;
 
       if (!nextPositionId) {
         const result = await supabase.rpc("create_governance_entity", {
@@ -108,6 +125,10 @@ export default function GovernanceOrganizationDialog({
         if (!nextPositionId) throw new Error("Unable to create role");
       }
 
+      if (!isVacant && nextPersonId) {
+        profileUserId = people.find((item) => item.id === nextPersonId)?.profile_user_id || null;
+      }
+
       if (!isVacant && !nextPersonId) {
         const result = await supabase.rpc("create_governance_entity", {
           p_name: nextPersonName,
@@ -122,6 +143,21 @@ export default function GovernanceOrganizationDialog({
         if (!result || result.error) throw result?.error || new Error("Unable to create person");
         nextPersonId = result.data?.id;
         if (!nextPersonId) throw new Error("Unable to create person");
+      }
+
+      if (!isVacant && nextPersonId && !profileUserId) {
+        const profile = await findExactProfile(nextPersonName);
+        if (profile?.user_id) profileUserId = profile.user_id;
+      }
+
+      if (profileUserId && nextPersonId) {
+        const profileResult = await supabase.rpc("set_governance_person_profile", {
+          p_person_id: nextPersonId,
+          p_profile_user_id: profileUserId,
+        });
+        if (!profileResult || profileResult.error) {
+          throw profileResult?.error || new Error("Unable to link person profile");
+        }
       }
 
       const result = await supabase.rpc("upsert_organization", {
@@ -152,7 +188,7 @@ export default function GovernanceOrganizationDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UsersRound className="h-4 w-4" />
