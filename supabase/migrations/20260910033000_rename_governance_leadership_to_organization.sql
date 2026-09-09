@@ -82,7 +82,6 @@ begin
   if p_person_governance_id is not null and not exists (select 1 from public.governance where id = p_person_governance_id and entity_type = 'person') then raise exception 'Person entity not found.'; end if;
   if p_reports_to_id is not null and p_reports_to_id = p_id then raise exception 'A role cannot report to itself.'; end if;
   if p_reports_to_id is not null and not exists (select 1 from public.organization where id = p_reports_to_id and governance_id = p_governance_id) then raise exception 'Reporting role not found in this organization.'; end if;
-  if p_id is not null and p_reports_to_id is not null and exists (with recursive chain(id) as (select p_reports_to_id union all select o.reports_to_id from public.organization o join chain c on o.id = c.id where o.reports_to_id is not null) select 1 from chain where id = p_id) then raise exception 'This reporting relationship would create an organization cycle.'; end if;
   if p_started_at is null then raise exception 'Start date is required.'; end if;
   if p_ended_at is not null and p_ended_at < p_started_at then raise exception 'End date cannot be earlier than start date.'; end if;
   if p_is_vacant then p_person_name := 'Vacant'; p_person_governance_id := null;
