@@ -10,10 +10,12 @@ import {
   getGovernanceTypeLabel,
 } from "@/utils/governance";
 
+const TEXT_ENTITY_TYPES = new Set(["ministry", "department", "person"]);
+
 export default function GovernanceCard({ entity, onOpen, onSuggestEdit }) {
   const label = getGovernanceLabel(entity);
   const type = getGovernanceTypeLabel(entity);
-  const isTextOnly = ["ministry", "department", "person"].includes(entity?.entity_type);
+  const isTextOnly = TEXT_ENTITY_TYPES.has(entity?.entity_type);
   const isClickable = typeof onOpen === "function";
   const imageUrl = entity?.image_url || entity?.metadata?.image_url || null;
 
