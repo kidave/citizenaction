@@ -35,6 +35,11 @@ function Field({ label, children }) {
   );
 }
 
+function dateInputValue(value) {
+  if (!value) return "";
+  return String(value).slice(0, 10);
+}
+
 function RelationItem({ entity, onSelect }) {
   if (!entity) return null;
   return (
@@ -101,8 +106,8 @@ export default function GovernanceEntityModal({
       website: entity.website || "",
       entity_type: entity.entity_type || "authority",
       status: entity.status || "active",
-      valid_from: entity.valid_from ? new Date(entity.valid_from).toISOString().slice(0, 10) : "",
-      valid_to: entity.valid_to ? new Date(entity.valid_to).toISOString().slice(0, 10) : "",
+      valid_from: dateInputValue(entity.valid_from),
+      valid_to: dateInputValue(entity.valid_to),
       image_url: entity.image_url || null,
       category_id: entity.category_id || "",
     });
@@ -132,7 +137,7 @@ export default function GovernanceEntityModal({
           let person = current.person_governance_id
             ? null
             : current.person_name
-              ? { id: `person-${current.id}`, name: current.person_name }
+              ? { id: `person-${current.id}`, name: current.person_name, image_url: current.person_avatar_url }
               : null;
           const ids = [current.position_governance_id, current.person_governance_id].filter(Boolean);
 
@@ -144,7 +149,9 @@ export default function GovernanceEntityModal({
             if (relatedResult.error) throw relatedResult.error;
             const byId = new Map((relatedResult.data || []).map((item) => [item.id, item]));
             role = current.position_governance_id ? byId.get(current.position_governance_id) || null : role;
-            person = current.person_governance_id ? byId.get(current.person_governance_id) || null : person;
+            person = current.person_governance_id
+              ? { ...(byId.get(current.person_governance_id) || {}), image_url: current.person_avatar_url || byId.get(current.person_governance_id)?.image_url }
+              : person;
           }
           nextLeader = { ...current, role, person };
         }
@@ -198,7 +205,8 @@ export default function GovernanceEntityModal({
   const requiresValidTo = governanceRequiresValidTo(currentStatus);
   const leaderName = leader?.is_vacant ? "Vacant" : leader?.person?.name || leader?.person_name || null;
   const leaderRole = leader?.role?.name || leader?.position_name || null;
-  const jurisdictionName = jurisdiction?.name || entity.jurisdiction || entity.location_name || entity.location_label || entity.address || null;
+  const leaderAvatar = leader?.person?.image_url || leader?.person_avatar_url || null;
+  const jurisdictionName = jurisdiction?.name || entity.jurisdiction || null;
   const updateDraft = (key, value) => setDraft((current) => ({ ...current, [key]: value }));
 
   const save = async () => {
@@ -315,7 +323,7 @@ export default function GovernanceEntityModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-xl">
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="flex items-start gap-3 pr-8">
             <Avatar className="h-12 w-12 shrink-0 rounded-xl">
               <AvatarImage src={(editing ? draft?.image_url : entity.image_url) || undefined} alt="" />
@@ -396,7 +404,7 @@ export default function GovernanceEntityModal({
               {(jurisdictionName || leaderName || entity.valid_from || entity.valid_to) && (
                 <div className="grid gap-2 sm:grid-cols-2">
                   {jurisdictionName && <div className="rounded-lg border bg-muted/30 p-3"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Jurisdiction</p><p className="mt-1 flex min-w-0 items-center gap-1 text-sm font-medium"><MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" /><span className="truncate" title={jurisdictionName}>{jurisdictionName}</span></p></div>}
-                  {leaderName && <div className="rounded-lg border bg-muted/30 p-3"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Leader</p><p className="mt-1 truncate text-sm font-medium" title={leaderName}>{leaderName}</p>{leaderRole && <p className="mt-0.5 truncate text-xs text-muted-foreground" title={leaderRole}>{leaderRole}</p>}</div>}
+                  {leaderName && <div className="rounded-lg border bg-muted/30 p-3"><div className="flex min-w-0 items-center gap-3"><Avatar className="h-9 w-9 shrink-0 rounded-full"><AvatarImage src={leaderAvatar || undefined} alt="" /><AvatarFallback>{getGovernanceInitials(leaderName)}</AvatarFallback></Avatar><div className="min-w-0"><p className="truncate text-sm font-medium" title={leaderName}>{leaderName}</p>{leaderRole && <p className="truncate text-xs text-muted-foreground" title={leaderRole}>{leaderRole}</p>}</div></div></div>}
                   {(entity.valid_from || entity.valid_to) && <div className="rounded-lg border bg-muted/30 p-3 sm:col-span-2"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{entity.valid_to ? "Since / until" : "Since"}</p><p className="mt-1 truncate text-sm font-medium">{entity.valid_from ? new Date(entity.valid_from).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "—"}{entity.valid_to ? ` – ${new Date(entity.valid_to).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}` : ""}</p></div>}
                 </div>
               )}
