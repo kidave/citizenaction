@@ -122,7 +122,7 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
   const leaderName = leader?.is_vacant ? "Vacant" : leader?.person?.name || leader?.person_name || null;
   const leaderRole = leader?.role?.name || leader?.position_name || null;
   const leaderAvatar = leader?.person?.image_url || leader?.person_avatar_url || null;
-  const jurisdictionName = jurisdiction?.name || entity.jurisdiction || null;
+  const jurisdictionName = jurisdiction?.display_name || jurisdiction?.operator_alt_name || jurisdiction?.operator || jurisdiction?.name || entity.jurisdiction || null;
   const updateDraft = (key, value) => setDraft((current) => ({ ...current, [key]: value }));
 
   const closeEditing = () => {
@@ -160,8 +160,14 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
           p_name: jurisdiction.name,
           p_admin_level: Number(jurisdiction.admin_level),
           p_geojson: jurisdiction.geojson || null,
+          p_display_name: jurisdiction.display_name || null,
+          p_operator: jurisdiction.operator || null,
+          p_operator_alt_name: jurisdiction.operator_alt_name || null,
         });
         if (!jurisdictionResult || jurisdictionResult.error) throw jurisdictionResult?.error || new Error("Unable to save OSM jurisdiction");
+      } else {
+        const jurisdictionResult = await supabase.rpc("clear_governance_jurisdiction", { p_entity_id: entity.id });
+        if (!jurisdictionResult || jurisdictionResult.error) throw jurisdictionResult?.error || new Error("Unable to clear OSM jurisdiction");
       }
 
       if (pendingAttachments.length) {
@@ -259,9 +265,17 @@ export default function GovernanceEntityModal({ open, onOpenChange, entity, pare
                   {(entity.valid_from || entity.valid_to) && <div className="rounded-lg border bg-muted/30 p-3 sm:col-span-2"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{entity.valid_to ? "Since / until" : "Since"}</p><p className="mt-1 truncate text-sm font-medium">{entity.valid_from ? new Date(entity.valid_from).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "—"}{entity.valid_to ? ` – ${new Date(entity.valid_to).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}` : ""}</p></div>}
                 </div>
               )}
-              {entity.description && <section><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">What they do</p><p className="mt-2 text-sm leading-6 text-muted-foreground">{entity.description}</p></section>}
-              {(parent || childEntities.length > 0) && <section className="space-y-3">{parent && <div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Under</p><RelationItem entity={parent} onSelect={onSelect} /></div>}{childEntities.length > 0 && <div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Responsible for</p><div className="grid gap-1 sm:grid-cols-2">{childEntities.map((child) => <RelationItem key={child.id} entity={child} onSelect={onSelect} />)}</div></div>}</section>}
-              <GovernanceResources governanceId={entity.id} attachments={attachments} links={links} canEdit={false} />
+
+              {parent && (
+                <div className="rounded-lg border bg-muted/30 p-3">
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Reports to</p>
+                  <RelationItem entity={parent} onSelect={onSelect} />
+                </div>
+              )}
+
+              {entity.description && <div><h3 className="text-sm font-semibold">What they do</h3><p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{entity.description}</p></div>}
+              {entity.website && <div><h3 className="text-sm font-semibold">Official website</h3><a className="mt-1 block truncate text-sm text-primary hover:underline" href={entity.website} target="_blank" rel="noreferrer">{entity.website}</a></div>}
+              <GovernanceResources governanceId={entity.id} attachments={attachments} links={links} canEdit={canEdit} />
             </div>
           )}
         </div>
