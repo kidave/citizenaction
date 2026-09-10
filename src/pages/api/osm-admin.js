@@ -2,6 +2,11 @@ import { supabaseNode } from "@/lib/supabase/node";
 
 // Jurisdiction lookup is backed by the Supabase OSM cache and only falls back to Overpass on cache misses.
 
+const OVERPASS_ENDPOINTS = [
+  "https://overpass.private.coffee/api/interpreter",
+  "https://overpass-api.de/api/interpreter",
+];
+
 function escapeOverpassRegex(value) {
   return value.replace(/[\\^$.*+?()[\]{}|]/g, "\\$&");
 }
@@ -25,6 +30,25 @@ function toLineGeoJSON(element) {
   return lines.length ? { type: "MultiLineString", coordinates: lines } : null;
 }
 
+function inferLocalGovernmentType(tags, adminLevel) {
+  const explicit = tags["local_authority:IN"] || null;
+  if (explicit) return explicit;
+
+  if (adminLevel === 8) {
+    const text = [tags.operator, tags["operator:alt_name"], tags.official_name, tags.name]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    if (text.includes("municipal corporation")) return "municipal_corporation";
+    if (text.includes("municipality")) return "municipality";
+    if (text.includes("city council")) return "city_council";
+    if (text.includes("nagar panchayat")) return "nagar_panchayat";
+  }
+
+  return null;
+}
+
 function mapElement(element, fallbackLevel = null) {
   const tags = element?.tags || {};
   const adminLevel = Number(tags.admin_level || fallbackLevel || 0) || null;
@@ -43,6 +67,9 @@ function mapElement(element, fallbackLevel = null) {
     admin_level: adminLevel,
     boundary: tags.boundary || null,
     local_authority: tags["local_authority:IN"] || null,
+    local_government_type: inferLocalGovernmentType(tags, adminLevel),
+    operator: tags.operator || null,
+    operator_alt_name: tags["operator:alt_name"] || null,
     ward: tags.ward || null,
     ref: tags.ref || null,
     center,
@@ -62,10 +89,43 @@ function sortResults(results) {
   );
 }
 
+function scopeKey(level, parentRelationId) {
+  return parentRelationId
+    ? `${level}:relation:${parentRelationId}`
+    : `${level}:root`;
+}
+
 async function readCache({ level, parentRelationId, limit }) {
+  if (level === 4) {
+    let query = supabaseNode
+      .from("osm_jurisdiction_cache")
+      .select("osm_type, osm_id, name, official_name, admin_level, boundary, local_authority, local_government_type, operator, operator_alt_name, ward, ref, center, geojson")
+      .eq("admin_level", level)
+      .order("name", { ascending: true })
+      .limit(limit);
+
+    query = parentRelationId
+      ? query.eq("parent_osm_type", "relation").eq("parent_osm_id", parentRelationId)
+      : query.is("parent_osm_id", null);
+
+    const { data, error } = await query;
+    return {
+      complete: !error && Array.isArray(data) && data.length > 0,
+      results: !error && Array.isArray(data) ? data : [],
+    };
+  }
+
+  const { data: scope, error: scopeError } = await supabaseNode
+    .from("osm_jurisdiction_cache_scope")
+    .select("is_complete")
+    .eq("scope_key", scopeKey(level, parentRelationId))
+    .maybeSingle();
+
+  if (scopeError || !scope?.is_complete) return { complete: false, results: [] };
+
   let query = supabaseNode
     .from("osm_jurisdiction_cache")
-    .select("osm_type, osm_id, name, official_name, admin_level, boundary, local_authority, ward, ref, center, geojson")
+    .select("osm_type, osm_id, name, official_name, admin_level, boundary, local_authority, local_government_type, operator, operator_alt_name, ward, ref, center, geojson")
     .eq("admin_level", level)
     .order("name", { ascending: true })
     .limit(limit);
@@ -77,19 +137,13 @@ async function readCache({ level, parentRelationId, limit }) {
   }
 
   const { data, error } = await query;
-  if (error || !Array.isArray(data) || !data.length) return [];
-
-  return data.map((item) => ({
-    ...item,
-    center: item.center
-      ? { lat: Number(item.center.lat), lng: Number(item.center.lng ?? item.center.lon) }
-      : null,
-  }));
+  return {
+    complete: !error,
+    results: !error && Array.isArray(data) ? data : [],
+  };
 }
 
 async function writeCache(results, { level, parentRelationId, stateOsmId }) {
-  if (!results.length) return;
-
   const rows = results.map((item) => ({
     osm_type: item.osm_type,
     osm_id: item.osm_id,
@@ -98,6 +152,9 @@ async function writeCache(results, { level, parentRelationId, stateOsmId }) {
     admin_level: item.admin_level || level,
     boundary: item.boundary,
     local_authority: item.local_authority,
+    local_government_type: item.local_government_type,
+    operator: item.operator,
+    operator_alt_name: item.operator_alt_name,
     ward: item.ward,
     ref: item.ref,
     center: item.center,
@@ -111,32 +168,65 @@ async function writeCache(results, { level, parentRelationId, stateOsmId }) {
     updated_at: new Date().toISOString(),
   }));
 
-  const { error } = await supabaseNode
-    .from("osm_jurisdiction_cache")
-    .upsert(rows, { onConflict: "osm_type,osm_id" });
+  if (rows.length) {
+    const { error } = await supabaseNode
+      .from("osm_jurisdiction_cache")
+      .upsert(rows, { onConflict: "osm_type,osm_id" });
 
-  if (error) console.error("OSM jurisdiction cache write failed", error);
+    if (error) console.error("OSM jurisdiction cache write failed", error);
+  }
+
+  if (level !== 4) {
+    const now = new Date().toISOString();
+    const { error } = await supabaseNode
+      .from("osm_jurisdiction_cache_scope")
+      .upsert(
+        {
+          scope_key: scopeKey(level, parentRelationId),
+          admin_level: level,
+          parent_osm_type: parentRelationId ? "relation" : null,
+          parent_osm_id: parentRelationId,
+          state_osm_id: stateOsmId || null,
+          is_complete: true,
+          fetched_at: now,
+          updated_at: now,
+        },
+        { onConflict: "scope_key" },
+      );
+
+    if (error) console.error("OSM jurisdiction cache scope write failed", error);
+  }
 }
 
 async function runOverpass(overpassQuery) {
-  const response = await fetch("https://overpass-api.de/api/interpreter", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-      "User-Agent": "CitizenActionApp/1.0",
-    },
-    body: new URLSearchParams({ data: overpassQuery }).toString(),
-  });
+  let lastError = null;
 
-  if (!response.ok) {
-    const body = await response.text();
-    const error = new Error(`Overpass returned ${response.status}`);
-    error.status = response.status;
-    error.body = body.slice(0, 500);
-    throw error;
+  for (const endpoint of OVERPASS_ENDPOINTS) {
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          "User-Agent": "CitizenActionApp/1.0",
+        },
+        body: new URLSearchParams({ data: overpassQuery }).toString(),
+      });
+
+      if (!response.ok) {
+        const body = await response.text();
+        const error = new Error(`Overpass returned ${response.status}`);
+        error.status = response.status;
+        error.body = body.slice(0, 500);
+        throw error;
+      }
+
+      return response.json();
+    } catch (error) {
+      lastError = error;
+    }
   }
 
-  return response.json();
+  throw lastError || new Error("Overpass request failed");
 }
 
 function parseResults(data, level) {
@@ -169,9 +259,9 @@ export default async function handler(req, res) {
 
   if (list && level >= 4 && level <= 10 && !query && !city) {
     const cached = await readCache({ level, parentRelationId, limit });
-    if (cached.length) {
+    if (cached.complete) {
       res.setHeader("Cache-Control", "public, s-maxage=86400, stale-while-revalidate=604800");
-      return res.status(200).json({ results: cached, cached: true });
+      return res.status(200).json({ results: cached.results, cached: true });
     }
   }
 
@@ -244,10 +334,8 @@ out tags center ${limit};`;
   } catch (error) {
     console.error("Overpass administrative search error", error.status || 500, error.body || error.message);
 
-    if (list && level >= 4 && level <= 10) {
-      const stale = await readCache({ level, parentRelationId, limit });
-      if (stale.length) return res.status(200).json({ results: stale, cached: true, stale: true });
-    }
+    const stale = await readCache({ level, parentRelationId, limit });
+    if (stale.complete) return res.status(200).json({ results: stale.results, cached: true, stale: true });
 
     return res.status(502).json({ results: [] });
   }
