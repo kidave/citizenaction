@@ -1,3 +1,6 @@
+// OSM administrative lookup keeps government hierarchies spatially scoped without assuming
+// that local-government relations are explicitly nested in the administrative hierarchy.
+
 function escapeOverpassRegex(value) {
   return value.replace(/[\\^$.*+?()[\]{}|]/g, "\\$&");
 }
