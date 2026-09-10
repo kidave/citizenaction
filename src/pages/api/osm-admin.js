@@ -1,5 +1,7 @@
 import { supabaseNode } from "@/lib/supabase/node";
 
+// Jurisdiction lookup is backed by the Supabase OSM cache and only falls back to Overpass on cache misses.
+
 function escapeOverpassRegex(value) {
   return value.replace(/[\\^$.*+?()[\]{}|]/g, "\\$&");
 }
@@ -165,8 +167,6 @@ export default async function handler(req, res) {
   const parentRelationId = getParentRelationId(parentOsmId);
   if (parentOsmId && !parentRelationId) return res.status(400).json({ results: [] });
 
-  // States are reference data and are pre-seeded in Supabase. Districts and deeper
-  // boundaries are persisted the first time they are fetched from OSM.
   if (list && level >= 4 && level <= 10 && !query && !city) {
     const cached = await readCache({ level, parentRelationId, limit });
     if (cached.length) {
@@ -178,9 +178,6 @@ export default async function handler(req, res) {
   const nameFilter = query ? `["name"~"${escapeOverpassRegex(query)}",i]` : "";
   const levelFilter = level ? `["admin_level"="${level}"]` : "";
   const boundaryFilter = boundaryType ? `["boundary"="${escapeOverpassQuoted(boundaryType)}"]` : "";
-
-  // Zones and wards in Mumbai are tagged boundary=administrative, not with
-  // local_authority:IN. Never require the local-authority tag for admin 9/10.
   const useLocalAuthorityFilter = localAuthority && level !== 9 && level !== 10;
   const localAuthorityFilter = useLocalAuthorityFilter
     ? `["local_authority:IN"="${escapeOverpassQuoted(localAuthority)}"]`
@@ -192,14 +189,11 @@ export default async function handler(req, res) {
   if (stateName && level === 8) {
     const escapedState = escapeOverpassQuoted(stateName);
     stateOsmId = parentRelationId;
-
-    // Fast path: Indian local governments frequently carry is_in:state even when
-    // they are not direct children of the state's administrative area. This finds
-    // Mumbai without expanding every district geometry.
     overpassQuery = `[out:json][timeout:30];
+area["boundary"="administrative"]["admin_level"="4"]["name:en"="${escapedState}"]->.stateArea;
 (
   rel["type"="boundary"]["admin_level"="8"]["is_in:state"="${escapedState}"]${nameFilter};
-  rel["type"="boundary"]["boundary"="local_authority"]["admin_level"="8"]["local_authority:IN"~"municipal_corporation|municipality|nagar_panchayat"](area:3600000000+${parentRelationId || 0})${nameFilter};
+  rel["type"="boundary"]["boundary"="local_authority"]["admin_level"="8"]["local_authority:IN"~"municipal_corporation|municipality|nagar_panchayat"](area.stateArea)${nameFilter};
 );
 out tags center ${limit};`;
   } else if (parentRelationId) {
@@ -230,8 +224,6 @@ out tags center ${limit};`;
     try {
       data = await runOverpass(overpassQuery);
     } catch (error) {
-      // Only the state -> admin8 discovery gets the heavier district-area fallback.
-      // It is deliberately a second attempt so the normal path does not time out.
       if (!(stateName && level === 8)) throw error;
 
       const escapedState = escapeOverpassQuoted(stateName);
@@ -252,7 +244,6 @@ out tags center ${limit};`;
   } catch (error) {
     console.error("Overpass administrative search error", error.status || 500, error.body || error.message);
 
-    // If a stale cache exists, prefer it over showing an empty selector.
     if (list && level >= 4 && level <= 10) {
       const stale = await readCache({ level, parentRelationId, limit });
       if (stale.length) return res.status(200).json({ results: stale, cached: true, stale: true });
