@@ -40,11 +40,12 @@ function selectionValue(item, geometry) {
   };
 }
 
-async function fetchBoundaryList({ parentOsmId = null, adminLevel = null, localAuthority = null }) {
+async function fetchBoundaryList({ parentOsmId = null, adminLevel = null, localAuthority = null, stateName = null }) {
   const params = new URLSearchParams({ list: "1", include_geometry: "0", limit: "1000" });
   if (parentOsmId) params.set("parent_osm_id", String(parentOsmId));
   if (adminLevel) params.set("admin_level", String(adminLevel));
   if (localAuthority) params.set("local_authority", localAuthority);
+  if (stateName) params.set("state_name", stateName);
   const response = await fetch(`/api/osm-admin?${params.toString()}`);
   if (!response.ok) throw new Error("Unable to load administrative boundaries");
   const data = await response.json();
@@ -176,7 +177,7 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
       setError("");
       const [districtResult, localGovernmentResult] = await Promise.allSettled([
         fetchBoundaryList({ parentOsmId: nextState.osm_id, adminLevel: 5 }),
-        fetchBoundaryList({ parentOsmId: nextState.osm_id, adminLevel: 8 }),
+        fetchBoundaryList({ parentOsmId: nextState.osm_id, adminLevel: 8, stateName: nextState.name }),
       ]);
       const nextDistricts = districtResult.status === "fulfilled" ? districtResult.value : [];
       const level8 = localGovernmentResult.status === "fulfilled" ? localGovernmentResult.value : [];
