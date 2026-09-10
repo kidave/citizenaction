@@ -1,5 +1,5 @@
 // OSM administrative lookup keeps government hierarchies spatially scoped without assuming
-// that local-government relations are explicitly nested in the administrative hierarchy.
+// that local-government relations are directly nested in the state administrative area.
 
 function escapeOverpassRegex(value) {
   return value.replace(/[\\^$.*+?()[\]{}|]/g, "\\$&");
@@ -77,15 +77,22 @@ export default async function handler(req, res) {
   const levelFilter = level ? `["admin_level"="${level}"]` : "";
   const boundaryFilter = boundaryType ? `["boundary"="${escapeOverpassQuoted(boundaryType)}"]` : "";
   const localAuthorityFilter = localAuthority ? `["local_authority:IN"="${escapeOverpassQuoted(localAuthority)}"]` : "";
-  const stateFilter = stateName
-    ? `["is_in:state"="${escapeOverpassQuoted(stateName)}"]["is_in:country"="India"]`
-    : "";
 
-  if (parentRelationId && stateName) {
-    clauses.push(`area(id:${3600000000 + parentRelationId})->.parentArea;`);
+  // In India, municipal/local-government admin_level=8 relations are not guaranteed
+  // to be direct children of the state relation. Mumbai is a concrete example:
+  // Mumbai City and Mumbai Suburban are admin_level=5 districts, while the Mumbai
+  // municipal boundary is admin_level=8 inside those district areas.
+  // Build district areas from the selected state, then search admin_level=8 inside
+  // those district areas. Keep the is_in fallback for relations whose geometry is
+  // not represented in the district-area hierarchy.
+  if (stateName && level === 8) {
+    const escapedState = escapeOverpassQuoted(stateName);
+    clauses.push(`area["boundary"="administrative"]["admin_level"="4"]["name:en"="${escapedState}"]->.stateArea;`);
+    clauses.push(`rel["type"="boundary"]["boundary"="administrative"]["admin_level"="5"](area.stateArea)->.stateDistricts;`);
+    clauses.push(`.stateDistricts map_to_area -> .districtAreas;`);
     clauses.push(`(
-      rel["type"="boundary"]${boundaryFilter}${levelFilter}${localAuthorityFilter}${nameFilter}(area.parentArea);
-      rel["type"="boundary"]${boundaryFilter}${levelFilter}${localAuthorityFilter}${nameFilter}${stateFilter};
+      rel["type"="boundary"]${levelFilter}${localAuthorityFilter}${nameFilter}(area.districtAreas);
+      rel["type"="boundary"]${levelFilter}${localAuthorityFilter}${nameFilter}["is_in:state"="${escapedState}"];
     );`);
   } else if (parentRelationId) {
     clauses.push(`area(id:${3600000000 + parentRelationId})->.parentArea;`);
@@ -102,7 +109,7 @@ export default async function handler(req, res) {
   }
 
   const output = includeGeometry ? `out tags center geom ${limit};` : `out tags center ${limit};`;
-  const overpassQuery = `[out:json][timeout:45];${clauses.join("\n")} ${output}`;
+  const overpassQuery = `[out:json][timeout:90];${clauses.join("\n")} ${output}`;
 
   try {
     const response = await fetch("https://overpass-api.de/api/interpreter", {
