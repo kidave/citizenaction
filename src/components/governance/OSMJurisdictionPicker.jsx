@@ -352,9 +352,7 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
           </div>
           <div>
             <p className="text-sm font-medium">Choose the area this organisation governs</p>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              India is the default country. Choose a state, then select any applicable administrative or local-government boundary. Districts, municipal corporations, zones and wards are separate choices.
-            </p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">India is the default country. Choose a state, then select any applicable administrative or local-government boundary. Districts, municipal corporations, zones and wards are separate choices.</p>
           </div>
         </div>
       </div>
@@ -365,30 +363,21 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
       </div>
 
       {loadingStates ? (
-        <div className="flex items-center gap-2 rounded-lg border px-3 py-3 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" /> Loading states and Union territories…
-        </div>
+        <div className="flex items-center gap-2 rounded-lg border px-3 py-3 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading states and Union territories…</div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
             <label className="text-sm font-medium">State / Union territory</label>
             <Select value={stateId} onValueChange={handleStateChange} disabled={disabled}>
               <SelectTrigger><SelectValue placeholder="Choose a state or Union territory" /></SelectTrigger>
-              <SelectContent className="max-h-72">
-                {states.map((item) => <SelectItem key={item.osm_id} value={String(item.osm_id)}>{item.name}</SelectItem>)}
-              </SelectContent>
+              <SelectContent className="max-h-72">{states.map((item) => <SelectItem key={item.osm_id} value={String(item.osm_id)}>{item.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-
           <div className="space-y-1.5">
             <label className="text-sm font-medium">District <span className="font-normal text-muted-foreground">(optional)</span></label>
             <Select value={districtId} onValueChange={handleDistrictChange} disabled={disabled || !stateId || loadingChildren || !districts.length}>
-              <SelectTrigger>
-                <SelectValue placeholder={!stateId ? "Choose a state first" : loadingChildren ? "Loading districts…" : districts.length ? "Choose a district" : "No mapped districts"} />
-              </SelectTrigger>
-              <SelectContent className="max-h-72">
-                {districts.map((item) => <SelectItem key={item.osm_id} value={String(item.osm_id)}>{item.name}</SelectItem>)}
-              </SelectContent>
+              <SelectTrigger><SelectValue placeholder={!stateId ? "Choose a state first" : loadingChildren ? "Loading districts…" : districts.length ? "Choose a district" : "No mapped districts"} /></SelectTrigger>
+              <SelectContent className="max-h-72">{districts.map((item) => <SelectItem key={item.osm_id} value={String(item.osm_id)}>{item.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
         </div>
@@ -401,16 +390,8 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
             <p className="mt-1 text-xs text-muted-foreground">This is independent of district and subdistrict. For Mumbai, this is where Brihanmumbai Municipal Corporation is selected.</p>
           </div>
           <Select value={localBodyId} onValueChange={handleLocalBodyChange} disabled={disabled || loadingChildren || !localBodies.length}>
-            <SelectTrigger>
-              <SelectValue placeholder={loadingChildren ? "Loading local governments…" : localBodies.length ? "Choose a local government" : "No mapped local governments"} />
-            </SelectTrigger>
-            <SelectContent className="max-h-72">
-              {localBodies.map((item) => (
-                <SelectItem key={`${item.osm_type}:${item.osm_id}`} value={String(item.osm_id)}>
-                  {item.name} · {displayType(item)}
-                </SelectItem>
-              ))}
-            </SelectContent>
+            <SelectTrigger><SelectValue placeholder={loadingChildren ? "Loading local governments…" : localBodies.length ? "Choose a local government" : "No mapped local governments"} /></SelectTrigger>
+            <SelectContent className="max-h-72">{localBodies.map((item) => <SelectItem key={`${item.osm_type}:${item.osm_id}`} value={String(item.osm_id)}>{item.name} · {displayType(item)}</SelectItem>)}</SelectContent>
           </Select>
         </div>
       )}
@@ -419,9 +400,8 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
         <div className="space-y-3 rounded-xl border p-4">
           <div>
             <p className="text-sm font-medium">Other administrative areas <span className="font-normal text-muted-foreground">(optional)</span></p>
-            <p className="mt-1 text-xs text-muted-foreground">Use these only when the organisation's jurisdiction is actually defined by them.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Use these only when the organisation&apos;s jurisdiction is actually defined by them.</p>
           </div>
-
           <div className="grid gap-3 sm:grid-cols-2">
             {subdistricts.length > 0 && (
               <div className="space-y-1.5">
@@ -432,7 +412,6 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
                 </Select>
               </div>
             )}
-
             {intermediateAreas.length > 0 && (
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">Intermediate area</label>
@@ -489,7 +468,6 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
             {wards.length > 0 && <Button type="button" variant={activeMapLevel === 10 ? "secondary" : "ghost"} size="sm" onClick={() => chooseMapLevel(wards, 10)}>Wards</Button>}
           </div>
         </div>
-
         <div className="relative h-80">
           <LeafletMap
             lat={mapCenter.lat}
@@ -502,11 +480,7 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
             onChange={() => {}}
             onBoundaryClick={handleMapClick}
           />
-          {mapHasTooManyItems && (
-            <div className="pointer-events-none absolute inset-x-4 bottom-4 z-[1000] flex justify-center">
-              <div className="rounded-full border bg-background/95 px-3 py-1.5 text-xs shadow-lg backdrop-blur">There are {mapItems.length} mapped boundaries here. Use the list above to choose one.</div>
-            </div>
-          )}
+          {mapHasTooManyItems && <div className="pointer-events-none absolute inset-x-4 bottom-4 z-[1000] flex justify-center"><div className="rounded-full border bg-background/95 px-3 py-1.5 text-xs shadow-lg backdrop-blur">There are {mapItems.length} mapped boundaries here. Use the list above to choose one.</div></div>}
         </div>
       </div>
 
