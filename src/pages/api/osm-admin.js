@@ -54,6 +54,7 @@ export default async function handler(req, res) {
   const parentOsmId = typeof req.query.parent_osm_id === "string" ? req.query.parent_osm_id.trim() : "";
   const localAuthority = typeof req.query.local_authority === "string" ? req.query.local_authority.trim() : "";
   const boundaryType = typeof req.query.boundary_type === "string" ? req.query.boundary_type.trim() : "";
+  const stateName = typeof req.query.state_name === "string" ? req.query.state_name.trim() : "";
   const city = typeof req.query.city === "string" ? req.query.city.trim() : "";
   const list = req.query.list === "1" || req.query.list === "true";
   const includeGeometry = req.query.include_geometry !== "0";
@@ -73,8 +74,17 @@ export default async function handler(req, res) {
   const levelFilter = level ? `["admin_level"="${level}"]` : "";
   const boundaryFilter = boundaryType ? `["boundary"="${escapeOverpassQuoted(boundaryType)}"]` : "";
   const localAuthorityFilter = localAuthority ? `["local_authority:IN"="${escapeOverpassQuoted(localAuthority)}"]` : "";
+  const stateFilter = stateName
+    ? `["is_in:state"="${escapeOverpassQuoted(stateName)}"]["is_in:country"="India"]`
+    : "";
 
-  if (parentRelationId) {
+  if (parentRelationId && stateName) {
+    clauses.push(`area(id:${3600000000 + parentRelationId})->.parentArea;`);
+    clauses.push(`(
+      rel["type"="boundary"]${boundaryFilter}${levelFilter}${localAuthorityFilter}${nameFilter}(area.parentArea);
+      rel["type"="boundary"]${boundaryFilter}${levelFilter}${localAuthorityFilter}${nameFilter}${stateFilter};
+    );`);
+  } else if (parentRelationId) {
     clauses.push(`area(id:${3600000000 + parentRelationId})->.parentArea;`);
     clauses.push(`rel["type"="boundary"]${boundaryFilter}${levelFilter}${localAuthorityFilter}${nameFilter}(area.parentArea);`);
   } else if (level === 2) {
