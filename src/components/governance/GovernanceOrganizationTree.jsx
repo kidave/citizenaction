@@ -35,25 +35,15 @@ function buildTree(records) {
 
 function TreeConnector({ count }) {
   if (count < 1) return null;
-
   const points = Array.from({ length: count }, (_, index) => ((index + 0.5) / count) * 100);
   const first = points[0];
   const last = points[points.length - 1];
 
   return (
-    <svg
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-x-0 top-0 h-10 w-full overflow-visible text-border"
-      viewBox="0 0 100 40"
-      preserveAspectRatio="none"
-    >
+    <svg aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-10 w-full overflow-visible text-border" viewBox="0 0 100 40" preserveAspectRatio="none">
       <path d="M 50 0 L 50 16" fill="none" stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
-      {count > 1 && (
-        <path d={`M ${first} 16 L ${last} 16`} fill="none" stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
-      )}
-      {points.map((x) => (
-        <path key={x} d={`M ${x} 16 L ${x} 40`} fill="none" stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
-      ))}
+      {count > 1 && <path d={`M ${first} 16 L ${last} 16`} fill="none" stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />}
+      {points.map((x) => <path key={x} d={`M ${x} 16 L ${x} 40`} fill="none" stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />)}
     </svg>
   );
 }
@@ -61,6 +51,8 @@ function TreeConnector({ count }) {
 function OrganizationNode({ node, onEdit, onSelect, onDelete }) {
   const label = node.position_name || "Position";
   const person = node.is_vacant ? "Vacant" : node.person_name || "Unassigned";
+  const avatar = node.is_vacant ? node.position_avatar_url : node.person_avatar_url || node.position_avatar_url;
+  const fallbackName = node.is_vacant ? label : person;
   const date = node.started_at
     ? `${formatGovernanceDate(node.started_at)}${node.ended_at ? ` – ${formatGovernanceDate(node.ended_at)}` : ""}`
     : null;
@@ -82,26 +74,14 @@ function OrganizationNode({ node, onEdit, onSelect, onDelete }) {
         <Card className={cn("w-full", node.is_primary && "border-primary/50 shadow-sm")}>
           <CardContent className="p-3">
             <div className="flex items-start gap-3">
-              <button
-                type="button"
-                onClick={() => onSelect?.(node)}
-                className="flex min-w-0 flex-1 items-center gap-3 text-left"
-              >
+              <button type="button" onClick={() => onSelect?.(node)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
                 <Avatar className="h-10 w-10 shrink-0 rounded-lg">
-                  <AvatarImage src={node.person_avatar_url || undefined} alt="" />
-                  <AvatarFallback className="rounded-lg">{getGovernanceInitials(person)}</AvatarFallback>
+                  <AvatarImage src={avatar || undefined} alt="" />
+                  <AvatarFallback className="rounded-lg">{getGovernanceInitials(fallbackName)}</AvatarFallback>
                 </Avatar>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-semibold" title={label}>{label}</span>
-                  <span
-                    className={cn(
-                      "mt-0.5 block truncate text-sm",
-                      node.is_vacant ? "text-muted-foreground" : "text-foreground",
-                    )}
-                    title={person}
-                  >
-                    {person}
-                  </span>
+                  <span className={cn("mt-0.5 block truncate text-sm", node.is_vacant ? "text-muted-foreground" : "text-foreground")} title={person}>{person}</span>
                   {date && <span className="mt-1 block truncate text-[11px] text-muted-foreground">{date}</span>}
                 </span>
               </button>
@@ -113,11 +93,7 @@ function OrganizationNode({ node, onEdit, onSelect, onDelete }) {
                   editLabel="Edit role"
                   deleteLabel="Remove role"
                   deleteTitle={`Remove ${label}?`}
-                  deleteDescription={
-                    node.children.length
-                      ? "This removes the role from the organization. Its direct reports will become top-level roles."
-                      : "This removes the role from the organization. The person and role records themselves are kept."
-                  }
+                  deleteDescription={node.children.length ? "This removes the role from the organization. Its direct reports will become top-level roles." : "This removes the role from the organization. The person and role records themselves are kept."}
                 />
               )}
             </div>
@@ -129,15 +105,7 @@ function OrganizationNode({ node, onEdit, onSelect, onDelete }) {
         <div className="relative mt-2 pt-10">
           <TreeConnector count={node.children.length} />
           <ul className="flex items-start justify-center gap-6">
-            {node.children.map((child) => (
-              <OrganizationNode
-                key={child.id}
-                node={child}
-                onEdit={onEdit}
-                onSelect={onSelect}
-                onDelete={onDelete}
-              />
-            ))}
+            {node.children.map((child) => <OrganizationNode key={child.id} node={child} onEdit={onEdit} onSelect={onSelect} onDelete={onDelete} />)}
           </ul>
         </div>
       )}
@@ -145,28 +113,13 @@ function OrganizationNode({ node, onEdit, onSelect, onDelete }) {
   );
 }
 
-export default function GovernanceOrganizationTree({
-  governanceId,
-  asOf,
-  canEdit = false,
-  onAdd,
-  onEdit,
-  onSelect,
-  className,
-}) {
+export default function GovernanceOrganizationTree({ governanceId, asOf, canEdit = false, onAdd, onEdit, onSelect, className }) {
   const query = useGovernanceOrganization({ governanceId, asOf });
   const roots = useMemo(() => buildTree(query.data || []), [query.data]);
+  const refresh = async () => { await query.refetch(); };
 
-  const refresh = async () => {
-    await query.refetch();
-  };
-
-  if (query.isLoading) {
-    return <div className="flex min-h-[50vh] items-center justify-center text-sm text-muted-foreground">Loading organization...</div>;
-  }
-  if (query.error) {
-    return <div className="flex min-h-[50vh] items-center justify-center text-sm text-destructive">Unable to load organization.</div>;
-  }
+  if (query.isLoading) return <div className="flex min-h-[50vh] items-center justify-center text-sm text-muted-foreground">Loading organization...</div>;
+  if (query.error) return <div className="flex min-h-[50vh] items-center justify-center text-sm text-destructive">Unable to load organization.</div>;
 
   return (
     <div className={cn("h-full w-full overflow-auto rounded-2xl border bg-background/50", className)}>
@@ -179,21 +132,11 @@ export default function GovernanceOrganizationTree({
       </div>
 
       {!roots.length ? (
-        <div className="flex min-h-[40vh] items-center justify-center px-6 text-center text-sm text-muted-foreground">
-          No roles have been added yet.
-        </div>
+        <div className="flex min-h-[40vh] items-center justify-center px-6 text-center text-sm text-muted-foreground">No roles have been added yet.</div>
       ) : (
         <div className="min-h-full min-w-max p-8 sm:p-12">
           <ul className="flex items-start justify-center gap-10">
-            {roots.map((root) => (
-              <OrganizationNode
-                key={root.id}
-                node={root}
-                onEdit={canEdit ? onEdit : null}
-                onSelect={onSelect}
-                onDelete={refresh}
-              />
-            ))}
+            {roots.map((root) => <OrganizationNode key={root.id} node={root} onEdit={canEdit ? onEdit : null} onSelect={onSelect} onDelete={refresh} />)}
           </ul>
         </div>
       )}
