@@ -43,7 +43,7 @@ function getDescendantCount(records, rootId) {
 export default function GovernancePage() {
   const [search, setSearch] = useState("");
   const [entityType, setEntityType] = useState("all");
-  const [categoryId, setCategoryId] = useState("all");
+  const [categoryId] = useState("all");
   const { categories = [] } = useGovernanceCatalog();
 
   const governanceQuery = useGovernance({
@@ -53,39 +53,27 @@ export default function GovernancePage() {
     categoryId: categoryId === "all" ? null : categoryId,
   });
 
-  const data = Array.isArray(governanceQuery.data) ? governanceQuery.data : [];
+  const data = useMemo(() => (Array.isArray(governanceQuery.data) ? governanceQuery.data : []), [governanceQuery.data]);
   const { isLoading, error } = governanceQuery;
 
   const roots = useMemo(
-    () => data.filter((entity) => !entity?.parent_id && (entity?.entity_type === "authority" || entity?.unit_type === "authority")),
+    () => data.filter((entity) => !entity?.parent_id),
     [data],
   );
 
   const visibleRoots = useMemo(() => {
     const query = search.trim().toLowerCase();
     const matchesType = (entity) => entityType === "all" || entity?.entity_type === entityType || entity?.unit_type === entityType;
+    const matchesSearch = (entity) =>
+      [entity?.name, entity?.short_name, entity?.entity_type, entity?.unit_type, entity?.parent_name, entity?.category_name]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(query);
 
     if (!query) return roots.filter(matchesType);
 
-    const matches = new Set(
-      data
-        .filter((entity) =>
-          [
-            entity?.name,
-            entity?.short_name,
-            entity?.entity_type,
-            entity?.unit_type,
-            entity?.parent_name,
-            entity?.category_name,
-          ]
-            .filter(Boolean)
-            .join(" ")
-            .toLowerCase()
-            .includes(query),
-        )
-        .map((entity) => entity.id),
-    );
-
+    const matches = new Set(data.filter(matchesSearch).map((entity) => entity.id));
     const childrenByParent = new Map();
     for (const entity of data) {
       if (!entity?.parent_id) continue;
@@ -118,7 +106,8 @@ export default function GovernancePage() {
         if (name === "government of india") return 0;
         if (name === "government of maharashtra") return 1;
         if (name === "indian roads congress") return 2;
-        return 3;
+        if (entity.entity_type === "authority") return 3;
+        return 4;
       };
       return rank(a) - rank(b) || getGovernanceLabel(a).localeCompare(getGovernanceLabel(b));
     }),
@@ -130,8 +119,8 @@ export default function GovernancePage() {
       <GovernancePageHeader items={[{ label: "Governance" }]} />
       <main className="flex-1 px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-6xl">
-          <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="relative min-w-0 lg:col-span-2">
+          <div className="mb-5 grid gap-3 sm:grid-cols-2">
+            <div className="relative min-w-0">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input className="pl-9" placeholder="Search governance..." value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
