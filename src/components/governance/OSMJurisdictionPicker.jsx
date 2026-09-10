@@ -66,6 +66,7 @@ function selectionValue(item, geometry) {
   const normalized = normalizeItem(item);
   return {
     ...normalized,
+    display_name: displayName(normalized),
     center: normalized?.center || INDIA,
     geojson: geometry || normalized?.geojson || null,
   };
@@ -124,11 +125,22 @@ function levelLabel(level) {
   return "Boundaries";
 }
 
-function getNextLevels(item, available) {
-  if (item?.admin_level === 4) return [5];
-  if (item?.admin_level === 5) return available.admin6.length || available.admin8.length ? [available.admin8.length ? 8 : 6, available.admin6.length && available.admin8.length ? 6 : null].filter(Boolean) : [];
-  if (item?.admin_level === 8) return available.admin9.length || available.admin10.length ? [available.admin9.length ? 9 : 10] : [];
-  if (item?.admin_level === 9) return available.admin10.length ? [10] : [];
+function getAvailableLevels(selectedItem, childData, districtList) {
+  if (!selectedItem) return districtList.length ? [5] : [];
+  if (selectedItem.admin_level === 4) return districtList.length ? [5] : [];
+  if (selectedItem.admin_level === 5) {
+    return [
+      childData.admin8.length ? 8 : null,
+      childData.admin6.length ? 6 : null,
+    ].filter(Boolean);
+  }
+  if (selectedItem.admin_level === 8) {
+    return [
+      childData.admin9.length ? 9 : null,
+      childData.admin10.length ? 10 : null,
+    ].filter(Boolean);
+  }
+  if (selectedItem.admin_level === 9) return childData.admin10.length ? [10] : [];
   return [];
 }
 
@@ -165,11 +177,6 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
   const [loadingGeometry, setLoadingGeometry] = useState(false);
   const [error, setError] = useState("");
 
-  const selectedContext = useMemo(() => {
-    if (!selected) return null;
-    return selected;
-  }, [selected]);
-
   const candidates = useMemo(() => {
     if (activeLevel === 5) return districts;
     if (activeLevel === 6) return children.admin6;
@@ -179,8 +186,10 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
     return [];
   }, [activeLevel, children, districts]);
 
-  const availableNextLevels = useMemo(() => getNextLevels(selectedContext, children), [selectedContext, children]);
-  const mapBoundaries = useMemo(() => uniqueById(selectedContext ? [selectedContext, ...candidates] : candidates), [selectedContext, candidates]);
+  const availableNextLevels = useMemo(
+    () => getAvailableLevels(selected, children, districts),
+    [selected, children, districts],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -210,9 +219,7 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
     try {
       const result = await fetchBoundaryList({ parentOsmId: state.osm_id, adminLevel: 5 });
       setDistricts(result);
-    } catch (err) {
-      setDistricts([]);
-      throw err;
+      return result;
     } finally {
       setLoadingContext(false);
     }
@@ -224,7 +231,7 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
     try {
       const [admin6Result, admin8Result] = await Promise.allSettled([
         fetchBoundaryList({ parentOsmId: district.osm_id, adminLevel: 6 }),
-        fetchBoundaryList({ parentOsmId: district.osm_id, adminLevel: 8 }),
+        fetchBoundaryList({ parentOsmId: district.osm_id, adminLevel: 8, stateName: district.name }),
       ]);
       const next = {
         admin6: admin6Result.status === "fulfilled" ? admin6Result.value : [],
@@ -236,11 +243,8 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
       if (admin6Result.status === "rejected" && admin8Result.status === "rejected") {
         throw admin6Result.reason || admin8Result.reason || new Error("Unable to load district boundaries");
       }
-      if (admin6Result.status === "rejected" && admin8Result.status === "fulfilled" && next.admin8.length) {
-        setError("Subdistrict boundaries are not mapped here. You can choose a local government on the map.");
-      }
-      if (admin8Result.status === "rejected" && !next.admin6.length) {
-        setError("Local-government boundaries could not be loaded.");
+      if (!next.admin6.length && !next.admin8.length) {
+        setError("No deeper mapped boundaries are available for this district.");
       }
     } finally {
       setLoadingContext(false);
@@ -265,45 +269,45 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
       if (admin9Result.status === "rejected" && admin10Result.status === "rejected") {
         throw admin9Result.reason || admin10Result.reason || new Error("Unable to load civic subdivisions");
       }
-      if (admin9Result.status === "rejected" && admin10Result.status === "fulfilled") {
-        setError("Zones are not mapped here. You can choose a ward on the map.");
+      if (!next.admin9.length && !next.admin10.length) {
+        setError("No mapped zones or wards are available for this local government.");
       }
     } finally {
       setLoadingContext(false);
     }
   }, [children.admin6, children.admin8]);
 
-  const choose = useCallback(async (item, { loadChildren = true, propagate = true } = {}) => {
+  const choose = useCallback(async (item) => {
     if (!item) return;
-    setLoadingGeometry(true);
     setError("");
-    const previous = selected;
+    setLoadingGeometry(true);
     const geometry = await fetchBoundaryGeometry(item).catch(() => null);
     const nextSelection = selectionValue(item, geometry);
     setSelected(nextSelection);
-    if (propagate) onChange?.(nextSelection);
+    onChange?.(nextSelection);
     setLoadingGeometry(false);
 
     try {
       if (item.admin_level === 4) {
-        setActiveLevel(5);
-        await loadDistricts(item);
+        const result = await loadDistricts(item);
+        setActiveLevel(result.length ? 5 : 5);
       } else if (item.admin_level === 5) {
-        setActiveLevel(8);
         await loadDistrictChildren(item);
+        setActiveLevel(8);
       } else if (item.admin_level === 8) {
-        setActiveLevel(9);
         await loadLocalChildren(item);
+        setActiveLevel(9);
       } else if (item.admin_level === 9) {
-        setActiveLevel(10);
+        setLoadingContext(true);
         const result = await fetchBoundaryList({ parentOsmId: item.osm_id, adminLevel: 10 });
         setChildren((current) => ({ ...current, admin10: result }));
+        setActiveLevel(10);
+        setLoadingContext(false);
       }
     } catch (err) {
-      setSelected(previous || nextSelection);
       setError(err?.message || "Unable to load the next boundaries.");
     }
-  }, [loadDistrictChildren, loadDistricts, loadLocalChildren, onChange, selected]);
+  }, [loadDistrictChildren, loadDistricts, loadLocalChildren, onChange]);
 
   const handleStateChange = async (id) => {
     const nextState = states.find((item) => String(item.osm_id) === String(id));
@@ -313,14 +317,10 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
     setChildren({ admin6: [], admin8: [], admin9: [], admin10: [] });
     setActiveLevel(5);
     if (!nextState) return;
-    try {
-      await choose(nextState);
-    } catch (err) {
-      setError(err?.message || "Unable to select state");
-    }
+    await choose(nextState);
   };
 
-  const handleDistrictSelect = async (id) => {
+  const handleDistrictChange = async (id) => {
     const nextDistrict = districts.find((item) => String(item.osm_id) === String(id));
     setDistrictId(id);
     if (!nextDistrict) return;
@@ -332,8 +332,7 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
   };
 
   const useSelected = () => {
-    if (!selected) return;
-    onChange?.(selected);
+    if (selected) onChange?.(selected);
   };
 
   const clear = () => {
@@ -348,6 +347,7 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
   };
 
   const mapCenter = selected?.center || states.find((item) => String(item.osm_id) === String(stateId))?.center || INDIA;
+  const mapBoundaries = candidates.length ? candidates : selected ? [selected] : [];
   const zoom = selected?.admin_level === 4 ? 6 : selected?.admin_level === 5 ? 9 : selected?.admin_level === 8 ? 11 : 12;
 
   return (
@@ -371,10 +371,9 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-1.5">
               <label className="text-sm font-medium">District</label>
-              <Select value={districtId} onValueChange={handleDistrictSelect} disabled={disabled || !stateId || loadingContext}>
+              <Select value={districtId} onValueChange={handleDistrictChange} disabled={disabled || !stateId || loadingContext}>
                 <SelectTrigger><SelectValue placeholder={!stateId ? "Choose a state first" : "Choose a district"} /></SelectTrigger>
                 <SelectContent className="max-h-72">
                   {districts.map((item) => (
@@ -390,23 +389,19 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <p className="text-sm font-semibold">Choose the jurisdiction on the map</p>
-                  <p className="text-xs text-muted-foreground">Select the geographic boundary you want to attach to this governance entity.</p>
+                  <p className="text-xs text-muted-foreground">The dropdowns narrow the area; click the boundary you want to use.</p>
                 </div>
                 {loadingContext && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
               </div>
 
-              {selectedContext && availableNextLevels.length > 0 && (
+              {selected && availableNextLevels.length > 0 && (
                 <LevelSwitcher levels={availableNextLevels} activeLevel={activeLevel} onChange={setActiveLevel} />
               )}
 
               <div className="overflow-hidden rounded-xl border">
                 <div className="border-b bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
-                  {activeLevel === 5 && "District boundaries"}
-                  {activeLevel === 6 && "Subdistrict / taluka boundaries"}
-                  {activeLevel === 8 && "Local-government boundaries"}
-                  {activeLevel === 9 && "Zone boundaries"}
-                  {activeLevel === 10 && "Ward boundaries"}
-                  {!candidates.length && !loadingContext && "No mapped boundaries at this level"}
+                  {levelLabel(activeLevel)}
+                  {!mapBoundaries.length && !loadingContext ? " · No mapped boundaries" : ""}
                 </div>
                 <div className="relative h-[22rem]">
                   <LeafletMap
@@ -430,35 +425,24 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
               {selected && (
                 <div className="flex flex-col gap-3 rounded-xl border bg-muted/20 p-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Check className="h-3.5 w-3.5" />
-                      Selected boundary
-                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground"><Check className="h-3.5 w-3.5" />Selected boundary</div>
                     <p className="mt-1 truncate text-sm font-semibold" title={displayName(selected)}>{displayName(selected)}</p>
                     <p className="text-xs text-muted-foreground">{displayType(selected)}</p>
                   </div>
                   <div className="flex shrink-0 gap-2">
                     {availableNextLevels.length > 0 && (
                       <Button type="button" variant="outline" size="sm" onClick={() => setActiveLevel(availableNextLevels[0])} disabled={disabled || loadingContext}>
-                        <ChevronRight className="mr-1.5 h-4 w-4" />
-                        Continue
+                        <ChevronRight className="mr-1.5 h-4 w-4" />Continue
                       </Button>
                     )}
-                    <Button type="button" size="sm" onClick={useSelected} disabled={disabled}>
-                      Use boundary
-                    </Button>
+                    <Button type="button" size="sm" onClick={useSelected} disabled={disabled}>Use boundary</Button>
                   </div>
                 </div>
               )}
 
               {selected && selected.admin_level >= 5 && (
-                <Button type="button" variant="ghost" size="sm" className="px-0" onClick={() => {
-                  if (selected.admin_level >= 9) setActiveLevel(8);
-                  else if (selected.admin_level >= 8) setActiveLevel(5);
-                  else setActiveLevel(5);
-                }} disabled={disabled || loadingContext}>
-                  <ArrowLeft className="mr-1.5 h-4 w-4" />
-                  Explore another level
+                <Button type="button" variant="ghost" size="sm" className="px-0" onClick={() => setActiveLevel(selected.admin_level >= 9 ? 8 : selected.admin_level >= 8 ? 5 : 5)} disabled={disabled || loadingContext}>
+                  <ArrowLeft className="mr-1.5 h-4 w-4" />Explore another level
                 </Button>
               )}
             </div>
@@ -466,17 +450,12 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
         </>
       )}
 
-      {error && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
-          {error}
-        </div>
-      )}
+      {error && <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">{error}</div>}
 
       <div className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-xs text-muted-foreground">
         <span>State and district narrow the map; the map is where you choose the final jurisdiction.</span>
         <Button type="button" size="sm" variant="ghost" onClick={clear} disabled={disabled} className="h-7 px-2 text-xs">
-          <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-          Clear
+          <RotateCcw className="mr-1.5 h-3.5 w-3.5" />Clear
         </Button>
       </div>
     </div>
