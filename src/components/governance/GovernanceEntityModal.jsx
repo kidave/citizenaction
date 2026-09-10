@@ -12,27 +12,14 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ImageUpload from "@/components/media/ImageUpload";
 import MenuButton from "@/components/ui/MenuButton";
-import EditorFooter from "@/components/feed/editor/EditorFooter";
 import GovernanceResources from "@/components/governance/GovernanceResources";
 import OSMJurisdictionPicker from "@/components/governance/OSMJurisdictionPicker";
 import { supabase } from "@/lib/supabase/client";
 import { uploadGovernanceAttachments } from "@/lib/supabase/storage";
-import {
-  GOVERNANCE_ENTITY_TYPES,
-  GOVERNANCE_STATUS_OPTIONS,
-  formatGovernanceType,
-  getGovernanceInitials,
-  getGovernanceLabel,
-  governanceRequiresValidTo,
-} from "@/utils/governance";
+import { GOVERNANCE_ENTITY_TYPES, GOVERNANCE_STATUS_OPTIONS, formatGovernanceType, getGovernanceInitials, getGovernanceLabel, governanceRequiresValidTo } from "@/utils/governance";
 
 function Field({ label, children }) {
-  return (
-    <label className="block space-y-1.5">
-      <span className="text-xs font-medium text-muted-foreground">{label}</span>
-      {children}
-    </label>
-  );
+  return <label className="block space-y-1.5"><span className="text-xs font-medium text-muted-foreground">{label}</span>{children}</label>;
 }
 
 function dateInputValue(value) {
@@ -43,39 +30,14 @@ function dateInputValue(value) {
 function RelationItem({ entity, onSelect }) {
   if (!entity) return null;
   return (
-    <button
-      type="button"
-      onClick={() => onSelect?.(entity)}
-      className="flex min-w-0 items-center gap-2 rounded-lg p-2 text-left hover:bg-muted/60"
-    >
-      <Avatar className="h-8 w-8 shrink-0 rounded-md">
-        <AvatarImage src={entity.image_url || undefined} alt="" />
-        <AvatarFallback className="rounded-md text-[10px]">
-          {getGovernanceInitials(entity.name)}
-        </AvatarFallback>
-      </Avatar>
-      <span className="min-w-0 truncate text-sm font-medium" title={entity.name}>
-        {entity.name}
-      </span>
+    <button type="button" onClick={() => onSelect?.(entity)} className="flex min-w-0 items-center gap-2 rounded-lg p-2 text-left hover:bg-muted/60">
+      <Avatar className="h-8 w-8 shrink-0 rounded-md"><AvatarImage src={entity.image_url || undefined} alt="" /><AvatarFallback className="rounded-md text-[10px]">{getGovernanceInitials(entity.name)}</AvatarFallback></Avatar>
+      <span className="min-w-0 truncate text-sm font-medium" title={entity.name}>{entity.name}</span>
     </button>
   );
 }
 
-export default function GovernanceEntityModal({
-  open,
-  onOpenChange,
-  entity,
-  parent,
-  childEntities = [],
-  canEdit = false,
-  onSelect,
-  onSaved,
-  onDeleted,
-  onAddChild,
-  onAddParent,
-  onChangeParent,
-  categories = [],
-}) {
+export default function GovernanceEntityModal({ open, onOpenChange, entity, parent, childEntities = [], canEdit = false, onSelect, onSaved, onDeleted, onAddChild, onAddParent, onChangeParent, categories = [] }) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [draft, setDraft] = useState(null);
@@ -88,17 +50,10 @@ export default function GovernanceEntityModal({
   useEffect(() => {
     if (!open || !entity) {
       if (!open) {
-        setEditing(false);
-        setDraft(null);
-        setAttachments([]);
-        setPendingAttachments([]);
-        setLinks([]);
-        setLeader(null);
-        setJurisdiction(null);
+        setEditing(false); setDraft(null); setAttachments([]); setPendingAttachments([]); setLinks([]); setLeader(null); setJurisdiction(null);
       }
       return;
     }
-
     setDraft({
       name: entity.name || "",
       short_name: entity.short_name || "",
@@ -115,71 +70,35 @@ export default function GovernanceEntityModal({
 
   useEffect(() => {
     if (!open || !entity) return;
-
     let cancelled = false;
-
     async function load() {
       try {
-        const leaderResult = await supabase.rpc("get_governance_leader_at", {
-          p_entity_id: entity.id,
-          p_at: new Date().toISOString(),
-        });
-        if (!leaderResult || leaderResult.error) {
-          throw leaderResult?.error || new Error("Unable to load governance leader");
-        }
-
+        const leaderResult = await supabase.rpc("get_governance_leader_at", { p_entity_id: entity.id, p_at: new Date().toISOString() });
+        if (!leaderResult || leaderResult.error) throw leaderResult?.error || new Error("Unable to load governance leader");
         const current = leaderResult.data?.[0] || null;
         let nextLeader = null;
         if (current) {
-          let role = current.position_governance_id
-            ? null
-            : { id: `role-${current.id}`, name: current.position_name };
-          let person = current.person_governance_id
-            ? null
-            : current.person_name
-              ? { id: `person-${current.id}`, name: current.person_name, image_url: current.person_avatar_url }
-              : null;
+          let role = current.position_governance_id ? null : { id: `role-${current.id}`, name: current.position_name };
+          let person = current.person_governance_id ? null : current.person_name ? { id: `person-${current.id}`, name: current.person_name, image_url: current.person_avatar_url } : null;
           const ids = [current.position_governance_id, current.person_governance_id].filter(Boolean);
-
           if (ids.length) {
-            const relatedResult = await supabase
-              .from("governance")
-              .select("id,name,short_name,entity_type,image_url,status,slug")
-              .in("id", ids);
+            const relatedResult = await supabase.from("governance").select("id,name,short_name,entity_type,image_url,status,slug").in("id", ids);
             if (relatedResult.error) throw relatedResult.error;
             const byId = new Map((relatedResult.data || []).map((item) => [item.id, item]));
             role = current.position_governance_id ? byId.get(current.position_governance_id) || null : role;
-            person = current.person_governance_id
-              ? { ...(byId.get(current.person_governance_id) || {}), image_url: current.person_avatar_url || byId.get(current.person_governance_id)?.image_url }
-              : person;
+            person = current.person_governance_id ? { ...(byId.get(current.person_governance_id) || {}), image_url: current.person_avatar_url || byId.get(current.person_governance_id)?.image_url } : person;
           }
           nextLeader = { ...current, role, person };
         }
 
-        const governanceResult = await supabase
-          .from("governance")
-          .select("metadata")
-          .eq("id", entity.id)
-          .maybeSingle();
+        const governanceResult = await supabase.from("governance").select("metadata").eq("id", entity.id).maybeSingle();
         if (governanceResult.error) throw governanceResult.error;
-
         const [{ data: attachmentData, error: attachmentError }, { data: linkData, error: linkError }] = await Promise.all([
-          supabase
-            .from("attachment")
-            .select("*")
-            .eq("governance_id", entity.id)
-            .order("sort_order", { ascending: true })
-            .order("created_at", { ascending: true }),
-          supabase
-            .from("link")
-            .select("*")
-            .eq("governance_id", entity.id)
-            .order("sort_order", { ascending: true })
-            .order("created_at", { ascending: true }),
+          supabase.from("attachment").select("*").eq("governance_id", entity.id).order("sort_order", { ascending: true }).order("created_at", { ascending: true }),
+          supabase.from("link").select("*").eq("governance_id", entity.id).order("sort_order", { ascending: true }).order("created_at", { ascending: true }),
         ]);
         if (attachmentError) throw attachmentError;
         if (linkError) throw linkError;
-
         if (cancelled) return;
         setLeader(nextLeader);
         setJurisdiction(governanceResult.data?.metadata?.osm_jurisdiction || null);
@@ -190,11 +109,8 @@ export default function GovernanceEntityModal({
         if (!cancelled) toast.error(error?.message || "Unable to load governance details");
       }
     }
-
     load();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [open, entity, editing]);
 
   if (!entity) return null;
@@ -209,17 +125,18 @@ export default function GovernanceEntityModal({
   const jurisdictionName = jurisdiction?.name || entity.jurisdiction || null;
   const updateDraft = (key, value) => setDraft((current) => ({ ...current, [key]: value }));
 
+  const closeEditing = () => {
+    if (saving) return;
+    setEditing(false); setDraft(null); setPendingAttachments([]);
+  };
+
   const save = async () => {
     if (!draft?.name?.trim()) return toast.error("Name is required");
     if (!draft.valid_from) return toast.error("Valid from is required");
-    if (draft.valid_to && draft.valid_from && draft.valid_to < draft.valid_from) {
-      return toast.error("Valid to cannot be earlier than valid from");
-    }
+    if (draft.valid_to && draft.valid_from && draft.valid_to < draft.valid_from) return toast.error("Valid to cannot be earlier than valid from");
     if (requiresValidTo && !draft.valid_to) return toast.error("Add the date this entity became inactive");
-
     try {
       setSaving(true);
-
       const result = await supabase.rpc("update_governance_entity", {
         p_entity_id: entity.id,
         p_name: draft.name.trim(),
@@ -244,26 +161,15 @@ export default function GovernanceEntityModal({
           p_admin_level: Number(jurisdiction.admin_level),
           p_geojson: jurisdiction.geojson || null,
         });
-        if (!jurisdictionResult || jurisdictionResult.error) {
-          throw jurisdictionResult?.error || new Error("Unable to save OSM jurisdiction");
-        }
+        if (!jurisdictionResult || jurisdictionResult.error) throw jurisdictionResult?.error || new Error("Unable to save OSM jurisdiction");
       }
 
       if (pendingAttachments.length) {
         const uploaded = await uploadGovernanceAttachments(entity.id, pendingAttachments);
         const rows = uploaded.map((item, index) => ({
-          governance_id: entity.id,
-          storage_path: item.storage_path,
-          public_url: item.public_url,
-          preview_url: item.preview_url || null,
-          thumbnail_path: item.thumbnail_path || null,
-          thumbnail_url: item.thumbnail_url || null,
-          file_name: item.file_name,
-          mime_type: item.mime_type,
-          file_size: item.file_size,
-          width: item.width,
-          height: item.height,
-          duration: item.duration,
+          governance_id: entity.id, storage_path: item.storage_path, public_url: item.public_url, preview_url: item.preview_url || null,
+          thumbnail_path: item.thumbnail_path || null, thumbnail_url: item.thumbnail_url || null, file_name: item.file_name,
+          mime_type: item.mime_type, file_size: item.file_size, width: item.width, height: item.height, duration: item.duration,
           sort_order: attachments.length + index,
         }));
         const { error } = await supabase.from("attachment").insert(rows);
@@ -272,35 +178,24 @@ export default function GovernanceEntityModal({
 
       const { error: deleteLinksError } = await supabase.from("link").delete().eq("governance_id", entity.id);
       if (deleteLinksError) throw deleteLinksError;
-
       if (links.length) {
         const rows = links.map((link, index) => ({
-          governance_id: entity.id,
-          url: link.url,
-          type: link.type || "website",
-          title: link.title || null,
-          description: link.description || null,
-          hostname: link.hostname || null,
-          image_url: link.image_url || null,
-          icon_url: link.icon_url || null,
-          sort_order: index,
+          governance_id: entity.id, url: link.url, type: link.type || "website", title: link.title || null,
+          description: link.description || null, hostname: link.hostname || null, image_url: link.image_url || null,
+          icon_url: link.icon_url || null, sort_order: index,
         }));
         const { error } = await supabase.from("link").insert(rows);
         if (error) throw error;
       }
 
-      setEditing(false);
-      setDraft(null);
-      setPendingAttachments([]);
+      setEditing(false); setDraft(null); setPendingAttachments([]);
       onSaved?.(result.data);
       toast.success("Governance entity updated");
       return result.data;
     } catch (error) {
       toast.error(error?.message || "Unable to save governance entity");
       throw error;
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
   };
 
   const handleDelete = async () => {
@@ -312,71 +207,30 @@ export default function GovernanceEntityModal({
     onOpenChange?.(false);
   };
 
-  const editor = {
-    attachments: pendingAttachments,
-    setAttachments: setPendingAttachments,
-    links,
-    setLinks,
-    submit: save,
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-xl">
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="flex items-start gap-3 pr-8">
-            <Avatar className="h-12 w-12 shrink-0 rounded-xl">
-              <AvatarImage src={(editing ? draft?.image_url : entity.image_url) || undefined} alt="" />
-              <AvatarFallback className="rounded-xl">{getGovernanceInitials(label)}</AvatarFallback>
-            </Avatar>
+            <Avatar className="h-12 w-12 shrink-0 rounded-xl"><AvatarImage src={(editing ? draft?.image_url : entity.image_url) || undefined} alt="" /><AvatarFallback className="rounded-xl">{getGovernanceInitials(label)}</AvatarFallback></Avatar>
             <div className="min-w-0 flex-1">
-              {editing ? (
-                <Input autoFocus value={draft?.name || ""} onChange={(event) => updateDraft("name", event.target.value)} className="text-lg font-semibold" />
-              ) : (
-                <>
-                  <h2 className="truncate text-xl font-semibold" title={label}>{label}</h2>
-                  {categoryName && <p className="mt-0.5 truncate text-sm text-muted-foreground" title={categoryName}>{categoryName}</p>}
-                </>
-              )}
+              {editing ? <Input autoFocus value={draft?.name || ""} onChange={(event) => updateDraft("name", event.target.value)} className="text-lg font-semibold" /> : <><h2 className="truncate text-xl font-semibold" title={label}>{label}</h2>{categoryName && <p className="mt-0.5 truncate text-sm text-muted-foreground" title={categoryName}>{categoryName}</p>}</>}
             </div>
-            {canEdit && !editing && (
-              <MenuButton
-                onEdit={() => setEditing(true)}
-                onAddParent={() => onAddParent?.(entity)}
-                onAddChild={() => onAddChild?.(entity)}
-                onChangeParent={() => onChangeParent?.(entity)}
-                onDelete={handleDelete}
-                deleteTitle={`Delete ${label}?`}
-                deleteDescription={childEntities.length ? "Move the child entities before deleting this entity." : "This permanently removes this governance entity."}
-              />
-            )}
+            {canEdit && !editing && <MenuButton onEdit={() => setEditing(true)} onAddParent={() => onAddParent?.(entity)} onAddChild={() => onAddChild?.(entity)} onChangeParent={() => onChangeParent?.(entity)} onDelete={handleDelete} deleteTitle={`Delete ${label}?`} deleteDescription={childEntities.length ? "Move the child entities before deleting this entity." : "This permanently removes this governance entity."} />}
           </div>
 
           {editing ? (
             <div className="space-y-5 py-5">
+              <ImageUpload bucket="governance" path={`governance/${entity.id}/logo`} value={draft?.image_url || null} onChange={(value) => updateDraft("image_url", value || null)} label="Logo" helperText="PNG, JPG or WebP · up to 5 MB" disabled={saving} />
+
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Short name"><Input value={draft?.short_name || ""} onChange={(event) => updateDraft("short_name", event.target.value)} /></Field>
-                <Field label="Entity type">
-                  <Select value={draft?.entity_type || "authority"} onValueChange={(value) => updateDraft("entity_type", value)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{GOVERNANCE_ENTITY_TYPES.map((type) => <SelectItem key={type} value={type}>{formatGovernanceType(type)}</SelectItem>)}</SelectContent>
-                  </Select>
-                </Field>
+                <Field label="Entity type"><Select value={draft?.entity_type || "authority"} onValueChange={(value) => updateDraft("entity_type", value)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{GOVERNANCE_ENTITY_TYPES.map((type) => <SelectItem key={type} value={type}>{formatGovernanceType(type)}</SelectItem>)}</SelectContent></Select></Field>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Category">
-                  <Select value={draft?.category_id || "none"} onValueChange={(value) => updateDraft("category_id", value === "none" ? "" : value)}>
-                    <SelectTrigger><SelectValue placeholder="Choose a category" /></SelectTrigger>
-                    <SelectContent className="max-h-72"><SelectItem value="none">No category</SelectItem>{categories.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent>
-                  </Select>
-                </Field>
-                <Field label="Status">
-                  <Select value={currentStatus} onValueChange={(value) => updateDraft("status", value)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{GOVERNANCE_STATUS_OPTIONS.map(([value, text]) => <SelectItem key={value} value={value}>{text}</SelectItem>)}</SelectContent>
-                  </Select>
-                </Field>
+                <Field label="Category"><Select value={draft?.category_id || "none"} onValueChange={(value) => updateDraft("category_id", value === "none" ? "" : value)}><SelectTrigger><SelectValue placeholder="Choose a category" /></SelectTrigger><SelectContent className="max-h-72"><SelectItem value="none">No category</SelectItem>{categories.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent></Select></Field>
+                <Field label="Status"><Select value={currentStatus} onValueChange={(value) => updateDraft("status", value)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{GOVERNANCE_STATUS_OPTIONS.map(([value, text]) => <SelectItem key={value} value={value}>{text}</SelectItem>)}</SelectContent></Select></Field>
               </div>
 
               <Field label="What they do"><Textarea value={draft?.description || ""} onChange={(event) => updateDraft("description", event.target.value)} rows={4} /></Field>
@@ -389,14 +243,11 @@ export default function GovernanceEntityModal({
               <p className="-mt-3 text-xs text-muted-foreground">{requiresValidTo ? "Enter when this entity closed or was retired." : "Leave Valid to empty while active."}</p>
 
               <Field label="Jurisdiction"><OSMJurisdictionPicker value={jurisdiction} onChange={setJurisdiction} disabled={saving} /></Field>
-              <ImageUpload bucket="governance" path={`governance/${entity.id}/logo`} value={draft?.image_url || null} onChange={(value) => updateDraft("image_url", value || null)} label="Logo" helperText="PNG, JPG or WebP · up to 5 MB" disabled={saving} />
-
               <GovernanceResources governanceId={entity.id} attachments={attachments} links={links} canEdit={false} />
 
-              <div className="flex justify-end">
-                <Button type="button" variant="outline" onClick={() => { setEditing(false); setDraft(null); setPendingAttachments([]); }} disabled={saving}>
-                  <X className="mr-2 h-4 w-4" />Cancel
-                </Button>
+              <div className="flex justify-end gap-2 border-t pt-4">
+                <Button type="button" variant="outline" onClick={closeEditing} disabled={saving}><X className="mr-2 h-4 w-4" />Cancel</Button>
+                <Button type="button" onClick={save} disabled={saving}>{saving ? "Saving..." : "Save changes"}</Button>
               </div>
             </div>
           ) : (
@@ -408,27 +259,12 @@ export default function GovernanceEntityModal({
                   {(entity.valid_from || entity.valid_to) && <div className="rounded-lg border bg-muted/30 p-3 sm:col-span-2"><p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{entity.valid_to ? "Since / until" : "Since"}</p><p className="mt-1 truncate text-sm font-medium">{entity.valid_from ? new Date(entity.valid_from).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "—"}{entity.valid_to ? ` – ${new Date(entity.valid_to).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}` : ""}</p></div>}
                 </div>
               )}
-
               {entity.description && <section><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">What they do</p><p className="mt-2 text-sm leading-6 text-muted-foreground">{entity.description}</p></section>}
-
-              {(parent || childEntities.length > 0) && <section className="space-y-3">
-                {parent && <div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Under</p><RelationItem entity={parent} onSelect={onSelect} /></div>}
-                {childEntities.length > 0 && <div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Responsible for</p><div className="grid gap-1 sm:grid-cols-2">{childEntities.map((child) => <RelationItem key={child.id} entity={child} onSelect={onSelect} />)}</div></div>}
-              </section>}
-
+              {(parent || childEntities.length > 0) && <section className="space-y-3">{parent && <div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Under</p><RelationItem entity={parent} onSelect={onSelect} /></div>}{childEntities.length > 0 && <div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Responsible for</p><div className="grid gap-1 sm:grid-cols-2">{childEntities.map((child) => <RelationItem key={child.id} entity={child} onSelect={onSelect} />)}</div></div>}</section>}
               <GovernanceResources governanceId={entity.id} attachments={attachments} links={links} canEdit={false} />
             </div>
           )}
         </div>
-
-        {editing && (
-          <EditorFooter
-            mode="governance"
-            item={entity}
-            editor={editor}
-            onClose={() => { setEditing(false); setDraft(null); setPendingAttachments([]); }}
-          />
-        )}
       </DialogContent>
     </Dialog>
   );
