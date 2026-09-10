@@ -31,15 +31,23 @@ const TYPE_LABELS = {
 };
 
 function displayType(item) {
-  if (item?.local_authority === "metropolitan_area") return "Metropolitan area";
-  if (item?.local_authority === "municipal_corporation") return "Municipal Corporation";
-  if (item?.local_authority === "municipality") return "Municipality";
-  if (item?.local_authority === "city_council") return "City Council";
-  if (item?.local_authority === "nagar_panchayat") return "Nagar Panchayat";
-  if (item?.local_authority === "gram_panchayat") return "Gram Panchayat";
-  if (item?.local_authority === "municipal_corporation_zone") return "Zone";
-  if (item?.local_authority === "ward") return "Ward";
+  const type = item?.local_government_type || item?.local_authority;
+  if (type === "metropolitan_area") return "Metropolitan area";
+  if (type === "municipal_corporation") return "Municipal Corporation";
+  if (type === "municipality") return "Municipality";
+  if (type === "city_council") return "City Council";
+  if (type === "nagar_panchayat") return "Nagar Panchayat";
+  if (type === "gram_panchayat") return "Gram Panchayat";
+  if (type === "municipal_corporation_zone") return "Zone";
+  if (type === "ward") return "Ward";
   return TYPE_LABELS[item?.admin_level] || "Administrative area";
+}
+
+function displayName(item) {
+  if (item?.admin_level === 8 && item?.local_government_type === "municipal_corporation") {
+    return item.operator_alt_name || item.operator || item.name;
+  }
+  return item?.name || "Unnamed area";
 }
 
 function normalizeItem(item) {
@@ -61,15 +69,19 @@ function normalizeItem(item) {
     geojson: item.geojson || null,
     boundary: item.boundary || null,
     local_authority: item.local_authority || null,
+    local_government_type: item.local_government_type || null,
+    operator: item.operator || null,
+    operator_alt_name: item.operator_alt_name || null,
     ward: item.ward || null,
     ref: item.ref || null,
   };
 }
 
 function selectionValue(item, geometry) {
+  const normalized = normalizeItem(item);
   return {
-    ...normalizeItem(item),
-    center: normalizeItem(item)?.center || DEFAULT_CENTER,
+    ...normalized,
+    center: normalized?.center || DEFAULT_CENTER,
     geojson: geometry || item?.geojson || null,
   };
 }
@@ -77,7 +89,9 @@ function selectionValue(item, geometry) {
 async function fetchCachedBoundaries({ parentOsmId = null, adminLevel }) {
   let query = supabase
     .from("osm_jurisdiction_cache")
-    .select("osm_type, osm_id, name, official_name, admin_level, boundary, local_authority, ward, ref, center, geojson")
+    .select(
+      "osm_type, osm_id, name, official_name, admin_level, boundary, local_authority, local_government_type, operator, operator_alt_name, ward, ref, center, geojson",
+    )
     .eq("admin_level", adminLevel)
     .order("name", { ascending: true })
     .limit(1000);
@@ -94,9 +108,8 @@ async function fetchCachedBoundaries({ parentOsmId = null, adminLevel }) {
 }
 
 async function fetchBoundaryList({ parentOsmId = null, adminLevel, stateName = null }) {
-  const cached = await fetchCachedBoundaries({ parentOsmId, adminLevel });
-  if (cached.length) return cached;
-
+  // The API owns cache completeness. Do not read partial cache rows directly here;
+  // otherwise an incomplete first fetch can permanently hide the remaining districts.
   const params = new URLSearchParams({
     list: "1",
     include_geometry: "0",
@@ -129,7 +142,7 @@ function mergeUnique(...lists) {
     if (item?.osm_id) map.set(`${item.osm_type}:${item.osm_id}`, item);
   });
   return Array.from(map.values()).sort((a, b) =>
-    a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+    displayName(a).localeCompare(displayName(b), undefined, { sensitivity: "base" }),
   );
 }
 
@@ -156,8 +169,8 @@ function SelectField({
         <SelectContent className="max-h-72">
           {items.map((item) => (
             <SelectItem key={`${item.osm_type}:${item.osm_id}`} value={String(item.osm_id)}>
-              {item.name}
-              {item.local_authority && (
+              {displayName(item)}
+              {item.admin_level >= 8 && (
                 <span className="ml-2 text-xs text-muted-foreground">{displayType(item)}</span>
               )}
             </SelectItem>
@@ -466,6 +479,7 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
                 loading={loadingChildren}
                 items={subdistricts}
                 onChange={handleSubdistrictChange}
+                emptyLabel="No mapped subdistrict boundary"
               />
             </div>
           )}
@@ -481,7 +495,7 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <SelectField
-                  label="Region / Local government"
+                  label="Civic body / Local government"
                   value={localBodyId}
                   placeholder="Choose a municipal corporation, municipality or city council"
                   disabled={disabled || loadingChildren}
@@ -524,7 +538,7 @@ export default function OSMJurisdictionPicker({ value, onChange, disabled = fals
         <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/20 px-3 py-2.5">
           <div className="min-w-0">
             <div className="text-xs text-muted-foreground">Selected jurisdiction</div>
-            <div className="truncate text-sm font-medium">{currentSelection.name}</div>
+            <div className="truncate text-sm font-medium">{displayName(currentSelection)}</div>
             <div className="text-xs text-muted-foreground">{displayType(currentSelection)}</div>
           </div>
           {lookupLoading && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />}
