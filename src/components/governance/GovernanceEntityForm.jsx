@@ -16,7 +16,6 @@ import {
 
 import ImageUpload from "@/components/media/ImageUpload";
 import GovernanceResources from "@/components/governance/GovernanceResources";
-import OSMJurisdictionPicker from "@/components/governance/OSMJurisdictionPicker";
 
 import {
   GOVERNANCE_ENTITY_TYPES,
@@ -27,8 +26,9 @@ import {
 function Field({ label, children }) {
   return (
     <label className="block space-y-1.5">
-      <span className="text-xs font-medium text-muted-foreground">{label}</span>
-
+      <span className="text-xs font-medium text-muted-foreground">
+        {label}
+      </span>
       {children}
     </label>
   );
@@ -38,15 +38,11 @@ export default function GovernanceEntityForm({
   entity,
   draft,
   categories = [],
-  jurisdiction,
   attachments = [],
   links = [],
-  pendingAttachments = [],
   saving = false,
   requiresValidTo = false,
   onChange,
-  onJurisdictionChange,
-  onPendingAttachmentsChange,
   onCancel,
   onSave,
 }) {
@@ -68,7 +64,9 @@ export default function GovernanceEntityForm({
         <Field label="Short name">
           <Input
             value={draft.short_name || ""}
-            onChange={(event) => onChange("short_name", event.target.value)}
+            onChange={(event) =>
+              onChange("short_name", event.target.value)
+            }
             disabled={saving}
           />
         </Field>
@@ -76,7 +74,9 @@ export default function GovernanceEntityForm({
         <Field label="Entity type">
           <Select
             value={draft.entity_type || "authority"}
-            onValueChange={(value) => onChange("entity_type", value)}
+            onValueChange={(value) =>
+              onChange("entity_type", value)
+            }
             disabled={saving}
           >
             <SelectTrigger>
@@ -99,7 +99,10 @@ export default function GovernanceEntityForm({
           <Select
             value={draft.category_id || "none"}
             onValueChange={(value) =>
-              onChange("category_id", value === "none" ? "" : value)
+              onChange(
+                "category_id",
+                value === "none" ? "" : value,
+              )
             }
             disabled={saving}
           >
@@ -143,7 +146,9 @@ export default function GovernanceEntityForm({
       <Field label="What they do">
         <Textarea
           value={draft.description || ""}
-          onChange={(event) => onChange("description", event.target.value)}
+          onChange={(event) =>
+            onChange("description", event.target.value)
+          }
           rows={4}
           disabled={saving}
         />
@@ -153,7 +158,9 @@ export default function GovernanceEntityForm({
         <Input
           type="url"
           value={draft.website || ""}
-          onChange={(event) => onChange("website", event.target.value)}
+          onChange={(event) =>
+            onChange("website", event.target.value)
+          }
           placeholder="https://"
           disabled={saving}
         />
@@ -164,7 +171,9 @@ export default function GovernanceEntityForm({
           <Input
             type="date"
             value={draft.valid_from || ""}
-            onChange={(event) => onChange("valid_from", event.target.value)}
+            onChange={(event) =>
+              onChange("valid_from", event.target.value)
+            }
             disabled={saving}
           />
         </Field>
@@ -173,7 +182,9 @@ export default function GovernanceEntityForm({
           <Input
             type="date"
             value={draft.valid_to || ""}
-            onChange={(event) => onChange("valid_to", event.target.value)}
+            onChange={(event) =>
+              onChange("valid_to", event.target.value)
+            }
             disabled={saving}
           />
         </Field>
@@ -184,14 +195,6 @@ export default function GovernanceEntityForm({
           ? "Enter when this entity closed or was retired."
           : "Leave Valid to empty while active."}
       </p>
-
-      <Field label="Jurisdiction">
-        <OSMJurisdictionPicker
-          value={jurisdiction}
-          onChange={onJurisdictionChange}
-          disabled={saving}
-        />
-      </Field>
 
       <GovernanceResources
         governanceId={entity.id}
