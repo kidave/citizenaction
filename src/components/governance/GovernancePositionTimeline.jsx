@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { CalendarDays, BriefcaseBusiness } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,12 +24,9 @@ export default function GovernancePositionTimeline({ position, timeline = [] }) 
         <div className="relative space-y-4 before:absolute before:bottom-4 before:left-5 before:top-4 before:w-px before:bg-border sm:before:left-6">
           {timeline.map((item) => {
             const personName = item.is_vacant ? "Vacant" : item.person_name || "Unknown";
-            const personHref = item.person_governance_id && item.person_slug
-              ? `/governance/person/${item.person_slug}`
-              : null;
             return (
               <div key={item.appointment_id} className="relative pl-10 sm:pl-14">
-                <div className="absolute left-0 top-3 flex h-10 w-10 items-center justify-center rounded-full border bg-background sm:h-12 sm:w-12 sm:left-0">
+                <div className="absolute left-0 top-3 flex h-10 w-10 items-center justify-center rounded-full border bg-background sm:h-12 sm:w-12">
                   <Avatar className="h-8 w-8 rounded-full sm:h-9 sm:w-9">
                     <AvatarImage src={item.person_image_url || undefined} alt="" />
                     <AvatarFallback>{getGovernanceInitials(personName)}</AvatarFallback>
@@ -40,13 +36,7 @@ export default function GovernancePositionTimeline({ position, timeline = [] }) 
                   <CardContent className="p-4 sm:p-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
-                        {personHref ? (
-                          <Link href={personHref} className="text-sm font-semibold hover:underline">
-                            {personName}
-                          </Link>
-                        ) : (
-                          <p className="text-sm font-semibold">{personName}</p>
-                        )}
+                        <p className="text-sm font-semibold">{personName}</p>
                         {item.organization_name && <p className="mt-1 text-xs text-muted-foreground">{item.organization_name}</p>}
                       </div>
                       <div className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
