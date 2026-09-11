@@ -17,10 +17,11 @@ import ConfirmDialog from "@/components/ui/ConfirmDialog";
 export default function MenuButton({
   onEdit,
   onDelete,
-  onAddParent,
-  onAddChild,
+  onAddRelation,
   onAddGeography,
-  onChangeParent,
+  onChangeGeography,
+  editRelations,
+  editGeography,
   editLabel = "Edit",
   deleteLabel = "Delete",
   deleteTitle = "Delete this post?",
@@ -49,24 +50,29 @@ export default function MenuButton({
               {editLabel}
             </DropdownMenuItem>
           )}
-          {onAddParent && (
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onAddParent); }}>
-              Add parent
+          {onAddRelation && (
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onAddRelation); }}>
+              Add relation
             </DropdownMenuItem>
           )}
-          {onAddChild && (
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onAddChild); }}>
-              Add child
-            </DropdownMenuItem>
-          )}
-          {onAddGeography && (
+          {onAddGeography && !onChangeGeography && (
             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onAddGeography); }}>
               Add geography
             </DropdownMenuItem>
           )}
-          {onChangeParent && (
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onChangeParent); }}>
-              Change parent
+          {onChangeGeography && (
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onChangeGeography); }}>
+              Change geography
+            </DropdownMenuItem>
+          )}
+          {editRelations && (
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(editRelations); }}>
+              Edit relations
+            </DropdownMenuItem>
+          )}
+          {editGeography && (
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(editGeography); }}>
+              Edit geography
             </DropdownMenuItem>
           )}
           {onDelete && (
