@@ -19,13 +19,11 @@ function createDraft(entity) {
 export function useGovernanceEntityForm(entity) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(null);
-  const [pendingAttachments, setPendingAttachments] = useState([]);
 
   useEffect(() => {
     if (!entity) {
       setDraft(null);
       setEditing(false);
-      setPendingAttachments([]);
       return;
     }
 
@@ -34,7 +32,6 @@ export function useGovernanceEntityForm(entity) {
 
   function startEditing() {
     setDraft(createDraft(entity));
-    setPendingAttachments([]);
     setEditing(true);
   }
 
@@ -48,7 +45,6 @@ export function useGovernanceEntityForm(entity) {
   function closeEditing() {
     setEditing(false);
     setDraft(createDraft(entity));
-    setPendingAttachments([]);
   }
 
   function validate(requiresValidTo) {
@@ -60,7 +56,10 @@ export function useGovernanceEntityForm(entity) {
       return "Valid from is required";
     }
 
-    if (draft.valid_to && draft.valid_to < draft.valid_from) {
+    if (
+      draft.valid_to &&
+      draft.valid_to < draft.valid_from
+    ) {
       return "Valid to cannot be earlier than valid from";
     }
 
@@ -74,11 +73,7 @@ export function useGovernanceEntityForm(entity) {
   return {
     editing,
     draft,
-    pendingAttachments,
-
     setEditing,
-    setPendingAttachments,
-
     startEditing,
     updateDraft,
     closeEditing,
