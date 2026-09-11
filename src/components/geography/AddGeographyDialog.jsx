@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, ChevronRight, Loader2, MapPin, Search } from "lucide-react";
 
@@ -156,7 +156,9 @@ export default function AddGeographyDialog({
       });
 
       onSaved?.(selected);
-      toast.success(currentGeographyId ? "Geography changed" : "Geography added");
+      toast.success(
+        currentGeographyId ? "Geography changed" : "Geography added",
+      );
       onOpenChange?.(false);
     } catch (error) {
       toast.error(error?.message || "Unable to save geography");
@@ -215,9 +217,7 @@ export default function AddGeographyDialog({
                       className="flex min-w-0 items-center gap-1"
                     >
                       <ChevronRight className="h-3 w-3 shrink-0" />
-                      <span className="truncate">
-                        {geographyLabel(item)}
-                      </span>
+                      <span className="truncate">{geographyLabel(item)}</span>
                     </span>
                   ))}
                 </div>
