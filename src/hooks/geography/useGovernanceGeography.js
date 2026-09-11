@@ -2,14 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 
 const geographySelect = `
-  id,
-  governance_id,
   geography_id,
-  boundary_type,
-  is_primary,
-  valid_from,
-  valid_to,
-  notes,
   geographies (
     id,
     name,
@@ -33,14 +26,19 @@ export function useGovernanceGeography(governanceId, enabled = true) {
     enabled: Boolean(governanceId) && enabled,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("governance_geography")
+        .from("governance")
         .select(geographySelect)
-        .eq("governance_id", governanceId)
-        .order("is_primary", { ascending: false })
-        .order("created_at", { ascending: true });
+        .eq("id", governanceId)
+        .maybeSingle();
 
       if (error) throw error;
-      return data || [];
+      return data?.geography_id
+        ? [{
+            governance_id: governanceId,
+            geography_id: data.geography_id,
+            geographies: data.geographies,
+          }]
+        : [];
     },
   });
 }
@@ -54,24 +52,22 @@ export function useGovernanceGeographyMutation() {
     });
 
     queryClient.invalidateQueries({
+      queryKey: ["governance-entity", governanceId],
+    });
+
+    queryClient.invalidateQueries({
       queryKey: ["governance-entity-details", governanceId],
     });
   };
 
-  const add = useMutation({
-    mutationFn: async ({
-      governanceId,
-      geographyId,
-      isPrimary = false,
-    }) => {
-      const { data, error } = await supabase.rpc(
-        "set_governance_geography",
-        {
-          p_governance_id: governanceId,
-          p_geography_id: geographyId,
-          p_is_primary: isPrimary,
-        },
-      );
+  const set = useMutation({
+    mutationFn: async ({ governanceId, geographyId }) => {
+      const { data, error } = await supabase
+        .from("governance")
+        .update({ geography_id: geographyId })
+        .eq("id", governanceId)
+        .select("id,geography_id")
+        .single();
 
       if (error) throw error;
       return data;
@@ -79,12 +75,14 @@ export function useGovernanceGeographyMutation() {
     onSuccess: (_, variables) => invalidate(variables.governanceId),
   });
 
-  const remove = useMutation({
-    mutationFn: async ({ governanceId, relationshipId }) => {
-      const { data, error } = await supabase.rpc(
-        "delete_governance_geography",
-        { p_id: relationshipId },
-      );
+  const clear = useMutation({
+    mutationFn: async ({ governanceId }) => {
+      const { data, error } = await supabase
+        .from("governance")
+        .update({ geography_id: null })
+        .eq("id", governanceId)
+        .select("id,geography_id")
+        .single();
 
       if (error) throw error;
       return data;
@@ -93,9 +91,9 @@ export function useGovernanceGeographyMutation() {
   });
 
   return {
-    addGeography: add.mutateAsync,
-    removeGeography: remove.mutateAsync,
-    isAdding: add.isPending,
-    isRemoving: remove.isPending,
+    setGeography: set.mutateAsync,
+    removeGeography: clear.mutateAsync,
+    isSetting: set.isPending,
+    isRemoving: clear.isPending,
   };
 }
