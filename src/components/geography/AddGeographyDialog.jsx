@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Check, ChevronRight, Loader2, MapPin, Search } from "lucide-react";
+import { ArrowLeft, ChevronRight, Loader2, MapPin, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import {
@@ -45,6 +46,7 @@ function geographyTypeLabel(item) {
     subdistrict: "Subdistrict / Taluka",
     city: "City",
     local_government: "Local government",
+    metropolitan_area: "Metropolitan area",
     zone: "Zone",
     ward: "Ward",
   };
@@ -57,7 +59,7 @@ export default function AddGeographyDialog({
   onOpenChange,
   governanceId,
   entityName,
-  onAdded,
+  onSaved,
 }) {
   const [parent, setParent] = useState(null);
   const [selected, setSelected] = useState(null);
@@ -71,29 +73,36 @@ export default function AddGeographyDialog({
     open,
   );
 
+  const currentGeography = relationships[0]?.geographies || null;
+  const currentGeographyId = relationships[0]?.geography_id || null;
+
   const { data: items = [], isLoading } = useGeographyBrowser({
     parentId: parent?.id || null,
     search,
     enabled: open,
   });
 
-  const { addGeography, isAdding } =
-    useGovernanceGeographyMutation();
+  const { setGeography, isSetting } = useGovernanceGeographyMutation();
 
   useEffect(() => {
     if (!open) return;
 
     setParent(null);
-    setSelected(null);
+    setSelected(currentGeography || null);
     setGeometry(null);
     setSearch("");
     setPath([]);
-  }, [open]);
 
-  const existingIds = useMemo(
-    () => new Set(relationships.map((item) => item.geography_id)),
-    [relationships],
-  );
+    if (currentGeography) {
+      setLoadingGeometry(true);
+      fetchGeographyGeometry(currentGeography)
+        .then(setGeometry)
+        .catch(() => setGeometry(null))
+        .finally(() => setLoadingGeometry(false));
+    }
+  }, [open, currentGeography]);
+
+  const selectedId = selected?.id || "";
 
   const mapBoundary = selected && geometry
     ? [{
@@ -123,8 +132,6 @@ export default function AddGeographyDialog({
   const openChildren = (item) => {
     setParent(item);
     setPath((current) => [...current, item]);
-    setSelected(item);
-    setGeometry(null);
     setSearch("");
   };
 
@@ -136,28 +143,23 @@ export default function AddGeographyDialog({
 
     setPath(nextPath);
     setParent(nextParent);
-    setSelected(nextParent);
-    setGeometry(null);
     setSearch("");
   };
 
-  const handleAdd = async () => {
-    if (!selected || existingIds.has(selected.id)) return;
+  const handleSave = async () => {
+    if (!selected || selected.id === currentGeographyId) return;
 
     try {
-      const saved = await addGeography({
+      await setGeography({
         governanceId,
         geographyId: selected.id,
-        isPrimary: relationships.length === 0,
       });
 
-      onAdded?.(saved);
-      toast.success("Geography added");
+      onSaved?.(selected);
+      toast.success(currentGeographyId ? "Geography changed" : "Geography added");
       onOpenChange?.(false);
     } catch (error) {
-      toast.error(
-        error?.message || "Unable to add geography",
-      );
+      toast.error(error?.message || "Unable to save geography");
     }
   };
 
@@ -166,13 +168,17 @@ export default function AddGeographyDialog({
     lng: 78.9629,
   };
 
+  const submitLabel = currentGeographyId ? "Change geography" : "Add geography";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-5xl">
         <DialogHeader className="border-b px-6 py-4">
-          <DialogTitle>Add geography</DialogTitle>
+          <DialogTitle>
+            {currentGeographyId ? "Change geography" : "Add geography"}
+          </DialogTitle>
           <DialogDescription>
-            Choose the boundary associated with {entityName || "this entity"}.
+            Choose the jurisdiction associated with {entityName || "this entity"}.
           </DialogDescription>
         </DialogHeader>
 
@@ -196,8 +202,7 @@ export default function AddGeographyDialog({
                     onClick={() => {
                       setParent(null);
                       setPath([]);
-                      setSelected(null);
-                      setGeometry(null);
+                      setSearch("");
                     }}
                     className="shrink-0 hover:text-foreground"
                   >
@@ -220,7 +225,14 @@ export default function AddGeographyDialog({
             </div>
 
             <ScrollArea className="min-h-0 flex-1">
-              <div className="p-2">
+              <RadioGroup
+                value={selectedId}
+                onValueChange={(value) => {
+                  const item = items.find((candidate) => candidate.id === value);
+                  if (item) selectGeography(item);
+                }}
+                className="p-2"
+              >
                 {path.length > 0 && !search && (
                   <button
                     type="button"
@@ -244,7 +256,6 @@ export default function AddGeographyDialog({
                 ) : (
                   items.map((item) => {
                     const isSelected = selected?.id === item.id;
-                    const isExisting = existingIds.has(item.id);
 
                     return (
                       <div
@@ -253,11 +264,15 @@ export default function AddGeographyDialog({
                           isSelected ? "bg-accent" : ""
                         }`}
                       >
-                        <button
-                          type="button"
-                          onClick={() => selectGeography(item)}
-                          className="flex min-w-0 flex-1 items-center gap-3 rounded-md px-2 py-2 text-left hover:bg-muted"
+                        <label
+                          htmlFor={`geography-${item.id}`}
+                          className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-left hover:bg-muted"
                         >
+                          <RadioGroupItem
+                            id={`geography-${item.id}`}
+                            value={item.id}
+                            className="shrink-0"
+                          />
                           <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
                           <span className="min-w-0 flex-1">
                             <span className="block truncate text-sm font-medium">
@@ -267,10 +282,7 @@ export default function AddGeographyDialog({
                               {geographyTypeLabel(item)}
                             </span>
                           </span>
-                          {isSelected && (
-                            <Check className="h-4 w-4 shrink-0 text-primary" />
-                          )}
-                        </button>
+                        </label>
 
                         {!search && (
                           <Button
@@ -284,17 +296,11 @@ export default function AddGeographyDialog({
                             <ChevronRight className="h-4 w-4" />
                           </Button>
                         )}
-
-                        {isExisting && (
-                          <span className="pr-2 text-[11px] text-muted-foreground">
-                            Added
-                          </span>
-                        )}
                       </div>
                     );
                   })
                 )}
-              </div>
+              </RadioGroup>
             </ScrollArea>
           </div>
 
@@ -350,20 +356,20 @@ export default function AddGeographyDialog({
                       type="button"
                       variant="outline"
                       onClick={() => onOpenChange?.(false)}
-                      disabled={isAdding}
+                      disabled={isSetting}
                     >
                       Cancel
                     </Button>
                     <Button
                       type="button"
-                      onClick={handleAdd}
+                      onClick={handleSave}
                       disabled={
-                        isAdding ||
-                        existingIds.has(selected.id) ||
+                        isSetting ||
+                        selected.id === currentGeographyId ||
                         loadingGeometry
                       }
                     >
-                      {isAdding ? "Adding..." : "Add geography"}
+                      {isSetting ? "Saving..." : submitLabel}
                     </Button>
                   </div>
                 </div>
