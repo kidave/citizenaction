@@ -28,17 +28,10 @@ export function useGovernanceEntityDetails(entityId, enabled = true) {
             .order("created_at", { ascending: true }),
 
           supabase
-            .from("governance_geography")
+            .from("governance")
             .select(
               `
-                id,
-                governance_id,
                 geography_id,
-                boundary_type,
-                is_primary,
-                valid_from,
-                valid_to,
-                notes,
                 geographies (
                   id,
                   name,
@@ -56,9 +49,8 @@ export function useGovernanceEntityDetails(entityId, enabled = true) {
                 )
               `,
             )
-            .eq("governance_id", entityId)
-            .order("is_primary", { ascending: false })
-            .order("created_at", { ascending: true }),
+            .eq("id", entityId)
+            .maybeSingle(),
         ]);
 
       if (leaderResult.error) throw leaderResult.error;
@@ -128,7 +120,8 @@ export function useGovernanceEntityDetails(entityId, enabled = true) {
 
       return {
         leader,
-        geographies: geographyResult.data || [],
+        geography: geographyResult.data?.geographies || null,
+        geographyId: geographyResult.data?.geography_id || null,
         attachments: attachmentResult.data || [],
         links: linkResult.data || [],
       };
