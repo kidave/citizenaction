@@ -43,31 +43,12 @@ function TreeConnector({ count }) {
       viewBox="0 0 100 40"
       preserveAspectRatio="none"
     >
-      <path
-        d="M 50 0 L 50 16"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        vectorEffect="non-scaling-stroke"
-      />
+      <path d="M 50 0 L 50 16" fill="none" stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
       {count > 1 && (
-        <path
-          d={`M ${first} 16 L ${last} 16`}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.2"
-          vectorEffect="non-scaling-stroke"
-        />
+        <path d={`M ${first} 16 L ${last} 16`} fill="none" stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
       )}
       {points.map((x) => (
-        <path
-          key={x}
-          d={`M ${x} 16 L ${x} 40`}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.2"
-          vectorEffect="non-scaling-stroke"
-        />
+        <path key={x} d={`M ${x} 16 L ${x} 40`} fill="none" stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
       ))}
     </svg>
   );
@@ -80,9 +61,7 @@ function TreeNode({
   selectedId,
   onSelect,
   canEdit,
-  onAddParent,
-  onAddChild,
-  onChangeParent,
+  onAddRelation,
 }) {
   const hasChildren = node.children.length > 0;
   const expanded = expandedIds.has(node.id);
@@ -130,9 +109,7 @@ function TreeNode({
               </AvatarFallback>
             </Avatar>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-semibold">
-                {label}
-              </span>
+              <span className="block truncate text-sm font-semibold">{label}</span>
               <span className="mt-0.5 block truncate text-xs text-muted-foreground">
                 {formatGovernanceType(node)}
               </span>
@@ -142,9 +119,7 @@ function TreeNode({
 
         {actions && (
           <MenuButton
-            onAddParent={() => onAddParent?.(node)}
-            onAddChild={() => onAddChild?.(node)}
-            onChangeParent={() => onChangeParent?.(node)}
+            onAddRelation={() => onAddRelation?.(node)}
           />
         )}
 
@@ -156,17 +131,9 @@ function TreeNode({
               onToggle(node.id);
             }}
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
-            aria-label={
-              expanded
-                ? `Collapse ${getGovernanceLabel(node)}`
-                : `Expand ${getGovernanceLabel(node)}`
-            }
+            aria-label={expanded ? `Collapse ${getGovernanceLabel(node)}` : `Expand ${getGovernanceLabel(node)}`}
           >
-            {expanded ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronRight className="h-4 w-4" />
-            )}
+            {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </button>
         )}
       </div>
@@ -184,9 +151,7 @@ function TreeNode({
                 selectedId={selectedId}
                 onSelect={onSelect}
                 canEdit={canEdit}
-                onAddParent={onAddParent}
-                onAddChild={onAddChild}
-                onChangeParent={onChangeParent}
+                onAddRelation={onAddRelation}
               />
             ))}
           </ul>
@@ -203,14 +168,10 @@ export default function GovernanceFamilyTree({
   className,
   initialExpandedIds = [],
   canEdit = false,
-  onAddParent,
-  onAddChild,
-  onChangeParent,
+  onAddRelation,
 }) {
   const roots = useMemo(() => buildGovernanceTree(records), [records]);
-  const [expandedIds, setExpandedIds] = useState(
-    () => new Set(initialExpandedIds),
-  );
+  const [expandedIds, setExpandedIds] = useState(() => new Set(initialExpandedIds));
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
 
   useEffect(() => {
@@ -224,95 +185,49 @@ export default function GovernanceFamilyTree({
     });
   }, [records, selectedId, roots, initialExpandedIds]);
 
-  const toggle = (id) =>
-    setExpandedIds((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-
   const changeZoom = (delta) => {
     setZoom((current) =>
-      Math.min(
-        MAX_ZOOM,
-        Math.max(MIN_ZOOM, Number((current + delta).toFixed(2))),
-      ),
+      Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Number((current + delta).toFixed(2)))),
     );
   };
 
   if (!roots.length) return null;
 
   return (
-    <div
-      className={cn(
-        "relative h-full w-full overflow-auto rounded-2xl border bg-background/50",
-        className,
-      )}
-    >
+    <div className={cn("relative h-full w-full overflow-auto rounded-2xl border bg-background/50", className)}>
       <div className="absolute right-3 top-3 z-20 flex items-center rounded-lg border bg-background/95 p-1 shadow-sm backdrop-blur">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => changeZoom(-ZOOM_STEP)}
-          disabled={zoom <= MIN_ZOOM}
-          aria-label="Zoom out"
-        >
+        <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => changeZoom(-ZOOM_STEP)} disabled={zoom <= MIN_ZOOM} aria-label="Zoom out">
           <Minus className="h-4 w-4" />
         </Button>
-        <button
-          type="button"
-          className="min-w-[3.5rem] px-2 text-xs font-medium tabular-nums text-muted-foreground hover:text-foreground"
-          onClick={() => setZoom(DEFAULT_ZOOM)}
-          aria-label="Reset zoom"
-          title="Reset zoom"
-        >
+        <button type="button" className="min-w-[3.5rem] px-2 text-xs font-medium tabular-nums text-muted-foreground hover:text-foreground" onClick={() => setZoom(DEFAULT_ZOOM)} aria-label="Reset zoom" title="Reset zoom">
           {Math.round(zoom * 100)}%
         </button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => changeZoom(ZOOM_STEP)}
-          disabled={zoom >= MAX_ZOOM}
-          aria-label="Zoom in"
-        >
+        <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => changeZoom(ZOOM_STEP)} disabled={zoom >= MAX_ZOOM} aria-label="Zoom in">
           <Plus className="h-4 w-4" />
         </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => setZoom(DEFAULT_ZOOM)}
-          disabled={zoom === DEFAULT_ZOOM}
-          aria-label="Reset zoom"
-        >
+        <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => setZoom(DEFAULT_ZOOM)} disabled={zoom === DEFAULT_ZOOM} aria-label="Reset zoom">
           <RotateCcw className="h-4 w-4" />
         </Button>
       </div>
 
       <div className="min-h-full min-w-max p-8 pt-14 sm:p-12 sm:pt-16">
-        <div
-          className="origin-top-left transition-transform duration-150"
-          style={{ transform: `scale(${zoom})` }}
-        >
+        <div className="origin-top-left transition-transform duration-150" style={{ transform: `scale(${zoom})` }}>
           <ul className="flex items-start justify-center gap-10">
             {roots.map((root) => (
               <TreeNode
                 key={root.id}
                 node={root}
                 expandedIds={expandedIds}
-                onToggle={toggle}
+                onToggle={(id) => setExpandedIds((current) => {
+                  const next = new Set(current);
+                  if (next.has(id)) next.delete(id);
+                  else next.add(id);
+                  return next;
+                })}
                 selectedId={selectedId}
                 onSelect={onSelect}
                 canEdit={canEdit}
-                onAddParent={onAddParent}
-                onAddChild={onAddChild}
-                onChangeParent={onChangeParent}
+                onAddRelation={onAddRelation}
               />
             ))}
           </ul>
