@@ -98,9 +98,30 @@ export default function GovernanceRelationDialog({ open, onOpenChange, mode = "a
             {isEdit ? (
               <>
                 <div className="rounded-lg border bg-muted/30 p-3 text-sm"><span className="font-medium">{getGovernanceLabel(sourceEntity)}</span><span className="mx-1 text-muted-foreground">·</span><span className="text-muted-foreground">manage reporting relationships</span></div>
-                <div className="space-y-2"><div className="text-xs font-medium text-muted-foreground">Parent</div><div className="flex items-center gap-2 rounded-lg border p-3"><span className="min-w-0 flex-1 truncate text-sm">{sourceEntity?.parent_id ? getGovernanceLabel(filtered.find((item) => item.id === sourceEntity.parent_id)) || "Current parent" : "No parent"}</span><Button type="button" variant="outline" size="sm" onClick={() => { setExistingId(sourceEntity.parent_id || "none"); setStep("edit-parent"); }}>Change</Button></div></div>
-                <div className="space-y-2"><div className="text-xs font-medium text-muted-foreground">Children</div>{childEntities.length ? childEntities.map((child) => <div key={child.id} className="flex items-center gap-2 rounded-lg border p-3"><span className="min-w-0 flex-1 truncate text-sm">{getGovernanceLabel(child)}</span><Button type="button" variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => removeChild(child.id)} disabled={saving}><Trash2 className="mr-1.5 h-4 w-4" />Remove</Button></div>) : <p className="text-sm text-muted-foreground">No child relations.</p>}</div>
-                {step === "edit-parent" && <Field label="Parent"><Select value={existingId} onValueChange={setExistingId}><SelectTrigger><SelectValue placeholder="Choose a parent" /></SelectTrigger><SelectContent className="max-h-72"><SelectItem value="none">No parent — make independent</SelectItem>{filtered.map((item) => <SelectItem key={item.id} value={item.id}>{getGovernanceLabel(item)}</SelectItem>)}</SelectContent></Select></Field>}
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-muted-foreground">Parent</div>
+                  <div className="flex items-center gap-2 rounded-lg border p-3">
+                    <span className="min-w-0 flex-1 truncate text-sm">{sourceEntity?.parent_id ? getGovernanceLabel(filtered.find((item) => item.id === sourceEntity.parent_id)) || "Current parent" : "No parent"}</span>
+                    <Button type="button" variant="outline" size="sm" onClick={() => { setExistingId(sourceEntity.parent_id || "none"); setStep("edit-parent"); }}>Change</Button>
+                  </div>
+                  {step === "edit-parent" && (
+                    <div className="pt-2">
+                      <Field label="New parent">
+                        <Select value={existingId} onValueChange={setExistingId}>
+                          <SelectTrigger><SelectValue placeholder="Choose a parent" /></SelectTrigger>
+                          <SelectContent className="max-h-72">
+                            <SelectItem value="none">No parent — make independent</SelectItem>
+                            {filtered.map((item) => <SelectItem key={item.id} value={item.id}>{getGovernanceLabel(item)}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </Field>
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-muted-foreground">Children</div>
+                  {childEntities.length ? childEntities.map((child) => <div key={child.id} className="flex items-center gap-2 rounded-lg border p-3"><span className="min-w-0 flex-1 truncate text-sm">{getGovernanceLabel(child)}</span><Button type="button" variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => removeChild(child.id)} disabled={saving}><Trash2 className="mr-1.5 h-4 w-4" />Remove</Button></div>) : <p className="text-sm text-muted-foreground">No child relations.</p>}
+                </div>
               </>
             ) : step === "relation" ? (
               <div className="space-y-3"><p className="text-sm text-muted-foreground">How should the new relation connect to this entity?</p><div className="grid gap-3 sm:grid-cols-2"><Button type="button" variant="outline" className="h-auto justify-start p-4 text-left" onClick={() => chooseRelation("parent-of")}><div><div className="font-medium">Parent of</div><div className="mt-1 text-xs text-muted-foreground">Connect an entity that reports to this one.</div></div></Button><Button type="button" variant="outline" className="h-auto justify-start p-4 text-left" onClick={() => chooseRelation("child-of")}><div><div className="font-medium">Child of</div><div className="mt-1 text-xs text-muted-foreground">Connect this entity to the entity it reports to.</div></div></Button></div></div>
