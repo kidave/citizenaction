@@ -19,6 +19,7 @@ export default function MenuButton({
   onDelete,
   onAddParent,
   onAddChild,
+  onAddGeography,
   onChangeParent,
   editLabel = "Edit",
   deleteLabel = "Delete",
@@ -43,26 +44,60 @@ export default function MenuButton({
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end">
-          {onEdit && <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onEdit); }}>{editLabel}</DropdownMenuItem>}
-          {onAddParent && <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onAddParent); }}>Add parent</DropdownMenuItem>}
-          {onAddChild && <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onAddChild); }}>Add child</DropdownMenuItem>}
-          {onChangeParent && <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onChangeParent); }}>Change parent</DropdownMenuItem>}
-          {onDelete && <DropdownMenuItem className="text-red-500" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); setConfirmOpen(true); }}>{deleteLabel}</DropdownMenuItem>}
+          {onEdit && (
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onEdit); }}>
+              {editLabel}
+            </DropdownMenuItem>
+          )}
+          {onAddParent && (
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onAddParent); }}>
+              Add parent
+            </DropdownMenuItem>
+          )}
+          {onAddChild && (
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onAddChild); }}>
+              Add child
+            </DropdownMenuItem>
+          )}
+          {onAddGeography && (
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onAddGeography); }}>
+              Add geography
+            </DropdownMenuItem>
+          )}
+          {onChangeParent && (
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onChangeParent); }}>
+              Change parent
+            </DropdownMenuItem>
+          )}
+          {onDelete && (
+            <DropdownMenuItem
+              className="text-red-500"
+              onClick={(e) => {
+                e.stopPropagation();
+                setMenuOpen(false);
+                setConfirmOpen(true);
+              }}
+            >
+              {deleteLabel}
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {onDelete && <ConfirmDialog
-        open={confirmOpen}
-        onOpenChange={setConfirmOpen}
-        title={deleteTitle}
-        description={deleteDescription}
-        confirmText="Delete"
-        onConfirm={(e) => {
-          e?.stopPropagation();
-          onDelete?.();
-          setConfirmOpen(false);
-        }}
-      />}
+      {onDelete && (
+        <ConfirmDialog
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          title={deleteTitle}
+          description={deleteDescription}
+          confirmText="Delete"
+          onConfirm={(e) => {
+            e?.stopPropagation();
+            onDelete?.();
+            setConfirmOpen(false);
+          }}
+        />
+      )}
     </>
   );
 }
