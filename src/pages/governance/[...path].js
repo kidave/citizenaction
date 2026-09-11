@@ -10,6 +10,7 @@ import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import GovernanceRelationDialog from "@/components/governance/GovernanceRelationDialog";
 import { useGovernanceCatalog } from "@/hooks/governance/useGovernanceCatalog";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
+import { useGovernanceGeographyMutation } from "@/hooks/geography/useGovernanceGeography";
 import { supabase } from "@/lib/supabase/client";
 import { getGovernanceHref, getGovernanceLabel } from "@/utils/governance";
 
@@ -34,6 +35,7 @@ export default function GovernanceRecordPage() {
   const year = Number(router.query.year) || new Date().getFullYear();
   const asOf = `${year}-12-31T23:59:59.999Z`;
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalEntity, setModalEntity] = useState(null);
   const [relationOpen, setRelationOpen] = useState(false);
   const [relationMode, setRelationMode] = useState("add-relation");
   const [relationSource, setRelationSource] = useState(null);
@@ -43,12 +45,13 @@ export default function GovernanceRecordPage() {
   const { data: profile } = useMyProfile();
   const canEdit = profile?.role === "admin";
   const { categories = [] } = useGovernanceCatalog({ enabled: canEdit });
+  const { setGeography, removeGeography } = useGovernanceGeographyMutation();
+
   const governanceQuery = useQuery({ queryKey: ["governance", "record", slug], enabled: !!slug, queryFn: () => getGovernanceBySlug(slug) });
   const governance = governanceQuery.data;
 
   const { data: family = [], isLoading: familyLoading } = useQuery({
-    queryKey: ["governance-family"],
-    enabled: !!slug && !!governance,
+    queryKey: ["governance-family"], enabled: !!slug && !!governance,
     queryFn: async () => {
       const result = await supabase.rpc("get_governance_directory", { p_search: null, p_parent_id: null, p_entity_type: null, p_limit: 500, p_include_all: true });
       if (!result || result.error) throw result?.error || new Error("Unable to load governance tree");
@@ -58,70 +61,38 @@ export default function GovernanceRecordPage() {
 
   const byId = useMemo(() => new Map(family.map((item) => [item.id, item])), [family]);
   const selectedId = governance?.id || null;
+  const currentEntity = modalEntity || governance;
   const lineage = useMemo(() => {
     if (!governance) return [];
-    const result = [];
-    let current = governance;
-    const seen = new Set();
-    while (current && !seen.has(current.id)) {
-      seen.add(current.id);
-      result.unshift(current);
-      current = current.parent_id ? byId.get(current.parent_id) : null;
-    }
+    const result = []; let current = governance; const seen = new Set();
+    while (current && !seen.has(current.id)) { seen.add(current.id); result.unshift(current); current = current.parent_id ? byId.get(current.parent_id) : null; }
     return result;
   }, [governance, byId]);
 
   const treeRecords = useMemo(() => {
     if (!governance || !family.length) return [];
     const parentById = new Map(family.map((entity) => [entity.id, entity.parent_id || null]));
-    let rootId = governance.id;
-    const seenAncestors = new Set();
-    while (parentById.get(rootId) && !seenAncestors.has(rootId)) {
-      seenAncestors.add(rootId);
-      rootId = parentById.get(rootId);
-    }
-    const ids = new Set([rootId]);
-    const queue = [rootId];
-    const childrenByParent = new Map();
-    family.forEach((entity) => {
-      if (!entity.parent_id) return;
-      const children = childrenByParent.get(entity.parent_id) || [];
-      children.push(entity.id);
-      childrenByParent.set(entity.parent_id, children);
-    });
-    while (queue.length) {
-      const parentId = queue.shift();
-      (childrenByParent.get(parentId) || []).forEach((childId) => {
-        if (!ids.has(childId)) {
-          ids.add(childId);
-          queue.push(childId);
-        }
-      });
-    }
+    let rootId = governance.id; const seenAncestors = new Set();
+    while (parentById.get(rootId) && !seenAncestors.has(rootId)) { seenAncestors.add(rootId); rootId = parentById.get(rootId); }
+    const ids = new Set([rootId]); const queue = [rootId]; const childrenByParent = new Map();
+    family.forEach((entity) => { if (!entity.parent_id) return; const children = childrenByParent.get(entity.parent_id) || []; children.push(entity.id); childrenByParent.set(entity.parent_id, children); });
+    while (queue.length) { const parentId = queue.shift(); (childrenByParent.get(parentId) || []).forEach((childId) => { if (!ids.has(childId)) { ids.add(childId); queue.push(childId); } }); }
     return family.filter((entity) => ids.has(entity.id));
   }, [family, governance]);
 
   const selectEntity = async (entity) => {
     if (!entity?.slug) return;
-    const href = getGovernanceHref(entity);
-    if (!href) return;
-    setModalOpen(false);
+    const href = getGovernanceHref(entity); if (!href) return;
+    setModalEntity(entity); setModalOpen(true);
     await router.push(href, undefined, { shallow: true });
-    setModalOpen(true);
   };
 
-  const openRelation = (mode, entity) => {
-    setRelationMode(mode);
-    setRelationSource(entity);
-    setRelationOpen(true);
-  };
-
-  const openLeadership = (record = null) => {
-    setLeadershipRecord(record);
-    setLeadershipOpen(true);
-  };
+  const editEntity = (entity) => selectEntity(entity);
+  const openRelation = (mode, entity) => { setRelationMode(mode); setRelationSource(entity); setRelationOpen(true); };
+  const openLeadership = (record = null) => { setLeadershipRecord(record); setLeadershipOpen(true); };
 
   const handleChanged = async () => {
+    setModalEntity(null);
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["governance-family"] }),
       queryClient.invalidateQueries({ queryKey: ["governance-directory"] }),
@@ -131,52 +102,37 @@ export default function GovernanceRecordPage() {
   };
 
   const relationCandidates = family.filter((item) => item.id !== relationSource?.id);
+  const sourceWithChildren = relationSource ? { ...relationSource, parent_id: relationSource.parent_id || null } : null;
+  const relationChildren = relationSource ? family.filter((item) => item.parent_id === relationSource.id) : [];
 
-  const removeRelation = async (entity) => {
+  const openGeography = async (entity, geographyId = null) => {
     if (!entity?.id) return;
-    const result = await supabase.rpc("delete_governance_relation", { p_child_id: entity.id });
-    if (!result || result.error) throw result?.error || new Error("Unable to remove relation");
-    await handleChanged();
+    if (geographyId) await setGeography({ governanceId: entity.id, geographyId });
   };
 
-  const removeGeography = async (entity) => {
+  const removeEntityGeography = async (entity) => {
     if (!entity?.id) return;
-    const result = await supabase.rpc("clear_governance_jurisdiction", { p_entity_id: entity.id });
-    if (!result || result.error) throw result?.error || new Error("Unable to remove geography");
-    await handleChanged();
+    try { await removeGeography({ governanceId: entity.id }); await handleChanged(); } catch (error) { /* mutation surface reports its own error */ }
   };
 
-  const openGeography = (entity) => {
-    setModalOpen(true);
-    setRelationSource(entity);
+  const deleteEntityFromTree = async (entity) => {
+    if (!entity?.id) return;
+    try {
+      const result = await supabase.rpc("delete_governance", { p_id: entity.id });
+      if (result?.error) throw result.error;
+      await handleChanged();
+    } catch (error) { /* modal remains the authoritative delete UI */ }
   };
 
-  if (governanceQuery.isLoading || familyLoading) {
-    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Loading..." }]} /><main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading governance...</main></div>;
-  }
-
-  if (governanceQuery.error || !governance) {
-    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Not found" }]} /><main className="flex flex-1 items-center justify-center text-sm">Governance record not found.</main></div>;
-  }
+  if (governanceQuery.isLoading || familyLoading) return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Loading..." }]} /><main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading governance...</main></div>;
+  if (governanceQuery.error || !governance) return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Not found" }]} /><main className="flex flex-1 items-center justify-center text-sm">Governance record not found.</main></div>;
 
   return (
     <div className="flex min-h-dvh w-full flex-col">
       <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, ...lineage.slice(0, -1).map((item) => ({ label: getGovernanceLabel(item), href: getGovernanceHref(item) })), { label: getGovernanceLabel(governance) }, ...(view === "organization" ? [{ label: "Organization" }] : [])]} />
-      <main className="min-h-0 flex-1">
+      <main className="min-h-0 flex-1 p-0">
         {view === "organization" ? (
-          <GovernanceOrganizationTree
-            governanceId={governance.id}
-            asOf={asOf}
-            canEdit={canEdit}
-            onAdd={() => openLeadership()}
-            onEdit={(record) => openLeadership(record)}
-            onOpen={() => setModalOpen(true)}
-            onSelect={(record) => {
-              const target = record.position_governance_id ? byId.get(record.position_governance_id) : record.person_governance_id ? byId.get(record.person_governance_id) : null;
-              if (target) selectEntity(target);
-            }}
-            className="min-h-[calc(100vh-4.25rem)]"
-          />
+          <GovernanceOrganizationTree governanceId={governance.id} asOf={asOf} canEdit={canEdit} onAdd={() => openLeadership()} onEdit={(record) => openLeadership(record)} onSelect={(record) => { const target = record.position_governance_id ? byId.get(record.position_governance_id) : record.person_governance_id ? byId.get(record.person_governance_id) : null; if (target) selectEntity(target); }} className="min-h-[calc(100vh-5.5rem)]" />
         ) : (
           <GovernanceFamilyTree
             records={treeRecords}
@@ -184,25 +140,25 @@ export default function GovernanceRecordPage() {
             initialExpandedIds={lineage.map((item) => item.id)}
             onSelect={selectEntity}
             canEdit={canEdit}
-            onOpenOrganization={(entity) => router.push({ pathname: getGovernanceHref(entity), query: { view: "organization" } })}
-            onEdit={(entity) => { setModalOpen(false); selectEntity(entity); }}
+            onOpenOrganization={(entity) => { const href = getGovernanceHref(entity); if (href) router.push({ pathname: href, query: { view: "organization" } }); }}
+            onEdit={editEntity}
             onAddRelation={(entity) => openRelation("add-relation", entity)}
-            onEditRelations={(entity) => openRelation("change-parent", entity)}
-            onAddGeography={(entity) => openGeography(entity)}
-            onChangeGeography={(entity) => openGeography(entity)}
-            onRemoveGeography={removeGeography}
-            onDelete={async (entity) => { setModalOpen(true); await selectEntity(entity); }}
-            className="min-h-[calc(100vh-4.25rem)]"
+            onEditRelations={(entity) => openRelation("edit-relations", entity)}
+            onAddGeography={(entity) => selectEntity(entity)}
+            onChangeGeography={(entity) => selectEntity(entity)}
+            onRemoveGeography={removeEntityGeography}
+            onDelete={(entity) => selectEntity(entity)}
+            className="min-h-[calc(100vh-5.5rem)]"
           />
         )}
       </main>
 
       <GovernanceEntityModal
         open={modalOpen}
-        onOpenChange={setModalOpen}
-        entity={governance}
-        parent={governance.parent_id ? byId.get(governance.parent_id) || null : null}
-        childEntities={family.filter((entity) => entity.parent_id === governance.id)}
+        onOpenChange={(value) => { setModalOpen(value); if (!value) setModalEntity(null); }}
+        entity={currentEntity}
+        parent={currentEntity?.parent_id ? byId.get(currentEntity.parent_id) || null : null}
+        childEntities={currentEntity ? family.filter((entity) => entity.parent_id === currentEntity.id) : []}
         canEdit={canEdit}
         onSelect={selectEntity}
         onSaved={handleChanged}
@@ -211,17 +167,9 @@ export default function GovernanceRecordPage() {
         categories={categories}
       />
 
-      <GovernanceRelationDialog open={relationOpen} onOpenChange={setRelationOpen} mode={relationMode} sourceEntity={relationSource} candidates={relationCandidates} categories={categories} onCompleted={handleChanged} />
+      <GovernanceRelationDialog open={relationOpen} onOpenChange={setRelationOpen} mode={relationMode} sourceEntity={sourceWithChildren} candidates={relationCandidates} children={relationChildren} categories={categories} onCompleted={handleChanged} />
 
-      <GovernanceLeadershipDialog
-        open={leadershipOpen}
-        onOpenChange={setLeadershipOpen}
-        governanceId={governance.id}
-        record={leadershipRecord}
-        candidates={family}
-        records={queryClient.getQueryData(["governance-organization", governance.id]) || []}
-        onSaved={handleChanged}
-      />
+      <GovernanceLeadershipDialog open={leadershipOpen} onOpenChange={setLeadershipOpen} governanceId={governance.id} record={leadershipRecord} candidates={family} records={queryClient.getQueryData(["governance-organization", governance.id]) || []} onSaved={handleChanged} />
     </div>
   );
 }
