@@ -72,6 +72,20 @@ const UNIT_TYPE_BY_ENTITY_TYPE = {
 export function getGovernanceHref(entity) {
   if (!entity) return null;
   if (entity.path) return entity.path;
+
+  if (entity.entity_type === "person") {
+    return entity.slug ? `/governance/person/${entity.slug}` : null;
+  }
+
+  if (entity.entity_type === "position") {
+    const organizationSlug = entity.organization_slug || entity.parent_slug;
+    return entity.slug && organizationSlug
+      ? `/governance/${organizationSlug}/${entity.slug}`
+      : entity.slug
+        ? `/governance/${entity.slug}`
+        : null;
+  }
+
   return entity.slug ? `/governance/${entity.slug}` : null;
 }
 
