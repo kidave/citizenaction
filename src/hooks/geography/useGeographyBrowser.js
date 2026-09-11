@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 
+const geographyGeometryCache = new Map();
+
 export function useGeographyBrowser({
   parentId = null,
   search = "",
@@ -40,6 +42,29 @@ export function useGeographyBrowser({
 }
 
 export async function fetchGeographyGeometry(geography) {
+  const geographyId = geography?.id;
+
+  if (!geographyId) return null;
+
+  if (geographyGeometryCache.has(geographyId)) {
+    return geographyGeometryCache.get(geographyId);
+  }
+
+  const { data, error } = await supabase.rpc("get_geography_geometry", {
+    p_geography_id: geographyId,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  if (data) {
+    geographyGeometryCache.set(geographyId, data);
+    return data;
+  }
+
+  // Keep the existing OSM lookup as a fallback for newly imported
+  // boundaries that have not been backfilled into geographies.geom yet.
   if (!geography?.osm_type || !geography?.osm_id) return null;
 
   const response = await fetch(
@@ -52,6 +77,12 @@ export async function fetchGeographyGeometry(geography) {
     throw new Error("Boundary lookup failed");
   }
 
-  const data = await response.json();
-  return data?.feature?.geometry || null;
+  const fallbackData = await response.json();
+  const geometry = fallbackData?.feature?.geometry || null;
+
+  if (geometry) {
+    geographyGeometryCache.set(geographyId, geometry);
+  }
+
+  return geometry;
 }
