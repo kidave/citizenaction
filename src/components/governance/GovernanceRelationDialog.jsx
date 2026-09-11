@@ -59,13 +59,7 @@ export default function GovernanceRelationDialog({ open, onOpenChange, mode = "a
         : null
     : mode;
 
-  const title = effectiveMode === "add-child"
-    ? "Add relation"
-    : effectiveMode === "add-parent"
-      ? "Add relation"
-      : effectiveMode === "change-parent"
-        ? "Edit relations"
-        : "Add relation";
+  const title = effectiveMode === "change-parent" ? "Edit relations" : "Add relation";
 
   const relationDescription = relationType === "parent-of"
     ? "parent of"
@@ -80,6 +74,17 @@ export default function GovernanceRelationDialog({ open, onOpenChange, mode = "a
     setName("");
   };
 
+  const goToTargetChoice = () => {
+    setStep("choose");
+    setExistingId("");
+    setName("");
+  };
+
+  const chooseRelation = (type) => {
+    setRelationType(type);
+    goToTargetChoice();
+  };
+
   const save = async () => {
     if (!sourceEntity?.id) return;
 
@@ -87,29 +92,24 @@ export default function GovernanceRelationDialog({ open, onOpenChange, mode = "a
       setSaving(true);
 
       if (effectiveMode === "change-parent") {
+        if (!existingId) return toast.error("Choose a parent");
+
         const result = await supabase.rpc("set_governance_parent", {
           p_child_id: sourceEntity.id,
-          p_parent_id: existingId === "none" ? null : existingId || null,
+          p_parent_id: existingId === "none" ? null : existingId,
         });
         if (!result || result.error) throw result?.error || new Error("Unable to edit relation");
         toast.success(existingId === "none" ? "Entity is now independent" : "Parent updated");
-      } else if (step === "choose-relation") {
-        return;
-      } else if (!effectiveMode) {
-        toast.error("Choose a relation type");
-        return;
-      } else if (step === "choose") {
-        setStep("existing");
-        return;
       } else if (step === "existing") {
         if (!existingId) return toast.error("Choose an entity");
+
         const result = await supabase.rpc("set_governance_parent", {
           p_child_id: effectiveMode === "add-child" ? existingId : sourceEntity.id,
           p_parent_id: effectiveMode === "add-child" ? sourceEntity.id : existingId,
         });
         if (!result || result.error) throw result?.error || new Error("Unable to update governance relationship");
         toast.success("Governance relationship updated");
-      } else {
+      } else if (step === "create") {
         if (!name.trim()) return toast.error("Name is required");
         if (!validFrom) return toast.error("Valid from is required");
         if (["inactive", "deprecated"].includes(status) && !validTo) return toast.error("Add Valid to when the entity becomes inactive");
@@ -131,6 +131,9 @@ export default function GovernanceRelationDialog({ open, onOpenChange, mode = "a
         const result = await supabase.rpc(rpc, payload);
         if (!result || result.error) throw result?.error || new Error("Unable to create governance entity");
         toast.success("Governance relationship updated");
+      } else {
+        toast.error("Choose how this relation should be connected");
+        return;
       }
 
       await onCompleted?.();
@@ -142,10 +145,8 @@ export default function GovernanceRelationDialog({ open, onOpenChange, mode = "a
     }
   };
 
-  const chooseRelation = (type) => {
-    setRelationType(type);
-    setStep("choose");
-  };
+  const canContinue = step === "choose";
+  const actionLabel = step === "existing" ? "Save relation" : step === "create" ? "Create relation" : "Continue";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -161,28 +162,36 @@ export default function GovernanceRelationDialog({ open, onOpenChange, mode = "a
           <div className="rounded-lg border bg-muted/30 p-3 text-sm">
             <span className="font-medium">{getGovernanceLabel(sourceEntity)}</span>
             <span className="mx-1 text-muted-foreground">·</span>
-            <span className="text-muted-foreground">choose its relation</span>
+            <span className="text-muted-foreground">
+              {effectiveMode === "change-parent" ? "change its parent" : "choose its relation"}
+            </span>
           </div>
 
-          {step === "choose-relation" ? (
+          {step === "choose-relation" && effectiveMode !== "change-parent" ? (
             <div className="grid gap-3 sm:grid-cols-2">
               <Button type="button" variant="outline" className="h-auto justify-start p-4 text-left" onClick={() => chooseRelation("parent-of")}>
                 <div>
                   <div className="font-medium">Parent of</div>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    Choose or create the entity that reports to this one.
-                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">Choose or create the entity that reports to this one.</div>
                 </div>
               </Button>
               <Button type="button" variant="outline" className="h-auto justify-start p-4 text-left" onClick={() => chooseRelation("child-of")}>
                 <div>
                   <div className="font-medium">Child of</div>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    Choose or create the entity this one reports to.
-                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">Choose or create the entity this one reports to.</div>
                 </div>
               </Button>
             </div>
+          ) : effectiveMode === "change-parent" ? (
+            <Field label="Parent">
+              <Select value={existingId} onValueChange={setExistingId}>
+                <SelectTrigger><SelectValue placeholder="Choose a parent" /></SelectTrigger>
+                <SelectContent className="max-h-72">
+                  <SelectItem value="none">No parent — make independent</SelectItem>
+                  {filtered.map((item) => <SelectItem key={item.id} value={item.id}>{getGovernanceLabel(item)}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </Field>
           ) : (
             <>
               <div className="rounded-lg border bg-muted/30 p-3 text-sm">
@@ -191,17 +200,7 @@ export default function GovernanceRelationDialog({ open, onOpenChange, mode = "a
                 <span className="text-muted-foreground">{relationDescription}</span>
               </div>
 
-              {effectiveMode === "change-parent" ? (
-                <Field label="Parent">
-                  <Select value={existingId} onValueChange={setExistingId}>
-                    <SelectTrigger><SelectValue placeholder="Choose a parent" /></SelectTrigger>
-                    <SelectContent className="max-h-72">
-                      <SelectItem value="none">No parent — make independent</SelectItem>
-                      {filtered.map((item) => <SelectItem key={item.id} value={item.id}>{getGovernanceLabel(item)}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </Field>
-              ) : step === "choose" ? (
+              {step === "choose" ? (
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Button type="button" variant="outline" className="h-auto justify-start p-4 text-left" onClick={() => setStep("existing")}>
                     <div><div className="font-medium">Use an existing entity</div><div className="mt-1 text-xs text-muted-foreground">Connect a record already in Governance.</div></div>
@@ -238,26 +237,21 @@ export default function GovernanceRelationDialog({ open, onOpenChange, mode = "a
         </div>
 
         <DialogFooter>
-          {step !== "choose-relation" && mode === "add-relation" && (
-            <Button type="button" variant="ghost" onClick={resetToRelationChoice} disabled={saving}>
+          {step !== "choose-relation" && (mode === "add-relation" || mode === "change-parent") && (
+            <Button type="button" variant="ghost" onClick={mode === "add-relation" ? resetToRelationChoice : () => { setExistingId(""); setStep("parent"); }} disabled={saving}>
               <ArrowLeft className="mr-2 h-4 w-4" />Back
             </Button>
           )}
-          {step !== "choose-relation" && mode !== "change-parent" && (
-            <Button type="button" variant="ghost" onClick={() => setStep(step === "existing" || step === "create" ? "choose" : "choose-relation")} disabled={saving}>
-              Back
-            </Button>
-          )}
-          {step !== "choose-relation" && mode !== "change-parent" && (
-            <Button type="button" onClick={save} disabled={saving}>
-              {saving ? "Saving..." : <><Plus className="mr-2 h-4 w-4" />Continue</>}
-            </Button>
-          )}
-          {mode === "change-parent" && (
+
+          {mode === "change-parent" ? (
             <Button type="button" onClick={save} disabled={saving || !existingId}>
               {saving ? "Saving..." : "Save relation"}
             </Button>
-          )}
+          ) : step === "choose" || step === "existing" || step === "create" ? (
+            <Button type="button" onClick={save} disabled={saving || (step === "existing" && !existingId)}>
+              {saving ? "Saving..." : actionLabel}
+            </Button>
+          ) : null}
         </DialogFooter>
       </DialogContent>
     </Dialog>
