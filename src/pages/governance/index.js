@@ -47,7 +47,7 @@ export default function GovernancePage() {
   const [categoryId, setCategoryId] = useState("all");
   const [geographyId, setGeographyId] = useState("all");
 
-  const { categories = [] } = useGovernanceCatalog({ enabled: true });
+  const { categories = [], isLoading: categoriesLoading } = useGovernanceCatalog({ enabled: true });
   const geographiesQuery = useGovernanceDirectoryGeographies({ enabled: true });
   const governanceQuery = useGovernanceDirectory({
     tab,
@@ -67,6 +67,8 @@ export default function GovernancePage() {
     setCategoryId("all");
     setGeographyId("all");
   };
+
+  const filterOptionsLoading = categoriesLoading || geographiesQuery.isLoading;
 
   return (
     <div className="flex min-h-dvh w-full flex-col">
@@ -103,7 +105,7 @@ export default function GovernancePage() {
                 />
               </div>
 
-              <Select value={entityType} onValueChange={setEntityType}>
+              <Select value={entityType} onValueChange={setEntityType} disabled={tab !== "entities"}>
                 <SelectTrigger className="h-9">
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
@@ -117,7 +119,7 @@ export default function GovernancePage() {
                 </SelectContent>
               </Select>
 
-              <Select value={categoryId} onValueChange={setCategoryId}>
+              <Select value={categoryId} onValueChange={setCategoryId} disabled={filterOptionsLoading}>
                 <SelectTrigger className="h-9">
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
@@ -131,7 +133,7 @@ export default function GovernancePage() {
                 </SelectContent>
               </Select>
 
-              <Select value={geographyId} onValueChange={setGeographyId}>
+              <Select value={geographyId} onValueChange={setGeographyId} disabled={filterOptionsLoading}>
                 <SelectTrigger className="h-9">
                   <SelectValue placeholder="Location" />
                 </SelectTrigger>
