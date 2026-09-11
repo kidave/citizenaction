@@ -2,11 +2,18 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { ArrowLeft, Check, ChevronRight, Loader2, MapPin, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import {
@@ -137,14 +144,21 @@ export default function AddGeographyDialog({
   const handleAdd = async () => {
     if (!selected || existingIds.has(selected.id)) return;
 
-    const saved = await addGeography({
-      governanceId,
-      geographyId: selected.id,
-      isPrimary: relationships.length === 0,
-    });
+    try {
+      const saved = await addGeography({
+        governanceId,
+        geographyId: selected.id,
+        isPrimary: relationships.length === 0,
+      });
 
-    onAdded?.(saved);
-    onOpenChange?.(false);
+      onAdded?.(saved);
+      toast.success("Geography added");
+      onOpenChange?.(false);
+    } catch (error) {
+      toast.error(
+        error?.message || "Unable to add geography",
+      );
+    }
   };
 
   const center = selected?.center || {
@@ -191,9 +205,14 @@ export default function AddGeographyDialog({
                   </button>
 
                   {path.slice(1).map((item) => (
-                    <span key={item.id} className="flex min-w-0 items-center gap-1">
+                    <span
+                      key={item.id}
+                      className="flex min-w-0 items-center gap-1"
+                    >
                       <ChevronRight className="h-3 w-3 shrink-0" />
-                      <span className="truncate">{geographyLabel(item)}</span>
+                      <span className="truncate">
+                        {geographyLabel(item)}
+                      </span>
                     </span>
                   ))}
                 </div>
@@ -287,7 +306,13 @@ export default function AddGeographyDialog({
                 boundaries={mapBoundary}
                 selectedBoundaryId={selected?.osm_id || null}
                 showMarker={false}
-                zoom={selected?.admin_level <= 4 ? 6 : selected?.admin_level === 5 ? 9 : 11}
+                zoom={
+                  selected?.admin_level <= 4
+                    ? 6
+                    : selected?.admin_level === 5
+                      ? 9
+                      : 11
+                }
                 onChange={() => {}}
                 onBoundaryClick={() => {}}
               />
@@ -300,7 +325,7 @@ export default function AddGeographyDialog({
               )}
 
               {!selected && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                   <div className="rounded-lg border bg-background/90 px-4 py-3 text-center text-sm shadow-sm">
                     Select a boundary to preview it on the map.
                   </div>
