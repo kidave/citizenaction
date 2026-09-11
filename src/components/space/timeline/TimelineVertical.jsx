@@ -25,7 +25,7 @@ export default function TimelineVertical({
             Months
           </div>
 
-          <div className="mt-3 max-h-[70vh] overflow-y-auto pr-1">
+          <div className="max-h-auto mt-3 overflow-y-auto pr-1">
             <TimelineFilters
               months={monthMarkers}
               activeMonth={activeMonth}

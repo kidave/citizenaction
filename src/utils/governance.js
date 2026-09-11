@@ -61,7 +61,11 @@ export function getGovernanceHref(entity) {
 }
 
 export function getGovernanceLabel(entity) {
-  return entity?.name || entity?.label || "Governance";
+  return entity?.short_name || entity?.name || "Governance";
+}
+
+export function getGovernanceName(entity) {
+  return entity?.name || entity?.short_name || "Governance";
 }
 
 export function getGovernanceTreeLabel(entity) {
@@ -69,14 +73,27 @@ export function getGovernanceTreeLabel(entity) {
 }
 
 export function formatGovernanceType(value) {
-  const type = typeof value === "string" ? value : value?.unit_type && value.unit_type !== "authority" ? value.unit_type : value?.entity_type;
+  const type =
+    typeof value === "string"
+      ? value
+      : value?.unit_type && value.unit_type !== "authority"
+        ? value.unit_type
+        : value?.entity_type;
   if (!type) return "Governance";
   if (type === "other") return "Organisation";
   return type.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 export function getGovernanceInitials(value) {
-  return value?.split(" ").filter(Boolean).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "G";
+  return (
+    value
+      ?.split(" ")
+      .filter(Boolean)
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "G"
+  );
 }
 
 export function getDefaultGovernanceUnitType(entityType) {
@@ -97,7 +114,11 @@ export function toGovernanceIsoEnd(value) {
 
 export function formatGovernanceDate(value) {
   if (!value) return null;
-  return new Date(value).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+  return new Date(value).toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 export function governanceRequiresValidTo(status) {
