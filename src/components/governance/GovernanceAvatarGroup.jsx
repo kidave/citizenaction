@@ -8,8 +8,12 @@ import {
   AvatarGroup,
 } from "@/components/ui/avatar";
 import EntityListSheet from "@/components/profile/EntityListSheet";
+import { getGovernanceInitials, getGovernanceLabel } from "@/utils/governance";
 
-export default function GovernanceAvatarGroup({ authorities = [], maxVisible = 5 }) {
+export default function GovernanceAvatarGroup({
+  authorities = [],
+  maxVisible = 5,
+}) {
   const [open, setOpen] = useState(false);
 
   if (!authorities?.length) return null;
@@ -35,9 +39,7 @@ export default function GovernanceAvatarGroup({ authorities = [], maxVisible = 5
             >
               <AvatarImage src={authority.image_url || undefined} />
               <AvatarFallback>
-                {(authority.short_name || authority.label || authority.name || "G")
-                  ?.charAt(0)
-                  ?.toUpperCase()}
+                {getGovernanceInitials(getGovernanceLabel(authority))}
               </AvatarFallback>
             </Avatar>
           ))}

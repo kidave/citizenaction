@@ -1,11 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, ChevronRight, Landmark, Minus, Plus, RotateCcw } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  Landmark,
+  Minus,
+  Plus,
+  RotateCcw,
+} from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import MenuButton from "@/components/ui/MenuButton";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
+  buildGovernanceTree,
+  getGovernanceAncestorIds,
   getGovernanceLabel,
   getGovernanceTreeLabel,
   formatGovernanceType,
@@ -18,45 +27,12 @@ const MAX_ZOOM = 1.4;
 const ZOOM_STEP = 0.1;
 const DEFAULT_ZOOM = 1;
 
-function buildTree(records) {
-  const nodes = new Map(
-    (records || []).map((record) => [record.id, { ...record, children: [] }]),
-  );
-  const roots = [];
-
-  nodes.forEach((node) => {
-    if (node.parent_id && nodes.has(node.parent_id)) nodes.get(node.parent_id).children.push(node);
-    else roots.push(node);
-  });
-
-  const sort = (items) => {
-    items.sort((a, b) => getGovernanceTreeLabel(a).localeCompare(getGovernanceTreeLabel(b)));
-    items.forEach((item) => sort(item.children));
-  };
-
-  sort(roots);
-  return roots;
-}
-
-function getAncestorIds(records, selectedId) {
-  if (!selectedId) return [];
-  const byId = new Map(records.map((record) => [record.id, record]));
-  const ids = [];
-  let current = byId.get(selectedId);
-  const seen = new Set();
-
-  while (current?.parent_id && !seen.has(current.parent_id)) {
-    seen.add(current.parent_id);
-    ids.push(current.parent_id);
-    current = byId.get(current.parent_id);
-  }
-
-  return ids;
-}
-
 function TreeConnector({ count }) {
   if (!count) return null;
-  const points = Array.from({ length: count }, (_, index) => ((index + 0.5) / count) * 100);
+  const points = Array.from(
+    { length: count },
+    (_, index) => ((index + 0.5) / count) * 100,
+  );
   const first = points[0];
   const last = points[points.length - 1];
 
@@ -67,14 +43,47 @@ function TreeConnector({ count }) {
       viewBox="0 0 100 40"
       preserveAspectRatio="none"
     >
-      <path d="M 50 0 L 50 16" fill="none" stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
-      {count > 1 && <path d={`M ${first} 16 L ${last} 16`} fill="none" stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />}
-      {points.map((x) => <path key={x} d={`M ${x} 16 L ${x} 40`} fill="none" stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />)}
+      <path
+        d="M 50 0 L 50 16"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        vectorEffect="non-scaling-stroke"
+      />
+      {count > 1 && (
+        <path
+          d={`M ${first} 16 L ${last} 16`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.2"
+          vectorEffect="non-scaling-stroke"
+        />
+      )}
+      {points.map((x) => (
+        <path
+          key={x}
+          d={`M ${x} 16 L ${x} 40`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.2"
+          vectorEffect="non-scaling-stroke"
+        />
+      ))}
     </svg>
   );
 }
 
-function TreeNode({ node, expandedIds, onToggle, selectedId, onSelect, canEdit, onAddParent, onAddChild, onChangeParent }) {
+function TreeNode({
+  node,
+  expandedIds,
+  onToggle,
+  selectedId,
+  onSelect,
+  canEdit,
+  onAddParent,
+  onAddChild,
+  onChangeParent,
+}) {
   const hasChildren = node.children.length > 0;
   const expanded = expandedIds.has(node.id);
   const selected = selectedId === node.id;
@@ -96,7 +105,9 @@ function TreeNode({ node, expandedIds, onToggle, selectedId, onSelect, canEdit, 
             title={getGovernanceLabel(node)}
           >
             <span className="block truncate text-sm font-medium">{label}</span>
-            <span className="mt-0.5 block truncate text-xs text-muted-foreground">{formatGovernanceType(node)}</span>
+            <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+              {formatGovernanceType(node)}
+            </span>
           </button>
         ) : (
           <button
@@ -111,12 +122,20 @@ function TreeNode({ node, expandedIds, onToggle, selectedId, onSelect, canEdit, 
             <Avatar className="h-10 w-10 shrink-0 rounded-lg">
               <AvatarImage src={node.image_url || undefined} alt="" />
               <AvatarFallback className="rounded-lg bg-muted">
-                {node.entity_type === "authority" ? <Landmark className="h-4 w-4" /> : getGovernanceInitials(label)}
+                {node.entity_type === "authority" ? (
+                  <Landmark className="h-4 w-4" />
+                ) : (
+                  getGovernanceInitials(label)
+                )}
               </AvatarFallback>
             </Avatar>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-semibold">{label}</span>
-              <span className="mt-0.5 block truncate text-xs text-muted-foreground">{formatGovernanceType(node)}</span>
+              <span className="block truncate text-sm font-semibold">
+                {label}
+              </span>
+              <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                {formatGovernanceType(node)}
+              </span>
             </span>
           </button>
         )}
@@ -137,9 +156,17 @@ function TreeNode({ node, expandedIds, onToggle, selectedId, onSelect, canEdit, 
               onToggle(node.id);
             }}
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
-            aria-label={expanded ? `Collapse ${getGovernanceLabel(node)}` : `Expand ${getGovernanceLabel(node)}`}
+            aria-label={
+              expanded
+                ? `Collapse ${getGovernanceLabel(node)}`
+                : `Expand ${getGovernanceLabel(node)}`
+            }
           >
-            {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            {expanded ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
           </button>
         )}
       </div>
@@ -180,12 +207,14 @@ export default function GovernanceFamilyTree({
   onAddChild,
   onChangeParent,
 }) {
-  const roots = useMemo(() => buildTree(records), [records]);
-  const [expandedIds, setExpandedIds] = useState(() => new Set(initialExpandedIds));
+  const roots = useMemo(() => buildGovernanceTree(records), [records]);
+  const [expandedIds, setExpandedIds] = useState(
+    () => new Set(initialExpandedIds),
+  );
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
 
   useEffect(() => {
-    const ancestors = getAncestorIds(records, selectedId);
+    const ancestors = getGovernanceAncestorIds(records, selectedId);
     setExpandedIds((current) => {
       const next = new Set(current);
       initialExpandedIds.forEach((id) => next.add(id));
@@ -195,21 +224,32 @@ export default function GovernanceFamilyTree({
     });
   }, [records, selectedId, roots, initialExpandedIds]);
 
-  const toggle = (id) => setExpandedIds((current) => {
-    const next = new Set(current);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    return next;
-  });
+  const toggle = (id) =>
+    setExpandedIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   const changeZoom = (delta) => {
-    setZoom((current) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Number((current + delta).toFixed(2)))));
+    setZoom((current) =>
+      Math.min(
+        MAX_ZOOM,
+        Math.max(MIN_ZOOM, Number((current + delta).toFixed(2))),
+      ),
+    );
   };
 
   if (!roots.length) return null;
 
   return (
-    <div className={cn("relative h-full w-full overflow-auto rounded-2xl border bg-background/50", className)}>
+    <div
+      className={cn(
+        "relative h-full w-full overflow-auto rounded-2xl border bg-background/50",
+        className,
+      )}
+    >
       <div className="absolute right-3 top-3 z-20 flex items-center rounded-lg border bg-background/95 p-1 shadow-sm backdrop-blur">
         <Button
           type="button"

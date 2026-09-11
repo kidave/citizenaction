@@ -9,83 +9,54 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectoryCard";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
+
 import { useGovernance } from "@/hooks/governance/useGovernance";
-import { useGovernanceCatalog } from "@/hooks/governance/useGovernanceCatalog";
-import { getGovernanceLabel } from "@/utils/governance";
 
-const ROOT_TYPES = [
-  "all",
-  "authority",
-  "organisation",
-  "ministry",
-  "department",
-  "unit",
-];
-
-function formatType(value) {
-  if (!value || value === "all") return "All types";
-  return value
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
-function getDescendantCount(records, rootId) {
-  const childrenByParent = new Map();
-  for (const record of records || []) {
-    if (!record?.parent_id) continue;
-    const children = childrenByParent.get(record.parent_id) || [];
-    children.push(record.id);
-    childrenByParent.set(record.parent_id, children);
-  }
-
-  let count = 0;
-  const queue = [...(childrenByParent.get(rootId) || [])];
-  const visited = new Set();
-
-  while (queue.length) {
-    const id = queue.shift();
-    if (!id || visited.has(id)) continue;
-    visited.add(id);
-    count += 1;
-    queue.push(...(childrenByParent.get(id) || []));
-  }
-
-  return count;
-}
+import {
+  GOVERNANCE_ROOT_TYPES,
+  createGovernanceTreeIndex,
+  formatGovernanceFilterType,
+  getGovernanceLabel,
+  getGovernanceRoots,
+} from "@/utils/governance";
 
 export default function GovernancePage() {
   const [search, setSearch] = useState("");
   const [entityType, setEntityType] = useState("all");
-  const [categoryId] = useState("all");
-  const { categories = [] } = useGovernanceCatalog();
 
   const governanceQuery = useGovernance({
     search: "",
     entityType: "all",
     includeAll: true,
-    categoryId: categoryId === "all" ? null : categoryId,
   });
 
   const data = useMemo(
     () => (Array.isArray(governanceQuery.data) ? governanceQuery.data : []),
     [governanceQuery.data],
   );
+
   const { isLoading, error } = governanceQuery;
 
-  const roots = useMemo(
-    () => data.filter((entity) => !entity?.parent_id),
-    [data],
-  );
+  const roots = useMemo(() => getGovernanceRoots(data), [data]);
+
+  const treeIndex = useMemo(() => createGovernanceTreeIndex(data), [data]);
 
   const visibleRoots = useMemo(() => {
     const query = search.trim().toLowerCase();
+
     const matchesType = (entity) =>
       entityType === "all" ||
       entity?.entity_type === entityType ||
       entity?.unit_type === entityType;
-    const matchesSearch = (entity) =>
+
+    if (!query) {
+      return roots.filter(matchesType);
+    }
+
+    const matchesEntity = (entity) =>
       [
         entity?.name,
         entity?.short_name,
@@ -99,49 +70,50 @@ export default function GovernancePage() {
         .toLowerCase()
         .includes(query);
 
-    if (!query) return roots.filter(matchesType);
-
-    const matches = new Set(
-      data.filter(matchesSearch).map((entity) => entity.id),
+    const matchingIds = new Set(
+      data.filter(matchesEntity).map((entity) => entity.id),
     );
-    const childrenByParent = new Map();
-    for (const entity of data) {
-      if (!entity?.parent_id) continue;
-      const children = childrenByParent.get(entity.parent_id) || [];
-      children.push(entity.id);
-      childrenByParent.set(entity.parent_id, children);
-    }
 
     return roots.filter((root) => {
       if (!matchesType(root)) return false;
+
       const queue = [root.id];
       const visited = new Set();
 
       while (queue.length) {
         const id = queue.shift();
+
         if (!id || visited.has(id)) continue;
+
         visited.add(id);
-        if (matches.has(id)) return true;
-        queue.push(...(childrenByParent.get(id) || []));
+
+        if (matchingIds.has(id)) {
+          return true;
+        }
+
+        queue.push(...(treeIndex.childrenByParent.get(id) || []));
       }
 
       return false;
     });
-  }, [data, roots, search, entityType]);
+  }, [data, entityType, roots, search, treeIndex]);
 
   const orderedRoots = useMemo(
     () =>
       [...visibleRoots].sort((a, b) => {
-        const rank = (entity) => {
+        const getRank = (entity) => {
           const name = getGovernanceLabel(entity).toLowerCase();
+
           if (name === "government of india") return 0;
           if (name === "government of maharashtra") return 1;
           if (name === "indian roads congress") return 2;
           if (entity.entity_type === "authority") return 3;
+
           return 4;
         };
+
         return (
-          rank(a) - rank(b) ||
+          getRank(a) - getRank(b) ||
           getGovernanceLabel(a).localeCompare(getGovernanceLabel(b))
         );
       }),
@@ -151,26 +123,30 @@ export default function GovernancePage() {
   return (
     <div className="flex min-h-dvh w-full flex-col">
       <GovernancePageHeader items={[{ label: "Governance" }]} />
+
       <main className="flex-1 px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-6xl">
-          <div className="mb-5 grid gap-3 sm:grid-cols-2">
+          <div className="mb-4 grid gap-2 sm:grid-cols-[1fr_auto]">
             <div className="relative min-w-0">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+
               <Input
-                className="pl-9"
+                className="h-9 pl-9"
                 placeholder="Search governance..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(event) => setSearch(event.target.value)}
               />
             </div>
+
             <Select value={entityType} onValueChange={setEntityType}>
-              <SelectTrigger>
+              <SelectTrigger className="h-9 sm:w-44">
                 <SelectValue />
               </SelectTrigger>
+
               <SelectContent>
-                {ROOT_TYPES.map((type) => (
+                {GOVERNANCE_ROOT_TYPES.map((type) => (
                   <SelectItem key={type} value={type}>
-                    {formatType(type)}
+                    {formatGovernanceFilterType(type)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -182,21 +158,19 @@ export default function GovernancePage() {
               Loading governance...
             </div>
           )}
+
           {error && (
             <div className="flex min-h-[50vh] items-center justify-center text-sm text-destructive">
               Failed to load governance data.
             </div>
           )}
+
           {!isLoading &&
             !error &&
             (orderedRoots.length ? (
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7">
                 {orderedRoots.map((entity) => (
-                  <GovernanceDirectoryCard
-                    key={entity.id}
-                    entity={entity}
-                    descendantCount={getDescendantCount(data, entity.id)}
-                  />
+                  <GovernanceDirectoryCard key={entity.id} entity={entity} />
                 ))}
               </div>
             ) : (
@@ -205,6 +179,7 @@ export default function GovernancePage() {
                   <p className="text-sm font-medium">
                     No governance authorities found.
                   </p>
+
                   <p className="mt-1 text-xs text-muted-foreground">
                     Try another search or filter.
                   </p>
