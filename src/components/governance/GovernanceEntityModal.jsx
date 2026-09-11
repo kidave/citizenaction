@@ -42,7 +42,12 @@ export default function GovernanceEntityModal({
     open,
   );
 
-  const { updateEntity, deleteEntity } = useGovernanceEntityMutation();
+  const {
+    updateEntity,
+    deleteEntity,
+    isUpdating,
+    isDeleting,
+  } = useGovernanceEntityMutation();
 
   const {
     editing,
@@ -58,6 +63,7 @@ export default function GovernanceEntityModal({
   const label = getGovernanceLabel(entity);
   const status = draft?.status || entity.status || "active";
   const requiresValidTo = governanceRequiresValidTo(status);
+  const saving = isUpdating || isDeleting;
 
   async function handleSave() {
     const validationError = validate(requiresValidTo);
@@ -109,8 +115,8 @@ export default function GovernanceEntityModal({
       <Dialog
         open={open}
         onOpenChange={(value) => {
-          if (!value) closeEditing();
-          onOpenChange?.(value);
+          if (!value && !saving) closeEditing();
+          if (!saving) onOpenChange?.(value);
         }}
       >
         <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-xl">
@@ -135,7 +141,7 @@ export default function GovernanceEntityModal({
                 entity={entity}
                 draft={draft}
                 categories={categories}
-                saving={false}
+                saving={saving}
                 requiresValidTo={requiresValidTo}
                 onChange={updateDraft}
                 onCancel={closeEditing}
