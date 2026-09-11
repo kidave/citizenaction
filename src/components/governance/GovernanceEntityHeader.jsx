@@ -14,10 +14,9 @@ export default function GovernanceEntityHeader({
   childEntities = [],
   onEdit,
   onChange,
-  onAddParent,
-  onAddChild,
+  onAddRelation,
   onAddGeography,
-  onChangeParent,
+  onChangeGeography,
   onDelete,
 }) {
   if (!entity) return null;
@@ -60,10 +59,9 @@ export default function GovernanceEntityHeader({
       {canEdit && !editing && (
         <MenuButton
           onEdit={onEdit}
-          onAddParent={onAddParent}
-          onAddChild={onAddChild}
+          onAddRelation={onAddRelation}
           onAddGeography={onAddGeography}
-          onChangeParent={onChangeParent}
+          onChangeGeography={onChangeGeography}
           onDelete={onDelete}
           deleteTitle={`Delete ${name}?`}
           deleteDescription={
