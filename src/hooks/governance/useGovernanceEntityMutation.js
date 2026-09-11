@@ -1,14 +1,7 @@
 import { supabase } from "@/lib/supabase/client";
-import { uploadGovernanceAttachments } from "@/lib/supabase/storage";
 
 export function useGovernanceEntityMutation() {
-  async function updateEntity({
-    entity,
-    draft,
-    pendingAttachments,
-    attachments,
-    links,
-  }) {
+  async function updateEntity({ entity, draft }) {
     const result = await supabase.rpc("update_governance_entity", {
       p_entity_id: entity.id,
       p_name: draft.name.trim(),
@@ -26,63 +19,6 @@ export function useGovernanceEntityMutation() {
     });
 
     if (result.error) throw result.error;
-
-    if (pendingAttachments?.length) {
-      const uploaded = await uploadGovernanceAttachments(
-        entity.id,
-        pendingAttachments,
-      );
-
-      const rows = uploaded.map((item, index) => ({
-        governance_id: entity.id,
-        storage_path: item.storage_path,
-        public_url: item.public_url,
-        preview_url: item.preview_url || null,
-        thumbnail_path: item.thumbnail_path || null,
-        thumbnail_url: item.thumbnail_url || null,
-        file_name: item.file_name,
-        mime_type: item.mime_type,
-        file_size: item.file_size,
-        width: item.width,
-        height: item.height,
-        duration: item.duration,
-        sort_order: (attachments?.length || 0) + index,
-      }));
-
-      const { error } = await supabase
-        .from("attachment")
-        .insert(rows);
-
-      if (error) throw error;
-    }
-
-    const { error: deleteError } = await supabase
-      .from("link")
-      .delete()
-      .eq("governance_id", entity.id);
-
-    if (deleteError) throw deleteError;
-
-    if (links?.length) {
-      const rows = links.map((link, index) => ({
-        governance_id: entity.id,
-        url: link.url,
-        type: link.type || "website",
-        title: link.title || null,
-        description: link.description || null,
-        hostname: link.hostname || null,
-        image_url: link.image_url || null,
-        icon_url: link.icon_url || null,
-        sort_order: index,
-      }));
-
-      const { error } = await supabase
-        .from("link")
-        .insert(rows);
-
-      if (error) throw error;
-    }
-
     return result.data;
   }
 
