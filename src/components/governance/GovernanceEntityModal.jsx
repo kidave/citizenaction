@@ -36,8 +36,6 @@ export default function GovernanceEntityModal({
   categories = [],
 }) {
   const [geographyOpen, setGeographyOpen] = useState(false);
-  const [attachments, setAttachments] = useState([]);
-  const [links, setLinks] = useState([]);
 
   const { data: details, isLoading } = useGovernanceEntityDetails(
     entity?.id,
@@ -49,8 +47,6 @@ export default function GovernanceEntityModal({
   const {
     editing,
     draft,
-    pendingAttachments,
-    setPendingAttachments,
     updateDraft,
     closeEditing,
     startEditing,
@@ -62,11 +58,6 @@ export default function GovernanceEntityModal({
   const label = getGovernanceLabel(entity);
   const status = draft?.status || entity.status || "active";
   const requiresValidTo = governanceRequiresValidTo(status);
-
-  const refreshResources = () => {
-    // Resources are owned by the details query and can be refreshed by the
-    // parent callback after a save. This keeps resource state out of the form.
-  };
 
   async function handleSave() {
     const validationError = validate(requiresValidTo);
@@ -80,9 +71,6 @@ export default function GovernanceEntityModal({
       const saved = await updateEntity({
         entity,
         draft,
-        pendingAttachments,
-        attachments,
-        links,
       });
 
       closeEditing();
@@ -147,8 +135,6 @@ export default function GovernanceEntityModal({
                 entity={entity}
                 draft={draft}
                 categories={categories}
-                attachments={attachments}
-                links={links}
                 saving={false}
                 requiresValidTo={requiresValidTo}
                 onChange={updateDraft}
@@ -161,8 +147,8 @@ export default function GovernanceEntityModal({
                 parent={parent}
                 leader={details?.leader}
                 geographies={details?.geographies}
-                attachments={details?.attachments || attachments}
-                links={details?.links || links}
+                attachments={details?.attachments || []}
+                links={details?.links || []}
                 isLoading={isLoading}
                 canEdit={canEdit}
                 onSelect={onSelect}
@@ -177,10 +163,7 @@ export default function GovernanceEntityModal({
         onOpenChange={setGeographyOpen}
         governanceId={entity.id}
         entityName={label}
-        onAdded={async () => {
-          await onSaved?.(entity);
-          refreshResources();
-        }}
+        onAdded={() => onSaved?.(entity)}
       />
     </>
   );
