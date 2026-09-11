@@ -1,6 +1,32 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 
+const geographySelect = `
+  id,
+  governance_id,
+  geography_id,
+  boundary_type,
+  is_primary,
+  valid_from,
+  valid_to,
+  notes,
+  geographies (
+    id,
+    name,
+    official_name,
+    geography_type,
+    parent_id,
+    country_code,
+    osm_type,
+    osm_id,
+    admin_level,
+    source,
+    source_url,
+    center,
+    metadata
+  )
+`;
+
 export function useGovernanceGeography(governanceId, enabled = true) {
   return useQuery({
     queryKey: ["governance-geography", governanceId],
@@ -8,39 +34,12 @@ export function useGovernanceGeography(governanceId, enabled = true) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("governance_geography")
-        .select(
-          `
-            id,
-            governance_id,
-            geography_id,
-            boundary_type,
-            is_primary,
-            valid_from,
-            valid_to,
-            notes,
-            geographies (
-              id,
-              name,
-              official_name,
-              geography_type,
-              parent_id,
-              country_code,
-              osm_type,
-              osm_id,
-              admin_level,
-              source,
-              source_url,
-              center,
-              metadata
-            )
-          `,
-        )
+        .select(geographySelect)
         .eq("governance_id", governanceId)
         .order("is_primary", { ascending: false })
         .order("created_at", { ascending: true });
 
       if (error) throw error;
-
       return data || [];
     },
   });
@@ -48,6 +47,16 @@ export function useGovernanceGeography(governanceId, enabled = true) {
 
 export function useGovernanceGeographyMutation() {
   const queryClient = useQueryClient();
+
+  const invalidate = (governanceId) => {
+    queryClient.invalidateQueries({
+      queryKey: ["governance-geography", governanceId],
+    });
+
+    queryClient.invalidateQueries({
+      queryKey: ["governance-entity-details", governanceId],
+    });
+  };
 
   const add = useMutation({
     mutationFn: async ({
@@ -67,11 +76,7 @@ export function useGovernanceGeographyMutation() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ["governance-geography", variables.governanceId],
-      });
-    },
+    onSuccess: (_, variables) => invalidate(variables.governanceId),
   });
 
   const remove = useMutation({
@@ -84,11 +89,7 @@ export function useGovernanceGeographyMutation() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ["governance-geography", variables.governanceId],
-      });
-    },
+    onSuccess: (_, variables) => invalidate(variables.governanceId),
   });
 
   return {
