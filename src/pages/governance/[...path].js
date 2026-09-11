@@ -7,6 +7,7 @@ import GovernanceOrganizationTree from "@/components/governance/GovernanceOrgani
 import GovernanceLeadershipDialog from "@/components/governance/GovernanceLeadershipDialog";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import GovernanceRelationDialog from "@/components/governance/GovernanceRelationDialog";
+import AddGeographyDialog from "@/components/geography/AddGeographyDialog";
 import { useGovernanceCatalog } from "@/hooks/governance/useGovernanceCatalog";
 import { useGovernanceGeographyMutation } from "@/hooks/geography/useGovernanceGeography";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
@@ -156,7 +157,7 @@ export default function GovernanceRecordPage() {
       await removeGeography({ governanceId: entity.id });
       await handleChanged();
     } catch {
-      // The mutation hook surfaces the error to the caller when used inside the sheet/menu.
+      // hook/mutation consumers surface their own toast where needed
     }
   };
 
@@ -248,8 +249,8 @@ export default function GovernanceRecordPage() {
         onDeleted={handleChanged}
         onAddRelation={(entity) => openRelation("add-relation", entity)}
         onEditRelations={(entity) => openRelation("edit-relations", entity)}
-        onAddGeography={(entity) => openGeography(entity)}
-        onChangeGeography={(entity) => openGeography(entity)}
+        onAddGeography={openGeography}
+        onChangeGeography={openGeography}
         onRemoveGeography={removeEntityGeography}
         categories={categories}
       />
@@ -275,31 +276,15 @@ export default function GovernanceRecordPage() {
         onSaved={handleChanged}
       />
 
-      <AddGeographyDialogProxy
-        open={geographyOpen}
-        onOpenChange={setGeographyOpen}
-        entity={geographyEntity}
-        onSaved={handleChanged}
-      />
+      {geographyEntity && (
+        <AddGeographyDialog
+          open={geographyOpen}
+          onOpenChange={setGeographyOpen}
+          governanceId={geographyEntity.id}
+          entityName={getGovernanceLabel(geographyEntity)}
+          onSaved={handleChanged}
+        />
+      )}
     </div>
   );
-}
-
-function AddGeographyDialogProxy({ open, onOpenChange, entity, onSaved }) {
-  if (!entity) return null;
-  return (
-    <GovernanceGeographySheetProxy
-      open={open}
-      onOpenChange={onOpenChange}
-      governanceId={entity.id}
-      entityName={getGovernanceLabel(entity)}
-      onSaved={onSaved}
-    />
-  );
-}
-
-import GovernanceGeographySheet from "@/components/geography/AddGeographyDialog";
-
-function GovernanceGeographySheetProxy(props) {
-  return <GovernanceGeographySheet {...props} />;
 }
