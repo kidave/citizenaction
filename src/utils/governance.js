@@ -43,6 +43,12 @@ export const GOVERNANCE_STATUS_OPTIONS = [
   ["deprecated", "Deprecated"],
 ];
 
+export const GOVERNANCE_DIRECTORY_TABS = [
+  ["entities", "Entities"],
+  ["positions", "Positions"],
+  ["people", "People"],
+];
+
 export const GOVERNANCE_ROOT_TYPES = [
   "all",
   "authority",

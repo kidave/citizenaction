@@ -9,116 +9,64 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectoryCard";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
+import { useGovernanceCatalog } from "@/hooks/governance/useGovernanceCatalog";
+import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
+import { useGovernanceDirectoryGeographies } from "@/hooks/governance/useGovernanceDirectoryGeographies";
+import { GOVERNANCE_DIRECTORY_TABS, GOVERNANCE_ENTITY_TYPES, formatGovernanceFilterType } from "@/utils/governance";
 
-import { useGovernance } from "@/hooks/governance/useGovernance";
+const ENTITY_TYPES = [
+  "authority",
+  "organisation",
+  "committee",
+  "programme",
+  "project",
+  "ministry",
+  "department",
+  "division",
+  "office",
+  "ward",
+  "station",
+  "zone",
+  "unit",
+];
 
-import {
-  GOVERNANCE_ROOT_TYPES,
-  createGovernanceTreeIndex,
-  formatGovernanceFilterType,
-  getGovernanceLabel,
-  getGovernanceRoots,
-} from "@/utils/governance";
+function getEntityTypeOptions(tab) {
+  if (tab === "positions") return ["position"];
+  if (tab === "people") return ["person"];
+  return ENTITY_TYPES.filter((type) => GOVERNANCE_ENTITY_TYPES.includes(type));
+}
 
 export default function GovernancePage() {
+  const [tab, setTab] = useState("entities");
   const [search, setSearch] = useState("");
   const [entityType, setEntityType] = useState("all");
+  const [categoryId, setCategoryId] = useState("all");
+  const [geographyId, setGeographyId] = useState("all");
 
-  const governanceQuery = useGovernance({
-    search: "",
-    entityType: "all",
-    includeAll: true,
+  const { categories = [] } = useGovernanceCatalog({ enabled: true });
+  const geographiesQuery = useGovernanceDirectoryGeographies({ enabled: true });
+  const governanceQuery = useGovernanceDirectory({
+    tab,
+    search,
+    entityType,
+    categoryId,
+    geographyId,
   });
 
-  const data = useMemo(
-    () => (Array.isArray(governanceQuery.data) ? governanceQuery.data : []),
-    [governanceQuery.data],
-  );
+  const typeOptions = useMemo(() => getEntityTypeOptions(tab), [tab]);
+  const data = Array.isArray(governanceQuery.data) ? governanceQuery.data : [];
 
-  const { isLoading, error } = governanceQuery;
-
-  const roots = useMemo(() => getGovernanceRoots(data), [data]);
-
-  const treeIndex = useMemo(() => createGovernanceTreeIndex(data), [data]);
-
-  const visibleRoots = useMemo(() => {
-    const query = search.trim().toLowerCase();
-
-    const matchesType = (entity) =>
-      entityType === "all" ||
-      entity?.entity_type === entityType ||
-      entity?.unit_type === entityType;
-
-    if (!query) {
-      return roots.filter(matchesType);
-    }
-
-    const matchesEntity = (entity) =>
-      [
-        entity?.name,
-        entity?.short_name,
-        entity?.entity_type,
-        entity?.unit_type,
-        entity?.parent_name,
-        entity?.category_name,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-        .includes(query);
-
-    const matchingIds = new Set(
-      data.filter(matchesEntity).map((entity) => entity.id),
-    );
-
-    return roots.filter((root) => {
-      if (!matchesType(root)) return false;
-
-      const queue = [root.id];
-      const visited = new Set();
-
-      while (queue.length) {
-        const id = queue.shift();
-
-        if (!id || visited.has(id)) continue;
-
-        visited.add(id);
-
-        if (matchingIds.has(id)) {
-          return true;
-        }
-
-        queue.push(...(treeIndex.childrenByParent.get(id) || []));
-      }
-
-      return false;
-    });
-  }, [data, entityType, roots, search, treeIndex]);
-
-  const orderedRoots = useMemo(
-    () =>
-      [...visibleRoots].sort((a, b) => {
-        const getRank = (entity) => {
-          const name = getGovernanceLabel(entity).toLowerCase();
-
-          if (name === "government of india") return 0;
-          if (name === "government of maharashtra") return 1;
-          if (name === "indian roads congress") return 2;
-          if (entity.entity_type === "authority") return 3;
-
-          return 4;
-        };
-
-        return (
-          getRank(a) - getRank(b) ||
-          getGovernanceLabel(a).localeCompare(getGovernanceLabel(b))
-        );
-      }),
-    [visibleRoots],
-  );
+  const handleTabChange = (value) => {
+    if (!value) return;
+    setTab(value);
+    setEntityType("all");
+    setCategoryId("all");
+    setGeographyId("all");
+  };
 
   return (
     <div className="flex min-h-dvh w-full flex-col">
@@ -126,66 +74,107 @@ export default function GovernancePage() {
 
       <main className="flex-1 px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-6xl">
-          <div className="mb-4 grid gap-2 sm:grid-cols-[1fr_auto]">
-            <div className="relative min-w-0">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-
-              <Input
-                className="h-9 pl-9"
-                placeholder="Search governance..."
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-              />
+          <div className="mb-4 flex flex-col gap-3">
+            <div className="flex justify-center sm:justify-start">
+              <ToggleGroup
+                type="single"
+                value={tab}
+                onValueChange={handleTabChange}
+                variant="outline"
+                className="w-full sm:w-auto"
+                aria-label="Governance directory view"
+              >
+                {GOVERNANCE_DIRECTORY_TABS.map(([value, label]) => (
+                  <ToggleGroupItem key={value} value={value} className="flex-1 px-4 sm:flex-none">
+                    {label}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
             </div>
 
-            <Select value={entityType} onValueChange={setEntityType}>
-              <SelectTrigger className="h-9 sm:w-44">
-                <SelectValue />
-              </SelectTrigger>
+            <div className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_10rem_12rem_12rem]">
+              <div className="relative min-w-0">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="h-9 pl-9"
+                  placeholder={tab === "positions" ? "Search positions..." : tab === "people" ? "Search people..." : "Search governance..."}
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                />
+              </div>
 
-              <SelectContent>
-                {GOVERNANCE_ROOT_TYPES.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {formatGovernanceFilterType(type)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <Select value={entityType} onValueChange={setEntityType}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All types</SelectItem>
+                  {typeOptions.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {formatGovernanceFilterType(type)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={categoryId} onValueChange={setCategoryId}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All categories</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={geographyId} onValueChange={setGeographyId}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Location" />
+                </SelectTrigger>
+                <SelectContent className="max-h-80">
+                  <SelectItem value="all">All locations</SelectItem>
+                  {(geographiesQuery.data || []).map((geography) => (
+                    <SelectItem key={geography.id} value={geography.id}>
+                      {geography.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {isLoading && (
+          {governanceQuery.isLoading && (
             <div className="flex min-h-[50vh] items-center justify-center text-sm text-muted-foreground">
               Loading governance...
             </div>
           )}
 
-          {error && (
+          {governanceQuery.error && (
             <div className="flex min-h-[50vh] items-center justify-center text-sm text-destructive">
               Failed to load governance data.
             </div>
           )}
 
-          {!isLoading &&
-            !error &&
-            (orderedRoots.length ? (
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7">
-                {orderedRoots.map((entity) => (
-                  <GovernanceDirectoryCard key={entity.id} entity={entity} />
+          {!governanceQuery.isLoading && !governanceQuery.error && (
+            data.length ? (
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {data.map((entity) => (
+                  <GovernanceDirectoryCard key={entity.id} entity={entity} tab={tab} />
                 ))}
               </div>
             ) : (
               <div className="flex min-h-[50vh] items-center justify-center text-center">
                 <div>
-                  <p className="text-sm font-medium">
-                    No governance authorities found.
-                  </p>
-
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Try another search or filter.
-                  </p>
+                  <p className="text-sm font-medium">No {tab} found.</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Try another search or filter.</p>
                 </div>
               </div>
-            ))}
+            )
+          )}
         </div>
       </main>
     </div>

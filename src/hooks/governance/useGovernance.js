@@ -21,7 +21,6 @@ export function useGovernance({
         p_include_all: includeAll,
       });
       if (error) throw error;
-
       const rows = data || [];
       return rows.filter((entity) => !categoryId || entity.category_id === categoryId);
     },
