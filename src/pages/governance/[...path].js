@@ -50,29 +50,15 @@ export default function GovernanceRecordPage() {
   const { categories = [] } = useGovernanceCatalog({ enabled: canEdit });
   const { removeGeography } = useGovernanceGeographyMutation();
 
-  const governanceQuery = useQuery({
-    queryKey: ["governance", "record", slug],
-    enabled: !!slug,
-    queryFn: () => getGovernanceBySlug(slug),
-  });
+  const governanceQuery = useQuery({ queryKey: ["governance", "record", slug], enabled: !!slug, queryFn: () => getGovernanceBySlug(slug) });
   const governance = governanceQuery.data;
 
   const { data: family = [], isLoading: familyLoading } = useQuery({
-    queryKey: ["governance-family"],
-    enabled: !!slug && !!governance,
+    queryKey: ["governance-family"], enabled: !!slug && !!governance,
     queryFn: async () => {
-      const result = await supabase.rpc("get_governance_directory", {
-        p_search: null,
-        p_parent_id: null,
-        p_entity_type: null,
-        p_limit: 500,
-        p_include_all: true,
-      });
+      const result = await supabase.rpc("get_governance_directory", { p_search: null, p_parent_id: null, p_entity_type: null, p_limit: 500, p_include_all: true });
       if (!result || result.error) throw result?.error || new Error("Unable to load governance tree");
-      return (result.data || []).map((entity) => ({
-        ...entity,
-        image_url: entity.image_url || entity.metadata?.image_url || null,
-      }));
+      return (result.data || []).map((entity) => ({ ...entity, image_url: entity.image_url || entity.metadata?.image_url || null }));
     },
   });
 
@@ -157,134 +143,24 @@ export default function GovernanceRecordPage() {
       await removeGeography({ governanceId: entity.id });
       await handleChanged();
     } catch {
-      // hook/mutation consumers surface their own toast where needed
+      // The menu/sheet mutation consumer handles user-facing errors.
     }
   };
 
   const relationCandidates = family.filter((item) => item.id !== relationSource?.id);
   const relationChildren = relationSource ? family.filter((item) => item.parent_id === relationSource.id) : [];
 
-  if (governanceQuery.isLoading || familyLoading) {
-    return (
-      <div className="flex min-h-dvh w-full flex-col">
-        <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Loading..." }]} />
-        <main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading governance...</main>
-      </div>
-    );
-  }
+  if (governanceQuery.isLoading || familyLoading) return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Loading..." }]} /><main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading governance...</main></div>;
+  if (governanceQuery.error || !governance) return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Not found" }]} /><main className="flex flex-1 items-center justify-center text-sm">Governance record not found.</main></div>;
 
-  if (governanceQuery.error || !governance) {
-    return (
-      <div className="flex min-h-dvh w-full flex-col">
-        <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Not found" }]} />
-        <main className="flex flex-1 items-center justify-center text-sm">Governance record not found.</main>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex min-h-dvh w-full flex-col">
-      <GovernancePageHeader
-        items={[
-          { label: "Governance", href: "/governance" },
-          ...lineage.slice(0, -1).map((item) => ({ label: getGovernanceLabel(item), href: getGovernanceHref(item) })),
-          { label: getGovernanceLabel(governance) },
-          ...(view === "organization" ? [{ label: "Organization" }] : []),
-        ]}
-      />
-
-      <main className="min-h-0 flex-1 p-0">
-        {view === "organization" ? (
-          <GovernanceOrganizationTree
-            governanceId={governance.id}
-            asOf={asOf}
-            canEdit={canEdit}
-            onAdd={() => { setLeadershipRecord(null); setLeadershipOpen(true); }}
-            onEdit={(record) => { setLeadershipRecord(record); setLeadershipOpen(true); }}
-            onSelect={(record) => {
-              const target = record.position_governance_id
-                ? byId.get(record.position_governance_id)
-                : record.person_governance_id
-                  ? byId.get(record.person_governance_id)
-                  : null;
-              if (target) selectEntity(target);
-            }}
-            className="min-h-[calc(100vh-5.5rem)]"
-          />
-        ) : (
-          <GovernanceFamilyTree
-            records={treeRecords}
-            selectedId={governance.id}
-            initialExpandedIds={lineage.map((item) => item.id)}
-            onSelect={selectEntity}
-            canEdit={canEdit}
-            onOpenOrganization={(entity) => {
-              const href = getGovernanceHref(entity);
-              if (href) router.push({ pathname: href, query: { view: "organization" } });
-            }}
-            onEdit={selectEntity}
-            onAddRelation={(entity) => openRelation("add-relation", entity)}
-            onEditRelations={(entity) => openRelation("edit-relations", entity)}
-            onAddGeography={openGeography}
-            onChangeGeography={openGeography}
-            onRemoveGeography={removeEntityGeography}
-            onDelete={selectEntity}
-            className="min-h-[calc(100vh-5.5rem)]"
-          />
-        )}
-      </main>
-
-      <GovernanceEntityModal
-        open={modalOpen}
-        onOpenChange={(value) => {
-          setModalOpen(value);
-          if (!value) setModalEntity(null);
-        }}
-        entity={currentEntity}
-        parent={currentEntity?.parent_id ? byId.get(currentEntity.parent_id) || null : null}
-        childEntities={currentEntity ? family.filter((entity) => entity.parent_id === currentEntity.id) : []}
-        canEdit={canEdit}
-        onSelect={selectEntity}
-        onSaved={handleChanged}
-        onDeleted={handleChanged}
-        onAddRelation={(entity) => openRelation("add-relation", entity)}
-        onEditRelations={(entity) => openRelation("edit-relations", entity)}
-        onAddGeography={openGeography}
-        onChangeGeography={openGeography}
-        onRemoveGeography={removeEntityGeography}
-        categories={categories}
-      />
-
-      <GovernanceRelationDialog
-        open={relationOpen}
-        onOpenChange={setRelationOpen}
-        mode={relationMode}
-        sourceEntity={relationSource}
-        candidates={relationCandidates}
-        children={relationChildren}
-        categories={categories}
-        onCompleted={handleChanged}
-      />
-
-      <GovernanceLeadershipDialog
-        open={leadershipOpen}
-        onOpenChange={setLeadershipOpen}
-        governanceId={governance.id}
-        record={leadershipRecord}
-        candidates={family}
-        records={queryClient.getQueryData(["governance-organization", governance.id]) || []}
-        onSaved={handleChanged}
-      />
-
-      {geographyEntity && (
-        <AddGeographyDialog
-          open={geographyOpen}
-          onOpenChange={setGeographyOpen}
-          governanceId={geographyEntity.id}
-          entityName={getGovernanceLabel(geographyEntity)}
-          onSaved={handleChanged}
-        />
-      )}
-    </div>
-  );
+  return <div className="flex min-h-dvh w-full flex-col">
+    <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, ...lineage.slice(0, -1).map((item) => ({ label: getGovernanceLabel(item), href: getGovernanceHref(item) })), { label: getGovernanceLabel(governance) }, ...(view === "organization" ? [{ label: "Organization" }] : [])]} />
+    <main className="min-h-0 flex-1 p-0">
+      {view === "organization" ? <GovernanceOrganizationTree governanceId={governance.id} asOf={asOf} canEdit={canEdit} onAdd={() => { setLeadershipRecord(null); setLeadershipOpen(true); }} onEdit={(record) => { setLeadershipRecord(record); setLeadershipOpen(true); }} onSelect={(record) => { const target = record.position_governance_id ? byId.get(record.position_governance_id) : record.person_governance_id ? byId.get(record.person_governance_id) : null; if (target) selectEntity(target); }} className="min-h-[calc(100vh-5.5rem)]" /> : <GovernanceFamilyTree records={treeRecords} selectedId={governance.id} initialExpandedIds={lineage.map((item) => item.id)} onSelect={selectEntity} canEdit={canEdit} onOpenOrganization={(entity) => { const href = getGovernanceHref(entity); if (href) router.push({ pathname: href, query: { view: "organization" } }); }} onEdit={selectEntity} onAddRelation={(entity) => openRelation("add-relation", entity)} onEditRelations={(entity) => openRelation("edit-relations", entity)} onAddGeography={openGeography} onChangeGeography={openGeography} onRemoveGeography={removeEntityGeography} onDelete={selectEntity} className="min-h-[calc(100vh-5.5rem)]" />}
+    </main>
+    <GovernanceEntityModal open={modalOpen} onOpenChange={(value) => { setModalOpen(value); if (!value) setModalEntity(null); }} entity={currentEntity} parent={currentEntity?.parent_id ? byId.get(currentEntity.parent_id) || null : null} childEntities={currentEntity ? family.filter((entity) => entity.parent_id === currentEntity.id) : []} canEdit={canEdit} onSelect={selectEntity} onSaved={handleChanged} onDeleted={handleChanged} onAddRelation={(entity) => openRelation("add-relation", entity)} onEditRelations={(entity) => openRelation("edit-relations", entity)} onAddGeography={openGeography} onChangeGeography={openGeography} onRemoveGeography={removeEntityGeography} categories={categories} />
+    <GovernanceRelationDialog open={relationOpen} onOpenChange={setRelationOpen} mode={relationMode} sourceEntity={relationSource} candidates={relationCandidates} childEntities={relationChildren} categories={categories} onCompleted={handleChanged} />
+    <GovernanceLeadershipDialog open={leadershipOpen} onOpenChange={setLeadershipOpen} governanceId={governance.id} record={leadershipRecord} candidates={family} records={queryClient.getQueryData(["governance-organization", governance.id]) || []} onSaved={handleChanged} />
+    {geographyEntity && <AddGeographyDialog open={geographyOpen} onOpenChange={setGeographyOpen} governanceId={geographyEntity.id} entityName={getGovernanceLabel(geographyEntity)} onSaved={handleChanged} />}
+  </div>;
 }
