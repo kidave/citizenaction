@@ -30,9 +30,7 @@ export default function GovernanceEntityModal({
   onSelect,
   onSaved,
   onDeleted,
-  onAddChild,
-  onAddParent,
-  onChangeParent,
+  onAddRelation,
   categories = [],
 }) {
   const [geographyOpen, setGeographyOpen] = useState(false);
@@ -64,6 +62,7 @@ export default function GovernanceEntityModal({
   const status = draft?.status || entity.status || "active";
   const requiresValidTo = governanceRequiresValidTo(status);
   const saving = isUpdating || isDeleting;
+  const hasGeography = Boolean(details?.geographyId || entity.geography_id);
 
   async function handleSave() {
     const validationError = validate(requiresValidTo);
@@ -129,10 +128,9 @@ export default function GovernanceEntityModal({
               childEntities={childEntities}
               onEdit={startEditing}
               onChange={updateDraft}
-              onAddParent={() => onAddParent?.(entity)}
-              onAddChild={() => onAddChild?.(entity)}
-              onAddGeography={() => setGeographyOpen(true)}
-              onChangeParent={() => onChangeParent?.(entity)}
+              onAddRelation={() => onAddRelation?.(entity)}
+              onAddGeography={!hasGeography ? () => setGeographyOpen(true) : undefined}
+              onChangeGeography={hasGeography ? () => setGeographyOpen(true) : undefined}
               onDelete={handleDelete}
             />
 
@@ -152,7 +150,7 @@ export default function GovernanceEntityModal({
                 entity={entity}
                 parent={parent}
                 leader={details?.leader}
-                geographies={details?.geographies}
+                geography={details?.geography}
                 attachments={details?.attachments || []}
                 links={details?.links || []}
                 isLoading={isLoading}
@@ -169,7 +167,7 @@ export default function GovernanceEntityModal({
         onOpenChange={setGeographyOpen}
         governanceId={entity.id}
         entityName={label}
-        onAdded={() => onSaved?.(entity)}
+        onSaved={() => onSaved?.(entity)}
       />
     </>
   );
