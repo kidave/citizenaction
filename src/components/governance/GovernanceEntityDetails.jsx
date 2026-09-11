@@ -80,7 +80,7 @@ export default function GovernanceEntityDetails({
   entity,
   parent,
   leader,
-  geographies = [],
+  geography = null,
   attachments = [],
   links = [],
   isLoading = false,
@@ -97,11 +97,6 @@ export default function GovernanceEntityDetails({
       </div>
     );
   }
-
-  const primaryGeography = geographies.find(
-    (relationship) => relationship.is_primary,
-  )?.geographies;
-  const geography = primaryGeography || geographies[0]?.geographies;
 
   return (
     <div className="space-y-4 py-4">
