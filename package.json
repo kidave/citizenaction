@@ -27,7 +27,7 @@
     "@radix-ui/react-hover-card": "^1.1.15",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-navigation-menu": "^1.2.14",
-    "@radix-ui/react-popover": "^1.1.15",
+    "@radix-ui/react-popover": "^1.1.11",
     "@radix-ui/react-radio-group": "^1.4.7",
     "@radix-ui/react-scroll-area": "^1.2.14",
     "@radix-ui/react-select": "^2.2.6",
@@ -113,16 +113,8 @@
     ]
   },
   "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "production": [">0.2%", "not dead", "not op_mini all"],
+    "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^16.3.3",
