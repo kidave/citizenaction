@@ -16,20 +16,19 @@ export default function GovernanceEntityHeader({
   onChange,
   onAddParent,
   onAddChild,
+  onAddGeography,
   onChangeParent,
   onDelete,
 }) {
   if (!entity) return null;
 
   const name = editing ? draft?.name || "" : entity.name || "";
-
   const imageUrl = editing ? draft?.image_url : entity.image_url;
 
   return (
     <div className="flex items-start gap-3 pr-8">
       <Avatar className="h-12 w-12 shrink-0 rounded-xl">
         <AvatarImage src={imageUrl || undefined} alt="" />
-
         <AvatarFallback className="rounded-xl">
           {getGovernanceInitials(name)}
         </AvatarFallback>
@@ -63,6 +62,7 @@ export default function GovernanceEntityHeader({
           onEdit={onEdit}
           onAddParent={onAddParent}
           onAddChild={onAddChild}
+          onAddGeography={onAddGeography}
           onChangeParent={onChangeParent}
           onDelete={onDelete}
           deleteTitle={`Delete ${name}?`}
