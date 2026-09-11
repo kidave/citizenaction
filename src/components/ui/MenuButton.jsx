@@ -24,8 +24,8 @@ export default function MenuButton({
   editGeography,
   editLabel = "Edit",
   deleteLabel = "Delete",
-  deleteTitle = "Delete this post?",
-  deleteDescription = "This action cannot be undone. The post and related data will be permanently removed.",
+  deleteTitle = "Delete this item?",
+  deleteDescription = "This action cannot be undone.",
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -46,40 +46,40 @@ export default function MenuButton({
 
         <DropdownMenuContent align="end">
           {onEdit && (
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onEdit); }}>
+            <DropdownMenuItem onClick={(event) => { event.stopPropagation(); run(onEdit); }}>
               {editLabel}
             </DropdownMenuItem>
           )}
           {onAddRelation && (
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onAddRelation); }}>
+            <DropdownMenuItem onClick={(event) => { event.stopPropagation(); run(onAddRelation); }}>
               Add relation
             </DropdownMenuItem>
           )}
-          {onAddGeography && !onChangeGeography && (
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onAddGeography); }}>
+          {editRelations && (
+            <DropdownMenuItem onClick={(event) => { event.stopPropagation(); run(editRelations); }}>
+              Edit relations
+            </DropdownMenuItem>
+          )}
+          {onAddGeography && (
+            <DropdownMenuItem onClick={(event) => { event.stopPropagation(); run(onAddGeography); }}>
               Add geography
             </DropdownMenuItem>
           )}
           {onChangeGeography && (
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(onChangeGeography); }}>
+            <DropdownMenuItem onClick={(event) => { event.stopPropagation(); run(onChangeGeography); }}>
               Change geography
             </DropdownMenuItem>
           )}
-          {editRelations && (
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(editRelations); }}>
-              Edit relations
-            </DropdownMenuItem>
-          )}
           {editGeography && (
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); run(editGeography); }}>
+            <DropdownMenuItem onClick={(event) => { event.stopPropagation(); run(editGeography); }}>
               Edit geography
             </DropdownMenuItem>
           )}
           {onDelete && (
             <DropdownMenuItem
               className="text-red-500"
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={(event) => {
+                event.stopPropagation();
                 setMenuOpen(false);
                 setConfirmOpen(true);
               }}
@@ -97,8 +97,8 @@ export default function MenuButton({
           title={deleteTitle}
           description={deleteDescription}
           confirmText="Delete"
-          onConfirm={(e) => {
-            e?.stopPropagation();
+          onConfirm={(event) => {
+            event?.stopPropagation();
             onDelete?.();
             setConfirmOpen(false);
           }}
