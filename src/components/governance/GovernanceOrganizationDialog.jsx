@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { UsersRound } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/lib/supabase/client";
+import SearchableSelect from "@/components/ui/SearchableSelect";
 
 const CREATE_ROLE = "__create_role__";
 const CREATE_PERSON = "__create_person__";
@@ -30,11 +30,11 @@ export default function GovernanceOrganizationDialog({ open, onOpenChange, gover
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || !governanceId) return;
     let cancelled = false;
     const load = async () => {
       const [positionResult, personResult] = await Promise.all([
-        supabase.from("position").select("id,name,slug,image_url").order("name"),
+        supabase.from("position").select("id,name,slug,image_url").eq("appointing_organization_id", governanceId).order("name"),
         supabase.from("person").select("id,name,slug,image_url,profile_user_id").order("name"),
       ]);
       if (cancelled) return;
@@ -45,7 +45,7 @@ export default function GovernanceOrganizationDialog({ open, onOpenChange, gover
     };
     load();
     return () => { cancelled = true; };
-  }, [open]);
+  }, [open, governanceId]);
 
   useEffect(() => {
     if (!open) return;
@@ -61,6 +61,28 @@ export default function GovernanceOrganizationDialog({ open, onOpenChange, gover
     setIsVacant(!!record?.is_vacant);
     setIsPrimary(!!record?.is_primary);
   }, [open, record, positions, people]);
+
+  const positionOptions = useMemo(() => [
+    { value: CREATE_ROLE, label: "Create new position", searchValue: "create new position" },
+    ...positions.map((item) => ({ value: item.id, label: item.name, searchValue: item.name })),
+  ], [positions]);
+
+  const personOptions = useMemo(() => [
+    { value: NONE, label: "No person", searchValue: "no person" },
+    { value: CREATE_PERSON, label: "Create new person", searchValue: "create new person" },
+    ...people.map((item) => ({ value: item.id, label: item.name, searchValue: item.name })),
+  ], [people]);
+
+  const reportsToOptions = useMemo(() => [
+    { value: NONE, label: "No reporting position", searchValue: "no reporting position" },
+    ...records
+      .filter((item) => item.id !== record?.id)
+      .map((item) => ({
+        value: item.id,
+        label: `${item.position_name || "Position"}${item.person_name ? ` · ${item.person_name}` : ""}`,
+        searchValue: `${item.position_name || ""} ${item.person_name || ""}`,
+      })),
+  ], [records, record]);
 
   const save = async () => {
     if (!governanceId) return;
@@ -111,14 +133,46 @@ export default function GovernanceOrganizationDialog({ open, onOpenChange, gover
     <DialogContent className="sm:max-w-lg">
       <DialogHeader><DialogTitle className="flex items-center gap-2"><UsersRound className="h-4 w-4" />{record ? "Edit appointment" : "Add appointment"}</DialogTitle></DialogHeader>
       <div className="space-y-4 py-2">
-        <Field label="Position"><Select value={positionId || (positionName ? CREATE_ROLE : "")} onValueChange={(value) => { if (value === CREATE_ROLE) { setPositionId(""); setPositionName(""); return; } const selected = positions.find((item) => item.id === value); setPositionId(value); setPositionName(selected?.name || ""); }}><SelectTrigger><SelectValue placeholder="Choose a position" /></SelectTrigger><SelectContent className="max-h-72"><SelectItem value={CREATE_ROLE}>Create new position</SelectItem>{positions.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent></Select></Field>
-        {!positionId && <Field label="New position name"><Input value={positionName} onChange={(event) => setPositionName(event.target.value)} placeholder="e.g. Commissioner" /></Field>}
-        <Field label="Person"><Select value={isVacant ? NONE : personId || (personName ? CREATE_PERSON : "")} disabled={isVacant} onValueChange={(value) => { if (value === CREATE_PERSON) { setPersonId(""); setPersonName(""); return; } if (value === NONE) { setPersonId(""); setPersonName(""); return; } const selected = people.find((item) => item.id === value); setPersonId(value); setPersonName(selected?.name || ""); }}><SelectTrigger><SelectValue placeholder="Choose a person" /></SelectTrigger><SelectContent className="max-h-72"><SelectItem value={NONE}>No person</SelectItem><SelectItem value={CREATE_PERSON}>Create new person</SelectItem>{people.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent></Select></Field>
-        {!personId && !isVacant && <Field label="New person name"><Input value={personName} onChange={(event) => setPersonName(event.target.value)} placeholder="e.g. Jane Doe" /></Field>}
-        <div className="grid gap-3 sm:grid-cols-2"><Field label="Start date"><Input type="date" value={startedAt} onChange={(event) => setStartedAt(event.target.value)} /></Field><Field label="End date"><Input type="date" value={endedAt} onChange={(event) => setEndedAt(event.target.value)} /></Field></div>
-        <Field label="Reports to"><Select value={reportsToId} onValueChange={setReportsToId}><SelectTrigger><SelectValue placeholder="No reporting position" /></SelectTrigger><SelectContent><SelectItem value={NONE}>No reporting position</SelectItem>{records.filter((item) => item.id !== record?.id).map((item) => <SelectItem key={item.id} value={item.id}>{item.position_name || "Position"}{item.person_name ? ` · ${item.person_name}` : ""}</SelectItem>)}</SelectContent></Select></Field>
-        <div className="flex items-center justify-between rounded-lg border p-3"><div><div className="text-sm font-medium">Vacant position</div><div className="text-xs text-muted-foreground">No person is assigned to this appointment.</div></div><Checkbox checked={isVacant} onCheckedChange={(checked) => { setIsVacant(!!checked); if (checked) { setPersonId(""); setPersonName(""); } }} /></div>
-        <div className="flex items-center justify-between rounded-lg border p-3"><div><div className="text-sm font-medium">Primary appointment</div><div className="text-xs text-muted-foreground">Use this when the person has multiple appointments.</div></div><Checkbox checked={isPrimary} onCheckedChange={(checked) => setIsPrimary(!!checked)} /></div>
+        <Field label="Position">
+          <SearchableSelect
+            value={positionId || (positionName ? CREATE_ROLE : "")}
+            onValueChange={(value) => {
+              if (value === CREATE_ROLE) { setPositionId(""); setPositionName(""); return; }
+              const selected = positions.find((item) => item.id === value);
+              setPositionId(value); setPositionName(selected?.name || "");
+            }}
+            options={positionOptions}
+            placeholder="Choose a position"
+            searchPlaceholder="Search positions in this organization..."
+            emptyText="No positions found in this organization."
+            disabled={saving}
+          />
+        </Field>
+        {!positionId && <Field label="New position name"><Input value={positionName} onChange={(event) => setPositionName(event.target.value)} placeholder="e.g. Commissioner" disabled={saving} /></Field>}
+
+        <Field label="Person">
+          <SearchableSelect
+            value={isVacant ? NONE : personId || (personName ? CREATE_PERSON : "")}
+            onValueChange={(value) => {
+              if (value === CREATE_PERSON) { setPersonId(""); setPersonName(""); return; }
+              if (value === NONE) { setPersonId(""); setPersonName(""); return; }
+              const selected = people.find((item) => item.id === value);
+              setPersonId(value); setPersonName(selected?.name || "");
+            }}
+            options={personOptions}
+            placeholder="Choose a person"
+            searchPlaceholder="Search people by name..."
+            emptyText="No people found."
+            disabled={saving || isVacant}
+          />
+        </Field>
+        {!personId && !isVacant && <Field label="New person name"><Input value={personName} onChange={(event) => setPersonName(event.target.value)} placeholder="e.g. Jane Doe" disabled={saving} /></Field>}
+
+        <div className="grid gap-3 sm:grid-cols-2"><Field label="Start date"><Input type="date" value={startedAt} onChange={(event) => setStartedAt(event.target.value)} disabled={saving} /></Field><Field label="End date"><Input type="date" value={endedAt} onChange={(event) => setEndedAt(event.target.value)} disabled={saving} /></Field></div>
+        <Field label="Reports to"><SearchableSelect value={reportsToId} onValueChange={setReportsToId} options={reportsToOptions} placeholder="No reporting position" searchPlaceholder="Search reporting positions..." emptyText="No reporting positions found." disabled={saving} /></Field>
+
+        <div className="flex items-center justify-between rounded-lg border p-3"><div><div className="text-sm font-medium">Vacant position</div><div className="text-xs text-muted-foreground">No person is assigned to this appointment.</div></div><Checkbox checked={isVacant} disabled={saving} onCheckedChange={(checked) => { setIsVacant(!!checked); if (checked) { setPersonId(""); setPersonName(""); } }} /></div>
+        <div className="flex items-center justify-between rounded-lg border p-3"><div><div className="text-sm font-medium">Primary appointment</div><div className="text-xs text-muted-foreground">Use this when the person has multiple appointments.</div></div><Checkbox checked={isPrimary} disabled={saving} onCheckedChange={(checked) => setIsPrimary(!!checked)} /></div>
       </div>
       <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={saving}>Cancel</Button><Button type="button" onClick={save} disabled={saving}>{saving ? "Saving..." : "Save"}</Button></DialogFooter>
     </DialogContent>
