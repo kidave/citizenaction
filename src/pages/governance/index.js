@@ -11,11 +11,11 @@ import { useGovernanceDirectoryGeographies } from "@/hooks/governance/useGoverna
 import { GOVERNANCE_DIRECTORY_TABS, GOVERNANCE_TYPES, formatGovernanceFilterType } from "@/utils/governance";
 
 function getEntityTypeOptions(tab) {
-  return tab === "entities" ? GOVERNANCE_TYPES : [];
+  return tab === "organizations" ? GOVERNANCE_TYPES : [];
 }
 
 export default function GovernancePage() {
-  const [tab, setTab] = useState("entities");
+  const [tab, setTab] = useState("organizations");
   const [search, setSearch] = useState("");
   const [type, setType] = useState("all");
   const [categoryId, setCategoryId] = useState("all");
@@ -48,13 +48,12 @@ export default function GovernancePage() {
                 {GOVERNANCE_DIRECTORY_TABS.map(([value, label]) => <ToggleGroupItem key={value} value={value} className="flex-1 px-4 sm:flex-none">{label}</ToggleGroupItem>)}
               </ToggleGroup>
             </div>
-
             <div className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_10rem_12rem_12rem]">
               <div className="relative min-w-0">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input className="h-9 pl-9" placeholder={tab === "positions" ? "Search positions..." : tab === "people" ? "Search people..." : "Search governance..."} value={search} onChange={(event) => setSearch(event.target.value)} />
+                <Input className="h-9 pl-9" placeholder={tab === "positions" ? "Search positions..." : tab === "people" ? "Search people..." : "Search organizations..."} value={search} onChange={(event) => setSearch(event.target.value)} />
               </div>
-              <Select value={type} onValueChange={setType} disabled={tab !== "entities"}>
+              <Select value={type} onValueChange={setType} disabled={tab !== "organizations"}>
                 <SelectTrigger className="h-9"><SelectValue placeholder="Type" /></SelectTrigger>
                 <SelectContent><SelectItem value="all">All types</SelectItem>{typeOptions.map((item) => <SelectItem key={item} value={item}>{formatGovernanceFilterType(item)}</SelectItem>)}</SelectContent>
               </Select>
@@ -68,10 +67,9 @@ export default function GovernancePage() {
               </Select>
             </div>
           </div>
-
-          {governanceQuery.isLoading && <div className="flex min-h-[50vh] items-center justify-center text-sm text-muted-foreground">Loading governance...</div>}
-          {governanceQuery.error && <div className="flex min-h-[50vh] items-center justify-center text-sm text-destructive">Failed to load governance data.</div>}
-          {!governanceQuery.isLoading && !governanceQuery.error && (data.length ? <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{data.map((entity) => <GovernanceDirectoryCard key={entity.id} entity={entity} tab={tab} />)}</div> : <div className="flex min-h-[50vh] items-center justify-center text-center"><div><p className="text-sm font-medium">No {tab} found.</p><p className="mt-1 text-xs text-muted-foreground">Try another search or filter.</p></div></div>)}
+          {governanceQuery.isLoading && <div className="flex min-h-[50vh] items-center justify-center text-sm text-muted-foreground">Loading {tab}...</div>}
+          {governanceQuery.error && <div className="flex min-h-[50vh] items-center justify-center text-sm text-destructive">Failed to load {tab}.</div>}
+          {!governanceQuery.isLoading && !governanceQuery.error && (data.length ? <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{data.map((entity) => <GovernanceDirectoryCard key={entity.id} entity={{ ...entity, tab }} tab={tab} />)}</div> : <div className="flex min-h-[50vh] items-center justify-center text-center"><div><p className="text-sm font-medium">No {tab} found.</p><p className="mt-1 text-xs text-muted-foreground">Try another search or filter.</p></div></div>)}
         </div>
       </main>
     </div>
