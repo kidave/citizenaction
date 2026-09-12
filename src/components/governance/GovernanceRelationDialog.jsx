@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import ImageUpload from "@/components/media/ImageUpload";
-import { getGovernanceLabel, getDefaultGovernanceUnitType, GOVERNANCE_ENTITY_TYPES, GOVERNANCE_UNIT_TYPES, GOVERNANCE_STATUS_OPTIONS } from "@/utils/governance";
+import { GOVERNANCE_TYPES, GOVERNANCE_STATUS_OPTIONS, formatGovernanceType, getGovernanceLabel } from "@/utils/governance";
 import { supabase } from "@/lib/supabase/client";
 
 function Field({ label, children }) {
@@ -18,8 +18,7 @@ export default function GovernanceRelationDialog({ open, onOpenChange, mode = "a
   const [relationType, setRelationType] = useState("");
   const [existingId, setExistingId] = useState("");
   const [name, setName] = useState("");
-  const [entityType, setEntityType] = useState("unit");
-  const [unitType, setUnitType] = useState("unit");
+  const [type, setType] = useState("organization");
   const [categoryId, setCategoryId] = useState("");
   const [imageUrl, setImageUrl] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -31,15 +30,21 @@ export default function GovernanceRelationDialog({ open, onOpenChange, mode = "a
   useEffect(() => {
     if (!open) return;
     setStep(isEdit ? "edit" : "relation");
-    setRelationType(""); setExistingId(""); setName(""); setEntityType("unit"); setUnitType("unit");
-    setCategoryId(""); setImageUrl(null); setSaving(false); setValidFrom(new Date().toISOString().slice(0, 10));
-    setStatus("active"); setValidTo("");
+    setRelationType("");
+    setExistingId("");
+    setName("");
+    setType("organization");
+    setCategoryId("");
+    setImageUrl(null);
+    setSaving(false);
+    setValidFrom(new Date().toISOString().slice(0, 10));
+    setStatus("active");
+    setValidTo("");
   }, [open, isEdit]);
 
-  useEffect(() => setUnitType(getDefaultGovernanceUnitType(entityType)), [entityType]);
   const filtered = useMemo(() => candidates.filter((item) => item.id !== sourceEntity?.id), [candidates, sourceEntity]);
 
-  const chooseRelation = (type) => { setRelationType(type); setExistingId(""); setStep("target"); };
+  const chooseRelation = (relation) => { setRelationType(relation); setExistingId(""); setStep("target"); };
   const back = () => { if (step === "target" || step === "create") { setExistingId(""); setStep("relation"); } else if (step === "existing") setStep("target"); };
 
   const removeChild = async (childId) => {
@@ -58,32 +63,62 @@ export default function GovernanceRelationDialog({ open, onOpenChange, mode = "a
     if (!sourceEntity?.id) return;
     try {
       setSaving(true);
+
       if (isEdit && step === "edit-parent") {
         const result = await supabase.rpc("set_governance_parent", { p_child_id: sourceEntity.id, p_parent_id: existingId === "none" ? null : existingId });
         if (result?.error) throw result.error;
         toast.success("Parent relation updated");
-        await onCompleted?.(); onOpenChange?.(false); return;
+        await onCompleted?.();
+        onOpenChange?.(false);
+        return;
       }
+
       if (step === "existing") {
         if (!existingId) return toast.error("Choose an entity");
-        const result = await supabase.rpc("set_governance_parent", { p_child_id: relationType === "parent-of" ? existingId : sourceEntity.id, p_parent_id: relationType === "parent-of" ? sourceEntity.id : existingId });
+        const result = await supabase.rpc("set_governance_parent", {
+          p_child_id: relationType === "parent-of" ? existingId : sourceEntity.id,
+          p_parent_id: relationType === "parent-of" ? sourceEntity.id : existingId,
+        });
         if (result?.error) throw result.error;
         toast.success("Governance relationship updated");
       } else if (step === "create") {
         if (!name.trim()) return toast.error("Name is required");
+        if (!type) return toast.error("Governance type is required");
         if (!validFrom) return toast.error("Valid from is required");
         if (["inactive", "deprecated"].includes(status) && !validTo) return toast.error("Add Valid to when the entity becomes inactive");
         if (validTo && validTo < validFrom) return toast.error("Valid to cannot be earlier than valid from");
-        const rpc = relationType === "parent-of" ? "add_governance_parent" : "add_governance_child";
-        const payload = { p_name: name.trim(), p_entity_type: entityType, p_unit_type: unitType, p_status: status, p_valid_from: `${validFrom}T00:00:00Z`, p_valid_to: validTo ? `${validTo}T23:59:59.999Z` : null, p_category_id: categoryId || null, p_image_url: imageUrl || null };
-        payload[relationType === "parent-of" ? "p_child_id" : "p_parent_id"] = sourceEntity.id;
-        const result = await supabase.rpc(rpc, payload);
-        if (result?.error) throw result.error;
+
+        const created = await supabase.rpc("create_governance_entity", {
+          p_name: name.trim(),
+          p_type: type,
+          p_short_name: null,
+          p_status: status,
+          p_valid_from: `${validFrom}T00:00:00Z`,
+          p_valid_to: validTo ? `${validTo}T23:59:59.999Z` : null,
+          p_category_id: categoryId || null,
+          p_image_url: imageUrl || null,
+        });
+        if (created?.error) throw created.error;
+        const createdId = Array.isArray(created?.data) ? created.data[0]?.id : created?.data?.id;
+        if (!createdId) throw new Error("Unable to create governance entity");
+
+        const parentResult = await supabase.rpc("set_governance_parent", {
+          p_child_id: relationType === "parent-of" ? createdId : sourceEntity.id,
+          p_parent_id: relationType === "parent-of" ? sourceEntity.id : createdId,
+        });
+        if (parentResult?.error) throw parentResult.error;
         toast.success("Governance relationship updated");
-      } else return toast.error("Choose a relation");
-      await onCompleted?.(); onOpenChange?.(false);
-    } catch (error) { toast.error(error?.message || "Unable to update governance relationship"); }
-    finally { setSaving(false); }
+      } else {
+        return toast.error("Choose a relation");
+      }
+
+      await onCompleted?.();
+      onOpenChange?.(false);
+    } catch (error) {
+      toast.error(error?.message || "Unable to update governance relationship");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -93,6 +128,7 @@ export default function GovernanceRelationDialog({ open, onOpenChange, mode = "a
           <SheetTitle className="flex items-center gap-2"><GitBranch className="h-4 w-4" />{isEdit ? "Edit relations" : "Add relation"}</SheetTitle>
           <div className="text-sm text-muted-foreground">{getGovernanceLabel(sourceEntity)}</div>
         </SheetHeader>
+
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
           <div className="mx-auto w-full max-w-xl space-y-5">
             {isEdit ? (
@@ -104,19 +140,7 @@ export default function GovernanceRelationDialog({ open, onOpenChange, mode = "a
                     <span className="min-w-0 flex-1 truncate text-sm">{sourceEntity?.parent_id ? getGovernanceLabel(filtered.find((item) => item.id === sourceEntity.parent_id)) || "Current parent" : "No parent"}</span>
                     <Button type="button" variant="outline" size="sm" onClick={() => { setExistingId(sourceEntity.parent_id || "none"); setStep("edit-parent"); }}>Change</Button>
                   </div>
-                  {step === "edit-parent" && (
-                    <div className="pt-2">
-                      <Field label="New parent">
-                        <Select value={existingId} onValueChange={setExistingId}>
-                          <SelectTrigger><SelectValue placeholder="Choose a parent" /></SelectTrigger>
-                          <SelectContent className="max-h-72">
-                            <SelectItem value="none">No parent — make independent</SelectItem>
-                            {filtered.map((item) => <SelectItem key={item.id} value={item.id}>{getGovernanceLabel(item)}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </Field>
-                    </div>
-                  )}
+                  {step === "edit-parent" && <div className="pt-2"><Field label="New parent"><Select value={existingId} onValueChange={setExistingId}><SelectTrigger><SelectValue placeholder="Choose a parent" /></SelectTrigger><SelectContent className="max-h-72"><SelectItem value="none">No parent — make independent</SelectItem>{filtered.map((item) => <SelectItem key={item.id} value={item.id}>{getGovernanceLabel(item)}</SelectItem>)}</SelectContent></Select></Field></div>}
                 </div>
                 <div className="space-y-2">
                   <div className="text-xs font-medium text-muted-foreground">Children</div>
@@ -130,10 +154,18 @@ export default function GovernanceRelationDialog({ open, onOpenChange, mode = "a
             ) : step === "existing" ? (
               <Field label={relationType === "parent-of" ? "Child entity" : "Parent entity"}><Select value={existingId} onValueChange={setExistingId}><SelectTrigger><SelectValue placeholder="Choose an entity" /></SelectTrigger><SelectContent className="max-h-72">{filtered.map((item) => <SelectItem key={item.id} value={item.id}>{getGovernanceLabel(item)}</SelectItem>)}</SelectContent></Select></Field>
             ) : (
-              <div className="space-y-4"><Field label="Name"><Input value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Western Railway" autoFocus /></Field><div className="grid gap-4 sm:grid-cols-2"><Field label="Entity type"><Select value={entityType} onValueChange={setEntityType}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{GOVERNANCE_ENTITY_TYPES.map((type) => <SelectItem key={type} value={type}>{type.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())}</SelectItem>)}</SelectContent></Select></Field><Field label="Structural role"><Select value={unitType} onValueChange={setUnitType}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{GOVERNANCE_UNIT_TYPES.map((type) => <SelectItem key={type} value={type}>{type.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())}</SelectItem>)}</SelectContent></Select></Field></div><Field label="Category"><Select value={categoryId || "none"} onValueChange={(value) => setCategoryId(value === "none" ? "" : value)}><SelectTrigger><SelectValue placeholder="Choose a category" /></SelectTrigger><SelectContent className="max-h-72"><SelectItem value="none">No category</SelectItem>{categories.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent></Select></Field><div className="grid gap-4 sm:grid-cols-2"><Field label="Valid from"><Input type="date" value={validFrom} onChange={(event) => setValidFrom(event.target.value)} /></Field><Field label="Valid to"><Input type="date" value={validTo} onChange={(event) => setValidTo(event.target.value)} /></Field></div><Field label="Status"><Select value={status} onValueChange={setStatus}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{GOVERNANCE_STATUS_OPTIONS.map(([value, text]) => <SelectItem key={value} value={value}>{text}</SelectItem>)}</SelectContent></Select></Field><ImageUpload bucket="governance" path={`governance/draft-${sourceEntity?.id || "entity"}/logo`} value={imageUrl} onChange={(value) => setImageUrl(value || null)} label="Logo" helperText="PNG, JPG or WebP · up to 5 MB" disabled={saving} /></div>
+              <div className="space-y-4">
+                <Field label="Name"><Input value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Western Railway" autoFocus /></Field>
+                <Field label="Governance type"><Select value={type} onValueChange={setType}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent className="max-h-72">{GOVERNANCE_TYPES.map((item) => <SelectItem key={item} value={item}>{formatGovernanceType(item)}</SelectItem>)}</SelectContent></Select></Field>
+                <Field label="Category"><Select value={categoryId || "none"} onValueChange={(value) => setCategoryId(value === "none" ? "" : value)}><SelectTrigger><SelectValue placeholder="Choose a category" /></SelectTrigger><SelectContent className="max-h-72"><SelectItem value="none">No category</SelectItem>{categories.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent></Select></Field>
+                <div className="grid gap-4 sm:grid-cols-2"><Field label="Valid from"><Input type="date" value={validFrom} onChange={(event) => setValidFrom(event.target.value)} /></Field><Field label="Valid to"><Input type="date" value={validTo} onChange={(event) => setValidTo(event.target.value)} /></Field></div>
+                <Field label="Status"><Select value={status} onValueChange={setStatus}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{GOVERNANCE_STATUS_OPTIONS.map(([value, text]) => <SelectItem key={value} value={value}>{text}</SelectItem>)}</SelectContent></Select></Field>
+                <ImageUpload bucket="governance" path={`governance/draft-${sourceEntity?.id || "entity"}/logo`} value={imageUrl} onChange={(value) => setImageUrl(value || null)} label="Logo" helperText="PNG, JPG or WebP · up to 5 MB" disabled={saving} />
+              </div>
             )}
           </div>
         </div>
+
         <SheetFooter className="border-t bg-background px-5 py-4 sm:px-6">
           {((!isEdit && step !== "relation") || (isEdit && step !== "edit")) && <Button type="button" variant="ghost" onClick={isEdit ? () => setStep("edit") : back} disabled={saving}><ArrowLeft className="mr-2 h-4 w-4" />Back</Button>}
           {isEdit && step === "edit-parent" && <Button type="button" onClick={save} disabled={saving}>{saving ? "Saving..." : "Save parent"}</Button>}
