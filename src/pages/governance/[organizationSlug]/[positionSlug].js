@@ -23,10 +23,8 @@ export default function GovernancePositionPage() {
     queryFn: async () => {
       const organizationResult = await supabase
         .from("governance")
-        .select("id,name,short_name,slug,entity_type")
+        .select("id,name,short_name,slug,type")
         .eq("slug", organizationSlug)
-        .neq("entity_type", "person")
-        .neq("entity_type", "position")
         .maybeSingle();
 
       if (organizationResult.error) throw organizationResult.error;
@@ -56,9 +54,8 @@ export default function GovernancePositionPage() {
 
       const governanceResult = await supabase
         .from("governance")
-        .select("id,name,short_name,slug,entity_type,image_url,description,status,valid_from,valid_to")
+        .select("id,name,short_name,slug,type,image_url,description,status,valid_from,valid_to")
         .eq("id", positionResult.data.governance_id)
-        .eq("entity_type", "position")
         .maybeSingle();
 
       if (governanceResult.error) throw governanceResult.error;
@@ -71,46 +68,17 @@ export default function GovernancePositionPage() {
     },
   });
 
-  const timelineQuery = usePositionTimeline(
-    positionQuery.data?.position?.governance_id,
-    !!positionQuery.data?.position?.governance_id,
-  );
+  const timelineQuery = usePositionTimeline(positionQuery.data?.position?.governance_id, !!positionQuery.data?.position?.governance_id);
 
   if (positionQuery.isLoading || timelineQuery.isLoading) {
-    return (
-      <div className="flex min-h-dvh w-full flex-col">
-        <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Loading..." }]} />
-        <main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading position...</main>
-      </div>
-    );
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Loading..." }]} /><main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading position...</main></div>;
   }
 
   if (positionQuery.error || timelineQuery.error || !positionQuery.data) {
-    return (
-      <div className="flex min-h-dvh w-full flex-col">
-        <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Not found" }]} />
-        <main className="flex flex-1 items-center justify-center text-sm">Governance position not found.</main>
-      </div>
-    );
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Not found" }]} /><main className="flex flex-1 items-center justify-center text-sm">Governance position not found.</main></div>;
   }
 
   const { organization, position } = positionQuery.data;
 
-  return (
-    <div className="flex min-h-dvh w-full flex-col">
-      <GovernancePageHeader
-        items={[
-          { label: "Governance", href: "/governance" },
-          { label: getGovernanceLabel(organization), href: `/governance/${organization.slug}` },
-          { label: getGovernanceLabel(position) },
-        ]}
-      />
-      <main className="min-h-0 flex-1">
-        <GovernancePositionTimeline
-          position={timelineQuery.data?.position || position}
-          timeline={timelineQuery.data?.timeline || []}
-        />
-      </main>
-    </div>
-  );
+  return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: getGovernanceLabel(organization), href: `/governance/${organization.slug}` }, { label: getGovernanceLabel(position) }]} /><main className="min-h-0 flex-1"><GovernancePositionTimeline position={timelineQuery.data?.position || position} timeline={timelineQuery.data?.timeline || []} /></main></div>;
 }
