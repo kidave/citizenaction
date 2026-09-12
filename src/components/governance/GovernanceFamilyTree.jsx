@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { cn } from "@/lib/utils";
-import { buildGovernanceTree, getGovernanceAncestorIds, getGovernanceLabel, getGovernanceInitials } from "@/utils/governance";
+import { buildGovernanceTree, getGovernanceAncestorIds, getGovernanceLabel, getGovernanceInitials, formatGovernanceType } from "@/utils/governance";
 
 const MIN_ZOOM = 0.55;
 const MAX_ZOOM = 1.6;
@@ -33,7 +33,7 @@ function TreeNode({ node, expandedIds, onToggle, selectedId, onSelect, canEdit, 
 
   const content = <button type="button" onClick={openCard} className={cn("group flex w-full min-w-0 items-center gap-3 rounded-xl border bg-card px-4 py-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md", selected && "border-primary ring-2 ring-primary/15")} title={label}>
     <Avatar className="h-10 w-10 shrink-0 rounded-lg"><AvatarImage src={avatarUrl} alt={avatarUrl ? fallbackLabel : ""} /><AvatarFallback className="rounded-lg bg-muted">{getGovernanceInitials(fallbackLabel)}</AvatarFallback></Avatar>
-    <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">{label}</span></span>
+    <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">{label}</span><span className="mt-0.5 block truncate text-xs text-muted-foreground">{formatGovernanceType(node.type)}</span></span>
   </button>;
 
   return <li className="flex w-[240px] shrink-0 flex-col items-center">
