@@ -21,28 +21,40 @@ export default function GovernancePersonPage() {
     queryFn: async () => {
       const personResult = await supabase.rpc("get_person_by_slug", { p_slug: personSlug });
       if (personResult.error) throw personResult.error;
+
       const person = personResult.data?.[0] || null;
       if (!person) return null;
+
       const careerResult = await supabase.rpc("get_person_career", { p_person_id: person.id });
       if (careerResult.error) throw careerResult.error;
+
       return { person, career: careerResult.data || [] };
     },
   });
 
-  if (query.isLoading) return <div className="flex min-h-dvh items-center justify-center text-sm text-muted-foreground">Loading person...</div>;
-  if (query.error || !query.data) return <div className="flex min-h-dvh items-center justify-center text-sm">Person not found.</div>;
+  if (query.isLoading) {
+    return <div className="flex min-h-dvh items-center justify-center text-sm text-muted-foreground">Loading person...</div>;
+  }
+
+  if (query.error || !query.data) {
+    return <div className="flex min-h-dvh items-center justify-center text-sm">Person not found.</div>;
+  }
 
   const { person, career } = query.data;
 
   return (
     <div className="flex min-h-dvh w-full flex-col">
-      <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: person.name }]} />
+      <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "People", href: "/governance" }, { label: person.name }]} />
       <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl space-y-6">
-          <div className="flex items-start gap-4">
-            <Avatar className="h-16 w-16 rounded-xl"><AvatarImage src={person.image_url || undefined} alt="" /><AvatarFallback className="rounded-xl">{getGovernanceInitials(person.name)}</AvatarFallback></Avatar>
-            <div className="min-w-0"><h1 className="text-xl font-semibold">{person.name}</h1>{person.biography && <p className="mt-1 text-sm text-muted-foreground">{person.biography}</p>}</div>
+          <div className="flex items-center gap-3">
+            <Avatar className="h-12 w-12 rounded-lg">
+              <AvatarImage src={person.image_url || undefined} alt={person.name} />
+              <AvatarFallback className="rounded-lg text-sm">{getGovernanceInitials(person.name)}</AvatarFallback>
+            </Avatar>
+            <h1 className="text-xl font-semibold">{person.name}</h1>
           </div>
+
           <section className="space-y-3">
             <h2 className="text-sm font-semibold">Career</h2>
             {career.length ? career.map((item) => (
