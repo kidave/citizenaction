@@ -13,7 +13,7 @@ export function useGovernanceContribution() {
       action = "edit",
       proposedGovernanceId = null,
       proposedParentId = null,
-      proposedEntityType = null,
+      proposedType = null,
       proposedChanges = {},
       sourceUrl = null,
       sourceNotes = null,
@@ -23,7 +23,7 @@ export function useGovernanceContribution() {
         p_action: action,
         p_proposed_governance_id: proposedGovernanceId,
         p_proposed_parent_id: proposedParentId,
-        p_proposed_entity_type: proposedEntityType,
+        p_proposed_type: proposedType,
         p_proposed_changes: proposedChanges,
         p_source_url: sourceUrl,
         p_source_notes: sourceNotes,
@@ -41,8 +41,5 @@ export function useGovernanceContribution() {
     },
   });
 
-  return {
-    submitContribution: mutation.mutateAsync,
-    isSubmitting: mutation.isPending,
-  };
+  return { submitContribution: mutation.mutateAsync, isSubmitting: mutation.isPending };
 }
