@@ -1,6 +1,5 @@
 import { useRouter } from "next/router";
 import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
@@ -50,7 +49,7 @@ export default function GovernancePersonPage() {
               <Card key={item.appointment_id}>
                 <CardContent className="p-4">
                   <div className="text-sm font-medium">{item.position_name}</div>
-                  {item.organization_id && <Link href={`/governance/${item.organization_id}`} className="text-sm text-muted-foreground hover:underline">{item.organization_name}</Link>}
+                  <div className="text-sm text-muted-foreground">{item.organization_name}</div>
                   <div className="mt-1 text-xs text-muted-foreground">{formatGovernanceDate(item.started_at)}{item.ended_at ? ` – ${formatGovernanceDate(item.ended_at)}` : " – Present"}</div>
                 </CardContent>
               </Card>
