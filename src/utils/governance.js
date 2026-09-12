@@ -1,41 +1,27 @@
-export const GOVERNANCE_ENTITY_TYPES = [
-  "authority",
-  "unit",
-  "position",
-  "person",
-  "organisation",
-  "committee",
-  "programme",
-  "project",
+export const GOVERNANCE_TYPES = [
+  "government",
   "ministry",
   "department",
-  "division",
-  "office",
-  "ward",
-  "station",
-  "zone",
-];
-
-export const GOVERNANCE_UNIT_TYPES = [
   "authority",
-  "ministry",
-  "department",
-  "directorate",
-  "division",
-  "zone",
-  "ward",
-  "region",
-  "office",
-  "branch",
-  "station",
-  "court",
-  "bench",
+  "corporation",
   "committee",
+  "organization",
+  "agency",
   "board",
   "commission",
-  "unit",
-  "other",
+  "council",
+  "regulator",
+  "office",
+  "tribunal",
+  "court",
+  "division",
+  "zone",
+  "ward",
+  "station",
 ];
+
+// Backward-compatible export name for existing imports.
+export const GOVERNANCE_ENTITY_TYPES = GOVERNANCE_TYPES;
 
 export const GOVERNANCE_STATUS_OPTIONS = [
   ["active", "Active"],
@@ -49,44 +35,13 @@ export const GOVERNANCE_DIRECTORY_TABS = [
   ["people", "People"],
 ];
 
-export const GOVERNANCE_ROOT_TYPES = [
-  "all",
-  "authority",
-  "organisation",
-  "ministry",
-  "department",
-  "unit",
-];
-
-const UNIT_TYPE_BY_ENTITY_TYPE = {
-  authority: "authority",
-  ministry: "ministry",
-  department: "department",
-  division: "division",
-  office: "office",
-  ward: "ward",
-  station: "station",
-  zone: "zone",
-};
+export const GOVERNANCE_ROOT_TYPES = ["all", ...GOVERNANCE_TYPES];
 
 export function getGovernanceHref(entity) {
   if (!entity) return null;
   if (entity.path) return entity.path;
-
-  if (entity.entity_type === "person") {
-    return entity.slug ? `/governance/person/${entity.slug}` : null;
-  }
-
-  if (entity.entity_type === "position") {
-    const organizationSlug = entity.organization_slug || entity.parent_slug;
-    return entity.slug && organizationSlug
-      ? `/governance/${organizationSlug}/${entity.slug}`
-      : entity.slug
-        ? `/governance/${entity.slug}`
-        : null;
-  }
-
-  return entity.slug ? `/governance/${entity.slug}` : null;
+  if (entity.slug) return `/governance/${entity.slug}`;
+  return null;
 }
 
 export function getGovernanceLabel(entity) {
@@ -102,17 +57,13 @@ export function getGovernanceTreeLabel(entity) {
 }
 
 export function formatGovernanceType(value) {
-  const type =
-    typeof value === "string"
-      ? value
-      : value?.unit_type && value.unit_type !== "authority"
-        ? value.unit_type
-        : value?.entity_type;
+  const type = typeof value === "string" ? value : value?.type;
 
   if (!type) return "Governance";
-  if (type === "other") return "Organisation";
 
-  return type.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+  return type
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 export function formatGovernanceFilterType(value) {
@@ -130,10 +81,6 @@ export function getGovernanceInitials(value) {
       .slice(0, 2)
       .toUpperCase() || "G"
   );
-}
-
-export function getDefaultGovernanceUnitType(entityType) {
-  return UNIT_TYPE_BY_ENTITY_TYPE[entityType] || "unit";
 }
 
 export function toGovernanceDateInput(value) {
