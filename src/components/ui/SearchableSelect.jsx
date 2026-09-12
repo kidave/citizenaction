@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -18,14 +18,7 @@ export default function SearchableSelect({
   renderOption,
 }) {
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-
-  useEffect(() => {
-    if (!open) setQuery("");
-  }, [open]);
-
   const selected = options.find((option) => option.value === value);
-  const selectedLabel = selected?.label || placeholder;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -38,13 +31,13 @@ export default function SearchableSelect({
           disabled={disabled}
           className={cn("h-9 w-full justify-between font-normal", !selected && "text-muted-foreground", className)}
         >
-          <span className="min-w-0 truncate">{selectedLabel}</span>
+          <span className="min-w-0 truncate">{selected?.label || placeholder}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className={contentClassName}>
-        <Command shouldFilter={!options.some((option) => option.searchValue === undefined)}>
-          <CommandInput placeholder={searchPlaceholder} value={query} onValueChange={setQuery} />
+        <Command>
+          <CommandInput placeholder={searchPlaceholder} />
           <CommandList>
             <CommandEmpty>{emptyText}</CommandEmpty>
             {options.map((option) => (
