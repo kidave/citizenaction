@@ -4,8 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import GovernancePositionTimeline from "@/components/governance/GovernancePositionTimeline";
 import { usePositionTimeline } from "@/hooks/governance/usePositionTimeline";
-import { supabase } from "@/lib/supabase/client";
 import { getGovernanceLabel } from "@/utils/governance";
+import { supabase } from "@/lib/supabase/client";
 
 function getValue(value) {
   if (Array.isArray(value)) return value[0] || null;
@@ -33,6 +33,7 @@ export default function GovernancePositionPage() {
         .from("position")
         .select("id,name,slug,description,image_url,appointing_organization_id,category_id")
         .eq("slug", positionSlug)
+        .eq("appointing_organization_id", organizationResult.data.id)
         .maybeSingle();
       if (positionResult.error) throw positionResult.error;
       if (!positionResult.data) return null;
@@ -47,7 +48,6 @@ export default function GovernancePositionPage() {
         .limit(1)
         .maybeSingle();
       if (appointmentResult.error) throw appointmentResult.error;
-      if (!appointmentResult.data) return null;
 
       return { organization: organizationResult.data, position: positionResult.data };
     },
@@ -66,5 +66,12 @@ export default function GovernancePositionPage() {
   const { organization, position } = positionQuery.data;
   const timelinePosition = timelineQuery.data?.position || position;
 
-  return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: getGovernanceLabel(organization), href: `/governance/${organization.slug}` }, { label: getGovernanceLabel(position) }]} /><main className="min-h-0 flex-1"><GovernancePositionTimeline position={timelinePosition} timeline={timelineQuery.data?.timeline || []} /></main></div>;
+  return (
+    <div className="flex min-h-dvh w-full flex-col">
+      <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: getGovernanceLabel(organization), href: `/governance/${organization.slug}` }, { label: getGovernanceLabel(position) }]} />
+      <main className="min-h-0 flex-1">
+        <GovernancePositionTimeline position={timelinePosition} organization={organization} timeline={timelineQuery.data?.timeline || []} />
+      </main>
+    </div>
+  );
 }
