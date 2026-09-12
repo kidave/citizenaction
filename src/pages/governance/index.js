@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useQuery } from "@tanstack/react-query";
+import GovernanceOrganizationGrid from "@/components/governance/GovernanceOrganizationGrid";
 import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectoryCard";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import GeographyFocusSelector from "@/components/geography/GeographyFocusSelector";
@@ -32,7 +33,7 @@ export default function GovernancePage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("governance")
-        .select("id,name,short_name,slug,type,status")
+        .select("id,name,short_name,slug,type,status,image_url,current_holder_name,current_holder_image_url")
         .neq("status", "deleted")
         .order("name")
         .limit(500);
@@ -118,7 +119,7 @@ export default function GovernancePage() {
 
           {governanceQuery.isLoading && <div className="flex min-h-[50vh] items-center justify-center text-sm text-muted-foreground">Loading {tab}...</div>}
           {governanceQuery.error && <div className="flex min-h-[50vh] items-center justify-center text-sm text-destructive">Failed to load {tab}.</div>}
-          {!governanceQuery.isLoading && !governanceQuery.error && (data.length ? <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{data.map((entity) => <GovernanceDirectoryCard key={entity.id} entity={{ ...entity, tab }} tab={tab} />)}</div> : <div className="flex min-h-[50vh] items-center justify-center text-center"><div><p className="text-sm font-medium">No {tab} found.</p><p className="mt-1 text-xs text-muted-foreground">Try another search or filter.</p></div></div>)}
+          {!governanceQuery.isLoading && !governanceQuery.error && (tab === "organizations" ? <GovernanceOrganizationGrid organizations={data} /> : data.length ? <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{data.map((entity) => <GovernanceDirectoryCard key={entity.id} entity={{ ...entity, tab }} tab={tab} />)}</div> : <div className="flex min-h-[50vh] items-center justify-center text-center"><div><p className="text-sm font-medium">No {tab} found.</p><p className="mt-1 text-xs text-muted-foreground">Try another search or filter.</p></div></div>)}
         </div>
       </main>
     </div>
