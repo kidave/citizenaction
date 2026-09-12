@@ -71,7 +71,7 @@ export default function GovernanceFamilyTree({ records = [], selectedId = null, 
     });
   }, [records, selectedId, initialExpandedIds]);
 
-  const changeZoom = (delta) => setZoom((current) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Number((current + delta).toFixed(2))));
+  const changeZoom = (delta) => setZoom((current) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Number((current + delta).toFixed(2)))));
   const resetView = () => { setZoom(DEFAULT_ZOOM); setPan({ x: 0, y: 0 }); };
   const handleWheel = (event) => { if (event.target.closest("[data-tree-controls]")) return; event.preventDefault(); changeZoom(event.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP); };
   const handlePointerDown = (event) => { if (event.button !== 0 || event.target.closest("[data-tree-controls], button, a, [role='menuitem']")) return; dragRef.current = { x: event.clientX, y: event.clientY, panX: pan.x, panY: pan.y }; event.currentTarget.setPointerCapture?.(event.pointerId); setDragging(true); };
