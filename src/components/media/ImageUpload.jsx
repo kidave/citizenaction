@@ -12,6 +12,26 @@ function fileExtension(file) {
   return mime || "png";
 }
 
+function withCacheBust(url) {
+  if (!url) return null;
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}v=${Date.now()}`;
+}
+
+function storagePathFromPublicUrl(url) {
+  if (!url) return null;
+  const marker = "/storage/v1/object/public/";
+  const index = url.indexOf(marker);
+  if (index === -1) return null;
+  const remainder = url.slice(index + marker.length);
+  const slash = remainder.indexOf("/");
+  if (slash === -1) return null;
+  return {
+    bucket: remainder.slice(0, slash),
+    path: decodeURIComponent(remainder.slice(slash + 1).split("?")[0]),
+  };
+}
+
 export default function ImageUpload({
   bucket,
   path,
@@ -25,12 +45,14 @@ export default function ImageUpload({
 }) {
   const inputRef = useRef(null);
   const objectUrlRef = useRef(null);
-  const [previewUrl, setPreviewUrl] = useState(value || null);
+  const previousStoragePathRef = useRef(null);
+  const [previewUrl, setPreviewUrl] = useState(withCacheBust(value));
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setPreviewUrl(value || null);
+    setPreviewUrl(withCacheBust(value));
+    previousStoragePathRef.current = storagePathFromPublicUrl(value);
   }, [value]);
 
   useEffect(() => () => {
@@ -59,6 +81,7 @@ export default function ImageUpload({
     setUploading(true);
 
     const previousValue = value || null;
+    const previousStoragePath = storagePathFromPublicUrl(previousValue);
     const localPreview = URL.createObjectURL(file);
     if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
     objectUrlRef.current = localPreview;
@@ -72,7 +95,7 @@ export default function ImageUpload({
         .from(bucket)
         .upload(storagePath, file, {
           upsert: true,
-          cacheControl: "31536000",
+          cacheControl: "3600",
           contentType: file.type,
         });
 
@@ -85,16 +108,26 @@ export default function ImageUpload({
         throw new Error("Image uploaded, but no public URL was returned.");
       }
 
-      // Persist the URL before treating the upload as successful. This is
-      // important for callers such as governance/space/profile that update a
-      // database record after the Storage upload.
+      const freshPublicUrl = withCacheBust(publicUrl);
+
       if (onChange) {
-        await onChange(publicUrl, storagePath);
+        await onChange(freshPublicUrl, storagePath);
       }
 
-      setPreviewUrl(publicUrl);
+      // Remove the old object when the extension changed (for example logo.jpg -> logo.png).
+      if (previousStoragePath?.bucket === bucket && previousStoragePath.path !== storagePath) {
+        const { error: removeError } = await supabase.storage
+          .from(bucket)
+          .remove([previousStoragePath.path]);
+        if (removeError) {
+          console.warn("Unable to remove previous image:", removeError);
+        }
+      }
+
+      previousStoragePathRef.current = { bucket, path: storagePath };
+      setPreviewUrl(freshPublicUrl);
     } catch (uploadError) {
-      setPreviewUrl(previousValue);
+      setPreviewUrl(previousValue ? withCacheBust(previousValue) : null);
       setError(uploadError?.message || "Unable to upload image.");
     } finally {
       setUploading(false);
@@ -106,10 +139,20 @@ export default function ImageUpload({
     setUploading(true);
 
     try {
+      const currentStoragePath = storagePathFromPublicUrl(value);
+
+      if (currentStoragePath?.bucket === bucket && currentStoragePath.path) {
+        const { error: removeError } = await supabase.storage
+          .from(bucket)
+          .remove([currentStoragePath.path]);
+        if (removeError) throw removeError;
+      }
+
       if (onChange) {
         await onChange(null, null);
       }
       setPreviewUrl(null);
+      previousStoragePathRef.current = null;
       if (inputRef.current) inputRef.current.value = "";
     } catch (clearError) {
       setError(clearError?.message || "Unable to remove image.");
@@ -123,7 +166,7 @@ export default function ImageUpload({
       <div className="flex items-start gap-4">
         <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-muted/30">
           {previewUrl ? (
-            <img src={previewUrl} alt="Preview" className="h-full w-full object-contain" />
+            <img key={previewUrl} src={previewUrl} alt="Preview" className="h-full w-full object-contain" />
           ) : (
             <ImagePlus className="h-7 w-7 text-muted-foreground" />
           )}
