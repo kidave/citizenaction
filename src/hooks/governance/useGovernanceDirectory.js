@@ -7,21 +7,24 @@ export function useGovernanceDirectory({
   type = "all",
   entityType,
   categoryId = "all",
-  geographyId = "all",
+  geographyId = null,
+  organizationId = null,
   enabled = true,
 } = {}) {
   const organizationType = type || entityType || "all";
+  const effectiveCategoryId = tab === "organizations" ? categoryId : "all";
 
   return useQuery({
-    queryKey: ["governance-directory-v2", tab, search, organizationType, categoryId, geographyId],
+    queryKey: ["governance-directory-v2", tab, search, organizationType, effectiveCategoryId, geographyId, organizationId],
     enabled,
     queryFn: async () => {
       const result = await supabase.rpc("get_governance_directory_v2", {
         p_search: search.trim() || null,
         p_tab: tab,
         p_type: tab === "organizations" && organizationType !== "all" ? organizationType : null,
-        p_category_id: categoryId === "all" ? null : categoryId,
-        p_geography_id: geographyId === "all" ? null : geographyId,
+        p_category_id: tab === "organizations" && effectiveCategoryId !== "all" ? effectiveCategoryId : null,
+        p_geography_id: geographyId || null,
+        p_organization_id: tab === "positions" ? organizationId || null : null,
         p_limit: 500,
       });
       if (!result || result.error) throw result?.error || new Error("Unable to load governance directory");
