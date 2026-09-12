@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import ImageUpload from "@/components/media/ImageUpload";
+import SearchableSelect from "@/components/ui/SearchableSelect";
 import { GOVERNANCE_TYPES, GOVERNANCE_STATUS_OPTIONS, formatGovernanceType, getGovernanceLabel } from "@/utils/governance";
 import { supabase } from "@/lib/supabase/client";
 
@@ -43,6 +44,11 @@ export default function GovernanceRelationDialog({ open, onOpenChange, mode = "a
   }, [open, isEdit]);
 
   const filtered = useMemo(() => candidates.filter((item) => item.id !== sourceEntity?.id), [candidates, sourceEntity]);
+  const candidateOptions = useMemo(() => filtered.map((item) => ({
+    value: item.id,
+    label: getGovernanceLabel(item),
+    searchValue: `${item.name || ""} ${item.short_name || ""}`,
+  })), [filtered]);
 
   const chooseRelation = (relation) => { setRelationType(relation); setExistingId(""); setStep("target"); };
   const back = () => { if (step === "target" || step === "create") { setExistingId(""); setStep("relation"); } else if (step === "existing") setStep("target"); };
@@ -140,7 +146,7 @@ export default function GovernanceRelationDialog({ open, onOpenChange, mode = "a
                     <span className="min-w-0 flex-1 truncate text-sm">{sourceEntity?.parent_id ? getGovernanceLabel(filtered.find((item) => item.id === sourceEntity.parent_id)) || "Current parent" : "No parent"}</span>
                     <Button type="button" variant="outline" size="sm" onClick={() => { setExistingId(sourceEntity.parent_id || "none"); setStep("edit-parent"); }}>Change</Button>
                   </div>
-                  {step === "edit-parent" && <div className="pt-2"><Field label="New parent"><Select value={existingId} onValueChange={setExistingId}><SelectTrigger><SelectValue placeholder="Choose a parent" /></SelectTrigger><SelectContent className="max-h-72"><SelectItem value="none">No parent — make independent</SelectItem>{filtered.map((item) => <SelectItem key={item.id} value={item.id}>{getGovernanceLabel(item)}</SelectItem>)}</SelectContent></Select></Field></div>}
+                  {step === "edit-parent" && <div className="pt-2"><Field label="New parent"><SearchableSelect value={existingId} onValueChange={setExistingId} options={[{ value: "none", label: "No parent — make independent", searchValue: "no parent independent" }, ...candidateOptions]} placeholder="Choose a parent" searchPlaceholder="Search organizations..." emptyText="No organizations found." /></Field></div>}
                 </div>
                 <div className="space-y-2">
                   <div className="text-xs font-medium text-muted-foreground">Children</div>
@@ -152,7 +158,7 @@ export default function GovernanceRelationDialog({ open, onOpenChange, mode = "a
             ) : step === "target" ? (
               <div className="space-y-3"><p className="text-sm text-muted-foreground">Choose how you want to add the connected entity.</p><div className="grid gap-3 sm:grid-cols-2"><Button type="button" variant="outline" className="h-auto justify-start p-4 text-left" onClick={() => setStep("existing")}><div><div className="font-medium">Use an existing entity</div><div className="mt-1 text-xs text-muted-foreground">Connect a record already in Governance.</div></div></Button><Button type="button" variant="outline" className="h-auto justify-start p-4 text-left" onClick={() => setStep("create")}><div><div className="font-medium">Create a new entity</div><div className="mt-1 text-xs text-muted-foreground">Add a new record here.</div></div></Button></div></div>
             ) : step === "existing" ? (
-              <Field label={relationType === "parent-of" ? "Child entity" : "Parent entity"}><Select value={existingId} onValueChange={setExistingId}><SelectTrigger><SelectValue placeholder="Choose an entity" /></SelectTrigger><SelectContent className="max-h-72">{filtered.map((item) => <SelectItem key={item.id} value={item.id}>{getGovernanceLabel(item)}</SelectItem>)}</SelectContent></Select></Field>
+              <Field label={relationType === "parent-of" ? "Child entity" : "Parent entity"}><SearchableSelect value={existingId} onValueChange={setExistingId} options={candidateOptions} placeholder="Choose an organization" searchPlaceholder="Search organizations..." emptyText="No organizations found." /></Field>
             ) : (
               <div className="space-y-4">
                 <Field label="Name"><Input value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Western Railway" autoFocus /></Field>
