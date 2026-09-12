@@ -207,7 +207,6 @@ export default function GovernanceRecordPage() {
     }
   };
 
-  const relationCandidates = family.filter((item) => item.id !== relationSource?.id);
   const relationChildren = relationSource ? family.filter((item) => item.parent_id === relationSource.id) : [];
   const loading = governanceQuery.isLoading || familyLoading;
 
@@ -283,7 +282,6 @@ export default function GovernanceRecordPage() {
         onOpenChange={setRelationOpen}
         mode={relationMode}
         sourceEntity={relationSource}
-        candidates={relationCandidates}
         childEntities={relationChildren}
         categories={categories}
         onCompleted={handleChanged}
