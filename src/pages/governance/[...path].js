@@ -7,12 +7,8 @@ import GovernanceOrganizationTree from "@/components/governance/GovernanceOrgani
 import GovernanceLeadershipDialog from "@/components/governance/GovernanceLeadershipDialog";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import GovernanceRelationDialog from "@/components/governance/GovernanceRelationDialog";
-import GovernancePersonCareer from "@/components/governance/GovernancePersonCareer";
-import GovernancePositionTimeline from "@/components/governance/GovernancePositionTimeline";
 import AddGeographyDialog from "@/components/geography/AddGeographyDialog";
 import { useGovernanceCatalog } from "@/hooks/governance/useGovernanceCatalog";
-import { usePersonCareer } from "@/hooks/governance/usePersonCareer";
-import { usePositionTimeline } from "@/hooks/governance/usePositionTimeline";
 import { useGovernanceGeographyMutation } from "@/hooks/geography/useGovernanceGeography";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { supabase } from "@/lib/supabase/client";
@@ -62,30 +58,23 @@ export default function GovernanceRecordPage() {
   });
   const governance = governanceQuery.data;
 
-  const positionQuery = usePositionTimeline(governance?.id, governance?.entity_type === "position");
-  const personQuery = usePersonCareer(governance?.id, governance?.entity_type === "person");
-
   const { data: family = [], isLoading: familyLoading } = useQuery({
     queryKey: ["governance-family"],
-    enabled: !!slug && !!governance && !["position", "person"].includes(governance.entity_type),
+    enabled: !!slug && !!governance,
     queryFn: async () => {
       const [directoryResult, geographyResult] = await Promise.all([
         supabase.rpc("get_governance_directory", {
           p_search: null,
           p_parent_id: null,
-          p_entity_type: null,
+          p_type: null,
           p_limit: 500,
           p_include_all: true,
         }),
         supabase.from("governance").select("id,geography_id"),
       ]);
-      if (!directoryResult || directoryResult.error) {
-        throw directoryResult?.error || new Error("Unable to load governance tree");
-      }
+      if (!directoryResult || directoryResult.error) throw directoryResult?.error || new Error("Unable to load governance tree");
       if (geographyResult?.error) throw geographyResult.error;
-      const geographyById = new Map(
-        (geographyResult.data || []).map((item) => [item.id, item.geography_id || null]),
-      );
+      const geographyById = new Map((geographyResult.data || []).map((item) => [item.id, item.geography_id || null]));
       return (directoryResult.data || []).map((entity) => ({
         ...entity,
         image_url: entity.image_url || entity.metadata?.image_url || null,
@@ -176,6 +165,7 @@ export default function GovernanceRecordPage() {
     setModalOpen(true);
     await router.push(href, undefined, { shallow: true });
   };
+
   const selectEntity = (entity) => openEntity(entity, false);
   const editEntity = (entity) => openEntity(entity, true);
   const openRelation = (mode, entity) => {
@@ -200,8 +190,6 @@ export default function GovernanceRecordPage() {
       queryClient.invalidateQueries({ queryKey: ["governance-directory"] }),
       queryClient.invalidateQueries({ queryKey: ["governance-directory-v2"] }),
       queryClient.invalidateQueries({ queryKey: ["governance-organization", governance?.id] }),
-      queryClient.invalidateQueries({ queryKey: ["position-timeline", governance?.id] }),
-      queryClient.invalidateQueries({ queryKey: ["person-career", governance?.id] }),
       slug ? queryClient.invalidateQueries({ queryKey: ["governance", "record", slug] }) : Promise.resolve(),
     ]);
     setModalEntity(null);
@@ -221,63 +209,14 @@ export default function GovernanceRecordPage() {
 
   const relationCandidates = family.filter((item) => item.id !== relationSource?.id);
   const relationChildren = relationSource ? family.filter((item) => item.parent_id === relationSource.id) : [];
-
-  const loading =
-    governanceQuery.isLoading ||
-    (!["position", "person"].includes(governance?.entity_type) && familyLoading) ||
-    (governance?.entity_type === "position" && positionQuery.isLoading) ||
-    (governance?.entity_type === "person" && personQuery.isLoading);
+  const loading = governanceQuery.isLoading || familyLoading;
 
   if (loading) {
-    return (
-      <div className="flex min-h-dvh w-full flex-col">
-        <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Loading..." }]} />
-        <main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading governance...</main>
-      </div>
-    );
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Loading..." }]} /><main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading governance...</main></div>;
   }
 
   if (governanceQuery.error || !governance) {
-    return (
-      <div className="flex min-h-dvh w-full flex-col">
-        <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Not found" }]} />
-        <main className="flex flex-1 items-center justify-center text-sm">Governance record not found.</main>
-      </div>
-    );
-  }
-
-  if (governance.entity_type === "position") {
-    if (positionQuery.error || !positionQuery.data) {
-      return (
-        <div className="flex min-h-dvh w-full flex-col">
-          <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: getGovernanceLabel(governance) }]} />
-          <main className="flex flex-1 items-center justify-center text-sm text-destructive">Unable to load position history.</main>
-        </div>
-      );
-    }
-    return (
-      <div className="flex min-h-dvh w-full flex-col">
-        <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Positions", href: "/governance" }, { label: getGovernanceLabel(governance) }]} />
-        <main className="min-h-0 flex-1"><GovernancePositionTimeline position={positionQuery.data.position} timeline={positionQuery.data.timeline} /></main>
-      </div>
-    );
-  }
-
-  if (governance.entity_type === "person") {
-    if (personQuery.error || !personQuery.data) {
-      return (
-        <div className="flex min-h-dvh w-full flex-col">
-          <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: getGovernanceLabel(governance) }]} />
-          <main className="flex flex-1 items-center justify-center text-sm text-destructive">Unable to load career history.</main>
-        </div>
-      );
-    }
-    return (
-      <div className="flex min-h-dvh w-full flex-col">
-        <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "People", href: "/governance" }, { label: getGovernanceLabel(governance) }]} />
-        <main className="min-h-0 flex-1"><GovernancePersonCareer person={personQuery.data.person} career={personQuery.data.career} /></main>
-      </div>
-    );
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Not found" }]} /><main className="flex flex-1 items-center justify-center text-sm">Governance record not found.</main></div>;
   }
 
   return (
@@ -319,6 +258,7 @@ export default function GovernanceRecordPage() {
           />
         )}
       </main>
+
       <GovernanceEntityModal
         open={modalOpen}
         onOpenChange={(value) => { setModalOpen(value); if (!value) { setModalEntity(null); setModalEditMode(false); } }}
@@ -337,6 +277,7 @@ export default function GovernanceRecordPage() {
         onRemoveGeography={(entity) => removeEntityGeography(entity || currentEntity)}
         categories={categories}
       />
+
       <GovernanceRelationDialog
         open={relationOpen}
         onOpenChange={setRelationOpen}
@@ -347,6 +288,7 @@ export default function GovernanceRecordPage() {
         categories={categories}
         onCompleted={handleChanged}
       />
+
       <GovernanceLeadershipDialog
         open={leadershipOpen}
         onOpenChange={setLeadershipOpen}
@@ -356,6 +298,7 @@ export default function GovernanceRecordPage() {
         records={queryClient.getQueryData(["governance-organization", governance.id]) || []}
         onSaved={handleChanged}
       />
+
       {geographyEntity && (
         <AddGeographyDialog
           open={geographyOpen}
