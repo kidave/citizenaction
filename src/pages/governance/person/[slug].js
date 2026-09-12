@@ -31,9 +31,8 @@ export default function GovernancePersonPage() {
 
       const governanceResult = await supabase
         .from("governance")
-        .select("id,name,short_name,slug,entity_type,image_url,description,status,valid_from,valid_to,profile_user_id")
+        .select("id,name,short_name,slug,type,image_url,description,status,valid_from,valid_to,profile_user_id")
         .eq("id", personResult.data.governance_id)
-        .eq("entity_type", "person")
         .maybeSingle();
 
       if (governanceResult.error) throw governanceResult.error;
@@ -46,44 +45,20 @@ export default function GovernancePersonPage() {
     },
   });
 
-  const careerQuery = usePersonCareer(
-    personQuery.data?.governance?.id,
-    !!personQuery.data?.governance?.id,
-  );
+  const careerQuery = usePersonCareer(personQuery.data?.governance?.id, !!personQuery.data?.governance?.id);
 
   if (personQuery.isLoading || careerQuery.isLoading) {
-    return (
-      <div className="flex min-h-dvh w-full flex-col">
-        <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "People", href: "/governance" }, { label: "Loading..." }]} />
-        <main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading person...</main>
-      </div>
-    );
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "People", href: "/governance" }, { label: "Loading..." }]} /><main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading person...</main></div>;
   }
 
   if (personQuery.error || careerQuery.error || !personQuery.data) {
-    return (
-      <div className="flex min-h-dvh w-full flex-col">
-        <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "People", href: "/governance" }, { label: "Not found" }]} />
-        <main className="flex flex-1 items-center justify-center text-sm">Governance person not found.</main>
-      </div>
-    );
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "People", href: "/governance" }, { label: "Not found" }]} /><main className="flex flex-1 items-center justify-center text-sm">Person not found.</main></div>;
   }
 
   return (
     <div className="flex min-h-dvh w-full flex-col">
-      <GovernancePageHeader
-        items={[
-          { label: "Governance", href: "/governance" },
-          { label: "People", href: "/governance" },
-          { label: getGovernanceLabel(personQuery.data.governance) },
-        ]}
-      />
-      <main className="min-h-0 flex-1">
-        <GovernancePersonCareer
-          person={personQuery.data.person}
-          career={careerQuery.data?.career || []}
-        />
-      </main>
+      <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "People", href: "/governance" }, { label: getGovernanceLabel(personQuery.data.person) }]} />
+      <main className="min-h-0 flex-1"><GovernancePersonCareer person={personQuery.data.person} career={careerQuery.data?.career || []} /></main>
     </div>
   );
 }
