@@ -16,7 +16,6 @@ import { supabase } from "@/lib/supabase/client";
 const LeafletMap = dynamic(() => import("@/components/shared/LeafletMap"), { ssr: false });
 
 function geographyLabel(item) { return item?.official_name || item?.name || "Geography"; }
-
 function geographyTypeLabel(item) {
   if (!item) return "Boundary";
   const labels = { country: "Country", state: "State / Union territory", division: "Division", district: "District", subdistrict: "Subdistrict / Taluka", city: "City", local_government: "Local government", metropolitan_area: "Metropolitan area", zone: "Zone", ward: "Ward" };
@@ -109,8 +108,8 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
               {path.length > 0 && !search && <button type="button" onClick={goBack} className="mb-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"><ArrowLeft className="h-4 w-4" />Back</button>}
               {isLoading ? <div className="flex items-center gap-2 px-3 py-8 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Loading boundaries...</div> : items.length === 0 ? <div className="px-3 py-8 text-center text-sm text-muted-foreground">No matching boundaries found.</div> : items.map((item) => {
                 const isSelected = selected?.id === item.id;
-                const browsing = !search && item.geography_type !== "ward";
-                const browse = () => browsing ? openChildren(item) : selectGeography(item);
+                const browsing = !search && item.has_children;
+                const browse = () => openChildren(item);
                 return <div key={item.id} className={`flex items-center gap-2 rounded-lg px-2 py-1 ${isSelected ? "bg-accent" : ""}`}>
                   <label htmlFor={`geography-${item.id}`} onClick={(event) => { if (browsing && !search) { event.preventDefault(); browse(); } }} className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-left hover:bg-muted">
                     <RadioGroupItem id={`geography-${item.id}`} value={item.id} onClick={(event) => { event.stopPropagation(); if (search) handleSearchSelection(item); else selectGeography(item); }} className="shrink-0" />
@@ -123,9 +122,9 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
             </RadioGroup>
           </ScrollArea>
         </div>
-        <div className="flex min-h-0 flex-col"><div className="relative min-h-[22rem] flex-1 bg-muted/20"><LeafletMap lat={Number(center?.lat) || 20.5937} lng={Number(center?.lng) || 78.9629} boundaries={mapBoundary} selectedBoundaryId={selected?.osm_id || null} showMarker={false} zoom={selected?.admin_level <= 4 ? 6 : selected?.admin_level === 5 ? 9 : 11} onChange={() => {}} onBoundaryClick={() => {}} />{loadingGeometry && <div className="absolute right-3 top-3 flex items-center gap-2 rounded-md border bg-background/90 px-3 py-2 text-xs text-muted-foreground shadow-sm"><Loader2 className="h-3.5 w-3.5 animate-spin" />Loading boundary...</div>}{!selected && <div className="pointer-events-none absolute inset-0 flex items-center justify-center"><div className="rounded-lg border bg-background/90 px-4 py-3 text-center text-sm shadow-sm">Select a boundary to preview it on the map.</div></div>}</div></div>
+        <div className="flex min-h-0 flex-col"><div className="relative min-h-[22rem] flex-1 bg-muted/20"><LeafletMap lat={Number(center?.lat) || 20.5937} lng={Number(center?.lng) || 78.9629} boundaries={mapBoundary} selectedBoundaryId={selected?.osm_id || null} showMarker={false} zoom={8} onChange={() => {}} onBoundaryClick={() => {}} />{loadingGeometry && <div className="absolute right-3 top-3 flex items-center gap-2 rounded-md border bg-background/90 px-3 py-2 text-xs text-muted-foreground shadow-sm"><Loader2 className="h-3.5 w-3.5 animate-spin" />Loading boundary...</div>}{!selected && <div className="pointer-events-none absolute inset-0 flex items-center justify-center"><div className="rounded-lg border bg-background/90 px-4 py-3 text-center text-sm shadow-sm">Select a boundary to preview it on the map.</div></div>}</div></div>
       </div>
-      <SheetFooter className="border-t bg-background px-5 py-4 sm:px-6">{selected ? <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><p className="truncate text-sm font-semibold">{geographyLabel(selected)}</p><p className="text-xs text-muted-foreground">{geographyTypeLabel(selected)}</p></div><div className="flex shrink-0 gap-2"><Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={isSetting}>Cancel</Button><Button type="button" onClick={handleSave} disabled={isSetting || selected.id === currentGeographyId || loadingGeometry}>{isSetting ? "Saving..." : submitLabel}</Button></div></div> : <div className="w-full text-xs text-muted-foreground">India is the default starting point. Browse down through the administrative hierarchy or search for a boundary directly.</div>}</SheetFooter>
+      <SheetFooter className="border-t bg-background px-5 py-4 sm:px-6">{selected ? <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><p className="truncate text-sm font-semibold">{geographyLabel(selected)}</p><p className="text-xs text-muted-foreground">{geographyTypeLabel(selected)}</p></div><div className="flex shrink-0 gap-2"><Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={isSetting}>Cancel</Button><Button type="button" onClick={handleSave} disabled={isSetting || selected.id === currentGeographyId || loadingGeometry}>{isSetting ? "Saving..." : submitLabel}</Button></div></div> : <div className="w-full text-xs text-muted-foreground">India is the default starting point. Browse down through the actual geography hierarchy or search for a boundary directly.</div>}</SheetFooter>
     </SheetContent>
   </Sheet>;
 }
