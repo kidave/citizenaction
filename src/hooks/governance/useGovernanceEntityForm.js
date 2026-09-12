@@ -7,7 +7,7 @@ function createDraft(entity) {
     short_name: entity?.short_name || "",
     description: entity?.description || "",
     website: entity?.website || "",
-    entity_type: entity?.entity_type || "authority",
+    type: entity?.type || "government",
     status: entity?.status || "active",
     valid_from: toGovernanceDateInput(entity?.valid_from),
     valid_to: toGovernanceDateInput(entity?.valid_to),
@@ -48,18 +48,11 @@ export function useGovernanceEntityForm(entity) {
   }
 
   function validate(requiresValidTo) {
-    if (!draft?.name?.trim()) {
-      return "Name is required";
-    }
+    if (!draft?.name?.trim()) return "Name is required";
+    if (!draft.type) return "Type is required";
+    if (!draft.valid_from) return "Valid from is required";
 
-    if (!draft.valid_from) {
-      return "Valid from is required";
-    }
-
-    if (
-      draft.valid_to &&
-      draft.valid_to < draft.valid_from
-    ) {
+    if (draft.valid_to && draft.valid_to < draft.valid_from) {
       return "Valid to cannot be earlier than valid from";
     }
 
