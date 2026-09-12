@@ -10,31 +10,12 @@ export function usePostGovernance(postId) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("post_governance")
-        .select(
-          `
-          governance (
-            id,
-            name,
-            short_name,
-            slug,
-            image_url,
-            entity_type
-          )
-        `,
-        )
+        .select(`governance (id, name, short_name, slug, image_url, type)`)
         .eq("post_id", postId);
 
       if (error) throw error;
 
-      return (
-        data
-          ?.map((row) =>
-            row.governance
-              ? { ...row.governance, label: row.governance.name }
-              : null,
-          )
-          .filter(Boolean) || []
-      );
+      return data?.map((row) => row.governance ? { ...row.governance, label: row.governance.name } : null).filter(Boolean) || [];
     },
   });
 }
