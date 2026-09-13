@@ -36,9 +36,10 @@ const nextConfig = {
 
       script-src 'self' ${isDev ? "'unsafe-eval'" : ""}
         https://accounts.google.com
-        https://apis.google.com;
+        https://apis.google.com
+        https://vercel.live;
 
-      style-src 'self' 'unsafe-inline';
+      style-src 'self' 'unsafe-inline' https://vercel.live;
 
       img-src 'self'
         data:
@@ -56,7 +57,8 @@ const nextConfig = {
         https://*.sendercdn.com
         https://*.fbcdn.net
         https://*.fna.fbcdn.net
-        https://*.mapillary.com;
+        https://*.mapillary.com
+        https://vercel.live;
 
       connect-src 'self'
         ${isDev ? "http://localhost:54321 http://127.0.0.1:54321" : ""}
@@ -66,19 +68,22 @@ const nextConfig = {
         https://*.mapillary.com
         https://graph.mapillary.com
         https://*.fbcdn.net
-        https://*.fna.fbcdn.net;
+        https://*.fna.fbcdn.net
+        https://vercel.live
+        wss://ws-us3.pusher.com;
 
       frame-src 'self'
         https://accounts.google.com
         https://drive.google.com
         https://*.sender.net
-        https://*.sendercdn.com;
+        https://*.sendercdn.com
+        https://vercel.live;
 
       frame-ancestors 'self' https://app.sender.net;
 
       base-uri 'self';
       form-action 'self';
-      font-src 'self' https://fonts.gstatic.com;
+      font-src 'self' https://fonts.gstatic.com https://vercel.live https://assets.vercel.com;
       object-src 'none';
       upgrade-insecure-requests;
     `;
