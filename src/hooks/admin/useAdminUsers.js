@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
 
 export function useAdminUsers() {
   return useQuery({
-    queryKey: ["admin-users"],
+    queryKey: queryKeys.admin.users,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profile")
@@ -26,8 +27,8 @@ export function useSetPlatformUserRole() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.users });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.dashboard });
     },
   });
 }
