@@ -21,10 +21,6 @@ export default function SpaceTimelinePage() {
 
   const { space: slug } = router.query;
 
-  /* ==========================================================
-     SPACE
-  ========================================================== */
-
   const {
     data: space,
     isLoading: spaceLoading,
@@ -34,24 +30,12 @@ export default function SpaceTimelinePage() {
     enabled: !!slug,
   });
 
-  /* ==========================================================
-     DATA
-  ========================================================== */
-
   const { data: activities = [], isLoading: feedLoading } = useSpaceFeed(
     space?.id,
   );
 
-  /* ==========================================================
-     PAGE STATE
-  ========================================================== */
-
   const [filter, setFilter] = useState("all");
   const [activeMonth, setActiveMonth] = useState(null);
-
-  /* ==========================================================
-     DERIVED TIMELINE DATA
-  ========================================================== */
 
   const filteredEvents = useMemo(
     () => filterTimelineEvents(activities, filter),
@@ -68,28 +52,16 @@ export default function SpaceTimelinePage() {
     [filteredEvents],
   );
 
-  /* ==========================================================
-     STATE SYNC
-  ========================================================== */
-
   useEffect(() => {
     if (activeMonth && !hasTimelineMonth(monthMarkers, activeMonth)) {
       setActiveMonth(null);
     }
   }, [activeMonth, monthMarkers]);
 
-  /* ==========================================================
-     HANDLERS
-  ========================================================== */
-
   const handleFilterChange = (value) => {
     setFilter(value);
     setActiveMonth(null);
   };
-
-  /* ==========================================================
-     LOADING
-  ========================================================== */
 
   if (spaceLoading || feedLoading) {
     return (
@@ -99,16 +71,11 @@ export default function SpaceTimelinePage() {
     );
   }
 
-  /* ==========================================================
-     ERROR
-  ========================================================== */
-
   if (spaceError || !space) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-background px-6 text-center">
         <div>
           <h1 className="text-2xl font-semibold">Space not found</h1>
-
           <p className="mt-2 text-muted-foreground">
             The requested Space does not exist.
           </p>
@@ -116,10 +83,6 @@ export default function SpaceTimelinePage() {
       </div>
     );
   }
-
-  /* ==========================================================
-     COMPOSE
-  ========================================================== */
 
   return (
     <SpaceTimeline
@@ -134,3 +97,5 @@ export default function SpaceTimelinePage() {
     />
   );
 }
+
+SpaceTimelinePage.getLayout = (page) => page;
