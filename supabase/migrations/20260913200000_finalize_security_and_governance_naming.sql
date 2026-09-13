@@ -1,6 +1,6 @@
 -- Finalize the governance RPC names and security hardening applied in production.
--- This migration is intentionally idempotent so it can be used to bootstrap
--- another environment after the older governance migrations have run.
+-- This migration is intentionally idempotent so it can bootstrap another
+-- environment after the older governance migrations have run.
 
 do $$
 begin
@@ -18,9 +18,8 @@ begin
 end $$;
 
 -- The directory and tree functions are public read APIs.
-if exists (select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname='get_governance_directory') then
-  grant execute on function public.get_governance_directory(text,text,text,uuid,uuid,uuid,integer) to anon, authenticated;
-end if;
+grant execute on function public.get_governance_directory(text,text,text,uuid,uuid,uuid,integer) to anon, authenticated;
+grant execute on function public.get_governance_tree(text,uuid,text,integer,boolean) to anon, authenticated;
 
 -- Public views must execute as the caller so underlying RLS policies apply.
 alter view public.classification_system_view set (security_invoker = true);
