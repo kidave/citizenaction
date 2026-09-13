@@ -1,155 +1,129 @@
-# Roadmap
+# Improvement Roadmap
 
-This roadmap is based on repository review only. It does not change application behavior.
+This is the execution plan for improving Citizen Action without introducing unnecessary rewrites. Changes should be incremental, verified, and aligned with the current repository.
 
-## Current functionality
+## Guiding architecture
 
-### User/auth
+- Pages orchestrate; feature components render; hooks/query helpers own client-side server state.
+- Supabase/database owns authorization, integrity, transactions, and backend business rules.
+- `components/ui` contains reusable UI primitives and stays domain independent.
+- Use one source of truth for query keys, schemas, auth patterns, and shared domain models.
+- Prefer small reusable modules over large files, but do not abstract trivial one-off JSX.
+- Keep Pages Router architecture stable; do not migrate to App Router as part of cleanup.
 
-- Supabase authentication.
-- Google OAuth login for production.
-- Email OTP login when dev auth mode is enabled.
-- Auth context exposes current user, loading state, login/logout, and access-token retrieval.
-- Manage routes are protected by middleware.
+## Phase 1 — completed/current foundation
 
-### Spaces and clubs
+- [x] Refresh architecture/backend/frontend documentation to reflect the active application.
+- [x] Remove route-based shell decisions from the global `Layout`.
+- [x] Make `AppShell` route-agnostic and let pages opt into shell variants through `getLayout`.
+- [x] Move Home's right-sidebar decision to the page.
+- [x] Keep standalone pages such as About, Governance, and Space Timeline outside the global shell through page-owned layouts.
+- [x] Update TanStack Query v5 configuration from `cacheTime` to `gcTime`.
+- [x] Remove obsolete Club/scope routes from current architecture documentation.
+- [x] Refresh technical-debt documentation so removed routes are not treated as active debt.
+- [x] Fix the `/manage` unauthenticated redirect to the actual `/auth/login` page.
 
-- Public space listing and space detail pages.
-- Geographic scope-specific space pages.
-- Space applications.
-- Space management pages.
-- Club creation under spaces.
-- Club settings update/delete flows.
-- Club branding storage for logo/cover assets.
+## Phase 2 — authentication and backend safety
 
-### Feed/actions
+### Supabase auth
 
-- Feed display through `feed_light_view`.
-- Feed post creation, update, delete.
-- Post editor with content, metadata, attachments, timeline, authority selection, date/time, address, spaces, and governance authorities.
-- Post support/contribution actions.
-- Authority escalation actions.
-- Post stats hooks.
+- [ ] Migrate from `@supabase/auth-helpers-nextjs` to the current `@supabase/ssr` approach.
+- [ ] Keep one browser client pattern and one server/middleware client pattern.
+- [ ] Document where browser sessions, API bearer tokens, and privileged server clients are allowed.
+- [ ] Confirm service-role usage is server-only.
 
-### Meetings
+### Database authorization
 
-- Meeting item read/create/update/delete hooks.
-- Meeting preview and editor components.
+- [ ] Review all `SECURITY DEFINER` functions individually.
+- [ ] Restrict anonymous execution for privileged mutation/admin functions where not required.
+- [ ] Add explicit authorization checks inside privileged functions where appropriate.
+- [ ] Review the six security-definer views and make RLS/view security intent explicit.
+- [ ] Review exposed tables with RLS enabled but no policies; distinguish intentionally private/unused tables from missing policies.
+- [ ] Review `search_path` on database functions and make it explicit where appropriate.
+- [ ] Review auth warnings: leaked-password protection, OTP expiry, and available PostgreSQL security updates.
+- [ ] Do not blindly enable RLS on PostGIS system tables such as `spatial_ref_sys` without confirming intended exposure.
 
-### Governance/geography
+### Database source of truth
 
-- Governance entity explorer/tree hooks and components.
-- Scope selector and scope chain hooks.
-- Geographic scope selection and search.
+- [ ] Add Supabase migrations/schema artifacts to GitHub.
+- [ ] Generate and track Supabase database types.
+- [ ] Document RLS/storage policies and privileged functions.
+- [ ] Review indexes for feed, membership, governance, geography, and common lookup paths.
 
-### Media
+## Phase 3 — data-access architecture
 
-- Attachment upload to Supabase storage.
-- Image, PDF, attachment, and media grid viewer components.
-- Link-to-attachment utilities and thumbnail helpers.
+- [ ] Establish consistent query-key factories for TanStack Query.
+- [ ] Standardize mutation invalidation rules.
+- [ ] Separate read queries from mutation functions where repeated patterns exist.
+- [ ] Add small repository/query helpers only for repeated domain access; avoid a generic abstraction layer.
+- [ ] Standardize loading, empty, and error states.
+- [ ] Validate API inputs with Zod.
+- [ ] Centralize repeated authentication/ownership checks.
+- [ ] Audit API routes so frontend responsibilities stop at request/response orchestration.
 
-### External services
+## Phase 4 — frontend structure
 
-- OpenStreetMap Nominatim search and reverse-geocode proxy API routes.
-- Mapbox search component.
-- Mapillary assets/CSP allowances.
-- Sender domain CSP/image/frame allowances.
+- [ ] Gradually move domain-specific widgets out of `components/ui`.
+- [ ] Split the largest route components by responsibility: data loading, forms, sections, mutations, and destructive actions.
+- [ ] Remove unnecessary client boundaries from simple components.
+- [ ] Prefer URL state for shareable filters/navigation state and local state for ephemeral UI state.
+- [ ] Avoid adding Redux/Zustand unless a real cross-domain state requirement appears.
+- [ ] Keep shared components visually and behaviorally consistent through shadcn primitives.
 
-## Missing functionality or missing repository assets
+### Feature organization target
 
-- No Supabase migrations or schema definitions are tracked.
-- No generated Supabase database types are tracked.
-- No explicit test suite scripts are defined beyond dependencies being installed.
-- `npm run lint` points to `next lint`, which may be incompatible with newer Next.js versions depending on the installed CLI behavior.
-- GitHub Actions workflow references `scripts/sync-osm-roads.js`, but that script is not present in tracked files.
-- No `vercel.json` or deployment documentation is present.
-- No explicit environment variable example file is present.
-- No API contract documentation is present outside the new docs.
-- No RLS/storage policy documentation is present.
+For new or substantially refactored domains, prefer:
 
-## Technical debt
+```text
+src/features/<domain>/
+├── components/
+├── hooks/
+├── queries/
+├── mutations/
+├── schemas/
+├── utils/
+└── config/
+```
 
-- Large route files mix data fetching, form state, validation, rendering, and side effects.
-- Supabase access is spread across hooks, pages, components, and API routes.
-- Some API routes contain repeated validation and ownership logic.
-- Console debug logging is present in production-facing helpers/routes.
-- Some comments indicate fallback logic that no longer makes sense, such as trying the same `club` table twice.
-- The repository uses both `@supabase/auth-helpers-nextjs` and `@supabase/ssr`; auth helper strategy should be clarified.
-- UI primitives and product-specific UI coexist in `components/ui`.
-- Missing tests increase regression risk.
-- Missing database schema artifacts make backend changes risky.
+Do not mass-move the existing codebase. Adopt this structure gradually as files are changed for real product work.
 
-## Bugs noticed
+## Phase 5 — performance
 
-These are potential issues noticed during static review and should be validated before changes:
+- [ ] Audit bundle size and identify heavy map/editor/PDF/media dependencies.
+- [ ] Dynamically import heavy client-only features where useful.
+- [ ] Add pagination/infinite queries to unbounded feed/search/list experiences.
+- [ ] Avoid duplicate Supabase requests and duplicate derived-data fetching.
+- [ ] Review image optimization and the reason `images.unoptimized` is enabled before changing it.
+- [ ] Add caching/rate limiting to external OSM proxy usage where appropriate.
+- [ ] Use stable query keys and avoid unnecessary refetches.
 
-1. `middleware.js` redirects unauthenticated `/manage/*` requests to `/auth`, but the tracked auth page is `/auth/login`. If `/auth` is not handled elsewhere, this may be a broken redirect.
-2. `.github/workflows/osm-sync.yml` calls `scripts/sync-osm-roads.js`, but no tracked `scripts/` directory or script was found.
-3. `.github/workflows/osm-sync.yml` uses `SUPABASE_URL` and `SUPABASE_SERVICE_KEY`, while app code uses `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`. This may be intentional for the missing script, but it is undocumented.
-4. `src/lib/fetch.js` logs request headers and request/response details. If enabled in production, this can expose sensitive Authorization headers in logs.
-5. `NetworkStatusBanner` fetches `NEXT_PUBLIC_SUPABASE_URL + "/rest/v1/"` without checking whether the env var is defined first; if missing, it may fetch an invalid URL.
-6. OpenStreetMap proxy routes interpolate unencoded query values into upstream URLs. Special characters in `q`, `lat`, or `lng` should be encoded/validated.
-7. Nominatim usage may require rate limiting/caching and policy compliance beyond setting a User-Agent.
-8. Club creation route has duplicated fallback code that inserts into `club` after a `club` insert failure, suggesting stale migration/refactor logic.
+## Phase 6 — tests and CI
 
-## Performance improvements
+- [ ] Add a test command to `package.json`.
+- [ ] Unit-test utilities and Zod schemas.
+- [ ] Test critical API authorization/validation paths.
+- [ ] Add component smoke tests for feed, space, governance, and administration.
+- [ ] Add E2E coverage for login and the most important user workflows.
+- [ ] Run lint, tests, and production build in CI.
+- [ ] Keep production deployments gated by successful verification once CI is reliable.
 
-1. Add a documented TanStack Query key strategy and consistent query invalidation.
-2. Move repeated Supabase query patterns into small repository/service helpers where appropriate.
-3. Audit large pages for unnecessary re-renders and split into memoizable components.
-4. Add pagination/infinite loading policies for feed, search, governance explorer, and space lists.
-5. Cache OSM proxy responses where allowed by usage policy.
-6. Use server-side data fetching selectively for SEO-critical public pages.
-7. Review image optimization; `images.unoptimized = true` may be intentional but trades off CDN optimization benefits.
-8. Review bundle impact of heavy media/map/editor dependencies.
+## Phase 7 — operational cleanup
 
-## Security improvements
+- [ ] Add an environment-variable example/documentation with public vs server-only scope clearly marked.
+- [ ] Remove sensitive production logging.
+- [ ] Confirm or remove the OSM sync workflow/script pair.
+- [ ] Audit installed dependencies for duplicates and unused packages before deleting anything.
+- [ ] Document third-party CSP requirements and reduce broad allowances where safe.
+- [ ] Keep deployment/runtime documentation current.
 
-1. Remove or gate debug logging that can include tokens, request headers, or user identifiers.
-2. Add schema validation to all API route inputs, including query parameters.
-3. Document Supabase RLS policies and storage policies in the repository.
-4. Add CSRF/threat-model notes for API routes that rely on bearer tokens.
-5. Confirm `/manage` middleware redirect target and access control coverage.
-6. Ensure service-role helper cannot be imported into browser bundles.
-7. Validate and encode all external-service query parameters.
-8. Add rate limiting or abuse protection to API proxy routes.
-9. Document required environment variables and their intended scope.
-10. Avoid exposing concrete Supabase project hostnames in broad config unless required.
+## Implementation rule
 
-## Suggested roadmap ordered by priority
+Do not attempt all phases in one rewrite. Each change should follow:
 
-### Priority 1: Operational safety and documentation
+1. Inspect current usage.
+2. Make the smallest architectural change that improves the boundary.
+3. Commit it clearly.
+4. Verify GitHub state and production build/deployment.
+5. Only then move to the next related improvement.
 
-- Add environment variable documentation and example names.
-- Add Supabase schema export or migrations to the repository.
-- Document RLS and storage policies.
-- Fix or document the missing OSM sync script referenced by GitHub Actions.
-- Remove sensitive request/header logging.
-
-### Priority 2: Authentication and access control hardening
-
-- Confirm `/manage` middleware redirect target.
-- Standardize auth helpers around the current recommended Supabase SSR package strategy.
-- Centralize server-side ownership checks for spaces and clubs.
-- Add API input validation for all routes.
-
-### Priority 3: Test foundation
-
-- Add unit tests for pure utilities and schemas.
-- Add API route tests for auth/validation/ownership behavior.
-- Add smoke tests for critical page routes.
-- Add a CI workflow for lint/build/tests.
-
-### Priority 4: Frontend maintainability
-
-- Split large page components into feature-level sections.
-- Move product-specific widgets out of `components/ui`.
-- Standardize query keys, loading states, and error states.
-- Consolidate media/attachment data modeling.
-
-### Priority 5: Performance and product polish
-
-- Audit bundle size and defer heavy editor/map/media dependencies.
-- Add pagination/infinite loading where missing.
-- Add allowed caching for external service proxy routes.
-- Revisit image optimization strategy.
+This roadmap intentionally separates safe refactors from database/security changes. Database authorization changes require function/table-specific review and verification before deployment.
