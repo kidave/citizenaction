@@ -1,12 +1,7 @@
 name: Playwright E2E
 
 on:
-  pull_request:
-    branches:
-      - main
-  push:
-    branches:
-      - main
+  deployment_status:
   workflow_dispatch:
 
 permissions:
@@ -19,12 +14,19 @@ concurrency:
 jobs:
   e2e:
     name: Playwright E2E
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success' &&
+       github.event.deployment_status.environment == 'Preview' &&
+       github.event.deployment_status.target_url != '')
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment_status.commit_sha || github.sha }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -38,9 +40,9 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Run Playwright smoke suite
+      - name: Run Playwright smoke suite against Vercel Preview
         env:
-          PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+          PLAYWRIGHT_BASE_URL: ${{ github.event.deployment_status.target_url }}
           NODE_ENV: test
         run: npx playwright test tests/e2e/smoke.spec.js --project=chromium
 
