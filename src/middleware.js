@@ -17,10 +17,10 @@ export async function middleware(req) {
     if (!isStaticAsset && !isMaintenancePage) {
       url.pathname = "/maintenance";
       return NextResponse.rewrite(url, {
-        status: 503, // Returns proper HTTP status for SEO/bots
+        status: 503,
       });
     }
-    // If it is a static asset or the maintenance page itself, let it pass through
+
     if (isMaintenancePage) return res;
   }
 
@@ -33,7 +33,7 @@ export async function middleware(req) {
   // Protect /manage/* routes
   if (req.nextUrl.pathname.startsWith("/manage")) {
     if (!session) {
-      const redirectUrl = new URL("/auth", req.url);
+      const redirectUrl = new URL("/auth/login", req.url);
       redirectUrl.searchParams.set("redirect", req.nextUrl.pathname);
       return NextResponse.redirect(redirectUrl);
     }
@@ -42,16 +42,8 @@ export async function middleware(req) {
   return res;
 }
 
-// 3. Updated Matcher: Strips out assets but matches ALL normal page paths
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
     "/((?!api|_next/static|_next/image|favicon.ico).*)",
   ],
 };
