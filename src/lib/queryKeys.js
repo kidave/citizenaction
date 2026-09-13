@@ -5,6 +5,9 @@
  * target the same cache entries.
  */
 export const queryKeys = {
+  auth: {
+    userStatus: ["userStatus"],
+  },
   feed: {
     all: ["feed"],
     list: ({ categorySlug = "" } = {}) => ["feed", { categorySlug }],
