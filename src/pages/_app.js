@@ -20,7 +20,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000,
-      cacheTime: 30 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
       refetchOnWindowFocus: false,
       retry: 1,
     },
@@ -69,16 +69,12 @@ function MyApp({ Component, pageProps }) {
 
         {/* PWA */}
         <link rel="manifest" href="/manifest.json" />
-
         <meta name="theme-color" content="#ffffff" />
 
         {/* iOS / Safari */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
-
         <meta name="apple-mobile-web-app-title" content="Citizen Action" />
-
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
 
         {/* Browser favicon */}
@@ -105,6 +101,7 @@ function MyApp({ Component, pageProps }) {
           </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>
+
       <Analytics mode="production" />
       <SpeedInsights />
     </div>
