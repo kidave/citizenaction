@@ -1,29 +1,21 @@
 "use client";
 
 import { toast } from "sonner";
-
 import { useEditor } from "@/hooks/editor/useEditor";
-
 import { useCreatePost } from "@/hooks/post/useCreatePost";
 import { useUpdatePost } from "@/hooks/post/useUpdatePost";
 import { useDeletePost } from "@/hooks/post/useDeletePost";
-
 import { postSchema } from "@/schemas/feed/postSchema";
 
 export function usePostEditor(item = null, initialSpace = null) {
   const editor = useEditor(item, initialSpace);
-
   const { createPost } = useCreatePost();
   const { updatePost } = useUpdatePost();
   const { deletePost } = useDeletePost();
 
   async function submit(onSuccess) {
     if (!editor.content.trim()) {
-      toast.error(
-        editor.type === "event"
-          ? "Add a description for the event."
-          : "Enter content.",
-      );
+      toast.error(editor.type === "event" ? "Add a description for the event." : "Enter content.");
       return;
     }
 
@@ -35,14 +27,12 @@ export function usePostEditor(item = null, initialSpace = null) {
       lat: editor.lat,
       lng: editor.lng,
     });
-
     if (!result.success) {
       toast.error(result.error.issues[0]?.message || "Check the post details.");
       return;
     }
 
     const data = editor.getEditorData();
-
     const payload = {
       author_id: data.author_id,
       spaces: data.spaces,
@@ -64,51 +54,30 @@ export function usePostEditor(item = null, initialSpace = null) {
     };
 
     try {
-      let savedPost;
-
-      if (item) {
-        savedPost = await updatePost({
-          postId: item.id,
-          postData: payload,
-        });
-      } else {
-        savedPost = await createPost(payload);
-      }
-
+      const savedPost = item
+        ? await updatePost({ postId: item.id, postData: payload })
+        : await createPost(payload);
       onSuccess?.(savedPost);
     } catch (error) {
-      console.error("Failed to save post", {
-        message: error?.message,
-        code: error?.code,
-        status: error?.status,
-      });
-
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Failed to save post", { message: error?.message, code: error?.code, status: error?.status });
+      }
       toast.error(error?.message || "Something went wrong");
     }
   }
 
   async function remove(onSuccess) {
-    if (!item) {
-      return;
-    }
-
+    if (!item) return;
     try {
       await deletePost(item.id);
       onSuccess?.();
     } catch (error) {
-      console.error("Failed to delete post", {
-        message: error?.message,
-        code: error?.code,
-        status: error?.status,
-      });
-
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Failed to delete post", { message: error?.message, code: error?.code, status: error?.status });
+      }
       toast.error(error?.message || "Failed to delete post");
     }
   }
 
-  return {
-    ...editor,
-    submit,
-    remove,
-  };
+  return { ...editor, submit, remove };
 }
