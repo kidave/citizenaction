@@ -29,10 +29,11 @@ This is the execution plan for improving Citizen Action without introducing unne
 ### Supabase auth
 
 - [x] Migrate middleware from `@supabase/auth-helpers-nextjs` to `@supabase/ssr`.
-- [ ] Keep one browser client pattern and one server/middleware client pattern.
+- [x] Consolidate the browser client on `@supabase/ssr`.
+- [x] Keep the bearer-token server client separate from cookie/session middleware because API routes receive authentication through request headers.
 - [ ] Document where browser sessions, API bearer tokens, and privileged server clients are allowed.
 - [ ] Confirm service-role usage is server-only.
-- [ ] Remove the deprecated `@supabase/auth-helpers-nextjs` dependency after all remaining usages are migrated.
+- [x] Remove the deprecated `@supabase/auth-helpers-nextjs` dependency from `package.json`.
 
 ### Database authorization
 
