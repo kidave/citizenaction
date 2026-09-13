@@ -5,9 +5,7 @@
  * target the same cache entries.
  */
 export const queryKeys = {
-  auth: {
-    userStatus: ["userStatus"],
-  },
+  auth: { userStatus: ["userStatus"] },
   feed: {
     all: ["feed"],
     list: ({ categorySlug = "" } = {}) => ["feed", { categorySlug }],
@@ -25,16 +23,8 @@ export const queryKeys = {
   },
   spaces: {
     all: ["spaces"],
-    list: ({ search, privateAccess = false, includeInactive = false, userId } = {}) => [
-      "spaces",
-      "list",
-      { search, privateAccess, includeInactive, userId },
-    ],
-    detail: ({ slug, privateAccess = false, includeInactive = false, userId } = {}) => [
-      "spaces",
-      "detail",
-      { slug, privateAccess, includeInactive, userId },
-    ],
+    list: ({ search, privateAccess = false, includeInactive = false, userId } = {}) => ["spaces", "list", { search, privateAccess, includeInactive, userId }],
+    detail: ({ slug, privateAccess = false, includeInactive = false, userId } = {}) => ["spaces", "detail", { slug, privateAccess, includeInactive, userId }],
     members: (spaceId) => ["spaces", "members", spaceId],
     feed: (spaceId) => ["space-feed", spaceId],
     applications: (spaceId) => ["space-applications", spaceId],
@@ -49,34 +39,14 @@ export const queryKeys = {
     stats: (userId) => ["user-profile-stats", userId],
     personCareer: (governanceId) => ["person-career", governanceId],
   },
-  contributions: {
-    detail: (postId) => ["contribution", postId],
-  },
+  contributions: { detail: (postId) => ["contribution", postId] },
   governance: {
     all: ["governance"],
-    directory: ({ tab = "organizations", search = "", type = "all", categoryId = "all", geographyId = null, organizationId = null } = {}) => [
-      "governance-directory",
-      tab,
-      search,
-      type,
-      categoryId,
-      geographyId,
-      organizationId,
-    ],
-    tree: ({ parentId = null, search = "", type = null } = {}) => [
-      "governance-tree",
-      parentId,
-      search,
-      type,
-    ],
+    directory: ({ tab = "organizations", search = "", type = "all", categoryId = "all", geographyId = null, organizationId = null } = {}) => ["governance-directory", tab, search, type, categoryId, geographyId, organizationId],
+    tree: ({ parentId = null, search = "", type = null } = {}) => ["governance-tree", parentId, search, type],
     record: (slug) => ["governance", "record", slug],
     person: (personSlug) => ["governance", "person", personSlug],
-    position: (organizationSlug, positionSlug) => [
-      "governance",
-      "position",
-      organizationSlug,
-      positionSlug,
-    ],
+    position: (organizationSlug, positionSlug) => ["governance", "position", organizationSlug, positionSlug],
     geography: (governanceId) => ["governance-geography", governanceId],
     family: (slug) => ["governance-family", slug],
     directoryGeographies: (params = {}) => ["governance-directory-geographies", params],
@@ -93,5 +63,6 @@ export const queryKeys = {
     systems: ["classification-systems"],
     dimensions: (systemId) => ["classification-dimensions", systemId],
     codes: (dimensionId) => ["classification-codes", dimensionId],
+    tree: (dimensionId) => ["classification-tree", dimensionId],
   },
 };
