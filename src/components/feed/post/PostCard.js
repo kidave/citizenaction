@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
 import PostCardSkeleton from "@/components/skeletons/PostCardSkeleton";
@@ -30,21 +29,7 @@ export default function PostCard({
   queryKey,
 }) {
   const router = useRouter();
-
   const { user } = useAuth();
-
-  const [mounted, setMounted] = useState(false);
-  const [now, setNow] = useState(new Date());
-
-  useEffect(() => {
-    setMounted(true);
-
-    const interval = setInterval(() => {
-      setNow(new Date());
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   if (loading) {
     return (
@@ -71,7 +56,6 @@ export default function PostCard({
 
   const handleNavigate = () => {
     sessionStorage.setItem("feed-scroll", window.scrollY.toString());
-
     router.push(`/post/${post.slug}`);
   };
 
@@ -82,10 +66,6 @@ export default function PostCard({
       } ${post.type || ""}`}
     >
       <div className="relative z-10 flex flex-col gap-4 p-2">
-        {/* ========================================
-            HEADER
-        ======================================== */}
-
         <PostHeader
           post={post}
           canEdit={canManage}
@@ -93,19 +73,11 @@ export default function PostCard({
           onDelete={onDelete}
         />
 
-        {/* ========================================
-            ATTACHMENTS
-        ======================================== */}
-
         {post.attachments?.length > 0 && (
           <div className="overflow-hidden rounded-3xl">
             <PostAttachments attachments={post.attachments} />
           </div>
         )}
-
-        {/* ========================================
-            CONTENT
-        ======================================== */}
 
         <div
           className={
@@ -129,16 +101,10 @@ export default function PostCard({
               onNavigate={handleNavigate}
               forceExpanded={forceExpanded}
             />
-
             <PostMetadata post={post} forceExpanded={forceExpanded} />
-
             <PostTimeline post={post} />
           </div>
         </div>
-
-        {/* ========================================
-            LINKS
-        ======================================== */}
 
         {post.links?.length > 0 &&
           (forceExpanded || !post.attachments?.length) && (
@@ -146,10 +112,6 @@ export default function PostCard({
               <PostLinks links={post.links} />
             </div>
           )}
-
-        {/* ========================================
-            FOOTER
-        ======================================== */}
 
         {!profileMode && (
           <div className="sm:rounded-3xl">
@@ -160,10 +122,6 @@ export default function PostCard({
             />
           </div>
         )}
-
-        {/* ========================================
-            CONTRIBUTION
-        ======================================== */}
 
         {!profileMode && forceExpanded && (
           <PostContribution post={post} queryKey={queryKey ?? ["feed"]} />
