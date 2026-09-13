@@ -54,7 +54,7 @@ export function AuthProvider({ children }) {
     await supabase.auth.signOut();
 
     localStorage.removeItem("userStatus");
-    queryClient.removeQueries({ queryKey: ["userStatus"] });
+    queryClient.removeQueries({ queryKey: queryKeys.auth.userStatus });
 
     setUser(null);
   };
