@@ -50,9 +50,8 @@ export async function middleware(request) {
 
   // 2. Refresh and verify the cookie-based Supabase session.
   const supabase = updateSession();
-  const {
-    data: { claims },
-  } = await supabase.auth.getClaims();
+  const { data: claimsData, error } = await supabase.auth.getClaims();
+  const claims = error ? null : claimsData?.claims ?? null;
 
   // 3. Protect /manage/* routes.
   if (request.nextUrl.pathname.startsWith("/manage") && !claims) {
