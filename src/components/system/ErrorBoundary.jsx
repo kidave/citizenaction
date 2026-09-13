@@ -10,8 +10,10 @@ export default class ErrorBoundary extends React.Component {
     return { hasError: true };
   }
 
-  componentDidCatch(error, info) {
-    console.error("UI Error:", error, info);
+  componentDidCatch(error) {
+    if (process.env.NODE_ENV !== "production") {
+      console.error("UI Error:", error);
+    }
   }
 
   render() {
