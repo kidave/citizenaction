@@ -2,10 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
 
 export function usePostAuthor(authorId) {
   return useQuery({
-    queryKey: ["post-author", authorId],
+    queryKey: queryKeys.posts.author(authorId),
     enabled: !!authorId,
 
     queryFn: async () => {
