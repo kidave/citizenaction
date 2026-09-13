@@ -49,6 +49,7 @@ export const queryKeys = {
     position: (organizationSlug, positionSlug) => ["governance", "position", organizationSlug, positionSlug],
     geography: (governanceId) => ["governance-geography", governanceId],
     family: (slug) => ["governance-family", slug],
+    organization: (governanceId) => ["governance-organization", governanceId],
     directoryGeographies: (params = {}) => ["governance-directory-geographies", params],
     adminEntities: ["admin-governance-entities"],
     contributions: ["governance-contributions"],
