@@ -62,9 +62,9 @@ Authentication is provided by Supabase Auth.
 - Production login uses Google OAuth.
 - Development authentication may use email OTP when explicitly enabled.
 - Protected API routes receive an end-user access token and must verify the user before performing protected operations.
-- Middleware protects application management routes.
+- Middleware protects application management routes and now uses `@supabase/ssr` for cookie-based session refresh and verification.
 
-The application currently uses `@supabase/auth-helpers-nextjs` in middleware. Supabase has deprecated the Auth Helpers package in favor of `@supabase/ssr`; migration is planned and should be performed as one controlled authentication change rather than mixing both strategies.
+The deprecated `@supabase/auth-helpers-nextjs` middleware client has been removed from the active authentication path. Remaining usages, if any, must be migrated before the dependency is removed entirely.
 
 ## Supabase clients
 
@@ -80,9 +80,9 @@ The application currently uses `@supabase/auth-helpers-nextjs` in middleware. Su
 
 `src/lib/supabase/node.js` is a trusted Node-only/service-role client. The service-role key must never be imported into browser code.
 
-### Future auth architecture
+### Auth architecture
 
-When migrating middleware to `@supabase/ssr`, keep the existing bearer-token API pattern distinct from cookie/session middleware. The current Pages Router API routes should not be rewritten merely to adopt SSR helpers.
+Cookie-based session lifecycle belongs to `@supabase/ssr` and middleware. Header-based bearer authentication remains appropriate for Pages Router API routes that receive an access token explicitly. These are intentionally separate patterns because they have different request/session models.
 
 ## Storage
 
