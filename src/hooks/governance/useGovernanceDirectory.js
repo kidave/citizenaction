@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
 
 export function useGovernanceDirectory({
   tab = "organizations",
@@ -15,10 +16,17 @@ export function useGovernanceDirectory({
   const effectiveCategoryId = tab === "organizations" ? categoryId : "all";
 
   return useQuery({
-    queryKey: ["governance-directory-v2", tab, search, organizationType, effectiveCategoryId, geographyId, organizationId],
+    queryKey: queryKeys.governance.directory({
+      tab,
+      search,
+      type: organizationType,
+      categoryId: effectiveCategoryId,
+      geographyId,
+      organizationId,
+    }),
     enabled,
     queryFn: async () => {
-      const result = await supabase.rpc("get_governance_directory_v2", {
+      const result = await supabase.rpc("get_governance_directory", {
         p_search: search.trim() || null,
         p_tab: tab,
         p_type: tab === "organizations" && organizationType !== "all" ? organizationType : null,
