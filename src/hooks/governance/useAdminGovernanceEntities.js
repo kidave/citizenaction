@@ -2,12 +2,13 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
 
 export function useAdminGovernanceEntities(enabled = true) {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["admin-governance-entities"],
+    queryKey: queryKeys.admin.governanceEntities,
     enabled,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -26,7 +27,6 @@ export function useAdminGovernanceEntities(enabled = true) {
         p_image_url: imageUrl || null,
       });
       if (error) throw error;
-
       const updated = Array.isArray(data) ? data[0] : data;
       if (!updated?.id) throw new Error("Governance logo was uploaded but the governance record was not updated.");
 
@@ -39,8 +39,10 @@ export function useAdminGovernanceEntities(enabled = true) {
       return fresh;
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(["admin-governance-entities"], (current = []) => current.map((item) => item.id === data.id ? { ...item, ...data } : item));
-      queryClient.invalidateQueries({ queryKey: ["governance"] });
+      queryClient.setQueryData(queryKeys.admin.governanceEntities, (current = []) =>
+        current.map((item) => (item.id === data.id ? { ...item, ...data } : item)),
+      );
+      queryClient.invalidateQueries({ queryKey: queryKeys.governance.all });
     },
   });
 
