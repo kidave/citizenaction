@@ -1,159 +1,126 @@
 # Backend
 
-The backend inside this repository consists of Next.js API routes, middleware, Supabase client helpers, and external service proxy calls. The actual Supabase database schema and policies are not tracked here.
+This document describes the current backend surface of Citizen Action. It should be kept aligned with the repository and Supabase project; historical routes and removed product areas should not be documented as active architecture.
 
-## API routes
+## Backend surface
+
+The application uses three main backend surfaces:
+
+1. Next.js API routes under `src/pages/api/` for server-side validation, ownership checks, and external-service proxies.
+2. Supabase directly from the browser for client-readable data and operations that are intentionally protected by Supabase RLS.
+3. Supabase RPC functions for database-side business operations and multi-table transactions.
+
+The Supabase database schema, RLS policies, functions, and storage policies should ultimately be tracked through Supabase migrations and generated database types rather than described only in prose.
+
+## Current API routes
+
+The active API surface should be treated as the source of truth in `src/pages/api/`.
+
+Known current proxy routes include:
 
 ### `src/pages/api/osm.js`
 
-Purpose: OpenStreetMap Nominatim search proxy.
-
-- Method handling is implicit; it responds to requests with query parameter `q`.
-- Missing `q` returns `400` and an empty array.
-- Calls `https://nominatim.openstreetmap.org/search` with `format=json`, `addressdetails=1`, and `limit=5`.
-- Uses `User-Agent: CitizenActionApp/1.0`.
-- Returns upstream JSON or `500` with an empty array.
+OpenStreetMap Nominatim search proxy.
 
 ### `src/pages/api/osm-reverse.js`
 
-Purpose: OpenStreetMap Nominatim reverse geocoding proxy.
+OpenStreetMap Nominatim reverse-geocoding proxy.
 
-- Expects `lat` and `lng` query parameters.
-- Missing coordinates return `400` and an empty object.
-- Calls `https://nominatim.openstreetmap.org/reverse` with `format=json`.
-- Uses `User-Agent: CitizenActionApp/1.0`.
-- Returns upstream JSON or `500` with an empty object.
-
-### `src/pages/api/space/[slug]/club.js`
-
-Purpose: create a club under a space.
-
-Behavior inferred from code:
-
-1. Allows POST only.
-2. Requires a `slug` route parameter.
-3. Requires `Authorization: Bearer <token>`.
-4. Creates a user-scoped Supabase server client.
-5. Verifies the bearer token with Supabase Auth.
-6. Loads `space` by slug.
-7. Requires the authenticated user to match `space.owner_user_id`.
-8. Validates required `scope_type` and `scope_code` values in the request body.
-9. Verifies the scope exists in `geographic_scope`.
-10. Checks for an existing `club` with the same `space_id`, `scope_type`, and `scope_code`.
-11. Reads the user's `profile` for contact fallback information.
-12. Inserts a new `club`.
-13. Attempts to add the creator to `club_member` with role `chair`.
-14. Returns the created club and geographic scope summary.
-
-### `src/pages/api/club/[space]/[scopeType]/[scopeCode].js`
-
-Purpose: read, update, and delete club settings for a scoped club.
-
-Behavior inferred from code:
-
-1. Requires `space`, `scopeType`, and `scopeCode` route parameters.
-2. Requires `Authorization: Bearer <token>`.
-3. Creates a user-scoped Supabase server client.
-4. Verifies user with Supabase Auth.
-5. Performs an ownership check by loading `space` and `club` and comparing `club.created_by` to the authenticated user id.
-6. GET reads the public club representation from `club_view`.
-7. PUT validates the request body with `clubUpdateSchema`, updates `club`, and best-effort removes old branding files when URLs change.
-8. DELETE best-effort removes logo/cover files from `committee-branding`, then deletes the club.
+Additional API routes should be documented here only when they are confirmed to exist in the current repository.
 
 ## Server/client separation
 
 ### Client-side responsibilities
 
 - Render pages and components.
-- Manage session state through Supabase browser client.
-- Query Supabase tables/views directly in hooks.
-- Upload post attachments through the browser Supabase storage client.
-- Call authenticated API routes when server-side checks are needed.
+- Manage interactive state and forms.
+- Use the browser Supabase client for data access that is safe under RLS.
+- Use TanStack Query for server-state caching and invalidation.
+- Upload client-owned media through approved Supabase Storage paths.
+- Call API routes when server-side validation, ownership checks, or external-service access is required.
 
 ### Server-side responsibilities
 
-- Middleware protects `/manage/*` routes.
-- API routes verify bearer tokens and perform operations that need server-side validation/ownership checks.
-- API routes proxy Nominatim requests to avoid direct browser usage and set a consistent user agent.
+- Perform operations requiring trusted server execution or external-service proxying.
+- Verify the authenticated user for protected API routes.
+- Enforce ownership or administrative checks that should not rely on UI state.
+- Keep service credentials and privileged integrations server-only.
 
-### Service-role responsibilities
+### Database responsibilities
 
-`src/lib/supabase/node.js` is available for Node-only service-role usage. It is not safe for browser import because it uses `SUPABASE_SERVICE_ROLE_KEY`.
+- Enforce relationships and integrity with constraints.
+- Enforce row-level authorization with RLS.
+- Keep transactional multi-table business operations in RPC functions where appropriate.
+- Maintain auditability for sensitive administrative changes.
 
 ## Authentication
 
-- Browser auth uses Supabase PKCE flow.
+Authentication is provided by Supabase Auth.
+
+- Browser authentication uses the Supabase browser client.
+- The application uses PKCE for the browser auth flow.
 - Production login uses Google OAuth.
-- Dev auth can use email OTP when `NEXT_PUBLIC_DEV_AUTH=true`.
-- API routes expect a bearer access token generated by Supabase Auth.
-- Middleware uses `createMiddlewareClient` from `@supabase/auth-helpers-nextjs`.
+- Development authentication may use email OTP when explicitly enabled.
+- Protected API routes receive an end-user access token and must verify the user before performing protected operations.
+- Middleware protects application management routes.
+
+The repository currently contains both the older `@supabase/auth-helpers-nextjs` package and the newer `@supabase/ssr` package. The long-term direction should be one consistent SSR/auth strategy rather than two overlapping approaches.
+
+## Supabase clients
+
+### Browser client
+
+`src/lib/supabase/client.js` is the browser client and uses public Supabase environment variables.
+
+### Server client
+
+`src/lib/supabase/server.js` provides a user-scoped server client for authenticated server operations.
+
+### Node/service client
+
+`src/lib/supabase/node.js` is intended for trusted Node-only/service-role usage. The service-role key must never be imported into browser code.
 
 ## Storage
 
-Storage buckets referenced by code:
+Current storage usage should be derived from `src/lib/supabase/storage.js` and the feature that owns each asset type.
 
-- `post-attachments`
-- `community-branding`
-- `committee-branding`
+Known application media includes post attachments and space/governance branding. Removed product areas should not remain documented as active storage consumers.
 
-### `post-attachments`
+## Data access policy
 
-Used by `src/lib/supabase/storage.js` for feed/post attachments. Files are stored under a path shaped like:
+New backend work should follow these rules:
+
+- UI components do not call privileged backend operations directly.
+- Client data access lives in query hooks/query functions rather than being duplicated across many components.
+- Protected mutations have one canonical implementation.
+- All external request input is validated.
+- Authorization is enforced by the backend/database and never depends solely on whether a button is visible.
+- Privileged RPC functions must have intentional grants and explicit authorization checks.
+
+## Source of truth
+
+The desired backend source of truth is:
 
 ```text
-{userId}/{timestamp}-{sanitizedFilename}
+GitHub
+├── application/API code
+├── Supabase migrations
+├── database types
+└── backend documentation
+
+Supabase
+├── Postgres
+├── RLS policies
+├── RPC/functions
+└── Storage policies
 ```
 
-### `community-branding`
-
-Used by space settings for logo/cover storage.
-
-### `committee-branding`
-
-Used by club/committee settings for logo/cover storage. API route cleanup logic removes old files on update/delete.
-
-## Supabase usage
-
-Supabase is used for:
-
-- Authentication
-- Client-side table/view reads
-- Client-side row mutations
-- Server-side authenticated API operations
-- RPC calls
-- Storage upload/delete/public URL access
-
-The code references tables/views such as `feed`, `feed_light_view`, `space`, `club`, `club_view`, `profile`, `public_profile`, `geographic_scope`, `meeting_item`, and others. See `database.md` for a complete repository-derived list.
+The current repository does not yet contain a complete tracked schema/migration history or generated database types, so this remains an area for improvement.
 
 ## External services
 
-### OpenStreetMap Nominatim
+Current external integrations should be confirmed from the active codebase before being documented here. Known integrations include OpenStreetMap/Nominatim, Mapbox, Mapillary-related resources, and Google OAuth through Supabase Auth.
 
-Used by API routes:
+## Maintenance rule
 
-- `/api/osm`
-- `/api/osm-reverse`
-
-### Mapbox
-
-`NEXT_PUBLIC_MAPBOX_TOKEN` is used by the Mapbox search component.
-
-### Google OAuth
-
-Supabase auth uses Google OAuth in production login flow.
-
-### Google profile images
-
-`next.config.js` allows images from `lh3.googleusercontent.com`.
-
-### Sender
-
-The CSP and image config allow `sender.net` and `sendercdn.com`, and frame ancestors include `app.sender.net`.
-
-### Mapillary
-
-The repository includes Mapillary icon assets and CSP allowances for Mapillary APIs/assets.
-
-### GitHub Actions
-
-`.github/workflows/osm-sync.yml` schedules an OSM roads sync weekly and allows manual dispatch. It installs `node-fetch` and tries to run `scripts/sync-osm-roads.js` with Supabase secrets, but that script is not present in the tracked files reviewed here.
+When a route, feature, table, or integration is deleted, remove it from this document and related architecture documentation in the same change. This prevents documentation from becoming a second, inaccurate architecture.
