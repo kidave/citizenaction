@@ -1,158 +1,85 @@
 # Technical Debt
 
-This document records code smells and maintenance risks discovered during static repository review. It does not modify behavior.
+This document tracks active maintenance risks and improvement opportunities. It should describe the current repository, not removed product areas or historical code that no longer exists.
 
-## Code smells
+## Architecture and maintainability
 
 ### Large mixed-responsibility files
 
-Several files are large and likely combine routing, rendering, state management, validation, side effects, and Supabase calls:
+The largest files should be split only when a clear responsibility boundary exists. Current high-value candidates include:
 
-- `src/components/ui/sidebar.jsx` (~687 lines)
-- `src/pages/manage/[space]/settings.js` (~592 lines)
-- `src/pages/apply/space.js` (~547 lines)
-- `src/components/ui/timeline.jsx` (~500 lines)
-- `src/pages/apply/space/[space]/club.js` (~360 lines)
-- `src/pages/search.js` (~305 lines)
-- `src/pages/space/index.js` (~305 lines)
-- `src/pages/space/[space]/[scopeType].js` (~305 lines)
-- `src/pages/api/club/[space]/[scopeType]/[scopeCode].js` (~293 lines)
+- `src/pages/manage/[space]/settings.js`
+- `src/pages/apply/space.js`
+- `src/pages/search.js`
+- `src/pages/space/index.js`
+- `src/components/ui/sidebar.jsx`
+- `src/components/ui/timeline.jsx`
+
+The goal is not to split files by line count alone. Extract reusable sections, data access, validation, and side effects when they form independent responsibilities.
+
+### Product widgets inside generic UI
+
+`src/components/ui/` contains both design-system primitives and some higher-level application widgets. Gradually move domain-specific components into feature/shared folders. UI primitives should remain domain independent.
 
 ### Scattered data access
 
-Supabase calls exist in hooks, components, pages, and API routes. That is workable, but it makes schema changes harder because table/view names and field assumptions are spread across the codebase.
+Supabase calls exist across hooks, components, pages, and API routes. This is acceptable for small reads, but repeated query shapes, mutation logic, and cache invalidation should move toward small domain query/mutation helpers.
 
-### Debug logging in production paths
+### State and query consistency
 
-`src/lib/fetch.js` logs request data including headers. API routes also log authenticated user identifiers and route operations. These logs may be useful during development but risky in production.
+TanStack Query is already the server-state layer. Query keys, stale times, mutation invalidation, loading states, and error states should be standardized rather than implemented differently in each feature.
 
-### Incomplete backend source of truth
+## Authentication and security
 
-The repository does not include Supabase migrations, generated database types, policy documentation, or local Supabase configuration. This makes database changes difficult to review safely.
+### Supabase auth helper migration
 
-### Mixed auth helper strategy
+The app still uses `@supabase/auth-helpers-nextjs` in middleware. Supabase now recommends `@supabase/ssr` and has deprecated the Auth Helpers packages. Migration should be done as one controlled authentication change rather than mixing both approaches.
 
-Both `@supabase/auth-helpers-nextjs` and `@supabase/ssr` are installed, while middleware uses `@supabase/auth-helpers-nextjs`. The repository should document the intended strategy and migration plan.
+### Authorization boundary
 
-### Product widgets inside generic UI folder
+Authorization should remain enforced by Supabase RLS and server-side/database functions. Client-side visibility checks are UX only. Privileged `SECURITY DEFINER` functions require individual review before changing grants or security mode.
 
-`src/components/ui/` includes primitive UI components and higher-level product/media widgets. This blurs the boundary between reusable design primitives and application features.
+### Debug/sensitive logging
 
-## Duplicate logic
+Production-facing helpers and routes should never log Authorization headers, access tokens, service-role credentials, or unnecessary user identifiers.
 
-### Club creation fallback
+### API validation
 
-`src/pages/api/space/[slug]/club.js` contains comments and code that try `club` first, then fall back to `club` again. This suggests stale code from a previous table-name migration.
+API routes should validate query/body input with Zod before performing database or external-service work. External-service parameters must be encoded/validated at the boundary.
 
-### Auth and protected action patterns
+## Backend source of truth
 
-The codebase includes multiple approaches:
+The database should become reviewable from GitHub through migrations/schema artifacts and generated Supabase types. RLS, grants, storage policies, and privileged functions should be documented alongside those artifacts.
 
-- middleware protection for `/manage/*`
-- `ProtectedButton`
-- `useRequireAuth`
-- manual bearer-token API calls
-- manual `supabase.auth.getSession()` calls
+Do not bulk-change Supabase security findings without first reviewing the affected function/table's actual authorization model.
 
-These should be consolidated into a small set of documented patterns.
+## External services
 
-### Storage cleanup patterns
+The Nominatim proxy routes already use `URLSearchParams`/`URL.searchParams` for upstream parameters. The remaining work is rate limiting/caching and policy-aware usage rather than re-solving URL encoding.
 
-Storage cleanup for branding appears in page/API logic. Similar path parsing and bucket handling should eventually be centralized.
+The OSM synchronization workflow references `scripts/sync-osm-roads.js`; confirm whether the workflow or script is still part of the current product before restoring or removing either side.
 
-### Location/scope selection
+## Testing
 
-There are several scope/location components and hooks. They may be justified by UX differences, but the shared state and data model should be documented to avoid duplication.
+Testing dependencies exist, but `package.json` does not currently define a test script. Establish a small test foundation:
 
-## Large components/files that should be split
+- Unit tests for pure utilities and Zod schemas.
+- API tests for authentication, validation, ownership, and error responses.
+- Component smoke tests for core feed/space/governance UI.
+- E2E tests for login, feed creation, space application, and administration flows.
+- CI checks for lint, tests, and production build.
 
-Recommended future split candidates:
+## Performance
 
-1. `src/pages/manage/[space]/settings.js`
-   - split data loading, form sections, branding upload/delete, destructive actions, and page shell.
-2. `src/pages/apply/space.js`
-   - split form steps/sections, validation, submission, and display components.
-3. `src/pages/apply/space/[space]/club.js`
-   - split scope selection, form state, submission, and UI sections.
-4. `src/pages/api/club/[space]/[scopeType]/[scopeCode].js`
-   - split auth verification, ownership check, storage cleanup, and method handlers.
-5. `src/pages/api/space/[slug]/club.js`
-   - split auth verification, ownership validation, scope validation, duplicate check, and insert logic.
-6. `src/components/ui/sidebar.jsx`
-   - verify whether this is imported from a UI template; if customized, split into primitives and composed variants.
-7. `src/components/ui/timeline.jsx`
-   - split timeline primitives from application-specific timeline rendering.
-8. `src/hooks/feed/useEditor.js`
-   - split editor state transitions if additional editor complexity is added.
+- Defer heavy map/editor/PDF/media dependencies where practical.
+- Audit duplicate icon/media/date libraries before removing anything.
+- Add pagination/infinite loading to unbounded feed/search/list queries.
+- Centralize TanStack Query keys and invalidation.
+- Review `images.unoptimized = true` before changing it; a custom image/storage strategy may be intentional.
+- Avoid unnecessary client components and route-wide client boundaries.
 
-## Potential bugs
+## Documentation
 
-1. **Middleware redirect target may be wrong.** Middleware redirects unauthenticated `/manage/*` requests to `/auth`, but the tracked login page is `/auth/login`.
-2. **Missing workflow script.** GitHub Actions references `scripts/sync-osm-roads.js`, but no tracked script exists.
-3. **Potential secret/header logging.** `authFetch()` logs headers, including Authorization.
-4. **Unencoded OSM query parameters.** `/api/osm` and `/api/osm-reverse` interpolate query params directly into URLs.
-5. **Network status invalid URL risk.** `NetworkStatusBanner` uses `NEXT_PUBLIC_SUPABASE_URL` without guarding missing configuration.
-6. **Unclear Supabase env var naming.** App code and GitHub Actions use different Supabase env var names.
-7. **No visible handling for Nominatim rate limits.** The proxy routes do not cache or rate limit requests.
-8. **Missing schema source.** Without migrations/types, field assumptions can drift from actual Supabase schema.
-9. **Potential broad CSP allowances.** CSP includes multiple wildcard domains; intended integrations should be documented and minimized over time.
-10. **Image optimization disabled globally.** `images.unoptimized = true` may be intentional, but it bypasses Next image optimization.
+Architecture, backend, and frontend documentation should describe active routes and responsibilities only. Removed Club/scope routes must not be reintroduced into documentation as current architecture.
 
-## Missing tests
-
-No test script is defined in `package.json`. Testing dependencies are installed, but no obvious test suite structure was found during review.
-
-Recommended test layers:
-
-- Unit tests for pure utilities in `src/utils`.
-- Unit tests for Zod schemas in `src/schemas`.
-- API route tests for auth/validation/ownership behavior.
-- Component smoke tests for core pages and feed components.
-- E2E tests for login, feed creation, space application, club creation, and manage settings.
-- Build/lint checks in CI.
-
-## Dead code or missing artifacts
-
-Potential dead/missing artifacts:
-
-- `.github/workflows/osm-sync.yml` references missing `scripts/sync-osm-roads.js`.
-- `move-to-src.js` may be a one-time migration helper; confirm whether it is still needed.
-- Installed dependencies should be audited against actual imports.
-- Public assets should be audited for unused legacy logos/icons/images.
-- `@supabase/auth-helpers-nextjs` is deprecated upstream in favor of newer SSR helpers; confirm migration status because `@supabase/ssr` is also installed.
-
-## Opportunities for optimization
-
-### Frontend bundle
-
-- Dynamically import heavy editor, map, PDF, carousel, and media viewer components where possible.
-- Audit duplicate icon libraries and media packages.
-- Split route-level code for large pages.
-
-### Data fetching
-
-- Standardize TanStack Query keys.
-- Add pagination/infinite query patterns to feed/search/list views.
-- Centralize cache invalidation after mutations.
-- Avoid duplicate Supabase calls where page-level data can be passed to child components.
-
-### Backend/API
-
-- Validate all API inputs with Zod schemas.
-- Encode all external service query parameters.
-- Add caching/rate limiting for OSM proxy endpoints.
-- Extract reusable auth and ownership helpers.
-
-### Database
-
-- Add schema migrations or generated schema snapshots.
-- Add generated Supabase types for compile-time safety.
-- Document RLS policies and storage policies.
-- Review indexes for feed, scope, club, and membership lookups.
-
-### Security
-
-- Remove sensitive logs.
-- Confirm service role key usage is server-only.
-- Tighten CSP after documenting required third-party domains.
-- Add explicit environment variable validation at startup/build time.
+The roadmap should remain the high-level execution plan; this file should remain focused on concrete debt and risks.
