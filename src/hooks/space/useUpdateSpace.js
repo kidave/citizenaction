@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { supabase } from "@/lib/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
 
 export function useUpdateSpace() {
   const queryClient = useQueryClient();
@@ -45,28 +46,16 @@ export function useUpdateSpace() {
     },
 
     onSuccess: (data) => {
-      /*
-       * Refresh Space queries.
-       */
+      queryClient.invalidateQueries({ queryKey: queryKeys.spaces.all });
 
       queryClient.invalidateQueries({
-        queryKey: ["spaces"],
-      });
-
-      /*
-       * Also refresh the specific
-       * Space query if it exists.
-       */
-
-      queryClient.invalidateQueries({
-        queryKey: ["spaces", data.slug],
+        queryKey: queryKeys.spaces.detail({ slug: data.slug }),
       });
     },
   });
 
   return {
     updateSpace: mutation.mutateAsync,
-
     isUpdating: mutation.isPending,
   };
 }
