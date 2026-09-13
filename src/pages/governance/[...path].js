@@ -12,6 +12,7 @@ import { useGovernanceCatalog } from "@/hooks/governance/useGovernanceCatalog";
 import { useGovernanceGeographyMutation } from "@/hooks/geography/useGovernanceGeography";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { supabase } from "@/lib/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
 import { getGovernanceHref, getGovernanceLabel } from "@/utils/governance";
 
 function getPathSegments(value) {
@@ -52,18 +53,18 @@ export default function GovernanceRecordPage() {
   const { removeGeography } = useGovernanceGeographyMutation();
 
   const governanceQuery = useQuery({
-    queryKey: ["governance", "record", slug],
+    queryKey: queryKeys.governance.record(slug),
     enabled: !!slug,
     queryFn: () => getGovernanceBySlug(slug),
   });
   const governance = governanceQuery.data;
 
   const { data: family = [], isLoading: familyLoading } = useQuery({
-    queryKey: ["governance-family"],
+    queryKey: queryKeys.governance.family(slug),
     enabled: !!slug && !!governance,
     queryFn: async () => {
       const [directoryResult, geographyResult] = await Promise.all([
-        supabase.rpc("get_governance_directory", {
+        supabase.rpc("get_governance_tree", {
           p_search: null,
           p_parent_id: null,
           p_type: null,
@@ -186,11 +187,10 @@ export default function GovernanceRecordPage() {
   };
   const handleChanged = async () => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["governance-family"] }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.governance.family(slug) }),
       queryClient.invalidateQueries({ queryKey: ["governance-directory"] }),
-      queryClient.invalidateQueries({ queryKey: ["governance-directory-v2"] }),
-      queryClient.invalidateQueries({ queryKey: ["governance-organization", governance?.id] }),
-      slug ? queryClient.invalidateQueries({ queryKey: ["governance", "record", slug] }) : Promise.resolve(),
+      queryClient.invalidateQueries({ queryKey: queryKeys.governance.organization(governance?.id) }),
+      slug ? queryClient.invalidateQueries({ queryKey: queryKeys.governance.record(slug) }) : Promise.resolve(),
     ]);
     setModalEntity(null);
   };
@@ -293,7 +293,7 @@ export default function GovernanceRecordPage() {
         governanceId={governance.id}
         record={leadershipRecord}
         candidates={family}
-        records={queryClient.getQueryData(["governance-organization", governance.id]) || []}
+        records={queryClient.getQueryData(queryKeys.governance.organization(governance.id)) || []}
         onSaved={handleChanged}
       />
 
