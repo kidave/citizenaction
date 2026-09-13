@@ -3,25 +3,21 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/lib/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
 
 export function useSpaceFeed(spaceId) {
   return useQuery({
-    queryKey: ["space-feed", spaceId],
-
+    queryKey: queryKeys.spaces.feed(spaceId),
     enabled: !!spaceId,
-
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_space_posts", {
         p_space_id: spaceId,
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       return Array.isArray(data) ? data : [];
     },
-
     staleTime: 1000 * 60 * 5,
   });
 }
