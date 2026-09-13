@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-
 import { supabase } from "@/lib/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
 
 export function useAdminDashboard(enabled = true) {
   return useQuery({
-    queryKey: ["admin-dashboard"],
+    queryKey: queryKeys.admin.dashboard,
     enabled,
     queryFn: async () => {
-      const [{ count: userCount, error: userError }, { count: pendingSpaces, error: spaceError }, { count: pendingGovernance, error: governanceError }] = await Promise.all([
+      const [{ count: userCount, error: userError }, { count: pendingSpaces, error: spaceError }, { data: pendingGovernance, error: governanceError }] = await Promise.all([
         supabase.from("profile").select("user_id", { count: "exact", head: true }),
         supabase.from("space_application").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.rpc("get_governance_admin_state"),
