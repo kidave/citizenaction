@@ -1,14 +1,30 @@
 # Frontend
 
-This document describes the current frontend structure and opportunities to simplify it without changing behavior.
+This document describes the current frontend structure. It should be updated whenever routes or major frontend responsibilities change.
 
-## Page hierarchy
+## Runtime and routing
 
-The application uses Next.js Pages Router under `src/pages`.
+The application uses the Next.js Pages Router under `src/pages`.
 
-### Global wrapper
+`src/pages/_app.js` owns the application-wide providers and framework integrations:
 
-`src/pages/_app.js` configures global styles, React Query, auth/media context providers, layout, error boundary, route loader, mobile navigation, and global toast rendering.
+```text
+_app.js
+├── QueryClientProvider
+├── ThemeProvider
+├── AuthProvider
+├── GoogleOneTap
+├── MediaProvider
+├── Layout
+│   ├── RouteLoader
+│   ├── ErrorBoundary
+│   └── page layout declared by Component.getLayout
+├── Toaster
+├── Analytics
+└── SpeedInsights
+```
+
+Pages may define `Component.getLayout` when they require a specific shell. This keeps global layout code route-agnostic.
 
 ### Public/top-level pages
 
@@ -29,143 +45,130 @@ The application uses Next.js Pages Router under `src/pages`.
 /auth/privacy
 ```
 
-### Space/club pages
+### Space pages
 
-```text
-/space
-/space/[space]
-/space/[space]/[scopeType]
-/space/[space]/[scopeType]/[scopeCode]
-/space/application/[id]
-/apply/space
-/apply/space/[space]/club
-```
+Only active routes should be listed here. Removed Club and scope-specific routes are intentionally omitted.
 
 ### Management pages
 
-```text
-/manage/[space]
-/manage/[space]/settings
-/manage/[space]/[scopeType]/[scopeCode]
-/manage/[space]/[scopeType]/[scopeCode]/settings
-```
+Management pages live under `/manage/*` and are protected by middleware.
 
-These routes are protected by middleware at the `/manage/:path*` level.
+## Layout architecture
 
-## Component hierarchy
-
-### Application shell
+`src/components/layout/` contains the global shell and its supporting components.
 
 ```text
-_app.js
-└── QueryClientProvider
-    └── AuthProvider
-        └── MediaProvider
-            └── Layout
-                ├── RouteLoader
-                ├── ErrorBoundary
-                │   ├── page component
-                │   └── MobileBottomBar
-                └── Toaster
+Layout
+└── page-declared layout
+    └── AppShell (when requested)
+        ├── LeftSidebar
+        ├── CenterColumn
+        ├── FloatingMenu
+        └── RightSidebar (when requested)
 ```
 
-### Layout components
+`Layout` itself is intentionally route-agnostic. Pages decide whether they need the main shell or a special standalone layout.
 
-`src/components/layout/` contains the shell and layout primitives:
+`AppShell` is also route-agnostic. A page can request the right sidebar with:
 
-- `Layout`
-- `Header`
-- `Footer`
-- `Navigation`
-- `LeftSidebar`
-- `RightSidebar`
-- `MobileBottomBar`
-- `MobileFloatingDock`
-- `Logo`, `LogoSwitcher`
-- `Profile`
-- `PageBreadcrumbs`
-- primitive layout helpers: `Container`, `Center`, `Row`, `Stack`, `Inline`
+```js
+Page.getLayout = (page) => <AppShell showRightSidebar>{page}</AppShell>;
+```
 
-### Feed components
+This prevents route-specific conditions from accumulating inside global layout components.
 
-`src/components/feed/` is the largest domain-specific area. It includes:
+## Component organization
 
-- feed rendering: `Feed`, `CreatePostTrigger`, `MenuButton`, `PostShareButton`
-- post card sections: header, content, metadata, timeline, attachments, actions, footer
-- post editor sections: modal, header, content, metadata, address, date/time, type selector, authority selector, attachments, timeline
-- post meeting components
-- post activity preview components
+### Domain components
 
-### Governance components
+Current domain areas include feed, governance, geography, space, timeline, user/profile, standards, and related product features.
 
-Governance UI includes authority cards, explorer/search modals, selector modals, entity type selector, hover cards, and avatar groups.
+The project already follows a component + hook pattern in many of these areas:
 
-### Shared cross-domain components
+```text
+Page
+  ↓
+Domain component
+  ↓
+Domain hook/query/mutation
+  ↓
+Supabase or protected API
+```
 
-`src/components/shared/` includes selectors and location/map widgets:
+### `components/ui/`
 
-- location search inputs
-- Mapbox location search
-- Leaflet map preview
-- scope selector/combobox/modal
-- space selector
-- featured space card
-- post calendar actions
+This is the shadcn/Radix-oriented design-system layer. New components placed here should be domain-independent.
 
-### Reusable UI components
+Product-specific widgets currently coexist here in some places and should be moved gradually into their owning domain rather than introducing new product-specific components into `ui`.
 
-`src/components/ui/` contains a design-system-like layer. It combines primitive wrappers around Radix UI patterns with custom media and display components.
+### `components/layout/`
 
-Examples:
+Application shell, navigation, sidebars, logos, profile UI, responsive navigation, and shared layout primitives.
 
-- form controls: button, input, textarea, select, checkbox, switch, label, field, form
-- overlays: dialog, drawer, sheet, popover, tooltip, hover-card, alert-dialog, dropdown-menu
-- display: card, badge, avatar, skeleton, metric-card, timeline, focus-cards
-- navigation/layout: accordion, tabs, navigation-menu, sidebar, carousel
-- media: AttachmentPicker, AttachmentViewer, Attachments, ImageGrid, ImageViewer, PDFViewer, UnifiedMediaGrid, AutoImageCarousel
+### `components/shared/`
 
-## Design patterns
+Cross-domain components that are genuinely reused by multiple features.
 
-### Domain hooks + domain components
+### `components/system/`
 
-The code generally separates Supabase access into hooks and presentation into components. Feed, governance, geography, meeting, space, and user code follow this pattern.
+Application-wide infrastructure such as error handling and loading/route infrastructure.
 
-### Modal-heavy editing flows
+### `components/skeletons/`
 
-Post creation/editing and timeline editing are modal-driven. Editor state appears to be centralized in `useEditor`, with specific editor subcomponents for sections of a post.
+Loading placeholders shared by pages and features.
 
-### Supabase-first data access
+## State and data fetching
 
-Most frontend data access goes directly to Supabase from hooks using the browser client. API routes are reserved for operations needing server-side verification or external API proxying.
+### Server state
 
-### Utility-based styling
+TanStack Query is the primary server-state library.
 
-The UI uses Tailwind utility classes heavily, supported by a shadcn-like component layer.
+New query hooks should:
 
-### Responsive/mobile support
+- use stable, predictable query keys;
+- define one canonical query function per resource;
+- use consistent invalidation after mutations;
+- keep loading/error handling predictable.
 
-There are explicit mobile components such as `MobileBottomBar`, `MobileFloatingDock`, and `use-mobile.jsx`.
+### Local state
 
-## Opportunities to simplify the frontend
+Use React state for component-local interaction and UI state.
 
-These are documentation findings only; no behavior was changed.
+### URL state
 
-1. **Split large route components.** Several page files are large enough to make routing, data fetching, forms, and presentation hard to reason about. Good candidates include:
-   - `src/pages/manage/[space]/settings.js`
-   - `src/pages/apply/space.js`
-   - `src/pages/apply/space/[space]/club.js`
-   - `src/pages/space/index.js`
-   - `src/pages/search.js`
-   - `src/pages/space/[space]/[scopeType].js`
+Use the URL for state that should be shareable or navigable, such as route identity and appropriate filters.
 
-2. **Document or consolidate form schemas.** Zod schemas exist, but some validation is still inline in API routes and pages. Over time, shared validation between frontend forms and API routes could reduce drift.
+### Context
 
-3. **Create a clear feature-module boundary.** Current code is partly domain-grouped by hooks/components, but pages still compose many responsibilities. Feature folders could eventually group page-level components, hooks, schemas, and utilities by domain.
+React Context should be reserved for cross-cutting state such as authentication and media state.
 
-4. **Standardize server-state patterns.** TanStack Query is installed and used globally, while some code directly calls Supabase in effects or handlers. A clear policy for query keys, invalidation, and loading/error handling would simplify maintenance.
+## Forms and validation
 
-5. **Reduce duplicate media handling.** There are many media/attachment components and media utilities. A single documented media model would help avoid duplicated normalization and preview logic.
+React Hook Form is the preferred form state layer and Zod is the preferred validation layer.
 
-6. **Standardize protected actions.** `ProtectedButton`, `useRequireAuth`, middleware, and manual auth checks all appear to coexist. A single auth boundary pattern could reduce surprises.
+Validation should be shared where the same input crosses frontend and backend boundaries, rather than duplicated as slightly different rules.
 
-7. **Audit design-system ownership.** `src/components/ui/` is broad and includes both low-level primitives and product-specific widgets. Moving product-specific widgets out of `ui` would make the reusable layer clearer.
+## Performance principles
+
+Citizen Action uses a number of heavy browser libraries for maps, media, PDFs, editing, and rich interaction. These should be loaded only where needed.
+
+Prefer:
+
+- dynamic imports for heavy client-only features;
+- `next/image` where appropriate;
+- stable query caching;
+- pagination/infinite queries for growing lists;
+- avoiding unnecessary client components;
+- keeping the global provider tree small.
+
+## Authentication
+
+Authentication is provided by Supabase Auth.
+
+UI-level checks can control whether actions are visible, but authorization must ultimately be enforced by the backend/database.
+
+Protected operations should have a canonical mutation path rather than separate implementations in multiple components.
+
+## Documentation rule
+
+When a route, feature, or major architectural responsibility is removed or renamed, update this document and the architecture/backend documentation in the same change. The documentation should describe the active repository, not historical architecture.
