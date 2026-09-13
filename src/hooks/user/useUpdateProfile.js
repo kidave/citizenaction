@@ -20,7 +20,7 @@ export function useUpdateProfile() {
         .single();
       if (error) throw error;
       queryClient.setQueryData(queryKeys.users.myProfile(userId), data);
-      await queryClient.invalidateQueries({ queryKey: queryKeys.users.publicProfile() });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.users.publicProfiles });
       return data;
     } finally {
       setIsUpdating(false);
