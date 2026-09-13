@@ -1,33 +1,21 @@
 "use client";
 
 import { toast } from "sonner";
-
 import { useEditor } from "./useEditor";
-
 import { useCreateContribution } from "@/hooks/contribution/useCreateContribution";
 import { useUpdateContribution } from "@/hooks/contribution/useUpdateContribution";
 import { useDeleteContribution } from "@/hooks/contribution/useDeleteContribution";
 
 export function useContributionEditor(contribution = null, post = null) {
   const editor = useEditor(contribution);
-
   const { createContribution } = useCreateContribution();
   const { updateContribution } = useUpdateContribution();
   const { deleteContribution } = useDeleteContribution();
 
   async function submit(onSuccess) {
-    if (!editor.content.trim()) {
-      toast.error("Enter content.");
-      return;
-    }
-
-    if (!post?.id) {
-      toast.error("Post ID is missing.");
-      return;
-    }
-
+    if (!editor.content.trim()) return toast.error("Enter content.");
+    if (!post?.id) return toast.error("Post ID is missing.");
     const data = editor.getEditorData();
-
     const payload = {
       title: data.title ?? null,
       content: data.content ?? null,
@@ -44,55 +32,29 @@ export function useContributionEditor(contribution = null, post = null) {
       address: data.address ?? null,
       metadata: data.metadata ?? {},
     };
-
     try {
       if (contribution) {
-        await updateContribution({
-          contributionId: contribution.id,
-          postId: post.id,
-          contributionData: payload,
-        });
+        await updateContribution({ contributionId: contribution.id, postId: post.id, contributionData: payload });
       } else {
-        await createContribution({
-          postId: post.id,
-          contributionData: payload,
-        });
+        await createContribution({ postId: post.id, contributionData: payload });
       }
-
       onSuccess?.();
     } catch (error) {
-      console.error("Failed to save contribution", {
-        message: error?.message,
-        code: error?.code,
-        status: error?.status,
-      });
-
+      if (process.env.NODE_ENV !== "production") console.error("Failed to save contribution", { message: error?.message, code: error?.code, status: error?.status });
       toast.error(error?.message || "Something went wrong");
     }
   }
 
   async function remove(onSuccess) {
-    if (!contribution?.id) {
-      return;
-    }
-
+    if (!contribution?.id) return;
     try {
       await deleteContribution(contribution);
       onSuccess?.();
     } catch (error) {
-      console.error("Failed to delete contribution", {
-        message: error?.message,
-        code: error?.code,
-        status: error?.status,
-      });
-
+      if (process.env.NODE_ENV !== "production") console.error("Failed to delete contribution", { message: error?.message, code: error?.code, status: error?.status });
       toast.error(error?.message || "Failed to delete contribution");
     }
   }
 
-  return {
-    ...editor,
-    submit,
-    remove,
-  };
+  return { ...editor, submit, remove };
 }
