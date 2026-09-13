@@ -13,7 +13,7 @@ This is the execution plan for improving Citizen Action without introducing unne
 
 ## Phase 1 — completed/current foundation
 
-- [x] Refresh architecture/backend/frontend documentation to reflect the active application.
+- [x] Refresh architecture/backend/frontend/database documentation to reflect the active application.
 - [x] Remove route-based shell decisions from the global `Layout`.
 - [x] Make `AppShell` route-agnostic and let pages opt into shell variants through `getLayout`.
 - [x] Move Home's right-sidebar decision to the page.
@@ -22,6 +22,7 @@ This is the execution plan for improving Citizen Action without introducing unne
 - [x] Remove obsolete Club/scope routes from current architecture documentation.
 - [x] Refresh technical-debt documentation so removed routes are not treated as active debt.
 - [x] Fix the `/manage` unauthenticated redirect to the actual `/auth/login` page.
+- [x] Restrict anonymous execution of the reviewed privileged mutation RPCs and track the change as a Supabase migration.
 
 ## Phase 2 — authentication and backend safety
 
@@ -34,8 +35,8 @@ This is the execution plan for improving Citizen Action without introducing unne
 
 ### Database authorization
 
-- [ ] Review all `SECURITY DEFINER` functions individually.
-- [ ] Restrict anonymous execution for privileged mutation/admin functions where not required.
+- [ ] Review the remaining `SECURITY DEFINER` functions individually.
+- [x] Restrict anonymous execution for the reviewed privileged mutation/admin functions where not required.
 - [ ] Add explicit authorization checks inside privileged functions where appropriate.
 - [ ] Review the six security-definer views and make RLS/view security intent explicit.
 - [ ] Review exposed tables with RLS enabled but no policies; distinguish intentionally private/unused tables from missing policies.
@@ -45,9 +46,10 @@ This is the execution plan for improving Citizen Action without introducing unne
 
 ### Database source of truth
 
-- [ ] Add Supabase migrations/schema artifacts to GitHub.
+- [x] Keep Supabase migrations/schema artifacts in GitHub.
 - [ ] Generate and track Supabase database types.
-- [ ] Document RLS/storage policies and privileged functions.
+- [x] Document the database architecture, authorization model, and migration source of truth.
+- [ ] Review RLS/storage policies and privileged functions in repository documentation.
 - [ ] Review indexes for feed, membership, governance, geography, and common lookup paths.
 
 ## Phase 3 — data-access architecture
