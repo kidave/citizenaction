@@ -20,7 +20,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   {
@@ -33,15 +32,6 @@ const NAV_ITEMS = [
       {
         title: "Apply to register your space",
         href: "/apply/space",
-      },
-    ],
-  },
-  {
-    label: "Club",
-    items: [
-      {
-        title: "Search for active clubs",
-        href: "/search/club",
       },
     ],
   },
@@ -61,7 +51,6 @@ export default function Header() {
   const { user, profile, logout } = useAuth();
 
   const handleLogin = () => {
-    // Save current path before redirecting to login
     if (typeof window !== "undefined") {
       const currentPath = window.location.pathname + window.location.search;
       if (currentPath !== "/auth/login") {
@@ -78,12 +67,9 @@ export default function Header() {
   return (
     <header className="fixed top-0 z-50 w-full bg-gradient-to-br from-indigo-500/10 to-purple-600/10 lg:hidden">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-        {/* BRAND */}
         <Logo />
 
-        {/* RIGHT SIDE */}
         <div className="flex items-center gap-6">
-          {/* DESKTOP: SINGLE NAVIGATION BUTTON WITH DROPDOWN */}
           <div className="hidden lg:flex">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -115,9 +101,11 @@ export default function Header() {
                         >
                           <div>
                             <div className="font-medium">{item.title}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {item.description}
-                            </div>
+                            {item.description ? (
+                              <div className="text-xs text-muted-foreground">
+                                {item.description}
+                              </div>
+                            ) : null}
                           </div>
                         </DropdownMenuItem>
                       ))}
@@ -128,7 +116,6 @@ export default function Header() {
             </DropdownMenu>
           </div>
 
-          {/* AUTH AREA */}
           {!user ? (
             <Button size="sm" onClick={handleLogin}>
               Login
@@ -162,7 +149,6 @@ export default function Header() {
             </DropdownMenu>
           )}
 
-          {/* MOBILE MENU - Keeps the same Sheet */}
           <div className="flex lg:hidden">
             <Sheet>
               <SheetTrigger asChild>
