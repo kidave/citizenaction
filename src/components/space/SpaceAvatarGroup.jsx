@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 
 import {
   Avatar,
@@ -16,7 +15,6 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from "@/components/ui/sheet";
 
 export default function SpaceAvatarGroup({ spaces = [] }) {
@@ -31,21 +29,11 @@ export default function SpaceAvatarGroup({ spaces = [] }) {
   );
 
   const maxVisible = 3;
-
   const visibleSpaces = uniqueSpaces.slice(0, maxVisible);
   const hiddenCount = Math.max(uniqueSpaces.length - maxVisible, 0);
 
-  function stopPropagation(event) {
-    event.preventDefault();
-    event.stopPropagation();
-  }
-
   return (
     <>
-      {/* =========================================
-          AVATAR GROUP
-      ========================================== */}
-
       <div
         className="flex items-center"
         onClick={(event) => {
@@ -66,7 +54,6 @@ export default function SpaceAvatarGroup({ spaces = [] }) {
               {space.logo_url ? (
                 <AvatarImage src={space.logo_url} alt={space.name || "Space"} />
               ) : null}
-
               <AvatarFallback>
                 {space.name?.charAt(0)?.toUpperCase() || "S"}
               </AvatarFallback>
@@ -87,10 +74,6 @@ export default function SpaceAvatarGroup({ spaces = [] }) {
         </AvatarGroup>
       </div>
 
-      {/* =========================================
-          SPACE SHEET
-      ========================================== */}
-
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent
           side="right"
@@ -110,7 +93,7 @@ export default function SpaceAvatarGroup({ spaces = [] }) {
                   key={space.id}
                   href={`/space/${space.slug}`}
                   onClick={(event) => {
-                    stopPropagation(event);
+                    event.stopPropagation();
                     setOpen(false);
                   }}
                   className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-muted"
@@ -122,7 +105,6 @@ export default function SpaceAvatarGroup({ spaces = [] }) {
                         alt={space.name || "Space"}
                       />
                     ) : null}
-
                     <AvatarFallback>
                       {space.name?.charAt(0)?.toUpperCase() || "S"}
                     </AvatarFallback>
