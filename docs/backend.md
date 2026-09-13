@@ -10,7 +10,7 @@ The application uses three main backend surfaces:
 2. Supabase directly from the browser for client-readable data and operations that are intentionally protected by Supabase RLS.
 3. Supabase RPC functions for database-side business operations and multi-table transactions.
 
-The Supabase database schema, RLS policies, functions, and storage policies should ultimately be tracked through Supabase migrations and generated database types rather than described only in prose.
+The Supabase database schema, RLS policies, functions, and storage policies are tracked through migrations under `supabase/migrations/`. Generated database types remain a planned improvement.
 
 ## Current API routes
 
@@ -64,7 +64,7 @@ Authentication is provided by Supabase Auth.
 - Protected API routes receive an end-user access token and must verify the user before performing protected operations.
 - Middleware protects application management routes.
 
-The repository currently contains both the older `@supabase/auth-helpers-nextjs` package and the newer `@supabase/ssr` package. The long-term direction should be one consistent SSR/auth strategy rather than two overlapping approaches.
+The application currently uses `@supabase/auth-helpers-nextjs` in middleware. Supabase has deprecated the Auth Helpers package in favor of `@supabase/ssr`; migration is planned and should be performed as one controlled authentication change rather than mixing both strategies.
 
 ## Supabase clients
 
@@ -72,13 +72,17 @@ The repository currently contains both the older `@supabase/auth-helpers-nextjs`
 
 `src/lib/supabase/client.js` is the browser client and uses public Supabase environment variables.
 
-### Server client
+### User-scoped server client
 
-`src/lib/supabase/server.js` provides a user-scoped server client for authenticated server operations.
+`src/lib/supabase/server.js` creates a Supabase client using the request's bearer access token. It is used for server/API operations that need the caller's RLS context.
 
 ### Node/service client
 
-`src/lib/supabase/node.js` is intended for trusted Node-only/service-role usage. The service-role key must never be imported into browser code.
+`src/lib/supabase/node.js` is a trusted Node-only/service-role client. The service-role key must never be imported into browser code.
+
+### Future auth architecture
+
+When migrating middleware to `@supabase/ssr`, keep the existing bearer-token API pattern distinct from cookie/session middleware. The current Pages Router API routes should not be rewritten merely to adopt SSR helpers.
 
 ## Storage
 
@@ -99,14 +103,12 @@ New backend work should follow these rules:
 
 ## Source of truth
 
-The desired backend source of truth is:
-
 ```text
 GitHub
 ├── application/API code
-├── Supabase migrations
-├── database types
-└── backend documentation
+├── supabase/migrations/
+├── database documentation
+└── generated database types (planned)
 
 Supabase
 ├── Postgres
@@ -114,8 +116,6 @@ Supabase
 ├── RPC/functions
 └── Storage policies
 ```
-
-The current repository does not yet contain a complete tracked schema/migration history or generated database types, so this remains an area for improvement.
 
 ## External services
 
