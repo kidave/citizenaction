@@ -13,6 +13,7 @@ import Layout from "@/components/layout/Layout";
 import GoogleOneTap from "@/components/auth/GoogleOneTap";
 import ErrorBoundary from "@/components/system/ErrorBoundary";
 import RouteLoader from "@/components/system/RouteLoader";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { Toaster } from "sonner";
 
@@ -84,20 +85,22 @@ function MyApp({ Component, pageProps }) {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
-            <GoogleOneTap />
-            <MediaProvider>
-              <Layout>
-                <RouteLoader />
+            <TooltipProvider delayDuration={150}>
+              <GoogleOneTap />
+              <MediaProvider>
+                <Layout>
+                  <RouteLoader />
 
-                <ErrorBoundary>
-                  <main className="w-full min-w-0">
-                    {getLayout(<Component {...pageProps} />)}
-                  </main>
-                </ErrorBoundary>
+                  <ErrorBoundary>
+                    <main className="w-full min-w-0">
+                      {getLayout(<Component {...pageProps} />)}
+                    </main>
+                  </ErrorBoundary>
 
-                <Toaster richColors position="top-right" />
-              </Layout>
-            </MediaProvider>
+                  <Toaster richColors position="top-right" />
+                </Layout>
+              </MediaProvider>
+            </TooltipProvider>
           </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>
