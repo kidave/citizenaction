@@ -1,16 +1,11 @@
 /**
  * Canonical TanStack Query keys.
- *
- * Keep key construction in one place so reads and invalidations always
- * target the same cache entries.
+ * Keep key construction in one place so reads and invalidations always target
+ * the same cache entries.
  */
 export const queryKeys = {
   auth: { userStatus: ["userStatus"] },
-  feed: {
-    all: ["feed"],
-    list: ({ categorySlug = "" } = {}) => ["feed", { categorySlug }],
-    categories: ["feed-categories"],
-  },
+  feed: { all: ["feed"], list: ({ categorySlug = "" } = {}) => ["feed", { categorySlug }], categories: ["feed-categories"] },
   posts: {
     all: ["posts"],
     detail: (postId) => ["post", postId],
@@ -35,6 +30,7 @@ export const queryKeys = {
     posts: (userId) => ["user-posts", userId],
     spaces: (userId) => ["user-spaces", userId],
     contributions: (userId) => ["user-contributions", userId],
+    publicProfiles: ["public-profile"],
     publicProfile: (username) => ["public-profile", username],
     stats: (userId) => ["user-profile-stats", userId],
     personCareer: (governanceId) => ["person-career", governanceId],
@@ -55,11 +51,7 @@ export const queryKeys = {
     contributions: ["governance-contributions"],
     adminState: ["governance-admin-state"],
   },
-  admin: {
-    users: ["admin-users"],
-    dashboard: ["admin-dashboard"],
-    governanceEntities: ["admin-governance-entities"],
-  },
+  admin: { users: ["admin-users"], dashboard: ["admin-dashboard"], governanceEntities: ["admin-governance-entities"] },
   standards: {
     systems: ["classification-systems"],
     dimensions: (systemId) => ["classification-dimensions", systemId],
