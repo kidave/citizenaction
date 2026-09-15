@@ -7,12 +7,12 @@ import { Home, Settings, Menu, X, PanelLeft } from "lucide-react";
 
 import InstallAppButton from "@/components/layout/InstallAppButton";
 import { Button } from "@/components/ui/button";
-import { useSidebar } from "@/components/ui/sidebar";
+import { useFloatingMenu } from "@/components/layout/FloatingMenuContext";
 import { useAuth } from "@/context/AuthContext";
 
 export default function FloatingMenu() {
   const router = useRouter();
-  const { toggleSidebar } = useSidebar();
+  const { hasSidebarToggle, toggleSidebar } = useFloatingMenu();
   const { user } = useAuth();
 
   const [open, setOpen] = useState(false);
@@ -34,14 +34,18 @@ export default function FloatingMenu() {
         setOpen(false);
       },
     },
-    {
-      icon: PanelLeft,
-      label: user ? "Profile" : "Menu",
-      onClick: () => {
-        toggleSidebar();
-        setOpen(false);
-      },
-    },
+    ...(hasSidebarToggle
+      ? [
+          {
+            icon: PanelLeft,
+            label: user ? "Profile" : "Menu",
+            onClick: () => {
+              toggleSidebar();
+              setOpen(false);
+            },
+          },
+        ]
+      : []),
   ];
 
   return (
