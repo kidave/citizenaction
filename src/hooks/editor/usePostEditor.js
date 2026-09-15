@@ -9,8 +9,8 @@ import { postSchema } from "@/schemas/feed/postSchema";
 
 export function usePostEditor(item = null, initialSpace = null) {
   const editor = useEditor(item, initialSpace);
-  const { createPost } = useCreatePost();
-  const { updatePost } = useUpdatePost();
+  const { createPost, isCreating } = useCreatePost();
+  const { updatePost, isUpdating } = useUpdatePost();
   const { deletePost } = useDeletePost();
 
   async function submit(onSuccess) {
@@ -87,5 +87,10 @@ export function usePostEditor(item = null, initialSpace = null) {
     }
   }
 
-  return { ...editor, submit, remove };
+  return {
+    ...editor,
+    submit,
+    remove,
+    isSubmitting: isCreating || isUpdating,
+  };
 }
