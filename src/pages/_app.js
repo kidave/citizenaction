@@ -11,6 +11,7 @@ import ErrorBoundary from "@/components/system/ErrorBoundary";
 import RouteLoader from "@/components/system/RouteLoader";
 import AppProviders from "@/components/system/AppProviders";
 import FloatingMenu from "@/components/layout/FloatingMenu";
+import { FloatingMenuProvider } from "@/components/layout/FloatingMenuContext";
 
 const GoogleOneTap = dynamic(() => import("@/components/auth/GoogleOneTap"), {
   ssr: false,
@@ -57,17 +58,19 @@ function MyApp({ Component, pageProps }) {
       </Head>
 
       <AppProviders>
-        <GoogleOneTap />
-        <Layout>
-          <RouteLoader />
-          <ErrorBoundary>
-            <main className="w-full min-w-0">
-              {getLayout(<Component {...pageProps} />)}
-            </main>
-          </ErrorBoundary>
-        </Layout>
+        <FloatingMenuProvider>
+          <GoogleOneTap />
+          <Layout>
+            <RouteLoader />
+            <ErrorBoundary>
+              <main className="w-full min-w-0">
+                {getLayout(<Component {...pageProps} />)}
+              </main>
+            </ErrorBoundary>
+          </Layout>
 
-        <FloatingMenu />
+          <FloatingMenu />
+        </FloatingMenuProvider>
       </AppProviders>
 
       <Analytics mode="production" />
