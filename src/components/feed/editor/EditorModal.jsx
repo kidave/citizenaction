@@ -14,6 +14,7 @@ import EditorHeader from "./EditorHeader";
 import EditorAttachments from "./EditorAttachments";
 import EditorFooter from "./EditorFooter";
 import EditorContextSuggestions from "./EditorContextSuggestions";
+import PublishingAnimation from "@/components/animation/PublishingAnimation";
 
 const EditorContent = dynamic(() => import("./EditorContent"), {
   ssr: false,
@@ -41,9 +42,11 @@ export default function EditorModal({
   const editor = mode === "post" ? postEditor : contributionEditor;
   const [attachmentsOpen, setAttachmentsOpen] = useState(false);
 
+  const isPublishing = mode === "post" && Boolean(editor?.isSubmitting);
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="flex h-full w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 pr-1 sm:h-[90vh] sm:max-w-2xl sm:rounded-xl">
+      <DialogContent className="relative flex h-full w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 pr-1 sm:h-[90vh] sm:max-w-2xl sm:rounded-xl">
         {loading ? (
           <EditorModalSkeleton />
         ) : (
@@ -59,7 +62,6 @@ export default function EditorModal({
 
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
               <EditorContent
-                type={editor.type}
                 title={editor.title}
                 setTitle={editor.setTitle}
                 content={editor.content}
@@ -85,14 +87,26 @@ export default function EditorModal({
               item={item}
               editor={editor}
               onClose={onClose}
-              onCreated={(post) => {
+              onCreated={(savedPost) => {
                 onClose();
 
-                if (post?.slug) {
-                  router.push(`/post/${post.slug}`);
+                if (savedPost?.slug) {
+                  router.push(`/post/${savedPost.slug}`);
                 }
               }}
             />
+
+            {isPublishing && (
+              <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/85 px-6 backdrop-blur-sm">
+                <div className="flex w-full max-w-xs flex-col items-center justify-center rounded-2xl border bg-background/95 px-6 py-7 text-center shadow-lg">
+                  <PublishingAnimation className="h-28 w-28" />
+                  <div className="mt-2 text-base font-medium">Publishing your post</div>
+                  <div className="mt-1 text-sm text-muted-foreground">
+                    Uploading media and finalizing your content…
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         )}
       </DialogContent>
