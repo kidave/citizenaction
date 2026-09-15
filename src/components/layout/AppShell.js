@@ -5,7 +5,6 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import LeftSidebar from "./LeftSidebar";
 import RightSidebar from "./RightSidebar";
 import CenterColumn from "./CenterColumn";
-import FloatingMenu from "./FloatingMenu";
 
 export default function AppShell({ children, showRightSidebar = false }) {
   return (
@@ -16,8 +15,6 @@ export default function AppShell({ children, showRightSidebar = false }) {
         <SidebarInset className="min-w-0 flex-1">
           <CenterColumn>{children}</CenterColumn>
         </SidebarInset>
-
-        <FloatingMenu />
       </SidebarProvider>
 
       {showRightSidebar && (
