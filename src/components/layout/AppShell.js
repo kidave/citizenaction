@@ -1,20 +1,42 @@
 "use client";
 
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { useEffect } from "react";
+
+import {
+  SidebarProvider,
+  SidebarInset,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { useFloatingMenu } from "./FloatingMenuContext";
 
 import LeftSidebar from "./LeftSidebar";
 import RightSidebar from "./RightSidebar";
 import CenterColumn from "./CenterColumn";
 
+function AppShellContent({ children }) {
+  const { toggleSidebar } = useSidebar();
+  const { registerSidebarToggle } = useFloatingMenu();
+
+  useEffect(() => {
+    return registerSidebarToggle(toggleSidebar);
+  }, [registerSidebarToggle, toggleSidebar]);
+
+  return (
+    <>
+      <LeftSidebar />
+
+      <SidebarInset className="min-w-0 flex-1">
+        <CenterColumn>{children}</CenterColumn>
+      </SidebarInset>
+    </>
+  );
+}
+
 export default function AppShell({ children, showRightSidebar = false }) {
   return (
     <div className="flex min-h-dvh w-full">
       <SidebarProvider className="min-w-0 flex-1">
-        <LeftSidebar />
-
-        <SidebarInset className="min-w-0 flex-1">
-          <CenterColumn>{children}</CenterColumn>
-        </SidebarInset>
+        <AppShellContent>{children}</AppShellContent>
       </SidebarProvider>
 
       {showRightSidebar && (
