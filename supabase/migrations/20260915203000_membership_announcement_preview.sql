@@ -107,7 +107,8 @@ begin
     values (
       v_user_id,
       'post',
-      format('Welcome %s to %s',
+      format(
+        'Welcome %s to %s',
         coalesce(nullif(trim(v_applicant.name), ''), 'our new member'),
         coalesce(nullif(trim(v_space.name), ''), 'the Space')
       ),
@@ -116,7 +117,7 @@ begin
         E'\n\n',
         'Why I''m here:',
         E'\n',
-        coalesce(nullif(trim(v_application.message), ''), '');
+        coalesce(nullif(trim(v_application.message), ''), '')
       ),
       'text',
       jsonb_build_object(
