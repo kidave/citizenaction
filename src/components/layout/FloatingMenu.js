@@ -3,18 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { AnimatePresence, motion } from "framer-motion";
-import { Home, Settings, Menu, X, PanelLeft } from "lucide-react";
+import { Home, Settings, UserRound, Menu, X } from "lucide-react";
 
 import InstallAppButton from "@/components/layout/InstallAppButton";
 import { Button } from "@/components/ui/button";
-import { useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/context/AuthContext";
 
 export default function FloatingMenu() {
   const router = useRouter();
-  const { toggleSidebar } = useSidebar();
   const { user } = useAuth();
-
   const [open, setOpen] = useState(false);
 
   const items = [
@@ -34,14 +31,18 @@ export default function FloatingMenu() {
         setOpen(false);
       },
     },
-    {
-      icon: PanelLeft,
-      label: user ? "Profile" : "Menu",
-      onClick: () => {
-        toggleSidebar();
-        setOpen(false);
-      },
-    },
+    ...(user?.username
+      ? [
+          {
+            icon: UserRound,
+            label: "Profile",
+            onClick: () => {
+              router.push(`/user/${user.username}`);
+              setOpen(false);
+            },
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -68,6 +69,7 @@ export default function FloatingMenu() {
                   variant="outline"
                   size="icon"
                   onClick={onClick}
+                  aria-label={label}
                 >
                   <Icon className="h-8 w-8" />
                 </Button>
@@ -78,10 +80,7 @@ export default function FloatingMenu() {
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
-              transition={{
-                duration: 0.18,
-                delay: 0.05,
-              }}
+              transition={{ duration: 0.18, delay: 0.05 }}
             >
               <InstallAppButton onInstalled={() => setOpen(false)} />
             </motion.div>
@@ -94,6 +93,7 @@ export default function FloatingMenu() {
         variant="outline"
         className="relative h-12 w-12 rounded-full"
         onClick={() => setOpen((o) => !o)}
+        aria-label={open ? "Close navigation menu" : "Open navigation menu"}
       >
         <div className="relative flex h-full w-full items-center justify-center">
           <AnimatePresence mode="wait" initial={false}>
