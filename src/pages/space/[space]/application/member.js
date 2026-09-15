@@ -12,7 +12,6 @@ import { toast } from "sonner";
 
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/context/AuthContext";
-import AuthCard from "@/components/auth/AuthCard";
 import BackButton from "@/components/ui/back-button";
 
 import {
@@ -24,100 +23,53 @@ import {
 } from "@/components/ui/card";
 
 import { Button } from "@/components/ui/button";
-
 import { Textarea } from "@/components/ui/textarea";
-
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function SpaceMemberApplicationPage() {
   const router = useRouter();
-
-  /*
-   * ========================================
-   * ROUTE
-   * ========================================
-   *
-   * pages/space/[space]/application/member.js
-   *
-   * Therefore:
-   *
-   * router.query.space
-   */
-
   const { space: spaceSlug } = router.query;
-
   const { user, loading: authLoading } = useAuth();
 
   const [space, setSpace] = useState(null);
-
   const [message, setMessage] = useState("");
-
   const [loading, setLoading] = useState(true);
-
   const [submitting, setSubmitting] = useState(false);
 
-  /* ========================================
-     LOAD SPACE
-  ======================================== */
-
   useEffect(() => {
-    if (!router.isReady || !spaceSlug) {
-      return;
-    }
+    if (!router.isReady || !spaceSlug) return;
 
     async function loadSpace() {
       setLoading(true);
 
       const { data, error } = await supabase
         .from("space")
-        .select(
-          `
-          id,
-          name,
-          slug,
-          description,
-          logo_url
-        `,
-        )
+        .select("id,name,slug,description,logo_url")
         .eq("slug", spaceSlug)
         .eq("is_active", true)
         .maybeSingle();
 
       if (error) {
         console.error("Failed to load Space:", error);
-
         toast.error("Unable to load this Space.");
-
         setLoading(false);
-
         return;
       }
 
       if (!data) {
         router.replace("/404");
-
         return;
       }
 
       setSpace(data);
-
       setLoading(false);
     }
 
     loadSpace();
   }, [router.isReady, spaceSlug, router]);
 
-  /* ========================================
-     LOADING
-  ======================================== */
-
-  if (authLoading || loading) {
-    return <PageLoader />;
-  }
-
-  /* ========================================
-     NOT LOGGED IN
-  ======================================== */
+  if (authLoading || loading) return <PageLoader />;
 
   if (!user) {
     return (
@@ -125,23 +77,18 @@ export default function SpaceMemberApplicationPage() {
         <Head>
           <title>Become a Member</title>
         </Head>
-
         <div className="flex min-h-dvh items-center justify-center p-6">
           <Card className="w-full max-w-md">
             <CardContent className="space-y-5 p-8 text-center">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
                 <Users className="h-6 w-6 text-primary" />
               </div>
-
               <div className="space-y-2">
                 <h1 className="text-2xl font-semibold">Sign in required</h1>
-
                 <p className="text-sm text-muted-foreground">
-                  You need to sign in before applying to become a member of this
-                  Space.
+                  You need to sign in before applying to become a member of this Space.
                 </p>
               </div>
-
               <Button asChild className="w-full">
                 <Link href={`/space/${spaceSlug}`}>Back to Space</Link>
               </Button>
@@ -152,26 +99,14 @@ export default function SpaceMemberApplicationPage() {
     );
   }
 
-  /* ========================================
-     SPACE
-  ======================================== */
-
-  if (!space) {
-    return null;
-  }
-
-  /* ========================================
-     SUBMIT
-  ======================================== */
+  if (!space) return null;
 
   async function handleSubmit(event) {
     event.preventDefault();
-
     const trimmedMessage = message.trim();
 
     if (trimmedMessage.length < 10) {
       toast.error("Please tell us a little more about why you want to join.");
-
       return;
     }
 
@@ -186,22 +121,13 @@ export default function SpaceMemberApplicationPage() {
 
     if (error) {
       console.error("Membership application failed:", error);
-
       toast.error(error.message || "Unable to submit your application.");
-
-      setSubmitting(false);
-
       return;
     }
 
     toast.success("Your membership application has been submitted.");
-
     router.push(`/space/${space.slug}/application/member/${data.id}`);
   }
-
-  /* ========================================
-     PAGE
-  ======================================== */
 
   return (
     <>
@@ -211,23 +137,11 @@ export default function SpaceMemberApplicationPage() {
 
       <div className="min-h-dvh bg-muted/30 px-4 py-6">
         <div className="mx-auto max-w-2xl space-y-6">
-          {/* ==================================
-              BACK
-          ================================== */}
-
           <BackButton label="Back" />
-
-          {/* ==================================
-              SPACE HEADER
-          ================================== */}
 
           <Card>
             <CardContent className="p-6 sm:p-8">
               <div className="flex items-center gap-4">
-                {/* ==============================
-                    SPACE LOGO
-                ============================== */}
-
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border bg-muted">
                   {space.logo_url ? (
                     <img
@@ -240,18 +154,11 @@ export default function SpaceMemberApplicationPage() {
                   )}
                 </div>
 
-                {/* ==============================
-                    SPACE INFORMATION
-                ============================== */}
-
                 <div className="min-w-0">
                   <h1 className="truncate text-2xl font-semibold tracking-tight">
                     {space.name}
                   </h1>
-
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Become a member
-                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">Become a member</p>
                 </div>
               </div>
 
@@ -263,31 +170,18 @@ export default function SpaceMemberApplicationPage() {
             </CardContent>
           </Card>
 
-          {/* ==================================
-              APPLICATION
-          ================================== */}
-
           <Card>
             <CardHeader>
-              <CardTitle>Become a member</CardTitle>
-
+              <CardTitle>Why do you want to become a member?</CardTitle>
               <CardDescription>
-                Tell the Space administrators a little about why you want to
-                join and how you would like to participate.
+                Tell the Space administrators about your interest and how you would like to participate.
               </CardDescription>
             </CardHeader>
 
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* ==============================
-                    MESSAGE
-                ============================== */}
-
-                <div className="space-y-2">
-                  <Label htmlFor="message">
-                    Why do you want to become a member?
-                  </Label>
-
+                <div className="space-y-3">
+                  <Label htmlFor="message">Your introduction</Label>
                   <Textarea
                     id="message"
                     value={message}
@@ -297,32 +191,25 @@ export default function SpaceMemberApplicationPage() {
                     maxLength={1000}
                     disabled={submitting}
                   />
-
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Minimum 10 characters</span>
-
                     <span>{message.length}/1000</span>
                   </div>
                 </div>
 
-                {/* ==============================
-                    ACTIONS
-                ============================== */}
+                <Alert>
+                  <AlertDescription className="text-sm leading-6">
+                    <strong>This response may become public.</strong> If your membership is approved,
+                    your message will be used in a public Space announcement introducing you to the community.
+                    Write it as something you would be comfortable having other members read.
+                  </AlertDescription>
+                </Alert>
 
                 <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    asChild
-                    disabled={submitting}
-                  >
+                  <Button type="button" variant="outline" asChild disabled={submitting}>
                     <Link href={`/space/${space.slug}`}>Cancel</Link>
                   </Button>
-
-                  <Button
-                    type="submit"
-                    disabled={submitting || message.trim().length < 10}
-                  >
+                  <Button type="submit" disabled={submitting || message.trim().length < 10}>
                     {submitting ? "Submitting..." : "Apply to become a member"}
                   </Button>
                 </div>
@@ -334,10 +221,6 @@ export default function SpaceMemberApplicationPage() {
     </>
   );
 }
-
-/* ========================================
-   PAGE LOADER
-======================================== */
 
 function PageLoader() {
   return (
