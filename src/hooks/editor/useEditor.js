@@ -5,7 +5,6 @@ import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 
 import { extractContentMeta } from "@/utils/text/contentMeta";
-import { getEditorTypeConfig } from "@/components/feed/editor/editorTypes";
 
 export function useEditor(item = null, initialSpace = null) {
   const { user } = useAuth();
@@ -14,13 +13,15 @@ export function useEditor(item = null, initialSpace = null) {
   const [is_global, setIsGlobal] = useState(false);
   const [governance, setSelectedAuthorities] = useState([]);
 
-  const [type, setType] = useState("action");
+  // Kept as a compatibility value for the current database/RPC contract.
+  // The editor UI no longer exposes post-type choices.
+  const [type] = useState("post");
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
   const [contentJson, setContentJson] = useState(null);
-  const [contentFormat, setContentFormat] = useState("text");
+  const [contentFormat, setContentFormat] = useState("editorjs");
 
   const [attachments, setAttachments] = useState([]);
 
@@ -32,20 +33,7 @@ export function useEditor(item = null, initialSpace = null) {
   const [lng, setLng] = useState(null);
 
   const [address, setAddress] = useState(null);
-
   const [links, setLinks] = useState([]);
-
-  const setEditorType = (nextType) => {
-    const normalizedType = nextType || "action";
-    const config = getEditorTypeConfig(normalizedType);
-
-    setType(normalizedType);
-    setContentFormat(config.rich ? "editorjs" : "text");
-
-    if (normalizedType !== "event" && normalizedType !== "meeting") {
-      setEndAt(null);
-    }
-  };
 
   const addAttachments = (files) => {
     const list = Array.isArray(files) ? files : [files];
@@ -60,9 +48,7 @@ export function useEditor(item = null, initialSpace = null) {
     setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const clearAttachments = () => {
-    setAttachments([]);
-  };
+  const clearAttachments = () => setAttachments([]);
 
   const updateAttachment = (index, updates) => {
     setAttachments((prev) =>
@@ -87,17 +73,13 @@ export function useEditor(item = null, initialSpace = null) {
     setLinks((prev) => [...prev, ...list]);
   };
 
-  const replaceLinks = (newLinks) => {
-    setLinks(Array.isArray(newLinks) ? newLinks : []);
-  };
+  const replaceLinks = (newLinks) => setLinks(Array.isArray(newLinks) ? newLinks : []);
 
   const removeLink = (index) => {
     setLinks((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const clearLinks = () => {
-    setLinks([]);
-  };
+  const clearLinks = () => setLinks([]);
 
   const updateLink = (index, updates) => {
     setLinks((prev) =>
@@ -137,15 +119,10 @@ export function useEditor(item = null, initialSpace = null) {
       setIsGlobal(item.is_global ?? false);
       setSelectedAuthorities(item.governance ?? []);
 
-      const itemType = item.type ?? "action";
-      setType(itemType);
-
       setTitle(item.title ?? "");
       setContent(item.content ?? "");
       setContentJson(item.content_json ?? null);
-      setContentFormat(
-        item.content_format === "editorjs" ? "editorjs" : "text",
-      );
+      setContentFormat(item.content_format === "editorjs" ? "editorjs" : "text");
 
       replaceAttachments(
         (item.attachments ?? []).map(normalizeAttachment).filter(Boolean),
@@ -158,7 +135,6 @@ export function useEditor(item = null, initialSpace = null) {
       setLat(item.lat ?? null);
       setLng(item.lng ?? null);
       setAddress(item.address ?? null);
-
       return;
     }
 
@@ -171,11 +147,10 @@ export function useEditor(item = null, initialSpace = null) {
     }
 
     setSelectedAuthorities([]);
-    setType("action");
     setTitle("");
     setContent("");
     setContentJson(null);
-    setContentFormat("text");
+    setContentFormat("editorjs");
     replaceAttachments([]);
     replaceLinks([]);
     setStartAt(null);
@@ -234,20 +209,14 @@ export function useEditor(item = null, initialSpace = null) {
 
   return {
     type,
-    setType: setEditorType,
-
     title,
     setTitle,
-
     content,
     setContent,
-
     contentJson,
     setContentJson,
-
     contentFormat,
     setContentFormat,
-
     attachments,
     attachmentCount,
     hasAttachments,
@@ -258,7 +227,6 @@ export function useEditor(item = null, initialSpace = null) {
     clearAttachments,
     updateAttachment,
     moveAttachment,
-
     links,
     setLinks,
     replaceLinks,
@@ -267,29 +235,24 @@ export function useEditor(item = null, initialSpace = null) {
     clearLinks,
     updateLink,
     moveLink,
-
     start_at,
     setStartAt,
     end_at,
     setEndAt,
     datePrecision,
     setDatePrecision,
-
     lat,
     setLat,
     lng,
     setLng,
     address,
     setAddress,
-
     spaces,
     setSpaces,
     is_global,
     setIsGlobal,
-
     governance,
     setSelectedAuthorities,
-
     editorData,
     getEditorData: () => editorData,
   };
