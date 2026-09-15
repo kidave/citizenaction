@@ -2,15 +2,11 @@
 
 import dynamic from "next/dynamic";
 
-import PlainEditor from "./PlainEditor";
-import { getEditorTypeConfig } from "./editorTypes";
-
 const RichEditor = dynamic(() => import("./RichEditor"), {
   ssr: false,
 });
 
 export default function EditorContent({
-  type = "action",
   title,
   setTitle,
   content,
@@ -22,28 +18,10 @@ export default function EditorContent({
   addAttachments,
   onFocus,
 }) {
-  const editorConfig = getEditorTypeConfig(type);
-
-  if (!editorConfig.rich) {
-    return (
-      <PlainEditor
-        type={type}
-        title={title}
-        setTitle={setTitle}
-        content={content}
-        setContent={setContent}
-        setContentJson={setContentJson}
-        setContentFormat={setContentFormat}
-        onFocus={onFocus}
-        editorConfig={editorConfig}
-      />
-    );
-  }
-
   return (
     <RichEditor
-      key={type}
-      type={type}
+      key="universal-post-editor"
+      type="post"
       title={title}
       setTitle={setTitle}
       content={content}
@@ -54,7 +32,11 @@ export default function EditorContent({
       attachments={attachments}
       addAttachments={addAttachments}
       onFocus={onFocus}
-      editorConfig={editorConfig}
+      editorConfig={{
+        label: "Post",
+        rich: true,
+        placeholder: "Share an update, idea, report, meeting notes, or anything the community should know",
+      }}
     />
   );
 }
