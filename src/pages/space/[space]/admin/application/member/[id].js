@@ -11,8 +11,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 
-import BackButton from "@/components/ui/back-button";
-
+import PageHeader from "@/components/layout/PageHeader";
 import {
   Card,
   CardContent,
@@ -20,7 +19,6 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -93,7 +91,7 @@ export default function MemberApplicationReviewPage() {
   const announcementPreview = useMemo(() => {
     const note = publicAnnouncementNote.trim();
     const message = application?.message?.trim();
-    return [note, message ? `Why I'm here:\n“${message}”` : ""]
+    return [note, message ? `Why I\u0027m here:\n“${message}”` : ""]
       .filter(Boolean)
       .join("\n\n");
   }, [publicAnnouncementNote, application?.message]);
@@ -105,7 +103,7 @@ export default function MemberApplicationReviewPage() {
     const content = [
       note,
       application.message?.trim()
-        ? `Why I'm here:\n“${application.message.trim()}”`
+        ? `Why I\u0027m here:\n“${application.message.trim()}”`
         : null,
     ]
       .filter(Boolean)
@@ -182,10 +180,17 @@ export default function MemberApplicationReviewPage() {
         <title>Review Application · {space.name}</title>
       </Head>
 
-      <div className="min-h-dvh bg-muted/30 px-4 py-6">
-        <div className="mx-auto max-w-2xl space-y-6">
-          <BackButton label="Back" />
+      <div className="min-h-dvh bg-muted/30">
+        <PageHeader
+          items={[
+            { label: "Home", href: "/" },
+            { label: space.name, href: `/space/${space.slug}` },
+            { label: "Administration", href: `/space/${space.slug}/admin` },
+            { label: "Membership application" },
+          ]}
+        />
 
+        <div className="mx-auto max-w-2xl space-y-6 px-4 py-6">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
@@ -205,18 +210,12 @@ export default function MemberApplicationReviewPage() {
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>Applicant</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle>Applicant</CardTitle></CardHeader>
             <CardContent>
               <div className="flex items-center gap-4">
                 <div className="flex h-12 w-12 overflow-hidden rounded-full border bg-muted">
                   {application.applicant?.avatar_url ? (
-                    <img
-                      src={application.applicant.avatar_url}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
+                    <img src={application.applicant.avatar_url} alt="" className="h-full w-full object-cover" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center font-semibold">
                       {application.applicant?.name?.[0]?.toUpperCase() || "U"}
@@ -264,7 +263,7 @@ export default function MemberApplicationReviewPage() {
                     disabled={submitting}
                   />
                   <p className="text-xs leading-5 text-muted-foreground">
-                    This text will be published publicly in the Space feed. The applicant's message will appear below it as their introduction.
+                    This text will be published publicly in the Space feed. The applicant message will appear below it as their introduction.
                   </p>
                 </div>
 
@@ -288,19 +287,11 @@ export default function MemberApplicationReviewPage() {
                 </div>
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-                  <Button
-                    variant="destructive"
-                    disabled={submitting}
-                    onClick={() => handleReview("reject")}
-                  >
+                  <Button variant="destructive" disabled={submitting} onClick={() => handleReview("reject")}>
                     <XCircle className="mr-2 h-4 w-4" />
                     {submitting ? "Processing..." : "Reject"}
                   </Button>
-
-                  <Button
-                    disabled={submitting || !publicAnnouncementNote.trim()}
-                    onClick={() => handleReview("approve")}
-                  >
+                  <Button disabled={submitting || !publicAnnouncementNote.trim()} onClick={() => handleReview("approve")}>
                     <CheckCircle2 className="mr-2 h-4 w-4" />
                     {submitting ? "Processing..." : "Approve & announce"}
                   </Button>
@@ -311,9 +302,7 @@ export default function MemberApplicationReviewPage() {
             <Alert>
               <Users />
               <AlertTitle>Application already reviewed</AlertTitle>
-              <AlertDescription>
-                This application is already {application.status}.
-              </AlertDescription>
+              <AlertDescription>This application is already {application.status}.</AlertDescription>
             </Alert>
           )}
         </div>
