@@ -1,240 +1,234 @@
-# Architecture
+# Citizen Action — Architecture & Source of Truth
 
-This document describes the current Citizen Action architecture at a high level. It should reflect the active repository and Supabase design, not removed product areas.
+> Canonical project context for future development. Update this document when architecture or ownership changes. Chat history is not the source of truth.
 
-## Overall architecture
+## 1. Source-of-truth model
 
-Citizen Action is a Next.js Pages Router application backed primarily by Supabase. The frontend is a React application under `src/` with domain-focused pages, components, hooks, schemas, utilities, and Supabase helpers. The backend surface consists of Next.js API routes, server-side Supabase clients, and Supabase database functions/RLS.
+Citizen Action uses three authoritative systems:
 
-The preferred architecture is intentionally simple:
+| System | Source of truth for |
+| --- | --- |
+| **GitHub — `kidave/citizenaction`** | Application code, repository configuration, Supabase migrations committed to the repo, architecture documentation, and version history |
+| **Supabase — project `ward`** | Live Postgres database, RLS, SQL functions/RPCs, Auth, and Storage |
+| **Vercel — project `citizenaction`** | Deployment configuration, build/runtime state, production/preview deployments, domains, and deployment environment variables |
 
-```text
-Pages
-  ↓
-Feature/domain components
-  ↓
-Hooks / queries / mutations
-  ↓
-Supabase or protected API operation
-  ↓
-Postgres / Storage
-```
+The repository is the canonical **development memory**. The live Supabase project is the canonical **runtime database state**. Vercel is the canonical **deployment/runtime state**.
 
-Pages orchestrate. Components present UI. Hooks own client-side server-state interaction. Backend/database code owns authorization, business rules, transactions, and integrity.
+Old ChatGPT conversations, temporary uploaded files, screenshots, and local copies are historical context only. They must not override the repository or live services.
 
-## Folder structure
+## 2. Current connected services
 
-```text
-.
-├── .github/workflows/        # GitHub Actions workflows
-├── public/                   # Static assets
-├── src/
-│   ├── components/           # Shared UI, layout, system, and domain components
-│   ├── config/               # Stable application configuration
-│   ├── context/              # Truly cross-cutting React context
-│   ├── hooks/                # Client-side domain/query hooks
-│   ├── lib/                  # Supabase clients, fetch/auth helpers, integrations
-│   ├── pages/                # Next.js Pages Router pages and API routes
-│   ├── schemas/              # Zod validation schemas
-│   ├── styles/               # Global styling and theme
-│   └── utils/                # Pure reusable utilities
-├── middleware.js             # Next.js middleware
-├── next.config.js            # Next.js configuration
-├── next-sitemap.config.js    # Sitemap configuration
-└── package.json              # Project configuration and dependencies
-```
+- GitHub repository: `kidave/citizenaction`
+- Default branch: `main`
+- Vercel project: `citizenaction`
+- Supabase project: `ward`
+- Supabase region: `ap-south-1`
+- Vercel framework: Next.js
+- Vercel Node runtime: 22.x
 
-## Architecture rules
+Vercel is connected directly to the GitHub repository. Changes intended for production should therefore be committed to GitHub and allowed to flow through the deployment pipeline rather than maintained only in a deployed copy.
 
-1. Pages orchestrate; they should not become large business-logic files.
-2. Components render and manage UI interaction; they should not own privileged database access.
-3. `components/ui/` is for reusable design-system primitives and should remain domain-independent.
-4. Domain-specific product components belong with their feature/domain rather than in the generic UI layer.
-5. Client queries and mutations should have canonical hooks/query functions.
-6. Protected mutations should have one canonical backend implementation.
-7. Authorization must be enforced by the backend/database and never rely solely on hidden UI controls.
-8. Zod is the canonical input-validation layer for application boundaries where structured input is accepted.
-9. Query keys and cache invalidation should follow a consistent pattern.
-10. Heavy browser-only libraries should be lazy-loaded where practical.
-11. Service-role credentials are server-only.
-12. Privileged Supabase RPC functions must have intentional grants and explicit authorization checks.
-13. Every exposed application table must have an intentional RLS policy.
-14. When a feature or route is removed, update architecture documentation in the same change.
+## 3. Application stack
 
-## Technology stack
-
-### Core runtime
+### Frontend
 
 - Next.js 15.x
 - React 19.x
-- JavaScript and JSX, with gradual adoption of TypeScript for new/shared backend-facing types
+- JavaScript/JSX
 - Next.js Pages Router
-- Supabase JavaScript client
+- Tailwind CSS
+- shadcn-style UI / Radix primitives
+- Framer Motion
+- Lucide icons
+- Sonner
 
-### Data and state
+### Data and backend
 
-- Supabase Postgres, views, RPC functions, Auth, and Storage
-- TanStack Query for client-side server state and caching
-- React Context only for genuinely cross-cutting state such as authentication/media where required
+- Supabase Postgres
+- Supabase Auth
+- Supabase Storage
+- Supabase RPC/functions and views
+- Row Level Security (RLS)
+- TanStack Query for client-side server state
 
 ### Forms and validation
 
 - React Hook Form
 - Zod
 
-### UI and styling
+### Maps/geospatial capabilities
 
-- Tailwind CSS
-- Radix UI primitives
-- shadcn-style UI components
-- Sonner
-- Framer Motion where interaction benefits from animation
-- Lucide and other icon libraries used by existing product areas
+Existing project integrations include MapLibre, Leaflet, Mapillary and geospatial/PostGIS functionality.
 
-## Next.js routing
+## 4. Repository architecture
 
-The project uses the Pages Router under `src/pages`.
-
-### Application pages
+The active application lives under `src/`.
 
 ```text
-/                                      -> src/pages/index.js
-/about                                 -> src/pages/about.js
-/action                                -> src/pages/action.js
-/search                                -> src/pages/search.js
-/post/[id]                             -> src/pages/post/[id].js
-/settings/profile                      -> src/pages/settings/profile.js
-/user/[username]                       -> src/pages/user/[username].js
+src/
+├── components/       # UI and product/domain components
+├── config/           # Stable app configuration
+├── context/          # Cross-cutting React context
+├── hooks/            # Query/mutation and reusable client hooks
+├── lib/              # Supabase clients and server integrations
+├── pages/            # Next.js Pages Router pages and API routes
+├── schemas/          # Zod schemas
+├── styles/           # Global styling
+└── utils/            # Pure reusable utilities
+
+supabase/
+└── migrations/       # Database schema/history intended to be versioned with code
+
+docs/
+└── *.md              # Durable architecture, backend, database, roadmap and technical notes
 ```
 
-### Auth pages
+## 5. Architectural rules
+
+1. **Pages orchestrate.** They should compose feature components and hooks instead of accumulating business logic.
+2. **Components present UI.** Product components may manage interaction, but must not bypass authorization boundaries.
+3. **Hooks own client-side server-state interaction.** Use canonical query/mutation functions and predictable query keys.
+4. **Backend/database owns authorization and integrity.** Hiding a button is never authorization.
+5. **RLS is mandatory for exposed application tables.** Each table needs intentional policies matching the access model.
+6. **RPCs must have intentional execute grants and explicit authorization checks.** Avoid anonymous access to privileged operations.
+7. **Zod validates structured application input** at API/form boundaries.
+8. **React Hook Form owns complex form state** rather than duplicating form state across unrelated components.
+9. **TanStack Query owns server state and cache invalidation.** Avoid ad-hoc duplicated fetching/caching strategies.
+10. **Use Context sparingly** for genuinely cross-cutting state.
+11. **Service-role credentials are server-only.** Never expose them through `NEXT_PUBLIC_*` variables or browser bundles.
+12. **One canonical implementation per mutation.** Do not maintain competing RPC/API implementations for the same operation unless a compatibility boundary is intentional and documented.
+13. **Removed features must be removed from documentation too.** Avoid preserving old route/table names as if they are still current.
+14. **Before making a schema change, inspect the live Supabase state and existing migrations.** Do not recreate already-existing objects under new names merely to avoid understanding the existing design.
+15. **Prefer additive, reversible changes.** Destructive cleanup should happen only after references and data dependencies are understood.
+
+## 6. Data architecture
+
+The current Supabase database is centered around several product domains.
+
+### Identity and access
+
+- `profile`
+- `user_capabilities`
+- space membership/application tables
+- Supabase Auth
+
+### Spaces and civic activity
+
+- `space`
+- `space_member`
+- `space_application`
+- `space_member_application`
+- `post`
+- `post_space`
+- `contribution`
+- `attachment`
+- `link`
+- `category`
+- `action_support`
+
+### Governance directory
+
+- `governance`
+- `governance_contribution`
+- `governance_timeline`
+- `geographies`
+- `person`
+- `position`
+- `position_appointment`
+
+The governance model has recently been normalized around canonical governance entities, geography, people, positions and appointments. New work should extend the current canonical model rather than resurrecting removed legacy governance tables, overloads, or route concepts.
+
+### Classification
+
+- `classification_system`
+- `classification_dimension`
+- `classification_code`
+- `classification_closure`
+- `classification_alias`
+- `classification_mapping`
+
+These support structured classification/taxonomy use cases and should be preferred over storing uncontrolled category strings when a canonical classification already exists.
+
+## 7. Database migration policy
+
+Supabase reports a long migration history through September 2026, including substantial cleanup of legacy governance/RPC structures, normalization of governance relationships, geography, organization/position/person modeling, and security grants.
+
+The rule going forward is:
 
 ```text
-/auth/login
-/auth/callback
-/auth/privacy
+Design/change
+   ↓
+Supabase migration
+   ↓
+Verify against live database
+   ↓
+Commit migration/documentation to GitHub
+   ↓
+Deploy application through Vercel
 ```
 
-### Space pages
+A live database change that exists only in the Supabase dashboard is considered **undocumented drift** and should be brought back into the repository as soon as practical.
 
-Only routes confirmed to exist in the active repository should be listed here. Removed Club and scope-specific route structures are intentionally omitted.
+## 8. Deployment model
 
-### Management pages
+Vercel hosts the Next.js application and is connected to GitHub.
 
-Management routes live under `/manage/*` and are protected by middleware.
+Use GitHub as the change record. Use Vercel to inspect builds, deployments, runtime behavior, domains and environment configuration.
 
-## Authentication flow
-
-Authentication is centralized through Supabase Auth and the application auth context.
-
-The browser client uses the Supabase auth session. Protected API routes receive an end-user access token and must verify the user before performing protected operations. Middleware protects management routes.
-
-## Supabase architecture
-
-### Browser client
-
-`src/lib/supabase/client.js` exposes the public Supabase client to browser code.
-
-### Server client
-
-`src/lib/supabase/server.js` provides a user-scoped server client for authenticated server operations.
-
-### Node/service client
-
-`src/lib/supabase/node.js` is restricted to trusted Node-only/service-role use.
-
-The project should converge on one documented SSR/auth helper strategy rather than maintaining overlapping Supabase auth helper approaches indefinitely.
-
-## Data flow
-
-Typical client data flow:
+Production debugging should follow this order:
 
 ```text
-Page
-  ↓
-Domain component
-  ↓
-Query/mutation hook
-  ↓
-Supabase or protected API
+Repository/code
+   ↓
+Vercel deployment/build logs
+   ↓
+Vercel runtime errors/logs
+   ↓
+Supabase schema/RPC/RLS/logical behavior
 ```
 
-Typical protected operation:
+Do not patch production-only behavior in a way that leaves GitHub behind.
 
-```text
-Component
-  ↓
-Mutation hook
-  ↓
-API route or RPC
-  ↓
-Authorization/business rules
-  ↓
-Postgres transaction
-```
+## 9. How future work should be approached
 
-## State management
+For any new Citizen Action task:
 
-Use the smallest appropriate state mechanism:
+1. Inspect the current GitHub implementation before relying on historical conversation context.
+2. Inspect the relevant Supabase tables, migrations, RLS and RPCs for backend changes.
+3. Inspect Vercel deployment/runtime state for production issues.
+4. Make the smallest coherent change that fits the existing architecture.
+5. Verify the result against the live system when the change affects Supabase or production behavior.
+6. Commit the durable implementation and documentation to GitHub.
 
-- React local state for local interaction.
-- URL state for shareable navigation/filter state.
-- TanStack Query for server state.
-- Context only for cross-cutting application state.
+### What not to use as authoritative context
 
-No general-purpose global state library is currently required.
+- Old ChatGPT chats
+- Previously uploaded project files that have since been superseded
+- Screenshots of old UI
+- Old copied SQL snippets
+- Stale generated code
+- Previous architecture proposals that were not implemented
 
-## Shared components
+Historical discussions can explain **why** a decision was made, but the implementation in GitHub/Supabase/Vercel determines **what is actually true now**.
 
-### `components/ui/`
+## 10. Documentation hierarchy
 
-Reusable design primitives such as buttons, inputs, dialogs, cards, tabs, tooltips, sidebar primitives, and other shadcn/Radix-based components.
+Use the `docs/` directory as durable project memory:
 
-Product-specific widgets should move out of this layer when they depend on a specific domain.
+- `architecture.md` — current architecture and source-of-truth rules
+- `frontend.md` — frontend implementation conventions
+- `backend.md` — backend/API/Supabase integration conventions
+- `database.md` — database model and database-specific conventions
+- `roadmap.md` — intended future work
+- `technical-debt.md` — known technical debt
+- dated audit documents — point-in-time audits; they do not override current architecture unless explicitly incorporated
 
-### `components/layout/`
+When these documents conflict with the code or live systems, update the documentation rather than assuming the older text is correct.
 
-Global application shell, navigation, sidebar, profile, logo, and responsive layout components.
+## 11. Current known infrastructure note
 
-### `components/shared/`
+As of the September 15, 2026 architecture review, Supabase reports one RLS-disabled relation: `public.spatial_ref_sys`, which is typically a PostGIS system table. This was **not changed automatically** because enabling RLS without appropriate policies could break access. Treat it as a deliberate infrastructure/security review item rather than a blind cleanup task.
 
-Cross-domain widgets that genuinely belong to more than one feature.
+## 12. Project principle
 
-### `components/system/`
-
-Error boundary, route/loading infrastructure, and similar app-wide behavior.
-
-## API routes
-
-API routes should remain thin. A route should primarily:
-
-1. validate request shape;
-2. establish authentication when required;
-3. call a canonical server operation;
-4. translate the result into an HTTP response.
-
-Business rules should not be duplicated across routes, components, and RPCs.
-
-## Source of truth
-
-The long-term source of truth should be:
-
-```text
-GitHub
-├── application code
-├── Supabase migrations
-├── generated database types
-└── architecture documentation
-
-Supabase
-├── Postgres
-├── RLS policies
-├── RPC/functions
-└── Storage policies
-```
-
-The repository currently needs stronger synchronization between GitHub and the live Supabase schema.
-
-## Deployment
-
-The project is structured for Vercel deployment using Next.js conventions. Environment variables are configured in the deployment environment. Heavy client libraries should be code-split so that routes only load what they need.
+> **Build in GitHub. Store application truth in Supabase. Run and observe it through Vercel. Document durable decisions in the repository. Do not depend on chat history as project memory.**
