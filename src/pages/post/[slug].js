@@ -4,12 +4,11 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 
 import { createServerSupabase } from "@/lib/supabase/server";
-
 import { usePost } from "@/hooks/feed/usePost";
 import { useDeletePost } from "@/hooks/post/useDeletePost";
 
 import PostCard from "@/components/feed/post/PostCard";
-import BackButton from "@/components/ui/back-button";
+import PageHeader from "@/components/layout/PageHeader";
 
 const EditorModal = dynamic(
   () => import("@/components/feed/editor/EditorModal"),
@@ -34,20 +33,12 @@ export async function getServerSideProps({ params }) {
   const post = Array.isArray(data) ? data[0] : data;
   if (!post) return { notFound: true };
 
-  return {
-    props: {
-      initialPost: post,
-      postId: post.id,
-    },
-  };
+  return { props: { initialPost: post, postId: post.id } };
 }
 
 function cleanText(text) {
   if (!text) return "";
-  return text
-    .replace(/https?:\/\/\S+/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+  return text.replace(/https?:\/\/\S+/g, "").replace(/\s+/g, " ").trim();
 }
 
 function getDescription(post) {
@@ -119,12 +110,7 @@ export default function SinglePostPage({ postId, initialPost }) {
       </Head>
 
       <div className="flex min-h-dvh w-full flex-col">
-        <div className="sticky top-0 z-40 border-b bg-background">
-          <div className="mx-auto flex h-14 max-w-4xl items-center px-3 sm:h-16 sm:px-4">
-            <BackButton />
-            <span className="min-w-0 flex-1 truncate">{post.title || "Post"}</span>
-          </div>
-        </div>
+        <PageHeader title={post.title || "Post"} items={[{ label: "Home", href: "/" }, { label: post.title || "Post" }]} />
 
         <div className="flex w-full justify-center">
           <div className="w-full max-w-4xl">
