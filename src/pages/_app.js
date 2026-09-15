@@ -10,6 +10,7 @@ import Layout from "@/components/layout/Layout";
 import ErrorBoundary from "@/components/system/ErrorBoundary";
 import RouteLoader from "@/components/system/RouteLoader";
 import AppProviders from "@/components/system/AppProviders";
+import FloatingMenu from "@/components/layout/FloatingMenu";
 
 const GoogleOneTap = dynamic(() => import("@/components/auth/GoogleOneTap"), {
   ssr: false,
@@ -65,6 +66,8 @@ function MyApp({ Component, pageProps }) {
             </main>
           </ErrorBoundary>
         </Layout>
+
+        <FloatingMenu />
       </AppProviders>
 
       <Analytics mode="production" />
