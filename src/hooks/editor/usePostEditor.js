@@ -15,18 +15,18 @@ export function usePostEditor(item = null, initialSpace = null) {
 
   async function submit(onSuccess) {
     if (!editor.content.trim()) {
-      toast.error(editor.type === "event" ? "Add a description for the event." : "Enter content.");
+      toast.error("Enter content.");
       return;
     }
 
     const result = postSchema.safeParse({
-      type: editor.type,
       start_at: editor.start_at,
       end_at: editor.end_at,
       address: editor.address,
       lat: editor.lat,
       lng: editor.lng,
     });
+
     if (!result.success) {
       toast.error(result.error.issues[0]?.message || "Check the post details.");
       return;
@@ -60,7 +60,11 @@ export function usePostEditor(item = null, initialSpace = null) {
       onSuccess?.(savedPost);
     } catch (error) {
       if (process.env.NODE_ENV !== "production") {
-        console.error("Failed to save post", { message: error?.message, code: error?.code, status: error?.status });
+        console.error("Failed to save post", {
+          message: error?.message,
+          code: error?.code,
+          status: error?.status,
+        });
       }
       toast.error(error?.message || "Something went wrong");
     }
@@ -73,7 +77,11 @@ export function usePostEditor(item = null, initialSpace = null) {
       onSuccess?.();
     } catch (error) {
       if (process.env.NODE_ENV !== "production") {
-        console.error("Failed to delete post", { message: error?.message, code: error?.code, status: error?.status });
+        console.error("Failed to delete post", {
+          message: error?.message,
+          code: error?.code,
+          status: error?.status,
+        });
       }
       toast.error(error?.message || "Failed to delete post");
     }
