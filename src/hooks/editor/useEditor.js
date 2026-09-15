@@ -3,8 +3,8 @@
 import { useState, useEffect, useMemo } from "react";
 
 import { useAuth } from "@/context/AuthContext";
-
 import { extractContentMeta } from "@/utils/text/contentMeta";
+import { getEditorTypeConfig } from "@/components/feed/editor/editorTypes";
 
 export function useEditor(item = null, initialSpace = null) {
   const { user } = useAuth();
@@ -12,50 +12,42 @@ export function useEditor(item = null, initialSpace = null) {
   const [spaces, setSpaces] = useState([]);
   const [is_global, setIsGlobal] = useState(false);
   const [governance, setSelectedAuthorities] = useState([]);
-
-  // Kept as a compatibility value for the current database/RPC contract.
-  // The editor UI no longer exposes post-type choices.
-  const [type] = useState("post");
+  const [type, setType] = useState("action");
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-
   const [contentJson, setContentJson] = useState(null);
-  const [contentFormat, setContentFormat] = useState("editorjs");
-
+  const [contentFormat, setContentFormat] = useState("text");
   const [attachments, setAttachments] = useState([]);
-
   const [start_at, setStartAt] = useState(null);
   const [end_at, setEndAt] = useState(null);
   const [datePrecision, setDatePrecision] = useState(null);
-
   const [lat, setLat] = useState(null);
   const [lng, setLng] = useState(null);
-
   const [address, setAddress] = useState(null);
   const [links, setLinks] = useState([]);
+
+  const setEditorType = (nextType) => {
+    const normalizedType = nextType || "action";
+    const config = getEditorTypeConfig(normalizedType);
+
+    setType(normalizedType);
+    setContentFormat(config.rich ? "editorjs" : "text");
+
+    if (normalizedType !== "event" && normalizedType !== "meeting") {
+      setEndAt(null);
+    }
+  };
 
   const addAttachments = (files) => {
     const list = Array.isArray(files) ? files : [files];
     setAttachments((prev) => [...prev, ...list]);
   };
-
-  const replaceAttachments = (files) => {
-    setAttachments(Array.isArray(files) ? files : []);
-  };
-
-  const removeAttachment = (index) => {
-    setAttachments((prev) => prev.filter((_, i) => i !== index));
-  };
-
+  const replaceAttachments = (files) => setAttachments(Array.isArray(files) ? files : []);
+  const removeAttachment = (index) => setAttachments((prev) => prev.filter((_, i) => i !== index));
   const clearAttachments = () => setAttachments([]);
-
-  const updateAttachment = (index, updates) => {
-    setAttachments((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, ...updates } : item)),
-    );
-  };
-
+  const updateAttachment = (index, updates) =>
+    setAttachments((prev) => prev.map((item, i) => (i === index ? { ...item, ...updates } : item)));
   const moveAttachment = (from, to) => {
     setAttachments((prev) => {
       const next = [...prev];
@@ -65,28 +57,15 @@ export function useEditor(item = null, initialSpace = null) {
     });
   };
 
-  const attachmentCount = attachments.length;
-  const hasAttachments = attachmentCount > 0;
-
   const addLinks = (newLinks) => {
     const list = Array.isArray(newLinks) ? newLinks : [newLinks];
     setLinks((prev) => [...prev, ...list]);
   };
-
   const replaceLinks = (newLinks) => setLinks(Array.isArray(newLinks) ? newLinks : []);
-
-  const removeLink = (index) => {
-    setLinks((prev) => prev.filter((_, i) => i !== index));
-  };
-
+  const removeLink = (index) => setLinks((prev) => prev.filter((_, i) => i !== index));
   const clearLinks = () => setLinks([]);
-
-  const updateLink = (index, updates) => {
-    setLinks((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, ...updates } : item)),
-    );
-  };
-
+  const updateLink = (index, updates) =>
+    setLinks((prev) => prev.map((item, i) => (i === index ? { ...item, ...updates } : item)));
   const moveLink = (from, to) => {
     setLinks((prev) => {
       const next = [...prev];
@@ -98,7 +77,6 @@ export function useEditor(item = null, initialSpace = null) {
 
   const normalizeAttachment = (attachment) => {
     if (!attachment) return null;
-
     return {
       ...attachment,
       file_name: attachment.file_name ?? attachment.file?.name ?? "",
@@ -118,17 +96,13 @@ export function useEditor(item = null, initialSpace = null) {
       setSpaces(item.spaces ?? []);
       setIsGlobal(item.is_global ?? false);
       setSelectedAuthorities(item.governance ?? []);
-
+      setType(item.type ?? "action");
       setTitle(item.title ?? "");
       setContent(item.content ?? "");
       setContentJson(item.content_json ?? null);
       setContentFormat(item.content_format === "editorjs" ? "editorjs" : "text");
-
-      replaceAttachments(
-        (item.attachments ?? []).map(normalizeAttachment).filter(Boolean),
-      );
+      replaceAttachments((item.attachments ?? []).map(normalizeAttachment).filter(Boolean));
       replaceLinks(item.links ?? []);
-
       setStartAt(item.start_at ?? null);
       setEndAt(item.end_at ?? null);
       setDatePrecision(item.metadata?.date_precision ?? null);
@@ -147,6 +121,7 @@ export function useEditor(item = null, initialSpace = null) {
     }
 
     setSelectedAuthorities([]);
+    setType("post");
     setTitle("");
     setContent("");
     setContentJson(null);
@@ -163,7 +138,6 @@ export function useEditor(item = null, initialSpace = null) {
 
   const editorData = useMemo(() => {
     const { extracted_links, hashtags } = extractContentMeta(content);
-
     return {
       author_id: user?.id ?? null,
       title,
@@ -209,6 +183,7 @@ export function useEditor(item = null, initialSpace = null) {
 
   return {
     type,
+    setType: setEditorType,
     title,
     setTitle,
     content,
@@ -218,8 +193,8 @@ export function useEditor(item = null, initialSpace = null) {
     contentFormat,
     setContentFormat,
     attachments,
-    attachmentCount,
-    hasAttachments,
+    attachmentCount: attachments.length,
+    hasAttachments: attachments.length > 0,
     setAttachments,
     replaceAttachments,
     addAttachments,
