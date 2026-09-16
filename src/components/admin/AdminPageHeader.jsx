@@ -17,6 +17,7 @@ export default function AdminPageHeader({
       overflowActions={overflowActions}
       bottom={bottom}
       backHref="/admin"
+      showHome={false}
     />
   );
 }
