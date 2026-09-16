@@ -46,9 +46,6 @@ export default function PostCard({
     return null;
   }
 
-  // Prefer the explicit permission supplied by the parent. This keeps the
-  // UI aligned with the database permission already resolved by the query.
-  // Fall back to the post permission for standalone PostCard callers.
   const canManage =
     typeof canEdit === "boolean"
       ? canEdit
@@ -63,7 +60,7 @@ export default function PostCard({
     <div
       className={`relative overflow-hidden border-b p-2 transition-all duration-300 ${
         borderless ? "border-0 shadow-none" : ""
-      } ${post.type || ""}`}
+      }`}
     >
       <div className="relative z-10 flex flex-col gap-4 p-2">
         <PostHeader

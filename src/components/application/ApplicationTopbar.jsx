@@ -1,22 +1,23 @@
 import Topbar from "@/components/navigation/Topbar";
 
-export default function GovernancePageHeader({
+export default function ApplicationTopbar({
   items = [],
   title,
   actions,
   primaryActions = [],
   overflowActions = [],
   bottom,
+  backHref = "/",
 }) {
   return (
     <Topbar
-      items={[{ label: "Home", href: "/" }, ...items]}
-      title={title || items.at(-1)?.label || "Governance"}
+      items={items}
+      title={title}
       actions={actions}
       primaryActions={primaryActions}
       overflowActions={overflowActions}
       bottom={bottom}
-      backHref="/governance"
+      backHref={backHref}
     />
   );
 }

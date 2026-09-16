@@ -4,12 +4,10 @@ import { motion } from "framer-motion";
 import { History } from "lucide-react";
 
 import { getTimelineColor, getTimelineColorForMonth } from "@/config/timeline";
-
 import { TIMELINE_ORIENTATION } from "@/config/timeline/orientation";
-
 import useSpaceTimeline from "@/hooks/space/useSpaceTimeline";
 
-import BackButton from "@/components/ui/back-button";
+import PageHeader from "@/components/navigation/PageHeader";
 
 import TimelineControls from "./TimelineControls";
 import TimelineFilters from "./TimelineFilters";
@@ -37,9 +35,7 @@ export default function SpaceTimeline({
     timelineRef,
     jumpHorizontal,
     jumpToMonth,
-  } = useSpaceTimeline({
-    onMonthChange,
-  });
+  } = useSpaceTimeline({ onMonthChange });
 
   const posts = Array.isArray(events) ? events.filter(Boolean) : [];
 
@@ -49,34 +45,16 @@ export default function SpaceTimeline({
 
   return (
     <div className="relative min-h-dvh overflow-hidden bg-background">
-      {/* =====================================================
-          BACKGROUND
-      ===================================================== */}
-
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <motion.div
-          animate={{
-            x: [-80, 80, -80],
-            y: [20, -30, 20],
-          }}
-          transition={{
-            duration: 22,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+          animate={{ x: [-80, 80, -80], y: [20, -30, 20] }}
+          transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
           className="absolute left-[-10%] top-[-5%] h-[520px] w-[520px] rounded-full bg-primary/10 blur-[130px]"
         />
 
         <motion.div
-          animate={{
-            x: [70, -70, 70],
-            y: [0, 50, 0],
-          }}
-          transition={{
-            duration: 26,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+          animate={{ x: [70, -70, 70], y: [0, 50, 0] }}
+          transition={{ duration: 26, repeat: Infinity, ease: "easeInOut" }}
           className="absolute right-[-10%] top-[20%] h-[460px] w-[460px] rounded-full bg-primary/5 blur-[120px]"
         />
 
@@ -90,32 +68,18 @@ export default function SpaceTimeline({
         />
       </div>
 
-      {/* =====================================================
-          CONTENT
-      ===================================================== */}
-
       <div className="relative z-10 flex min-h-dvh flex-col">
-        {/* ===================================================
-            HEADER
-        =================================================== */}
-
-        <header className="flex items-center gap-3 border-b border-border/70 px-4 py-3 sm:px-6 lg:px-8">
-          <BackButton />
-
-          <div className="min-w-0 flex-1">
-            <div className="truncate">{space?.name}</div>
-          </div>
-        </header>
-
-        {/* ===================================================
-            MAIN
-        =================================================== */}
+        <PageHeader
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Spaces", href: "/space" },
+            { label: space?.name, href: `/space/${space?.slug}` },
+            { label: "Timeline" },
+          ]}
+          title="Timeline"
+        />
 
         <main className="flex min-h-0 flex-1 flex-col">
-          {/* =================================================
-              INTRO
-          ================================================= */}
-
           <section className="mx-auto w-full max-w-7xl px-5 pb-8 pt-10 sm:px-8 sm:pt-16 lg:px-12">
             <div className="max-w-4xl">
               <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
@@ -133,10 +97,6 @@ export default function SpaceTimeline({
               </p>
             </div>
           </section>
-
-          {/* =================================================
-              TIMELINE
-          ================================================= */}
 
           {posts.length ? (
             <section className="relative pb-16">

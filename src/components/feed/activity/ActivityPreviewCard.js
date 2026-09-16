@@ -42,81 +42,30 @@ export default function ActivityPreviewCard({
   className = "",
 }) {
   const [isHovered, setIsHovered] = useState(false);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   if (!post) {
     return null;
   }
 
-  /* =====================================================
-     DATA
-  ===================================================== */
-
   const attachments = Array.isArray(post.attachments) ? post.attachments : [];
-
   const governance = Array.isArray(post.governance) ? post.governance : [];
-
-  /*
-   * Canonical activity date:
-   *
-   * start_at → created_at
-   */
   const parsedDate = getActivityDate(post);
-
   const hasValidDate = !!parsedDate;
 
-  const activityType = post.type || "post";
-
-  /* =====================================================
-     NATURAL TEXT
-  ===================================================== */
-
-  const naturalItems = TIMELINE_NATURAL_TEXT[activityType] ||
-    TIMELINE_NATURAL_TEXT.post || ["A moment worth keeping"];
-
+  const naturalItems = TIMELINE_NATURAL_TEXT.post || ["A moment worth keeping"];
   const natural = pickVariant(post, naturalItems);
-
-  /* =====================================================
-     FALLBACK IMAGE
-  ===================================================== */
-
-  const fallbackImage =
-    TIMELINE_FALLBACK_IMAGES[activityType] || TIMELINE_FALLBACK_IMAGES.post;
-
-  /* =====================================================
-     TYPE LABEL
-  ===================================================== */
-
-  const typeLabel =
-    activityType === "member_joined"
-      ? "PEOPLE"
-      : activityType.replaceAll("_", " ");
-
-  /* =====================================================
-     AUTHOR
-  ===================================================== */
+  const fallbackImage = TIMELINE_FALLBACK_IMAGES.post;
 
   const authorInitial = post.author_name?.charAt(0)?.toUpperCase() || "U";
 
-  /* =====================================================
-     CLICK
-  ===================================================== */
-
   const handleClick = () => {
-    if (onSelect) {
-      onSelect(post);
-    }
-
+    onSelect?.(post);
     setIsModalOpen(true);
   };
 
   return (
     <>
-      {/* =====================================================
-          ACTIVITY PREVIEW CARD
-      ===================================================== */}
-
       <Card
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
@@ -128,10 +77,6 @@ export default function ActivityPreviewCard({
           className,
         ].join(" ")}
       >
-        {/* =====================================================
-            IMAGE
-        ===================================================== */}
-
         <div className="relative h-40 overflow-hidden bg-background">
           {attachments.length > 0 ? (
             <>
@@ -172,24 +117,16 @@ export default function ActivityPreviewCard({
           ) : (
             <div className="flex h-full w-full items-center justify-center">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {typeLabel}
+                POST
               </span>
             </div>
           )}
         </div>
 
-        {/* =====================================================
-            NORMAL CONTENT
-        ===================================================== */}
-
         <motion.div
           initial={false}
-          animate={{
-            opacity: isHovered ? 0 : 1,
-          }}
-          transition={{
-            duration: 0.18,
-          }}
+          animate={{ opacity: isHovered ? 0 : 1 }}
+          transition={{ duration: 0.18 }}
         >
           <div className="space-y-2 p-4 text-sm">
             {(post.content || post.title) && (
@@ -201,16 +138,11 @@ export default function ActivityPreviewCard({
             {hasValidDate ? (
               <div className="flex items-center gap-2 text-xs font-medium">
                 <CalendarDays className="h-3.5 w-3.5 shrink-0" />
-
                 <span>{format(parsedDate, "d MMMM yyyy")}</span>
               </div>
             ) : null}
           </div>
         </motion.div>
-
-        {/* =====================================================
-            FOOTER
-        ===================================================== */}
 
         <CardContent className="flex items-center justify-between">
           <div className="flex min-w-0 items-center gap-2">
@@ -235,42 +167,10 @@ export default function ActivityPreviewCard({
           ) : null}
         </CardContent>
 
-        {/* =====================================================
-            MEMBER JOINED
-        ===================================================== */}
-
-        {activityType === "member_joined" && post.author_name ? (
-          <div className="pointer-events-none absolute left-3 top-3">
-            <div className="flex items-center gap-2 rounded-full border border-white/10 bg-black/45 px-2 py-1.5 text-white backdrop-blur">
-              <Avatar className="h-6 w-6 border border-white/20">
-                <AvatarImage src={post.author_avatar} alt={post.author_name} />
-
-                <AvatarFallback>{authorInitial}</AvatarFallback>
-              </Avatar>
-
-              <div className="flex items-center gap-1.5">
-                <Users className="h-3 w-3" />
-
-                <span className="max-w-[120px] truncate text-[10px] font-medium">
-                  {post.author_name}
-                </span>
-              </div>
-            </div>
-          </div>
-        ) : null}
-
-        {/* =====================================================
-            FULL HOVER VERSION
-        ===================================================== */}
-
         <motion.div
           initial={false}
-          animate={{
-            opacity: isHovered ? 1 : 0,
-          }}
-          transition={{
-            duration: 0.22,
-          }}
+          animate={{ opacity: isHovered ? 1 : 0 }}
+          transition={{ duration: 0.22 }}
           className="pointer-events-none absolute inset-0 flex flex-col bg-muted"
         >
           <div className="flex-1 overflow-hidden p-4">
@@ -309,10 +209,6 @@ export default function ActivityPreviewCard({
           </CardContent>
         </motion.div>
       </Card>
-
-      {/* =====================================================
-          POST MODAL
-      ===================================================== */}
 
       <PostModal post={post} open={isModalOpen} onOpenChange={setIsModalOpen} />
     </>
