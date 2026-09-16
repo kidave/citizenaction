@@ -5,7 +5,7 @@ import {
   ClassificationSkeleton,
 } from "@/components/standards";
 
-import Topbar from "@/components/navigation/Topbar";
+import StandardsTopbar from "@/components/standards/StandardsTopbar";
 import { Plus } from "lucide-react";
 
 export default function StandardsPage() {
@@ -17,18 +17,13 @@ export default function StandardsPage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl">
-      <Topbar
+      <StandardsTopbar
         items={[
           { label: "Home", href: "/" },
           { label: "Standards" },
         ]}
         title="Standards"
-        primaryActions={[
-          {
-            label: "Import Standard",
-            icon: Plus,
-          },
-        ]}
+        primaryActions={[{ label: "Import Standard", icon: Plus }]}
         backHref="/"
       />
 
