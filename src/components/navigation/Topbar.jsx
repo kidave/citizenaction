@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ArrowLeft, ChevronRight, MoreVertical } from "lucide-react";
+import { ArrowLeft, Home, MoreVertical } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -9,48 +9,43 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-function ActionButton({ action, mobile = false }) {
+function ActionButton({ action }) {
   const Icon = action.icon;
 
-  const content = (
-    <>
-      {Icon ? <Icon className="h-4 w-4 shrink-0" /> : null}
-      <span className={mobile ? "sr-only" : "hidden sm:inline"}>
-        {action.label}
-      </span>
-    </>
-  );
-
-  if (action.href) {
-    return (
-      <Button
-        asChild
-        type="button"
-        variant={action.variant || "ghost"}
-        size={mobile ? "icon" : "sm"}
-        className={mobile ? "shrink-0" : "gap-2 px-2 sm:px-3"}
-        aria-label={action.label}
-        title={action.label}
-      >
-        <Link href={action.href}>{content}</Link>
-      </Button>
-    );
-  }
-
-  return (
+  const button = (
     <Button
-      type="button"
+      asChild={!!action.href}
+      type={action.href ? undefined : "button"}
       variant={action.variant || "ghost"}
-      size={mobile ? "icon" : "sm"}
-      className={mobile ? "shrink-0" : "gap-2 px-2 sm:px-3"}
+      size="icon"
+      className="shrink-0"
       aria-label={action.label}
       title={action.label}
-      disabled={action.disabled}
-      onClick={action.onClick}
+      disabled={action.href ? undefined : action.disabled}
+      onClick={action.href ? undefined : action.onClick}
     >
-      {content}
+      {action.href ? (
+        <Link href={action.href}>
+          {Icon ? <Icon className="h-4 w-4" /> : null}
+        </Link>
+      ) : Icon ? (
+        <Icon className="h-4 w-4" />
+      ) : null}
     </Button>
+  );
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{button}</TooltipTrigger>
+      <TooltipContent>{action.label}</TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -91,10 +86,6 @@ export default function Topbar({
   const visibleItems = items.filter((item) => item?.label);
   const currentLabel = title || visibleItems.at(-1)?.label || "";
   const allActions = [...primaryActions, ...overflowActions];
-  const mobileVisibleActions =
-    allActions.length <= 3 ? allActions : primaryActions.slice(0, 3);
-  const mobileOverflowActions =
-    allActions.length <= 3 ? [] : allActions.slice(mobileVisibleActions.length);
 
   function handleBack() {
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -105,82 +96,58 @@ export default function Topbar({
     router.push(backHref);
   }
 
-  return (
-    <header
-      className={`sticky top-0 z-40 border-b bg-background/95 backdrop-blur ${className}`}
+  const backButton = (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      className="shrink-0"
+      aria-label={`Go back from ${currentLabel || "this page"}`}
+      onClick={handleBack}
     >
-      <div
-        className={`mx-auto flex min-h-14 w-full items-center gap-2 px-3 sm:min-h-16 sm:px-4 ${containerClassName}`}
+      <ArrowLeft className="h-4 w-4" />
+    </Button>
+  );
+
+  const homeItem = visibleItems.find((item) => item.href === "/");
+
+  return (
+    <TooltipProvider delayDuration={250}>
+      <header
+        className={`sticky top-0 z-40 bg-background/95 backdrop-blur ${className}`}
       >
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="shrink-0"
-          aria-label={`Go back from ${currentLabel || "this page"}`}
-          title="Go back"
-          onClick={handleBack}
+        <div
+          className={`mx-auto flex min-h-14 w-full items-center gap-1.5 px-3 sm:min-h-16 sm:px-4 ${containerClassName}`}
         >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>{backButton}</TooltipTrigger>
+            <TooltipContent>Back</TooltipContent>
+          </Tooltip>
 
-        <nav
-          aria-label="Breadcrumb"
-          className="hidden min-w-0 flex-1 items-center gap-1 text-sm md:flex"
-        >
-          {visibleItems.map((item, index) => {
-            const isLast = index === visibleItems.length - 1;
-
-            return (
-              <span
-                key={`${item.label}-${index}`}
-                className="flex min-w-0 items-center gap-1"
-              >
-                {index > 0 && (
-                  <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                )}
-
-                {isLast || !item.href ? (
-                  <span
-                    className={`truncate ${isLast ? "font-medium text-foreground" : "text-muted-foreground"}`}
-                  >
-                    {item.label}
-                  </span>
-                ) : (
-                  <Link
-                    href={item.href}
-                    className="truncate text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {item.label}
+          {homeItem ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button asChild variant="ghost" size="icon" className="shrink-0">
+                  <Link href={homeItem.href} aria-label="Home">
+                    <Home className="h-4 w-4" />
                   </Link>
-                )}
-              </span>
-            );
-          })}
-        </nav>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Home</TooltipContent>
+            </Tooltip>
+          ) : null}
 
-        <span className="min-w-0 flex-1 truncate font-semibold md:hidden">
-          {currentLabel}
-        </span>
+          <div className="min-w-0 flex-1 truncate font-semibold">
+            {currentLabel}
+          </div>
 
-        {allActions.length ? (
-          <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
-            <div className="hidden items-center gap-0.5 sm:flex">
-              {allActions.map((action, index) => (
+          {allActions.length ? (
+            <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+              {allActions.slice(0, 3).map((action, index) => (
                 <ActionButton key={`${action.label}-${index}`} action={action} />
               ))}
-            </div>
 
-            <div className="flex items-center gap-0.5 sm:hidden">
-              {mobileVisibleActions.map((action, index) => (
-                <ActionButton
-                  key={`${action.label}-${index}`}
-                  action={action}
-                  mobile
-                />
-              ))}
-
-              {mobileOverflowActions.length ? (
+              {allActions.length > 3 ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -189,14 +156,12 @@ export default function Topbar({
                       size="icon"
                       className="shrink-0"
                       aria-label="More actions"
-                      title="More actions"
                     >
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-
                   <DropdownMenuContent align="end">
-                    {mobileOverflowActions.map((action, index) => (
+                    {allActions.slice(3).map((action, index) => (
                       <OverflowAction
                         key={`${action.label}-${index}`}
                         action={action}
@@ -206,13 +171,13 @@ export default function Topbar({
                 </DropdownMenu>
               ) : null}
             </div>
-          </div>
-        ) : actions ? (
-          <div className="flex shrink-0 items-center gap-1">{actions}</div>
-        ) : null}
-      </div>
+          ) : actions ? (
+            <div className="flex shrink-0 items-center gap-1">{actions}</div>
+          ) : null}
+        </div>
 
-      {bottom ? <div>{bottom}</div> : null}
-    </header>
+        {bottom ? <div>{bottom}</div> : null}
+      </header>
+    </TooltipProvider>
   );
 }
