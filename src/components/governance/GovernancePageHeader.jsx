@@ -13,8 +13,8 @@ import {
 
 export default function GovernancePageHeader({ items = [] }) {
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
-      <div className="flex h-14 items-center gap-3 px-4 sm:h-16">
+    <header className="sticky top-16 z-40 border-b bg-background/95 backdrop-blur lg:top-0">
+      <div className="mx-auto flex min-h-14 max-w-6xl items-center gap-3 px-4 sm:min-h-16">
         <BackButton />
         <Breadcrumb className="min-w-0 flex-1">
           <BreadcrumbList className="flex-nowrap overflow-hidden">
