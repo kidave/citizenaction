@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { Sparkles, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { useAuth } from "@/context/AuthContext";
@@ -12,6 +12,7 @@ import { useMyProfile } from "@/hooks/user/useMyProfile";
 
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import DotLottieAnimation from "@/components/ui/DotLottieAnimation";
 
 import { LoginModal } from "@/components/auth/LoginModal";
 
@@ -67,12 +68,19 @@ export default function CreatePostTrigger({ onCreate }) {
             className="flex min-w-0 flex-1 text-left"
           >
             <Card className="group flex w-full items-center justify-between gap-3 rounded-2xl bg-muted px-4 py-3 transition-colors">
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <div className="text-md flex items-center">
                   <span className="truncate">
                     {user ? "Create a Document" : "Login to Document"}
                   </span>
                 </div>
+              </div>
+
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 bg-background">
+                <DotLottieAnimation
+                  src="/lottie/attachment.lottie"
+                  className="h-10 w-10 min-h-0"
+                />
               </div>
 
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 bg-background">
