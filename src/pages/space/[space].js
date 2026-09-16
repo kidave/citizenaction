@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import { Settings, UserPlus, Plus, History } from "lucide-react";
 
 import EditorModal from "@/components/feed/editor/EditorModal";
-import Topbar from "@/components/navigation/Topbar";
+import SpaceTopbar from "@/components/space/SpaceTopbar";
 
 import { useAuth } from "@/context/AuthContext";
 import { useSpaces } from "@/hooks/space/useSpaces";
@@ -61,30 +61,14 @@ export default function SpacePage() {
   const canManage = isOwner || isAdmin;
 
   const primaryActions = [
-    {
-      label: "Timeline",
-      icon: History,
-      href: `${base}/timeline`,
-    },
+    { label: "Timeline", icon: History, href: `${base}/timeline` },
     ...(user
-      ? [
-          {
-            label: "Create post",
-            icon: Plus,
-            onClick: () => setEditorOpen(true),
-          },
-        ]
+      ? [{ label: "Create post", icon: Plus, onClick: () => setEditorOpen(true) }]
       : []),
   ];
 
   const overflowActions = canManage
-    ? [
-        {
-          label: "Administration",
-          icon: Settings,
-          href: `/space/${space.slug}/admin`,
-        },
-      ]
+    ? [{ label: "Administration", icon: Settings, href: `/space/${space.slug}/admin` }]
     : !isMember
       ? [
           {
@@ -97,7 +81,7 @@ export default function SpacePage() {
 
   const navigation = (
     <div className="border-t border-border/70">
-      <div className="mx-auto flex min-h-12 max-w-6xl flex-col gap-1 px-2 py-1.5 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-0">
+      <div className="mx-auto flex min-h-12 max-w-6xl px-2 py-1.5 sm:px-4 sm:py-0">
         <Tabs value={activeTab} className="min-w-0">
           <TabsList className="w-max max-w-full">
             <TabsTrigger
@@ -130,7 +114,7 @@ export default function SpacePage() {
   return (
     <>
       <div className="mx-auto max-w-6xl">
-        <Topbar
+        <SpaceTopbar
           items={[
             { label: "Home", href: "/" },
             { label: "Spaces", href: "/space" },
@@ -140,7 +124,6 @@ export default function SpacePage() {
           primaryActions={primaryActions}
           overflowActions={overflowActions}
           bottom={navigation}
-          backHref="/space"
         />
 
         <div className="space-y-4 p-2 sm:p-4">
