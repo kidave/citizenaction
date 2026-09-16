@@ -21,7 +21,6 @@ export function useCreatePost() {
         toast.loading("Creating post...", { id: "create-post" });
 
         const { data, error } = await supabase.rpc("create_post", {
-          p_type: postData.type,
           p_space_ids: postData.spaces?.map((space) => space.id) ?? [],
           p_title: postData.title,
           p_content: postData.content,
@@ -75,7 +74,6 @@ export function useCreatePost() {
             "update_post",
             {
               p_post_id: post.id,
-              p_type: postData.type,
               p_space_ids: postData.spaces?.map((space) => space.id) ?? [],
               p_title: postData.title,
               p_content: postData.content,
