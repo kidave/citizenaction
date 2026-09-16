@@ -5,9 +5,7 @@ import {
   ClassificationSkeleton,
 } from "@/components/standards";
 
-import PageHeader from "@/components/navigation/PageHeader";
-import { Button } from "@/components/ui/button";
-
+import Topbar from "@/components/navigation/Topbar";
 import { Plus } from "lucide-react";
 
 export default function StandardsPage() {
@@ -19,18 +17,19 @@ export default function StandardsPage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl">
-      <PageHeader
+      <Topbar
         items={[
           { label: "Home", href: "/" },
           { label: "Standards" },
         ]}
         title="Standards"
-        actions={
-          <Button size="sm">
-            <Plus className="mr-2 h-4 w-4" />
-            Import Standard
-          </Button>
-        }
+        primaryActions={[
+          {
+            label: "Import Standard",
+            icon: Plus,
+          },
+        ]}
+        backHref="/"
       />
 
       <main className="p-4">
