@@ -32,7 +32,6 @@ function ActionButton({ action, mobile = false }) {
         className={mobile ? "shrink-0" : "gap-2 px-2 sm:px-3"}
         aria-label={action.label}
         title={action.label}
-        disabled={action.disabled}
       >
         <Link href={action.href}>{content}</Link>
       </Button>
@@ -91,6 +90,11 @@ export default function Topbar({
   const router = useRouter();
   const visibleItems = items.filter((item) => item?.label);
   const currentLabel = title || visibleItems.at(-1)?.label || "";
+  const allActions = [...primaryActions, ...overflowActions];
+  const mobileVisibleActions =
+    allActions.length <= 3 ? allActions : primaryActions.slice(0, 3);
+  const mobileOverflowActions =
+    allActions.length <= 3 ? [] : allActions.slice(mobileVisibleActions.length);
 
   function handleBack() {
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -159,19 +163,16 @@ export default function Topbar({
           {currentLabel}
         </span>
 
-        {primaryActions.length || overflowActions.length ? (
+        {allActions.length ? (
           <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
             <div className="hidden items-center gap-0.5 sm:flex">
-              {[...primaryActions, ...overflowActions].map((action, index) => (
-                <ActionButton
-                  key={`${action.label}-${index}`}
-                  action={action}
-                />
+              {allActions.map((action, index) => (
+                <ActionButton key={`${action.label}-${index}`} action={action} />
               ))}
             </div>
 
             <div className="flex items-center gap-0.5 sm:hidden">
-              {primaryActions.map((action, index) => (
+              {mobileVisibleActions.map((action, index) => (
                 <ActionButton
                   key={`${action.label}-${index}`}
                   action={action}
@@ -179,7 +180,7 @@ export default function Topbar({
                 />
               ))}
 
-              {overflowActions.length ? (
+              {mobileOverflowActions.length ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -195,7 +196,7 @@ export default function Topbar({
                   </DropdownMenuTrigger>
 
                   <DropdownMenuContent align="end">
-                    {overflowActions.map((action, index) => (
+                    {mobileOverflowActions.map((action, index) => (
                       <OverflowAction
                         key={`${action.label}-${index}`}
                         action={action}
