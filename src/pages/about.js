@@ -46,40 +46,40 @@ const title2 = "made simple.";
 
 const features = [
   {
-    title: "Spaces",
-    animation: "/lottie/home.lottie",
+    title: "Space",
+    animation: "/lottie/city.lottie",
     description:
       "Bring people, discussions, meetings and projects together around a topic or place.",
   },
   {
     title: "Geography",
-    animation: "/lottie/map.lottie",
+    animation: "/lottie/location.lottie",
     description:
       "Connect civic work to the places it affects, from neighbourhoods to larger geographic areas.",
   },
   {
     title: "Governance",
-    animation: "/lottie/people.lottie",
+    animation: "/lottie/politician.lottie",
     description:
       "Explore organizations, public institutions and the people and positions that make up local governance.",
   },
   {
+    title: "Post",
+    animation: "/lottie/report.lottie",
+    description:
+      "Share issues, ideas, updates, documents and other information that helps move work forward.",
+  },
+  {
     title: "Contribution",
-    animation: "/lottie/workflow.lottie",
+    animation: "/lottie/people.lottie",
     description:
       "Turn ideas, issues, updates, documents and discussions into a shared record of civic work.",
   },
   {
     title: "Timeline",
-    animation: "/lottie/report.lottie",
+    animation: "/lottie/calendar.lottie",
     description:
       "Follow what has happened in a Space over time and keep the history of local work visible.",
-  },
-  {
-    title: "Post",
-    animation: "/lottie/attachment.lottie",
-    description:
-      "Share issues, ideas, updates, documents and other information that helps move work forward.",
   },
 ];
 
@@ -162,13 +162,16 @@ export default function AboutPage() {
             transition={{ duration: 0.5 }}
             className="mx-auto max-w-3xl text-center"
           >
-            <span className="text-sm font-medium text-primary">Inside a Space</span>
             <h2 className="mt-4 text-4xl tracking-tight md:text-6xl">
-              Everything local action needs, in one place.
+              Everything local action needs.
             </h2>
             <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
-              A Space brings together people, places, governance, contributions and the history of work around a shared purpose.
+              A space brings together people, places, governance, contributions
+              and the history of work around a shared
             </p>
+            <h2 className="mt-4 text-4xl tracking-tight md:text-6xl">
+              Purpose
+            </h2>
           </motion.div>
 
           <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
