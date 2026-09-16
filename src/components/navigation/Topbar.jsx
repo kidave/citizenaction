@@ -115,7 +115,7 @@ export default function Topbar({
   return (
     <TooltipProvider delayDuration={250}>
       <header
-        className={`sticky top-0 z-40 bg-background/95 backdrop-blur ${className}`}
+        className={`sticky top-0 z-40 bg-background ${className}`}
       >
         <div
           className={`mx-auto flex min-h-14 w-full items-center gap-1.5 px-3 sm:min-h-16 sm:px-4 ${containerClassName}`}
@@ -177,7 +177,7 @@ export default function Topbar({
           ) : null}
         </div>
 
-        {bottom ? <div>{bottom}</div> : null}
+        {bottom ? <div className="bg-background">{bottom}</div> : null}
       </header>
     </TooltipProvider>
   );
