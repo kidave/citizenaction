@@ -79,6 +79,7 @@ export default function Topbar({
   actions,
   bottom,
   backHref = "/",
+  showHome = true,
   className = "",
   containerClassName = "max-w-6xl",
 }) {
@@ -119,12 +120,7 @@ export default function Topbar({
         <div
           className={`mx-auto flex min-h-14 w-full items-center gap-1.5 px-3 sm:min-h-16 sm:px-4 ${containerClassName}`}
         >
-          <Tooltip>
-            <TooltipTrigger asChild>{backButton}</TooltipTrigger>
-            <TooltipContent>Back</TooltipContent>
-          </Tooltip>
-
-          {homeItem ? (
+          {showHome && homeItem ? (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button asChild variant="ghost" size="icon" className="shrink-0">
@@ -136,6 +132,11 @@ export default function Topbar({
               <TooltipContent>Home</TooltipContent>
             </Tooltip>
           ) : null}
+
+          <Tooltip>
+            <TooltipTrigger asChild>{backButton}</TooltipTrigger>
+            <TooltipContent>Back</TooltipContent>
+          </Tooltip>
 
           <div className="min-w-0 flex-1 truncate font-semibold">
             {currentLabel}
