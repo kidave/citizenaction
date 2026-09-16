@@ -5,7 +5,6 @@ import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 
 import { extractContentMeta } from "@/utils/text/contentMeta";
-import { getEditorTypeConfig } from "@/components/feed/editor/editorTypes";
 
 export function useEditor(item = null, initialSpace = null) {
   const { user } = useAuth();
@@ -13,8 +12,6 @@ export function useEditor(item = null, initialSpace = null) {
   const [spaces, setSpaces] = useState([]);
   const [is_global, setIsGlobal] = useState(false);
   const [governance, setSelectedAuthorities] = useState([]);
-
-  const [type, setType] = useState("action");
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -34,18 +31,6 @@ export function useEditor(item = null, initialSpace = null) {
   const [address, setAddress] = useState(null);
 
   const [links, setLinks] = useState([]);
-
-  const setEditorType = (nextType) => {
-    const normalizedType = nextType || "action";
-    const config = getEditorTypeConfig(normalizedType);
-
-    setType(normalizedType);
-    setContentFormat(config.rich ? "editorjs" : "text");
-
-    if (normalizedType !== "event" && normalizedType !== "meeting") {
-      setEndAt(null);
-    }
-  };
 
   const addAttachments = (files) => {
     const list = Array.isArray(files) ? files : [files];
@@ -137,9 +122,6 @@ export function useEditor(item = null, initialSpace = null) {
       setIsGlobal(item.is_global ?? false);
       setSelectedAuthorities(item.governance ?? []);
 
-      const itemType = item.type ?? "action";
-      setType(itemType);
-
       setTitle(item.title ?? "");
       setContent(item.content ?? "");
       setContentJson(item.content_json ?? null);
@@ -171,7 +153,6 @@ export function useEditor(item = null, initialSpace = null) {
     }
 
     setSelectedAuthorities([]);
-    setType("action");
     setTitle("");
     setContent("");
     setContentJson(null);
@@ -210,7 +191,6 @@ export function useEditor(item = null, initialSpace = null) {
       spaces,
       is_global,
       governance,
-      type,
     };
   }, [
     user,
@@ -229,13 +209,9 @@ export function useEditor(item = null, initialSpace = null) {
     spaces,
     is_global,
     governance,
-    type,
   ]);
 
   return {
-    type,
-    setType: setEditorType,
-
     title,
     setTitle,
 

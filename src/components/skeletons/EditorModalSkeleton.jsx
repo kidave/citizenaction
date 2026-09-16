@@ -5,7 +5,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function EditorModalSkeleton() {
   return (
     <div className="flex h-full w-full max-w-none flex-col overflow-hidden bg-background sm:h-[90vh] sm:max-w-2xl sm:rounded-xl sm:border">
-      {/* HEADER */}
       <div className="flex shrink-0 items-center justify-between border-b px-4 py-3">
         <div className="flex items-center gap-3">
           <Skeleton className="h-9 w-9 rounded-full" />
@@ -19,15 +18,8 @@ export default function EditorModalSkeleton() {
         <Skeleton className="h-9 w-9 rounded-md" />
       </div>
 
-      {/* MAIN */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4">
-          {/* POST TYPE */}
-          <div className="mb-3 shrink-0">
-            <Skeleton className="h-9 w-36 rounded-md" />
-          </div>
-
-          {/* EDITOR */}
           <div className="flex min-h-0 flex-1 flex-col space-y-4">
             <Skeleton className="h-10 w-3/4 rounded-md" />
 
@@ -40,7 +32,6 @@ export default function EditorModalSkeleton() {
           </div>
         </div>
 
-        {/* ATTACHMENTS */}
         <div className="shrink-0 border-t px-4 py-3">
           <div className="flex items-center justify-between">
             <Skeleton className="h-8 w-28 rounded-md" />
@@ -49,7 +40,6 @@ export default function EditorModalSkeleton() {
         </div>
       </div>
 
-      {/* FOOTER */}
       <div className="flex shrink-0 items-center justify-between border-t px-4 py-3">
         <Skeleton className="h-9 w-20 rounded-md" />
 

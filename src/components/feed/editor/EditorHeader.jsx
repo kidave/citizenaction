@@ -3,7 +3,6 @@
 import Image from "next/image";
 
 import VisibilitySelector from "@/components/space/VisibilitySelector";
-import EditorType from "./EditorType";
 
 export default function EditorHeader({
   mode = "post",
@@ -23,12 +22,6 @@ export default function EditorHeader({
 
       {mode === "post" && (
         <VisibilitySelector editor={editor} spaces={spaces} />
-      )}
-
-      {mode === "post" && !editor?.editorTypeLocked && (
-        <div className="ml-auto min-w-0 max-w-[calc(100%-130px)] overflow-hidden">
-          <EditorType type={editor.type} setType={editor.setType} />
-        </div>
       )}
     </div>
   );

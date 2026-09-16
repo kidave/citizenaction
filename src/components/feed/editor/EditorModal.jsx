@@ -59,7 +59,6 @@ export default function EditorModal({
 
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
               <EditorContent
-                type={editor.type}
                 title={editor.title}
                 setTitle={editor.setTitle}
                 content={editor.content}

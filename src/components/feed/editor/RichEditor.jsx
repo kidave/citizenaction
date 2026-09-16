@@ -19,10 +19,8 @@ export default function RichEditor({
   contentJson,
   setContentJson,
   setContentFormat,
-  attachments,
   addAttachments,
   onFocus,
-  editorConfig,
 }) {
   const holderRef = useRef(null);
   const editorRef = useRef(null);
@@ -75,7 +73,7 @@ export default function RichEditor({
       const editor = new EditorJS({
         holder: holderElement,
 
-        placeholder: editorConfig.placeholder,
+        placeholder: "Write your post...",
 
         data: {
           time: initialContentJson?.time ?? Date.now(),
@@ -210,23 +208,19 @@ export default function RichEditor({
       editorRef.current = null;
       holderElement.innerHTML = "";
     };
-  }, [editorConfig.placeholder, setContent, setContentFormat, setContentJson]);
+  }, [setContent, setContentFormat, setContentJson]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* TITLE */}
-
       <div className="p-2">
         <Input
-          placeholder={`${editorConfig.label} title...`}
+          placeholder="Post title..."
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           className="h-10 bg-muted"
           onFocus={onFocus}
         />
       </div>
-
-      {/* RICH CONTENT */}
 
       <div
         ref={holderRef}
