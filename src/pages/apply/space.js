@@ -1,22 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import BackButton from "@/components/ui/back-button";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import {
-  ArrowLeft,
-  Building2,
-  Plus,
-  Users,
-  Megaphone,
-  CalendarDays,
-} from "lucide-react";
+import { Building2, Plus, Users, Megaphone, CalendarDays } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 import { LoginModal } from "@/components/auth/LoginModal";
+import ApplicationTopbar from "@/components/application/ApplicationTopbar";
 import { spaceApplicationSchema } from "@/schemas/spaceApplication";
 import { supabase } from "@/lib/supabase/client";
 import {
@@ -30,7 +23,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-
 import {
   Select,
   SelectContent,
@@ -61,7 +53,6 @@ export default function ApplySpace() {
   const [socialValue, setSocialValue] = useState("");
   const form = useForm({
     resolver: zodResolver(spaceApplicationSchema),
-
     defaultValues: {
       proposed_name: "",
       proposed_slug: "",
@@ -85,30 +76,21 @@ export default function ApplySpace() {
   }
 
   function addSocialLink() {
-    if (!socialValue.trim()) {
-      return;
-    }
+    if (!socialValue.trim()) return;
 
     const updated = [
       ...socialLinks,
-      {
-        platform: socialPlatform,
-        value: socialValue.trim(),
-      },
+      { platform: socialPlatform, value: socialValue.trim() },
     ];
 
     setSocialLinks(updated);
-
     form.setValue("social_links", updated);
-
     setSocialValue("");
   }
 
   function removeSocialLink(index) {
     const updated = socialLinks.filter((_, i) => i !== index);
-
     setSocialLinks(updated);
-
     form.setValue("social_links", updated);
   }
 
@@ -121,17 +103,8 @@ export default function ApplySpace() {
     try {
       const { data, error } = await supabase
         .from("space_application")
-        .insert({
-          ...values,
-          applicant_user_id: user.id,
-        })
-        .select(
-          `
-        id,
-        proposed_name,
-        status
-      `,
-        )
+        .insert({ ...values, applicant_user_id: user.id })
+        .select(`id, proposed_name, status`)
         .single();
 
       if (error) {
@@ -148,15 +121,11 @@ export default function ApplySpace() {
 
   return (
     <div className="mx-auto w-full">
-      <div className="sticky top-0 z-40 border-b bg-background">
-        <div className="flex h-14 items-center gap-3 px-4 sm:h-16">
-          <BackButton />
-
-          <h1 className="truncate font-semibold sm:text-lg">
-            Give your project a home
-          </h1>
-        </div>
-      </div>
+      <ApplicationTopbar
+        items={[{ label: "Home", href: "/" }, { label: "Apply for a Space" }]}
+        title="Apply for a Space"
+        backHref="/"
+      />
 
       <div className="mx-4 space-y-4 p-4">
         <Form {...form}>
@@ -168,14 +137,9 @@ export default function ApplySpace() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Organization / Initiative Name</FormLabel>
-
                     <FormControl className="bg-muted">
-                      <Input
-                        placeholder="Mumbai Walkability Forum"
-                        {...field}
-                      />
+                      <Input placeholder="Mumbai Walkability Forum" {...field} />
                     </FormControl>
-
                     <FormMessage />
                   </FormItem>
                 )}
@@ -187,11 +151,9 @@ export default function ApplySpace() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Space URL</FormLabel>
-
                     <FormControl className="bg-muted">
                       <Input placeholder="mumbai-walkability" {...field} />
                     </FormControl>
-
                     <FormMessage />
                   </FormItem>
                 )}
@@ -203,7 +165,6 @@ export default function ApplySpace() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category (optional)</FormLabel>
-
                     <FormControl className="bg-muted">
                       <Input
                         placeholder="Mobility, Heritage, Environment..."
@@ -220,11 +181,9 @@ export default function ApplySpace() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Website (optional)</FormLabel>
-
                     <FormControl className="bg-muted">
                       <Input placeholder="https://example.org" {...field} />
                     </FormControl>
-
                     <FormMessage />
                   </FormItem>
                 )}
@@ -238,7 +197,6 @@ export default function ApplySpace() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>What does your organization do?</FormLabel>
-
                     <FormControl className="bg-muted">
                       <Textarea
                         rows={4}
@@ -246,7 +204,6 @@ export default function ApplySpace() {
                         {...field}
                       />
                     </FormControl>
-
                     <FormMessage />
                   </FormItem>
                 )}
@@ -258,7 +215,6 @@ export default function ApplySpace() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Why should this space exist?</FormLabel>
-
                     <FormControl className="bg-muted">
                       <Textarea
                         rows={4}
@@ -266,7 +222,6 @@ export default function ApplySpace() {
                         {...field}
                       />
                     </FormControl>
-
                     <FormMessage />
                   </FormItem>
                 )}
@@ -280,15 +235,9 @@ export default function ApplySpace() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Contact Email</FormLabel>
-
                     <FormControl className="bg-muted">
-                      <Input
-                        type="email"
-                        placeholder="contact@example.org"
-                        {...field}
-                      />
+                      <Input type="email" placeholder="contact@example.org" {...field} />
                     </FormControl>
-
                     <FormMessage />
                   </FormItem>
                 )}
@@ -300,11 +249,9 @@ export default function ApplySpace() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Contact Number</FormLabel>
-
                     <FormControl className="bg-muted">
                       <Input placeholder="+91 9876543210" {...field} />
                     </FormControl>
-
                     <FormMessage />
                   </FormItem>
                 )}
@@ -316,13 +263,8 @@ export default function ApplySpace() {
                 render={({ field }) => (
                   <FormItem className="md:col-span-2">
                     <FormLabel>Address (optional)</FormLabel>
-
                     <FormControl className="bg-muted">
-                      <Textarea
-                        rows={3}
-                        placeholder="Organization or office address"
-                        {...field}
-                      />
+                      <Textarea rows={3} placeholder="Organization or office address" {...field} />
                     </FormControl>
                   </FormItem>
                 )}
@@ -335,14 +277,10 @@ export default function ApplySpace() {
               </div>
 
               <div className="flex flex-col gap-3 md:flex-row">
-                <Select
-                  value={socialPlatform}
-                  onValueChange={setSocialPlatform}
-                >
+                <Select value={socialPlatform} onValueChange={setSocialPlatform}>
                   <SelectTrigger className="bg-muted md:w-56">
                     <SelectValue />
                   </SelectTrigger>
-
                   <SelectContent>
                     {SOCIAL_PLATFORMS.map((platform) => (
                       <SelectItem key={platform} value={platform}>
