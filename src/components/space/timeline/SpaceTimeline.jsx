@@ -77,7 +77,6 @@ export default function SpaceTimeline({
             { label: "Timeline" },
           ]}
           title="Timeline"
-          className="sticky top-0 z-40"
         />
 
         <main className="flex min-h-0 flex-1 flex-col">
