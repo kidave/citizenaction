@@ -126,7 +126,6 @@ export default function SinglePostPage({ postId, initialPost }) {
             { label: title },
           ]}
           title={title}
-          className="sticky top-0 z-40"
         />
 
         <div className="flex w-full justify-center">
