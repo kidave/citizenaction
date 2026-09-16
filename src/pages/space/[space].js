@@ -6,19 +6,12 @@ import { useRouter } from "next/router";
 import { Settings, UserPlus, Plus, History } from "lucide-react";
 
 import EditorModal from "@/components/feed/editor/EditorModal";
-import PageHeader from "@/components/navigation/PageHeader";
+import Topbar from "@/components/navigation/Topbar";
 
 import { useAuth } from "@/context/AuthContext";
 import { useSpaces } from "@/hooks/space/useSpaces";
 
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 import PageHeaderSkeleton from "@/components/skeletons/PageHeaderSkeleton";
 import MetaCardsSkeleton from "@/components/skeletons/MetaCardsSkeleton";
@@ -26,29 +19,6 @@ import MetaCardsSkeleton from "@/components/skeletons/MetaCardsSkeleton";
 import MembersTab from "@/components/space/tabs/MembersTab";
 import ActivityTab from "@/components/space/tabs/ActivityTab";
 import OverviewTab from "@/components/space/tabs/OverviewTab";
-
-function SpaceAction({ label, icon: Icon, onClick, ariaLabel }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="gap-2 px-2 sm:px-3"
-          aria-label={ariaLabel || label}
-          onClick={onClick}
-        >
-          <Icon className="h-4 w-4 shrink-0" />
-          <span className="hidden sm:inline">{label}</span>
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>{label}</p>
-      </TooltipContent>
-    </Tooltip>
-  );
-}
 
 export default function SpacePage() {
   const router = useRouter();
@@ -90,43 +60,40 @@ export default function SpacePage() {
   const isMember = !!space.current_user_role;
   const canManage = isOwner || isAdmin;
 
-  const actionItems = (
-    <>
-      <SpaceAction
-        label="Timeline"
-        icon={History}
-        ariaLabel="View space timeline"
-        onClick={() => router.push(`${base}/timeline`)}
-      />
+  const primaryActions = [
+    {
+      label: "Timeline",
+      icon: History,
+      href: `${base}/timeline`,
+    },
+    ...(user
+      ? [
+          {
+            label: "Create post",
+            icon: Plus,
+            onClick: () => setEditorOpen(true),
+          },
+        ]
+      : []),
+  ];
 
-      {user && (
-        <SpaceAction
-          label="Create post"
-          icon={Plus}
-          ariaLabel="Create post"
-          onClick={() => setEditorOpen(true)}
-        />
-      )}
-
-      {canManage ? (
-        <SpaceAction
-          label="Admin"
-          icon={Settings}
-          ariaLabel="Open space administration"
-          onClick={() => router.push(`/space/${space.slug}/admin`)}
-        />
-      ) : !isMember ? (
-        <SpaceAction
-          label="Become a member"
-          icon={UserPlus}
-          ariaLabel="Become a member"
-          onClick={() =>
-            router.push(`/space/${space.slug}/application/member`)
-          }
-        />
-      ) : null}
-    </>
-  );
+  const overflowActions = canManage
+    ? [
+        {
+          label: "Administration",
+          icon: Settings,
+          href: `/space/${space.slug}/admin`,
+        },
+      ]
+    : !isMember
+      ? [
+          {
+            label: "Become a member",
+            icon: UserPlus,
+            href: `/space/${space.slug}/application/member`,
+          },
+        ]
+      : [];
 
   const navigation = (
     <div className="border-t border-border/70">
@@ -156,10 +123,6 @@ export default function SpacePage() {
             </TabsTrigger>
           </TabsList>
         </Tabs>
-
-        <div className="flex shrink-0 items-center justify-end gap-0.5 sm:gap-1">
-          {actionItems}
-        </div>
       </div>
     </div>
   );
@@ -167,14 +130,17 @@ export default function SpacePage() {
   return (
     <>
       <div className="mx-auto max-w-6xl">
-        <PageHeader
+        <Topbar
           items={[
             { label: "Home", href: "/" },
             { label: "Spaces", href: "/space" },
             { label: space.name },
           ]}
           title={space.name}
+          primaryActions={primaryActions}
+          overflowActions={overflowActions}
           bottom={navigation}
+          backHref="/space"
         />
 
         <div className="space-y-4 p-2 sm:p-4">
