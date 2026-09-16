@@ -10,7 +10,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ScrollButton from "@/components/ui/ScrollButton";
+import DotLottieAnimation from "@/components/ui/DotLottieAnimation";
 
 const faqs = [
   {
@@ -41,6 +43,45 @@ const faqs = [
 
 const title1 = "Local action,";
 const title2 = "made simple.";
+
+const features = [
+  {
+    title: "Spaces",
+    animation: "/lottie/home.lottie",
+    description:
+      "Bring people, discussions, meetings and projects together around a topic or place.",
+  },
+  {
+    title: "Geography",
+    animation: "/lottie/map.lottie",
+    description:
+      "Connect civic work to the places it affects, from neighbourhoods to larger geographic areas.",
+  },
+  {
+    title: "Governance",
+    animation: "/lottie/people.lottie",
+    description:
+      "Explore organizations, public institutions and the people and positions that make up local governance.",
+  },
+  {
+    title: "Contribution",
+    animation: "/lottie/workflow.lottie",
+    description:
+      "Turn ideas, issues, updates, documents and discussions into a shared record of civic work.",
+  },
+  {
+    title: "Timeline",
+    animation: "/lottie/report.lottie",
+    description:
+      "Follow what has happened in a Space over time and keep the history of local work visible.",
+  },
+  {
+    title: "Post",
+    animation: "/lottie/attachment.lottie",
+    description:
+      "Share issues, ideas, updates, documents and other information that helps move work forward.",
+  },
+];
 
 export default function AboutPage() {
   return (
@@ -112,8 +153,55 @@ export default function AboutPage() {
         </div>
       </section>
 
+      <section className="relative flex min-h-dvh items-center border-y bg-muted/20">
+        <div className="mx-auto w-full max-w-6xl px-6 py-24">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="mx-auto max-w-3xl text-center"
+          >
+            <span className="text-sm font-medium text-primary">Inside a Space</span>
+            <h2 className="mt-4 text-4xl tracking-tight md:text-6xl">
+              Everything local action needs, in one place.
+            </h2>
+            <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
+              A Space brings together people, places, governance, contributions and the history of work around a shared purpose.
+            </p>
+          </motion.div>
+
+          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map((feature, index) => (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
+              >
+                <Card className="h-full overflow-hidden rounded-3xl border bg-background/80 shadow-none transition-colors hover:bg-background">
+                  <div className="flex h-48 items-center justify-center px-6 pt-6">
+                    <DotLottieAnimation
+                      src={feature.animation}
+                      className="h-full min-h-0 w-full"
+                    />
+                  </div>
+                  <CardHeader className="pb-2">
+                    <CardTitle>{feature.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-sm leading-relaxed text-muted-foreground">
+                    {feature.description}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="flex min-h-dvh items-center">
-        <div className="mx-auto max-w-5xl px-6 text-center">
+        <div className="mx-auto max-w-4xl px-6 text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
