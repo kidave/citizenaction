@@ -80,29 +80,17 @@ export default function SpacePage() {
       : [];
 
   const navigation = (
-    <div className="border-t border-border/70">
+    <div className="bg-background">
       <div className="mx-auto flex min-h-12 max-w-6xl px-2 py-1.5 sm:px-4 sm:py-0">
         <Tabs value={activeTab} className="min-w-0">
           <TabsList className="w-max max-w-full">
-            <TabsTrigger
-              value="overview"
-              onClick={() => router.push(base)}
-              className="px-3 sm:px-4"
-            >
+            <TabsTrigger value="overview" onClick={() => router.push(base)} className="px-3 sm:px-4">
               Overview
             </TabsTrigger>
-            <TabsTrigger
-              value="members"
-              onClick={() => router.push(`${base}?tab=members`)}
-              className="px-3 sm:px-4"
-            >
+            <TabsTrigger value="members" onClick={() => router.push(`${base}?tab=members`)} className="px-3 sm:px-4">
               Members
             </TabsTrigger>
-            <TabsTrigger
-              value="activity"
-              onClick={() => router.push(`${base}?tab=activity`)}
-              className="px-3 sm:px-4"
-            >
+            <TabsTrigger value="activity" onClick={() => router.push(`${base}?tab=activity`)} className="px-3 sm:px-4">
               Activity
             </TabsTrigger>
           </TabsList>
@@ -115,11 +103,7 @@ export default function SpacePage() {
     <>
       <div className="mx-auto max-w-6xl">
         <SpaceTopbar
-          items={[
-            { label: "Home", href: "/" },
-            { label: "Spaces", href: "/space" },
-            { label: space.name },
-          ]}
+          items={[{ label: "Home", href: "/" }, { label: space.name }]}
           title={space.name}
           primaryActions={primaryActions}
           overflowActions={overflowActions}
