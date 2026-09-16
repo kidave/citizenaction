@@ -1,0 +1,23 @@
+import Topbar from "@/components/navigation/Topbar";
+
+export default function ApplicationTopbar({
+  items = [],
+  title,
+  actions,
+  primaryActions = [],
+  overflowActions = [],
+  bottom,
+  backHref = "/",
+}) {
+  return (
+    <Topbar
+      items={items}
+      title={title}
+      actions={actions}
+      primaryActions={primaryActions}
+      overflowActions={overflowActions}
+      bottom={bottom}
+      backHref={backHref}
+    />
+  );
+}
