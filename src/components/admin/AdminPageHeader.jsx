@@ -1,16 +1,22 @@
-import BackButton from "@/components/ui/back-button";
-import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
+import Topbar from "@/components/navigation/Topbar";
 
-export default function AdminPageHeader({ items = [] }) {
+export default function AdminPageHeader({
+  items = [],
+  title,
+  actions,
+  primaryActions = [],
+  overflowActions = [],
+  bottom,
+}) {
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
-      <div className="mx-auto flex min-h-14 max-w-6xl items-center gap-3 px-4 sm:min-h-16">
-        <BackButton />
-
-        <div className="min-w-0 flex-1">
-          <AdminBreadcrumb items={items} />
-        </div>
-      </div>
-    </header>
+    <Topbar
+      items={[{ label: "Administration", href: "/admin" }, ...items]}
+      title={title || items.at(-1)?.label || "Administration"}
+      actions={actions}
+      primaryActions={primaryActions}
+      overflowActions={overflowActions}
+      bottom={bottom}
+      backHref="/admin"
+    />
   );
 }
