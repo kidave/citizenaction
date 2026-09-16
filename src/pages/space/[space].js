@@ -128,6 +128,42 @@ export default function SpacePage() {
     </>
   );
 
+  const navigation = (
+    <div className="border-t border-border/70">
+      <div className="mx-auto flex min-h-12 max-w-6xl flex-col gap-1 px-2 py-1.5 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-0">
+        <Tabs value={activeTab} className="min-w-0">
+          <TabsList className="w-max max-w-full">
+            <TabsTrigger
+              value="overview"
+              onClick={() => router.push(base)}
+              className="px-3 sm:px-4"
+            >
+              Overview
+            </TabsTrigger>
+            <TabsTrigger
+              value="members"
+              onClick={() => router.push(`${base}?tab=members`)}
+              className="px-3 sm:px-4"
+            >
+              Members
+            </TabsTrigger>
+            <TabsTrigger
+              value="activity"
+              onClick={() => router.push(`${base}?tab=activity`)}
+              className="px-3 sm:px-4"
+            >
+              Activity
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        <div className="flex shrink-0 items-center justify-end gap-0.5 sm:gap-1">
+          {actionItems}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
       <div className="mx-auto max-w-6xl">
@@ -138,41 +174,8 @@ export default function SpacePage() {
             { label: space.name },
           ]}
           title={space.name}
+          bottom={navigation}
         />
-
-        <div className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur">
-          <div className="flex min-h-12 items-center justify-between gap-2 px-2 sm:px-4">
-            <Tabs value={activeTab} className="min-w-0">
-              <TabsList className="w-auto max-w-full">
-                <TabsTrigger
-                  value="overview"
-                  onClick={() => router.push(base)}
-                  className="px-3 sm:px-4"
-                >
-                  Overview
-                </TabsTrigger>
-                <TabsTrigger
-                  value="members"
-                  onClick={() => router.push(`${base}?tab=members`)}
-                  className="px-3 sm:px-4"
-                >
-                  Members
-                </TabsTrigger>
-                <TabsTrigger
-                  value="activity"
-                  onClick={() => router.push(`${base}?tab=activity`)}
-                  className="px-3 sm:px-4"
-                >
-                  Activity
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-
-            <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
-              {actionItems}
-            </div>
-          </div>
-        </div>
 
         <div className="space-y-4 p-2 sm:p-4">
           <Tabs value={activeTab}>
