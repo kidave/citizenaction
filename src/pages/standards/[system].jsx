@@ -1,6 +1,6 @@
 // pages/standards/[system].js
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 
 import {
@@ -9,10 +9,9 @@ import {
   Building2,
   MapPinned,
   Landmark,
-  Search,
 } from "lucide-react";
 
-import BackButton from "@/components/ui/back-button";
+import Topbar from "@/components/navigation/Topbar";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -40,7 +39,6 @@ import useClassificationDimensions from "@/hooks/standards/useClassificationDime
 import useClassificationTree from "@/hooks/standards/useClassificationTree";
 
 import {
-  ClassificationBreadcrumb,
   ClassificationTree,
   ClassificationCodeDialog,
   DeleteCodeDialog,
@@ -81,72 +79,39 @@ export default function StandardPage() {
 
   const { data: tree = [] } = useClassificationTree(selectedDimension?.id);
 
-  /*
-   * ---------------------------------------------------------
-   * DIMENSION
-   * ---------------------------------------------------------
-   */
-
   function handleDimensionSelect(dimension) {
     setSelectedDimension(dimension);
-
-    // Clear previous classification when changing dimensions.
     setSelectedCode(null);
     setInspectorOpen(false);
   }
 
-  /*
-   * ---------------------------------------------------------
-   * INSPECT
-   * ---------------------------------------------------------
-   */
-
   function handleInspect(code) {
     setSelectedCode(code);
-
-    // Mobile opens the Sheet.
     setInspectorOpen(true);
   }
-
-  /*
-   * ---------------------------------------------------------
-   * INSPECTOR CLOSE
-   * ---------------------------------------------------------
-   */
 
   function handleInspectorOpenChange(open) {
     setInspectorOpen(open);
   }
 
+  const topbarItems = [
+    { label: "Home", href: "/" },
+    { label: "Standards", href: "/standards" },
+    ...(currentSystem ? [{ label: currentSystem.name }] : []),
+    ...(selectedDimension ? [{ label: selectedDimension.name }] : []),
+  ];
+
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
-      {/* =====================================================
-          HEADER
-      ===================================================== */}
-
-      <header className="shrink-0 border-b">
-        <div className="mx-auto flex min-h-14 w-full items-center gap-3 px-4 py-3 sm:px-6">
-          <BackButton />
-
-          <div className="min-w-0 flex-1">
-            <ClassificationBreadcrumb
-              system={currentSystem}
-              dimension={selectedDimension}
-            />
-          </div>
-        </div>
-      </header>
-
-      {/* =====================================================
-          DESKTOP
-      ===================================================== */}
+      <Topbar
+        items={topbarItems}
+        title={selectedDimension?.name || currentSystem?.name || "Standards"}
+        containerClassName="max-w-none"
+        backHref="/standards"
+      />
 
       <div className="hidden min-h-0 flex-1 overflow-hidden md:block">
         <div className="grid h-full grid-cols-[64px_minmax(0,1fr)]">
-          {/* -------------------------------------------------
-              FIXED DIMENSION RAIL
-          ------------------------------------------------- */}
-
           <aside className="h-full border-r bg-muted/20 py-3">
             <TooltipProvider delayDuration={150}>
               <div className="flex flex-col items-center gap-2">
@@ -183,13 +148,7 @@ export default function StandardPage() {
             </TooltipProvider>
           </aside>
 
-          {/* -------------------------------------------------
-              TREE + PREVIEW
-          ------------------------------------------------- */}
-
           <ResizablePanelGroup direction="horizontal" className="min-w-0">
-            {/* TREE */}
-
             <ResizablePanel defaultSize={42} minSize={25} maxSize={65}>
               <section className="flex h-full min-h-0 flex-col border-r">
                 <div className="shrink-0 border-b px-4 py-3">
@@ -212,8 +171,6 @@ export default function StandardPage() {
 
             <ResizableHandle withHandle />
 
-            {/* PREVIEW / DETAILS */}
-
             <ResizablePanel defaultSize={58} minSize={35}>
               <section className="flex h-full min-h-0 flex-col">
                 <div className="shrink-0 border-b px-5 py-3">
@@ -233,15 +190,7 @@ export default function StandardPage() {
         </div>
       </div>
 
-      {/* =====================================================
-          MOBILE
-      ===================================================== */}
-
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:hidden">
-        {/* -------------------------------------------------
-            HORIZONTAL DIMENSIONS
-        ------------------------------------------------- */}
-
         <div className="shrink-0 border-b bg-background">
           <div className="flex gap-2 overflow-x-auto px-3 py-2">
             {dimensions.map((dimension) => {
@@ -271,10 +220,6 @@ export default function StandardPage() {
           </div>
         </div>
 
-        {/* -------------------------------------------------
-            TREE
-        ------------------------------------------------- */}
-
         <section className="flex min-h-0 flex-1 flex-col">
           <div className="shrink-0 border-b px-4 py-3">
             <h2 className="font-medium">Classification Tree</h2>
@@ -294,10 +239,6 @@ export default function StandardPage() {
         </section>
       </div>
 
-      {/* =====================================================
-          MOBILE INSPECTOR SHEET
-      ===================================================== */}
-
       <Sheet open={inspectorOpen} onOpenChange={handleInspectorOpenChange}>
         <SheetContent
           side="right"
@@ -313,10 +254,6 @@ export default function StandardPage() {
         </SheetContent>
       </Sheet>
 
-      {/* =====================================================
-          EDIT
-      ===================================================== */}
-
       <ClassificationCodeDialog
         open={editOpen}
         onOpenChange={setEditOpen}
@@ -325,10 +262,6 @@ export default function StandardPage() {
         parents={[]}
         onSave={console.log}
       />
-
-      {/* =====================================================
-          DELETE
-      ===================================================== */}
 
       <DeleteCodeDialog
         open={deleteOpen}
@@ -339,10 +272,6 @@ export default function StandardPage() {
     </div>
   );
 }
-
-/* =========================================================
-   EMPTY STATES
-========================================================= */
 
 function EmptyTreeState() {
   return (
