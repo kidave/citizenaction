@@ -10,14 +10,13 @@ export default function GovernancePageHeader({
 }) {
   return (
     <Topbar
-      items={items}
+      items={[{ label: "Home", href: "/" }, ...items]}
       title={title || items.at(-1)?.label || "Governance"}
       actions={actions}
       primaryActions={primaryActions}
       overflowActions={overflowActions}
       bottom={bottom}
       backHref="/governance"
-      showHome={false}
     />
   );
 }
