@@ -1,20 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-
 import { CheckCircle2, Clock3, XCircle, Users } from "lucide-react";
-
 import { toast } from "sonner";
 
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/context/AuthContext";
-
-import BackButton from "@/components/ui/back-button";
-
+import ApplicationTopbar from "@/components/application/ApplicationTopbar";
 import {
   Card,
   CardContent,
@@ -22,35 +17,26 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-
 import { Button } from "@/components/ui/button";
-
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function SpaceMemberApplicationStatusPage() {
   const router = useRouter();
-
   const { space: spaceSlug, id } = router.query;
-
   const { user, loading: authLoading } = useAuth();
-
   const [application, setApplication] = useState(null);
   const [space, setSpace] = useState(null);
-
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!router.isReady || !spaceSlug || !id || !user) {
-      return;
-    }
+    if (!router.isReady || !spaceSlug || !id || !user) return;
 
     async function loadApplication() {
       setLoading(true);
 
       const { data, error } = await supabase
         .from("space_member_application")
-        .select(
-          `
+        .select(`
           id,
           space_id,
           applicant_user_id,
@@ -65,48 +51,33 @@ export default function SpaceMemberApplicationStatusPage() {
             slug,
             logo_url
           )
-        `,
-        )
+        `)
         .eq("id", id)
         .eq("applicant_user_id", user.id)
         .single();
 
       if (error || !data) {
         console.error("Failed to load application:", error);
-
         toast.error("Application not found.");
-
         router.replace(`/space/${spaceSlug}`);
-
         return;
       }
 
       if (data.space?.slug !== spaceSlug) {
         router.replace(`/space/${spaceSlug}`);
-
         return;
       }
 
       setApplication(data);
       setSpace(data.space);
-
       setLoading(false);
     }
 
     loadApplication();
   }, [router.isReady, spaceSlug, id, user, router]);
 
-  if (authLoading || loading) {
-    return <PageLoader />;
-  }
-
-  if (!user) {
-    return null;
-  }
-
-  if (!application || !space) {
-    return null;
-  }
+  if (authLoading || loading) return <PageLoader />;
+  if (!user || !application || !space) return null;
 
   return (
     <>
@@ -114,14 +85,19 @@ export default function SpaceMemberApplicationStatusPage() {
         <title>Membership Application · {space.name}</title>
       </Head>
 
+      <ApplicationTopbar
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Spaces", href: "/space" },
+          { label: space.name, href: `/space/${space.slug}` },
+          { label: "Membership Application" },
+        ]}
+        title="Membership Application"
+        backHref={`/space/${space.slug}`}
+      />
+
       <div className="min-h-dvh bg-muted/30 px-4 py-6">
         <div className="mx-auto max-w-2xl space-y-6">
-          <BackButton label="Back" />
-
-          {/* ==================================
-              SPACE
-          ================================== */}
-
           <Card>
             <CardContent className="p-6 sm:p-8">
               <div className="flex items-center gap-4">
@@ -136,43 +112,25 @@ export default function SpaceMemberApplicationStatusPage() {
                     <Users className="h-6 w-6 text-muted-foreground" />
                   )}
                 </div>
-
                 <div className="min-w-0">
-                  <h1 className="truncate text-xl font-semibold">
-                    {space.name}
-                  </h1>
-
-                  <p className="text-sm text-muted-foreground">
-                    Membership application
-                  </p>
+                  <h1 className="truncate text-xl font-semibold">{space.name}</h1>
+                  <p className="text-sm text-muted-foreground">Membership application</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* ==================================
-              STATUS
-          ================================== */}
-
           <ApplicationStatus status={application.status} />
-
-          {/* ==================================
-              APPLICATION
-          ================================== */}
 
           <Card>
             <CardHeader>
               <CardTitle>Your application</CardTitle>
-
-              <CardDescription>
-                Submitted {formatDate(application.created_at)}
-              </CardDescription>
+              <CardDescription>Submitted {formatDate(application.created_at)}</CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-6">
               <div className="rounded-xl border bg-muted/30 p-4">
                 <div className="mb-2 text-sm font-medium">Your message</div>
-
                 <p className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
                   {application.message}
                 </p>
@@ -180,10 +138,7 @@ export default function SpaceMemberApplicationStatusPage() {
 
               {application.status === "rejected" && application.admin_notes && (
                 <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-                  <div className="mb-2 text-sm font-medium text-destructive">
-                    Review note
-                  </div>
-
+                  <div className="mb-2 text-sm font-medium text-destructive">Review note</div>
                   <p className="whitespace-pre-wrap text-sm leading-6">
                     {application.admin_notes}
                   </p>
@@ -203,18 +158,12 @@ export default function SpaceMemberApplicationStatusPage() {
   );
 }
 
-/* ========================================
-   STATUS
-======================================== */
-
 function ApplicationStatus({ status }) {
   if (status === "approved") {
     return (
       <Alert className="border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-400">
         <CheckCircle2 />
-
         <AlertTitle>Application approved</AlertTitle>
-
         <AlertDescription className="text-green-700/90 dark:text-green-400/90">
           Your membership application has been approved. You can now participate
           in this Space.
@@ -227,12 +176,9 @@ function ApplicationStatus({ status }) {
     return (
       <Alert variant="destructive">
         <XCircle />
-
         <AlertTitle>Application rejected</AlertTitle>
-
         <AlertDescription>
-          Your membership application was not approved by the Space
-          administrators.
+          Your membership application was not approved by the Space administrators.
         </AlertDescription>
       </Alert>
     );
@@ -241,9 +187,7 @@ function ApplicationStatus({ status }) {
   return (
     <Alert className="border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-400">
       <Clock3 />
-
       <AlertTitle>Application under review</AlertTitle>
-
       <AlertDescription className="text-amber-700/90 dark:text-amber-400/90">
         Your application has been submitted and is waiting for review by the
         Space administrators.
@@ -252,10 +196,6 @@ function ApplicationStatus({ status }) {
   );
 }
 
-/* ========================================
-   DATE
-======================================== */
-
 function formatDate(value) {
   return new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
@@ -263,10 +203,6 @@ function formatDate(value) {
     year: "numeric",
   }).format(new Date(value));
 }
-
-/* ========================================
-   LOADER
-======================================== */
 
 function PageLoader() {
   return (
