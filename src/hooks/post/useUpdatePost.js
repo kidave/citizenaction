@@ -42,7 +42,6 @@ export function useUpdatePost() {
 
         const { data: updatedPost, error: updateError } = await supabase.rpc("update_post", {
           p_post_id: postId,
-          p_type: postData.type,
           p_space_ids: postData.spaces?.map((space) => space.id) ?? [],
           p_title: postData.title,
           p_content: postData.content,
