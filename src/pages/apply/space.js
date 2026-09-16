@@ -127,7 +127,7 @@ export default function ApplySpace() {
         backHref="/"
       />
 
-      <div className="mx-4 space-y-4 p-4">
+      <div className="mx-auto w-full max-w-4xl space-y-4 p-4 sm:px-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid gap-5 md:grid-cols-2">
