@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/router";
 
-import PageHeader from "@/components/navigation/PageHeader";
+import UserTopbar from "@/components/user/UserTopbar";
 
 import UserProfile from "@/components/profile/UserProfile";
 import EditProfile from "@/components/profile/EditProfile";
@@ -21,13 +21,14 @@ export default function PublicProfilePage() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-6xl">
-      <PageHeader
+      <UserTopbar
         items={[
           { label: "Home", href: "/" },
           { label: "Profile", href: username ? `/user/${username}` : "/" },
           ...(isEditing ? [{ label: "Edit Profile" }] : [{ label: title }]),
         ]}
         title={title}
+        backHref={username ? `/user/${username}` : "/"}
       />
 
       <main className="mx-auto w-full">
