@@ -11,7 +11,7 @@ import {
   Landmark,
 } from "lucide-react";
 
-import Topbar from "@/components/navigation/Topbar";
+import StandardsTopbar from "@/components/standards/StandardsTopbar";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -55,15 +55,12 @@ const dimensionIcons = {
 
 export default function StandardPage() {
   const router = useRouter();
-
   const { system } = router.query;
 
   const [selectedDimension, setSelectedDimension] = useState(null);
   const [selectedCode, setSelectedCode] = useState(null);
-
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-
   const [inspectorOpen, setInspectorOpen] = useState(false);
 
   const { data: systems = [] } = useClassificationSystems();
@@ -73,10 +70,7 @@ export default function StandardPage() {
     [systems, system],
   );
 
-  const { data: dimensions = [] } = useClassificationDimensions(
-    currentSystem?.id,
-  );
-
+  const { data: dimensions = [] } = useClassificationDimensions(currentSystem?.id);
   const { data: tree = [] } = useClassificationTree(selectedDimension?.id);
 
   function handleDimensionSelect(dimension) {
@@ -90,10 +84,6 @@ export default function StandardPage() {
     setInspectorOpen(true);
   }
 
-  function handleInspectorOpenChange(open) {
-    setInspectorOpen(open);
-  }
-
   const topbarItems = [
     { label: "Home", href: "/" },
     { label: "Standards", href: "/standards" },
@@ -103,7 +93,7 @@ export default function StandardPage() {
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
-      <Topbar
+      <StandardsTopbar
         items={topbarItems}
         title={selectedDimension?.name || currentSystem?.name || "Standards"}
         containerClassName="max-w-none"
@@ -116,9 +106,7 @@ export default function StandardPage() {
             <TooltipProvider delayDuration={150}>
               <div className="flex flex-col items-center gap-2">
                 {dimensions.map((dimension) => {
-                  const Icon =
-                    dimensionIcons[dimension.code?.toLowerCase()] ?? Layers3;
-
+                  const Icon = dimensionIcons[dimension.code?.toLowerCase()] ?? Layers3;
                   const active = selectedDimension?.id === dimension.id;
 
                   return (
@@ -137,10 +125,7 @@ export default function StandardPage() {
                           <Icon className="h-5 w-5" />
                         </Button>
                       </TooltipTrigger>
-
-                      <TooltipContent side="right">
-                        {dimension.name}
-                      </TooltipContent>
+                      <TooltipContent side="right">{dimension.name}</TooltipContent>
                     </Tooltip>
                   );
                 })}
@@ -154,14 +139,9 @@ export default function StandardPage() {
                 <div className="shrink-0 border-b px-4 py-3">
                   <h2 className="font-medium">Classification Tree</h2>
                 </div>
-
                 <div className="min-h-0 flex-1">
                   {selectedDimension ? (
-                    <ClassificationTree
-                      tree={tree}
-                      selected={selectedCode}
-                      onInspect={handleInspect}
-                    />
+                    <ClassificationTree tree={tree} selected={selectedCode} onInspect={handleInspect} />
                   ) : (
                     <EmptyTreeState />
                   )}
@@ -176,13 +156,8 @@ export default function StandardPage() {
                 <div className="shrink-0 border-b px-5 py-3">
                   <h2 className="font-medium">Classification</h2>
                 </div>
-
                 <div className="min-h-0 flex-1 overflow-y-auto p-5">
-                  {selectedCode ? (
-                    <CodeDetailsCard code={selectedCode} />
-                  ) : (
-                    <EmptyInspectorState />
-                  )}
+                  {selectedCode ? <CodeDetailsCard code={selectedCode} /> : <EmptyInspectorState />}
                 </div>
               </section>
             </ResizablePanel>
@@ -194,9 +169,7 @@ export default function StandardPage() {
         <div className="shrink-0 border-b bg-background">
           <div className="flex gap-2 overflow-x-auto px-3 py-2">
             {dimensions.map((dimension) => {
-              const Icon =
-                dimensionIcons[dimension.code?.toLowerCase()] ?? Layers3;
-
+              const Icon = dimensionIcons[dimension.code?.toLowerCase()] ?? Layers3;
               const active = selectedDimension?.id === dimension.id;
 
               return (
@@ -212,7 +185,6 @@ export default function StandardPage() {
                   }`}
                 >
                   <Icon className="mr-2 h-4 w-4" />
-
                   <span className="max-w-28 truncate">{dimension.name}</span>
                 </Button>
               );
@@ -224,14 +196,9 @@ export default function StandardPage() {
           <div className="shrink-0 border-b px-4 py-3">
             <h2 className="font-medium">Classification Tree</h2>
           </div>
-
           <div className="min-h-0 flex-1">
             {selectedDimension ? (
-              <ClassificationTree
-                tree={tree}
-                selected={selectedCode}
-                onInspect={handleInspect}
-              />
+              <ClassificationTree tree={tree} selected={selectedCode} onInspect={handleInspect} />
             ) : (
               <EmptyTreeState />
             )}
@@ -239,18 +206,12 @@ export default function StandardPage() {
         </section>
       </div>
 
-      <Sheet open={inspectorOpen} onOpenChange={handleInspectorOpenChange}>
-        <SheetContent
-          side="right"
-          className="w-full overflow-y-auto sm:max-w-lg"
-        >
+      <Sheet open={inspectorOpen} onOpenChange={setInspectorOpen}>
+        <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-lg">
           <SheetHeader className="border-b pb-4">
             <SheetTitle>Classification</SheetTitle>
           </SheetHeader>
-
-          <div className="py-5">
-            {selectedCode && <CodeDetailsCard code={selectedCode} />}
-          </div>
+          <div className="py-5">{selectedCode && <CodeDetailsCard code={selectedCode} />}</div>
         </SheetContent>
       </Sheet>
 
@@ -277,12 +238,9 @@ function EmptyTreeState() {
   return (
     <div className="flex h-full flex-col items-center justify-center px-6 text-center">
       <Layers3 className="mb-4 h-10 w-10 text-muted-foreground" />
-
       <h3 className="font-medium">Select a dimension</h3>
-
       <p className="mt-2 max-w-xs text-sm text-muted-foreground">
-        Choose a classification dimension from the left to explore its
-        hierarchy.
+        Choose a classification dimension from the left to explore its hierarchy.
       </p>
     </div>
   );
@@ -292,12 +250,9 @@ function EmptyInspectorState() {
   return (
     <div className="flex h-full flex-col items-center justify-center text-center">
       <Building2 className="mb-4 h-10 w-10 text-muted-foreground" />
-
       <h3 className="font-medium">No classification selected</h3>
-
       <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-        Select a classification from the tree to view its description, hierarchy
-        and metadata.
+        Select a classification from the tree to view its description, hierarchy and metadata.
       </p>
     </div>
   );
