@@ -6,13 +6,12 @@ import { useRouter } from "next/router";
 import { Settings, UserPlus, Plus, History } from "lucide-react";
 
 import EditorModal from "@/components/feed/editor/EditorModal";
+import PageHeader from "@/components/navigation/PageHeader";
 
 import { useAuth } from "@/context/AuthContext";
 import { useSpaces } from "@/hooks/space/useSpaces";
 
-import BackButton from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
-
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import {
@@ -27,6 +26,29 @@ import MetaCardsSkeleton from "@/components/skeletons/MetaCardsSkeleton";
 import MembersTab from "@/components/space/tabs/MembersTab";
 import ActivityTab from "@/components/space/tabs/ActivityTab";
 import OverviewTab from "@/components/space/tabs/OverviewTab";
+
+function SpaceAction({ label, icon: Icon, onClick, ariaLabel }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="gap-2 px-2 sm:px-3"
+          aria-label={ariaLabel || label}
+          onClick={onClick}
+        >
+          <Icon className="h-4 w-4 shrink-0" />
+          <span className="hidden sm:inline">{label}</span>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{label}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
 
 export default function SpacePage() {
   const router = useRouter();
@@ -68,120 +90,88 @@ export default function SpacePage() {
   const isMember = !!space.current_user_role;
   const canManage = isOwner || isAdmin;
 
+  const actionItems = (
+    <>
+      <SpaceAction
+        label="Timeline"
+        icon={History}
+        ariaLabel="View space timeline"
+        onClick={() => router.push(`${base}/timeline`)}
+      />
+
+      {user && (
+        <SpaceAction
+          label="Create post"
+          icon={Plus}
+          ariaLabel="Create post"
+          onClick={() => setEditorOpen(true)}
+        />
+      )}
+
+      {canManage ? (
+        <SpaceAction
+          label="Admin"
+          icon={Settings}
+          ariaLabel="Open space administration"
+          onClick={() => router.push(`/space/${space.slug}/admin`)}
+        />
+      ) : !isMember ? (
+        <SpaceAction
+          label="Become a member"
+          icon={UserPlus}
+          ariaLabel="Become a member"
+          onClick={() =>
+            router.push(`/space/${space.slug}/application/member`)
+          }
+        />
+      ) : null}
+    </>
+  );
+
   return (
     <>
       <div className="mx-auto max-w-6xl">
-        <div className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
-          <div className="flex h-14 items-center gap-3 px-4 sm:h-16">
-            <BackButton />
-            <h1 className="min-w-0 flex-1 truncate font-semibold sm:text-lg">
-              {space.name}
-            </h1>
+        <PageHeader
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Spaces", href: "/space" },
+            { label: space.name },
+          ]}
+          title={space.name}
+        />
 
-            <div className="flex shrink-0 items-center gap-1">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="shrink-0"
-                    aria-label="View Space timeline"
-                    onClick={() => router.push(`${base}/timeline`)}
-                  >
-                    <History className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>View timeline</p>
-                </TooltipContent>
-              </Tooltip>
+        <div className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur">
+          <div className="flex min-h-12 items-center justify-between gap-2 px-2 sm:px-4">
+            <Tabs value={activeTab} className="min-w-0">
+              <TabsList className="w-auto max-w-full">
+                <TabsTrigger
+                  value="overview"
+                  onClick={() => router.push(base)}
+                  className="px-3 sm:px-4"
+                >
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger
+                  value="members"
+                  onClick={() => router.push(`${base}?tab=members`)}
+                  className="px-3 sm:px-4"
+                >
+                  Members
+                </TabsTrigger>
+                <TabsTrigger
+                  value="activity"
+                  onClick={() => router.push(`${base}?tab=activity`)}
+                  className="px-3 sm:px-4"
+                >
+                  Activity
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
 
-              {user && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="shrink-0"
-                      aria-label="Create post"
-                      onClick={() => setEditorOpen(true)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Create post</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-
-              {canManage ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="shrink-0"
-                      aria-label="Space settings"
-                      onClick={() => router.push(`/space/${space.slug}/admin`)}
-                    >
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Settings</p>
-                  </TooltipContent>
-                </Tooltip>
-              ) : !isMember ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="shrink-0"
-                      aria-label="Become a member"
-                      onClick={() =>
-                        router.push(`/space/${space.slug}/application/member`)
-                      }
-                    >
-                      <UserPlus className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Become a member</p>
-                  </TooltipContent>
-                </Tooltip>
-              ) : null}
+            <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+              {actionItems}
             </div>
           </div>
-        </div>
-
-        <div className="sticky top-14 z-30 border-b bg-background/95 p-2 backdrop-blur sm:top-16">
-          <Tabs value={activeTab}>
-            <TabsList className="flex w-auto">
-              <TabsTrigger
-                value="overview"
-                onClick={() => router.push(base)}
-                className="flex-1"
-              >
-                Overview
-              </TabsTrigger>
-              <TabsTrigger
-                value="members"
-                onClick={() => router.push(`${base}?tab=members`)}
-                className="flex-1"
-              >
-                Members
-              </TabsTrigger>
-              <TabsTrigger
-                value="activity"
-                onClick={() => router.push(`${base}?tab=activity`)}
-                className="flex-1"
-              >
-                Activity
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
         </div>
 
         <div className="space-y-4 p-2 sm:p-4">
