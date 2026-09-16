@@ -14,6 +14,7 @@
     "@editorjs/table": "^2.4.5",
     "@editorjs/warning": "^1.4.1",
     "@hookform/resolvers": "^5.2.2",
+    "@lottiefiles/dotlottie-react": "^0.19.16",
     "@mapbox/search-js-react": "^1.5.1",
     "@mapbox/vector-tile": "^2.0.4",
     "@picocss/pico": "^2.1.1",
@@ -107,13 +108,26 @@
     "start": "next start",
     "lint": "next lint"
   },
-  "eslintConfig": {"extends": ["next/core-web-vitals"]},
+  "eslintConfig": {
+    "extends": [
+      "next/core-web-vitals"
+    ]
+  },
   "browserslist": {
-    "production": [">0.2%", "not dead", "not op_mini all"],
-    "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^16.3.3",
+    "@playwright/test": "^1.63.0",
     "@types/deno": "^2.7.0",
     "autoprefixer": "^10.4.23",
     "eslint": "^8.57.1",
