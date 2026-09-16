@@ -9,7 +9,7 @@ import { usePost } from "@/hooks/feed/usePost";
 import { useDeletePost } from "@/hooks/post/useDeletePost";
 
 import PostCard from "@/components/feed/post/PostCard";
-import BackButton from "@/components/ui/back-button";
+import PageHeader from "@/components/navigation/PageHeader";
 
 const EditorModal = dynamic(
   () => import("@/components/feed/editor/EditorModal"),
@@ -119,12 +119,14 @@ export default function SinglePostPage({ postId, initialPost }) {
       </Head>
 
       <div className="flex min-h-dvh w-full flex-col">
-        <div className="sticky top-0 z-40 border-b bg-background">
-          <div className="mx-auto flex h-14 max-w-4xl items-center px-3 sm:h-16 sm:px-4">
-            <BackButton />
-            <span className="min-w-0 flex-1 truncate">{post.title || "Post"}</span>
-          </div>
-        </div>
+        <PageHeader
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Posts", href: "/" },
+            { label: title },
+          ]}
+          title={title}
+        />
 
         <div className="flex w-full justify-center">
           <div className="w-full max-w-4xl">

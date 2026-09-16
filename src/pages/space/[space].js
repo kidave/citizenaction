@@ -6,20 +6,12 @@ import { useRouter } from "next/router";
 import { Settings, UserPlus, Plus, History } from "lucide-react";
 
 import EditorModal from "@/components/feed/editor/EditorModal";
+import SpaceTopbar from "@/components/space/SpaceTopbar";
 
 import { useAuth } from "@/context/AuthContext";
 import { useSpaces } from "@/hooks/space/useSpaces";
 
-import BackButton from "@/components/ui/back-button";
-import { Button } from "@/components/ui/button";
-
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 import PageHeaderSkeleton from "@/components/skeletons/PageHeaderSkeleton";
 import MetaCardsSkeleton from "@/components/skeletons/MetaCardsSkeleton";
@@ -68,121 +60,55 @@ export default function SpacePage() {
   const isMember = !!space.current_user_role;
   const canManage = isOwner || isAdmin;
 
+  const primaryActions = [
+    { label: "Timeline", icon: History, href: `${base}/timeline` },
+    ...(user
+      ? [{ label: "Create post", icon: Plus, onClick: () => setEditorOpen(true) }]
+      : []),
+  ];
+
+  const overflowActions = canManage
+    ? [{ label: "Administration", icon: Settings, href: `/space/${space.slug}/admin` }]
+    : !isMember
+      ? [
+          {
+            label: "Become a member",
+            icon: UserPlus,
+            href: `/space/${space.slug}/application/member`,
+          },
+        ]
+      : [];
+
+  const navigation = (
+    <div className="bg-background">
+      <div className="mx-auto flex min-h-12 max-w-6xl px-2 py-1.5 sm:px-4 sm:py-0">
+        <Tabs value={activeTab} className="min-w-0">
+          <TabsList className="w-max max-w-full">
+            <TabsTrigger value="overview" onClick={() => router.push(base)} className="px-3 sm:px-4">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="members" onClick={() => router.push(`${base}?tab=members`)} className="px-3 sm:px-4">
+              Members
+            </TabsTrigger>
+            <TabsTrigger value="activity" onClick={() => router.push(`${base}?tab=activity`)} className="px-3 sm:px-4">
+              Activity
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+    </div>
+  );
+
   return (
     <>
       <div className="mx-auto max-w-6xl">
-        <div className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
-          <div className="flex h-14 items-center gap-3 px-4 sm:h-16">
-            <BackButton />
-            <h1 className="min-w-0 flex-1 truncate font-semibold sm:text-lg">
-              {space.name}
-            </h1>
-
-            <div className="flex shrink-0 items-center gap-1">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="shrink-0"
-                    aria-label="View Space timeline"
-                    onClick={() => router.push(`${base}/timeline`)}
-                  >
-                    <History className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>View timeline</p>
-                </TooltipContent>
-              </Tooltip>
-
-              {user && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="shrink-0"
-                      aria-label="Create post"
-                      onClick={() => setEditorOpen(true)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Create post</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-
-              {canManage ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="shrink-0"
-                      aria-label="Space settings"
-                      onClick={() => router.push(`/space/${space.slug}/admin`)}
-                    >
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Settings</p>
-                  </TooltipContent>
-                </Tooltip>
-              ) : !isMember ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="shrink-0"
-                      aria-label="Become a member"
-                      onClick={() =>
-                        router.push(`/space/${space.slug}/application/member`)
-                      }
-                    >
-                      <UserPlus className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Become a member</p>
-                  </TooltipContent>
-                </Tooltip>
-              ) : null}
-            </div>
-          </div>
-        </div>
-
-        <div className="sticky top-14 z-30 border-b bg-background/95 p-2 backdrop-blur sm:top-16">
-          <Tabs value={activeTab}>
-            <TabsList className="flex w-auto">
-              <TabsTrigger
-                value="overview"
-                onClick={() => router.push(base)}
-                className="flex-1"
-              >
-                Overview
-              </TabsTrigger>
-              <TabsTrigger
-                value="members"
-                onClick={() => router.push(`${base}?tab=members`)}
-                className="flex-1"
-              >
-                Members
-              </TabsTrigger>
-              <TabsTrigger
-                value="activity"
-                onClick={() => router.push(`${base}?tab=activity`)}
-                className="flex-1"
-              >
-                Activity
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
+        <SpaceTopbar
+          items={[{ label: "Home", href: "/" }, { label: space.name }]}
+          title={space.name}
+          primaryActions={primaryActions}
+          overflowActions={overflowActions}
+          bottom={navigation}
+        />
 
         <div className="space-y-4 p-2 sm:p-4">
           <Tabs value={activeTab}>

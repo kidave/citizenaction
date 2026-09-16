@@ -2,8 +2,7 @@
 
 import { useRouter } from "next/router";
 
-import BackButton from "@/components/ui/back-button";
-
+import PageHeader from "@/components/navigation/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import Appearance from "@/components/system/Appearance";
@@ -21,53 +20,38 @@ export default function SettingsPage() {
     router.push(
       {
         pathname: "/settings",
-        query: {
-          tab: value,
-        },
+        query: { tab: value },
       },
       undefined,
-      {
-        shallow: true,
-      },
+      { shallow: true },
     );
   }
 
+  const navigation = (
+    <div className="bg-background">
+      <div className="mx-auto flex min-h-12 max-w-6xl items-center justify-center overflow-x-auto px-2 py-1.5 sm:px-4 sm:py-0">
+        <TabsList className="w-max">
+          <TabsTrigger value="appearance">Appearance</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="privacy">Privacy</TabsTrigger>
+          <TabsTrigger value="support">Support</TabsTrigger>
+          <TabsTrigger value="about">About</TabsTrigger>
+        </TabsList>
+      </div>
+    </div>
+  );
+
   return (
     <div className="mx-auto w-full">
-      {/* ======================================
-          FULL-WIDTH HEADER
-      ====================================== */}
-
-      <header className="sticky top-0 z-40 border-b bg-background">
-        <div className="flex h-14 items-center gap-3 px-4 sm:h-16">
-          <BackButton />
-
-          <h1 className="truncate font-semibold sm:text-lg">Settings</h1>
-        </div>
-      </header>
-
-      {/* ======================================
-          TABS
-      ====================================== */}
-
       <Tabs value={activeTab} onValueChange={changeTab}>
-        <div className="sticky top-14 z-30 flex justify-center overflow-x-auto border-b bg-background p-2 sm:top-16">
-          <TabsList className="flex w-max">
-            <TabsTrigger value="appearance">Appearance</TabsTrigger>
-
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-
-            <TabsTrigger value="privacy">Privacy</TabsTrigger>
-
-            <TabsTrigger value="support">Support</TabsTrigger>
-
-            <TabsTrigger value="about">About</TabsTrigger>
-          </TabsList>
-        </div>
-
-        {/* ======================================
-            CONTENT
-        ====================================== */}
+        <PageHeader
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Settings" },
+          ]}
+          title="Settings"
+          bottom={navigation}
+        />
 
         <TabsContent value="appearance" className="mx-auto max-w-lg p-2 sm:p-4">
           <Appearance />
