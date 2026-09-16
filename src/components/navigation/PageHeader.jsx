@@ -7,13 +7,15 @@ import { Button } from "@/components/ui/button";
 /**
  * Standard page context header.
  *
- * Desktop: Home / parent / current page
+ * Desktop: breadcrumb + optional actions
  * Mobile: back button + current page title
+ * Optional bottom content stays inside the same sticky surface.
  */
 export default function PageHeader({
   items = [],
   title,
   actions,
+  bottom,
   className = "",
 }) {
   const router = useRouter();
@@ -32,7 +34,9 @@ export default function PageHeader({
   }
 
   return (
-    <header className={`border-b bg-background/95 backdrop-blur ${className}`}>
+    <header
+      className={`sticky top-16 z-40 border-b bg-background/95 backdrop-blur lg:top-0 ${className}`}
+    >
       <div className="mx-auto flex min-h-14 max-w-6xl items-center gap-2 px-3 sm:min-h-16 sm:px-4">
         <div className="flex min-w-0 flex-1 items-center">
           <Button
@@ -54,7 +58,10 @@ export default function PageHeader({
               const isLast = index === visibleItems.length - 1;
 
               return (
-                <span key={`${item.label}-${index}`} className="flex min-w-0 items-center gap-1">
+                <span
+                  key={`${item.label}-${index}`}
+                  className="flex min-w-0 items-center gap-1"
+                >
                   {index > 0 && (
                     <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                   )}
@@ -82,8 +89,12 @@ export default function PageHeader({
           </span>
         </div>
 
-        {actions ? <div className="flex shrink-0 items-center gap-1">{actions}</div> : null}
+        {actions ? (
+          <div className="flex shrink-0 items-center gap-1">{actions}</div>
+        ) : null}
       </div>
+
+      {bottom ? <div>{bottom}</div> : null}
     </header>
   );
 }
