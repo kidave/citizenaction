@@ -28,7 +28,7 @@ export default function SettingsPage() {
   }
 
   const navigation = (
-    <div className="border-t border-border/70">
+    <div className="bg-background">
       <div className="mx-auto flex min-h-12 max-w-6xl items-center justify-center overflow-x-auto px-2 py-1.5 sm:px-4 sm:py-0">
         <TabsList className="w-max">
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
