@@ -7,9 +7,9 @@ import { Loader2, Users } from "lucide-react";
 
 import { useSpaceAdmin } from "@/hooks/space/useSpaceAdmin";
 
-import BackButton from "@/components/ui/back-button";
+import PageHeader from "@/components/navigation/PageHeader";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 import SpaceMemberApplications from "@/components/space/SpaceMemberApplications";
 import SpaceGeneralSettings from "@/components/space/SpaceGeneralSettings";
@@ -64,16 +64,16 @@ export default function SpaceAdminPage() {
 
   return (
     <div className="w-full">
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
-        <div className="flex h-14 items-center gap-3 px-4 sm:h-16">
-          <BackButton />
-          <div className="min-w-0 flex-1">
-            <div className="truncate font-semibold sm:text-lg">{space.name}</div>
-            <div className="text-xs text-muted-foreground">Administration</div>
-          </div>
-          <Badge variant="secondary">{isOwner ? "Owner" : "Admin"}</Badge>
-        </div>
-      </header>
+      <PageHeader
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Spaces", href: "/space" },
+          { label: space.name, href: `/space/${space.slug}` },
+          { label: "Administration" },
+        ]}
+        title="Administration"
+        actions={<Badge variant="secondary">{isOwner ? "Owner" : "Admin"}</Badge>}
+      />
 
       <main className="mx-auto w-full max-w-4xl space-y-8 px-4 py-6 sm:px-6 sm:py-8">
         {isOwner && (
