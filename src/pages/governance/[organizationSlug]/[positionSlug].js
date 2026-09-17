@@ -84,7 +84,13 @@ export default function GovernancePositionPage() {
         }
       />
       <main className="min-h-0 flex-1">
-        <GovernancePositionTimeline position={timelinePosition} organization={organization} timeline={timelineQuery.data?.timeline || []} />
+        <GovernancePositionTimeline
+          position={timelinePosition}
+          organization={organization}
+          timeline={timelineQuery.data?.timeline || []}
+          canManage={canManage}
+          onDeleted={refresh}
+        />
       </main>
 
       {canManage && (
