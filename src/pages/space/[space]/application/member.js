@@ -179,8 +179,8 @@ export default function SpaceMemberApplicationPage() {
             <CardHeader>
               <CardTitle>Become a member</CardTitle>
               <CardDescription>
-                Tell the Space administrators a little about why you want to
-                join and how you would like to participate.
+                Introduce yourself to the community and share why you would
+                like to be part of this Space.
               </CardDescription>
             </CardHeader>
 
@@ -188,6 +188,11 @@ export default function SpaceMemberApplicationPage() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="message">Why do you want to become a member?</Label>
+                  <p className="text-sm leading-5 text-muted-foreground">
+                    Your response will be publicly displayed if your membership
+                    is approved. Please write something you are comfortable
+                    sharing publicly.
+                  </p>
                   <Textarea
                     id="message"
                     value={message}
