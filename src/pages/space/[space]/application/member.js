@@ -179,40 +179,43 @@ export default function SpaceMemberApplicationPage() {
             <CardHeader>
               <CardTitle>Become a member</CardTitle>
               <CardDescription>
-                Introduce yourself to the community and share why you would
-                like to be part of this Space.
+                Your response will be publicly displayed if your membership is
+                approved. Please write something you are comfortable sharing
+                publicly.
               </CardDescription>
             </CardHeader>
 
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="message">Why do you want to become a member?</Label>
-                  <p className="text-sm leading-5 text-muted-foreground">
-                    Your response will be publicly displayed if your membership
-                    is approved. Please write something you are comfortable
-                    sharing publicly.
-                  </p>
                   <Textarea
                     id="message"
                     value={message}
                     onChange={(event) => setMessage(event.target.value)}
-                    placeholder="Tell us about your interest in this Space, what you would like to contribute, or why this community matters to you..."
+                    placeholder="Introduce yourself to the community and share why you would like to be part of this Space."
                     rows={7}
                     maxLength={1000}
                     disabled={submitting}
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Minimum 10 characters</span>
+                    <span>Minimum 100 characters</span>
                     <span>{message.length}/1000</span>
                   </div>
                 </div>
 
                 <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                  <Button type="button" variant="outline" asChild disabled={submitting}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    asChild
+                    disabled={submitting}
+                  >
                     <Link href={`/space/${space.slug}`}>Cancel</Link>
                   </Button>
-                  <Button type="submit" disabled={submitting || message.trim().length < 10}>
+                  <Button
+                    type="submit"
+                    disabled={submitting || message.trim().length < 100}
+                  >
                     {submitting ? "Submitting..." : "Apply to become a member"}
                   </Button>
                 </div>

@@ -21,7 +21,7 @@ export default function MemberCard({ member }) {
     <Card
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative h-[470px] overflow-hidden rounded-[28px] bg-muted transition-all duration-300"
+      className="group relative h-[300px] overflow-hidden rounded-[28px] bg-muted transition-all duration-300"
     >
       <div className="flex h-full flex-col">
         {/* Member identity */}
@@ -67,16 +67,13 @@ export default function MemberCard({ member }) {
             )}
 
             {hasMessage ? (
-              <div className="mt-5">
-                <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                  Their introduction
-                </p>
+              <div>
                 <p className="line-clamp-6 whitespace-pre-wrap text-sm leading-6">
                   “{member.membership_message}”
                 </p>
               </div>
             ) : (
-              <p className="mt-5 text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 No introduction provided.
               </p>
             )}
@@ -105,11 +102,13 @@ export default function MemberCard({ member }) {
           </div>
 
           <div className="mt-3 whitespace-pre-wrap text-sm leading-6">
-            {hasMessage ? member.membership_message : "No introduction provided."}
+            {hasMessage
+              ? member.membership_message
+              : "No introduction provided."}
           </div>
         </div>
 
-        <CardContent className="shrink-0 flex items-center justify-between p-5 pt-3">
+        <CardContent className="flex shrink-0 items-center justify-between p-5 pt-3">
           <div className="flex min-w-0 items-center gap-2">
             <Avatar className="h-8 w-8">
               <AvatarImage src={member.avatar_url || undefined} />
