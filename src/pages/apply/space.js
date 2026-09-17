@@ -5,11 +5,12 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Building2, Plus, Users, Megaphone, CalendarDays } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 import { LoginModal } from "@/components/auth/LoginModal";
 import ApplicationTopbar from "@/components/application/ApplicationTopbar";
+import SpaceConceptStrip from "@/components/application/SpaceConceptStrip";
 import { spaceApplicationSchema } from "@/schemas/spaceApplication";
 import { supabase } from "@/lib/supabase/client";
 import {
@@ -127,70 +128,99 @@ export default function ApplySpace() {
         backHref="/"
       />
 
-      <div className="mx-auto w-full max-w-4xl space-y-4 p-4 sm:px-6">
+      <main className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 sm:py-6">
+        <SpaceConceptStrip />
+
+        <div className="mb-8 mt-8">
+          <p className="text-sm font-medium text-primary">Create something useful</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
+            Tell us about your Space
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            Give people a clear place to organize around a purpose, a community,
+            or a place.
+          </p>
+        </div>
+
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <div className="grid gap-5 md:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="proposed_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Organization / Initiative Name</FormLabel>
-                    <FormControl className="bg-muted">
-                      <Input placeholder="Mumbai Walkability Forum" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
+            <section className="space-y-5">
+              <div>
+                <h2 className="text-base font-semibold">Identity</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Choose how your Space will appear to people.
+                </p>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="proposed_slug"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Space URL</FormLabel>
-                    <FormControl className="bg-muted">
-                      <Input placeholder="mumbai-walkability" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid gap-5 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="proposed_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Organization / Initiative Name</FormLabel>
+                      <FormControl className="bg-muted">
+                        <Input placeholder="Mumbai Walkability Forum" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category (optional)</FormLabel>
-                    <FormControl className="bg-muted">
-                      <Input
-                        placeholder="Mobility, Heritage, Environment..."
-                        {...field}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="proposed_slug"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Space URL</FormLabel>
+                      <FormControl className="bg-muted">
+                        <Input placeholder="mumbai-walkability" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="website"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Website (optional)</FormLabel>
-                    <FormControl className="bg-muted">
-                      <Input placeholder="https://example.org" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category (optional)</FormLabel>
+                      <FormControl className="bg-muted">
+                        <Input
+                          placeholder="Mobility, Heritage, Environment..."
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
 
-            <div className="space-y-5">
+                <FormField
+                  control={form.control}
+                  name="website"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Website (optional)</FormLabel>
+                      <FormControl className="bg-muted">
+                        <Input placeholder="https://example.org" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </section>
+
+            <section className="space-y-5 border-t pt-8">
+              <div>
+                <h2 className="text-base font-semibold">Purpose</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Help people understand what this Space is for.
+                </p>
+              </div>
+
               <FormField
                 control={form.control}
                 name="description"
@@ -214,11 +244,11 @@ export default function ApplySpace() {
                 name="justification"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Why should this space exist?</FormLabel>
+                    <FormLabel>Why should this Space exist?</FormLabel>
                     <FormControl className="bg-muted">
                       <Textarea
                         rows={4}
-                        placeholder="How will this space help people organize or collaborate?"
+                        placeholder="How will this Space help people organize or collaborate?"
                         {...field}
                       />
                     </FormControl>
@@ -226,54 +256,74 @@ export default function ApplySpace() {
                   </FormItem>
                 )}
               />
-            </div>
+            </section>
 
-            <div className="grid gap-5 md:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contact Email</FormLabel>
-                    <FormControl className="bg-muted">
-                      <Input type="email" placeholder="contact@example.org" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <section className="space-y-5 border-t pt-8">
+              <div>
+                <h2 className="text-base font-semibold">Contact</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Give us a way to reach the people responsible for this Space.
+                </p>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="contact_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contact Number</FormLabel>
-                    <FormControl className="bg-muted">
-                      <Input placeholder="+91 9876543210" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid gap-5 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contact Email</FormLabel>
+                      <FormControl className="bg-muted">
+                        <Input
+                          type="email"
+                          placeholder="contact@example.org"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>Address (optional)</FormLabel>
-                    <FormControl className="bg-muted">
-                      <Textarea rows={3} placeholder="Organization or office address" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
+                <FormField
+                  control={form.control}
+                  name="contact_number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contact Number</FormLabel>
+                      <FormControl className="bg-muted">
+                        <Input placeholder="+91 9876543210" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <h3 className="font-semibold">Social Links</h3>
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>Address (optional)</FormLabel>
+                      <FormControl className="bg-muted">
+                        <Textarea
+                          rows={3}
+                          placeholder="Organization or office address"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </section>
+
+            <section className="space-y-5 border-t pt-8">
+              <div>
+                <h2 className="text-base font-semibold">Social presence</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Add public links that help people find or verify your work.
+                </p>
               </div>
 
               <div className="flex flex-col gap-3 md:flex-row">
@@ -318,22 +368,27 @@ export default function ApplySpace() {
                   ))}
                 </div>
               )}
-            </div>
+            </section>
 
-            <Button
-              type="submit"
-              disabled={form.formState.isSubmitting}
-              className="h-14 w-full rounded-2xl text-base font-bold"
-            >
-              {form.formState.isSubmitting
-                ? "Submitting..."
-                : user
-                  ? "Submit Application"
-                  : "Sign in to Continue"}
-            </Button>
+            <div className="border-t pt-8">
+              <Button
+                type="submit"
+                disabled={form.formState.isSubmitting}
+                className="h-14 w-full rounded-2xl text-base font-bold"
+              >
+                {form.formState.isSubmitting
+                  ? "Submitting..."
+                  : user
+                    ? "Submit Application"
+                    : "Sign in to Continue"}
+              </Button>
+              <p className="mt-3 text-center text-xs text-muted-foreground">
+                Your application will be reviewed before the Space is created.
+              </p>
+            </div>
           </form>
         </Form>
-      </div>
+      </main>
 
       <LoginModal
         open={showLogin}
