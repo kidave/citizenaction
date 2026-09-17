@@ -7,6 +7,7 @@ export default function GovernancePageHeader({
   primaryActions = [],
   overflowActions = [],
   bottom,
+  backHref = "/governance?tab=organizations",
 }) {
   return (
     <Topbar
@@ -16,7 +17,7 @@ export default function GovernancePageHeader({
       primaryActions={primaryActions}
       overflowActions={overflowActions}
       bottom={bottom}
-      backHref="/governance"
+      backHref={backHref}
     />
   );
 }
