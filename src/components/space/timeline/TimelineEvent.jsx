@@ -1,4 +1,5 @@
 import ActivityPreviewCard from "@/components/feed/activity/ActivityPreviewCard";
+import MemberCard from "@/components/space/MemberCard";
 
 import { getTimelineColorForMonth } from "@/config/timeline";
 import { getTimelineMonthKey } from "@/utils/timeline";
@@ -18,12 +19,13 @@ export default function TimelineEvent({
   }
 
   const month = monthMarkers.find((item) => item.key === monthKey);
-
   const color = getTimelineColorForMonth(monthKey, monthMarkers);
-
   const active = activeMonth === monthKey;
+  const isMemberEvent = post.type === "member_joined" && post.member;
 
-  const card = (
+  const card = isMemberEvent ? (
+    <MemberCard member={post.member} />
+  ) : (
     <ActivityPreviewCard
       post={post}
       onSelect={onSelectEvent}
