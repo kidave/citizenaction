@@ -17,8 +17,8 @@ const ELEMENTS = [
   ["snow", 81, 2.5, 7, -6],
   ["wind", 8, 0, 8, -5],
   ["wind", 55, 0, 10, -2],
-  ["lightning", 38, 0, 7, -5],
-  ["fire", 91, 0, 9, -7],
+  ["lightning", 38, 0, 0, 0],
+  ["fire", 91, 0, 0, 0],
   ["comet", 22, 0, 8, -6],
   ["comet", 76, 0, 11, -3],
 ];
@@ -45,8 +45,8 @@ function RainDrop({ x, size, duration, delay, reducedMotion }) {
         <animateTransform
           attributeName="transform"
           type="translate"
-          from="0 -10"
-          to="0 118"
+          from="0 -12"
+          to="0 120"
           dur={`${duration}s`}
           begin={`${delay}s`}
           repeatCount="indefinite"
@@ -59,7 +59,7 @@ function RainDrop({ x, size, duration, delay, reducedMotion }) {
 function Leaf({ x, duration, delay, reducedMotion }) {
   return (
     <path
-      d={`M ${x} 0 C ${x - 3} 3, ${x - 2} 7, ${x + 1} 9 C ${x + 4} 6, ${x + 4} 2, ${x} 0 Z`}
+      d="M 0 0 C -3 3, -2 7, 1 9 C 4 6, 4 2, 0 0 Z"
       fill="currentColor"
       className="text-primary/20"
       opacity={reducedMotion ? 0.08 : 0.2}
@@ -68,8 +68,8 @@ function Leaf({ x, duration, delay, reducedMotion }) {
         <animateTransform
           attributeName="transform"
           type="translate"
-          from="-4 -10"
-          to="12 118"
+          from={`${x - 4} -10`}
+          to={`${x + 12} 118`}
           dur={`${duration}s`}
           begin={`${delay}s`}
           repeatCount="indefinite"
@@ -82,12 +82,17 @@ function Leaf({ x, duration, delay, reducedMotion }) {
 function Snow({ x, size, duration, delay, reducedMotion }) {
   return (
     <g
-      transform={`translate(${x} -8)`}
       className="text-primary/25"
       opacity={reducedMotion ? 0.1 : 0.24}
+      transform={`translate(${x} -8)`}
     >
       <circle cx="0" cy="0" r={size * 0.25} fill="currentColor" />
-      <path d={`M ${-size} 0 H ${size} M 0 ${-size} V ${size}`} stroke="currentColor" strokeWidth="0.7" />
+      <path
+        d={`M ${-size} 0 H ${size} M 0 ${-size} V ${size}`}
+        stroke="currentColor"
+        strokeWidth="0.7"
+        strokeLinecap="round"
+      />
       {!reducedMotion && (
         <animateTransform
           attributeName="transform"
@@ -106,7 +111,7 @@ function Snow({ x, size, duration, delay, reducedMotion }) {
 function Wind({ x, duration, delay, reducedMotion }) {
   return (
     <path
-      d={`M ${x} 18 C ${x + 5} 14, ${x + 10} 22, ${x + 15} 18 C ${x + 19} 15, ${x + 22} 17, ${x + 24} 20`}
+      d="M 0 18 C 5 14, 10 22, 15 18 C 19 15, 22 17, 24 20"
       fill="none"
       stroke="currentColor"
       strokeWidth="0.7"
@@ -118,8 +123,8 @@ function Wind({ x, duration, delay, reducedMotion }) {
         <animateTransform
           attributeName="transform"
           type="translate"
-          from="-28 0"
-          to="25 35"
+          from={`${x - 28} 0`}
+          to={`${x + 25} 35`}
           dur={`${duration}s`}
           begin={`${delay}s`}
           repeatCount="indefinite"
@@ -171,14 +176,14 @@ function Fire({ reducedMotion }) {
 function Comet({ x, duration, delay, reducedMotion }) {
   return (
     <g className="text-primary/20" opacity={reducedMotion ? 0.08 : 0.2}>
-      <path d={`M ${x} 0 L ${x - 10} 7`} stroke="currentColor" strokeWidth="0.8" strokeLinecap="round" />
-      <circle cx={x} cy="0" r="1.3" fill="currentColor" />
+      <path d="M 0 0 L -10 7" stroke="currentColor" strokeWidth="0.8" strokeLinecap="round" />
+      <circle cx="0" cy="0" r="1.3" fill="currentColor" />
       {!reducedMotion && (
         <animateTransform
           attributeName="transform"
           type="translate"
-          from="-8 -8"
-          to="35 120"
+          from={`${x - 8} -8`}
+          to={`${x + 35} 120`}
           dur={`${duration}s`}
           begin={`${delay}s`}
           repeatCount="indefinite"
