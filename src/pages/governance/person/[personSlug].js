@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
+import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
 import GovernanceAppointmentDialog from "@/components/governance/GovernanceAppointmentDialog";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
@@ -95,9 +96,21 @@ export default function GovernancePersonPage() {
             {career.length ? career.map((item) => (
               <Card key={item.appointment_id}>
                 <CardContent className="p-4">
-                  <div className="text-sm font-medium">{item.position_name}</div>
-                  <div className="text-sm text-muted-foreground">{item.organization_name}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">{formatGovernanceDate(item.started_at)}{item.ended_at ? ` – ${formatGovernanceDate(item.ended_at)}` : " – Present"}</div>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium">{item.position_name}</div>
+                      <div className="text-sm text-muted-foreground">{item.organization_name}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">{formatGovernanceDate(item.started_at)}{item.ended_at ? ` – ${formatGovernanceDate(item.ended_at)}` : " – Present"}</div>
+                    </div>
+                    {canManage && (
+                      <GovernanceAppointmentDeleteButton
+                        appointmentId={item.appointment_id}
+                        personName={person.name}
+                        positionName={item.position_name}
+                        onDeleted={refresh}
+                      />
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             )) : <p className="text-sm text-muted-foreground">No appointments recorded.</p>}
