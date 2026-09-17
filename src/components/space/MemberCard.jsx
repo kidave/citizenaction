@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { Mail, MapPin, Phone } from "lucide-react";
+import { CalendarDays, Mail, MapPin, Phone } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -58,6 +58,13 @@ export default function MemberCard({ member }) {
           </div>
         ) : null}
 
+        {member.created_at ? (
+          <div className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+            <span>Joined {formatDate(member.created_at)}</span>
+          </div>
+        ) : null}
+
         {(member.email || member.mobile) && (
           <div className="mt-4 space-y-2 border-t pt-3">
             {member.email && (
@@ -85,4 +92,12 @@ export default function MemberCard({ member }) {
       </CardContent>
     </Card>
   );
+}
+
+function formatDate(value) {
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(value));
 }
