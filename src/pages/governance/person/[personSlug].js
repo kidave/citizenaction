@@ -24,6 +24,7 @@ export default function GovernancePersonPage() {
   const { data: profile } = useMyProfile();
   const canManage = profile?.role === "admin";
   const [appointmentOpen, setAppointmentOpen] = useState(false);
+  const [editingAppointment, setEditingAppointment] = useState(null);
 
   const query = useQuery({
     queryKey: ["governance", "person", personSlug],
@@ -107,6 +108,7 @@ export default function GovernancePersonPage() {
                         appointmentId={item.appointment_id}
                         personName={person.name}
                         positionName={item.position_name}
+                        onEdit={() => setEditingAppointment(item)}
                         onDeleted={refresh}
                       />
                     )}
@@ -119,13 +121,28 @@ export default function GovernancePersonPage() {
       </main>
 
       {canManage && (
-        <GovernanceAppointmentDialog
-          open={appointmentOpen}
-          onOpenChange={setAppointmentOpen}
-          mode="person"
-          personId={person.id}
-          onSaved={refresh}
-        />
+        <>
+          <GovernanceAppointmentDialog
+            open={appointmentOpen}
+            onOpenChange={setAppointmentOpen}
+            mode="person"
+            personId={person.id}
+            onSaved={refresh}
+          />
+          <GovernanceAppointmentDialog
+            open={!!editingAppointment}
+            onOpenChange={(open) => {
+              if (!open) setEditingAppointment(null);
+            }}
+            mode="person"
+            personId={person.id}
+            appointment={editingAppointment}
+            onSaved={async () => {
+              setEditingAppointment(null);
+              await refresh();
+            }}
+          />
+        </>
       )}
     </div>
   );
