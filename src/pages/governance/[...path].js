@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import GovernanceEntityModal from "@/components/governance/GovernanceEntityModal";
 import GovernanceFamilyTree from "@/components/governance/GovernanceFamilyTree";
-import GovernanceOrganizationTree from "@/components/governance/GovernanceOrganizationTree";
+import GovernanceOrganizationOverview from "@/components/governance/GovernanceOrganizationOverview";
 import GovernanceLeadershipDialog from "@/components/governance/GovernanceLeadershipDialog";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import GovernanceRelationDialog from "@/components/governance/GovernanceRelationDialog";
@@ -190,6 +190,7 @@ export default function GovernanceRecordPage() {
       queryClient.invalidateQueries({ queryKey: queryKeys.governance.family(slug) }),
       queryClient.invalidateQueries({ queryKey: ["governance-directory"] }),
       queryClient.invalidateQueries({ queryKey: queryKeys.governance.organization(governance?.id) }),
+      queryClient.invalidateQueries({ queryKey: ["governance-organization-context", governance?.id] }),
       slug ? queryClient.invalidateQueries({ queryKey: queryKeys.governance.record(slug) }) : Promise.resolve(),
     ]);
     setModalEntity(null);
@@ -209,10 +210,7 @@ export default function GovernanceRecordPage() {
 
   const relationChildren = relationSource ? family.filter((item) => item.parent_id === relationSource.id) : [];
   const loading = governanceQuery.isLoading || familyLoading;
-
-  const directoryTabHref = view === "organization"
-    ? "/governance?tab=organizations"
-    : "/governance?tab=organizations";
+  const directoryTabHref = "/governance?tab=organizations";
 
   if (loading) {
     return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: directoryTabHref }, { label: "Loading..." }]} backHref={directoryTabHref} /><main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading governance...</main></div>;
@@ -227,17 +225,12 @@ export default function GovernanceRecordPage() {
       <GovernancePageHeader items={[{ label: "Governance", href: directoryTabHref }, ...lineage.slice(0, -1).map((item) => ({ label: getGovernanceLabel(item), href: getGovernanceHref(item) })), { label: getGovernanceLabel(governance) }, ...(view === "organization" ? [{ label: "Organization" }] : [])]} backHref={directoryTabHref} />
       <main className="min-h-0 flex-1 p-0">
         {view === "organization" ? (
-          <GovernanceOrganizationTree
-            governanceId={governance.id}
+          <GovernanceOrganizationOverview
+            governance={governance}
             asOf={asOf}
             canEdit={canEdit}
             onAdd={() => { setLeadershipRecord(null); setLeadershipOpen(true); }}
-            onEdit={(record) => { setLeadershipRecord(record); setLeadershipOpen(true); }}
-            onSelect={(record) => {
-              const target = record.position_governance_id ? byId.get(record.position_governance_id) : record.person_governance_id ? byId.get(record.person_governance_id) : null;
-              if (target) selectEntity(target);
-            }}
-            className="min-h-[calc(100vh-5.5rem)]"
+            onEdit={editEntity}
           />
         ) : (
           <GovernanceFamilyTree
