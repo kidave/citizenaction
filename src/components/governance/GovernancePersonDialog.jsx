@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import ImageUpload from "@/components/media/ImageUpload";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,6 +30,9 @@ export default function GovernancePersonDialog({ open, onOpenChange, record = nu
   const [loadingRecord, setLoadingRecord] = useState(false);
 
   const isEditing = !!record?.id;
+  const imagePath = isEditing
+    ? `governance/person/${record.id}/image`
+    : "governance/person/draft/image";
 
   useEffect(() => {
     if (!open) return;
@@ -145,7 +149,7 @@ export default function GovernancePersonDialog({ open, onOpenChange, record = nu
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserRound className="h-4 w-4" />
@@ -161,6 +165,16 @@ export default function GovernancePersonDialog({ open, onOpenChange, record = nu
           </div>
         ) : (
           <div className="space-y-4 py-2">
+            <ImageUpload
+              bucket="governance"
+              path={imagePath}
+              value={form.imageUrl || null}
+              onChange={(value) => setField("imageUrl", value || "")}
+              label="Person image"
+              helperText="PNG, JPG or WebP · up to 5 MB"
+              disabled={loading}
+            />
+
             <div className="space-y-2">
               <Label htmlFor="governance-person-name">Name</Label>
               <Input
@@ -208,18 +222,6 @@ export default function GovernancePersonDialog({ open, onOpenChange, record = nu
                 type="url"
                 value={form.website}
                 onChange={(event) => setField("website", event.target.value)}
-                placeholder="https://..."
-                disabled={loading}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="governance-person-image">Image URL</Label>
-              <Input
-                id="governance-person-image"
-                type="url"
-                value={form.imageUrl}
-                onChange={(event) => setField("imageUrl", event.target.value)}
                 placeholder="https://..."
                 disabled={loading}
               />
