@@ -5,15 +5,18 @@ import GeographyFocusSelector from "@/components/geography/GeographyFocusSelecto
 import OrganizationDirectory from "@/components/governance/OrganizationDirectory";
 import PositionDirectory from "@/components/governance/PositionDirectory";
 import PersonDirectory from "@/components/governance/PersonDirectory";
+import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { GOVERNANCE_DIRECTORY_TABS } from "@/utils/governance";
 
 export default function GovernancePage() {
   const [tab, setTab] = useState("organizations");
   const [focusGeographyId, setFocusGeographyId] = useState(null);
+  const { data: profile } = useMyProfile();
+  const canManage = profile?.role === "admin";
 
   const directoryProps = useMemo(
-    () => ({ geographyId: focusGeographyId }),
-    [focusGeographyId],
+    () => ({ geographyId: focusGeographyId, canManage }),
+    [focusGeographyId, canManage],
   );
 
   return (

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Check, Circle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
+import MenuButton from "@/components/ui/MenuButton";
 import {
   Tooltip,
   TooltipContent,
@@ -19,6 +20,8 @@ export default function GovernanceDirectoryCard({
   selectionMode = null,
   selected = false,
   onSelect,
+  onEdit,
+  onDelete,
 }) {
   const label = getGovernanceLabel(entity);
   const href = getGovernanceHref({ ...entity, tab });
@@ -28,6 +31,7 @@ export default function GovernanceDirectoryCard({
   const fallbackLabel = entity.current_holder_name || label;
   const isSelectable =
     selectionMode === "radio" || selectionMode === "checkbox";
+  const canManage = !isSelectable && (onEdit || onDelete);
 
   const content = (
     <Card
@@ -71,11 +75,16 @@ export default function GovernanceDirectoryCard({
           </AvatarFallback>
         </Avatar>
 
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1 pr-7">
           <h2 className="truncate text-sm font-medium">{label}</h2>
           {tab === "organizations" && entity.type && (
             <p className="truncate text-xs text-muted-foreground">
               {entity.type}
+            </p>
+          )}
+          {tab !== "organizations" && entity.parent_name && (
+            <p className="truncate text-xs text-muted-foreground">
+              {entity.parent_name}
             </p>
           )}
         </div>
@@ -102,18 +111,31 @@ export default function GovernanceDirectoryCard({
     );
   }
 
-  if (href) {
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Link href={href} className="block h-full" aria-label={label}>
-            {content}
-          </Link>
-        </TooltipTrigger>
-        <TooltipContent side="top">{label}</TooltipContent>
-      </Tooltip>
-    );
-  }
+  return (
+    <div className="relative h-full">
+      {href ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link href={href} className="block h-full" aria-label={label}>
+              {content}
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent side="top">{label}</TooltipContent>
+        </Tooltip>
+      ) : (
+        content
+      )}
 
-  return content;
+      {canManage && (
+        <div className="absolute right-1 top-1 z-10">
+          <MenuButton
+            onEdit={onEdit}
+            onDelete={onDelete}
+            deleteTitle={`Delete ${tab === "people" ? "person" : "position"}?`}
+            deleteDescription="This permanently removes the governance record. Appointment history must be removed first."
+          />
+        </div>
+      )}
+    </div>
+  );
 }

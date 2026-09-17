@@ -2,9 +2,10 @@ import { CalendarDays } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
+import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
 import { formatGovernanceDate, getGovernanceInitials, getGovernanceLabel } from "@/utils/governance";
 
-export default function GovernancePositionTimeline({ position, organization, timeline = [] }) {
+export default function GovernancePositionTimeline({ position, organization, timeline = [], canManage = false, onDeleted }) {
   const organizationLabel = getGovernanceLabel(organization);
 
   return (
@@ -43,6 +44,14 @@ export default function GovernancePositionTimeline({ position, organization, tim
                           {formatGovernanceDate(item.started_at)}
                           {item.ended_at ? ` – ${formatGovernanceDate(item.ended_at)}` : " – Present"}
                         </span>
+                        {canManage && (
+                          <GovernanceAppointmentDeleteButton
+                            appointmentId={item.appointment_id}
+                            personName={item.is_vacant ? null : personName}
+                            positionName={position?.name}
+                            onDeleted={onDeleted}
+                          />
+                        )}
                       </div>
                     </div>
                     {item.notes && <p className="mt-3 text-sm leading-6 text-muted-foreground">{item.notes}</p>}
