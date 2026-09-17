@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { useRouter } from "next/router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
+import GovernanceAppointmentDialog from "@/components/governance/GovernanceAppointmentDialog";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import GovernancePositionTimeline from "@/components/governance/GovernancePositionTimeline";
+import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { usePositionTimeline } from "@/hooks/governance/usePositionTimeline";
 import { getGovernanceLabel } from "@/utils/governance";
 import { supabase } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
 
 function getValue(value) {
   if (Array.isArray(value)) return value[0] || null;
@@ -14,8 +18,12 @@ function getValue(value) {
 
 export default function GovernancePositionPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const organizationSlug = getValue(router.query.organizationSlug);
   const positionSlug = getValue(router.query.positionSlug);
+  const { data: profile } = useMyProfile();
+  const canManage = profile?.role === "admin";
+  const [appointmentOpen, setAppointmentOpen] = useState(false);
 
   const positionQuery = useQuery({
     queryKey: ["governance", "position", organizationSlug, positionSlug],
@@ -38,17 +46,6 @@ export default function GovernancePositionPage() {
       if (positionResult.error) throw positionResult.error;
       if (!positionResult.data) return null;
 
-      const appointmentResult = await supabase
-        .from("position_appointment")
-        .select("id,organization_id,started_at,ended_at,is_primary")
-        .eq("position_id", positionResult.data.id)
-        .eq("organization_id", organizationResult.data.id)
-        .order("is_primary", { ascending: false })
-        .order("started_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (appointmentResult.error) throw appointmentResult.error;
-
       return { organization: organizationResult.data, position: positionResult.data };
     },
   });
@@ -66,12 +63,40 @@ export default function GovernancePositionPage() {
   const { organization, position } = positionQuery.data;
   const timelinePosition = timelineQuery.data?.position || position;
 
+  const refresh = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["position-timeline", position.id] }),
+      queryClient.invalidateQueries({ queryKey: ["governance", "position", organizationSlug, positionSlug] }),
+      queryClient.invalidateQueries({ queryKey: ["governance-directory"] }),
+    ]);
+  };
+
   return (
     <div className="flex min-h-dvh w-full flex-col">
-      <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: getGovernanceLabel(organization), href: `/governance/${organization.slug}` }, { label: getGovernanceLabel(position) }]} />
+      <GovernancePageHeader
+        items={[{ label: "Governance", href: "/governance" }, { label: getGovernanceLabel(organization), href: `/governance/${organization.slug}` }, { label: getGovernanceLabel(position) }]}
+        actions={
+          canManage ? (
+            <Button type="button" size="sm" onClick={() => setAppointmentOpen(true)}>
+              Add person
+            </Button>
+          ) : null
+        }
+      />
       <main className="min-h-0 flex-1">
         <GovernancePositionTimeline position={timelinePosition} organization={organization} timeline={timelineQuery.data?.timeline || []} />
       </main>
+
+      {canManage && (
+        <GovernanceAppointmentDialog
+          open={appointmentOpen}
+          onOpenChange={setAppointmentOpen}
+          mode="position"
+          organizationId={organization.id}
+          positionId={position.id}
+          onSaved={refresh}
+        />
+      )}
     </div>
   );
 }
