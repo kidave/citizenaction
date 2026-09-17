@@ -30,7 +30,7 @@ export default function MembersTab({ spaceId, spaceSlug }) {
       <div className="space-y-6">
         <BecomeMemberCard spaceSlug={spaceSlug} />
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <Card key={i}>
               <CardContent className="space-y-4 p-4">
@@ -65,7 +65,7 @@ export default function MembersTab({ spaceId, spaceSlug }) {
           </CardHeader>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {members.map((member) => (
             <MemberCard key={member.user_id} member={member} />
           ))}
@@ -77,8 +77,8 @@ export default function MembersTab({ spaceId, spaceSlug }) {
 
 function MemberCard({ member }) {
   return (
-    <Card className="h-full overflow-hidden bg-muted transition hover:bg-muted/80">
-      <CardContent className="p-4">
+    <Card className="h-full overflow-hidden transition-colors hover:bg-muted/40">
+      <CardContent className="p-5">
         <Link href={`/user/${member.username}`} className="block">
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12 shrink-0">
@@ -113,13 +113,16 @@ function MemberCard({ member }) {
           </div>
         )}
 
-        {member.membership_message && (
-          <div className="mt-4 border-t pt-3">
-            <p className="line-clamp-4 whitespace-pre-wrap text-sm leading-5 text-muted-foreground">
+        {member.membership_message ? (
+          <div className="mt-5 rounded-lg bg-muted/50 p-4">
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Their introduction
+            </p>
+            <p className="line-clamp-5 whitespace-pre-wrap text-sm leading-6">
               “{member.membership_message}”
             </p>
           </div>
-        )}
+        ) : null}
 
         {(member.email || member.mobile) && (
           <div className="mt-4 space-y-2 border-t pt-3">
