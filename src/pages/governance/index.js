@@ -21,37 +21,38 @@ export default function GovernancePage() {
     setTab(value);
   };
 
+  const governanceControls = (
+    <div className="flex min-w-0 items-center gap-1">
+      <GeographyFocusSelector
+        value={focusGeographyId}
+        onValueChange={setFocusGeographyId}
+      />
+      <ToggleGroup
+        type="single"
+        value={tab}
+        onValueChange={handleTabChange}
+        variant="outline"
+        className="shrink-0"
+        aria-label="Governance directory view"
+      >
+        {GOVERNANCE_DIRECTORY_TABS.map(([value, label]) => (
+          <ToggleGroupItem
+            key={value}
+            value={value}
+            className="px-2.5 sm:px-3"
+          >
+            {label}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+    </div>
+  );
+
   return (
     <div className="flex min-h-dvh w-full flex-col">
-      <GovernancePageHeader items={[{ label: "Governance" }]} />
+      <GovernancePageHeader items={[{ label: "Governance" }]} actions={governanceControls} />
       <main className="flex-1 px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-6xl">
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-            <ToggleGroup
-              type="single"
-              value={tab}
-              onValueChange={handleTabChange}
-              variant="outline"
-              className="w-full sm:w-auto"
-              aria-label="Governance directory view"
-            >
-              {GOVERNANCE_DIRECTORY_TABS.map(([value, label]) => (
-                <ToggleGroupItem
-                  key={value}
-                  value={value}
-                  className="flex-1 px-4 sm:flex-none"
-                >
-                  {label}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
-
-            <GeographyFocusSelector
-              value={focusGeographyId}
-              onValueChange={setFocusGeographyId}
-            />
-          </div>
-
           {tab === "organizations" && (
             <OrganizationDirectory {...directoryProps} />
           )}
