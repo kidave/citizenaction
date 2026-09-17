@@ -53,10 +53,6 @@ export default function GeographyFocusSelector({ value, onValueChange, className
   });
 
   useEffect(() => {
-    if (!value) return;
-  }, [value]);
-
-  useEffect(() => {
     if (!open) setSearch("");
   }, [open]);
 
@@ -71,53 +67,61 @@ export default function GeographyFocusSelector({ value, onValueChange, className
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <MapPinned className="h-4 w-4 shrink-0 text-muted-foreground" />
-      <span className="text-xs text-muted-foreground">Focus</span>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            role="combobox"
-            aria-expanded={open}
-            className={cn("h-8 max-w-[18rem] justify-between px-2 font-medium", className)}
-          >
-            <span className="truncate">{selectedLabel}</span>
-            <ChevronsUpDown className="ml-2 h-3.5 w-3.5 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent align="start" className="w-[320px] p-0">
-          <Command shouldFilter={false}>
-            <SearchInput placeholder="Search countries, states, cities, wards..." value={search} onValueChange={setSearch} />
-            <CommandList>
-              <CommandEmpty>{searchQuery.isLoading ? "Searching..." : "No areas found."}</CommandEmpty>
-              {canReset && (
-                <CommandItem value="india" onSelect={() => selectValue(DEFAULT_COUNTRY_ID)}>
-                  <RotateCcw className="h-4 w-4" />
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium">India</div>
-                    <div className="text-xs text-muted-foreground">Reset focus area</div>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          role="combobox"
+          aria-expanded={open}
+          className={cn(
+            "h-8 max-w-[12rem] shrink-0 justify-between gap-1.5 px-2 font-medium",
+            className,
+          )}
+        >
+          <MapPinned className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">Focus</span>
+          <span className="min-w-0 truncate">{selectedLabel}</span>
+          <ChevronsUpDown className="ml-0.5 h-3.5 w-3.5 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="end"
+        side="bottom"
+        sideOffset={6}
+        className="w-[min(20rem,calc(100vw-1.5rem))] p-0"
+      >
+        <Command shouldFilter={false}>
+          <SearchInput
+            placeholder="Search countries, states, cities, wards..."
+            value={search}
+            onValueChange={setSearch}
+          />
+          <CommandList>
+            <CommandEmpty>{searchQuery.isLoading ? "Searching..." : "No areas found."}</CommandEmpty>
+            {canReset && (
+              <CommandItem value="india" onSelect={() => selectValue(DEFAULT_COUNTRY_ID)}>
+                <RotateCcw className="h-4 w-4" />
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium">India</div>
+                  <div className="text-xs text-muted-foreground">Reset focus area</div>
+                </div>
+              </CommandItem>
+            )}
+            {options.map((item) => (
+              <CommandItem key={item.id} value={item.id} onSelect={() => selectValue(item.id)}>
+                <Check className={cn("h-4 w-4", effectiveValue === item.id ? "opacity-100" : "opacity-0")} />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm">{item.name}</div>
+                  <div className="truncate text-xs text-muted-foreground">
+                    {item.geography_type?.replace(/_/g, " ")}
                   </div>
-                </CommandItem>
-              )}
-              {options.map((item) => (
-                <CommandItem
-                  key={item.id}
-                  value={item.id}
-                  onSelect={() => selectValue(item.id)}
-                >
-                  <Check className={cn("h-4 w-4", effectiveValue === item.id ? "opacity-100" : "opacity-0")} />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm">{item.name}</div>
-                    <div className="truncate text-xs text-muted-foreground">{item.geography_type?.replace(/_/g, " ")}</div>
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-    </div>
+                </div>
+              </CommandItem>
+            ))}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
