@@ -78,6 +78,7 @@ export default function GovernancePositionTimeline({ position, organization, tim
           mode="position"
           organizationId={organization?.id}
           positionId={position?.id}
+          personId={editingAppointment?.person_id}
           appointment={editingAppointment}
           onSaved={async () => {
             setEditingAppointment(null);
