@@ -129,36 +129,40 @@ export default function GovernanceAppointmentDialog({
 
     try {
       setSaving(true);
-      let finalPersonId = personMode ? personId : selectedPersonId;
 
+      let result;
       if (creatingPerson) {
-        const result = await supabase.rpc("create_person", {
+        result = await supabase.rpc("create_person_appointment", {
+          p_organization_id: finalOrganizationId,
+          p_position_id: finalPositionId,
+          p_started_at: `${startedAt}T00:00:00Z`,
           p_name: newPersonName.trim(),
           p_biography: null,
           p_website: null,
           p_image_url: newPersonImageUrl || null,
           p_profile_user_id: null,
-          p_metadata: {},
+          p_ended_at: endedAt ? `${endedAt}T23:59:59.999Z` : null,
+          p_is_primary: isPrimary,
+          p_notes: null,
         });
-        if (result.error) throw result.error;
-        finalPersonId = Array.isArray(result.data) ? result.data[0]?.id : result.data?.id;
-        if (!finalPersonId) throw new Error("Unable to create person");
+      } else {
+        const finalPersonId = personMode ? personId : selectedPersonId;
+        result = await supabase.rpc("upsert_organization", {
+          p_id: null,
+          p_governance_id: finalOrganizationId,
+          p_person_name: selectedPerson?.name || "",
+          p_person_governance_id: finalPersonId,
+          p_position_name: selectedPosition?.name || "Position",
+          p_position_governance_id: finalPositionId,
+          p_started_at: `${startedAt}T00:00:00Z`,
+          p_ended_at: endedAt ? `${endedAt}T23:59:59.999Z` : null,
+          p_is_vacant: false,
+          p_is_primary: isPrimary,
+          p_reports_to_id: null,
+          p_notes: null,
+        });
       }
 
-      const result = await supabase.rpc("upsert_organization", {
-        p_id: null,
-        p_governance_id: finalOrganizationId,
-        p_person_name: positionMode ? (creatingPerson ? newPersonName.trim() : selectedPerson?.name || "") : selectedPerson?.name || "",
-        p_person_governance_id: finalPersonId,
-        p_position_name: selectedPosition?.name || "Position",
-        p_position_governance_id: finalPositionId,
-        p_started_at: `${startedAt}T00:00:00Z`,
-        p_ended_at: endedAt ? `${endedAt}T23:59:59.999Z` : null,
-        p_is_vacant: false,
-        p_is_primary: isPrimary,
-        p_reports_to_id: null,
-        p_notes: null,
-      });
       if (result.error) throw result.error;
 
       toast.success(positionMode ? "Person added to position" : "Position added to person");
