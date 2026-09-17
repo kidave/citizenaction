@@ -1,8 +1,13 @@
+import { useState } from "react";
 import { useRouter } from "next/router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
+import GovernanceAppointmentDialog from "@/components/governance/GovernanceAppointmentDialog";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
+import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { supabase } from "@/lib/supabase/client";
 import { formatGovernanceDate, getGovernanceInitials } from "@/utils/governance";
 
@@ -13,7 +18,11 @@ function getValue(value) {
 
 export default function GovernancePersonPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const personSlug = getValue(router.query.personSlug);
+  const { data: profile } = useMyProfile();
+  const canManage = profile?.role === "admin";
+  const [appointmentOpen, setAppointmentOpen] = useState(false);
 
   const query = useQuery({
     queryKey: ["governance", "person", personSlug],
@@ -41,10 +50,25 @@ export default function GovernancePersonPage() {
   }
 
   const { person, career } = query.data;
+  const refresh = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["governance", "person", personSlug] }),
+      queryClient.invalidateQueries({ queryKey: ["governance-directory"] }),
+    ]);
+  };
 
   return (
     <div className="flex min-h-dvh w-full flex-col">
-      <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "People", href: "/governance" }, { label: person.name }]} />
+      <GovernancePageHeader
+        items={[{ label: "Governance", href: "/governance" }, { label: "People", href: "/governance" }, { label: person.name }]}
+        actions={
+          canManage ? (
+            <Button type="button" size="sm" onClick={() => setAppointmentOpen(true)}>
+              Add current position
+            </Button>
+          ) : null
+        }
+      />
       <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl space-y-6">
           <div className="flex items-center gap-3">
@@ -56,7 +80,18 @@ export default function GovernancePersonPage() {
           </div>
 
           <section className="space-y-3">
-            <h2 className="text-sm font-semibold">Career</h2>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-semibold">Career</h2>
+                <p className="mt-1 text-xs text-muted-foreground">Positions and organizations associated with this person.</p>
+              </div>
+              {canManage && (
+                <Button type="button" variant="outline" size="sm" onClick={() => setAppointmentOpen(true)}>
+                  Add position
+                </Button>
+              )}
+            </div>
+
             {career.length ? career.map((item) => (
               <Card key={item.appointment_id}>
                 <CardContent className="p-4">
@@ -69,6 +104,16 @@ export default function GovernancePersonPage() {
           </section>
         </div>
       </main>
+
+      {canManage && (
+        <GovernanceAppointmentDialog
+          open={appointmentOpen}
+          onOpenChange={setAppointmentOpen}
+          mode="person"
+          personId={person.id}
+          onSaved={refresh}
+        />
+      )}
     </div>
   );
 }
