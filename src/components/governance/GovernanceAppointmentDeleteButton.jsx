@@ -1,15 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/lib/supabase/client";
 
-export default function GovernanceAppointmentDeleteButton({ appointmentId, personName, positionName, onDeleted }) {
-  const [open, setOpen] = useState(false);
+export default function GovernanceAppointmentDeleteButton({ appointmentId, personName, positionName, onEdit, onDeleted }) {
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const remove = async () => {
@@ -21,7 +22,7 @@ export default function GovernanceAppointmentDeleteButton({ appointmentId, perso
       if (error) throw error;
 
       toast.success("Appointment deleted");
-      setOpen(false);
+      setConfirmOpen(false);
       await onDeleted?.();
     } catch (error) {
       toast.error(error?.message || "Unable to delete appointment");
@@ -32,20 +33,25 @@ export default function GovernanceAppointmentDeleteButton({ appointmentId, perso
 
   return (
     <>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className="shrink-0 text-muted-foreground hover:text-destructive"
-        aria-label="Delete appointment"
-        title="Delete appointment"
-        onClick={() => setOpen(true)}
-        disabled={deleting}
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-muted-foreground" aria-label="Appointment actions">
+            <MoreVertical className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onSelect={() => onEdit?.()}>
+            <Pencil className="h-4 w-4" />
+            Edit
+          </DropdownMenuItem>
+          <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={() => setConfirmOpen(true)}>
+            <Trash2 className="h-4 w-4" />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-      <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete appointment?</AlertDialogTitle>
