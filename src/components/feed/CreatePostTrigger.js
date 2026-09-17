@@ -4,7 +4,6 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { Sparkles, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { useAuth } from "@/context/AuthContext";
@@ -12,8 +11,8 @@ import { useMyProfile } from "@/hooks/user/useMyProfile";
 
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-
 import { LoginModal } from "@/components/auth/LoginModal";
+import CreatePostWaveAnimation from "./CreatePostWaveAnimation";
 
 export default function CreatePostTrigger({ onCreate }) {
   const { user } = useAuth();
@@ -66,17 +65,21 @@ export default function CreatePostTrigger({ onCreate }) {
             onClick={handleClick}
             className="flex min-w-0 flex-1 text-left"
           >
-            <Card className="group flex w-full items-center justify-between gap-3 rounded-2xl bg-muted px-4 py-3 transition-colors">
-              <div className="min-w-0">
+            <Card className="relative flex w-full items-center justify-between gap-3 overflow-hidden rounded-2xl bg-muted px-4 py-3 transition-colors">
+              <CreatePostWaveAnimation />
+
+              <div className="relative z-10 min-w-0">
                 <div className="text-md flex items-center">
                   <span className="truncate">
-                    {user ? "Create a Document" : "Login to Document"}
+                    {user
+                      ? "Document your action"
+                      : "Login or Signup to document your action"}
                   </span>
                 </div>
               </div>
 
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 bg-background">
-                <Plus className="h-4 w-4" />
+              <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 bg-background">
+                <span className="text-lg leading-none">+</span>
               </div>
             </Card>
           </button>
