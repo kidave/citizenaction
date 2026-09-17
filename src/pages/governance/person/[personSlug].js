@@ -43,11 +43,11 @@ export default function GovernancePersonPage() {
   });
 
   if (query.isLoading) {
-    return <div className="flex min-h-dvh items-center justify-center text-sm text-muted-foreground">Loading person...</div>;
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance?tab=people" }, { label: "Loading..." }]} backHref="/governance?tab=people" /><main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading person...</main></div>;
   }
 
   if (query.error || !query.data) {
-    return <div className="flex min-h-dvh items-center justify-center text-sm">Person not found.</div>;
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance?tab=people" }, { label: "Not found" }]} backHref="/governance?tab=people" /><main className="flex flex-1 items-center justify-center text-sm">Person not found.</main></div>;
   }
 
   const { person, career } = query.data;
@@ -61,7 +61,8 @@ export default function GovernancePersonPage() {
   return (
     <div className="flex min-h-dvh w-full flex-col">
       <GovernancePageHeader
-        items={[{ label: "Governance", href: "/governance" }, { label: "People", href: "/governance" }, { label: person.name }]}
+        items={[{ label: "Governance", href: "/governance?tab=people" }, { label: "People", href: "/governance?tab=people" }, { label: person.name }]}
+        backHref="/governance?tab=people"
         actions={
           canManage ? (
             <Button type="button" size="sm" onClick={() => setAppointmentOpen(true)}>

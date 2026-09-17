@@ -210,17 +210,21 @@ export default function GovernanceRecordPage() {
   const relationChildren = relationSource ? family.filter((item) => item.parent_id === relationSource.id) : [];
   const loading = governanceQuery.isLoading || familyLoading;
 
+  const directoryTabHref = view === "organization"
+    ? "/governance?tab=organizations"
+    : "/governance?tab=organizations";
+
   if (loading) {
-    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Loading..." }]} /><main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading governance...</main></div>;
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: directoryTabHref }, { label: "Loading..." }]} backHref={directoryTabHref} /><main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading governance...</main></div>;
   }
 
   if (governanceQuery.error || !governance) {
-    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Not found" }]} /><main className="flex flex-1 items-center justify-center text-sm">Governance record not found.</main></div>;
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: directoryTabHref }, { label: "Not found" }]} backHref={directoryTabHref} /><main className="flex flex-1 items-center justify-center text-sm">Governance record not found.</main></div>;
   }
 
   return (
     <div className="flex min-h-dvh w-full flex-col">
-      <GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, ...lineage.slice(0, -1).map((item) => ({ label: getGovernanceLabel(item), href: getGovernanceHref(item) })), { label: getGovernanceLabel(governance) }, ...(view === "organization" ? [{ label: "Organization" }] : [])]} />
+      <GovernancePageHeader items={[{ label: "Governance", href: directoryTabHref }, ...lineage.slice(0, -1).map((item) => ({ label: getGovernanceLabel(item), href: getGovernanceHref(item) })), { label: getGovernanceLabel(governance) }, ...(view === "organization" ? [{ label: "Organization" }] : [])]} backHref={directoryTabHref} />
       <main className="min-h-0 flex-1 p-0">
         {view === "organization" ? (
           <GovernanceOrganizationTree

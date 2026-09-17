@@ -53,11 +53,11 @@ export default function GovernancePositionPage() {
   const timelineQuery = usePositionTimeline(positionQuery.data?.position?.id, !!positionQuery.data?.position?.id);
 
   if (positionQuery.isLoading || timelineQuery.isLoading) {
-    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Loading..." }]} /><main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading position...</main></div>;
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance?tab=positions" }, { label: "Loading..." }]} backHref="/governance?tab=positions" /><main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading position...</main></div>;
   }
 
   if (positionQuery.error || timelineQuery.error || !positionQuery.data) {
-    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance" }, { label: "Not found" }]} /><main className="flex flex-1 items-center justify-center text-sm">Governance position not found.</main></div>;
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance?tab=positions" }, { label: "Not found" }]} backHref="/governance?tab=positions" /><main className="flex flex-1 items-center justify-center text-sm">Governance position not found.</main></div>;
   }
 
   const { organization, position } = positionQuery.data;
@@ -74,7 +74,8 @@ export default function GovernancePositionPage() {
   return (
     <div className="flex min-h-dvh w-full flex-col">
       <GovernancePageHeader
-        items={[{ label: "Governance", href: "/governance" }, { label: getGovernanceLabel(organization), href: `/governance/${organization.slug}` }, { label: getGovernanceLabel(position) }]}
+        items={[{ label: "Governance", href: "/governance?tab=positions" }, { label: getGovernanceLabel(organization), href: `/governance/${organization.slug}` }, { label: getGovernanceLabel(position) }]}
+        backHref="/governance?tab=positions"
         actions={
           canManage ? (
             <Button type="button" size="sm" onClick={() => setAppointmentOpen(true)}>
