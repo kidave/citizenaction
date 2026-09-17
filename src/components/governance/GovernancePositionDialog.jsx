@@ -154,21 +154,12 @@ export default function GovernancePositionDialog({
             p_description: form.description.trim() || null,
             p_image_url: form.imageUrl.trim() || null,
             p_category_id: form.categoryId === "none" ? null : form.categoryId || null,
-            p_metadata: form.organizationId ? { appointing_organization_id: form.organizationId } : {},
+            p_metadata: {},
+            p_appointing_organization_id: form.organizationId || null,
           };
 
       const result = await supabase.rpc(rpc, params);
       if (result.error) throw result.error;
-
-      // create_position predates appointing_organization_id in its RPC contract,
-      // so attach the organization after creation when one was selected.
-      if (!isEditing && form.organizationId && result.data?.id) {
-        const { error } = await supabase
-          .from("position")
-          .update({ appointing_organization_id: form.organizationId })
-          .eq("id", result.data.id);
-        if (error) throw error;
-      }
 
       toast.success(isEditing ? "Position updated" : "Position created");
       await onSaved?.(result.data);
