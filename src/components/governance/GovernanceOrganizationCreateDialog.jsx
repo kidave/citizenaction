@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ImageUpload } from "@/components/media/ImageUpload";
+import ImageUpload from "@/components/media/ImageUpload";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -26,12 +26,7 @@ function emptyForm() {
   };
 }
 
-export default function GovernanceOrganizationCreateDialog({
-  open,
-  onOpenChange,
-  categories = [],
-  onSaved,
-}) {
+export default function GovernanceOrganizationCreateDialog({ open, onOpenChange, categories = [], onSaved }) {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
 
@@ -100,36 +95,19 @@ export default function GovernanceOrganizationCreateDialog({
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="governance-organization-name">Name</Label>
-              <Input
-                id="governance-organization-name"
-                value={form.name}
-                onChange={(event) => setField("name", event.target.value)}
-                placeholder="e.g. Mumbai Metropolitan Region Development Authority"
-                disabled={saving}
-                autoFocus
-              />
+              <Input id="governance-organization-name" value={form.name} onChange={(event) => setField("name", event.target.value)} placeholder="e.g. Mumbai Metropolitan Region Development Authority" disabled={saving} autoFocus />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="governance-organization-short-name">Short name</Label>
-              <Input
-                id="governance-organization-short-name"
-                value={form.shortName}
-                onChange={(event) => setField("shortName", event.target.value)}
-                placeholder="e.g. MMRDA"
-                disabled={saving}
-              />
+              <Input id="governance-organization-short-name" value={form.shortName} onChange={(event) => setField("shortName", event.target.value)} placeholder="e.g. MMRDA" disabled={saving} />
             </div>
 
             <div className="space-y-2">
               <Label>Type</Label>
               <Select value={form.type} onValueChange={(value) => setField("type", value)} disabled={saving}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent className="max-h-72">
-                  {GOVERNANCE_TYPES.map((item) => (
-                    <SelectItem key={item} value={item}>{formatGovernanceType(item)}</SelectItem>
-                  ))}
-                </SelectContent>
+                <SelectContent className="max-h-72">{GOVERNANCE_TYPES.map((item) => <SelectItem key={item} value={item}>{formatGovernanceType(item)}</SelectItem>)}</SelectContent>
               </Select>
             </div>
 
@@ -137,10 +115,7 @@ export default function GovernanceOrganizationCreateDialog({
               <Label>Category</Label>
               <Select value={form.categoryId || "none"} onValueChange={(value) => setField("categoryId", value === "none" ? "" : value)} disabled={saving}>
                 <SelectTrigger><SelectValue placeholder="No category" /></SelectTrigger>
-                <SelectContent className="max-h-72">
-                  <SelectItem value="none">No category</SelectItem>
-                  {categories.map((category) => <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>)}
-                </SelectContent>
+                <SelectContent className="max-h-72"><SelectItem value="none">No category</SelectItem>{categories.map((category) => <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
 
@@ -148,9 +123,7 @@ export default function GovernanceOrganizationCreateDialog({
               <Label>Status</Label>
               <Select value={form.status} onValueChange={(value) => setField("status", value)} disabled={saving}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {GOVERNANCE_STATUS_OPTIONS.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
-                </SelectContent>
+                <SelectContent>{GOVERNANCE_STATUS_OPTIONS.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
 
