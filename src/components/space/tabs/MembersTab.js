@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { Users, UserPlus } from "lucide-react";
+import { Mail, MapPin, Phone, Users, UserPlus } from "lucide-react";
 
 import { useSpaceMembers } from "@/hooks/space/useSpaceMembers";
 
@@ -36,13 +36,11 @@ export default function MembersTab({ spaceId, spaceSlug }) {
               <CardContent className="space-y-4 p-4">
                 <div className="flex items-center gap-3">
                   <Skeleton className="h-12 w-12 rounded-full" />
-
                   <div className="flex-1 space-y-2">
                     <Skeleton className="h-4 w-32" />
                     <Skeleton className="h-3 w-20" />
                   </div>
                 </div>
-
                 <Skeleton className="h-3 w-full" />
                 <Skeleton className="h-3 w-2/3" />
               </CardContent>
@@ -55,60 +53,103 @@ export default function MembersTab({ spaceId, spaceSlug }) {
 
   return (
     <div className="space-y-6">
-      {/* ========================================
-          BECOME A MEMBER
-      ======================================== */}
-
       <BecomeMemberCard spaceSlug={spaceSlug} />
-
-      {/* ========================================
-          MEMBERS
-      ======================================== */}
 
       {!members.length ? (
         <Card className="border-dashed">
           <CardHeader>
             <CardTitle>No members yet</CardTitle>
-
             <CardDescription>
               This Space currently has no visible members.
             </CardDescription>
           </CardHeader>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {members.map((member) => {
-            return (
-              <Link key={member.user_id} href={`/user/${member.username}`}>
-                <Card className="h-full cursor-pointer bg-muted transition hover:bg-muted/80">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={member.avatar_url || undefined} />
-
-                        <AvatarFallback>
-                          {member.name?.charAt(0)?.toUpperCase() || "U"}
-                        </AvatarFallback>
-                      </Avatar>
-
-                      <div className="min-w-0">
-                        <div className="truncate font-medium">
-                          {member.name || "Unnamed User"}
-                        </div>
-
-                        <div className="truncate text-sm text-muted-foreground">
-                          @{member.username}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            );
-          })}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {members.map((member) => (
+            <MemberCard key={member.user_id} member={member} />
+          ))}
         </div>
       )}
     </div>
+  );
+}
+
+function MemberCard({ member }) {
+  return (
+    <Card className="h-full overflow-hidden transition-colors hover:bg-muted/40">
+      <CardContent className="p-5">
+        <Link href={`/user/${member.username}`} className="block">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-12 w-12 shrink-0">
+              <AvatarImage src={member.avatar_url || undefined} />
+              <AvatarFallback>
+                {member.name?.charAt(0)?.toUpperCase() || "U"}
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="min-w-0">
+              <div className="truncate font-medium">
+                {member.name || "Unnamed User"}
+              </div>
+              <div className="truncate text-sm text-muted-foreground">
+                @{member.username}
+              </div>
+            </div>
+          </div>
+        </Link>
+
+        {(member.designation || member.locality) && (
+          <div className="mt-4 space-y-1">
+            {member.designation && (
+              <p className="text-sm font-medium">{member.designation}</p>
+            )}
+            {member.locality && (
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <MapPin className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{member.locality}</span>
+              </p>
+            )}
+          </div>
+        )}
+
+        {member.membership_message ? (
+          <div className="mt-5 rounded-lg bg-muted/50 p-4">
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Their introduction
+            </p>
+            <p className="line-clamp-5 whitespace-pre-wrap text-sm leading-6">
+              “{member.membership_message}”
+            </p>
+          </div>
+        ) : null}
+
+        {(member.email || member.mobile) && (
+          <div className="mt-4 space-y-2 border-t pt-3">
+            {member.email && (
+              <a
+                href={`mailto:${member.email}`}
+                className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <Mail className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{member.email}</span>
+              </a>
+            )}
+            {member.mobile && (
+              <a
+                href={`tel:${member.mobile}`}
+                className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <Phone className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{member.mobile}</span>
+              </a>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -123,7 +164,6 @@ function BecomeMemberCard({ spaceSlug }) {
 
           <div>
             <h3 className="font-semibold">Become a member</h3>
-
             <p className="mt-1 text-sm text-muted-foreground">
               Join this Space to participate, contribute, and stay connected.
             </p>
