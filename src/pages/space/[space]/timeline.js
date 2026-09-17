@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 
 import { useSpaces } from "@/hooks/space/useSpaces";
 import { useSpaceFeed } from "@/hooks/space/useSpaceFeed";
+import { useSpaceMembers } from "@/hooks/space/useSpaceMembers";
 
 import {
   filterTimelineEvents,
@@ -34,12 +35,29 @@ export default function SpaceTimelinePage() {
     space?.id,
   );
 
+  const { data: members = [], isLoading: membersLoading } = useSpaceMembers({
+    spaceId: space?.id,
+  });
+
   const [filter, setFilter] = useState("all");
   const [activeMonth, setActiveMonth] = useState(null);
 
+  const timelineEvents = useMemo(() => {
+    const memberEvents = members.map((member) => ({
+      id: `member-${space?.id}-${member.user_id}`,
+      type: "member_joined",
+      created_at: member.created_at,
+      title: `${member.name || "A new member"} joined`,
+      content: member.membership_message || "A new member joined this Space.",
+      member,
+    }));
+
+    return [...activities, ...memberEvents];
+  }, [activities, members, space?.id]);
+
   const filteredEvents = useMemo(
-    () => filterTimelineEvents(activities, filter),
-    [activities, filter],
+    () => filterTimelineEvents(timelineEvents, filter),
+    [timelineEvents, filter],
   );
 
   const years = useMemo(
@@ -63,7 +81,7 @@ export default function SpaceTimelinePage() {
     setActiveMonth(null);
   };
 
-  if (spaceLoading || feedLoading) {
+  if (spaceLoading || feedLoading || membersLoading) {
     return (
       <div className="min-h-dvh bg-background">
         <PageHeaderSkeleton />
