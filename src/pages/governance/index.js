@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import GeographyFocusSelector from "@/components/geography/GeographyFocusSelector";
 import OrganizationDirectory from "@/components/governance/OrganizationDirectory";
@@ -16,11 +16,6 @@ export default function GovernancePage() {
     [focusGeographyId],
   );
 
-  const handleTabChange = (value) => {
-    if (!value) return;
-    setTab(value);
-  };
-
   return (
     <div className="flex min-h-dvh w-full flex-col">
       <GovernancePageHeader
@@ -34,26 +29,19 @@ export default function GovernancePage() {
       />
       <main className="flex-1 px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-6xl">
-          <div className="mb-5">
-            <ToggleGroup
-              type="single"
-              value={tab}
-              onValueChange={handleTabChange}
-              variant="outline"
-              className="w-full sm:w-auto"
-              aria-label="Governance directory view"
-            >
+          <Tabs value={tab} onValueChange={setTab} className="mb-5">
+            <TabsList className="w-max max-w-full">
               {GOVERNANCE_DIRECTORY_TABS.map(([value, label]) => (
-                <ToggleGroupItem
+                <TabsTrigger
                   key={value}
                   value={value}
-                  className="flex-1 px-4 sm:flex-none"
+                  className="px-3 sm:px-4"
                 >
                   {label}
-                </ToggleGroupItem>
+                </TabsTrigger>
               ))}
-            </ToggleGroup>
-          </div>
+            </TabsList>
+          </Tabs>
 
           {tab === "organizations" && <OrganizationDirectory {...directoryProps} />}
           {tab === "positions" && <PositionDirectory {...directoryProps} />}
