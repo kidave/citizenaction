@@ -11,16 +11,17 @@ const ELEMENTS = [
   ["rain", 58, 2.5, 3.8, -2.0],
   ["rain", 72, 1.9, 3.1, -1.1],
   ["rain", 87, 2.3, 3.5, -2.9],
-  ["leaf", 14, 7, 9, -4.5],
-  ["leaf", 69, 6, 10, -7],
+  ["leaf", 16, 10, 11, -5],
+  ["leaf", 70, 8, 13, -8],
   ["snow", 27, 3, 8, -3],
   ["snow", 81, 2.5, 7, -6],
-  ["wind", 8, 0, 8, -5],
-  ["wind", 55, 0, 10, -2],
+  ["wind", 12, 0, 7, -4],
+  ["wind", 52, 0, 9, -1],
+  ["wind", 78, 0, 8, -6],
   ["lightning", 38, 0, 0, 0],
   ["fire", 91, 0, 0, 0],
-  ["comet", 22, 0, 8, -6],
-  ["comet", 76, 0, 11, -3],
+  ["comet", 22, 0, 0.9, -14],
+  ["comet", 76, 0, 0.7, -37],
 ];
 
 const THEME_ELEMENTS = {
@@ -56,26 +57,46 @@ function RainDrop({ x, size, duration, delay, reducedMotion }) {
   );
 }
 
-function Leaf({ x, duration, delay, reducedMotion }) {
+function Leaf({ x, size, duration, delay, reducedMotion }) {
   return (
-    <path
-      d="M 0 0 C -3 3, -2 7, 1 9 C 4 6, 4 2, 0 0 Z"
-      fill="currentColor"
-      className="text-primary/20"
-      opacity={reducedMotion ? 0.08 : 0.2}
+    <g
+      className="text-primary/25"
+      opacity={reducedMotion ? 0.1 : 0.28}
+      transform={`translate(${x} -10)`}
     >
+      <path
+        d={`M 0 0 C ${-size * 0.9} ${size * 0.15}, ${-size * 0.75} ${size * 0.75}, 0 ${size} C ${size * 0.75} ${size * 0.7}, ${size * 0.8} ${size * 0.15}, 0 0 Z`}
+        fill="currentColor"
+      />
+      <path
+        d={`M 0 1 C ${-size * 0.15} ${size * 0.3}, ${size * 0.05} ${size * 0.65}, 0 ${size * 0.9}`}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="0.45"
+        strokeLinecap="round"
+      />
       {!reducedMotion && (
         <animateTransform
           attributeName="transform"
           type="translate"
-          from={`${x - 4} -10`}
-          to={`${x + 12} 118`}
+          values={`${x - 4} -10; ${x + 3} 32; ${x - 1} 72; ${x + 10} 118`}
           dur={`${duration}s`}
           begin={`${delay}s`}
           repeatCount="indefinite"
         />
       )}
-    </path>
+      {!reducedMotion && (
+        <animateTransform
+          attributeName="transform"
+          additive="sum"
+          type="rotate"
+          values="-18 0 5; 35 0 5; 70 0 5; 15 0 5; -18 0 5"
+          dur={`${duration * 0.75}s`}
+          begin={`${delay}s`}
+          repeatCount="indefinite"
+        />
+      )}
+    </g>
   );
 }
 
@@ -86,20 +107,31 @@ function Snow({ x, size, duration, delay, reducedMotion }) {
       opacity={reducedMotion ? 0.1 : 0.24}
       transform={`translate(${x} -8)`}
     >
-      <circle cx="0" cy="0" r={size * 0.25} fill="currentColor" />
+      <circle cx="0" cy="0" r={size * 0.2} fill="currentColor" />
       <path
-        d={`M ${-size} 0 H ${size} M 0 ${-size} V ${size}`}
+        d={`M ${-size} 0 H ${size} M 0 ${-size} V ${size} M ${-size * 0.7} ${-size * 0.7} L ${size * 0.7} ${size * 0.7} M ${size * 0.7} ${-size * 0.7} L ${-size * 0.7} ${size * 0.7}`}
         stroke="currentColor"
-        strokeWidth="0.7"
+        strokeWidth="0.55"
         strokeLinecap="round"
       />
       {!reducedMotion && (
         <animateTransform
           attributeName="transform"
           type="translate"
-          from={`${x} -8`}
-          to={`${x + 5} 118`}
+          values={`${x} -8; ${x - 2} 32; ${x + 4} 68; ${x - 1} 118`}
           dur={`${duration}s`}
+          begin={`${delay}s`}
+          repeatCount="indefinite"
+        />
+      )}
+      {!reducedMotion && (
+        <animateTransform
+          attributeName="transform"
+          additive="sum"
+          type="rotate"
+          from="0"
+          to="360"
+          dur={`${duration * 0.9}s`}
           begin={`${delay}s`}
           repeatCount="indefinite"
         />
@@ -110,62 +142,106 @@ function Snow({ x, size, duration, delay, reducedMotion }) {
 
 function Wind({ x, duration, delay, reducedMotion }) {
   return (
-    <path
-      d="M 0 18 C 5 14, 10 22, 15 18 C 19 15, 22 17, 24 20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="0.7"
-      strokeLinecap="round"
-      className="text-primary/15"
-      opacity={reducedMotion ? 0.08 : 0.18}
+    <g
+      className="text-primary/12"
+      opacity={reducedMotion ? 0.05 : 0.14}
+      transform={`translate(${x - 28} 0)`}
     >
+      <path
+        d="M 0 24 C 8 18, 16 29, 25 23 C 33 17, 42 22, 50 19"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1"
+        strokeLinecap="round"
+        strokeDasharray="7 5"
+      />
+      <path
+        d="M 8 31 C 15 27, 22 35, 30 30 C 37 26, 44 31, 52 27"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="0.6"
+        strokeLinecap="round"
+        strokeDasharray="5 7"
+        opacity="0.65"
+      />
       {!reducedMotion && (
         <animateTransform
           attributeName="transform"
           type="translate"
-          from={`${x - 28} 0`}
-          to={`${x + 25} 35`}
+          values={`${x - 34} 0; ${x + 8} -2; ${x + 42} 1; ${x + 72} 0`}
           dur={`${duration}s`}
           begin={`${delay}s`}
           repeatCount="indefinite"
         />
       )}
-    </path>
+      {!reducedMotion && (
+        <animate
+          attributeName="opacity"
+          values="0;0.12;0.18;0"
+          dur={`${duration}s`}
+          begin={`${delay}s`}
+          repeatCount="indefinite"
+        />
+      )}
+    </g>
   );
 }
 
 function Lightning({ reducedMotion }) {
   return (
-    <path
-      d="M 39 3 L 34 15 L 38 14 L 35 27 L 43 12 L 39 13 Z"
-      fill="currentColor"
-      className="text-primary/20"
-      opacity={reducedMotion ? 0.05 : 0.18}
-    >
-      {!reducedMotion && (
-        <animate
-          attributeName="opacity"
-          values="0;0;0.25;0.05;0.18;0"
-          dur="7s"
-          repeatCount="indefinite"
-        />
-      )}
-    </path>
+    <g>
+      <rect width="100" height="100" fill="currentColor" className="text-primary" opacity="0" />
+      <path
+        d="M 38 2 L 34 13 L 38 12 L 35 25 L 43 10 L 39 11 Z"
+        fill="currentColor"
+        className="text-primary"
+        opacity="0"
+      >
+        {!reducedMotion && (
+          <animate
+            attributeName="opacity"
+            values="0;0;0.08;0.75;0.12;0;0;0.42;0"
+            keyTimes="0;0.58;0.60;0.605;0.615;0.625;0.70;0.705;0.72"
+            dur="9s"
+            repeatCount="indefinite"
+          />
+        )}
+      </path>
+      <rect width="100" height="100" fill="white" opacity="0" className="mix-blend-screen">
+        {!reducedMotion && (
+          <animate
+            attributeName="opacity"
+            values="0;0;0.035;0;0;0.02;0"
+            keyTimes="0;0.58;0.605;0.625;0.70;0.705;0.72"
+            dur="9s"
+            repeatCount="indefinite"
+          />
+        )}
+      </rect>
+    </g>
   );
 }
 
 function Fire({ reducedMotion }) {
   return (
-    <g className="text-primary/15" opacity={reducedMotion ? 0.06 : 0.16}>
-      <path d="M 88 100 C 87 91, 92 89, 90 82 C 96 88, 95 94, 93 100 Z" fill="currentColor" />
-      <path d="M 94 100 C 93 95, 98 92, 96 87 C 101 93, 99 97, 98 100 Z" fill="currentColor" />
-      <path d="M 90 100 C 90 96, 92 94, 92 90 C 96 96, 94 98, 94 100 Z" fill="currentColor" />
+    <g className="text-primary/15" opacity={reducedMotion ? 0.05 : 0.18}>
+      <path
+        d="M 86 100 C 87 94, 89 91, 88 85 C 93 89, 94 94, 92 100 Z"
+        fill="currentColor"
+      />
+      <path
+        d="M 91 100 C 91 95, 94 92, 94 87 C 99 92, 98 97, 97 100 Z"
+        fill="currentColor"
+      />
+      <path
+        d="M 94 100 C 94 96, 97 94, 97 90 C 100 94, 100 98, 99 100 Z"
+        fill="currentColor"
+      />
       {!reducedMotion && (
-        <animateTransform
-          attributeName="transform"
-          type="translate"
-          values="0 0; -1 -1; 1 0; 0 0"
-          dur="1.8s"
+        <animate
+          attributeName="opacity"
+          values="0.12;0.2;0.14;0.22;0.12"
+          dur="2.4s"
           repeatCount="indefinite"
         />
       )}
@@ -175,15 +251,31 @@ function Fire({ reducedMotion }) {
 
 function Comet({ x, duration, delay, reducedMotion }) {
   return (
-    <g className="text-primary/20" opacity={reducedMotion ? 0.08 : 0.2}>
-      <path d="M 0 0 L -10 7" stroke="currentColor" strokeWidth="0.8" strokeLinecap="round" />
-      <circle cx="0" cy="0" r="1.3" fill="currentColor" />
+    <g className="text-primary/25" opacity={reducedMotion ? 0.05 : 0.28}>
+      <path
+        d="M 0 0 L -7 3.5 L -13 4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="0.7"
+        strokeLinecap="round"
+        opacity="0.55"
+      />
+      <circle cx="0" cy="0" r="1.1" fill="currentColor" />
       {!reducedMotion && (
         <animateTransform
           attributeName="transform"
           type="translate"
-          from={`${x - 8} -8`}
-          to={`${x + 35} 120`}
+          from={`${x - 14} -10`}
+          to={`${x + 38} 55`}
+          dur={`${duration}s`}
+          begin={`${delay}s`}
+          repeatCount="indefinite"
+        />
+      )}
+      {!reducedMotion && (
+        <animate
+          attributeName="opacity"
+          values="0;0.28;0.3;0"
           dur={`${duration}s`}
           begin={`${delay}s`}
           repeatCount="indefinite"
@@ -252,7 +344,7 @@ export default function HomeRainAnimation({ containerRef }) {
             return <RainDrop key={index} x={x} size={size} duration={duration} delay={delay} reducedMotion={reducedMotion} />;
           }
           if (type === "leaf") {
-            return <Leaf key={index} x={x} duration={duration} delay={delay} reducedMotion={reducedMotion} />;
+            return <Leaf key={index} x={x} size={size} duration={duration} delay={delay} reducedMotion={reducedMotion} />;
           }
           if (type === "snow") {
             return <Snow key={index} x={x} size={size} duration={duration} delay={delay} reducedMotion={reducedMotion} />;
