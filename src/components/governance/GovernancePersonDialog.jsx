@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { UserRound } from "lucide-react";
 import { toast } from "sonner";
 
@@ -28,11 +28,12 @@ export default function GovernancePersonDialog({ open, onOpenChange, record = nu
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingRecord, setLoadingRecord] = useState(false);
+  const draftId = useId().replace(/:/g, "");
 
   const isEditing = !!record?.id;
   const imagePath = isEditing
     ? `governance/person/${record.id}/image`
-    : "governance/person/draft/image";
+    : `governance/person/draft-${draftId}/image`;
 
   useEffect(() => {
     if (!open) return;
@@ -177,65 +178,30 @@ export default function GovernancePersonDialog({ open, onOpenChange, record = nu
 
             <div className="space-y-2">
               <Label htmlFor="governance-person-name">Name</Label>
-              <Input
-                id="governance-person-name"
-                value={form.name}
-                onChange={(event) => setField("name", event.target.value)}
-                placeholder="e.g. Jane Doe"
-                disabled={loading}
-                autoFocus
-              />
+              <Input id="governance-person-name" value={form.name} onChange={(event) => setField("name", event.target.value)} placeholder="e.g. Jane Doe" disabled={loading} autoFocus />
             </div>
 
             <div className="space-y-2">
               <Label>Linked profile</Label>
-              <SearchableSelect
-                value={form.profileUserId || "none"}
-                onValueChange={(value) => setField("profileUserId", value)}
-                options={profileOptions}
-                placeholder="No linked profile"
-                searchPlaceholder="Search profiles..."
-                emptyText="No profiles found."
-                disabled={loading}
-              />
-              <p className="text-xs text-muted-foreground">
-                Link this governance person to an existing Citizen Action profile when they represent the same person.
-              </p>
+              <SearchableSelect value={form.profileUserId || "none"} onValueChange={(value) => setField("profileUserId", value)} options={profileOptions} placeholder="No linked profile" searchPlaceholder="Search profiles..." emptyText="No profiles found." disabled={loading} />
+              <p className="text-xs text-muted-foreground">Link this governance person to an existing Citizen Action profile when they represent the same person.</p>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="governance-person-biography">Biography</Label>
-              <Textarea
-                id="governance-person-biography"
-                value={form.biography}
-                onChange={(event) => setField("biography", event.target.value)}
-                placeholder="Short biography or background"
-                rows={4}
-                disabled={loading}
-              />
+              <Textarea id="governance-person-biography" value={form.biography} onChange={(event) => setField("biography", event.target.value)} placeholder="Short biography or background" rows={4} disabled={loading} />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="governance-person-website">Website</Label>
-              <Input
-                id="governance-person-website"
-                type="url"
-                value={form.website}
-                onChange={(event) => setField("website", event.target.value)}
-                placeholder="https://..."
-                disabled={loading}
-              />
+              <Input id="governance-person-website" type="url" value={form.website} onChange={(event) => setField("website", event.target.value)} placeholder="https://..." disabled={loading} />
             </div>
           </div>
         )}
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={loading}>
-            Cancel
-          </Button>
-          <Button type="button" onClick={save} disabled={loading || loadingRecord}>
-            {loading ? "Saving..." : isEditing ? "Save changes" : "Create person"}
-          </Button>
+          <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={loading}>Cancel</Button>
+          <Button type="button" onClick={save} disabled={loading || loadingRecord}>{loading ? "Saving..." : isEditing ? "Save changes" : "Create person"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
