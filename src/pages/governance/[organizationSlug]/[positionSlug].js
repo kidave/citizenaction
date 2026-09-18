@@ -39,7 +39,7 @@ export default function GovernancePositionPage() {
 
       const positionResult = await supabase
         .from("position")
-        .select("id,name,slug,description,image_url,appointing_organization_id,category_id")
+        .select("id,name,slug,description,image_url,appointing_organization_id,category_id,metadata")
         .eq("slug", positionSlug)
         .eq("appointing_organization_id", organizationResult.data.id)
         .maybeSingle();
