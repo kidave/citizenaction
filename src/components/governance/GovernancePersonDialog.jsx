@@ -1,17 +1,25 @@
 "use client";
 
 import { useEffect, useId, useMemo, useState } from "react";
-import { UserRound } from "lucide-react";
+import { Loader2, Link2, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import ImageUpload from "@/components/media/ImageUpload";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import { supabase } from "@/lib/supabase/client";
+import { useImportGovernancePersonImage } from "@/hooks/governance/useImportGovernancePersonImage";
+import { usePersonMutations } from "@/hooks/governance/usePersonMutations";
 
 function emptyForm() {
   return {
@@ -20,20 +28,53 @@ function emptyForm() {
     website: "",
     imageUrl: "",
     profileUserId: "",
+    imageSourceUrl: "",
   };
 }
 
-export default function GovernancePersonDialog({ open, onOpenChange, record = null, onSaved }) {
+function isSupportedImageSource(value) {
+  try {
+    const url = new URL(value);
+    const host = url.hostname.toLowerCase();
+
+    return (
+      url.protocol === "https:" &&
+      (host === "instagram.com" ||
+        host === "www.instagram.com" ||
+        host.endsWith(".instagram.com") ||
+        host === "cdninstagram.com" ||
+        host.endsWith(".cdninstagram.com") ||
+        host === "fbcdn.net" ||
+        host.endsWith(".fbcdn.net"))
+    );
+  } catch {
+    return false;
+  }
+}
+
+export default function GovernancePersonDialog({
+  open,
+  onOpenChange,
+  record = null,
+  onSaved,
+}) {
   const [form, setForm] = useState(emptyForm);
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingRecord, setLoadingRecord] = useState(false);
+  const [importingImage, setImportingImage] = useState(false);
   const draftId = useId().replace(/:/g, "");
 
   const isEditing = !!record?.id;
   const imagePath = isEditing
-    ? `governance/person/${record.id}/image`
-    : `governance/person/draft-${draftId}/image`;
+    ? `person/${record.id}`
+    : `person/draft-${draftId}`;
+
+  const { createPerson, updatePerson } = usePersonMutations();
+  const { importPersonImage } = useImportGovernancePersonImage();
+
+  const imageSourceIsValid =
+    !form.imageSourceUrl || isSupportedImageSource(form.imageSourceUrl.trim());
 
   useEffect(() => {
     if (!open) return;
@@ -65,6 +106,7 @@ export default function GovernancePersonDialog({ open, onOpenChange, record = nu
         setLoadingRecord(false);
         return;
       }
+
       if (personResult.error) {
         toast.error(personResult.error.message);
         setLoadingRecord(false);
@@ -81,6 +123,7 @@ export default function GovernancePersonDialog({ open, onOpenChange, record = nu
               website: person.website || "",
               imageUrl: person.image_url || "",
               profileUserId: person.profile_user_id || "",
+              imageSourceUrl: "",
             }
           : emptyForm(),
       );
@@ -88,6 +131,7 @@ export default function GovernancePersonDialog({ open, onOpenChange, record = nu
     };
 
     load();
+
     return () => {
       cancelled = true;
     };
@@ -95,7 +139,11 @@ export default function GovernancePersonDialog({ open, onOpenChange, record = nu
 
   const profileOptions = useMemo(
     () => [
-      { value: "none", label: "No linked profile", searchValue: "no linked profile" },
+      {
+        value: "none",
+        label: "No linked profile",
+        searchValue: "no linked profile",
+      },
       ...profiles.map((item) => ({
         value: item.user_id,
         label: item.name || item.username || "Unnamed profile",
@@ -105,7 +153,62 @@ export default function GovernancePersonDialog({ open, onOpenChange, record = nu
     [profiles],
   );
 
-  const setField = (field, value) => setForm((current) => ({ ...current, [field]: value }));
+  const setField = (field, value) =>
+    setForm((current) => ({ ...current, [field]: value }));
+
+  const importImage = async () => {
+    const sourceUrl = form.imageSourceUrl.trim();
+
+    if (!sourceUrl) {
+      toast.error("Image URL is required");
+      return;
+    }
+
+    if (!isSupportedImageSource(sourceUrl)) {
+      toast.error("Use an Instagram or Meta CDN image URL");
+      return;
+    }
+
+    if (!isEditing) {
+      toast.info(
+        "Save the person first, then the image will be imported automatically.",
+      );
+      return;
+    }
+
+    try {
+      setImportingImage(true);
+
+      const imported = await importPersonImage({
+        personId: record.id,
+        sourceUrl,
+      });
+
+      const updated = await updatePerson({
+        p_person_id: record.id,
+        p_name: form.name.trim(),
+        p_biography: form.biography.trim() || null,
+        p_website: form.website.trim() || null,
+        p_image_url: imported.imageUrl,
+        p_profile_user_id:
+          form.profileUserId === "none" ? null : form.profileUserId || null,
+        p_metadata: null,
+      });
+
+      setForm((current) => ({
+        ...current,
+        imageUrl: imported.imageUrl,
+        imageSourceUrl: "",
+      }));
+
+      await onSaved?.(updated);
+      toast.success("Image imported");
+    } catch (error) {
+      toast.error(error?.message || "Unable to import image");
+    } finally {
+      setImportingImage(false);
+    }
+  };
 
   const save = async () => {
     if (!form.name.trim()) {
@@ -115,38 +218,85 @@ export default function GovernancePersonDialog({ open, onOpenChange, record = nu
 
     try {
       setLoading(true);
-      const rpc = isEditing ? "update_person" : "create_person";
-      const params = isEditing
-        ? {
-            p_person_id: record.id,
-            p_name: form.name.trim(),
-            p_biography: form.biography.trim() || null,
-            p_website: form.website.trim() || null,
-            p_image_url: form.imageUrl.trim() || null,
-            p_profile_user_id: form.profileUserId === "none" ? null : form.profileUserId || null,
-            p_metadata: null,
-          }
-        : {
-            p_name: form.name.trim(),
-            p_biography: form.biography.trim() || null,
-            p_website: form.website.trim() || null,
-            p_image_url: form.imageUrl.trim() || null,
-            p_profile_user_id: form.profileUserId === "none" ? null : form.profileUserId || null,
-            p_metadata: {},
-          };
 
-      const result = await supabase.rpc(rpc, params);
-      if (result.error) throw result.error;
+      const baseParams = {
+        p_name: form.name.trim(),
+        p_biography: form.biography.trim() || null,
+        p_website: form.website.trim() || null,
+        p_image_url: form.imageUrl.trim() || null,
+        p_profile_user_id:
+          form.profileUserId === "none" ? null : form.profileUserId || null,
+        p_metadata: {},
+      };
 
-      toast.success(isEditing ? "Person updated" : "Person created");
-      await onSaved?.(result.data);
+      if (isEditing) {
+        const updated = await updatePerson({
+          ...baseParams,
+          p_person_id: record.id,
+          p_metadata: null,
+        });
+
+        toast.success("Person updated");
+        await onSaved?.(updated);
+        onOpenChange?.(false);
+        return;
+      }
+
+      const created = await createPerson(baseParams);
+
+      if (!created?.id) {
+        throw new Error("Person was created but no person ID was returned.");
+      }
+
+      if (form.imageSourceUrl.trim()) {
+        if (!isSupportedImageSource(form.imageSourceUrl.trim())) {
+          throw new Error("Use an Instagram or Meta CDN image URL");
+        }
+
+        setImportingImage(true);
+
+        const imported = await importPersonImage({
+          personId: created.id,
+          sourceUrl: form.imageSourceUrl.trim(),
+        });
+
+        const updated = await updatePerson({
+          p_person_id: created.id,
+          p_name: form.name.trim(),
+          p_biography: form.biography.trim() || null,
+          p_website: form.website.trim() || null,
+          p_image_url: imported.imageUrl,
+          p_profile_user_id:
+            form.profileUserId === "none"
+              ? null
+              : form.profileUserId || null,
+          p_metadata: null,
+        });
+
+        setForm((current) => ({
+          ...current,
+          imageUrl: imported.imageUrl,
+          imageSourceUrl: "",
+        }));
+
+        setImportingImage(false);
+        toast.success("Person created with image");
+        await onSaved?.(updated);
+      } else {
+        toast.success("Person created");
+        await onSaved?.(created);
+      }
+
       onOpenChange?.(false);
     } catch (error) {
+      setImportingImage(false);
       toast.error(error?.message || "Unable to save person");
     } finally {
       setLoading(false);
     }
   };
+
+  const busy = loading || loadingRecord || importingImage;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -173,35 +323,139 @@ export default function GovernancePersonDialog({ open, onOpenChange, record = nu
               onChange={(value) => setField("imageUrl", value || "")}
               label="Person image"
               helperText="PNG, JPG or WebP · up to 5 MB"
-              disabled={loading}
+              disabled={busy}
             />
 
             <div className="space-y-2">
+              <Label htmlFor="governance-person-image-url">
+                Or import from URL
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="governance-person-image-url"
+                  type="url"
+                  value={form.imageSourceUrl}
+                  onChange={(event) =>
+                    setField("imageSourceUrl", event.target.value)
+                  }
+                  placeholder="Paste Instagram image URL"
+                  disabled={busy}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      importImage();
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={importImage}
+                  disabled={
+                    busy ||
+                    !form.imageSourceUrl.trim() ||
+                    !imageSourceIsValid ||
+                    !isEditing
+                  }
+                >
+                  {importingImage ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Link2 className="h-4 w-4" />
+                  )}
+                  <span className="hidden sm:inline">
+                    {importingImage ? "Importing..." : "Import"}
+                  </span>
+                </Button>
+              </div>
+
+              {!isEditing && form.imageSourceUrl.trim() && (
+                <p className="text-xs text-muted-foreground">
+                  The person will be created first, then the image will be
+                  imported automatically.
+                </p>
+              )}
+
+              {!imageSourceIsValid && (
+                <p className="text-xs text-destructive">
+                  Use an Instagram or Meta CDN image URL.
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="governance-person-name">Name</Label>
-              <Input id="governance-person-name" value={form.name} onChange={(event) => setField("name", event.target.value)} placeholder="e.g. Jane Doe" disabled={loading} autoFocus />
+              <Input
+                id="governance-person-name"
+                value={form.name}
+                onChange={(event) => setField("name", event.target.value)}
+                placeholder="e.g. Jane Doe"
+                disabled={busy}
+                autoFocus
+              />
             </div>
 
             <div className="space-y-2">
               <Label>Linked profile</Label>
-              <SearchableSelect value={form.profileUserId || "none"} onValueChange={(value) => setField("profileUserId", value)} options={profileOptions} placeholder="No linked profile" searchPlaceholder="Search profiles..." emptyText="No profiles found." disabled={loading} />
-              <p className="text-xs text-muted-foreground">Link this governance person to an existing Citizen Action profile when they represent the same person.</p>
+              <SearchableSelect
+                value={form.profileUserId || "none"}
+                onValueChange={(value) => setField("profileUserId", value)}
+                options={profileOptions}
+                placeholder="No linked profile"
+                searchPlaceholder="Search profiles..."
+                emptyText="No profiles found."
+                disabled={busy}
+              />
+              <p className="text-xs text-muted-foreground">
+                Link this governance person to an existing Citizen Action profile
+                when they represent the same person.
+              </p>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="governance-person-biography">Biography</Label>
-              <Textarea id="governance-person-biography" value={form.biography} onChange={(event) => setField("biography", event.target.value)} placeholder="Short biography or background" rows={4} disabled={loading} />
+              <Textarea
+                id="governance-person-biography"
+                value={form.biography}
+                onChange={(event) => setField("biography", event.target.value)}
+                placeholder="Short biography or background"
+                rows={4}
+                disabled={busy}
+              />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="governance-person-website">Website</Label>
-              <Input id="governance-person-website" type="url" value={form.website} onChange={(event) => setField("website", event.target.value)} placeholder="https://..." disabled={loading} />
+              <Input
+                id="governance-person-website"
+                type="url"
+                value={form.website}
+                onChange={(event) => setField("website", event.target.value)}
+                placeholder="https://..."
+                disabled={busy}
+              />
             </div>
           </div>
         )}
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={loading}>Cancel</Button>
-          <Button type="button" onClick={save} disabled={loading || loadingRecord}>{loading ? "Saving..." : isEditing ? "Save changes" : "Create person"}</Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange?.(false)}
+            disabled={busy}
+          >
+            Cancel
+          </Button>
+          <Button type="button" onClick={save} disabled={busy || loadingRecord}>
+            {loading
+              ? importingImage
+                ? "Importing image..."
+                : "Saving..."
+              : isEditing
+                ? "Save changes"
+                : "Create person"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
