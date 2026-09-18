@@ -204,7 +204,7 @@ export default function GovernanceAppointmentDialog({
             {creatingPerson && (
               <div className="space-y-4 rounded-lg border p-4">
                 <div className="text-sm font-medium">New person</div>
-                <ImageUpload bucket="governance" path={`governance/organization/person/draft-${draftId}/image`} value={newPersonImageUrl || null} onChange={(value) => setNewPersonImageUrl(value || "")} label="Person image" helperText="PNG, JPG or WebP · up to 5 MB" disabled={saving} />
+                <ImageUpload bucket="governance" path={`governance/person/draft-${draftId}/image`} value={newPersonImageUrl || null} onChange={(value) => setNewPersonImageUrl(value || "")} label="Person image" helperText="PNG, JPG or WebP · up to 5 MB" disabled={saving} />
                 <div className="space-y-2"><Label htmlFor="governance-appointment-new-person">Name</Label><Input id="governance-appointment-new-person" value={newPersonName} onChange={(event) => setNewPersonName(event.target.value)} placeholder="e.g. Jane Doe" disabled={saving} autoFocus /></div>
               </div>
             )}
