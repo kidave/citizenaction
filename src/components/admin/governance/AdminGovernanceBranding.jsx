@@ -3,6 +3,10 @@ import { toast } from "sonner";
 
 import { useAdminGovernanceEntities } from "@/hooks/governance/useAdminGovernanceEntities";
 import ImageUpload from "@/components/media/ImageUpload";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Link2, Loader2 } from "lucide-react";
+import { useImportGovernanceOrganizationImage } from "@/hooks/governance/useImportGovernanceOrganizationImage";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,6 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export default function AdminGovernanceBranding() {
   const { data: entities = [], isLoading, error, updateGovernanceImage, isUpdating } = useAdminGovernanceEntities();
   const [selectedId, setSelectedId] = useState("");
+  const [sourceUrl, setSourceUrl] = useState("");
+  const [importing, setImporting] = useState(false);
+  const { importOrganizationImage } = useImportGovernanceOrganizationImage();
 
   const selected = entities.find((item) => item.id === selectedId) || null;
 
@@ -30,6 +37,20 @@ export default function AdminGovernanceBranding() {
       toast.success("Governance logo updated.");
     } catch (updateError) {
       toast.error(updateError?.message || "Unable to update governance logo.");
+    }
+  }
+
+  async function importImage() {
+    if (!selected || !sourceUrl.trim()) return;
+    try {
+      setImporting(true);
+      const imported = await importOrganizationImage({ organizationId: selected.id, sourceUrl: sourceUrl.trim() });
+      await handleChange(imported.imageUrl);
+      setSourceUrl("");
+    } catch (error) {
+      toast.error(error?.message || "Unable to import organization image.");
+    } finally {
+      setImporting(false);
     }
   }
 
@@ -67,13 +88,20 @@ export default function AdminGovernanceBranding() {
             {selected && (
               <ImageUpload
                 bucket="governance"
-                path={`governance/${selected.id}/logo`}
+                path={`governance/organization/${selected.id}/logo`}
                 value={selected.image_url || null}
                 onChange={handleChange}
                 label={`${selected.name || "Governance"} logo`}
                 helperText="PNG, JPG or WebP · up to 5 MB"
-                disabled={isUpdating}
+                disabled={isUpdating || importing}
               />
+              <div className="space-y-2">
+                <div className="text-xs font-medium text-muted-foreground">Or import from URL</div>
+                <div className="flex gap-2">
+                  <Input type="url" value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} placeholder="Paste Instagram image URL" disabled={isUpdating || importing} />
+                  <Button type="button" variant="outline" onClick={importImage} disabled={isUpdating || importing || !sourceUrl.trim()}>{importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}<span className="hidden sm:inline">{importing ? "Importing..." : "Import"}</span></Button>
+                </div>
+              </div>
             )}
           </>
         )}
