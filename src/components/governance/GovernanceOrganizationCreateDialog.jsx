@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
-import { Link2, Loader2 } from "lucide-react";
+
 import { Building2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -100,10 +100,7 @@ export default function GovernanceOrganizationCreateDialog({ open, onOpenChange,
           <ImageUpload bucket="governance" path={`governance/organization/draft-${draftId}/logo`} value={form.imageUrl || null} onChange={(value) => setField("imageUrl", value || "")} label="Organization logo" helperText="PNG, JPG or WebP · up to 5 MB" disabled={saving || importingImage} />
           <div className="space-y-2">
             <Label htmlFor="governance-organization-image-url">Or import from URL</Label>
-            <div className="flex gap-2">
-              <Input id="governance-organization-image-url" type="url" value={form.imageSourceUrl} onChange={(event) => setField("imageSourceUrl", event.target.value)} placeholder="Paste Instagram image URL" disabled={saving || importingImage} />
-              <Button type="button" variant="outline" disabled={saving || importingImage || !form.imageSourceUrl.trim() || !imageSourceIsValid} onClick={() => { if (!imageSourceIsValid) return; toast.info("The organization will be created first, then the image will be imported automatically."); }}><Link2 className="h-4 w-4" /><span className="hidden sm:inline">Import</span></Button>
-            </div>
+            <Input id="governance-organization-image-url" type="url" value={form.imageSourceUrl} onChange={(event) => setField("imageSourceUrl", event.target.value)} placeholder="Paste Instagram image URL" disabled={saving || importingImage} />
             {form.imageSourceUrl.trim() && !imageSourceIsValid && <p className="text-xs text-destructive">Use an Instagram or Meta CDN image URL.</p>}
             {form.imageSourceUrl.trim() && imageSourceIsValid && <p className="text-xs text-muted-foreground">The organization will be created first, then the image will be imported automatically.</p>}
           </div>
