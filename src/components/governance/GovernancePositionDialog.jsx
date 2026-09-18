@@ -16,6 +16,8 @@ function emptyForm() {
   return {
     name: "",
     description: "",
+    qualifications: "",
+    responsibilities: "",
     imageUrl: "",
     categoryId: "",
     organizationId: "",
@@ -88,6 +90,8 @@ export default function GovernancePositionDialog({
           ? {
               name: position.name || "",
               description: position.description || "",
+              qualifications: position.metadata?.qualifications || "",
+              responsibilities: position.metadata?.responsibilities || "",
               imageUrl: position.image_url || "",
               categoryId: position.category_id || "",
               organizationId: position.appointing_organization_id || "",
@@ -147,14 +151,14 @@ export default function GovernancePositionDialog({
             p_image_url: form.imageUrl.trim() || null,
             p_category_id: form.categoryId === "none" ? null : form.categoryId || null,
             p_appointing_organization_id: form.organizationId || null,
-            p_metadata: null,
+            p_metadata: { qualifications: form.qualifications.trim() || null, responsibilities: form.responsibilities.trim() || null },
           }
         : {
             p_name: form.name.trim(),
             p_description: form.description.trim() || null,
             p_image_url: form.imageUrl.trim() || null,
             p_category_id: form.categoryId === "none" ? null : form.categoryId || null,
-            p_metadata: {},
+            p_metadata: { qualifications: form.qualifications.trim() || null, responsibilities: form.responsibilities.trim() || null },
             p_appointing_organization_id: form.organizationId || null,
           };
 
@@ -225,6 +229,16 @@ export default function GovernancePositionDialog({
                 emptyText="No categories found."
                 disabled={loading}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Qualifications required</Label>
+              <Textarea value={form.qualifications} onChange={(event) => setField("qualifications", event.target.value)} placeholder="What qualifications or experience are required?" rows={3} disabled={loading} />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Roles and responsibilities</Label>
+              <Textarea value={form.responsibilities} onChange={(event) => setField("responsibilities", event.target.value)} placeholder="What are the main roles and responsibilities?" rows={4} disabled={loading} />
             </div>
 
             <div className="space-y-2">
