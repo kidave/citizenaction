@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "lucide-react";
+import { Link2, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import ImageUpload from "@/components/media/ImageUpload";
 import GovernanceResources from "@/components/governance/GovernanceResources";
 import { GOVERNANCE_TYPES, GOVERNANCE_STATUS_OPTIONS, formatGovernanceType } from "@/utils/governance";
+import { useState } from "react";
+import { useImportGovernanceOrganizationImage } from "@/hooks/governance/useImportGovernanceOrganizationImage";
 
 function Field({ label, children }) {
   return (
@@ -30,11 +32,37 @@ export default function GovernanceEntityForm({
   onCancel,
   onSave,
 }) {
+  const [imageSourceUrl, setImageSourceUrl] = useState("");
+  const [importingImage, setImportingImage] = useState(false);
+  const { importOrganizationImage } = useImportGovernanceOrganizationImage();
+
   if (!draft) return null;
+
+  async function importImage() {
+    const sourceUrl = imageSourceUrl.trim();
+    if (!sourceUrl) return;
+    try {
+      setImportingImage(true);
+      const imported = await importOrganizationImage({ organizationId: entity.id, sourceUrl });
+      onChange("image_url", imported.imageUrl);
+      setImageSourceUrl("");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setImportingImage(false);
+    }
+  }
 
   return (
     <div className="space-y-5 py-5">
-      <ImageUpload bucket="governance" path={`governance/${entity.id}/logo`} value={draft.image_url || null} onChange={(value) => onChange("image_url", value || null)} label="Logo" helperText="PNG, JPG or WebP · up to 5 MB" disabled={saving} />
+      <ImageUpload bucket="governance" path={`governance/organization/${entity.id}/logo`} value={draft.image_url || null} onChange={(value) => onChange("image_url", value || null)} label="Logo" helperText="PNG, JPG or WebP · up to 5 MB" disabled={saving || importingImage} />
+      <div className="space-y-2">
+        <div className="text-xs font-medium text-muted-foreground">Or import from URL</div>
+        <div className="flex gap-2">
+          <Input type="url" value={imageSourceUrl} onChange={(event) => setImageSourceUrl(event.target.value)} placeholder="Paste Instagram image URL" disabled={saving || importingImage} />
+          <Button type="button" variant="outline" onClick={importImage} disabled={saving || importingImage || !imageSourceUrl.trim()}>{importingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}<span className="hidden sm:inline">{importingImage ? "Importing..." : "Import"}</span></Button>
+        </div>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Short name">
