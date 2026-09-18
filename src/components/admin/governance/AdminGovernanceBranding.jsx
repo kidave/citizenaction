@@ -86,20 +86,36 @@ export default function AdminGovernanceBranding() {
             </Select>
 
             {selected && (
-              <ImageUpload
-                bucket="governance"
-                path={`governance/organization/${selected.id}/logo`}
-                value={selected.image_url || null}
-                onChange={handleChange}
-                label={`${selected.name || "Governance"} logo`}
-                helperText="PNG, JPG or WebP · up to 5 MB"
-                disabled={isUpdating || importing}
-              />
-              <div className="space-y-2">
-                <div className="text-xs font-medium text-muted-foreground">Or import from URL</div>
-                <div className="flex gap-2">
-                  <Input type="url" value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} placeholder="Paste Instagram image URL" disabled={isUpdating || importing} />
-                  <Button type="button" variant="outline" onClick={importImage} disabled={isUpdating || importing || !sourceUrl.trim()}>{importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}<span className="hidden sm:inline">{importing ? "Importing..." : "Import"}</span></Button>
+              <div className="space-y-4">
+                <ImageUpload
+                  bucket="governance"
+                  path={`governance/organization/${selected.id}/logo`}
+                  value={selected.image_url || null}
+                  onChange={handleChange}
+                  label={`${selected.name || "Governance"} logo`}
+                  helperText="PNG, JPG or WebP · up to 5 MB"
+                  disabled={isUpdating || importing}
+                />
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-muted-foreground">Or import from URL</div>
+                  <div className="flex gap-2">
+                    <Input
+                      type="url"
+                      value={sourceUrl}
+                      onChange={(event) => setSourceUrl(event.target.value)}
+                      placeholder="Paste Instagram image URL"
+                      disabled={isUpdating || importing}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={importImage}
+                      disabled={isUpdating || importing || !sourceUrl.trim()}
+                    >
+                      {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
+                      <span className="hidden sm:inline">{importing ? "Importing..." : "Import"}</span>
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
