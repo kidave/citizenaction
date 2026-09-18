@@ -1,14 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { CheckCircle2, Clock3, XCircle, Users } from "lucide-react";
 import { toast } from "sonner";
 
-import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/context/AuthContext";
+import { useSpaceMemberApplication } from "@/hooks/space/useSpaceMemberApplication";
 import ApplicationTopbar from "@/components/application/ApplicationTopbar";
 import {
   Card,
@@ -24,60 +23,34 @@ export default function SpaceMemberApplicationStatusPage() {
   const router = useRouter();
   const { space: spaceSlug, id } = router.query;
   const { user, loading: authLoading } = useAuth();
-  const [application, setApplication] = useState(null);
-  const [space, setSpace] = useState(null);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!router.isReady || !spaceSlug || !id || !user) return;
+  const {
+    data: application,
+    isLoading: applicationLoading,
+    isError,
+  } = useSpaceMemberApplication({
+    applicationId: id,
+    userId: user?.id,
+    enabled: router.isReady && !!user,
+  });
 
-    async function loadApplication() {
-      setLoading(true);
+  const loading = authLoading || applicationLoading;
+  const space = application?.space;
 
-      const { data, error } = await supabase
-        .from("space_member_application")
-        .select(`
-          id,
-          space_id,
-          applicant_user_id,
-          message,
-          status,
-          admin_notes,
-          reviewed_at,
-          created_at,
-          space:space_id (
-            id,
-            name,
-            slug,
-            logo_url
-          )
-        `)
-        .eq("id", id)
-        .eq("applicant_user_id", user.id)
-        .single();
+  if (loading) return <PageLoader />;
 
-      if (error || !data) {
-        console.error("Failed to load application:", error);
-        toast.error("Application not found.");
-        router.replace(`/space/${spaceSlug}`);
-        return;
-      }
+  if (isError || !application) {
+    toast.error("Application not found.");
+    router.replace(`/space/${spaceSlug}`);
+    return null;
+  }
 
-      if (data.space?.slug !== spaceSlug) {
-        router.replace(`/space/${spaceSlug}`);
-        return;
-      }
+  if (!space || space.slug !== spaceSlug) {
+    router.replace(`/space/${spaceSlug}`);
+    return null;
+  }
 
-      setApplication(data);
-      setSpace(data.space);
-      setLoading(false);
-    }
-
-    loadApplication();
-  }, [router.isReady, spaceSlug, id, user, router]);
-
-  if (authLoading || loading) return <PageLoader />;
-  if (!user || !application || !space) return null;
+  if (!user) return null;
 
   return (
     <>
@@ -114,7 +87,9 @@ export default function SpaceMemberApplicationStatusPage() {
                 </div>
                 <div className="min-w-0">
                   <h1 className="truncate text-xl font-semibold">{space.name}</h1>
-                  <p className="text-sm text-muted-foreground">Membership application</p>
+                  <p className="text-sm text-muted-foreground">
+                    Membership application
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -125,7 +100,9 @@ export default function SpaceMemberApplicationStatusPage() {
           <Card>
             <CardHeader>
               <CardTitle>Your application</CardTitle>
-              <CardDescription>Submitted {formatDate(application.created_at)}</CardDescription>
+              <CardDescription>
+                Submitted {formatDate(application.created_at)}
+              </CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-6">
@@ -138,7 +115,9 @@ export default function SpaceMemberApplicationStatusPage() {
 
               {application.status === "rejected" && application.admin_notes && (
                 <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-                  <div className="mb-2 text-sm font-medium text-destructive">Review note</div>
+                  <div className="mb-2 text-sm font-medium text-destructive">
+                    Review note
+                  </div>
                   <p className="whitespace-pre-wrap text-sm leading-6">
                     {application.admin_notes}
                   </p>

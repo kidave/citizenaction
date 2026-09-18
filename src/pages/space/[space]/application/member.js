@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Users } from "lucide-react";
 import { toast } from "sonner";
 
-import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/context/AuthContext";
-import AuthCard from "@/components/auth/AuthCard";
+import { useSpaces } from "@/hooks/space/useSpaces";
+import { useApplyToSpace } from "@/hooks/space/useApplyToSpace";
 import ApplicationTopbar from "@/components/application/ApplicationTopbar";
 import {
   Card,
@@ -20,50 +20,31 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 
 export default function SpaceMemberApplicationPage() {
   const router = useRouter();
   const { space: spaceSlug } = router.query;
   const { user, loading: authLoading } = useAuth();
-  const [space, setSpace] = useState(null);
+  const { data: space, isLoading: spaceLoading, isError: spaceError } =
+    useSpaces({
+      slug: spaceSlug,
+    });
+  const { applyToSpace, isApplying } = useApplyToSpace();
   const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (!router.isReady || !spaceSlug) return;
+  const loading = authLoading || spaceLoading;
 
-    async function loadSpace() {
-      setLoading(true);
+  if (loading) return <PageLoader />;
 
-      const { data, error } = await supabase
-        .from("space")
-        .select(`id, name, slug, description, logo_url`)
-        .eq("slug", spaceSlug)
-        .eq("is_active", true)
-        .maybeSingle();
+  if (spaceError) {
+    toast.error("Unable to load this Space.");
+    return null;
+  }
 
-      if (error) {
-        console.error("Failed to load Space:", error);
-        toast.error("Unable to load this Space.");
-        setLoading(false);
-        return;
-      }
-
-      if (!data) {
-        router.replace("/404");
-        return;
-      }
-
-      setSpace(data);
-      setLoading(false);
-    }
-
-    loadSpace();
-  }, [router.isReady, spaceSlug, router]);
-
-  if (authLoading || loading) return <PageLoader />;
+  if (!space) {
+    router.replace("/404");
+    return null;
+  }
 
   if (!user) {
     return (
@@ -94,34 +75,29 @@ export default function SpaceMemberApplicationPage() {
     );
   }
 
-  if (!space) return null;
-
   async function handleSubmit(event) {
     event.preventDefault();
     const trimmedMessage = message.trim();
 
-    if (trimmedMessage.length < 10) {
-      toast.error("Please tell us a little more about why you want to join.");
+    if (trimmedMessage.length < 100) {
+      toast.error(
+        "Please write at least 100 characters about why you want to join."
+      );
       return;
     }
 
-    setSubmitting(true);
+    try {
+      const data = await applyToSpace({
+        spaceId: space.id,
+        message: trimmedMessage,
+      });
 
-    const { data, error } = await supabase.rpc("apply_to_space", {
-      p_space_id: space.id,
-      p_message: trimmedMessage,
-    });
-
-    setSubmitting(false);
-
-    if (error) {
+      toast.success("Your membership application has been submitted.");
+      router.push(`/space/${space.slug}/application/member/${data.id}`);
+    } catch (error) {
       console.error("Membership application failed:", error);
-      toast.error(error.message || "Unable to submit your application.");
-      return;
+      toast.error(error?.message || "Unable to submit your application.");
     }
-
-    toast.success("Your membership application has been submitted.");
-    router.push(`/space/${space.slug}/application/member/${data.id}`);
   }
 
   return (
@@ -195,7 +171,7 @@ export default function SpaceMemberApplicationPage() {
                     placeholder="Introduce yourself to the community and share why you would like to be part of this Space."
                     rows={7}
                     maxLength={1000}
-                    disabled={submitting}
+                    disabled={isApplying}
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Minimum 100 characters</span>
@@ -208,15 +184,15 @@ export default function SpaceMemberApplicationPage() {
                     type="button"
                     variant="outline"
                     asChild
-                    disabled={submitting}
+                    disabled={isApplying}
                   >
                     <Link href={`/space/${space.slug}`}>Cancel</Link>
                   </Button>
                   <Button
                     type="submit"
-                    disabled={submitting || message.trim().length < 100}
+                    disabled={isApplying || message.trim().length < 100}
                   >
-                    {submitting ? "Submitting..." : "Apply to become a member"}
+                    {isApplying ? "Submitting..." : "Apply to become a member"}
                   </Button>
                 </div>
               </form>
