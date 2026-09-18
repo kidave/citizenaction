@@ -8,10 +8,16 @@ const ALLOWED_TYPES = new Map([
   ["image/webp", "webp"],
 ]);
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "content-type": "application/json" },
+    headers: { ...corsHeaders, "content-type": "application/json" },
   });
 }
 
@@ -30,6 +36,10 @@ function allowedSource(url: URL) {
 }
 
 Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
   if (req.method !== "POST") return json({ error: "POST required" }, 405);
 
   const auth = req.headers.get("Authorization");
