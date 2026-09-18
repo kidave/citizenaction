@@ -36,6 +36,7 @@ function isSupportedImageSource(value) {
   try {
     const url = new URL(value);
     const host = url.hostname.toLowerCase();
+
     return (
       url.protocol === "https:" &&
       (host === "instagram.com" ||
@@ -66,8 +67,8 @@ export default function GovernancePersonDialog({
 
   const isEditing = !!record?.id;
   const imagePath = isEditing
-    ? `governance/person/${record.id}/image`
-    : `governance/person/draft-${draftId}/image`;
+    ? `person/${record.id}`
+    : `person/draft-${draftId}`;
 
   const { createPerson, updatePerson } = usePersonMutations();
   const { importPersonImage } = useImportGovernancePersonImage();
@@ -105,6 +106,7 @@ export default function GovernancePersonDialog({
         setLoadingRecord(false);
         return;
       }
+
       if (personResult.error) {
         toast.error(personResult.error.message);
         setLoadingRecord(false);
@@ -129,6 +131,7 @@ export default function GovernancePersonDialog({
     };
 
     load();
+
     return () => {
       cancelled = true;
     };
@@ -167,12 +170,15 @@ export default function GovernancePersonDialog({
     }
 
     if (!isEditing) {
-      toast.info("Save the person first, then the image will be imported automatically.");
+      toast.info(
+        "Save the person first, then the image will be imported automatically.",
+      );
       return;
     }
 
     try {
       setImportingImage(true);
+
       const imported = await importPersonImage({
         personId: record.id,
         sourceUrl,
@@ -194,6 +200,7 @@ export default function GovernancePersonDialog({
         imageUrl: imported.imageUrl,
         imageSourceUrl: "",
       }));
+
       await onSaved?.(updated);
       toast.success("Image imported");
     } catch (error) {
@@ -236,6 +243,7 @@ export default function GovernancePersonDialog({
       }
 
       const created = await createPerson(baseParams);
+
       if (!created?.id) {
         throw new Error("Person was created but no person ID was returned.");
       }
@@ -319,7 +327,9 @@ export default function GovernancePersonDialog({
             />
 
             <div className="space-y-2">
-              <Label htmlFor="governance-person-image-url">Or import from URL</Label>
+              <Label htmlFor="governance-person-image-url">
+                Or import from URL
+              </Label>
               <div className="flex gap-2">
                 <Input
                   id="governance-person-image-url"
@@ -358,12 +368,14 @@ export default function GovernancePersonDialog({
                   </span>
                 </Button>
               </div>
+
               {!isEditing && form.imageSourceUrl.trim() && (
                 <p className="text-xs text-muted-foreground">
-                  The person will be created first, then the image will be imported
-                  automatically.
+                  The person will be created first, then the image will be
+                  imported automatically.
                 </p>
               )}
+
               {!imageSourceIsValid && (
                 <p className="text-xs text-destructive">
                   Use an Instagram or Meta CDN image URL.
@@ -435,11 +447,7 @@ export default function GovernancePersonDialog({
           >
             Cancel
           </Button>
-          <Button
-            type="button"
-            onClick={save}
-            disabled={busy || loadingRecord}
-          >
+          <Button type="button" onClick={save} disabled={busy || loadingRecord}>
             {loading
               ? importingImage
                 ? "Importing image..."
