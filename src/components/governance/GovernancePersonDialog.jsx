@@ -67,8 +67,8 @@ export default function GovernancePersonDialog({
 
   const isEditing = !!record?.id;
   const imagePath = isEditing
-    ? `person/${record.id}`
-    : `person/draft-${draftId}`;
+    ? `governance/person/${record.id}/image`
+    : `governance/person/draft-${draftId}/image`;
 
   const { createPerson, updatePerson } = usePersonMutations();
   const { importPersonImage } = useImportGovernancePersonImage();
