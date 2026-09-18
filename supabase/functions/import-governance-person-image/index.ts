@@ -150,7 +150,7 @@ Deno.serve(async (req) => {
     return json({ error: "Image must be 5 MB or smaller" }, 413);
   }
 
-  const storagePath = `governance/person/${personId}/image.${extension}`;
+  const storagePath = `governance/person/${personId}.${extension}`;
 
   const { error: uploadError } = await adminClient.storage
     .from("governance")
