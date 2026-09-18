@@ -18,6 +18,13 @@ export default function GovernancePositionTimeline({ position, organization, tim
             <span className="text-base font-normal text-muted-foreground">· {organizationLabel}</span>
           )}
         </h1>
+        {(position?.metadata?.qualifications || position?.metadata?.responsibilities || position?.description) && (
+          <div className="mt-4 space-y-4 border-t pt-4">
+            {position.description && <div><p className="text-xs font-medium text-muted-foreground">Description</p><p className="mt-1 text-sm leading-6">{position.description}</p></div>}
+            {position.metadata?.qualifications && <div><p className="text-xs font-medium text-muted-foreground">Qualifications required</p><p className="mt-1 whitespace-pre-line text-sm leading-6">{position.metadata.qualifications}</p></div>}
+            {position.metadata?.responsibilities && <div><p className="text-xs font-medium text-muted-foreground">Roles and responsibilities</p><p className="mt-1 whitespace-pre-line text-sm leading-6">{position.metadata.responsibilities}</p></div>}
+          </div>
+        )}
       </div>
 
       {!timeline.length ? (
