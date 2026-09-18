@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ImageUpload from "@/components/media/ImageUpload";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase/client";
@@ -19,6 +20,7 @@ function emptyForm() {
   return {
     name: "",
     shortName: "",
+    description: "",
     type: "organization",
     categoryId: "",
     status: "active",
@@ -59,6 +61,7 @@ export default function GovernanceOrganizationCreateDialog({ open, onOpenChange,
         p_name: form.name.trim(),
         p_type: form.type,
         p_short_name: form.shortName.trim() || null,
+        p_description: form.description.trim() || null,
         p_status: form.status,
         p_valid_from: `${form.validFrom}T00:00:00Z`,
         p_valid_to: form.validTo ? `${form.validTo}T23:59:59.999Z` : null,
@@ -103,6 +106,11 @@ export default function GovernanceOrganizationCreateDialog({ open, onOpenChange,
             <Input id="governance-organization-image-url" type="url" value={form.imageSourceUrl} onChange={(event) => setField("imageSourceUrl", event.target.value)} placeholder="Paste Instagram image URL" disabled={saving || importingImage} />
             {form.imageSourceUrl.trim() && !imageSourceIsValid && <p className="text-xs text-destructive">Use an Instagram or Meta CDN image URL.</p>}
             {form.imageSourceUrl.trim() && imageSourceIsValid && <p className="text-xs text-muted-foreground">The organization will be created first, then the image will be imported automatically.</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="governance-organization-description">Description</Label>
+            <Textarea id="governance-organization-description" value={form.description} onChange={(event) => setField("description", event.target.value)} placeholder="What is this organization for?" rows={4} disabled={saving || importingImage} />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
