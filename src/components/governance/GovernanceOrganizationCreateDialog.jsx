@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
+
 import { Building2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -11,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase/client";
+import { useImportGovernanceOrganizationImage } from "@/hooks/governance/useImportGovernanceOrganizationImage";
 import { GOVERNANCE_STATUS_OPTIONS, GOVERNANCE_TYPES, formatGovernanceType, governanceRequiresValidTo } from "@/utils/governance";
 
 function emptyForm() {
@@ -23,12 +25,15 @@ function emptyForm() {
     validFrom: new Date().toISOString().slice(0, 10),
     validTo: "",
     imageUrl: "",
+    imageSourceUrl: "",
   };
 }
 
 export default function GovernanceOrganizationCreateDialog({ open, onOpenChange, categories = [], onSaved }) {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [importingImage, setImportingImage] = useState(false);
+  const { importOrganizationImage } = useImportGovernanceOrganizationImage();
   const draftId = useId().replace(/:/g, "");
 
   useEffect(() => {
@@ -39,6 +44,7 @@ export default function GovernanceOrganizationCreateDialog({ open, onOpenChange,
 
   const setField = (field, value) => setForm((current) => ({ ...current, [field]: value }));
   const requiresValidTo = governanceRequiresValidTo(form.status);
+  const imageSourceIsValid = !form.imageSourceUrl || (() => { try { const url = new URL(form.imageSourceUrl.trim()); const host = url.hostname.toLowerCase(); return url.protocol === "https:" && (host === "instagram.com" || host.endsWith(".instagram.com") || host === "cdninstagram.com" || host.endsWith(".cdninstagram.com") || host === "fbcdn.net" || host.endsWith(".fbcdn.net")); } catch { return false; } })();
 
   const save = async () => {
     if (!form.name.trim()) return toast.error("Name is required");
@@ -61,13 +67,24 @@ export default function GovernanceOrganizationCreateDialog({ open, onOpenChange,
       });
       if (result.error) throw result.error;
 
-      const created = Array.isArray(result.data) ? result.data[0] : result.data;
-      toast.success("Governance organization created");
+      let created = Array.isArray(result.data) ? result.data[0] : result.data;
+      if (!created?.id) throw new Error("Organization was created but no organization ID was returned.");
+      if (form.imageSourceUrl.trim()) {
+        if (!imageSourceIsValid) throw new Error("Use an Instagram or Meta CDN image URL");
+        setImportingImage(true);
+        const imported = await importOrganizationImage({ organizationId: created.id, sourceUrl: form.imageSourceUrl.trim() });
+        const updated = await supabase.rpc("update_governance_image", { p_governance_id: created.id, p_image_url: imported.imageUrl });
+        if (updated.error) throw updated.error;
+        created = Array.isArray(updated.data) ? updated.data[0] : updated.data;
+        setImportingImage(false);
+      }
+      toast.success(form.imageSourceUrl.trim() ? "Governance organization created with image" : "Governance organization created");
       await onSaved?.(created);
       onOpenChange?.(false);
     } catch (error) {
       toast.error(error?.message || "Unable to create governance organization");
     } finally {
+      setImportingImage(false);
       setSaving(false);
     }
   };
@@ -80,7 +97,13 @@ export default function GovernanceOrganizationCreateDialog({ open, onOpenChange,
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          <ImageUpload bucket="governance" path={`governance/organization/draft-${draftId}/logo`} value={form.imageUrl || null} onChange={(value) => setField("imageUrl", value || "")} label="Organization logo" helperText="PNG, JPG or WebP · up to 5 MB" disabled={saving} />
+          <ImageUpload bucket="governance" path={`governance/organization/draft-${draftId}/logo`} value={form.imageUrl || null} onChange={(value) => setField("imageUrl", value || "")} label="Organization logo" helperText="PNG, JPG or WebP · up to 5 MB" disabled={saving || importingImage} />
+          <div className="space-y-2">
+            <Label htmlFor="governance-organization-image-url">Or import from URL</Label>
+            <Input id="governance-organization-image-url" type="url" value={form.imageSourceUrl} onChange={(event) => setField("imageSourceUrl", event.target.value)} placeholder="Paste Instagram image URL" disabled={saving || importingImage} />
+            {form.imageSourceUrl.trim() && !imageSourceIsValid && <p className="text-xs text-destructive">Use an Instagram or Meta CDN image URL.</p>}
+            {form.imageSourceUrl.trim() && imageSourceIsValid && <p className="text-xs text-muted-foreground">The organization will be created first, then the image will be imported automatically.</p>}
+          </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2"><Label htmlFor="governance-organization-name">Name</Label><Input id="governance-organization-name" value={form.name} onChange={(event) => setField("name", event.target.value)} placeholder="e.g. Mumbai Metropolitan Region Development Authority" disabled={saving} autoFocus /></div>
