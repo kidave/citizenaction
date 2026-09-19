@@ -14,10 +14,10 @@ import EmptyState from "@/components/ui/empty-state";
 import { formatGovernanceDate, getGovernanceInitials } from "@/utils/governance";
 import { useGovernanceOrganizationContext } from "@/hooks/governance/useGovernanceOrganizationContext";
 
-function OrganizationUnit({ node, childrenByParent, canEdit, onSelect }) {
-  const [open, setOpen] = useState(node.depth < 2);
+function OrganizationUnit({ node, childrenByParent, canEdit, onSelect, expandedPath, onToggle }) {
   const children = childrenByParent.get(node.id) || [];
   const hasChildren = children.length > 0;
+  const open = expandedPath.includes(node.id);
 
   return (
     <div className="space-y-2">
@@ -46,7 +46,7 @@ function OrganizationUnit({ node, childrenByParent, canEdit, onSelect }) {
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 shrink-0"
-                onClick={() => setOpen((value) => !value)}
+                onClick={() => onToggle(node.id)}
                 aria-label={open ? "Collapse unit" : "Expand unit"}
               >
                 {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -59,7 +59,15 @@ function OrganizationUnit({ node, childrenByParent, canEdit, onSelect }) {
       {open && hasChildren && (
         <div className="ml-4 space-y-2 border-l pl-4 sm:ml-6 sm:pl-6">
           {children.map((child) => (
-            <OrganizationUnit key={child.id} node={child} childrenByParent={childrenByParent} canEdit={canEdit} onSelect={onSelect} />
+            <OrganizationUnit
+              key={child.id}
+              node={child}
+              childrenByParent={childrenByParent}
+              canEdit={canEdit}
+              onSelect={onSelect}
+              expandedPath={expandedPath}
+              onToggle={onToggle}
+            />
           ))}
         </div>
       )}
@@ -156,6 +164,18 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
     [appointments],
   );
 
+  const [expandedPath, setExpandedPath] = useState(() => (governance?.id ? [governance.id] : []));
+
+  const toggleOrganizationUnit = (id) => {
+    setExpandedPath((currentPath) => {
+      const index = currentPath.indexOf(id);
+      if (index >= 0) return currentPath.slice(0, index);
+      const parentId = organizations.find((item) => item.id === id)?.parent_entity_id;
+      const parentIndex = parentId ? currentPath.indexOf(parentId) : -1;
+      return [...(parentIndex >= 0 ? currentPath.slice(0, parentIndex + 1) : []), id];
+    });
+  };
+
   const root = organizations.find((item) => item.id === governance?.id) || {
     ...governance,
     depth: 0,
@@ -223,7 +243,14 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                 <p className="text-sm text-muted-foreground">Governance units are nested from the organization records. Nothing here is hardcoded for a particular government.</p>
               </CardHeader>
               <CardContent>
-                <OrganizationUnit node={root} childrenByParent={childrenByParent} canEdit={canEdit} onSelect={onEdit} />
+                <OrganizationUnit
+                  node={root}
+                  childrenByParent={childrenByParent}
+                  canEdit={canEdit}
+                  onSelect={onEdit}
+                  expandedPath={expandedPath}
+                  onToggle={toggleOrganizationUnit}
+                />
               </CardContent>
             </Card>
           </TabsContent>
