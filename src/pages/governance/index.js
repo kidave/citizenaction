@@ -64,23 +64,21 @@ export default function GovernancePage() {
           />
         }
       />
-      <main className="flex-1 px-4 py-5 sm:px-6 lg:px-8">
+      <main className="flex-1 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-6xl">
-          <Tabs value={tab} onValueChange={handleTabChange} className="mb-5">
+          <Tabs value={tab} onValueChange={handleTabChange} className="mb-4">
             <TabsList className="w-max max-w-full">
               {GOVERNANCE_DIRECTORY_TABS.map(([value, label]) => (
-                <TabsTrigger
-                  key={value}
-                  value={value}
-                  className="px-3 sm:px-4"
-                >
+                <TabsTrigger key={value} value={value} className="px-3 sm:px-4">
                   {label}
                 </TabsTrigger>
               ))}
             </TabsList>
           </Tabs>
 
-          {tab === "organizations" && <OrganizationDirectory {...directoryProps} />}
+          {tab === "organizations" && (
+            <OrganizationDirectory {...directoryProps} />
+          )}
           {tab === "positions" && <PositionDirectory {...directoryProps} />}
           {tab === "people" && <PersonDirectory {...directoryProps} />}
         </div>
