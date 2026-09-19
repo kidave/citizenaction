@@ -110,18 +110,6 @@ export default function GovernancePositionSheet({
     [organizations],
   );
 
-  const categoryOptions = useMemo(
-    () => [
-      { value: "none", label: "No category", searchValue: "no category" },
-      ...categories.map((item) => ({
-        value: item.id,
-        label: item.name,
-        searchValue: `${item.name || ""} ${item.slug || ""}`,
-      })),
-    ],
-    [categories],
-  );
-
   const setField = (field, value) => setForm((current) => ({ ...current, [field]: value }));
 
   const save = async () => {
