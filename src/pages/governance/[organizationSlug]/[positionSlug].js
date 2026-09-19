@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import GovernanceAppointmentDialog from "@/components/governance/GovernanceAppointmentDialog";
+import GovernancePersonSheet from "@/components/governance/GovernancePersonSheet";
 import GovernancePositionSheet from "@/components/governance/GovernancePositionSheet";
 import LoadingState from "@/components/ui/loading-state";
 import ErrorState from "@/components/ui/error-state";
@@ -29,6 +30,7 @@ export default function GovernancePositionPage() {
   const [appointmentOpen, setAppointmentOpen] = useState(false);
   const [appointmentRecord, setAppointmentRecord] = useState(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [personSheetOpen, setPersonSheetOpen] = useState(false);
 
   const positionQuery = useQuery({
     queryKey: ["governance", "position", organizationSlug, positionSlug],
@@ -76,6 +78,28 @@ export default function GovernancePositionPage() {
     ]);
   };
 
+  const addPersonToPosition = async (person) => {
+    if (!person?.id) throw new Error("Person was created but no person ID was returned.");
+
+    const result = await supabase.rpc("upsert_organization", {
+      p_id: null,
+      p_governance_id: organization.id,
+      p_person_name: person.name,
+      p_person_governance_id: person.id,
+      p_position_name: position.name,
+      p_position_governance_id: position.id,
+      p_started_at: `2026-09-19T00:00:00Z`,
+      p_ended_at: null,
+      p_is_vacant: false,
+      p_is_primary: true,
+      p_reports_to_id: null,
+      p_notes: null,
+    });
+
+    if (result.error) throw result.error;
+    await refresh();
+  };
+
   return (
     <div className="flex min-h-dvh w-full flex-col">
       <GovernancePageHeader
@@ -85,7 +109,7 @@ export default function GovernancePositionPage() {
           canManage ? (
             <div className="flex items-center gap-2">
               <Button type="button" variant="outline" size="sm" onClick={() => setEditOpen(true)}>Edit</Button>
-              <Button type="button" size="sm" onClick={() => { setAppointmentRecord(null); setAppointmentOpen(true); }}>Add person</Button>
+              <Button type="button" size="sm" onClick={() => setPersonSheetOpen(true)}>Add person</Button>
             </div>
           ) : null
         }
@@ -108,6 +132,14 @@ export default function GovernancePositionPage() {
           record={position}
           defaultOrganizationId={organization.id}
           onSaved={refresh}
+        />
+      )}
+
+      {canManage && (
+        <GovernancePersonSheet
+          open={personSheetOpen}
+          onOpenChange={setPersonSheetOpen}
+          onSaved={addPersonToPosition}
         />
       )}
 

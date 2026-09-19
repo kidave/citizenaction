@@ -166,7 +166,7 @@ export default function GovernancePositionSheet({
       const result = isEditing ? await updatePosition(params) : await createPosition(params);
 
       toast.success(isEditing ? "Position updated" : "Position created");
-      await onSaved?.(result.data);
+      await onSaved?.(result);
       onOpenChange?.(false);
     } catch (error) {
       toast.error(error?.message || "Unable to save position");

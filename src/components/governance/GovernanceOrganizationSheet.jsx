@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/lib/supabase/client";
 import { useImportGovernanceOrganizationImage } from "@/hooks/governance/useImportGovernanceOrganizationImage";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 import { GOVERNANCE_STATUS_OPTIONS, GOVERNANCE_TYPES, formatGovernanceType, governanceRequiresValidTo } from "@/utils/governance";
@@ -75,12 +76,42 @@ export default function GovernanceOrganizationSheet({
     !form.imageSourceUrl || isSupportedImageSource(form.imageSourceUrl.trim());
 
   useEffect(() => {
-    if (open) {
-      setForm(emptyForm(record));
+    if (!open) return;
+
+    let cancelled = false;
+
+    const load = async () => {
       setSaving(false);
       setImportingImage(false);
-    }
-  }, [open, record]);
+
+      if (!record?.id) {
+        setForm(emptyForm(null));
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("governance")
+        .select("id,name,short_name,description,website,type,category_id,status,valid_from,valid_to,image_url")
+        .eq("id", record.id)
+        .single();
+
+      if (cancelled) return;
+
+      if (error) {
+        toast.error(error.message || "Unable to load organization");
+        setForm(emptyForm(record));
+        return;
+      }
+
+      setForm(emptyForm(data));
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, record?.id]);
 
   const setField = (field, value) =>
     setForm((current) => ({ ...current, [field]: value }));
@@ -111,9 +142,16 @@ export default function GovernanceOrganizationSheet({
         p_image_url: form.imageUrl || null,
       };
 
-      const saved = isEditing
+      let saved = isEditing
         ? await updateOrganization({ ...baseParams, p_entity_id: record.id })
         : await createOrganization(baseParams);
+
+      if (!isEditing && form.website.trim() && saved?.id) {
+        saved = await updateOrganization({
+          ...baseParams,
+          p_entity_id: saved.id,
+        });
+      }
 
       let finalRecord = saved;
 

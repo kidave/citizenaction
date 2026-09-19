@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
 import GovernancePersonSheet from "@/components/governance/GovernancePersonSheet";
+import GovernancePositionSheet from "@/components/governance/GovernancePositionSheet";
 import LoadingState from "@/components/ui/loading-state";
 import ErrorState from "@/components/ui/error-state";
 import EmptyState from "@/components/ui/empty-state";
@@ -30,6 +31,7 @@ export default function GovernancePersonPage() {
   const [appointmentOpen, setAppointmentOpen] = useState(false);
   const [appointmentRecord, setAppointmentRecord] = useState(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [positionSheetOpen, setPositionSheetOpen] = useState(false);
 
   const query = useQuery({
     queryKey: ["governance", "person", personSlug],
@@ -64,6 +66,31 @@ export default function GovernancePersonPage() {
     ]);
   };
 
+  const addPositionToPerson = async (position) => {
+    if (!position?.id) throw new Error("Position was created but no position ID was returned.");
+    if (!position.appointing_organization_id) {
+      throw new Error("Select an appointing organization for the position.");
+    }
+
+    const result = await supabase.rpc("upsert_organization", {
+      p_id: null,
+      p_governance_id: position.appointing_organization_id,
+      p_person_name: person.name,
+      p_person_governance_id: person.id,
+      p_position_name: position.name,
+      p_position_governance_id: position.id,
+      p_started_at: `2026-09-19T00:00:00Z`,
+      p_ended_at: null,
+      p_is_vacant: false,
+      p_is_primary: true,
+      p_reports_to_id: null,
+      p_notes: null,
+    });
+
+    if (result.error) throw result.error;
+    await refresh();
+  };
+
   return (
     <div className="flex min-h-dvh w-full flex-col">
       <GovernancePageHeader
@@ -73,7 +100,7 @@ export default function GovernancePersonPage() {
           canManage ? (
             <div className="flex items-center gap-2">
               <Button type="button" variant="outline" size="sm" onClick={() => setEditOpen(true)}>Edit</Button>
-              <Button type="button" size="sm" onClick={() => { setAppointmentRecord(null); setAppointmentOpen(true); }}>Add current position</Button>
+              <Button type="button" size="sm" onClick={() => setPositionSheetOpen(true)}>Add current position</Button>
             </div>
           ) : null
         }
@@ -133,6 +160,14 @@ export default function GovernancePersonPage() {
           onOpenChange={setEditOpen}
           record={person}
           onSaved={refresh}
+        />
+      )}
+
+      {canManage && (
+        <GovernancePositionSheet
+          open={positionSheetOpen}
+          onOpenChange={setPositionSheetOpen}
+          onSaved={addPositionToPerson}
         />
       )}
 

@@ -105,61 +105,15 @@ export default function GovernanceRecordPage() {
   }, [governance, byId]);
 
   const treeRecords = useMemo(() => {
-    if (!governance || !family.length) return [];
-    const parentById = new Map(family.map((entity) => [entity.id, entity.parent_id || null]));
-    let rootId = governance.id;
-    const seenAncestors = new Set();
-    while (parentById.get(rootId) && !seenAncestors.has(rootId)) {
-      seenAncestors.add(rootId);
-      rootId = parentById.get(rootId);
-    }
-    const ids = new Set([rootId]);
-    const queue = [rootId];
-    const childrenByParent = new Map();
-    family.forEach((entity) => {
-      if (!entity.parent_id) return;
-      const children = childrenByParent.get(entity.parent_id) || [];
-      children.push(entity.id);
-      childrenByParent.set(entity.parent_id, children);
-    });
-    while (queue.length) {
-      const parentId = queue.shift();
-      (childrenByParent.get(parentId) || []).forEach((childId) => {
-        if (!ids.has(childId)) {
-          ids.add(childId);
-          queue.push(childId);
-        }
-      });
-    }
-    return family.filter((entity) => ids.has(entity.id));
+    if (!governance) return [];
+    const children = family.filter((entity) => entity.parent_id === governance.id);
+    return [governance, ...children];
   }, [family, governance]);
 
-  const initialExpandedIds = useMemo(() => {
-    if (!governance || !treeRecords.length) return [];
-    const parentById = new Map(treeRecords.map((entity) => [entity.id, entity.parent_id || null]));
-    const childrenByParent = new Map();
-    treeRecords.forEach((entity) => {
-      if (!entity.parent_id) return;
-      const children = childrenByParent.get(entity.parent_id) || [];
-      children.push(entity.id);
-      childrenByParent.set(entity.parent_id, children);
-    });
-    let rootId = governance.id;
-    const seen = new Set();
-    while (parentById.get(rootId) && !seen.has(rootId)) {
-      seen.add(rootId);
-      rootId = parentById.get(rootId);
-    }
-    const expanded = new Set();
-    const queue = [[rootId, 0]];
-    while (queue.length) {
-      const [id, depth] = queue.shift();
-      if (depth >= 3 || expanded.has(id)) continue;
-      expanded.add(id);
-      (childrenByParent.get(id) || []).forEach((childId) => queue.push([childId, depth + 1]));
-    }
-    return Array.from(expanded);
-  }, [governance, treeRecords]);
+  const initialExpandedIds = useMemo(
+    () => (governance ? [governance.id] : []),
+    [governance],
+  );
 
   const openEntity = async (entity) => {
     if (!entity?.slug) return;

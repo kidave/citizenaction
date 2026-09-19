@@ -173,6 +173,8 @@ export default function OrganizationDirectory({
                 selectionMode={selectionMode}
                 selected={selectedSet.has(entity.id)}
                 onSelect={onSelect}
+                onEdit={canManage ? openEdit : undefined}
+                onDelete={canManage ? deleteOrganizationRecord : undefined}
               />
             ))}
           </div>
@@ -185,6 +187,7 @@ export default function OrganizationDirectory({
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           categories={categories}
+          record={editingRecord}
           onSaved={refresh}
         />
       )}
