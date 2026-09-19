@@ -461,6 +461,6 @@ export default function GovernancePersonSheet({
           </Button>
         </SheetFooter>
       </SheetContent>
-    </Sheet
+    </Sheet>
   );
 }

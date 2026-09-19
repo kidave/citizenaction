@@ -277,6 +277,6 @@ export default function GovernancePositionSheet({
           </Button>
         </SheetFooter>
       </SheetContent>
-    </Sheet
+    </Sheet>
   );
 }
