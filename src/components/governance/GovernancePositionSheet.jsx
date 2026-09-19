@@ -110,18 +110,6 @@ export default function GovernancePositionSheet({
     [organizations],
   );
 
-  const categoryOptions = useMemo(
-    () => [
-      { value: "none", label: "No category", searchValue: "no category" },
-      ...categories.map((item) => ({
-        value: item.id,
-        label: item.name,
-        searchValue: `${item.name || ""} ${item.slug || ""}`,
-      })),
-    ],
-    [categories],
-  );
-
   const setField = (field, value) => setForm((current) => ({ ...current, [field]: value }));
 
   const save = async () => {
@@ -145,7 +133,6 @@ export default function GovernancePositionSheet({
             p_name: form.name.trim(),
             p_description: form.description.trim() || null,
             p_image_url: form.imageUrl.trim() || null,
-            p_category_id: form.categoryId === "none" ? null : form.categoryId || null,
             p_metadata: { qualifications: form.qualifications.trim() || null, responsibilities: form.responsibilities.trim() || null },
             p_appointing_organization_id: form.organizationId || null,
           };

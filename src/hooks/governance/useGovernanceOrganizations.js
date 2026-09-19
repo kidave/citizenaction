@@ -7,17 +7,26 @@ export function useGovernanceOrganizations({ enabled = true } = {}) {
     queryKey: queryKeys.governance.organizations,
     enabled,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("governance")
-        .select(
-          "id,name,short_name,slug,type,status,image_url,current_holder_name,current_holder_image_url",
-        )
-        .neq("status", "deleted")
-        .order("name")
-        .limit(500);
+      const pageSize = 1000;
+      const rows = [];
 
-      if (error) throw error;
-      return data || [];
+      for (let from = 0; ; from += pageSize) {
+        const { data, error } = await supabase
+          .from("governance")
+          .select(
+            "id,name,short_name,slug,type,status,image_url,current_holder_name,current_holder_image_url",
+          )
+          .neq("status", "deleted")
+          .order("name")
+          .range(from, from + pageSize - 1);
+
+        if (error) throw error;
+        rows.push(...(data || []));
+
+        if (!data || data.length < pageSize) break;
+      }
+
+      return rows;
     },
     staleTime: 5 * 60 * 1000,
   });
