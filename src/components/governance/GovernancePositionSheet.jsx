@@ -268,6 +268,8 @@ export default function GovernancePositionSheet({
           </div>
         )}
 
+        </div>
+
         <SheetFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={loading}>
             Cancel
