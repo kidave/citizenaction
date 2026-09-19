@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectoryCard";
 import GovernanceOrganizationCreateDialog from "@/components/governance/GovernanceOrganizationCreateDialog";
+import { Spinner } from "@/components/ui/spinner";
 import { useGovernanceCatalog } from "@/hooks/governance/useGovernanceCatalog";
 import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
 import {
@@ -64,7 +65,7 @@ export default function OrganizationDirectory({
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["governance-directory"] }),
       queryClient.invalidateQueries({
-        queryKey: ["governance-directory-organization-filter"],
+        queryKey: ["governance-organizations"],
       }),
     ]);
   };
@@ -136,8 +137,8 @@ export default function OrganizationDirectory({
       </div>
 
       {query.isLoading && (
-        <div className="flex min-h-[30vh] items-center justify-center text-sm text-muted-foreground">
-          Loading organizations...
+        <div className="flex min-h-[30vh] items-center justify-center">
+          <Spinner className="size-5 text-muted-foreground" />
         </div>
       )}
       {query.error && (
