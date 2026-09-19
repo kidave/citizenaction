@@ -5,9 +5,12 @@ import GovernanceEntityModal from "@/components/governance/GovernanceEntityModal
 import GovernanceFamilyTree from "@/components/governance/GovernanceFamilyTree";
 import GovernanceOrganizationOverview from "@/components/governance/GovernanceOrganizationOverview";
 import GovernanceLeadershipDialog from "@/components/governance/GovernanceLeadershipDialog";
+import GovernanceOrganizationSheet from "@/components/governance/GovernanceOrganizationSheet";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import GovernanceRelationDialog from "@/components/governance/GovernanceRelationDialog";
 import AddGeographyDialog from "@/components/geography/AddGeographyDialog";
+import LoadingState from "@/components/ui/loading-state";
+import ErrorState from "@/components/ui/error-state";
 import { useGovernanceCatalog } from "@/hooks/governance/useGovernanceCatalog";
 import { useGovernanceGeographyMutation } from "@/hooks/geography/useGovernanceGeography";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
@@ -38,7 +41,8 @@ export default function GovernanceRecordPage() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalEntity, setModalEntity] = useState(null);
-  const [modalEditMode, setModalEditMode] = useState(false);
+  const [organizationSheetOpen, setOrganizationSheetOpen] = useState(false);
+  const [organizationSheetEntity, setOrganizationSheetEntity] = useState(null);
   const [relationOpen, setRelationOpen] = useState(false);
   const [relationMode, setRelationMode] = useState("add-relation");
   const [relationSource, setRelationSource] = useState(null);
@@ -101,74 +105,31 @@ export default function GovernanceRecordPage() {
   }, [governance, byId]);
 
   const treeRecords = useMemo(() => {
-    if (!governance || !family.length) return [];
-    const parentById = new Map(family.map((entity) => [entity.id, entity.parent_id || null]));
-    let rootId = governance.id;
-    const seenAncestors = new Set();
-    while (parentById.get(rootId) && !seenAncestors.has(rootId)) {
-      seenAncestors.add(rootId);
-      rootId = parentById.get(rootId);
-    }
-    const ids = new Set([rootId]);
-    const queue = [rootId];
-    const childrenByParent = new Map();
-    family.forEach((entity) => {
-      if (!entity.parent_id) return;
-      const children = childrenByParent.get(entity.parent_id) || [];
-      children.push(entity.id);
-      childrenByParent.set(entity.parent_id, children);
-    });
-    while (queue.length) {
-      const parentId = queue.shift();
-      (childrenByParent.get(parentId) || []).forEach((childId) => {
-        if (!ids.has(childId)) {
-          ids.add(childId);
-          queue.push(childId);
-        }
-      });
-    }
-    return family.filter((entity) => ids.has(entity.id));
+    if (!governance) return [];
+    const children = family.filter((entity) => entity.parent_id === governance.id);
+    return [governance, ...children];
   }, [family, governance]);
 
-  const initialExpandedIds = useMemo(() => {
-    if (!governance || !treeRecords.length) return [];
-    const parentById = new Map(treeRecords.map((entity) => [entity.id, entity.parent_id || null]));
-    const childrenByParent = new Map();
-    treeRecords.forEach((entity) => {
-      if (!entity.parent_id) return;
-      const children = childrenByParent.get(entity.parent_id) || [];
-      children.push(entity.id);
-      childrenByParent.set(entity.parent_id, children);
-    });
-    let rootId = governance.id;
-    const seen = new Set();
-    while (parentById.get(rootId) && !seen.has(rootId)) {
-      seen.add(rootId);
-      rootId = parentById.get(rootId);
-    }
-    const expanded = new Set();
-    const queue = [[rootId, 0]];
-    while (queue.length) {
-      const [id, depth] = queue.shift();
-      if (depth >= 3 || expanded.has(id)) continue;
-      expanded.add(id);
-      (childrenByParent.get(id) || []).forEach((childId) => queue.push([childId, depth + 1]));
-    }
-    return Array.from(expanded);
-  }, [governance, treeRecords]);
+  const initialExpandedIds = useMemo(
+    () => (governance ? [governance.id] : []),
+    [governance],
+  );
 
-  const openEntity = async (entity, edit = false) => {
+  const openEntity = async (entity) => {
     if (!entity?.slug) return;
     const href = getGovernanceHref(entity);
     if (!href) return;
     setModalEntity(entity);
-    setModalEditMode(edit);
     setModalOpen(true);
     await router.push(href, undefined, { shallow: true });
   };
 
-  const selectEntity = (entity) => openEntity(entity, false);
-  const editEntity = (entity) => openEntity(entity, true);
+  const selectEntity = (entity) => openEntity(entity);
+  const editEntity = (entity) => {
+    if (!entity?.id) return;
+    setOrganizationSheetEntity(entity);
+    setOrganizationSheetOpen(true);
+  };
   const openRelation = (mode, entity) => {
     if (!entity?.id) return;
     setModalOpen(false);
@@ -181,7 +142,6 @@ export default function GovernanceRecordPage() {
     if (!entity?.id) return;
     setModalOpen(false);
     setModalEntity(null);
-    setModalEditMode(false);
     setGeographyEntity(entity);
     setGeographyOpen(true);
   };
@@ -194,6 +154,8 @@ export default function GovernanceRecordPage() {
       slug ? queryClient.invalidateQueries({ queryKey: queryKeys.governance.record(slug) }) : Promise.resolve(),
     ]);
     setModalEntity(null);
+    setOrganizationSheetEntity(null);
+    setOrganizationSheetOpen(false);
   };
   const removeEntityGeography = async (entity) => {
     if (!entity?.id) return;
@@ -213,11 +175,11 @@ export default function GovernanceRecordPage() {
   const directoryTabHref = "/governance?tab=organizations";
 
   if (loading) {
-    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: directoryTabHref }, { label: "Loading..." }]} backHref={directoryTabHref} /><main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading governance...</main></div>;
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: directoryTabHref }, { label: "Loading..." }]} backHref={directoryTabHref} /><main className="flex flex-1"><LoadingState className="w-full" label="Loading governance" /></main></div>;
   }
 
   if (governanceQuery.error || !governance) {
-    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: directoryTabHref }, { label: "Not found" }]} backHref={directoryTabHref} /><main className="flex flex-1 items-center justify-center text-sm">Governance record not found.</main></div>;
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: directoryTabHref }, { label: "Not found" }]} backHref={directoryTabHref} /><main className="flex flex-1"><ErrorState className="w-full" title="Governance record not found" /></main></div>;
   }
 
   return (
@@ -257,12 +219,11 @@ export default function GovernanceRecordPage() {
 
       <GovernanceEntityModal
         open={modalOpen}
-        onOpenChange={(value) => { setModalOpen(value); if (!value) { setModalEntity(null); setModalEditMode(false); } }}
+        onOpenChange={(value) => { setModalOpen(value); if (!value) setModalEntity(null); }}
         entity={currentEntity}
         parent={currentEntity?.parent_id ? byId.get(currentEntity.parent_id) || null : null}
         childEntities={currentEntity ? family.filter((entity) => entity.parent_id === currentEntity.id) : []}
         canEdit={canEdit}
-        initialEditing={modalEditMode}
         onSelect={selectEntity}
         onSaved={handleChanged}
         onDeleted={handleChanged}
@@ -272,6 +233,17 @@ export default function GovernanceRecordPage() {
         onChangeGeography={(entity) => openGeography(entity || currentEntity)}
         onRemoveGeography={(entity) => removeEntityGeography(entity || currentEntity)}
         categories={categories}
+      />
+
+      <GovernanceOrganizationSheet
+        open={organizationSheetOpen}
+        onOpenChange={(value) => {
+          setOrganizationSheetOpen(value);
+          if (!value) setOrganizationSheetEntity(null);
+        }}
+        record={organizationSheetEntity}
+        categories={categories}
+        onSaved={handleChanged}
       />
 
       <GovernanceRelationDialog

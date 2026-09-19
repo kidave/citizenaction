@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Building2, ChevronDown, ChevronRight, ExternalLink, GitBranch, Users } from "lucide-react";
+import { Building2, ChevronDown, ChevronRight, ExternalLink, GitBranch } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import LoadingState from "@/components/ui/loading-state";
+import ErrorState from "@/components/ui/error-state";
+import EmptyState from "@/components/ui/empty-state";
 import { formatGovernanceDate, getGovernanceInitials } from "@/utils/governance";
 import { useGovernanceOrganizationContext } from "@/hooks/governance/useGovernanceOrganizationContext";
 
@@ -161,11 +164,11 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
   };
 
   if (query.isLoading) {
-    return <div className="flex min-h-[50vh] items-center justify-center text-sm text-muted-foreground">Loading organization...</div>;
+    return <LoadingState className="min-h-[50vh]" label="Loading organization" />;
   }
 
   if (query.error) {
-    return <div className="flex min-h-[50vh] items-center justify-center text-sm text-destructive">Unable to load organization structure.</div>;
+    return <ErrorState className="min-h-[50vh]" title="Unable to load organization structure" />;
   }
 
   const totalPositions = appointments.length;
@@ -191,6 +194,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                 {root.description && <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">{root.description}</p>}
                 <div className="mt-4 flex flex-wrap gap-2">
                   {root.website && <Button asChild variant="outline" size="sm"><a href={root.website} target="_blank" rel="noreferrer"><ExternalLink className="mr-2 h-4 w-4" />Website</a></Button>}
+                  {canEdit && <Button type="button" variant="outline" size="sm" onClick={onEdit}>Edit</Button>}
                   {canEdit && <Button type="button" size="sm" onClick={onAdd}><GitBranch className="mr-2 h-4 w-4" />Add role</Button>}
                 </div>
               </div>
@@ -236,7 +240,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                     {reportingRoots.map((item) => <ReportingNode key={item.appointment_id} node={item} childrenByParent={appointmentsByParent} />)}
                   </div>
                 ) : (
-                  <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">No reporting relationships have been mapped yet.</div>
+                  <EmptyState className="min-h-0 rounded-lg border border-dashed p-8" title="No reporting relationships mapped" />
                 )}
               </CardContent>
             </Card>
@@ -282,7 +286,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                     </Card>
                   );
                 })}
-                {!appointments.length && <div className="col-span-full rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">No current positions are mapped to this organization or its units.</div>}
+                {!appointments.length && <EmptyState className="col-span-full min-h-0 rounded-lg border border-dashed p-8" title="No current positions mapped" />}
               </CardContent>
             </Card>
           </TabsContent>

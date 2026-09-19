@@ -1,11 +1,12 @@
 import { CalendarDays } from "lucide-react";
+import EmptyState from "@/components/ui/empty-state";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
 import { formatGovernanceDate, getGovernanceInitials, getGovernanceLabel } from "@/utils/governance";
 
-export default function GovernancePositionTimeline({ position, organization, timeline = [], canManage = false, onDeleted }) {
+export default function GovernancePositionTimeline({ position, organization, timeline = [], canManage = false, onEdit, onDeleted }) {
   const organizationLabel = getGovernanceLabel(organization);
 
   return (
@@ -28,7 +29,7 @@ export default function GovernancePositionTimeline({ position, organization, tim
       </div>
 
       {!timeline.length ? (
-        <div className="rounded-xl border border-dashed p-10 text-center text-sm text-muted-foreground">No occupant history has been recorded yet.</div>
+        <EmptyState className="min-h-0 rounded-xl border border-dashed p-10" title="No occupant history recorded" />
       ) : (
         <div className="relative space-y-4 before:absolute before:bottom-4 before:left-5 before:top-4 before:w-px before:bg-border sm:before:left-6">
           {timeline.map((item) => {
@@ -56,6 +57,7 @@ export default function GovernancePositionTimeline({ position, organization, tim
                             appointmentId={item.appointment_id}
                             personName={item.is_vacant ? null : personName}
                             positionName={position?.name}
+                            onEdit={() => onEdit?.(item)}
                             onDeleted={onDeleted}
                           />
                         )}

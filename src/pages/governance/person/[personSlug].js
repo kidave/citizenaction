@@ -6,6 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
+import GovernancePersonSheet from "@/components/governance/GovernancePersonSheet";
+import GovernancePositionSheet from "@/components/governance/GovernancePositionSheet";
+import LoadingState from "@/components/ui/loading-state";
+import ErrorState from "@/components/ui/error-state";
+import EmptyState from "@/components/ui/empty-state";
 import GovernanceAppointmentDialog from "@/components/governance/GovernanceAppointmentDialog";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
@@ -24,6 +29,9 @@ export default function GovernancePersonPage() {
   const { data: profile } = useMyProfile();
   const canManage = profile?.role === "admin";
   const [appointmentOpen, setAppointmentOpen] = useState(false);
+  const [appointmentRecord, setAppointmentRecord] = useState(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [positionSheetOpen, setPositionSheetOpen] = useState(false);
 
   const query = useQuery({
     queryKey: ["governance", "person", personSlug],
@@ -43,11 +51,11 @@ export default function GovernancePersonPage() {
   });
 
   if (query.isLoading) {
-    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance?tab=people" }, { label: "Loading..." }]} backHref="/governance?tab=people" /><main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading person...</main></div>;
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance?tab=people" }, { label: "Loading..." }]} backHref="/governance?tab=people" /><main className="flex flex-1"><LoadingState className="w-full" label="Loading person" /></main></div>;
   }
 
   if (query.error || !query.data) {
-    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance?tab=people" }, { label: "Not found" }]} backHref="/governance?tab=people" /><main className="flex flex-1 items-center justify-center text-sm">Person not found.</main></div>;
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance?tab=people" }, { label: "Not found" }]} backHref="/governance?tab=people" /><main className="flex flex-1"><ErrorState className="w-full" title="Person not found" /></main></div>;
   }
 
   const { person, career } = query.data;
@@ -58,6 +66,31 @@ export default function GovernancePersonPage() {
     ]);
   };
 
+  const addPositionToPerson = async (position) => {
+    if (!position?.id) throw new Error("Position was created but no position ID was returned.");
+    if (!position.appointing_organization_id) {
+      throw new Error("Select an appointing organization for the position.");
+    }
+
+    const result = await supabase.rpc("upsert_organization", {
+      p_id: null,
+      p_governance_id: position.appointing_organization_id,
+      p_person_name: person.name,
+      p_person_governance_id: person.id,
+      p_position_name: position.name,
+      p_position_governance_id: position.id,
+      p_started_at: `2026-09-19T00:00:00Z`,
+      p_ended_at: null,
+      p_is_vacant: false,
+      p_is_primary: true,
+      p_reports_to_id: null,
+      p_notes: null,
+    });
+
+    if (result.error) throw result.error;
+    await refresh();
+  };
+
   return (
     <div className="flex min-h-dvh w-full flex-col">
       <GovernancePageHeader
@@ -65,9 +98,10 @@ export default function GovernancePersonPage() {
         backHref="/governance?tab=people"
         actions={
           canManage ? (
-            <Button type="button" size="sm" onClick={() => setAppointmentOpen(true)}>
-              Add current position
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setEditOpen(true)}>Edit</Button>
+              <Button type="button" size="sm" onClick={() => setPositionSheetOpen(true)}>Add current position</Button>
+            </div>
           ) : null
         }
       />
@@ -88,7 +122,7 @@ export default function GovernancePersonPage() {
                 <p className="mt-1 text-xs text-muted-foreground">Positions and organizations associated with this person.</p>
               </div>
               {canManage && (
-                <Button type="button" variant="outline" size="sm" onClick={() => setAppointmentOpen(true)}>
+                <Button type="button" variant="outline" size="sm" onClick={() => { setAppointmentRecord(null); setAppointmentOpen(true); }}>
                   Add position
                 </Button>
               )}
@@ -108,16 +142,34 @@ export default function GovernancePersonPage() {
                         appointmentId={item.appointment_id}
                         personName={person.name}
                         positionName={item.position_name}
+                        onEdit={() => { setAppointmentRecord(item); setAppointmentOpen(true); }}
                         onDeleted={refresh}
                       />
                     )}
                   </div>
                 </CardContent>
               </Card>
-            )) : <p className="text-sm text-muted-foreground">No appointments recorded.</p>}
+            )) : <EmptyState className="min-h-0 py-8" title="No appointments recorded" />}
           </section>
         </div>
       </main>
+
+      {canManage && (
+        <GovernancePersonSheet
+          open={editOpen}
+          onOpenChange={setEditOpen}
+          record={person}
+          onSaved={refresh}
+        />
+      )}
+
+      {canManage && (
+        <GovernancePositionSheet
+          open={positionSheetOpen}
+          onOpenChange={setPositionSheetOpen}
+          onSaved={addPositionToPerson}
+        />
+      )}
 
       {canManage && (
         <GovernanceAppointmentDialog
@@ -125,6 +177,7 @@ export default function GovernancePersonPage() {
           onOpenChange={setAppointmentOpen}
           mode="person"
           personId={person.id}
+          record={appointmentRecord}
           onSaved={refresh}
         />
       )}

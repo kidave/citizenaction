@@ -26,6 +26,7 @@ export default function GovernanceAppointmentDialog({
   organizationId = null,
   positionId = null,
   personId = null,
+  record = null,
   onSaved,
 }) {
   const positionMode = mode === "position";
@@ -53,14 +54,14 @@ export default function GovernanceAppointmentDialog({
 
     let cancelled = false;
     setLoading(true);
-    setSelectedOrganizationId(organizationId || "");
-    setSelectedPositionId(positionId || "");
-    setSelectedPersonId(personId || "");
+    setSelectedOrganizationId(record?.organization_id || organizationId || "");
+    setSelectedPositionId(record?.position_id || positionId || "");
+    setSelectedPersonId(record?.person_id || personId || "");
     setNewPersonName("");
     setNewPersonImageUrl("");
-    setStartedAt(today());
-    setEndedAt("");
-    setIsPrimary(true);
+    setStartedAt(record?.started_at ? String(record.started_at).slice(0, 10) : today());
+    setEndedAt(record?.ended_at ? String(record.ended_at).slice(0, 10) : "");
+    setIsPrimary(record?.is_primary ?? true);
 
     const load = async () => {
       const [organizationResult, positionResult, peopleResult] = await Promise.all([
@@ -85,7 +86,7 @@ export default function GovernanceAppointmentDialog({
     return () => {
       cancelled = true;
     };
-  }, [open, organizationId, positionId, personId]);
+  }, [open, organizationId, positionId, personId, record?.id]);
 
   useEffect(() => {
     if (!personMode || !selectedOrganizationId || !selectedPositionId) return;
@@ -116,8 +117,8 @@ export default function GovernanceAppointmentDialog({
   const selectedPerson = people.find((item) => item.id === selectedPersonId);
 
   const save = async () => {
-    const finalOrganizationId = positionMode ? organizationId : selectedOrganizationId;
-    const finalPositionId = positionMode ? positionId : selectedPositionId;
+    const finalOrganizationId = positionMode ? (organizationId || selectedOrganizationId) : selectedOrganizationId;
+    const finalPositionId = positionMode ? (positionId || selectedPositionId) : selectedPositionId;
 
     if (!finalOrganizationId) return toast.error("Organization is required");
     if (!finalPositionId) return toast.error("Position is required");
@@ -148,7 +149,7 @@ export default function GovernanceAppointmentDialog({
       } else {
         const finalPersonId = personMode ? personId : selectedPersonId;
         result = await supabase.rpc("upsert_organization", {
-          p_id: null,
+          p_id: record?.appointment_id || record?.id || null,
           p_governance_id: finalOrganizationId,
           p_person_name: selectedPerson?.name || "",
           p_person_governance_id: finalPersonId,
@@ -175,7 +176,8 @@ export default function GovernanceAppointmentDialog({
     }
   };
 
-  const title = positionMode ? "Add person to position" : "Add position to person";
+  const isEditing = Boolean(record?.appointment_id || record?.id);
+  const title = isEditing ? "Edit appointment" : positionMode ? "Add person to position" : "Add position to person";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -214,7 +216,7 @@ export default function GovernanceAppointmentDialog({
           </div>
         )}
 
-        <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={saving}>Cancel</Button><Button type="button" onClick={save} disabled={saving || loading}>{saving ? "Saving..." : positionMode ? "Add person" : "Add position"}</Button></DialogFooter>
+        <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={saving}>Cancel</Button><Button type="button" onClick={save} disabled={saving || loading}>{saving ? "Saving..." : isEditing ? "Save changes" : positionMode ? "Add person" : "Add position"}</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   );

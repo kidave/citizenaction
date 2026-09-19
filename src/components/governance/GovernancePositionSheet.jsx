@@ -5,12 +5,13 @@ import { BriefcaseBusiness } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import { supabase } from "@/lib/supabase/client";
+import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 
 function emptyForm() {
   return {
@@ -24,7 +25,7 @@ function emptyForm() {
   };
 }
 
-export default function GovernancePositionDialog({
+export default function GovernancePositionSheet({
   open,
   onOpenChange,
   record = null,
@@ -38,6 +39,7 @@ export default function GovernancePositionDialog({
   const [loadingRecord, setLoadingRecord] = useState(false);
 
   const isEditing = !!record?.id;
+  const { createPosition, updatePosition } = useGovernanceCrud();
 
   useEffect(() => {
     if (!open) return;
@@ -142,7 +144,6 @@ export default function GovernancePositionDialog({
 
     try {
       setLoading(true);
-      const rpc = isEditing ? "update_position" : "create_position";
       const params = isEditing
         ? {
             p_position_id: record.id,
@@ -162,11 +163,10 @@ export default function GovernancePositionDialog({
             p_appointing_organization_id: form.organizationId || null,
           };
 
-      const result = await supabase.rpc(rpc, params);
-      if (result.error) throw result.error;
+      const result = isEditing ? await updatePosition(params) : await createPosition(params);
 
       toast.success(isEditing ? "Position updated" : "Position created");
-      await onSaved?.(result.data);
+      await onSaved?.(result);
       onOpenChange?.(false);
     } catch (error) {
       toast.error(error?.message || "Unable to save position");
@@ -176,14 +176,15 @@ export default function GovernancePositionDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-xl">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2">
             <BriefcaseBusiness className="h-4 w-4" />
             {isEditing ? "Edit position" : "Add position"}
-          </DialogTitle>
-        </DialogHeader>
+          </SheetTitle>
+        </SheetHeader>
 
         {loadingRecord ? (
           <div className="space-y-3 py-4">
@@ -267,15 +268,17 @@ export default function GovernancePositionDialog({
           </div>
         )}
 
-        <DialogFooter>
+        </div>
+
+        <SheetFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={loading}>
             Cancel
           </Button>
           <Button type="button" onClick={save} disabled={loading || loadingRecord}>
             {loading ? "Saving..." : isEditing ? "Save changes" : "Create position"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

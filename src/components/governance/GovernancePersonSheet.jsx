@@ -6,20 +6,21 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import ImageUpload from "@/components/media/ImageUpload";
+import { moveGovernanceFile } from "@/lib/supabase/storage";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import { supabase } from "@/lib/supabase/client";
 import { useImportGovernancePersonImage } from "@/hooks/governance/useImportGovernancePersonImage";
-import { usePersonMutations } from "@/hooks/governance/usePersonMutations";
+import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 
 function emptyForm() {
   return {
@@ -52,7 +53,7 @@ function isSupportedImageSource(value) {
   }
 }
 
-export default function GovernancePersonDialog({
+export default function GovernancePersonSheet({
   open,
   onOpenChange,
   record = null,
@@ -67,10 +68,10 @@ export default function GovernancePersonDialog({
 
   const isEditing = !!record?.id;
   const imagePath = isEditing
-    ? `governance/person/${record.id}`
-    : `governance/person/draft-${draftId}`;
+    ? `person/${record.id}`
+    : `person/draft-${draftId}`;
 
-  const { createPerson, updatePerson } = usePersonMutations();
+  const { createPerson, updatePerson } = useGovernanceCrud();
   const { importPersonImage } = useImportGovernancePersonImage();
 
   const imageSourceIsValid =
@@ -248,6 +249,34 @@ export default function GovernancePersonDialog({
         throw new Error("Person was created but no person ID was returned.");
       }
 
+      if (form.imageUrl) {
+        const marker = "/storage/v1/object/public/governance/";
+        const imageUrl = form.imageUrl.split("?")[0];
+        const markerIndex = imageUrl.indexOf(marker);
+        const draftPath = markerIndex >= 0
+          ? decodeURIComponent(imageUrl.slice(markerIndex + marker.length))
+          : null;
+
+        if (draftPath?.startsWith(`person/draft-${draftId}`)) {
+          const extension = draftPath.split(".").pop() || "jpg";
+          const finalPath = `person/${created.id}.${extension}`;
+          const publicUrl = await moveGovernanceFile(draftPath, finalPath);
+
+          await updatePerson({
+            p_person_id: created.id,
+            p_name: form.name.trim(),
+            p_biography: form.biography.trim() || null,
+            p_website: form.website.trim() || null,
+            p_image_url: publicUrl,
+            p_profile_user_id:
+              form.profileUserId === "none" ? null : form.profileUserId || null,
+            p_metadata: null,
+          });
+
+          setForm((current) => ({ ...current, imageUrl: publicUrl }));
+        }
+      }
+
       if (form.imageSourceUrl.trim()) {
         if (!isSupportedImageSource(form.imageSourceUrl.trim())) {
           throw new Error("Use an Instagram or Meta CDN image URL");
@@ -299,14 +328,15 @@ export default function GovernancePersonDialog({
   const busy = loading || loadingRecord || importingImage;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-xl">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2">
             <UserRound className="h-4 w-4" />
             {isEditing ? "Edit person" : "Add person"}
-          </DialogTitle>
-        </DialogHeader>
+          </SheetTitle>
+        </SheetHeader>
 
         {loadingRecord ? (
           <div className="space-y-3 py-4">
@@ -438,7 +468,9 @@ export default function GovernancePersonDialog({
           </div>
         )}
 
-        <DialogFooter>
+        </div>
+
+        <SheetFooter>
           <Button
             type="button"
             variant="outline"
@@ -456,8 +488,8 @@ export default function GovernancePersonDialog({
                 ? "Save changes"
                 : "Create person"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

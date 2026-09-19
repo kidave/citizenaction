@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,123 +19,47 @@ import {
 } from "@/components/ui/dropdown-menu";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
-export default function GovernanceCardActions({
-  children,
-  onEdit,
-  onDelete,
-  deleteTitle = "Delete this item?",
-  deleteDescription = "This action cannot be undone.",
-}) {
-  const hasActions = onEdit || onDelete;
-  if (!hasActions) return children;
+export default function GovernanceCardActions({ children, onEdit, onDelete, deleteTitle = "Delete this item?", deleteDescription = "This action cannot be undone." }) {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  if (!onEdit && !onDelete) return children;
 
-  const runEdit = (event) => {
+  const edit = (event) => {
     event?.stopPropagation();
     onEdit?.();
+  };
+  const requestDelete = (event) => {
+    event?.stopPropagation();
+    setConfirmOpen(true);
   };
 
   return (
     <>
       <ContextMenu>
-        <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
+        <ContextMenuTrigger asChild>
+          <div className="group relative h-full">
+            {children}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1 z-10 h-8 w-8 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100" aria-label="More actions" onClick={(event) => event.stopPropagation()}>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {onEdit && <DropdownMenuItem onSelect={edit}><Pencil className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>}
+                {onEdit && onDelete && <DropdownMenuSeparator />}
+                {onDelete && <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={requestDelete}><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem>}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </ContextMenuTrigger>
         <ContextMenuContent>
-          {onEdit && (
-            <ContextMenuItem onSelect={runEdit}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Edit
-            </ContextMenuItem>
-          )}
+          {onEdit && <ContextMenuItem onSelect={edit}><Pencil className="mr-2 h-4 w-4" />Edit</ContextMenuItem>}
           {onEdit && onDelete && <ContextMenuSeparator />}
-          {onDelete && (
-            <ContextMenuItem
-              className="text-destructive focus:text-destructive"
-              onSelect={(event) => {
-                event.stopPropagation();
-                document.dispatchEvent(
-                  new CustomEvent("citizen-action-governance-delete", {
-                    detail: { deleteTitle, deleteDescription, onDelete },
-                  }),
-                );
-              }}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </ContextMenuItem>
-          )}
+          {onDelete && <ContextMenuItem className="text-destructive focus:text-destructive" onSelect={requestDelete}><Trash2 className="mr-2 h-4 w-4" />Delete</ContextMenuItem>}
         </ContextMenuContent>
       </ContextMenu>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 shrink-0"
-            aria-label="More actions"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {onEdit && (
-            <DropdownMenuItem onSelect={runEdit}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Edit
-            </DropdownMenuItem>
-          )}
-          {onEdit && onDelete && <DropdownMenuSeparator />}
-          {onDelete && (
-            <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
-              onSelect={(event) => {
-                event.stopPropagation();
-                document.dispatchEvent(
-                  new CustomEvent("citizen-action-governance-delete", {
-                    detail: { deleteTitle, deleteDescription, onDelete },
-                  }),
-                );
-              }}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <GovernanceDeleteConfirmListener />
+      <ConfirmDialog open={confirmOpen} onOpenChange={setConfirmOpen} title={deleteTitle} description={deleteDescription} confirmText="Delete" onConfirm={async () => { await onDelete?.(); setConfirmOpen(false); }} />
     </>
-  );
-}
-
-function GovernanceDeleteConfirmListener() {
-  const React = require("react");
-  const { useEffect, useState } = React;
-  const [state, setState] = useState(null);
-
-  useEffect(() => {
-    const handler = (event) => setState(event.detail);
-    document.addEventListener("citizen-action-governance-delete", handler);
-    return () => document.removeEventListener("citizen-action-governance-delete", handler);
-  }, []);
-
-  if (!state) return null;
-
-  return (
-    <ConfirmDialog
-      open
-      onOpenChange={(open) => {
-        if (!open) setState(null);
-      }}
-      title={state.deleteTitle}
-      description={state.deleteDescription}
-      confirmText="Delete"
-      onConfirm={async () => {
-        await state.onDelete?.();
-        setState(null);
-      }}
-    />
   );
 }

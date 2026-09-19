@@ -178,3 +178,17 @@ export function getFileCategory(mimeType) {
   if (mimeType?.includes("zip") || mimeType?.includes("rar")) return "archive";
   return "file";
 }
+
+
+export async function moveGovernanceFile(fromPath, toPath) {
+  if (!fromPath || !toPath) throw new Error("Missing governance storage path");
+  const { error } = await supabase.storage
+    .from(BUCKETS.GOVERNANCE)
+    .move(fromPath, toPath);
+  if (error) throw error;
+
+  return supabase.storage
+    .from(BUCKETS.GOVERNANCE)
+    .getPublicUrl(toPath)
+    .data.publicUrl;
+}

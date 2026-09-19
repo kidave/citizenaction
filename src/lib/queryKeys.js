@@ -56,6 +56,7 @@ export const queryKeys = {
   governance: {
     all: ["governance"],
     organizations: ["governance-organizations"],
+    directoryRoot: ["governance-directory"],
     directory: ({
       tab = "organizations",
       search = "",
