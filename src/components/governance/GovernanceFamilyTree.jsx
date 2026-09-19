@@ -79,7 +79,30 @@ export default function GovernanceFamilyTree({ records = [], selectedId = null, 
   const endDrag = (event) => { if (!dragRef.current) return; dragRef.current = null; event.currentTarget.releasePointerCapture?.(event.pointerId); setDragging(false); };
 
   if (!roots.length) return null;
-  const toggle = (id) => setExpandedIds((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; });
+  const toggle = (id) => setExpandedIds((current) => {
+    if (current.has(id)) {
+      const next = new Set(current);
+      const childrenByParent = new Map();
+
+      records.forEach((record) => {
+        if (!record.parent_id) return;
+        const children = childrenByParent.get(record.parent_id) || [];
+        children.push(record.id);
+        childrenByParent.set(record.parent_id, children);
+      });
+
+      const queue = [id];
+      while (queue.length) {
+        const currentId = queue.shift();
+        next.delete(currentId);
+        (childrenByParent.get(currentId) || []).forEach((childId) => queue.push(childId));
+      }
+
+      return next;
+    }
+
+    return new Set([...getGovernanceAncestorIds(records, id), id]);
+  });
 
   return <div className={cn("relative h-full min-h-[calc(100vh-7rem)] w-full select-none overflow-hidden bg-background", dragging ? "cursor-grabbing" : "cursor-grab", className)} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={endDrag} onPointerCancel={endDrag} onWheel={handleWheel}>
     <div data-tree-controls className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-end p-3 sm:p-4"><div className="pointer-events-auto flex select-none items-center rounded-lg border bg-background/95 p-1 shadow-sm backdrop-blur" onPointerDown={(event) => event.stopPropagation()} onWheel={(event) => event.stopPropagation()}><Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => changeZoom(-ZOOM_STEP)} disabled={zoom <= MIN_ZOOM} aria-label="Zoom out"><Minus className="h-4 w-4" /></Button><button type="button" className="min-w-[3.5rem] select-none px-2 text-xs font-medium tabular-nums text-muted-foreground hover:text-foreground" onClick={() => setZoom(DEFAULT_ZOOM)} aria-label="Reset zoom" title="Reset zoom">{Math.round(zoom * 100)}%</button><Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => changeZoom(ZOOM_STEP)} disabled={zoom >= MAX_ZOOM} aria-label="Zoom in"><Plus className="h-4 w-4" /></Button><Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={resetView} disabled={zoom === DEFAULT_ZOOM && pan.x === 0 && pan.y === 0} aria-label="Reset view"><RotateCcw className="h-4 w-4" /></Button></div></div>
