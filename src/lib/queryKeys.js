@@ -55,6 +55,7 @@ export const queryKeys = {
   contributions: { detail: (postId) => ["contribution", postId] },
   governance: {
     all: ["governance"],
+    organizations: ["governance-organizations"],
     directory: ({
       tab = "organizations",
       search = "",
@@ -92,6 +93,10 @@ export const queryKeys = {
     adminEntities: ["admin-governance-entities"],
     contributions: ["governance-contributions"],
     adminState: ["governance-admin-state"],
+  },
+  geography: {
+    focusSelected: (geographyId) => ["geography-focus-selected", geographyId],
+    focusSearch: (search) => ["geography-focus-search", search],
   },
   admin: {
     users: ["admin-users"],
