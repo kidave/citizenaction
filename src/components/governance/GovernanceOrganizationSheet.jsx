@@ -18,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase/client";
+import { moveGovernanceFile } from "@/lib/supabase/storage";
 import { useImportGovernanceOrganizationImage } from "@/hooks/governance/useImportGovernanceOrganizationImage";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 import { GOVERNANCE_STATUS_OPTIONS, GOVERNANCE_TYPES, formatGovernanceType, governanceRequiresValidTo } from "@/utils/governance";
@@ -155,6 +156,27 @@ export default function GovernanceOrganizationSheet({
 
       let finalRecord = saved;
 
+      if (!isEditing && form.imageUrl && saved?.id) {
+        const marker = "/storage/v1/object/public/governance/";
+        const imageUrl = form.imageUrl.split("?")[0];
+        const markerIndex = imageUrl.indexOf(marker);
+        const draftPath = markerIndex >= 0
+          ? decodeURIComponent(imageUrl.slice(markerIndex + marker.length))
+          : null;
+
+        if (draftPath?.startsWith(`organization/draft-${draftId}/`)) {
+          const extension = draftPath.split(".").pop() || "jpg";
+          const finalPath = `organization/${saved.id}/logo.${extension}`;
+          const publicUrl = await moveGovernanceFile(draftPath, finalPath);
+
+          finalRecord = await updateOrganization({
+            ...baseParams,
+            p_entity_id: saved.id,
+            p_image_url: publicUrl,
+          });
+        }
+      }
+
       if (form.imageSourceUrl.trim()) {
         if (!imageSourceIsValid) throw new Error("Use an Instagram or Meta CDN image URL");
         if (!saved?.id) throw new Error("Organization was saved but no organization ID was returned.");
@@ -199,7 +221,7 @@ export default function GovernanceOrganizationSheet({
           <div className="space-y-4">
             <ImageUpload
               bucket="governance"
-              path={isEditing ? `governance/organization/${record.id}/logo` : `governance/organization/draft-${draftId}/logo`}
+              path={isEditing ? `organization/${record.id}/logo` : `organization/draft-${draftId}/logo`}
               value={form.imageUrl || null}
               onChange={(value) => setField("imageUrl", value || "")}
               label="Organization logo"

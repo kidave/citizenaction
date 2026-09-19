@@ -13,6 +13,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import ImageUpload from "@/components/media/ImageUpload";
+import { moveGovernanceFile } from "@/lib/supabase/storage";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -67,8 +68,8 @@ export default function GovernancePersonSheet({
 
   const isEditing = !!record?.id;
   const imagePath = isEditing
-    ? `governance/person/${record.id}`
-    : `governance/person/draft-${draftId}`;
+    ? `person/${record.id}`
+    : `person/draft-${draftId}`;
 
   const { createPerson, updatePerson } = useGovernanceCrud();
   const { importPersonImage } = useImportGovernancePersonImage();
@@ -246,6 +247,34 @@ export default function GovernancePersonSheet({
 
       if (!created?.id) {
         throw new Error("Person was created but no person ID was returned.");
+      }
+
+      if (form.imageUrl) {
+        const marker = "/storage/v1/object/public/governance/";
+        const imageUrl = form.imageUrl.split("?")[0];
+        const markerIndex = imageUrl.indexOf(marker);
+        const draftPath = markerIndex >= 0
+          ? decodeURIComponent(imageUrl.slice(markerIndex + marker.length))
+          : null;
+
+        if (draftPath?.startsWith(`person/draft-${draftId}`)) {
+          const extension = draftPath.split(".").pop() || "jpg";
+          const finalPath = `person/${created.id}.${extension}`;
+          const publicUrl = await moveGovernanceFile(draftPath, finalPath);
+
+          const updated = await updatePerson({
+            p_person_id: created.id,
+            p_name: form.name.trim(),
+            p_biography: form.biography.trim() || null,
+            p_website: form.website.trim() || null,
+            p_image_url: publicUrl,
+            p_profile_user_id:
+              form.profileUserId === "none" ? null : form.profileUserId || null,
+            p_metadata: null,
+          });
+
+          setForm((current) => ({ ...current, imageUrl: publicUrl }));
+        }
       }
 
       if (form.imageSourceUrl.trim()) {
