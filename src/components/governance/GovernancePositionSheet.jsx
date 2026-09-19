@@ -56,7 +56,7 @@ export default function GovernancePositionSheet({
         isEditing
           ? supabase
               .from("position")
-              .select("id,name,description,image_url,category_id,appointing_organization_id,metadata")
+              .select("id,name,description,image_url,appointing_organization_id,metadata")
               .eq("id", record.id)
               .single()
           : Promise.resolve({ data: null, error: null }),
@@ -66,11 +66,6 @@ export default function GovernancePositionSheet({
 
       if (organizationResult.error) {
         toast.error(organizationResult.error.message);
-        setLoadingRecord(false);
-        return;
-      }
-      if (categoryResult.error) {
-        toast.error(categoryResult.error.message);
         setLoadingRecord(false);
         return;
       }
@@ -150,6 +145,7 @@ export default function GovernancePositionSheet({
             p_name: form.name.trim(),
             p_description: form.description.trim() || null,
             p_image_url: form.imageUrl.trim() || null,
+            p_category_id: null,
             p_metadata: { responsibilities: form.responsibilities.trim() || null },
             p_appointing_organization_id: form.organizationId || null,
           };
