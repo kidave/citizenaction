@@ -6,12 +6,12 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import ImageUpload from "@/components/media/ImageUpload";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import { supabase } from "@/lib/supabase/client";
 import { useImportGovernancePersonImage } from "@/hooks/governance/useImportGovernancePersonImage";
-import { usePersonMutations } from "@/hooks/governance/usePersonMutations";
+import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 
 function emptyForm() {
   return {
@@ -52,7 +52,7 @@ function isSupportedImageSource(value) {
   }
 }
 
-export default function GovernancePersonDialog({
+export default function GovernancePersonSheet({
   open,
   onOpenChange,
   record = null,
@@ -70,7 +70,7 @@ export default function GovernancePersonDialog({
     ? `governance/person/${record.id}`
     : `governance/person/draft-${draftId}`;
 
-  const { createPerson, updatePerson } = usePersonMutations();
+  const { createPerson, updatePerson } = useGovernanceCrud();
   const { importPersonImage } = useImportGovernancePersonImage();
 
   const imageSourceIsValid =
@@ -299,14 +299,14 @@ export default function GovernancePersonDialog({
   const busy = loading || loadingRecord || importingImage;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-xl">\n        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2">
             <UserRound className="h-4 w-4" />
             {isEditing ? "Edit person" : "Add person"}
-          </DialogTitle>
-        </DialogHeader>
+          </SheetTitle>
+        </SheetHeader>
 
         {loadingRecord ? (
           <div className="space-y-3 py-4">
@@ -438,7 +438,7 @@ export default function GovernancePersonDialog({
           </div>
         )}
 
-        <DialogFooter>
+        <SheetFooter>
           <Button
             type="button"
             variant="outline"
@@ -456,7 +456,7 @@ export default function GovernancePersonDialog({
                 ? "Save changes"
                 : "Create person"}
           </Button>
-        </DialogFooter>
+        </SheetFooter>
       </DialogContent>
     </Dialog>
   );

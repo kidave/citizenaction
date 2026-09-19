@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import LoadingState from "@/components/ui/loading-state";
+import ErrorState from "@/components/ui/error-state";
 import { formatGovernanceDate, getGovernanceInitials } from "@/utils/governance";
 import { useGovernanceOrganizationContext } from "@/hooks/governance/useGovernanceOrganizationContext";
 
@@ -161,11 +163,11 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
   };
 
   if (query.isLoading) {
-    return <div className="flex min-h-[50vh] items-center justify-center text-sm text-muted-foreground">Loading organization...</div>;
+    return <LoadingState className="min-h-[50vh]" label="Loading organization" />;
   }
 
   if (query.error) {
-    return <div className="flex min-h-[50vh] items-center justify-center text-sm text-destructive">Unable to load organization structure.</div>;
+    return <ErrorState className="min-h-[50vh]" title="Unable to load organization structure" />;
   }
 
   const totalPositions = appointments.length;
@@ -236,7 +238,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                     {reportingRoots.map((item) => <ReportingNode key={item.appointment_id} node={item} childrenByParent={appointmentsByParent} />)}
                   </div>
                 ) : (
-                  <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">No reporting relationships have been mapped yet.</div>
+                  <EmptyState className="min-h-0 rounded-lg border border-dashed p-8" title="No reporting relationships mapped" />
                 )}
               </CardContent>
             </Card>
@@ -282,7 +284,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                     </Card>
                   );
                 })}
-                {!appointments.length && <div className="col-span-full rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">No current positions are mapped to this organization or its units.</div>}
+                {!appointments.length && <EmptyState className="col-span-full min-h-0 rounded-lg border border-dashed p-8" title="No current positions mapped" />}
               </CardContent>
             </Card>
           </TabsContent>

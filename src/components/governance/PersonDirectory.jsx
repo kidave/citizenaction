@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectoryCard";
-import GovernancePersonDialog from "@/components/governance/GovernancePersonDialog";
+import GovernancePersonSheet from "@/components/governance/GovernancePersonSheet";
 import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
+import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 import { useGovernanceOrganizations } from "@/hooks/governance/useGovernanceOrganizations";
-import { supabase } from "@/lib/supabase/client";
 import { getGovernanceLabel } from "@/utils/governance";
-import { Spinner } from "@/components/ui/spinner";
+import LoadingState from "@/components/ui/loading-state";
+import EmptyState from "@/components/ui/empty-state";
+import ErrorState from "@/components/ui/error-state";
 
 export default function PersonDirectory({
   geographyId = null,
@@ -30,6 +32,7 @@ export default function PersonDirectory({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const queryClient = useQueryClient();
+  const { deletePerson } = useGovernanceCrud();
   const effectiveOrganizationId = controlledOrganizationId ?? organizationId;
 
   const organizationsQuery = useGovernanceOrganizations();
@@ -121,13 +124,11 @@ export default function PersonDirectory({
 
       {query.isLoading && (
         <div className="flex min-h-[30vh] items-center justify-center">
-          <Spinner className="size-5 text-muted-foreground" />
+          <LoadingState />
         </div>
       )}
       {query.error && (
-        <div className="flex min-h-[30vh] items-center justify-center text-sm text-destructive">
-          Failed to load people.
-        </div>
+        <ErrorState title="Unable to load people" />
       )}
       {!query.isLoading &&
         !query.error &&
@@ -142,23 +143,16 @@ export default function PersonDirectory({
                 selected={selectedSet.has(entity.id)}
                 onSelect={onSelect}
                 onEdit={canManage ? () => openEdit(entity) : undefined}
-                onDelete={canManage ? () => deletePerson(entity) : undefined}
+                onDelete={canManage ? () => removePerson(entity) : undefined}
               />
             ))}
           </div>
         ) : (
-          <div className="flex min-h-[30vh] items-center justify-center text-center">
-            <div>
-              <p className="text-sm font-medium">No people found.</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Try another search or filter.
-              </p>
-            </div>
-          </div>
+          <EmptyState title="No people found" description="Try another search or filter." />
         ))}
 
       {canManage && (
-        <GovernancePersonDialog
+        <GovernancePersonSheet
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           record={editingRecord}

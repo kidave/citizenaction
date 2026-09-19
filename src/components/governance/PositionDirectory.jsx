@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectoryCard";
-import GovernancePositionDialog from "@/components/governance/GovernancePositionDialog";
+import GovernancePositionSheet from "@/components/governance/GovernancePositionSheet";
 import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
+import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 import { useGovernanceOrganizations } from "@/hooks/governance/useGovernanceOrganizations";
-import { supabase } from "@/lib/supabase/client";
 import { getGovernanceLabel } from "@/utils/governance";
-import { Spinner } from "@/components/ui/spinner";
+import LoadingState from "@/components/ui/loading-state";
+import EmptyState from "@/components/ui/empty-state";
+import ErrorState from "@/components/ui/error-state";
 
 export default function PositionDirectory({
   geographyId = null,
@@ -30,6 +32,7 @@ export default function PositionDirectory({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const queryClient = useQueryClient();
+  const { deletePosition } = useGovernanceCrud();
   const effectiveOrganizationId = controlledOrganizationId ?? organizationId;
 
   const organizationsQuery = useGovernanceOrganizations();
@@ -121,13 +124,11 @@ export default function PositionDirectory({
 
       {query.isLoading && (
         <div className="flex min-h-[30vh] items-center justify-center">
-          <Spinner className="size-5 text-muted-foreground" />
+          <LoadingState />
         </div>
       )}
       {query.error && (
-        <div className="flex min-h-[30vh] items-center justify-center text-sm text-destructive">
-          Failed to load positions.
-        </div>
+        <ErrorState title="Unable to load positions" />
       )}
       {!query.isLoading &&
         !query.error &&
@@ -142,23 +143,16 @@ export default function PositionDirectory({
                 selected={selectedSet.has(entity.id)}
                 onSelect={onSelect}
                 onEdit={canManage ? () => openEdit(entity) : undefined}
-                onDelete={canManage ? () => deletePosition(entity) : undefined}
+                onDelete={canManage ? () => removePosition(entity) : undefined}
               />
             ))}
           </div>
         ) : (
-          <div className="flex min-h-[30vh] items-center justify-center text-center">
-            <div>
-              <p className="text-sm font-medium">No positions found.</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Try another search or filter.
-              </p>
-            </div>
-          </div>
+          <EmptyState title="No positions found" description="Try another search or filter." />
         ))}
 
       {canManage && (
-        <GovernancePositionDialog
+        <GovernancePositionSheet
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           record={editingRecord}

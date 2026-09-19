@@ -12,10 +12,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectoryCard";
-import GovernanceOrganizationCreateDialog from "@/components/governance/GovernanceOrganizationCreateDialog";
-import { Spinner } from "@/components/ui/spinner";
+import GovernanceOrganizationSheet from "@/components/governance/GovernanceOrganizationSheet";
+import LoadingState from "@/components/ui/loading-state";
+import EmptyState from "@/components/ui/empty-state";
+import ErrorState from "@/components/ui/error-state";
 import { useGovernanceCatalog } from "@/hooks/governance/useGovernanceCatalog";
 import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
+import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 import {
   GOVERNANCE_TYPES,
   formatGovernanceFilterType,
@@ -37,6 +40,8 @@ export default function OrganizationDirectory({
   const { categories = [], isLoading: categoriesLoading } =
     useGovernanceCatalog({ enabled: true });
   const queryClient = useQueryClient();
+  const { deleteOrganization } = useGovernanceCrud();
+  const [editingRecord, setEditingRecord] = useState(null);
 
   const query = useGovernanceDirectory({
     tab: "organizations",
@@ -61,7 +66,7 @@ export default function OrganizationDirectory({
     [selectedIds, selectedId],
   );
 
-  const refresh = async () => {
+  const openEdit = (entity) => { setEditingRecord(entity); setDialogOpen(true); };\n\n  const deleteOrganizationRecord = async (entity) => {\n    try {\n      await deleteOrganization(entity.id);\n      await refresh();\n    } catch (error) {\n      const { toast } = await import("sonner");\n      toast.error(error?.message || "Unable to delete organization");\n    }\n  };\n\n  const refresh = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["governance-directory"] }),
       queryClient.invalidateQueries({
@@ -128,7 +133,7 @@ export default function OrganizationDirectory({
           <Button
             type="button"
             className="h-9 shrink-0"
-            onClick={() => setDialogOpen(true)}
+            onClick={() => { setEditingRecord(null); setDialogOpen(true); }}
           >
             <Plus className="mr-2 h-4 w-4" />
             Add organization
@@ -138,13 +143,11 @@ export default function OrganizationDirectory({
 
       {query.isLoading && (
         <div className="flex min-h-[30vh] items-center justify-center">
-          <Spinner className="size-5 text-muted-foreground" />
+          <LoadingState />
         </div>
       )}
       {query.error && (
-        <div className="flex min-h-[30vh] items-center justify-center text-sm text-destructive">
-          Failed to load organizations.
-        </div>
+        <ErrorState title="Unable to load organizations" />
       )}
       {!query.isLoading &&
         !query.error &&
@@ -162,18 +165,11 @@ export default function OrganizationDirectory({
             ))}
           </div>
         ) : (
-          <div className="flex min-h-[30vh] items-center justify-center text-center">
-            <div>
-              <p className="text-sm font-medium">No organizations found.</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Try another search or filter.
-              </p>
-            </div>
-          </div>
+          <EmptyState title="No organizations found" description="Try another search or filter." />
         ))}
 
       {canManage && (
-        <GovernanceOrganizationCreateDialog
+        <GovernanceOrganizationSheet
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           categories={categories}

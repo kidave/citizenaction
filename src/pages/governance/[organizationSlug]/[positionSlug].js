@@ -3,6 +3,9 @@ import { useRouter } from "next/router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import GovernanceAppointmentDialog from "@/components/governance/GovernanceAppointmentDialog";
+import GovernancePositionSheet from "@/components/governance/GovernancePositionSheet";
+import LoadingState from "@/components/ui/loading-state";
+import ErrorState from "@/components/ui/error-state";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import GovernancePositionTimeline from "@/components/governance/GovernancePositionTimeline";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
@@ -24,6 +27,8 @@ export default function GovernancePositionPage() {
   const { data: profile } = useMyProfile();
   const canManage = profile?.role === "admin";
   const [appointmentOpen, setAppointmentOpen] = useState(false);
+  const [appointmentRecord, setAppointmentRecord] = useState(null);
+  const [editOpen, setEditOpen] = useState(false);
 
   const positionQuery = useQuery({
     queryKey: ["governance", "position", organizationSlug, positionSlug],
@@ -53,11 +58,11 @@ export default function GovernancePositionPage() {
   const timelineQuery = usePositionTimeline(positionQuery.data?.position?.id, !!positionQuery.data?.position?.id);
 
   if (positionQuery.isLoading || timelineQuery.isLoading) {
-    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance?tab=positions" }, { label: "Loading..." }]} backHref="/governance?tab=positions" /><main className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Loading position...</main></div>;
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance?tab=positions" }, { label: "Loading..." }]} backHref="/governance?tab=positions" /><main className="flex flex-1"><LoadingState className="w-full" label="Loading position" /></main></div>;
   }
 
   if (positionQuery.error || timelineQuery.error || !positionQuery.data) {
-    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance?tab=positions" }, { label: "Not found" }]} backHref="/governance?tab=positions" /><main className="flex flex-1 items-center justify-center text-sm">Governance position not found.</main></div>;
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance?tab=positions" }, { label: "Not found" }]} backHref="/governance?tab=positions" /><main className="flex flex-1"><ErrorState className="w-full" title="Governance position not found" /></main></div>;
   }
 
   const { organization, position } = positionQuery.data;
@@ -78,9 +83,10 @@ export default function GovernancePositionPage() {
         backHref="/governance?tab=positions"
         actions={
           canManage ? (
-            <Button type="button" size="sm" onClick={() => setAppointmentOpen(true)}>
-              Add person
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setEditOpen(true)}>Edit</Button>
+              <Button type="button" size="sm" onClick={() => { setAppointmentRecord(null); setAppointmentOpen(true); }}>Add person</Button>
+            </div>
           ) : null
         }
       />
@@ -90,9 +96,20 @@ export default function GovernancePositionPage() {
           organization={organization}
           timeline={timelineQuery.data?.timeline || []}
           canManage={canManage}
+          onEdit={(record) => { setAppointmentRecord(record); setAppointmentOpen(true); }}
           onDeleted={refresh}
         />
       </main>
+
+      {canManage && (
+        <GovernancePositionSheet
+          open={editOpen}
+          onOpenChange={setEditOpen}
+          record={position}
+          defaultOrganizationId={organization.id}
+          onSaved={refresh}
+        />
+      )}
 
       {canManage && (
         <GovernanceAppointmentDialog
@@ -101,6 +118,7 @@ export default function GovernancePositionPage() {
           mode="position"
           organizationId={organization.id}
           positionId={position.id}
+          record={appointmentRecord}
           onSaved={refresh}
         />
       )}

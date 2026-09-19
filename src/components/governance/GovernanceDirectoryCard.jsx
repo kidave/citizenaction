@@ -2,17 +2,9 @@ import Link from "next/link";
 import { Check, Circle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
-import MenuButton from "@/components/ui/MenuButton";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  getGovernanceHref,
-  getGovernanceInitials,
-  getGovernanceLabel,
-} from "@/utils/governance";
+import GovernanceCardActions from "@/components/governance/GovernanceCardActions";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { getGovernanceHref, getGovernanceInitials, getGovernanceLabel } from "@/utils/governance";
 
 export default function GovernanceDirectoryCard({
   entity,
@@ -29,36 +21,18 @@ export default function GovernanceDirectoryCard({
     entity.image_url ||
     (tab === "organizations" ? entity.current_holder_image_url : null);
   const fallbackLabel = entity.current_holder_name || label;
-  const isSelectable =
-    selectionMode === "radio" || selectionMode === "checkbox";
+  const isSelectable = selectionMode === "radio" || selectionMode === "checkbox";
   const canManage = !isSelectable && (onEdit || onDelete);
 
   const content = (
-    <Card
-      className={`h-full transition-colors hover:border-primary/40 hover:bg-accent/30 ${
-        selected ? "border-primary ring-2 ring-primary/15" : ""
-      }`}
-    >
+    <Card className={`h-full transition-colors hover:border-primary/40 hover:bg-accent/30 ${selected ? "border-primary ring-2 ring-primary/15" : ""}`}>
       <CardContent className="flex min-h-[72px] items-center gap-3 p-3">
         {isSelectable && (
-          <span
-            className="grid h-5 w-5 shrink-0 place-items-center text-muted-foreground"
-            aria-hidden="true"
-          >
+          <span className="grid h-5 w-5 shrink-0 place-items-center text-muted-foreground" aria-hidden="true">
             {selectionMode === "radio" ? (
-              <Circle
-                className={`h-4 w-4 ${
-                  selected ? "fill-primary stroke-primary" : ""
-                }`}
-              />
+              <Circle className={`h-4 w-4 ${selected ? "fill-primary stroke-primary" : ""}`} />
             ) : (
-              <span
-                className={`grid h-4 w-4 place-items-center rounded-sm border ${
-                  selected
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-muted-foreground/50"
-                }`}
-              >
+              <span className={`grid h-4 w-4 place-items-center rounded-sm border ${selected ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/50"}`}>
                 {selected && <Check className="h-3 w-3" />}
               </span>
             )}
@@ -66,26 +40,17 @@ export default function GovernanceDirectoryCard({
         )}
 
         <Avatar className="h-10 w-10 shrink-0 rounded-lg">
-          <AvatarImage
-            src={avatarUrl || undefined}
-            alt={avatarUrl ? fallbackLabel : ""}
-          />
-          <AvatarFallback className="rounded-lg text-xs">
-            {getGovernanceInitials(fallbackLabel)}
-          </AvatarFallback>
+          <AvatarImage src={avatarUrl || undefined} alt={avatarUrl ? fallbackLabel : ""} />
+          <AvatarFallback className="rounded-lg text-xs">{getGovernanceInitials(fallbackLabel)}</AvatarFallback>
         </Avatar>
 
         <div className="min-w-0 flex-1 pr-7">
           <h2 className="truncate text-sm font-medium">{label}</h2>
           {tab === "organizations" && entity.type && (
-            <p className="truncate text-xs text-muted-foreground">
-              {entity.type}
-            </p>
+            <p className="truncate text-xs text-muted-foreground">{entity.type}</p>
           )}
           {tab !== "organizations" && entity.parent_name && (
-            <p className="truncate text-xs text-muted-foreground">
-              {entity.parent_name}
-            </p>
+            <p className="truncate text-xs text-muted-foreground">{entity.parent_name}</p>
           )}
         </div>
       </CardContent>
@@ -96,13 +61,7 @@ export default function GovernanceDirectoryCard({
     return (
       <Tooltip>
         <TooltipTrigger asChild>
-          <button
-            type="button"
-            onClick={() => onSelect?.(entity)}
-            className="block h-full w-full text-left"
-            aria-label={label}
-            aria-pressed={selected}
-          >
+          <button type="button" onClick={() => onSelect?.(entity)} className="block h-full w-full text-left" aria-label={label} aria-pressed={selected}>
             {content}
           </button>
         </TooltipTrigger>
@@ -111,31 +70,25 @@ export default function GovernanceDirectoryCard({
     );
   }
 
-  return (
-    <div className="relative h-full">
-      {href ? (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link href={href} className="block h-full" aria-label={label}>
-              {content}
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent side="top">{label}</TooltipContent>
-        </Tooltip>
-      ) : (
-        content
-      )}
+  const linked = href ? (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Link href={href} className="block h-full" aria-label={label}>{content}</Link>
+      </TooltipTrigger>
+      <TooltipContent side="top">{label}</TooltipContent>
+    </Tooltip>
+  ) : content;
 
-      {canManage && (
-        <div className="absolute right-1 top-1 z-10">
-          <MenuButton
-            onEdit={onEdit}
-            onDelete={onDelete}
-            deleteTitle={`Delete ${tab === "people" ? "person" : "position"}?`}
-            deleteDescription="This permanently removes the governance record. Appointment history must be removed first."
-          />
-        </div>
-      )}
-    </div>
+  return canManage ? (
+    <GovernanceCardActions
+      onEdit={onEdit}
+      onDelete={onDelete}
+      deleteTitle={`Delete ${tab === "organizations" ? "organization" : tab === "people" ? "person" : "position"}?`}
+      deleteDescription="This action cannot be undone. Related governance history may need to be removed first."
+    >
+      {linked}
+    </GovernanceCardActions>
+  ) : (
+    linked
   );
 }
