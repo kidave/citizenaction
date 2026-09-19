@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { CalendarDays } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
+import GovernanceAppointmentDialog from "@/components/governance/GovernanceAppointmentDialog";
 import { formatGovernanceDate, getGovernanceInitials, getGovernanceLabel } from "@/utils/governance";
 
 export default function GovernancePositionTimeline({ position, organization, timeline = [], canManage = false, onDeleted }) {
+  const [editingAppointment, setEditingAppointment] = useState(null);
   const organizationLabel = getGovernanceLabel(organization);
 
   return (
@@ -56,6 +59,7 @@ export default function GovernancePositionTimeline({ position, organization, tim
                             appointmentId={item.appointment_id}
                             personName={item.is_vacant ? null : personName}
                             positionName={position?.name}
+                            onEdit={() => setEditingAppointment(item)}
                             onDeleted={onDeleted}
                           />
                         )}
@@ -70,5 +74,24 @@ export default function GovernancePositionTimeline({ position, organization, tim
         </div>
       )}
     </div>
+
+      {canManage && (
+        <GovernanceAppointmentDialog
+          open={!!editingAppointment}
+          onOpenChange={(open) => {
+            if (!open) setEditingAppointment(null);
+          }}
+          mode="position"
+          organizationId={organization?.id}
+          positionId={position?.id}
+          personId={editingAppointment?.person_id}
+          appointment={editingAppointment}
+          onSaved={async () => {
+            setEditingAppointment(null);
+            await onDeleted?.();
+          }}
+        />
+      )}
+    </>
   );
 }
