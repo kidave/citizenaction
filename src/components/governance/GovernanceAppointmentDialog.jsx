@@ -5,7 +5,7 @@ import { BriefcaseBusiness, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import ImageUpload from "@/components/media/ImageUpload";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -180,14 +180,16 @@ export default function GovernanceAppointmentDialog({
   const title = isEditing ? "Edit appointment" : positionMode ? "Add person to position" : "Add position to person";
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="flex w-full max-w-none flex-col gap-0 overflow-x-hidden p-0 sm:max-w-xl">
+        <SheetHeader className="border-b px-5 py-4 sm:px-6">
+          <SheetTitle className="flex items-center gap-2">
             {positionMode ? <UserRound className="h-4 w-4" /> : <BriefcaseBusiness className="h-4 w-4" />}
             {title}
-          </DialogTitle>
-        </DialogHeader>
+          </SheetTitle>
+        </SheetHeader>
+
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 py-5 sm:px-6">
 
         {loading ? (
           <div className="space-y-3 py-4"><div className="h-9 animate-pulse rounded-md bg-muted" /><div className="h-9 animate-pulse rounded-md bg-muted" /><div className="h-20 animate-pulse rounded-md bg-muted" /></div>
@@ -216,8 +218,10 @@ export default function GovernanceAppointmentDialog({
           </div>
         )}
 
-        <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={saving}>Cancel</Button><Button type="button" onClick={save} disabled={saving || loading}>{saving ? "Saving..." : isEditing ? "Save changes" : positionMode ? "Add person" : "Add position"}</Button></DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+
+        <SheetFooter className="flex-row items-center justify-between gap-3 border-t px-5 py-4 sm:px-6"><Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={saving}>Cancel</Button><Button type="button" onClick={save} disabled={saving || loading}>{saving ? "Saving..." : isEditing ? "Save changes" : positionMode ? "Add person" : "Add position"}</Button></SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

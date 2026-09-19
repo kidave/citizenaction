@@ -333,7 +333,7 @@ export default function GovernanceOrganizationSheet({
           </div>
         </div>
 
-        <SheetFooter className="border-t px-5 py-4 sm:px-6">
+        <SheetFooter className="flex-row items-center justify-between gap-3 border-t px-5 py-4 sm:px-6">
           <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={busy}>Cancel</Button>
           <Button type="button" onClick={save} disabled={busy}>
             {busy ? (importingImage ? "Importing image..." : "Saving...") : isEditing ? "Save changes" : "Create organization"}
