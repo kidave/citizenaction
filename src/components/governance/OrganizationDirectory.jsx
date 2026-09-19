@@ -173,8 +173,8 @@ export default function OrganizationDirectory({
                 selectionMode={selectionMode}
                 selected={selectedSet.has(entity.id)}
                 onSelect={onSelect}
-                onEdit={canManage ? openEdit : undefined}
-                onDelete={canManage ? deleteOrganizationRecord : undefined}
+                onEdit={canManage ? () => openEdit(entity) : undefined}
+                onDelete={canManage ? () => deleteOrganizationRecord(entity) : undefined}
               />
             ))}
           </div>
