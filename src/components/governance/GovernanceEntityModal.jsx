@@ -35,7 +35,18 @@ export default function GovernanceEntityModal({
 
   if (!entity) return null;
 
-  const label = getGovernanceLabel(entity);\n  async function handleDelete() {\n    if (childEntities.length) return toast.error("Move the child entities before deleting this organization.");\n    try {\n      await deleteOrganization(entity.id);\n      toast.success("Organization deleted");\n      onDeleted?.(entity);\n      onOpenChange?.(false);\n    } catch (error) {\n      toast.error(error?.message || "Unable to delete organization");\n    }\n  }
+  const label = getGovernanceLabel(entity);
+  async function handleDelete() {
+    if (childEntities.length) return toast.error("Move the child entities before deleting this organization.");
+    try {
+      await deleteOrganization(entity.id);
+      toast.success("Organization deleted");
+      onDeleted?.(entity);
+      onOpenChange?.(false);
+    } catch (error) {
+      toast.error(error?.message || "Unable to delete organization");
+    }
+  }
   const hasGeography = Boolean(details?.geographyId || entity.geography_id);
   const addGeography = externalAddGeography || (() => setGeographyOpen(true));
   const changeGeography = externalChangeGeography || (() => setGeographyOpen(true));

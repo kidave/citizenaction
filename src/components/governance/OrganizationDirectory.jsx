@@ -66,7 +66,19 @@ export default function OrganizationDirectory({
     [selectedIds, selectedId],
   );
 
-  const openEdit = (entity) => { setEditingRecord(entity); setDialogOpen(true); };\n\n  const deleteOrganizationRecord = async (entity) => {\n    try {\n      await deleteOrganization(entity.id);\n      await refresh();\n    } catch (error) {\n      const { toast } = await import("sonner");\n      toast.error(error?.message || "Unable to delete organization");\n    }\n  };\n\n  const refresh = async () => {
+  const openEdit = (entity) => { setEditingRecord(entity); setDialogOpen(true); };
+
+  const deleteOrganizationRecord = async (entity) => {
+    try {
+      await deleteOrganization(entity.id);
+      await refresh();
+    } catch (error) {
+      const { toast } = await import("sonner");
+      toast.error(error?.message || "Unable to delete organization");
+    }
+  };
+
+  const refresh = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["governance-directory"] }),
       queryClient.invalidateQueries({
