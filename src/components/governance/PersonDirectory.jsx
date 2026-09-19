@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Plus, Search } from "lucide-react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,10 @@ import SearchableSelect from "@/components/ui/SearchableSelect";
 import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectoryCard";
 import GovernancePersonDialog from "@/components/governance/GovernancePersonDialog";
 import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
+import { useGovernanceOrganizations } from "@/hooks/governance/useGovernanceOrganizations";
 import { supabase } from "@/lib/supabase/client";
 import { getGovernanceLabel } from "@/utils/governance";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function PersonDirectory({
   geographyId = null,
@@ -30,24 +32,9 @@ export default function PersonDirectory({
   const queryClient = useQueryClient();
   const effectiveOrganizationId = controlledOrganizationId ?? organizationId;
 
-  const organizationsQuery = useQuery({
-    queryKey: ["governance-directory-organization-filter"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("governance")
-        .select(
-          "id,name,short_name,slug,type,status,image_url,current_holder_name,current_holder_image_url",
-        )
-        .neq("status", "deleted")
-        .order("name")
-        .limit(500);
-      if (error) throw error;
-      return data || [];
-    },
-    staleTime: 5 * 60 * 1000,
-  });
+  const organizationsQuery = useGovernanceOrganizations();
 
-  const options = useMemo(
+  const options = useMemo(  const options = useMemo(
     () =>
       (organizationsQuery.data || []).map((item) => ({
         value: item.id,
@@ -133,8 +120,8 @@ export default function PersonDirectory({
       </div>
 
       {query.isLoading && (
-        <div className="flex min-h-[30vh] items-center justify-center text-sm text-muted-foreground">
-          Loading people...
+        <div className="flex min-h-[30vh] items-center justify-center">
+          <Spinner className="size-5 text-muted-foreground" />
         </div>
       )}
       {query.error && (
