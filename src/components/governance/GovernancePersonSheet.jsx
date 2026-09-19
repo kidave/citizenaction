@@ -460,7 +460,7 @@ export default function GovernancePersonSheet({
                 : "Create person"}
           </Button>
         </SheetFooter>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet
   );
 }

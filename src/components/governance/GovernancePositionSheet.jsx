@@ -275,9 +275,7 @@ export default function GovernancePositionSheet({
           <Button type="button" onClick={save} disabled={loading || loadingRecord}>
             {loading ? "Saving..." : isEditing ? "Save changes" : "Create position"}
           </Button>
-        </div>
-
-        <SheetFooter>
+        </SheetFooter>
       </SheetContent>
     </Sheet
   );
