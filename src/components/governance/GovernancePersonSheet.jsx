@@ -262,7 +262,7 @@ export default function GovernancePersonSheet({
           const finalPath = `person/${created.id}.${extension}`;
           const publicUrl = await moveGovernanceFile(draftPath, finalPath);
 
-          const updated = await updatePerson({
+          await updatePerson({
             p_person_id: created.id,
             p_name: form.name.trim(),
             p_biography: form.biography.trim() || null,
