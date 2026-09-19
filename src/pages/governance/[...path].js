@@ -106,9 +106,32 @@ export default function GovernanceRecordPage() {
 
   const treeRecords = useMemo(() => {
     if (!governance) return [];
-    const children = family.filter((entity) => entity.parent_id === governance.id);
-    return [governance, ...children];
-  }, [family, governance]);
+
+    const byParent = new Map();
+    family.forEach((entity) => {
+      if (!entity.parent_id) return;
+      const children = byParent.get(entity.parent_id) || [];
+      children.push(entity);
+      byParent.set(entity.parent_id, children);
+    });
+
+    const records = [];
+    const queue = [governance.id];
+    const seen = new Set();
+
+    while (queue.length) {
+      const id = queue.shift();
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+
+      const entity = id === governance.id ? governance : byId.get(id);
+      if (entity) records.push(entity);
+
+      (byParent.get(id) || []).forEach((child) => queue.push(child.id));
+    }
+
+    return records;
+  }, [family, governance, byId]);
 
   const initialExpandedIds = useMemo(
     () => (governance ? [governance.id] : []),
