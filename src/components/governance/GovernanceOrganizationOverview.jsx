@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Building2, ChevronDown, ChevronRight, ExternalLink, GitBranch, Users } from "lucide-react";
+import { Building2, ChevronDown, ChevronRight, ExternalLink, GitBranch } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import LoadingState from "@/components/ui/loading-state";
 import ErrorState from "@/components/ui/error-state";
+import EmptyState from "@/components/ui/empty-state";
 import { formatGovernanceDate, getGovernanceInitials } from "@/utils/governance";
 import { useGovernanceOrganizationContext } from "@/hooks/governance/useGovernanceOrganizationContext";
 
