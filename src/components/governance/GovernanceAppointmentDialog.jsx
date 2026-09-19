@@ -19,6 +19,10 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function toDateInput(value) {
+  return value ? new Date(value).toISOString().slice(0, 10) : "";
+}
+
 export default function GovernanceAppointmentDialog({
   open,
   onOpenChange,
@@ -26,10 +30,12 @@ export default function GovernanceAppointmentDialog({
   organizationId = null,
   positionId = null,
   personId = null,
+  appointment = null,
   onSaved,
 }) {
   const positionMode = mode === "position";
   const personMode = mode === "person";
+  const editing = !!appointment?.appointment_id;
   const draftId = useId().replace(/:/g, "");
 
   const [organizations, setOrganizations] = useState([]);
@@ -46,21 +52,21 @@ export default function GovernanceAppointmentDialog({
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const creatingPerson = positionMode && selectedPersonId === CREATE_PERSON;
+  const creatingPerson = positionMode && selectedPersonId === CREATE_PERSON && !editing;
 
   useEffect(() => {
     if (!open) return;
 
     let cancelled = false;
     setLoading(true);
-    setSelectedOrganizationId(organizationId || "");
-    setSelectedPositionId(positionId || "");
-    setSelectedPersonId(personId || "");
+    setSelectedOrganizationId(appointment?.organization_id || organizationId || "");
+    setSelectedPositionId(appointment?.position_id || positionId || "");
+    setSelectedPersonId(appointment?.person_id || personId || "");
     setNewPersonName("");
     setNewPersonImageUrl("");
-    setStartedAt(today());
-    setEndedAt("");
-    setIsPrimary(true);
+    setStartedAt(toDateInput(appointment?.started_at) || today());
+    setEndedAt(toDateInput(appointment?.ended_at));
+    setIsPrimary(appointment?.is_primary ?? true);
 
     const load = async () => {
       const [organizationResult, positionResult, peopleResult] = await Promise.all([
@@ -85,7 +91,7 @@ export default function GovernanceAppointmentDialog({
     return () => {
       cancelled = true;
     };
-  }, [open, organizationId, positionId, personId]);
+  }, [open, organizationId, positionId, personId, appointment]);
 
   useEffect(() => {
     if (!personMode || !selectedOrganizationId || !selectedPositionId) return;
@@ -116,13 +122,14 @@ export default function GovernanceAppointmentDialog({
   const selectedPerson = people.find((item) => item.id === selectedPersonId);
 
   const save = async () => {
-    const finalOrganizationId = positionMode ? organizationId : selectedOrganizationId;
-    const finalPositionId = positionMode ? positionId : selectedPositionId;
+    const finalOrganizationId = positionMode ? organizationId || selectedOrganizationId : selectedOrganizationId;
+    const finalPositionId = positionMode ? positionId || selectedPositionId : selectedPositionId;
+    const finalPersonId = personMode ? personId || selectedPersonId : selectedPersonId;
 
     if (!finalOrganizationId) return toast.error("Organization is required");
     if (!finalPositionId) return toast.error("Position is required");
-    if (personMode && !personId) return toast.error("Person is required");
-    if (positionMode && !creatingPerson && !selectedPersonId) return toast.error("Person is required");
+    if (personMode && !finalPersonId) return toast.error("Person is required");
+    if (positionMode && !creatingPerson && !finalPersonId) return toast.error("Person is required");
     if (creatingPerson && !newPersonName.trim()) return toast.error("Person name is required");
     if (!startedAt) return toast.error("Start date is required");
     if (endedAt && endedAt < startedAt) return toast.error("End date cannot be earlier than start date");
@@ -146,26 +153,25 @@ export default function GovernanceAppointmentDialog({
           p_notes: null,
         });
       } else {
-        const finalPersonId = personMode ? personId : selectedPersonId;
         result = await supabase.rpc("upsert_organization", {
-          p_id: null,
+          p_id: appointment?.appointment_id || null,
           p_governance_id: finalOrganizationId,
-          p_person_name: selectedPerson?.name || "",
+          p_person_name: selectedPerson?.name || appointment?.person_name || "",
           p_person_governance_id: finalPersonId,
-          p_position_name: selectedPosition?.name || "Position",
+          p_position_name: selectedPosition?.name || appointment?.position_name || "Position",
           p_position_governance_id: finalPositionId,
           p_started_at: `${startedAt}T00:00:00Z`,
           p_ended_at: endedAt ? `${endedAt}T23:59:59.999Z` : null,
           p_is_vacant: false,
           p_is_primary: isPrimary,
-          p_reports_to_id: null,
-          p_notes: null,
+          p_reports_to_id: appointment?.reports_to_appointment_id || null,
+          p_notes: appointment?.notes || null,
         });
       }
 
       if (result.error) throw result.error;
 
-      toast.success(positionMode ? "Person added to position" : "Position added to person");
+      toast.success(editing ? "Appointment updated" : positionMode ? "Person added to position" : "Position added to person");
       await onSaved?.(result.data);
       onOpenChange?.(false);
     } catch (error) {
@@ -175,7 +181,7 @@ export default function GovernanceAppointmentDialog({
     }
   };
 
-  const title = positionMode ? "Add person to position" : "Add position to person";
+  const title = editing ? "Edit appointment" : positionMode ? "Add person to position" : "Add position to person";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -192,19 +198,19 @@ export default function GovernanceAppointmentDialog({
         ) : (
           <div className="space-y-4 py-2">
             {positionMode ? (
-              <div className="rounded-lg border bg-muted/30 p-3"><div className="text-xs text-muted-foreground">Position</div><div className="mt-1 text-sm font-medium">{selectedPosition?.name || "Position"}</div><div className="text-xs text-muted-foreground">{selectedOrganization?.name || "Organization"}</div></div>
+              <div className="rounded-lg border bg-muted/30 p-3"><div className="text-xs text-muted-foreground">Position</div><div className="mt-1 text-sm font-medium">{selectedPosition?.name || appointment?.position_name || "Position"}</div><div className="text-xs text-muted-foreground">{selectedOrganization?.name || appointment?.organization_name || "Organization"}</div></div>
             ) : (
-              <div className="rounded-lg border bg-muted/30 p-3"><div className="text-xs text-muted-foreground">Person</div><div className="mt-1 text-sm font-medium">{selectedPerson?.name || "Person"}</div></div>
+              <div className="rounded-lg border bg-muted/30 p-3"><div className="text-xs text-muted-foreground">Person</div><div className="mt-1 text-sm font-medium">{selectedPerson?.name || appointment?.person_name || "Person"}</div></div>
             )}
 
             {personMode && <div className="space-y-2"><Label>Organization</Label><SearchableSelect value={selectedOrganizationId} onValueChange={setSelectedOrganizationId} options={organizationOptions} placeholder="Choose an organization" searchPlaceholder="Search organizations..." emptyText="No organizations found." disabled={saving} /></div>}
             {personMode && <div className="space-y-2"><Label>Position</Label><SearchableSelect value={selectedPositionId} onValueChange={setSelectedPositionId} options={positionOptions} placeholder={selectedOrganizationId ? "Choose a position" : "Choose an organization first"} searchPlaceholder="Search positions..." emptyText="No positions found for this organization." disabled={saving || !selectedOrganizationId} /></div>}
-            {positionMode && <div className="space-y-2"><Label>Person</Label><SearchableSelect value={selectedPersonId} onValueChange={setSelectedPersonId} options={peopleOptions} placeholder="Choose a person" searchPlaceholder="Search people..." emptyText="No people found." disabled={saving} /></div>}
+            {positionMode && <div className="space-y-2"><Label>Person</Label><SearchableSelect value={selectedPersonId} onValueChange={setSelectedPersonId} options={peopleOptions} placeholder="Choose a person" searchPlaceholder="Search people..." emptyText="No people found." disabled={saving || editing} /></div>}
 
             {creatingPerson && (
               <div className="space-y-4 rounded-lg border p-4">
                 <div className="text-sm font-medium">New person</div>
-                <ImageUpload bucket="governance" path={`governance/person/draft-${draftId}`} value={newPersonImageUrl || null} onChange={(value) => setNewPersonImageUrl(value || "")} label="Person image" helperText="PNG, JPG or WebP · up to 5 MB" disabled={saving} />
+                <ImageUpload bucket="governance" path={`governance/person/draft-${draftId}/image`} value={newPersonImageUrl || null} onChange={(value) => setNewPersonImageUrl(value || "")} label="Person image" helperText="PNG, JPG or WebP · up to 5 MB" disabled={saving} />
                 <div className="space-y-2"><Label htmlFor="governance-appointment-new-person">Name</Label><Input id="governance-appointment-new-person" value={newPersonName} onChange={(event) => setNewPersonName(event.target.value)} placeholder="e.g. Jane Doe" disabled={saving} autoFocus /></div>
               </div>
             )}
@@ -214,7 +220,7 @@ export default function GovernanceAppointmentDialog({
           </div>
         )}
 
-        <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={saving}>Cancel</Button><Button type="button" onClick={save} disabled={saving || loading}>{saving ? "Saving..." : positionMode ? "Add person" : "Add position"}</Button></DialogFooter>
+        <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={saving}>Cancel</Button><Button type="button" onClick={save} disabled={saving || loading}>{saving ? "Saving..." : editing ? "Save changes" : positionMode ? "Add person" : "Add position"}</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   );
