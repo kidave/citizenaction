@@ -1,68 +1,35 @@
-import { useDeferredValue, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, ChevronsUpDown, MapPinned, RotateCcw } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandItem, CommandList } from "@/components/ui/command";
 import { CommandInput as SearchInput } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { supabase } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-
-const DEFAULT_COUNTRY_ID = "6f3dda25-6cf4-43f2-a5b7-1c8aa9d2113f";
+import { DEFAULT_GEOGRAPHY_FOCUS_ID, useGeographyFocus } from "@/hooks/geography/useGeographyFocus";
 
 export default function GeographyFocusSelector({ value, onValueChange, className }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const deferredSearch = useDeferredValue(search.trim());
-  const effectiveValue = value || DEFAULT_COUNTRY_ID;
-
-  const selectedQuery = useQuery({
-    queryKey: ["geography-focus-selected", effectiveValue],
-    enabled: !!effectiveValue,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("geographies")
-        .select("id,name,official_name,geography_type,parent_id")
-        .eq("id", effectiveValue)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    staleTime: 10 * 60 * 1000,
-  });
-
-  const searchQuery = useQuery({
-    queryKey: ["geography-focus-search", deferredSearch],
-    queryFn: async () => {
-      let query = supabase
-        .from("geographies")
-        .select("id,name,official_name,geography_type,parent_id")
-        .order("name")
-        .limit(50);
-
-      if (deferredSearch) {
-        query = query.or(`name.ilike.%${deferredSearch}%,official_name.ilike.%${deferredSearch}%`);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: open,
-    staleTime: 2 * 60 * 1000,
+  const {
+    effectiveValue,
+    selected,
+    options,
+    isSearching,
+  } = useGeographyFocus({
+    value,
+    search,
+    open,
   });
 
   useEffect(() => {
     if (!open) setSearch("");
   }, [open]);
 
-  const selected = selectedQuery.data;
-  const options = searchQuery.data || [];
-  const selectedLabel = selected?.name || (effectiveValue === DEFAULT_COUNTRY_ID ? "India" : "Choose area");
-  const canReset = effectiveValue !== DEFAULT_COUNTRY_ID;
+  const selectedLabel = selected?.name || (effectiveValue === DEFAULT_GEOGRAPHY_FOCUS_ID ? "India" : "Choose area");
+  const canReset = effectiveValue !== DEFAULT_GEOGRAPHY_FOCUS_ID;
 
   function selectValue(nextValue) {
-    onValueChange?.(nextValue === DEFAULT_COUNTRY_ID ? null : nextValue);
+    onValueChange?.(nextValue === DEFAULT_GEOGRAPHY_FOCUS_ID ? null : nextValue);
     setOpen(false);
   }
 
@@ -98,9 +65,9 @@ export default function GeographyFocusSelector({ value, onValueChange, className
             onValueChange={setSearch}
           />
           <CommandList>
-            <CommandEmpty>{searchQuery.isLoading ? "Searching..." : "No areas found."}</CommandEmpty>
+            <CommandEmpty>{isSearching ? "Searching..." : "No areas found."}</CommandEmpty>
             {canReset && (
-              <CommandItem value="india" onSelect={() => selectValue(DEFAULT_COUNTRY_ID)}>
+              <CommandItem value="india" onSelect={() => selectValue(DEFAULT_GEOGRAPHY_FOCUS_ID)}>
                 <RotateCcw className="h-4 w-4" />
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-medium">India</div>
