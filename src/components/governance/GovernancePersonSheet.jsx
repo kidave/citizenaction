@@ -300,7 +300,8 @@ export default function GovernancePersonSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-xl">\n        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-xl">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <UserRound className="h-4 w-4" />
@@ -437,6 +438,8 @@ export default function GovernancePersonSheet({
             </div>
           </div>
         )}
+
+        </div>
 
         <SheetFooter>
           <Button
