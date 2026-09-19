@@ -5,11 +5,13 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Building2, Plus, Users, Megaphone, CalendarDays } from "lucide-react";
+import { Plus } from "lucide-react";
+import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 
 import { LoginModal } from "@/components/auth/LoginModal";
 import ApplicationTopbar from "@/components/application/ApplicationTopbar";
+import DotLottieAnimation from "@/components/ui/DotLottieAnimation";
 import { spaceApplicationSchema } from "@/schemas/spaceApplication";
 import { supabase } from "@/lib/supabase/client";
 import {
@@ -44,9 +46,37 @@ const SOCIAL_PLATFORMS = [
   "Other",
 ];
 
+const STORY = [
+  {
+    title: "Start with a Space",
+    description:
+      "Give your local work a home where people, ideas and discussions can come together.",
+    animation: "/lottie/city.lottie",
+  },
+  {
+    title: "Connect it to a place",
+    description:
+      "Make the work easier to understand by connecting it to the neighbourhoods and places it affects.",
+    animation: "/lottie/location.lottie",
+  },
+  {
+    title: "Bring people together",
+    description:
+      "A Space can become a shared place for contributions, updates, documents and the work that follows.",
+    animation: "/lottie/people.lottie",
+  },
+  {
+    title: "Keep the story moving",
+    description:
+      "Over time, the Space becomes a living record of what happened and what comes next.",
+    animation: "/lottie/calendar.lottie",
+  },
+];
+
 export default function ApplySpace() {
   const { user, loading: authLoading } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
+  const [storyIndex, setStoryIndex] = useState(0);
   const router = useRouter();
   const [socialLinks, setSocialLinks] = useState([]);
   const [socialPlatform, setSocialPlatform] = useState("Instagram");
@@ -74,6 +104,8 @@ export default function ApplySpace() {
       </div>
     );
   }
+
+  const currentStory = STORY[storyIndex];
 
   function addSocialLink() {
     if (!socialValue.trim()) return;
@@ -127,7 +159,63 @@ export default function ApplySpace() {
         backHref="/"
       />
 
-      <div className="mx-auto w-full max-w-4xl space-y-4 p-4 sm:px-6">
+      <div className="mx-auto w-full max-w-4xl space-y-8 p-4 sm:px-6">
+        <section className="relative overflow-hidden py-2 sm:py-4" aria-label="How Spaces work">
+          <div className="grid items-center gap-6 md:grid-cols-[180px_1fr]">
+            <div className="flex justify-center md:justify-start">
+              <motion.div
+                key={currentStory.animation}
+                initial={{ opacity: 0, scale: 0.92, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+                className="h-32 w-32 sm:h-36 sm:w-36"
+              >
+                <DotLottieAnimation
+                  src={currentStory.animation}
+                  className="h-full min-h-0 w-full"
+                />
+              </motion.div>
+            </div>
+
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                <span>How it works</span>
+                <span aria-hidden="true">·</span>
+                <span>{storyIndex + 1}/{STORY.length}</span>
+              </div>
+
+              <motion.div
+                key={storyIndex}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mt-2"
+              >
+                <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">
+                  {currentStory.title}
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                  {currentStory.description}
+                </p>
+              </motion.div>
+
+              <div className="mt-4 flex items-center gap-2">
+                {STORY.map((story, index) => (
+                  <button
+                    key={story.title}
+                    type="button"
+                    aria-label={`Show story step ${index + 1}`}
+                    onClick={() => setStoryIndex(index)}
+                    className={`h-1.5 rounded-full transition-all ${
+                      index === storyIndex ? "w-8 bg-foreground" : "w-2 bg-border hover:bg-muted-foreground/50"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid gap-5 md:grid-cols-2">
