@@ -185,10 +185,10 @@ export default function GovernanceAppointmentDialog({
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 py-5 sm:px-6">
         <SheetHeader>
 
-          <DialogTitle className="flex items-center gap-2">
+          <SheetTitle className="flex items-center gap-2">
             {positionMode ? <UserRound className="h-4 w-4" /> : <BriefcaseBusiness className="h-4 w-4" />}
             {title}
-          </DialogTitle>
+          </SheetTitle>
         </SheetHeader>
 
         {loading ? (
