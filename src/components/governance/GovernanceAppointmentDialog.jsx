@@ -176,7 +176,8 @@ export default function GovernanceAppointmentDialog({
     }
   };
 
-  const isEditing = Boolean(record?.appointment_id || record?.id);\n  const title = isEditing ? "Edit appointment" : positionMode ? "Add person to position" : "Add position to person";
+  const isEditing = Boolean(record?.appointment_id || record?.id);
+  const title = isEditing ? "Edit appointment" : positionMode ? "Add person to position" : "Add position to person";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
