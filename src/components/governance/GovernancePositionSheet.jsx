@@ -17,10 +17,8 @@ function emptyForm() {
   return {
     name: "",
     description: "",
-    qualifications: "",
     responsibilities: "",
     imageUrl: "",
-    categoryId: "",
     organizationId: "",
   };
 }
@@ -34,7 +32,6 @@ export default function GovernancePositionSheet({
 }) {
   const [form, setForm] = useState(emptyForm);
   const [organizations, setOrganizations] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingRecord, setLoadingRecord] = useState(false);
 
@@ -49,14 +46,13 @@ export default function GovernancePositionSheet({
     const load = async () => {
       setLoadingRecord(isEditing);
 
-      const [organizationResult, categoryResult, positionResult] = await Promise.all([
+      const [organizationResult, positionResult] = await Promise.all([
         supabase
           .from("governance")
           .select("id,name,short_name,slug,type,status")
           .neq("status", "deleted")
           .order("name")
           .limit(500),
-        supabase.from("category").select("id,name,slug").order("sort_order").order("name").limit(500),
         isEditing
           ? supabase
               .from("position")
@@ -73,11 +69,6 @@ export default function GovernancePositionSheet({
         setLoadingRecord(false);
         return;
       }
-      if (categoryResult.error) {
-        toast.error(categoryResult.error.message);
-        setLoadingRecord(false);
-        return;
-      }
       if (positionResult.error) {
         toast.error(positionResult.error.message);
         setLoadingRecord(false);
@@ -86,16 +77,13 @@ export default function GovernancePositionSheet({
 
       const position = positionResult.data;
       setOrganizations(organizationResult.data || []);
-      setCategories(categoryResult.data || []);
       setForm(
         position
           ? {
               name: position.name || "",
               description: position.description || "",
-              qualifications: position.metadata?.qualifications || "",
               responsibilities: position.metadata?.responsibilities || "",
               imageUrl: position.image_url || "",
-              categoryId: position.category_id || "",
               organizationId: position.appointing_organization_id || "",
             }
           : {
@@ -150,9 +138,8 @@ export default function GovernancePositionSheet({
             p_name: form.name.trim(),
             p_description: form.description.trim() || null,
             p_image_url: form.imageUrl.trim() || null,
-            p_category_id: form.categoryId === "none" ? null : form.categoryId || null,
             p_appointing_organization_id: form.organizationId || null,
-            p_metadata: { qualifications: form.qualifications.trim() || null, responsibilities: form.responsibilities.trim() || null },
+            p_metadata: { responsibilities: form.responsibilities.trim() || null },
           }
         : {
             p_name: form.name.trim(),
@@ -177,15 +164,15 @@ export default function GovernancePositionSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-xl">
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
-        <SheetHeader>
+      <SheetContent side="right" className="flex w-full max-w-none flex-col gap-0 overflow-x-hidden p-0 sm:max-w-xl">
+        <SheetHeader className="border-b px-5 py-4 sm:px-6">
           <SheetTitle className="flex items-center gap-2">
             <BriefcaseBusiness className="h-4 w-4" />
             {isEditing ? "Edit position" : "Add position"}
           </SheetTitle>
         </SheetHeader>
 
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 py-5 sm:px-6">
         {loadingRecord ? (
           <div className="space-y-3 py-4">
             <div className="h-9 animate-pulse rounded-md bg-muted" />
@@ -217,24 +204,6 @@ export default function GovernancePositionSheet({
                 emptyText="No organizations found."
                 disabled={loading}
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Category</Label>
-              <SearchableSelect
-                value={form.categoryId || "none"}
-                onValueChange={(value) => setField("categoryId", value)}
-                options={categoryOptions}
-                placeholder="No category"
-                searchPlaceholder="Search categories..."
-                emptyText="No categories found."
-                disabled={loading}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Qualifications required</Label>
-              <Textarea value={form.qualifications} onChange={(event) => setField("qualifications", event.target.value)} placeholder="What qualifications or experience are required?" rows={3} disabled={loading} />
             </div>
 
             <div className="space-y-2">

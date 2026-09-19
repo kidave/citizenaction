@@ -183,8 +183,7 @@ export default function GovernanceAppointmentDialog({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="flex w-full max-w-none flex-col gap-0 overflow-x-hidden p-0 sm:max-w-xl">
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 py-5 sm:px-6">
-        <SheetHeader>
-
+        <SheetHeader className="border-b px-5 py-4 sm:px-6">
           <SheetTitle className="flex items-center gap-2">
             {positionMode ? <UserRound className="h-4 w-4" /> : <BriefcaseBusiness className="h-4 w-4" />}
             {title}
@@ -219,7 +218,7 @@ export default function GovernanceAppointmentDialog({
         )}
 
         </div>
-        <SheetFooter><Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={saving}>Cancel</Button><Button type="button" onClick={save} disabled={saving || loading}>{saving ? "Saving..." : isEditing ? "Save changes" : positionMode ? "Add person" : "Add position"}</Button></SheetFooter>
+        <SheetFooter className="border-t px-5 py-4 sm:px-6"><Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={saving}>Cancel</Button><Button type="button" onClick={save} disabled={saving || loading}>{saving ? "Saving..." : isEditing ? "Save changes" : positionMode ? "Add person" : "Add position"}</Button></SheetFooter>
       </SheetContent>
     </Sheet>
   );

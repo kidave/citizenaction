@@ -26,7 +26,6 @@ function emptyForm() {
   return {
     name: "",
     biography: "",
-    website: "",
     imageUrl: "",
     profileUserId: "",
     imageSourceUrl: "",
@@ -121,7 +120,6 @@ export default function GovernancePersonSheet({
           ? {
               name: person.name || "",
               biography: person.biography || "",
-              website: person.website || "",
               imageUrl: person.image_url || "",
               profileUserId: person.profile_user_id || "",
               imageSourceUrl: "",
@@ -189,7 +187,6 @@ export default function GovernancePersonSheet({
         p_person_id: record.id,
         p_name: form.name.trim(),
         p_biography: form.biography.trim() || null,
-        p_website: form.website.trim() || null,
         p_image_url: imported.imageUrl,
         p_profile_user_id:
           form.profileUserId === "none" ? null : form.profileUserId || null,
@@ -266,8 +263,7 @@ export default function GovernancePersonSheet({
             p_person_id: created.id,
             p_name: form.name.trim(),
             p_biography: form.biography.trim() || null,
-            p_website: form.website.trim() || null,
-            p_image_url: publicUrl,
+              p_image_url: publicUrl,
             p_profile_user_id:
               form.profileUserId === "none" ? null : form.profileUserId || null,
             p_metadata: null,
@@ -329,15 +325,15 @@ export default function GovernancePersonSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-xl">
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
-        <SheetHeader>
+      <SheetContent side="right" className="flex w-full max-w-none flex-col gap-0 overflow-x-hidden p-0 sm:max-w-xl">
+        <SheetHeader className="border-b px-5 py-4 sm:px-6">
           <SheetTitle className="flex items-center gap-2">
             <UserRound className="h-4 w-4" />
             {isEditing ? "Edit person" : "Add person"}
           </SheetTitle>
         </SheetHeader>
 
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 py-5 sm:px-6">
         {loadingRecord ? (
           <div className="space-y-3 py-4">
             <div className="h-9 animate-pulse rounded-md bg-muted" />
@@ -454,17 +450,6 @@ export default function GovernancePersonSheet({
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="governance-person-website">Website</Label>
-              <Input
-                id="governance-person-website"
-                type="url"
-                value={form.website}
-                onChange={(event) => setField("website", event.target.value)}
-                placeholder="https://..."
-                disabled={busy}
-              />
-            </div>
           </div>
         )}
 
