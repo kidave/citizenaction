@@ -30,7 +30,10 @@ function OrganizationUnit({ node, childrenByParent, canEdit, onSelect, expandedP
             </Avatar>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <Link href={`/governance/${node.slug}?view=organization`} className="font-medium hover:underline">
+                <Link
+                  href={{ pathname: "/governance/[...path]", query: { path: [node.slug], view: "organization" } }}
+                  className="font-medium hover:underline"
+                >
                   {node.name}
                 </Link>
                 {node.type && <Badge variant="secondary" className="text-[10px]">{node.type}</Badge>}
