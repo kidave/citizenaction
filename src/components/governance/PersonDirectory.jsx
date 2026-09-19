@@ -34,7 +34,7 @@ export default function PersonDirectory({
 
   const organizationsQuery = useGovernanceOrganizations();
 
-  const options = useMemo(  const options = useMemo(
+  const options = useMemo(
     () =>
       (organizationsQuery.data || []).map((item) => ({
         value: item.id,
