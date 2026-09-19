@@ -159,7 +159,7 @@ export default function ApplySpace() {
         backHref="/"
       />
 
-      <div className="mx-auto w-full max-w-4xl space-y-8 p-4 sm:px-6">
+      <div className="mx-auto w-full max-w-4xl space-y-4 px-4 sm:px-6">
         <section
           className="relative overflow-hidden py-2 sm:py-4"
           aria-label="How Spaces work"

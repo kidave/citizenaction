@@ -22,7 +22,9 @@ export default function PersonDirectory({
   canManage = false,
 }) {
   const [search, setSearch] = useState("");
-  const [organizationId, setOrganizationId] = useState(controlledOrganizationId);
+  const [organizationId, setOrganizationId] = useState(
+    controlledOrganizationId,
+  );
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const queryClient = useQueryClient();
@@ -33,7 +35,9 @@ export default function PersonDirectory({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("governance")
-        .select("id,name,short_name,slug,type,status,image_url,current_holder_name,current_holder_image_url")
+        .select(
+          "id,name,short_name,slug,type,status,image_url,current_holder_name,current_holder_image_url",
+        )
         .neq("status", "deleted")
         .order("name")
         .limit(500);
@@ -61,7 +65,10 @@ export default function PersonDirectory({
   });
   const data = Array.isArray(query.data) ? query.data : [];
   const selectedSet = useMemo(
-    () => new Set(selectedIds.length ? selectedIds : selectedId ? [selectedId] : []),
+    () =>
+      new Set(
+        selectedIds.length ? selectedIds : selectedId ? [selectedId] : [],
+      ),
     [selectedIds, selectedId],
   );
 
@@ -77,10 +84,14 @@ export default function PersonDirectory({
 
   const deletePerson = async (entity) => {
     try {
-      const { error } = await supabase.rpc("delete_person", { p_person_id: entity.id });
+      const { error } = await supabase.rpc("delete_person", {
+        p_person_id: entity.id,
+      });
       if (error) throw error;
       toast.success("Person deleted");
-      await queryClient.invalidateQueries({ queryKey: ["governance-directory"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["governance-directory"],
+      });
     } catch (error) {
       toast.error(error?.message || "Unable to delete person");
     }
@@ -88,9 +99,11 @@ export default function PersonDirectory({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <div className="relative min-w-0 flex-1">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_18rem_auto]">
+        {/* Search */}
+        <div className="relative col-span-2 min-w-0 sm:col-span-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+
           <Input
             className="h-9 pl-9"
             placeholder="Search people..."
@@ -98,6 +111,8 @@ export default function PersonDirectory({
             onChange={(event) => setSearch(event.target.value)}
           />
         </div>
+
+        {/* Organization filter */}
         <SearchableSelect
           value={effectiveOrganizationId}
           onValueChange={setOrganizationId}
@@ -105,10 +120,12 @@ export default function PersonDirectory({
           placeholder="All organizations"
           searchPlaceholder="Search organizations..."
           emptyText="No organizations found."
-          className="sm:w-72"
+          className="min-w-0"
         />
+
+        {/* Add */}
         {canManage && (
-          <Button type="button" className="shrink-0" onClick={openCreate}>
+          <Button type="button" className="h-9 shrink-0" onClick={openCreate}>
             <Plus className="mr-2 h-4 w-4" />
             Add person
           </Button>
@@ -125,8 +142,9 @@ export default function PersonDirectory({
           Failed to load people.
         </div>
       )}
-      {!query.isLoading && !query.error && (
-        data.length ? (
+      {!query.isLoading &&
+        !query.error &&
+        (data.length ? (
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {data.map((entity) => (
               <GovernanceDirectoryCard
@@ -145,18 +163,23 @@ export default function PersonDirectory({
           <div className="flex min-h-[30vh] items-center justify-center text-center">
             <div>
               <p className="text-sm font-medium">No people found.</p>
-              <p className="mt-1 text-xs text-muted-foreground">Try another search or filter.</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Try another search or filter.
+              </p>
             </div>
           </div>
-        )
-      )}
+        ))}
 
       {canManage && (
         <GovernancePersonDialog
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           record={editingRecord}
-          onSaved={() => queryClient.invalidateQueries({ queryKey: ["governance-directory"] })}
+          onSaved={() =>
+            queryClient.invalidateQueries({
+              queryKey: ["governance-directory"],
+            })
+          }
         />
       )}
     </div>
