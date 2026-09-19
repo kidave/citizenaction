@@ -92,6 +92,6 @@ export default function GovernancePositionTimeline({ position, organization, tim
           }}
         />
       )}
-    </>
+    </div>
   );
 }
