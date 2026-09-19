@@ -5,7 +5,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
 import { formatGovernanceDate, getGovernanceInitials, getGovernanceLabel } from "@/utils/governance";
-import EmptyState from "@/components/ui/empty-state";
 
 export default function GovernancePositionTimeline({ position, organization, timeline = [], canManage = false, onEdit, onDeleted }) {
   const organizationLabel = getGovernanceLabel(organization);

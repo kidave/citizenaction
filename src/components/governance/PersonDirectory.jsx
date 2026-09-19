@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { Plus, Search } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +31,7 @@ export default function PersonDirectory({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const queryClient = useQueryClient();
-  const { deletePerson } = useGovernanceCrud();
+  const { deletePerson: removePerson } = useGovernanceCrud();
   const effectiveOrganizationId = controlledOrganizationId ?? organizationId;
 
   const organizationsQuery = useGovernanceOrganizations();
@@ -72,20 +71,6 @@ export default function PersonDirectory({
     setDialogOpen(true);
   };
 
-  const deletePerson = async (entity) => {
-    try {
-      const { error } = await supabase.rpc("delete_person", {
-        p_person_id: entity.id,
-      });
-      if (error) throw error;
-      toast.success("Person deleted");
-      await queryClient.invalidateQueries({
-        queryKey: ["governance-directory"],
-      });
-    } catch (error) {
-      toast.error(error?.message || "Unable to delete person");
-    }
-  };
 
   return (
     <div className="space-y-4">
