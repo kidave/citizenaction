@@ -220,7 +220,6 @@ export default function GovernancePersonSheet({
       const baseParams = {
         p_name: form.name.trim(),
         p_biography: form.biography.trim() || null,
-        p_website: form.website.trim() || null,
         p_image_url: form.imageUrl.trim() || null,
         p_profile_user_id:
           form.profileUserId === "none" ? null : form.profileUserId || null,
@@ -263,7 +262,7 @@ export default function GovernancePersonSheet({
             p_person_id: created.id,
             p_name: form.name.trim(),
             p_biography: form.biography.trim() || null,
-              p_image_url: publicUrl,
+            p_image_url: publicUrl,
             p_profile_user_id:
               form.profileUserId === "none" ? null : form.profileUserId || null,
             p_metadata: null,
@@ -289,7 +288,6 @@ export default function GovernancePersonSheet({
           p_person_id: created.id,
           p_name: form.name.trim(),
           p_biography: form.biography.trim() || null,
-          p_website: form.website.trim() || null,
           p_image_url: imported.imageUrl,
           p_profile_user_id:
             form.profileUserId === "none"
@@ -334,6 +332,7 @@ export default function GovernancePersonSheet({
         </SheetHeader>
 
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 py-5 sm:px-6">
+
         {loadingRecord ? (
           <div className="space-y-3 py-4">
             <div className="h-9 animate-pulse rounded-md bg-muted" />
@@ -449,29 +448,17 @@ export default function GovernancePersonSheet({
                 disabled={busy}
               />
             </div>
-
-          </div>
+</div>
         )}
 
         </div>
 
-        <SheetFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange?.(false)}
-            disabled={busy}
-          >
-            Cancel
-          </Button>
+        <SheetFooter className="flex-row items-center justify-between gap-3 border-t px-5 py-4 sm:px-6">
+          <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={busy}>Cancel</Button>
           <Button type="button" onClick={save} disabled={busy || loadingRecord}>
             {loading
-              ? importingImage
-                ? "Importing image..."
-                : "Saving..."
-              : isEditing
-                ? "Save changes"
-                : "Create person"}
+              ? importingImage ? "Importing image..." : "Saving..."
+              : isEditing ? "Save changes" : "Create person"}
           </Button>
         </SheetFooter>
       </SheetContent>

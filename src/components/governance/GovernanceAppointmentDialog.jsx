@@ -182,13 +182,14 @@ export default function GovernanceAppointmentDialog({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="flex w-full max-w-none flex-col gap-0 overflow-x-hidden p-0 sm:max-w-xl">
-        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 py-5 sm:px-6">
         <SheetHeader className="border-b px-5 py-4 sm:px-6">
           <SheetTitle className="flex items-center gap-2">
             {positionMode ? <UserRound className="h-4 w-4" /> : <BriefcaseBusiness className="h-4 w-4" />}
             {title}
           </SheetTitle>
         </SheetHeader>
+
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 py-5 sm:px-6">
 
         {loading ? (
           <div className="space-y-3 py-4"><div className="h-9 animate-pulse rounded-md bg-muted" /><div className="h-9 animate-pulse rounded-md bg-muted" /><div className="h-20 animate-pulse rounded-md bg-muted" /></div>
@@ -218,7 +219,8 @@ export default function GovernanceAppointmentDialog({
         )}
 
         </div>
-        <SheetFooter className="border-t px-5 py-4 sm:px-6"><Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={saving}>Cancel</Button><Button type="button" onClick={save} disabled={saving || loading}>{saving ? "Saving..." : isEditing ? "Save changes" : positionMode ? "Add person" : "Add position"}</Button></SheetFooter>
+
+        <SheetFooter className="flex-row items-center justify-between gap-3 border-t px-5 py-4 sm:px-6"><Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={saving}>Cancel</Button><Button type="button" onClick={save} disabled={saving || loading}>{saving ? "Saving..." : isEditing ? "Save changes" : positionMode ? "Add person" : "Add position"}</Button></SheetFooter>
       </SheetContent>
     </Sheet>
   );

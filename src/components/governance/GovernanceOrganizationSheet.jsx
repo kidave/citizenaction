@@ -209,7 +209,7 @@ export default function GovernanceOrganizationSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex w-full max-w-none flex-col gap-0 overflow-x-hidden p-0 sm:max-w-xl">
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-xl">
         <SheetHeader className="border-b px-5 py-4 sm:px-6">
           <SheetTitle className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
@@ -217,7 +217,7 @@ export default function GovernanceOrganizationSheet({
           </SheetTitle>
         </SheetHeader>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 py-5 sm:px-6">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
           <div className="space-y-4">
             <ImageUpload
               bucket="governance"
@@ -333,7 +333,7 @@ export default function GovernanceOrganizationSheet({
           </div>
         </div>
 
-        <SheetFooter className="border-t px-5 py-4 sm:px-6">
+        <SheetFooter className="flex-row items-center justify-between gap-3 border-t px-5 py-4 sm:px-6">
           <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={busy}>Cancel</Button>
           <Button type="button" onClick={save} disabled={busy}>
             {busy ? (importingImage ? "Importing image..." : "Saving...") : isEditing ? "Save changes" : "Create organization"}

@@ -56,7 +56,7 @@ export default function GovernancePositionSheet({
         isEditing
           ? supabase
               .from("position")
-              .select("id,name,description,image_url,category_id,appointing_organization_id,metadata")
+              .select("id,name,description,image_url,appointing_organization_id,metadata")
               .eq("id", record.id)
               .single()
           : Promise.resolve({ data: null, error: null }),
@@ -133,7 +133,8 @@ export default function GovernancePositionSheet({
             p_name: form.name.trim(),
             p_description: form.description.trim() || null,
             p_image_url: form.imageUrl.trim() || null,
-            p_metadata: { qualifications: form.qualifications.trim() || null, responsibilities: form.responsibilities.trim() || null },
+            p_category_id: null,
+            p_metadata: { responsibilities: form.responsibilities.trim() || null },
             p_appointing_organization_id: form.organizationId || null,
           };
 
@@ -160,6 +161,7 @@ export default function GovernancePositionSheet({
         </SheetHeader>
 
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 py-5 sm:px-6">
+
         {loadingRecord ? (
           <div className="space-y-3 py-4">
             <div className="h-9 animate-pulse rounded-md bg-muted" />
@@ -192,8 +194,7 @@ export default function GovernancePositionSheet({
                 disabled={loading}
               />
             </div>
-
-            <div className="space-y-2">
+<div className="space-y-2">
               <Label>Roles and responsibilities</Label>
               <Textarea value={form.responsibilities} onChange={(event) => setField("responsibilities", event.target.value)} placeholder="What are the main roles and responsibilities?" rows={4} disabled={loading} />
             </div>
@@ -226,10 +227,8 @@ export default function GovernancePositionSheet({
 
         </div>
 
-        <SheetFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={loading}>
-            Cancel
-          </Button>
+        <SheetFooter className="flex-row items-center justify-between gap-3 border-t px-5 py-4 sm:px-6">
+          <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={loading}>Cancel</Button>
           <Button type="button" onClick={save} disabled={loading || loadingRecord}>
             {loading ? "Saving..." : isEditing ? "Save changes" : "Create position"}
           </Button>
