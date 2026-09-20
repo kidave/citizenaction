@@ -28,25 +28,19 @@ export default function AttachmentCard({
       onMouseLeave={() => setHovered(null)}
       className={cn(
         "group relative overflow-hidden rounded-xl border bg-card transition-all duration-500 ease-out md:rounded-2xl",
-
         hovered !== null && hovered !== index && "opacity-60 blur-[2px]",
-
         hovered === index && "z-10",
-
         className,
       )}
     >
       {/* Preview */}
-
       <div
         onClick={() => onClick?.(index)}
         className={cn(
           "relative cursor-pointer overflow-hidden bg-muted",
-          size === "compact"
+          size === "compact" || size === "sm"
             ? "aspect-[16/9]"
-            : size === "sm"
-              ? "aspect-[4/3]"
-              : "aspect-square md:aspect-[16/10]",
+            : "aspect-square md:aspect-[16/10]",
         )}
       >
         <div className="relative h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.06]">
@@ -69,38 +63,30 @@ export default function AttachmentCard({
       </div>
 
       {/* Metadata */}
-
       {showMetadata && (
-        <div className={cn("space-y-2", size === "sm" ? "p-2" : "p-3")}>
-          <p
-            className={cn(
-              "truncate font-medium",
-              size === "sm" ? "text-xs" : "text-sm",
-            )}
-          >
-            {attachment.file_name}
-          </p>
-
+        <div
+          className={cn(
+            "space-y-1.5",
+            size === "sm" || size === "compact" ? "p-2" : "p-3",
+          )}
+        >
           <Input
             value={attachment.credit_name ?? ""}
             placeholder="Add credit"
+            aria-label="Credit name"
             onChange={(e) => onCreditNameChange?.(index, e.target.value)}
-            className="h-4 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
+            className="h-6 min-w-0 border-0 bg-transparent px-0 text-base shadow-none focus-visible:ring-0 md:text-xs"
           />
 
-          <div className="space-y-0.5 text-xs text-muted-foreground">
-            <p>
+          <div className="truncate text-xs text-muted-foreground">
+            <span className="uppercase">
               {getFileExtension(
                 attachment.file_name || attachment.file?.name || "",
-              )}{" "}
-              •{" "}
-              {formatFileSize(
-                attachment.file_size ?? attachment.file?.size ?? null,
               )}
-            </p>
-
-            {attachment.credit_name && (
-              <p className="truncate">{attachment.credit_name}</p>
+            </span>
+            {" • "}
+            {formatFileSize(
+              attachment.file_size ?? attachment.file?.size ?? null,
             )}
           </div>
         </div>
