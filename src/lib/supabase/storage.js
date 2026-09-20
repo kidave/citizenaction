@@ -102,7 +102,13 @@ async function uploadAttachment({
   };
 }
 
-async function uploadAttachments({ bucket, ownerId, attachments = [] }) {
+async function uploadAttachments({
+  bucket,
+  ownerId,
+  attachments = [],
+  storagePrefix = null,
+  useAttachmentIdFileName = false,
+}) {
   if (!Array.isArray(attachments) || attachments.length === 0) return [];
   return Promise.all(
     attachments.map((attachment) =>
@@ -111,6 +117,8 @@ async function uploadAttachments({ bucket, ownerId, attachments = [] }) {
         ownerId,
         file: attachment.file ?? attachment,
         attachmentId: attachment.attachmentId ?? null,
+        storagePrefix,
+        useAttachmentIdFileName,
       }),
     ),
   );
