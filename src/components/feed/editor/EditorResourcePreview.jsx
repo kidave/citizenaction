@@ -21,7 +21,7 @@ export default function EditorResourcePreview({
 
   return (
     <div className={`shrink-0 overflow-hidden border-t bg-background transition-[height] duration-300 ${
-      open ? (size === "compact" ? "h-64" : "h-72") : "h-12"
+      open ? (size === "compact" ? "h-64" : "h-[32rem] md:h-72") : "h-12"
     }`}>
       <Button
         type="button"
