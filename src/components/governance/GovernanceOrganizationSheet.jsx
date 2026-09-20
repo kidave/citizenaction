@@ -172,7 +172,7 @@ export default function GovernanceOrganizationSheet({
 
       if (saved?.id && pendingAttachments.length) {
         const uploaded = await uploadGovernanceAttachments(saved.id, pendingAttachments.map((item) => ({ file: item.file, attachmentId: item.id })));
-        const rows = uploaded.map((item, index) => ({ id: item.attachmentId, governance_id: saved.id, storage_path: item.storage_path, public_url: item.public_url, preview_url: item.preview_url || null, thumbnail_path: item.thumbnail_path || null, thumbnail_url: item.thumbnail_url || null, file_name: item.file_name, mime_type: item.mime_type, file_size: item.file_size, width: item.width, height: item.height, duration: item.duration, sort_order: index }));
+        const rows = uploaded.map((item, index) => ({ id: item.attachmentId, governance_id: saved.id, storage_path: item.storage_path, public_url: item.public_url, thumbnail_path: item.thumbnail_path || null, thumbnail_url: item.thumbnail_url || null, file_name: item.file_name, mime_type: item.mime_type, file_size: item.file_size, credit_name: item.credit_name || null, width: item.width, height: item.height, duration: item.duration, sort_order: index }));
         const { error } = await supabase.from("attachment").insert(rows);
         if (error) { await deleteGovernanceAttachments(uploaded); throw error; }
       }
