@@ -27,7 +27,7 @@ export default function AttachmentCard({
       onMouseEnter={() => setHovered(index)}
       onMouseLeave={() => setHovered(null)}
       className={cn(
-        "group relative h-[144px] overflow-hidden rounded-xl border bg-card transition-all duration-500 ease-out md:rounded-2xl",
+        "group relative overflow-hidden rounded-xl border bg-card transition-all duration-500 ease-out md:rounded-2xl",
         hovered !== null && hovered !== index && "opacity-60 blur-[2px]",
         hovered === index && "z-10",
         className,
@@ -39,7 +39,7 @@ export default function AttachmentCard({
         className={cn(
           "relative cursor-pointer overflow-hidden bg-muted",
           size === "compact" || size === "sm"
-            ? "h-[84px]"
+            ? "aspect-[16/9]"
             : "aspect-square md:aspect-[16/10]",
         )}
       >
@@ -66,7 +66,7 @@ export default function AttachmentCard({
       {showMetadata && (
         <div
           className={cn(
-            "space-y-1",
+            "space-y-1.5",
             size === "sm" || size === "compact" ? "p-2" : "p-3",
           )}
         >
@@ -75,10 +75,10 @@ export default function AttachmentCard({
             placeholder="Add credit"
             aria-label="Credit name"
             onChange={(e) => onCreditNameChange?.(index, e.target.value)}
-            className="h-5 min-w-0 border-0 bg-transparent px-0 text-sm shadow-none focus-visible:ring-0 md:text-xs"
+            className="h-6 min-w-0 border-0 bg-transparent px-0 text-base shadow-none focus-visible:ring-0 md:text-xs"
           />
 
-          <div className="truncate text-[11px] text-muted-foreground">
+          <div className="truncate text-xs text-muted-foreground">
             <span className="uppercase">
               {getFileExtension(
                 attachment.file_name || attachment.file?.name || "",
