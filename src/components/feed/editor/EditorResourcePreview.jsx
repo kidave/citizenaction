@@ -24,8 +24,8 @@ export default function EditorResourcePreview({
       className={`shrink-0 overflow-hidden border-t bg-background transition-[height] duration-300 ${
         open
           ? size === "compact"
-            ? "h-48"
-            : "h-60"
+            ? "h-44"
+            : "h-48"
           : "h-12"
       }`}
     >
