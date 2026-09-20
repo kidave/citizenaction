@@ -72,6 +72,7 @@ export default function GovernanceOrganizationSheet({
   const [saving, setSaving] = useState(false);
   const [importingImage, setImportingImage] = useState(false);
   const [pendingAttachments, setPendingAttachments] = useState([]);
+  const [removedAttachments, setRemovedAttachments] = useState([]);
   const [links, setLinks] = useState([]);
   const draftId = useId().replace(/:/g, "");
   const { createOrganization, updateOrganization } = useGovernanceCrud();
@@ -92,6 +93,7 @@ export default function GovernanceOrganizationSheet({
       setSaving(false);
       setImportingImage(false);
       setPendingAttachments([]);
+      setRemovedAttachments([]);
       setLinks([]);
 
       if (!record?.id) {
@@ -114,8 +116,29 @@ export default function GovernanceOrganizationSheet({
       }
 
       setForm(emptyForm(data));
-      const { data: linkData } = await supabase.from("link").select("*").eq("governance_id", record.id).order("sort_order", { ascending: true }).order("created_at", { ascending: true });
-      if (!cancelled) setLinks(linkData || []);
+
+      const { data: linkData } = await supabase
+        .from("link")
+        .select("*")
+        .eq("governance_id", record.id)
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true });
+
+      const { data: attachmentData, error: attachmentError } = await supabase
+        .from("attachment")
+        .select("id,governance_id,storage_path,public_url,thumbnail_path,thumbnail_url,file_name,mime_type,file_size,credit_name,width,height,duration,sort_order")
+        .eq("governance_id", record.id)
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true });
+
+      if (cancelled) return;
+
+      if (attachmentError) {
+        toast.error(attachmentError.message || "Unable to load organization resources");
+      }
+
+      setLinks(linkData || []);
+      setPendingAttachments(attachmentData || []);
     };
 
     load();
@@ -127,6 +150,28 @@ export default function GovernanceOrganizationSheet({
 
   const setField = (field, value) =>
     setForm((current) => ({ ...current, [field]: value }));
+
+  const updatePendingAttachments = (updater) => {
+    const next = typeof updater === "function" ? updater(pendingAttachments) : updater;
+    const nextIds = new Set(
+      next.filter((item) => !item.file && item.id).map((item) => item.id),
+    );
+    const removed = pendingAttachments.filter(
+      (item) => !item.file && item.id && !nextIds.has(item.id),
+    );
+
+    if (removed.length) {
+      setRemovedAttachments((current) => {
+        const existingIds = new Set(current.map((item) => item.id));
+        return [
+          ...current,
+          ...removed.filter((item) => !existingIds.has(item.id)),
+        ];
+      });
+    }
+
+    setPendingAttachments(next);
+  };
 
   const save = async () => {
     if (!form.name.trim()) return toast.error("Organization name is required");
@@ -170,18 +215,78 @@ export default function GovernanceOrganizationSheet({
 
       let finalRecord = saved;
 
-      if (saved?.id && pendingAttachments.length) {
-        const uploaded = await uploadGovernanceAttachments(saved.id, pendingAttachments.map((item) => ({ file: item.file, attachmentId: item.id })));
-        const rows = uploaded.map((item, index) => ({ id: item.attachmentId, governance_id: saved.id, storage_path: item.storage_path, public_url: item.public_url, thumbnail_path: item.thumbnail_path || null, thumbnail_url: item.thumbnail_url || null, file_name: item.file_name, mime_type: item.mime_type, file_size: item.file_size, credit_name: item.credit_name || null, width: item.width, height: item.height, duration: item.duration, sort_order: index }));
-        const { error } = await supabase.from("attachment").insert(rows);
-        if (error) { await deleteGovernanceAttachments(uploaded); throw error; }
+      if (saved?.id) {
+        const newAttachments = pendingAttachments.filter((item) => item.file);
+
+        if (newAttachments.length) {
+          const uploaded = await uploadGovernanceAttachments(
+            saved.id,
+            newAttachments.map((item) => ({
+              file: item.file,
+              attachmentId: item.id,
+            })),
+          );
+
+          const rows = uploaded.map((item) => ({
+            id: item.attachmentId,
+            governance_id: saved.id,
+            storage_path: item.storage_path,
+            public_url: item.public_url,
+            thumbnail_path: item.thumbnail_path || null,
+            thumbnail_url: item.thumbnail_url || null,
+            file_name: item.file_name,
+            mime_type: item.mime_type,
+            file_size: item.file_size,
+            credit_name: item.credit_name || null,
+            width: item.width,
+            height: item.height,
+            duration: item.duration,
+            sort_order: pendingAttachments.findIndex(
+              (candidate) => candidate.id === item.attachmentId,
+            ),
+          }));
+
+          const { error } = await supabase.from("attachment").insert(rows);
+          if (error) {
+            await deleteGovernanceAttachments(uploaded);
+            throw error;
+          }
+        }
       }
       if (saved?.id) {
         const newLinks = links.filter((link) => !link.id);
         if (newLinks.length) {
-          const { error } = await supabase.from("link").insert(newLinks.map((link, index) => ({ governance_id: saved.id, url: link.url, type: link.type || null, title: link.title || null, description: link.description || null, hostname: link.hostname || null, image_url: link.image_url || null, icon_url: link.icon_url || null, sort_order: index })));
+          const { error } = await supabase
+            .from("link")
+            .insert(
+              newLinks.map((link, index) => ({
+                governance_id: saved.id,
+                url: link.url,
+                type: link.type || null,
+                title: link.title || null,
+                description: link.description || null,
+                hostname: link.hostname || null,
+                image_url: link.image_url || null,
+                icon_url: link.icon_url || null,
+                sort_order: index,
+              })),
+            );
           if (error) throw error;
         }
+      }
+
+      if (saved?.id && removedAttachments.length) {
+        const { error } = await supabase
+          .from("attachment")
+          .delete()
+          .in(
+            "id",
+            removedAttachments.map((attachment) => attachment.id),
+          );
+
+        if (error) throw error;
+
+        await deleteGovernanceAttachments(removedAttachments);
       }
 
       if (!isEditing && form.imageUrl && saved?.id) {
@@ -373,7 +478,7 @@ export default function GovernanceOrganizationSheet({
         <EditorResourcePreview
           attachments={pendingAttachments}
           links={links}
-          setAttachments={setPendingAttachments}
+          setAttachments={updatePendingAttachments}
           removable
           showMetadata={false}
           size="compact"
