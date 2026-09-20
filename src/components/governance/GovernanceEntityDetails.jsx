@@ -146,6 +146,12 @@ export default function GovernanceEntityDetails({
         </div>
       )}
 
+      {entity.email && (<div><h3 className="text-sm font-semibold">Email</h3><a className="mt-1 block truncate text-sm text-primary hover:underline" href={"mailto:" + entity.email}>{entity.email}</a></div>)}
+
+      {entity.phone && (<div><h3 className="text-sm font-semibold">Phone</h3><a className="mt-1 block truncate text-sm text-primary hover:underline" href={"tel:" + entity.phone}>{entity.phone}</a></div>)}
+
+      {entity.address && (<div><h3 className="text-sm font-semibold">Office address</h3><p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{entity.address}</p></div>)}
+
       {entity.website && (
         <div>
           <h3 className="text-sm font-semibold">Official website</h3>

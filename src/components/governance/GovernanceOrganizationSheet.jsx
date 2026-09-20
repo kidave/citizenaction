@@ -18,8 +18,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase/client";
-import { moveGovernanceFile } from "@/lib/supabase/storage";
+import { deleteGovernanceAttachments, moveGovernanceFile, uploadGovernanceAttachments } from "@/lib/supabase/storage";
 import { useImportGovernanceOrganizationImage } from "@/hooks/governance/useImportGovernanceOrganizationImage";
+import GovernanceEditorResources from "@/components/governance/GovernanceEditorResources";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 import { GOVERNANCE_STATUS_OPTIONS, GOVERNANCE_TYPES, formatGovernanceType, governanceRequiresValidTo } from "@/utils/governance";
 
@@ -36,6 +37,9 @@ function emptyForm(record) {
     validTo: record?.valid_to ? String(record.valid_to).slice(0, 10) : "",
     imageUrl: record?.image_url || "",
     imageSourceUrl: "",
+    email: record?.email || "",
+    phone: record?.phone || "",
+    address: record?.address || "",
   };
 }
 
@@ -66,6 +70,8 @@ export default function GovernanceOrganizationSheet({
   const [form, setForm] = useState(() => emptyForm(record));
   const [saving, setSaving] = useState(false);
   const [importingImage, setImportingImage] = useState(false);
+  const [pendingAttachments, setPendingAttachments] = useState([]);
+  const [links, setLinks] = useState([]);
   const draftId = useId().replace(/:/g, "");
   const { createOrganization, updateOrganization } = useGovernanceCrud();
   const { importOrganizationImage } = useImportGovernanceOrganizationImage();
@@ -84,6 +90,8 @@ export default function GovernanceOrganizationSheet({
     const load = async () => {
       setSaving(false);
       setImportingImage(false);
+      setPendingAttachments([]);
+      setLinks([]);
 
       if (!record?.id) {
         setForm(emptyForm(null));
@@ -92,7 +100,7 @@ export default function GovernanceOrganizationSheet({
 
       const { data, error } = await supabase
         .from("governance")
-        .select("id,name,short_name,description,website,type,category_id,status,valid_from,valid_to,image_url")
+        .select("id,name,short_name,description,website,email,phone,address,type,category_id,status,valid_from,valid_to,image_url")
         .eq("id", record.id)
         .single();
 
@@ -105,6 +113,8 @@ export default function GovernanceOrganizationSheet({
       }
 
       setForm(emptyForm(data));
+      const { data: linkData } = await supabase.from("link").select("*").eq("governance_id", record.id).order("sort_order", { ascending: true }).order("created_at", { ascending: true });
+      if (!cancelled) setLinks(linkData || []);
     };
 
     load();
@@ -141,6 +151,9 @@ export default function GovernanceOrganizationSheet({
         p_valid_to: form.validTo ? `${form.validTo}T23:59:59.999Z` : null,
         p_category_id: form.categoryId || null,
         p_image_url: form.imageUrl || null,
+        p_email: form.email.trim() || null,
+        p_phone: form.phone.trim() || null,
+        p_address: form.address.trim() || null,
       };
 
       let saved = isEditing
@@ -155,6 +168,20 @@ export default function GovernanceOrganizationSheet({
       }
 
       let finalRecord = saved;
+
+      if (saved?.id && pendingAttachments.length) {
+        const uploaded = await uploadGovernanceAttachments(saved.id, pendingAttachments.map((item) => ({ file: item.file, attachmentId: item.id })));
+        const rows = uploaded.map((item, index) => ({ id: item.attachmentId, governance_id: saved.id, storage_path: item.storage_path, public_url: item.public_url, preview_url: item.preview_url || null, thumbnail_path: item.thumbnail_path || null, thumbnail_url: item.thumbnail_url || null, file_name: item.file_name, mime_type: item.mime_type, file_size: item.file_size, width: item.width, height: item.height, duration: item.duration, sort_order: index }));
+        const { error } = await supabase.from("attachment").insert(rows);
+        if (error) { await deleteGovernanceAttachments(uploaded); throw error; }
+      }
+      if (saved?.id) {
+        const newLinks = links.filter((link) => !link.id);
+        if (newLinks.length) {
+          const { error } = await supabase.from("link").insert(newLinks.map((link, index) => ({ governance_id: saved.id, url: link.url, type: link.type || null, title: link.title || null, description: link.description || null, hostname: link.hostname || null, image_url: link.image_url || null, icon_url: link.icon_url || null, sort_order: index })));
+          if (error) throw error;
+        }
+      }
 
       if (!isEditing && form.imageUrl && saved?.id) {
         const marker = "/storage/v1/object/public/governance/";
@@ -321,9 +348,18 @@ export default function GovernanceOrganizationSheet({
                 <Label>Valid to</Label>
                 <Input type="date" value={form.validTo} onChange={(event) => setField("validTo", event.target.value)} disabled={busy} />
               </div>
+              <div className="space-y-2">
+                <Label>Email</Label><Input type="email" value={form.email} onChange={(event) => setField("email", event.target.value)} placeholder="office@example.gov.in" disabled={busy} />
+              </div>
+              <div className="space-y-2">
+                <Label>Phone</Label><Input type="tel" value={form.phone} onChange={(event) => setField("phone", event.target.value)} placeholder="+91 ..." disabled={busy} />
+              </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>Official website</Label>
                 <Input type="url" value={form.website} onChange={(event) => setField("website", event.target.value)} placeholder="https://..." disabled={busy} />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Office address</Label><Input value={form.address} onChange={(event) => setField("address", event.target.value)} placeholder="Office address" disabled={busy} />
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>What they do</Label>
@@ -334,10 +370,11 @@ export default function GovernanceOrganizationSheet({
         </div>
 
         <SheetFooter className="flex-row items-center justify-between gap-3 border-t px-5 py-4 sm:px-6">
-          <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={busy}>Cancel</Button>
-          <Button type="button" onClick={save} disabled={busy}>
-            {busy ? (importingImage ? "Importing image..." : "Saving...") : isEditing ? "Save changes" : "Create organization"}
-          </Button>
+          <GovernanceEditorResources address={form.address} onAddressChange={(value) => setField("address", value)} links={links} onLinksChange={setLinks} onFiles={(files) => setPendingAttachments((current) => [...current, ...files])} disabled={busy} />
+          <div className="flex shrink-0 items-center gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={busy}>Cancel</Button>
+            <Button type="button" onClick={save} disabled={busy}>{busy ? (importingImage ? "Importing image..." : "Saving...") : isEditing ? "Save changes" : "Create organization"}</Button>
+          </div>
         </SheetFooter>
       </SheetContent>
     </Sheet>

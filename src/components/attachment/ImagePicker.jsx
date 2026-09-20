@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 
 import { compressImage } from "@/utils/attachment/compressImage";
 
-export default function ImagePicker({ onUpload, disabled = false }) {
+export default function ImagePicker({ onUpload, disabled = false, accept = "image/*,video/*" }) {
   const inputRef = useRef(null);
 
   async function handleChange(e) {
@@ -54,7 +54,7 @@ export default function ImagePicker({ onUpload, disabled = false }) {
         hidden
         type="file"
         multiple
-        accept="image/*,video/*"
+        accept={accept}
         onChange={handleChange}
       />
 

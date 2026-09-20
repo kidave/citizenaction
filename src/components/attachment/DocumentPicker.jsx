@@ -6,7 +6,7 @@ import { Paperclip } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-export default function DocumentPicker({ onUpload, disabled = false }) {
+export default function DocumentPicker({ onUpload, disabled = false, accept = ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" }) {
   const inputRef = useRef(null);
 
   function handleChange(e) {
@@ -41,18 +41,7 @@ export default function DocumentPicker({ onUpload, disabled = false }) {
         hidden
         type="file"
         multiple
-        accept="
-          .pdf,
-          .doc,
-          .docx,
-          .xls,
-          .xlsx,
-          .ppt,
-          .pptx,
-          .txt,
-          .zip,
-          .rar
-        "
+        accept={accept}
         onChange={handleChange}
       />
 
