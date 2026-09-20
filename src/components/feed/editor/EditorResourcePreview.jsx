@@ -20,8 +20,8 @@ export default function EditorResourcePreview({
   if (!itemCount) return null;
 
   return (
-    <div className={`border-t bg-background transition-[height] duration-300 ${
-      open ? "h-72" : "h-12"
+    <div className={`shrink-0 overflow-hidden border-t bg-background transition-[height] duration-300 ${
+      open ? (size === "compact" ? "h-64" : "h-72") : "h-12"
     }`}>
       <Button
         type="button"
@@ -48,8 +48,8 @@ export default function EditorResourcePreview({
       </Button>
 
       <div
-        className={`overflow-hidden px-3 transition-opacity duration-200 ${
-          open ? "opacity-100" : "opacity-0"
+        className={`h-[calc(100%-3rem)] overflow-hidden px-3 transition-opacity duration-200 ${
+          open ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
       >
         <AttachmentCarousel

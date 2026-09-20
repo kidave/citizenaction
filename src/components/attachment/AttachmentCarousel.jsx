@@ -98,7 +98,7 @@ export default function AttachmentCarousel({
         <LinkCard
           key={key}
           link={item.data}
-          size={size === "sm" ? "sm" : "default"}
+          size={size === "sm" || size === "compact" ? "sm" : "default"}
         />
       );
     }

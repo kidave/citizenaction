@@ -375,11 +375,11 @@ export default function GovernanceOrganizationSheet({
           links={links}
           setAttachments={setPendingAttachments}
           removable
-          showMetadata
-          size="sm"
+          showMetadata={false}
+          size="compact"
         />
 
-        <SheetFooter className="flex-row items-center justify-between gap-3 border-t px-5 py-4 sm:px-6">
+        <SheetFooter className="relative z-10 flex-row shrink-0 items-center justify-between gap-3 border-t bg-background px-5 py-4 sm:px-6">
           <GovernanceEditorResources address={form.address} onAddressChange={(value) => setField("address", value)} links={links} onLinksChange={setLinks} onFiles={(files) => setPendingAttachments((current) => [...current, ...files])} disabled={busy} />
           <div className="flex shrink-0 items-center gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={busy}>Cancel</Button>
