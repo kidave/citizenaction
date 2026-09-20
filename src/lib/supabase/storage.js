@@ -12,6 +12,12 @@ function makeFileName(originalName) {
   return `${crypto.randomUUID()}-${sanitizeFileName(originalName || "file")}`;
 }
 
+function getFileExtension(file) {
+  const name = file?.name || "";
+  const extension = name.includes(".") ? name.split(".").pop() : "";
+  return extension.replace(/[^a-zA-Z0-9]/g, "").toLowerCase() || "bin";
+}
+
 function buildImageTransformUrl(publicUrl, { width, quality = 75 } = {}) {
   if (!publicUrl || !width) return publicUrl;
   try {
@@ -38,14 +44,24 @@ async function uploadFile(bucket, path, file) {
   return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
 }
 
-async function uploadAttachment({ bucket, ownerId, file, attachmentId = null }) {
+async function uploadAttachment({
+  bucket,
+  ownerId,
+  file,
+  attachmentId = null,
+  storagePrefix = null,
+  useAttachmentIdFileName = false,
+}) {
   if (!bucket) throw new Error("Missing bucket");
   if (!ownerId) throw new Error("Missing ownerId");
   if (!file) throw new Error("Missing file");
 
   const preparedFile = await prepareAttachment(file);
-  const fileName = makeFileName(preparedFile.name);
-  const storagePath = `${ownerId}/${fileName}`;
+  const resolvedAttachmentId = attachmentId || crypto.randomUUID();
+  const fileName = useAttachmentIdFileName
+    ? `${resolvedAttachmentId}.${getFileExtension(preparedFile)}`
+    : makeFileName(preparedFile.name);
+  const storagePath = `${storagePrefix ? `${storagePrefix}/` : ""}${ownerId}/${fileName}`;
   const publicUrl = await uploadFile(bucket, storagePath, preparedFile);
   const isImage = preparedFile.type?.startsWith("image/");
 
@@ -56,8 +72,10 @@ async function uploadAttachment({ bucket, ownerId, file, attachmentId = null }) 
     try {
       const thumbnail = await getPdfThumbnail(preparedFile);
       if (thumbnail) {
-        const thumbnailName = `${crypto.randomUUID()}-${sanitizeFileName(thumbnail.name)}`;
-        thumbnailPath = `${ownerId}/thumbnails/${thumbnailName}`;
+        const thumbnailName = useAttachmentIdFileName
+          ? `${resolvedAttachmentId}.${getFileExtension(thumbnail)}`
+          : `${crypto.randomUUID()}-${sanitizeFileName(thumbnail.name)}`;
+        thumbnailPath = `${storagePrefix ? `${storagePrefix}/` : ""}${ownerId}/thumbnails/${thumbnailName}`;
         thumbnailUrl = await uploadFile(bucket, thumbnailPath, thumbnail);
       }
     } catch (error) {
@@ -66,7 +84,7 @@ async function uploadAttachment({ bucket, ownerId, file, attachmentId = null }) 
   }
 
   return {
-    attachmentId,
+    attachmentId: resolvedAttachmentId,
     storage_path: storagePath,
     public_url: publicUrl,
     preview_url: isImage
@@ -107,7 +125,13 @@ export function uploadContributionAttachments(contributionId, attachments) {
 }
 
 export function uploadGovernanceAttachments(governanceId, attachments) {
-  return uploadAttachments({ bucket: BUCKETS.GOVERNANCE, ownerId: governanceId, attachments });
+  return uploadAttachments({
+    bucket: BUCKETS.GOVERNANCE,
+    ownerId: governanceId,
+    storagePrefix: "organization",
+    useAttachmentIdFileName: true,
+    attachments,
+  });
 }
 
 export async function deleteAttachments(bucket, attachments = []) {

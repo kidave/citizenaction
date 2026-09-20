@@ -8,7 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import PostAttachments from "@/components/feed/post/PostAttachments";
 import { supabase } from "@/lib/supabase/client";
-import { uploadGovernanceAttachments } from "@/lib/supabase/storage";
+import {
+  deleteGovernanceAttachments,
+  uploadGovernanceAttachments,
+} from "@/lib/supabase/storage";
 
 export default function GovernanceResources({ governanceId, attachments = [], links = [], canEdit = false, onChanged }) {
   const fileInputRef = useRef(null);
@@ -26,8 +29,13 @@ export default function GovernanceResources({ governanceId, attachments = [], li
 
     setUploading(true);
     try {
-      const uploaded = await uploadGovernanceAttachments(governanceId, files);
-      const rows = uploaded.map((item) => ({
+      const attachmentIds = files.map(() => crypto.randomUUID());
+      const uploaded = await uploadGovernanceAttachments(
+        governanceId,
+        files.map((file, index) => ({ file, attachmentId: attachmentIds[index] })),
+      );
+      const rows = uploaded.map((item, index) => ({
+        id: item.attachmentId,
         governance_id: governanceId,
         storage_path: item.storage_path,
         public_url: item.public_url,
@@ -40,11 +48,14 @@ export default function GovernanceResources({ governanceId, attachments = [], li
         width: item.width,
         height: item.height,
         duration: item.duration,
-        sort_order: attachments.length,
+        sort_order: attachments.length + index,
       }));
 
       const { error } = await supabase.from("attachment").insert(rows);
-      if (error) throw error;
+      if (error) {
+        await deleteGovernanceAttachments(uploaded);
+        throw error;
+      }
 
       toast.success(`${files.length} resource${files.length === 1 ? "" : "s"} added`);
       refresh();
