@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 
@@ -68,14 +67,12 @@ export default function EditorModal({
                 setContentFormat={editor.setContentFormat}
                 attachments={editor.attachments}
                 addAttachments={editor.addAttachments}
-                onFocus={() => setAttachmentsOpen(false)}
               />
 
               <EditorAttachments
                 attachments={editor.attachments}
                 setAttachments={editor.setAttachments}
-                open={attachmentsOpen}
-                setOpen={setAttachmentsOpen}
+                links={editor.links}
               />
             </div>
 

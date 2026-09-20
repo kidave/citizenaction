@@ -21,6 +21,7 @@ import { supabase } from "@/lib/supabase/client";
 import { deleteGovernanceAttachments, moveGovernanceFile, uploadGovernanceAttachments } from "@/lib/supabase/storage";
 import { useImportGovernanceOrganizationImage } from "@/hooks/governance/useImportGovernanceOrganizationImage";
 import GovernanceEditorResources from "@/components/governance/GovernanceEditorResources";
+import EditorResourcePreview from "@/components/feed/editor/EditorResourcePreview";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 import { GOVERNANCE_STATUS_OPTIONS, GOVERNANCE_TYPES, formatGovernanceType, governanceRequiresValidTo } from "@/utils/governance";
 
@@ -368,6 +369,15 @@ export default function GovernanceOrganizationSheet({
             </div>
           </div>
         </div>
+
+        <EditorResourcePreview
+          attachments={pendingAttachments}
+          links={links}
+          setAttachments={setPendingAttachments}
+          removable
+          showMetadata
+          size="sm"
+        />
 
         <SheetFooter className="flex-row items-center justify-between gap-3 border-t px-5 py-4 sm:px-6">
           <GovernanceEditorResources address={form.address} onAddressChange={(value) => setField("address", value)} links={links} onLinksChange={setLinks} onFiles={(files) => setPendingAttachments((current) => [...current, ...files])} disabled={busy} />
