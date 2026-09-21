@@ -68,13 +68,17 @@ export default function EditorDateTime({ editor }) {
 
       <DialogContent className="top-[4%] flex max-h-[92vh] min-h-[520px] w-[calc(100%-2rem)] translate-y-0 flex-col gap-0 overflow-hidden p-0 sm:max-w-xl">
         <DialogHeader className="shrink-0 border-b px-5 py-4">
-          <DialogTitle>Date & time</DialogTitle>
+          <DialogTitle>Event date & time</DialogTitle>
         </DialogHeader>
 
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <div className="grid grid-cols-1 gap-6 p-5 sm:grid-cols-2">
+          <div className="space-y-5 p-5">
             <div className="space-y-3">
-              <div className="text-sm font-medium">Starts</div>
+              <div>
+                <div className="text-sm font-medium">When did / will this happen?</div>
+                <p className="mt-1 text-xs text-muted-foreground">Use this for the event, incident, meeting, or activity described by the post. It does not schedule publication.</p>
+              </div>
+              <div className="text-sm font-medium">Start</div>
               <DateTimePicker
                 value={editor.start_at ? new Date(editor.start_at) : null}
                 onDateChange={(nextValue) =>
@@ -85,7 +89,7 @@ export default function EditorDateTime({ editor }) {
             </div>
 
             <div className="space-y-3">
-              <div className="text-sm font-medium">Ends</div>
+              <div className="text-sm font-medium">End <span className="font-normal text-muted-foreground">(optional)</span></div>
               <DateTimePicker
                 value={editor.end_at ? new Date(editor.end_at) : null}
                 onDateChange={(nextValue) =>
