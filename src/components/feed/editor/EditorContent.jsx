@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useEffect } from "react";
 
 import PlainEditor from "./PlainEditor";
 
@@ -22,8 +23,38 @@ export default function EditorContent({
   onFocus,
   documentMode = false,
   showTitle = false,
+  forcePlain = false,
 }) {
-  const useRichEditor = documentMode || contentFormat === "editorjs";
+  const useRichEditor =
+    documentMode || (contentFormat === "editorjs" && !forcePlain);
+
+  useEffect(() => {
+    if (!forcePlain || contentFormat !== "editorjs") return;
+
+    setContentFormat("text");
+    setContentJson(
+      content.trim()
+        ? {
+            time: Date.now(),
+            blocks: [
+              {
+                type: "paragraph",
+                data: {
+                  text: content,
+                },
+              },
+            ],
+          }
+        : null,
+    );
+  }, [
+    content,
+    contentFormat,
+    forcePlain,
+    setContentFormat,
+    setContentJson,
+  ]);
+
 
   if (!useRichEditor) {
     return (
@@ -54,6 +85,7 @@ export default function EditorContent({
       onFocus={onFocus}
       documentMode={documentMode}
       showTitle={showTitle}
+      forcePlain={forcePlain}
     />
   );
 }

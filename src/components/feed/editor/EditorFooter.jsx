@@ -24,6 +24,7 @@ export default function EditorFooter({
   onClose,
   onCreated,
   onDocumentMode,
+  documentMode = false,
 }) {
   const router = useRouter();
   const isPost = mode === "post";
@@ -64,22 +65,29 @@ export default function EditorFooter({
               </Tooltip>
             )}
 
-            <ImagePicker
-              onUpload={(files) =>
-                editor.setAttachments((prev) => [...prev, ...files])
-              }
-            />
+            {!documentMode && (
+              <>
+                <ImagePicker
+                  onUpload={(files) =>
+                    editor.setAttachments((prev) => [...prev, ...files])
+                  }
+                />
 
-            <DocumentPicker
-              onUpload={(files) =>
-                editor.setAttachments((prev) => [...prev, ...files])
-              }
-            />
+                <DocumentPicker
+                  onUpload={(files) =>
+                    editor.setAttachments((prev) => [...prev, ...files])
+                  }
+                />
+
+                <LinkManager
+                  value={editor.links}
+                  onChange={editor.setLinks}
+                />
+              </>
+            )}
 
             {isPost && <EditorDateTime editor={editor} />}
             {isPost && <EditorAddress editor={editor} />}
-
-            <LinkManager value={editor.links} onChange={editor.setLinks} />
           </div>
 
           <div className="flex items-center gap-3">

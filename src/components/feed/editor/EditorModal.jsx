@@ -91,6 +91,7 @@ export default function EditorModal({
                 addAttachments={editor.addAttachments}
                 documentMode={false}
                 showTitle={false}
+                forcePlain={isNewPost}
               />
 
               <div className="mt-auto shrink-0">
@@ -112,7 +113,7 @@ export default function EditorModal({
                 isNewPost
                   ? () => {
                       handleClose();
-                      router.push("/action");
+                      router.push("/document");
                     }
                   : undefined
               }

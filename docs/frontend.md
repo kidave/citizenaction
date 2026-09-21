@@ -31,7 +31,7 @@ Pages may define `Component.getLayout` when they require a specific shell. This 
 ```text
 /                 index.js
 /about            about.js
-/action           action.js
+/document          document.js
 /search           search.js
 /post/[id]        post/[id].js
 /user/[username]  user/[username].js

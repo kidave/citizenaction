@@ -12,7 +12,6 @@ import { usePostEditor } from "@/hooks/editor/usePostEditor";
 import { Button } from "@/components/ui/button";
 import EditorHeader from "@/components/feed/editor/EditorHeader";
 import EditorFooter from "@/components/feed/editor/EditorFooter";
-import EditorAttachments from "@/components/feed/editor/EditorAttachments";
 import EditorContextSuggestions from "@/components/feed/editor/EditorContextSuggestions";
 
 const EditorContent = dynamic(
@@ -20,7 +19,7 @@ const EditorContent = dynamic(
   { ssr: false },
 );
 
-export default function ActionPage() {
+export default function DocumentPage() {
   const router = useRouter();
   const { user, loading } = useRequireAuth();
   const { data: profile, isLoading: profileLoading } = useMyProfile();
@@ -56,7 +55,7 @@ export default function ActionPage() {
   }
 
   return (
-    <div className="flex min-h-dvh w-full flex-col bg-background">
+    <div className="flex h-dvh w-full flex-col overflow-hidden bg-background">
       <header className="flex shrink-0 items-center justify-between px-4 py-3 sm:px-8">
         <div className="flex min-w-0 items-center gap-3">
           <Button
@@ -89,8 +88,8 @@ export default function ActionPage() {
 
         <EditorContextSuggestions editor={editor} />
 
-        <main className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 sm:px-8">
-          <div className="mx-auto w-full max-w-4xl">
+        <main className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 pb-4 sm:px-8">
+          <div className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col">
             <EditorContent
               title={editor.title}
               setTitle={editor.setTitle}
@@ -105,12 +104,6 @@ export default function ActionPage() {
               documentMode
               showTitle
             />
-
-            <EditorAttachments
-              attachments={editor.attachments}
-              setAttachments={editor.setAttachments}
-              links={editor.links}
-            />
           </div>
         </main>
 
@@ -120,6 +113,7 @@ export default function ActionPage() {
           editor={editor}
           onClose={handleClose}
           onCreated={handleCreated}
+          documentMode
         />
       </div>
     </div>
