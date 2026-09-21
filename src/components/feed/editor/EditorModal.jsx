@@ -55,8 +55,9 @@ export default function EditorModal({
   }
 
   const isNewPost = mode === "post" && !item;
+  const contentFormat = item?.content_format ?? item?.contentFormat ?? null;
   const isDocumentPost =
-    mode === "post" && !!item && item.content_format === "editorjs";
+    mode === "post" && !!item && contentFormat === "editorjs";
   const usePlainComposer = mode === "post" || mode === "contribution";
 
   useEffect(() => {
@@ -64,7 +65,7 @@ export default function EditorModal({
       onClose?.();
       router.replace("/document?post=" + encodeURIComponent(item.slug));
     }
-  }, [isDocumentPost, item?.slug]);
+  }, [isDocumentPost, item?.slug, onClose, router]);
 
   if (isDocumentPost) return null;
 
