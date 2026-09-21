@@ -9,6 +9,17 @@ import {
   editorBlocksToFeedText,
 } from "@/components/editor/editorUtils";
 
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error || new Error("Could not read image"));
+
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function RichEditor({
   title,
   setTitle,
@@ -58,6 +69,7 @@ export default function RichEditor({
 
       const editor = new EditorJS({
         holder: holderElement,
+        minHeight: 0,
         placeholder: "Write your post...",
         data: {
           time: initialContentJson?.time ?? Date.now(),
@@ -95,6 +107,15 @@ export default function RichEditor({
                 uploadByFile: async (file) => {
                   const attachmentId = crypto.randomUUID();
                   const previewUrl = URL.createObjectURL(file);
+                  const editorUrl = await fileToDataUrl(file);
+
+                  if (cancelled) {
+                    URL.revokeObjectURL(previewUrl);
+                    return {
+                      success: 0,
+                      file: { url: "" },
+                    };
+                  }
 
                   addAttachmentsRef.current({
                     attachmentId,
@@ -113,7 +134,10 @@ export default function RichEditor({
 
                   return {
                     success: 1,
-                    file: { url: previewUrl, attachmentId },
+                    file: {
+                      url: editorUrl,
+                      attachmentId,
+                    },
                   };
                 },
                 uploadByUrl: async () => {
@@ -189,7 +213,7 @@ export default function RichEditor({
       <div
         ref={holderRef}
         onFocus={onFocus}
-        className="editorjs-container min-h-0 max-h-[40vh] overflow-y-auto px-2 pb-2 sm:px-16 [&_.codex-editor]:!min-h-0 [&_.codex-editor__redactor]:!pb-0"
+        className="editorjs-container h-fit min-h-[76px] max-h-[40vh] overflow-y-auto px-2 pb-2 sm:px-16 [&_.codex-editor]:!h-auto [&_.codex-editor]:!min-h-0 [&_.codex-editor__redactor]:!h-auto [&_.codex-editor__redactor]:!min-h-0 [&_.codex-editor__redactor]:!pb-0"
       />
     </div>
   );
