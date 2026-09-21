@@ -19,7 +19,7 @@ export default function EditorResourcePreview({
   };
 
   return (
-    <div className="shrink-0 border-t bg-background px-2 py-2 sm:px-3">
+    <div className="shrink-0 bg-background px-2 py-2 sm:px-3">
       <AttachmentCarousel
         attachments={attachments}
         links={links}

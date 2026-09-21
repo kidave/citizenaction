@@ -14,7 +14,8 @@ function fileToDataUrl(file) {
     const reader = new FileReader();
 
     reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(reader.error || new Error("Could not read image"));
+    reader.onerror = () =>
+      reject(reader.error || new Error("Could not read image"));
 
     reader.readAsDataURL(file);
   });
@@ -30,6 +31,8 @@ export default function RichEditor({
   setContentFormat,
   addAttachments,
   onFocus,
+  documentMode = false,
+  showTitle = false,
 }) {
   const holderRef = useRef(null);
   const editorRef = useRef(null);
@@ -70,7 +73,9 @@ export default function RichEditor({
       const editor = new EditorJS({
         holder: holderElement,
         minHeight: 0,
-        placeholder: "Write your post...",
+        placeholder: documentMode
+          ? "Start writing your document..."
+          : "Write your post...",
         data: {
           time: initialContentJson?.time ?? Date.now(),
           blocks: initialBlocks,
@@ -196,24 +201,26 @@ export default function RichEditor({
       editorRef.current = null;
       holderElement.innerHTML = "";
     };
-  }, [setContent, setContentFormat, setContentJson]);
+  }, [documentMode, setContent, setContentFormat, setContentJson]);
 
   return (
-    <div className="flex-none">
-      <div className="p-2">
-        <Input
-          placeholder="Post title..."
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          className="h-10 bg-muted"
-          onFocus={onFocus}
-        />
-      </div>
+    <div className="flex min-h-0 flex-col">
+      {showTitle && (
+        <div className="px-3 pt-3 sm:px-0">
+          <Input
+            placeholder="Document title..."
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            className="h-12 border-none bg-transparent px-0 text-2xl font-semibold shadow-none focus-visible:ring-0 sm:text-3xl"
+            onFocus={onFocus}
+          />
+        </div>
+      )}
 
       <div
         ref={holderRef}
         onFocus={onFocus}
-        className="editorjs-container h-fit min-h-[76px] max-h-[40vh] overflow-y-auto px-2 pb-2 sm:px-16 [&_.codex-editor]:!h-auto [&_.codex-editor]:!min-h-0 [&_.codex-editor__redactor]:!h-auto [&_.codex-editor__redactor]:!min-h-0 [&_.codex-editor__redactor]:!pb-0"
+        className="editorjs-container h-fit min-h-[76px] max-h-[60vh] overflow-y-auto px-2 pb-2 sm:px-4 [&_.codex-editor]:!h-auto [&_.codex-editor]:!min-h-0 [&_.codex-editor__redactor]:!h-auto [&_.codex-editor__redactor]:!min-h-0 [&_.codex-editor__redactor]:!pb-0"
       />
     </div>
   );

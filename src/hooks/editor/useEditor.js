@@ -51,7 +51,7 @@ export function useEditor(item = null, initialSpace = null) {
     setAttachments((prev) => {
       const next = [...prev];
       const [item] = next.splice(from, 1);
-      next.splice(to, 0, item);
+      next.splice(to, 1, item);
       return next;
     });
   };
@@ -109,6 +109,30 @@ export function useEditor(item = null, initialSpace = null) {
     };
   };
 
+  function reset() {
+    if (initialSpace) {
+      setSpaces([initialSpace]);
+      setIsGlobal(false);
+    } else {
+      setSpaces([]);
+      setIsGlobal(false);
+    }
+
+    setSelectedAuthorities([]);
+    setTitle("");
+    setContent("");
+    setContentJson(null);
+    setContentFormat("text");
+    replaceAttachments([]);
+    replaceLinks([]);
+    setStartAt(null);
+    setEndAt(null);
+    setDatePrecision(null);
+    setLat(null);
+    setLng(null);
+    setAddress(null);
+  }
+
   useEffect(() => {
     if (item) {
       setSpaces(item.spaces ?? []);
@@ -136,27 +160,7 @@ export function useEditor(item = null, initialSpace = null) {
       return;
     }
 
-    if (initialSpace) {
-      setSpaces([initialSpace]);
-      setIsGlobal(false);
-    } else {
-      setSpaces([]);
-      setIsGlobal(false);
-    }
-
-    setSelectedAuthorities([]);
-    setTitle("");
-    setContent("");
-    setContentJson(null);
-    setContentFormat("text");
-    replaceAttachments([]);
-    replaceLinks([]);
-    setStartAt(null);
-    setEndAt(null);
-    setDatePrecision(null);
-    setLat(null);
-    setLng(null);
-    setAddress(null);
+    reset();
   }, [item, initialSpace]);
 
   const editorData = useMemo(() => {
@@ -247,6 +251,7 @@ export function useEditor(item = null, initialSpace = null) {
     setIsGlobal,
     governance,
     setSelectedAuthorities,
+    reset,
     editorData,
     getEditorData: () => editorData,
   };

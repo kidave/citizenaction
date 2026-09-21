@@ -15,11 +15,31 @@ export default function EditorContent({
   setContent,
   contentJson,
   setContentJson,
+  contentFormat,
   setContentFormat,
   attachments,
   addAttachments,
   onFocus,
+  documentMode = false,
+  showTitle = false,
 }) {
+  const useRichEditor = documentMode || contentFormat === "editorjs";
+
+  if (!useRichEditor) {
+    return (
+      <PlainEditor
+        title={title}
+        setTitle={setTitle}
+        content={content}
+        setContent={setContent}
+        setContentJson={setContentJson}
+        setContentFormat={setContentFormat}
+        onFocus={onFocus}
+        showTitle={showTitle}
+      />
+    );
+  }
+
   return (
     <RichEditor
       title={title}
@@ -32,6 +52,8 @@ export default function EditorContent({
       attachments={attachments}
       addAttachments={addAttachments}
       onFocus={onFocus}
+      documentMode={documentMode}
+      showTitle={showTitle}
     />
   );
 }

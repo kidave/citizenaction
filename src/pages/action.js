@@ -1,12 +1,38 @@
+"use client";
+
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
+import { ArrowLeft, FileText } from "lucide-react";
 
 import { useRequireAuth } from "@/hooks/useRequireAuth";
-import EditorModal from "@/components/feed/editor/EditorModal";
+import { useMyProfile } from "@/hooks/user/useMyProfile";
+import { useSpaces } from "@/hooks/space/useSpaces";
+import { usePostEditor } from "@/hooks/editor/usePostEditor";
+
+import { Button } from "@/components/ui/button";
+import EditorHeader from "@/components/feed/editor/EditorHeader";
+import EditorFooter from "@/components/feed/editor/EditorFooter";
+import EditorAttachments from "@/components/feed/editor/EditorAttachments";
+import EditorContextSuggestions from "@/components/feed/editor/EditorContextSuggestions";
+
+const EditorContent = dynamic(
+  () => import("@/components/feed/editor/EditorContent"),
+  { ssr: false },
+);
 
 export default function ActionPage() {
   const router = useRouter();
-
   const { user, loading } = useRequireAuth();
+  const { data: profile, isLoading: profileLoading } = useMyProfile();
+  const { data: spaces = [], isLoading: spacesLoading } = useSpaces();
+  const editor = usePostEditor(null, null);
+
+  const isLoading =
+    loading || profileLoading || spacesLoading || !profile || !user;
+
+  if (isLoading) {
+    return <div className="min-h-dvh bg-background" />;
+  }
 
   function handleClose() {
     const returnTo = localStorage.getItem("returnTo");
@@ -20,11 +46,81 @@ export default function ActionPage() {
     router.replace("/");
   }
 
-  if (loading) {
-    return null;
+  function handleCreated(post) {
+    if (post?.slug) {
+      router.push("/post/" + post.slug);
+      return;
+    }
+
+    handleClose();
   }
 
-  if (!user) return null;
+  return (
+    <div className="flex min-h-dvh w-full flex-col bg-background">
+      <header className="flex shrink-0 items-center justify-between px-4 py-3 sm:px-8">
+        <div className="flex min-w-0 items-center gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={handleClose}
+            aria-label="Back to feed"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
 
-  return <EditorModal mode="post" isOpen onClose={handleClose} />;
+          <div className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-muted-foreground" />
+            <span className="font-medium">Document</span>
+          </div>
+        </div>
+
+        <span className="text-xs text-muted-foreground">New document</span>
+      </header>
+
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <EditorHeader
+          mode="post"
+          profile={profile}
+          editor={editor}
+          spaces={spaces}
+        />
+
+        <EditorContextSuggestions editor={editor} />
+
+        <main className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 sm:px-8">
+          <div className="mx-auto w-full max-w-4xl">
+            <EditorContent
+              title={editor.title}
+              setTitle={editor.setTitle}
+              content={editor.content}
+              setContent={editor.setContent}
+              contentJson={editor.contentJson}
+              setContentJson={editor.setContentJson}
+              contentFormat={editor.contentFormat}
+              setContentFormat={editor.setContentFormat}
+              attachments={editor.attachments}
+              addAttachments={editor.addAttachments}
+              documentMode
+              showTitle
+            />
+
+            <EditorAttachments
+              attachments={editor.attachments}
+              setAttachments={editor.setAttachments}
+              links={editor.links}
+            />
+          </div>
+        </main>
+
+        <EditorFooter
+          mode="post"
+          item={null}
+          editor={editor}
+          onClose={handleClose}
+          onCreated={handleCreated}
+        />
+      </div>
+    </div>
+  );
 }

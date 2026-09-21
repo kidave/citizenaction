@@ -87,7 +87,7 @@ export default function ActionDatePicker({
   useEffect(() => {
     if (!open) return;
 
-    setYear(dateParts.year);
+    setYear(dateParts.year || String(currentYear));
     setMonth(precision === "year" ? "" : dateParts.month);
     setDay(precision === "date" ? dateParts.day : "");
   }, [open, dateParts.day, dateParts.month, dateParts.year, precision]);

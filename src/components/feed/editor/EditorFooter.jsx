@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { FileText } from "lucide-react";
+import { useRouter } from "next/router";
 
 import { Button } from "@/components/ui/button";
 import LinkManager from "@/components/feed/editor/LinkManager";
@@ -10,12 +11,24 @@ import DocumentPicker from "@/components/attachment/DocumentPicker";
 import EditorDateTime from "./EditorDateTime";
 import EditorAddress from "./EditorAddress";
 
-export default function EditorFooter({ mode, item, editor, onClose }) {
+export default function EditorFooter({
+  mode,
+  item,
+  editor,
+  onClose,
+  onCreated,
+  onDocumentMode,
+}) {
   const router = useRouter();
   const isPost = mode === "post";
 
   const handleSuccess = (post) => {
-    onClose();
+    if (onCreated) {
+      onCreated(post);
+      return;
+    }
+
+    onClose?.();
 
     if (isPost && !item && post?.slug) {
       router.push("/post/" + post.slug);
@@ -23,9 +36,24 @@ export default function EditorFooter({ mode, item, editor, onClose }) {
   };
 
   return (
-    <div className="border-t bg-background/95 px-2 py-2 backdrop-blur sm:p-3">
+    <div className="bg-background/95 px-2 py-2 backdrop-blur sm:px-3">
       <div className="flex min-w-0 items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-1">
+          {isPost && !item && onDocumentMode && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-9 shrink-0 px-2 sm:h-8 sm:px-3"
+              onClick={onDocumentMode}
+              aria-label="Open document editor"
+              title="Open document editor"
+            >
+              <FileText className="h-5 w-5" />
+              <span className="hidden sm:inline">Document</span>
+            </Button>
+          )}
+
           <ImagePicker
             onUpload={(files) =>
               editor.setAttachments((prev) => [...prev, ...files])

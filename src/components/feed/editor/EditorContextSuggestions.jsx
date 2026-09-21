@@ -134,7 +134,10 @@ export default function EditorContextSuggestions({ editor }) {
 
   function openLocationPicker() {
     setLocationEditorQuery(
-      locationResult?.address || locationCandidate?.query || editor.address || "",
+      locationResult?.address ||
+        locationCandidate?.query ||
+        editor.address ||
+        "",
     );
     setLocationEditorOpen(true);
   }
@@ -146,7 +149,7 @@ export default function EditorContextSuggestions({ editor }) {
 
   return (
     <>
-      <div className="border-b bg-muted/20 px-3 py-1.5">
+      <div className="bg-muted/20 px-3 py-1.5">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           {showDate && (
             <div className="flex min-w-0 items-center gap-1.5 rounded-md border bg-background px-2 py-1 text-xs shadow-sm">
