@@ -114,6 +114,31 @@ export function useEditor(item = null, initialSpace = null) {
     };
   };
 
+  useEffect(() => {
+    if (!item) return;
+
+    setSpaces(item.spaces ?? []);
+    setIsGlobal(item.is_global ?? false);
+    setSelectedAuthorities(item.governance ?? []);
+    setTitle(item.title ?? "");
+    setContent(item.content ?? "");
+    setContentJson(item.content_json ?? null);
+    setContentFormat(item.content_format === "editorjs" ? "editorjs" : "text");
+    replaceAttachments(
+      Array.isArray(item.attachments)
+        ? item.attachments.map(normalizeAttachment).filter(Boolean)
+        : [],
+    );
+    replaceLinks(item.links ?? []);
+    setStartAt(item.start_at ?? null);
+    setEndAt(item.end_at ?? null);
+    setDatePrecision(item.metadata?.date_precision ?? null);
+    setLat(item.lat ?? null);
+    setLng(item.lng ?? null);
+    setAddress(item.address ?? null);
+    setDraftStatus("idle");
+  }, [item]);
+
   function reset() {
     if (initialSpace) {
       setSpaces([initialSpace]);
