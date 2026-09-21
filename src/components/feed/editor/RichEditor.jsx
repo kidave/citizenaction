@@ -211,7 +211,7 @@ export default function RichEditor({
             placeholder="Document title..."
             value={title}
             onChange={(event) => setTitle(event.target.value)}
-            className="h-12 border-none bg-transparent px-0 text-2xl font-semibold shadow-none focus-visible:ring-0 sm:text-3xl"
+            className="h-11 border-none bg-transparent px-0 text-2xl font-semibold shadow-none focus-visible:ring-0 sm:text-2xl"
             onFocus={onFocus}
           />
         </div>

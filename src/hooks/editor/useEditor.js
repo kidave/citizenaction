@@ -5,9 +5,13 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { extractContentMeta } from "@/utils/text/contentMeta";
 
-const DRAFT_STORAGE_PREFIX = "citizen-action:post-draft:v1";
+const DRAFT_STORAGE_PREFIX = "citizen-action:editor-draft:v2";
 
-export function useEditor(item = null, initialSpace = null) {
+export function useEditor(
+  item = null,
+  initialSpace = null,
+  { draftScope = "post", draftContextId = null } = {},
+) {
   const { user } = useAuth();
 
   const [spaces, setSpaces] = useState([]);
@@ -28,6 +32,11 @@ export function useEditor(item = null, initialSpace = null) {
   const [draftStatus, setDraftStatus] = useState("idle");
 
   const draftLoadedRef = useRef(false);
+
+  const draftContext =
+    draftContextId || initialSpace?.id || "global";
+  const draftKey =
+    `${DRAFT_STORAGE_PREFIX}:${draftScope}:${draftContext}:${user?.id || "anonymous"}`;
 
   const addAttachments = (files) => {
     const list = Array.isArray(files) ? files : [files];
@@ -91,7 +100,7 @@ export function useEditor(item = null, initialSpace = null) {
     setLinks((prev) => {
       const next = [...prev];
       const [item] = next.splice(from, 1);
-      next.splice(to, 1);
+      next.splice(to, 1, item);
       return next;
     });
   };
@@ -169,9 +178,7 @@ export function useEditor(item = null, initialSpace = null) {
     if (typeof window === "undefined" || !user?.id) return;
 
     try {
-      window.localStorage.removeItem(
-        DRAFT_STORAGE_PREFIX + ":" + user.id,
-      );
+      window.localStorage.removeItem(draftKey);
     } catch {
       // Ignore storage failures.
     }
@@ -180,14 +187,16 @@ export function useEditor(item = null, initialSpace = null) {
   }
 
   useEffect(() => {
+    draftLoadedRef.current = false;
+  }, [draftKey]);
+
+  useEffect(() => {
     if (item || !user?.id || draftLoadedRef.current) return;
 
     draftLoadedRef.current = true;
 
     try {
-      const raw = window.localStorage.getItem(
-        DRAFT_STORAGE_PREFIX + ":" + user.id,
-      );
+      const raw = window.localStorage.getItem(draftKey);
 
       if (!raw) {
         setDraftStatus("idle");
@@ -206,7 +215,7 @@ export function useEditor(item = null, initialSpace = null) {
         draft.contentFormat === "editorjs" ? "editorjs" : "text",
       );
       setStartAt(draft.start_at ?? null);
-      setEndAt(null);
+      setEndAt(draft.end_at ?? null);
       setDatePrecision(draft.datePrecision ?? null);
       setLat(draft.lat ?? null);
       setLng(draft.lng ?? null);
@@ -216,7 +225,7 @@ export function useEditor(item = null, initialSpace = null) {
     } catch {
       setDraftStatus("idle");
     }
-  }, [item, user?.id, initialSpace]);
+  }, [draftKey, item, user?.id, initialSpace]);
 
   useEffect(() => {
     if (item || !user?.id || !draftLoadedRef.current) return;
@@ -227,6 +236,7 @@ export function useEditor(item = null, initialSpace = null) {
       contentJson ||
       links.length ||
       start_at ||
+      end_at ||
       address ||
       datePrecision ||
       spaces.length ||
@@ -239,15 +249,16 @@ export function useEditor(item = null, initialSpace = null) {
     const timer = window.setTimeout(() => {
       try {
         window.localStorage.setItem(
-          DRAFT_STORAGE_PREFIX + ":" + user.id,
+          draftKey,
           JSON.stringify({
-            version: 1,
+            version: 2,
             saved_at: Date.now(),
             title,
             content,
             contentJson,
             contentFormat,
             start_at,
+            end_at,
             datePrecision,
             lat,
             lng,
@@ -266,6 +277,7 @@ export function useEditor(item = null, initialSpace = null) {
 
     return () => window.clearTimeout(timer);
   }, [
+    draftKey,
     item,
     user?.id,
     title,
@@ -273,6 +285,7 @@ export function useEditor(item = null, initialSpace = null) {
     contentJson,
     contentFormat,
     start_at,
+    end_at,
     datePrecision,
     lat,
     lng,
@@ -282,12 +295,6 @@ export function useEditor(item = null, initialSpace = null) {
     is_global,
     governance,
   ]);
-
-  useEffect(() => {
-    if (!item && !user?.id) {
-      draftLoadedRef.current = false;
-    }
-  }, [item, user?.id]);
 
   const editorData = useMemo(() => {
     const { extracted_links, hashtags } = extractContentMeta(content);

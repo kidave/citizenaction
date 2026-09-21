@@ -4,6 +4,7 @@ import Image from "next/image";
 
 import { Input } from "@/components/ui/input";
 import VisibilitySelector from "@/components/space/VisibilitySelector";
+import GovernanceSelector from "@/components/governance/GovernanceSelector";
 
 export default function EditorHeader({
   mode = "post",
@@ -15,7 +16,7 @@ export default function EditorHeader({
   const isPost = mode === "post";
 
   return (
-    <div className="flex min-w-0 shrink-0 items-center gap-3 px-4 py-3 pr-12">
+    <div className="flex min-w-0 shrink-0 items-center gap-2 px-4 py-3 pr-12">
       <Image
         src={profile?.avatar_url || "/user1.png"}
         width={40}
@@ -36,8 +37,9 @@ export default function EditorHeader({
       )}
 
       {isPost && (
-        <div className="ml-auto shrink-0">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5">
           <VisibilitySelector editor={editor} spaces={spaces} />
+          <GovernanceSelector editor={editor} />
         </div>
       )}
     </div>

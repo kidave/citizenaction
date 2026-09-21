@@ -9,8 +9,8 @@ export function usePost(postId, initialPost) {
     queryKey: queryKeys.posts.detail(postId),
     enabled: !!postId,
     initialData: initialPost,
-    staleTime: 1000 * 60 * 5,
-    refetchOnMount: false,
+    staleTime: 0,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_post", {
