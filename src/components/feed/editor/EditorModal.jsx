@@ -60,7 +60,7 @@ export default function EditorModal({
       <DialogContent
         className={
           isNewPost
-            ? "flex max-h-[80vh] min-h-[320px] w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:max-w-2xl sm:rounded-xl"
+            ? "flex h-dvh max-h-dvh min-h-0 w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-auto sm:max-h-[80vh] sm:min-h-[320px] sm:max-w-2xl sm:rounded-xl"
             : "flex h-full max-h-[90vh] w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-4xl sm:rounded-xl"
         }
       >
