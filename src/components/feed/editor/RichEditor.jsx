@@ -167,6 +167,7 @@ export default function RichEditor({
 
           warning: {
             class: Warning,
+
             inlineToolbar: true,
           },
         },
@@ -211,7 +212,7 @@ export default function RichEditor({
   }, [setContent, setContentFormat, setContentJson]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="flex-none">
       <div className="p-2">
         <Input
           placeholder="Post title..."
@@ -225,7 +226,7 @@ export default function RichEditor({
       <div
         ref={holderRef}
         onFocus={onFocus}
-        className="editorjs-container flex-1 overflow-y-auto px-2 sm:px-16"
+        className="editorjs-container min-h-0 max-h-[40vh] overflow-y-auto px-2 pb-2 sm:px-16 [&_.codex-editor]:!min-h-0 [&_.codex-editor__redactor]:!pb-0"
       />
     </div>
   );

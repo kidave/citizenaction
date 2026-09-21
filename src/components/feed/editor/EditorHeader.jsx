@@ -3,7 +3,6 @@
 import Image from "next/image";
 
 import VisibilitySelector from "@/components/space/VisibilitySelector";
-import EditorTips from "./EditorTips";
 
 export default function EditorHeader({
   mode = "post",
@@ -12,7 +11,7 @@ export default function EditorHeader({
   spaces = [],
 }) {
   return (
-    <div className="flex min-w-0 shrink-0 items-center gap-2 border-b px-3 py-2 pr-12 sm:pr-12">
+    <div className="flex min-w-0 shrink-0 items-center gap-2 px-3 py-2 pr-12 sm:pr-12">
       <Image
         src={profile?.avatar_url || "/user1.png"}
         width={34}
@@ -22,10 +21,7 @@ export default function EditorHeader({
       />
 
       {mode === "post" && (
-        <>
-          <VisibilitySelector editor={editor} spaces={spaces} />
-          <div className="ml-auto"><EditorTips /></div>
-        </>
+        <VisibilitySelector editor={editor} spaces={spaces} />
       )}
     </div>
   );

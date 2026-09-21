@@ -6,8 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import { getFileExtension, formatFileSize } from "@/utils/attachment";
-
 import AttachmentPreview from "@/components/attachment/AttachmentPreview";
 
 export default function AttachmentCard({
