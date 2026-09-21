@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, Check, Loader2, MapPin, X } from "lucide-react";
+import { Building2, CalendarDays, Check, Loader2, MapPin, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabase/client";
 import EditorAddress from "./EditorAddress";
 import ActionDatePicker, { formatActionDate } from "./ActionDatePicker";
 import {
@@ -17,6 +18,20 @@ function toValidDate(value) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+function extractGovernanceCandidate(text) {
+  const cleaned = String(text || "")
+    .replace(/[.,!?;:)"'\]}]+$/g, "")
+    .trim();
+
+  if (!cleaned) return "";
+
+  const match = cleaned.match(
+    /(?:^|[\s([{"'])((?:[A-Z][\w.&'-]*|[A-Z]{2,})(?:\s+(?:[A-Z][\w.&'-]*|[A-Z]{2,})){0,2})$/,
+  );
+
+  return match?.[1]?.trim() || "";
+}
+
 export default function EditorContextSuggestions({ editor }) {
   const text = (editor.title || "") + "\n" + (editor.content || "");
   const dateCandidate = useMemo(() => extractDateCandidate(text), [text]);
@@ -24,17 +39,31 @@ export default function EditorContextSuggestions({ editor }) {
     () => extractLocationCandidate(text),
     [text],
   );
+  const governanceCandidate = useMemo(
+    () => extractGovernanceCandidate(text),
+    [text],
+  );
 
-  const [dismissed, setDismissed] = useState({ date: false, location: false });
+  const [dismissed, setDismissed] = useState({
+    date: false,
+    location: false,
+    governance: false,
+  });
   const [locationEditorOpen, setLocationEditorOpen] = useState(false);
   const [locationEditorQuery, setLocationEditorQuery] = useState("");
   const [locationResult, setLocationResult] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [governanceSuggestions, setGovernanceSuggestions] = useState([]);
+  const [governanceLoading, setGovernanceLoading] = useState(false);
 
   useEffect(() => {
-    setDismissed({ date: false, location: false });
+    setDismissed({ date: false, location: false, governance: false });
     setLocationEditorQuery(locationCandidate?.query || "");
-  }, [dateCandidate?.value, locationCandidate?.query]);
+  }, [
+    dateCandidate?.value,
+    locationCandidate?.query,
+    governanceCandidate,
+  ]);
 
   useEffect(() => {
     const query = locationCandidate?.query?.trim();
@@ -51,7 +80,9 @@ export default function EditorContextSuggestions({ editor }) {
       setLocationLoading(true);
 
       try {
-        const response = await fetch("/api/osm?q=" + encodeURIComponent(query));
+        const response = await fetch(
+          "/api/osm?q=" + encodeURIComponent(query),
+        );
         if (!response.ok) return;
 
         const data = await response.json();
@@ -83,6 +114,79 @@ export default function EditorContextSuggestions({ editor }) {
     };
   }, [dismissed.location, editor.address, locationCandidate?.query]);
 
+  useEffect(() => {
+    const query = governanceCandidate.trim();
+
+    if (!query || dismissed.governance) {
+      setGovernanceSuggestions([]);
+      setGovernanceLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const timer = setTimeout(async () => {
+      setGovernanceLoading(true);
+
+      try {
+        const pattern = "%" + query + "%";
+        const [nameResult, shortNameResult] = await Promise.all([
+          supabase
+            .from("governance")
+            .select("id,name,short_name,slug,image_url,type,status")
+            .neq("status", "deleted")
+            .ilike("name", pattern)
+            .order("name")
+            .limit(5),
+          supabase
+            .from("governance")
+            .select("id,name,short_name,slug,image_url,type,status")
+            .neq("status", "deleted")
+            .ilike("short_name", pattern)
+            .order("name")
+            .limit(5),
+        ]);
+
+        if (cancelled) return;
+
+        const rows = [
+          ...(nameResult.data || []),
+          ...(shortNameResult.data || []),
+        ];
+
+        if (nameResult.error && shortNameResult.error) {
+          throw nameResult.error;
+        }
+
+        const selectedIds = new Set(
+          (editor.governance || []).map((item) => item?.id).filter(Boolean),
+        );
+
+        const unique = Array.from(
+          new Map(
+            rows
+              .filter((item) => item?.id && !selectedIds.has(item.id))
+              .map((item) => [item.id, item]),
+          ).values(),
+        ).slice(0, 5);
+
+        setGovernanceSuggestions(unique);
+      } catch (error) {
+        if (!cancelled) {
+          console.warn("Governance suggestion failed", error);
+          setGovernanceSuggestions([]);
+        }
+      } finally {
+        if (!cancelled) setGovernanceLoading(false);
+      }
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [dismissed.governance, editor.governance, governanceCandidate]);
+
   const validDateCandidate = useMemo(() => {
     if (!dateCandidate) return null;
 
@@ -106,7 +210,19 @@ export default function EditorContextSuggestions({ editor }) {
       locationResult,
   );
 
-  if (!showDate && !showLocation && !locationEditorOpen) return null;
+  const showGovernance =
+    Boolean(governanceCandidate) &&
+    !dismissed.governance &&
+    (governanceLoading || governanceSuggestions.length > 0);
+
+  if (
+    !showDate &&
+    !showLocation &&
+    !showGovernance &&
+    !locationEditorOpen
+  ) {
+    return null;
+  }
 
   function acceptDate() {
     if (!validDateCandidate) return;
@@ -140,6 +256,17 @@ export default function EditorContextSuggestions({ editor }) {
         "",
     );
     setLocationEditorOpen(true);
+  }
+
+  function acceptGovernance(entity) {
+    if (!entity?.id) return;
+
+    const current = Array.isArray(editor.governance) ? editor.governance : [];
+    if (current.some((item) => item?.id === entity.id)) return;
+
+    editor.setSelectedAuthorities?.([...current, entity]);
+    setGovernanceSuggestions([]);
+    setDismissed((prev) => ({ ...prev, governance: true }));
   }
 
   const dateText = formatActionDate(
@@ -181,6 +308,48 @@ export default function EditorContextSuggestions({ editor }) {
                   setDismissed((prev) => ({ ...prev, date: true }))
                 }
                 aria-label="Dismiss date suggestion"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
+
+          {showGovernance && (
+            <div className="flex min-w-0 items-center gap-2 rounded-md border bg-background px-2 py-1.5 text-xs shadow-sm">
+              <Building2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+
+              <span className="shrink-0 text-muted-foreground">
+                Reference governance
+              </span>
+
+              {governanceLoading ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+              ) : (
+                <div className="flex min-w-0 items-center gap-1">
+                  {governanceSuggestions.map((entity) => (
+                    <Button
+                      key={entity.id}
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 max-w-[220px] justify-start px-2"
+                      onClick={() => acceptGovernance(entity)}
+                    >
+                      <span className="truncate">
+                        {entity.short_name || entity.name}
+                      </span>
+                    </Button>
+                  ))}
+                </div>
+              )}
+
+              <button
+                type="button"
+                className="shrink-0 text-muted-foreground hover:text-foreground"
+                onClick={() =>
+                  setDismissed((prev) => ({ ...prev, governance: true }))
+                }
+                aria-label="Dismiss governance suggestion"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
