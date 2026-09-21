@@ -1,14 +1,22 @@
 "use client";
 
 import { useRef } from "react";
-
 import { ImagePlus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { compressImage } from "@/utils/attachment/compressImage";
 
-export default function ImagePicker({ onUpload, disabled = false, accept = "image/*,video/*" }) {
+export default function ImagePicker({
+  onUpload,
+  disabled = false,
+  accept = "image/*,video/*",
+}) {
   const inputRef = useRef(null);
 
   async function handleChange(e) {
@@ -20,21 +28,14 @@ export default function ImagePicker({ onUpload, disabled = false, accept = "imag
       files.map(async (file) => {
         let processedFile = file;
 
-        // Compress only images
         if (file.type.startsWith("image/")) {
           processedFile = await compressImage(file);
         }
 
         return {
           id: crypto.randomUUID(),
-
-          // Upload this to storage
           file: processedFile,
-
-          // Preview
           url: URL.createObjectURL(processedFile),
-
-          // Metadata
           name: processedFile.name,
           type: processedFile.type,
           size: processedFile.size,
@@ -43,12 +44,11 @@ export default function ImagePicker({ onUpload, disabled = false, accept = "imag
     );
 
     onUpload?.(attachments);
-
     e.target.value = "";
   }
 
   return (
-    <>
+    <TooltipProvider>
       <input
         ref={inputRef}
         hidden
@@ -58,15 +58,22 @@ export default function ImagePicker({ onUpload, disabled = false, accept = "imag
         onChange={handleChange}
       />
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        disabled={disabled}
-        onClick={() => inputRef.current?.click()}
-      >
-        <ImagePlus className="h-5 w-5" />
-      </Button>
-    </>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            disabled={disabled}
+            className="h-9 w-9 shrink-0"
+            onClick={() => inputRef.current?.click()}
+            aria-label="Add image or video"
+          >
+            <ImagePlus className="h-5 w-5" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="top">Add image or video</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

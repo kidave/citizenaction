@@ -18,10 +18,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase/client";
-import { deleteGovernanceAttachments, moveGovernanceFile, uploadGovernanceAttachments } from "@/lib/supabase/storage";
+import { moveGovernanceFile } from "@/lib/supabase/storage";
 import { useImportGovernanceOrganizationImage } from "@/hooks/governance/useImportGovernanceOrganizationImage";
-import GovernanceEditorResources from "@/components/governance/GovernanceEditorResources";
-import EditorResourcePreview from "@/components/feed/editor/EditorResourcePreview";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 import { GOVERNANCE_STATUS_OPTIONS, GOVERNANCE_TYPES, formatGovernanceType, governanceRequiresValidTo } from "@/utils/governance";
 
@@ -71,8 +69,7 @@ export default function GovernanceOrganizationSheet({
   const [form, setForm] = useState(() => emptyForm(record));
   const [saving, setSaving] = useState(false);
   const [importingImage, setImportingImage] = useState(false);
-  const [pendingAttachments, setPendingAttachments] = useState([]);
-  const [links, setLinks] = useState([]);
+
   const draftId = useId().replace(/:/g, "");
   const { createOrganization, updateOrganization } = useGovernanceCrud();
   const { importOrganizationImage } = useImportGovernanceOrganizationImage();
@@ -91,8 +88,6 @@ export default function GovernanceOrganizationSheet({
     const load = async () => {
       setSaving(false);
       setImportingImage(false);
-      setPendingAttachments([]);
-      setLinks([]);
 
       if (!record?.id) {
         setForm(emptyForm(null));
@@ -114,8 +109,8 @@ export default function GovernanceOrganizationSheet({
       }
 
       setForm(emptyForm(data));
-      const { data: linkData } = await supabase.from("link").select("*").eq("governance_id", record.id).order("sort_order", { ascending: true }).order("created_at", { ascending: true });
-      if (!cancelled) setLinks(linkData || []);
+
+      if (cancelled) return;
     };
 
     load();
@@ -169,20 +164,6 @@ export default function GovernanceOrganizationSheet({
       }
 
       let finalRecord = saved;
-
-      if (saved?.id && pendingAttachments.length) {
-        const uploaded = await uploadGovernanceAttachments(saved.id, pendingAttachments.map((item) => ({ file: item.file, attachmentId: item.id })));
-        const rows = uploaded.map((item, index) => ({ id: item.attachmentId, governance_id: saved.id, storage_path: item.storage_path, public_url: item.public_url, thumbnail_path: item.thumbnail_path || null, thumbnail_url: item.thumbnail_url || null, file_name: item.file_name, mime_type: item.mime_type, file_size: item.file_size, credit_name: item.credit_name || null, width: item.width, height: item.height, duration: item.duration, sort_order: index }));
-        const { error } = await supabase.from("attachment").insert(rows);
-        if (error) { await deleteGovernanceAttachments(uploaded); throw error; }
-      }
-      if (saved?.id) {
-        const newLinks = links.filter((link) => !link.id);
-        if (newLinks.length) {
-          const { error } = await supabase.from("link").insert(newLinks.map((link, index) => ({ governance_id: saved.id, url: link.url, type: link.type || null, title: link.title || null, description: link.description || null, hostname: link.hostname || null, image_url: link.image_url || null, icon_url: link.icon_url || null, sort_order: index })));
-          if (error) throw error;
-        }
-      }
 
       if (!isEditing && form.imageUrl && saved?.id) {
         const marker = "/storage/v1/object/public/governance/";
@@ -370,17 +351,7 @@ export default function GovernanceOrganizationSheet({
           </div>
         </div>
 
-        <EditorResourcePreview
-          attachments={pendingAttachments}
-          links={links}
-          setAttachments={setPendingAttachments}
-          removable
-          showMetadata={false}
-          size="compact"
-        />
-
-        <SheetFooter className="relative z-10 flex-row shrink-0 items-center justify-between gap-3 border-t bg-background px-5 py-4 sm:px-6">
-          <GovernanceEditorResources address={form.address} onAddressChange={(value) => setField("address", value)} links={links} onLinksChange={setLinks} onFiles={(files) => setPendingAttachments((current) => [...current, ...files])} disabled={busy} />
+        <SheetFooter className="relative z-10 flex-row shrink-0 items-center justify-end gap-2 border-t bg-background px-5 py-4 sm:px-6">
           <div className="flex shrink-0 items-center gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={busy}>Cancel</Button>
             <Button type="button" onClick={save} disabled={busy}>{busy ? (importingImage ? "Importing image..." : "Saving...") : isEditing ? "Save changes" : "Create organization"}</Button>

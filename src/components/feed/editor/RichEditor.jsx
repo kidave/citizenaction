@@ -3,13 +3,23 @@
 import { useEffect, useRef } from "react";
 
 import { Input } from "@/components/ui/input";
-
 import { loadEditorTools } from "@/components/editor/editorTools";
-
 import {
   getInitialBlocks,
   editorBlocksToFeedText,
 } from "@/components/editor/editorUtils";
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () =>
+      reject(reader.error || new Error("Could not read image"));
+
+    reader.readAsDataURL(file);
+  });
+}
 
 export default function RichEditor({
   title,
@@ -21,22 +31,17 @@ export default function RichEditor({
   setContentFormat,
   addAttachments,
   onFocus,
+  documentMode = false,
+  showTitle = false,
 }) {
   const holderRef = useRef(null);
   const editorRef = useRef(null);
 
-  const valuesRef = useRef({
-    content,
-    contentJson,
-  });
-
+  const valuesRef = useRef({ content, contentJson });
   const addAttachmentsRef = useRef(addAttachments);
 
   useEffect(() => {
-    valuesRef.current = {
-      content,
-      contentJson,
-    };
+    valuesRef.current = { content, contentJson };
   }, [content, contentJson]);
 
   useEffect(() => {
@@ -45,10 +50,7 @@ export default function RichEditor({
 
   useEffect(() => {
     const holderElement = holderRef.current;
-
-    if (!holderElement) {
-      return;
-    }
+    if (!holderElement) return;
 
     let cancelled = false;
 
@@ -56,9 +58,7 @@ export default function RichEditor({
       const { EditorJS, Header, Embed, Warning, List, ImageTool, Table } =
         await loadEditorTools();
 
-      if (cancelled) {
-        return;
-      }
+      if (cancelled) return;
 
       const { content: initialContent, contentJson: initialContentJson } =
         valuesRef.current;
@@ -72,53 +72,55 @@ export default function RichEditor({
 
       const editor = new EditorJS({
         holder: holderElement,
-
-        placeholder: "Write your post...",
-
+        minHeight: 0,
+        placeholder: documentMode
+          ? "Start writing your document..."
+          : "Write your post...",
         data: {
           time: initialContentJson?.time ?? Date.now(),
           blocks: initialBlocks,
         },
-
         tools: {
           header: {
             class: Header,
             inlineToolbar: true,
-
             config: {
               levels: [1, 2, 3],
               defaultLevel: 2,
             },
           },
-
           list: {
             class: List,
             inlineToolbar: true,
-
             config: {
               defaultStyle: "unordered",
               maxLevel: 3,
             },
           },
-
           table: {
             class: Table,
             inlineToolbar: true,
-
             config: {
               rows: 2,
               cols: 3,
             },
           },
-
           image: {
             class: ImageTool,
-
             config: {
               uploader: {
                 uploadByFile: async (file) => {
                   const attachmentId = crypto.randomUUID();
                   const previewUrl = URL.createObjectURL(file);
+                  const editorUrl = await fileToDataUrl(file);
+
+                  if (cancelled) {
+                    URL.revokeObjectURL(previewUrl);
+                    return {
+                      success: 0,
+                      file: { url: "" },
+                    };
+                  }
 
                   addAttachmentsRef.current({
                     attachmentId,
@@ -137,26 +139,21 @@ export default function RichEditor({
 
                   return {
                     success: 1,
-
                     file: {
-                      url: previewUrl,
+                      url: editorUrl,
                       attachmentId,
                     },
                   };
                 },
-
                 uploadByUrl: async () => {
                   throw new Error("Please upload an image from your device.");
                 },
               },
             },
           },
-
           embed: {
             class: Embed,
-
             inlineToolbar: true,
-
             config: {
               services: {
                 youtube: true,
@@ -164,22 +161,18 @@ export default function RichEditor({
               },
             },
           },
-
           warning: {
             class: Warning,
             inlineToolbar: true,
           },
         },
-
         async onChange(api) {
           const saved = await api.saver.save();
-
           const blocks = saved?.blocks || [];
           const feedText = editorBlocksToFeedText(blocks);
 
           setContent(feedText);
           setContentFormat("editorjs");
-
           setContentJson({
             time: saved.time,
             blocks,
@@ -208,24 +201,30 @@ export default function RichEditor({
       editorRef.current = null;
       holderElement.innerHTML = "";
     };
-  }, [setContent, setContentFormat, setContentJson]);
+  }, [documentMode, setContent, setContentFormat, setContentJson]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="p-2">
-        <Input
-          placeholder="Post title..."
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          className="h-10 bg-muted"
-          onFocus={onFocus}
-        />
-      </div>
+    <div className={`flex min-h-0 flex-col ${documentMode ? "h-full flex-1" : ""}`}>
+      {showTitle && (
+        <div className="px-3 pt-3 sm:px-0">
+          <Input
+            placeholder="Document title..."
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            className="h-12 border-none bg-transparent px-0 text-2xl font-semibold shadow-none focus-visible:ring-0 sm:text-3xl"
+            onFocus={onFocus}
+          />
+        </div>
+      )}
 
       <div
         ref={holderRef}
         onFocus={onFocus}
-        className="editorjs-container flex-1 overflow-y-auto px-2 sm:px-16"
+        className={
+          documentMode
+            ? "editorjs-container min-h-0 flex-1 overflow-y-auto px-2 pb-8 sm:px-4 [&_.codex-editor]:!h-auto [&_.codex-editor]:!min-h-0 [&_.codex-editor__redactor]:!h-auto [&_.codex-editor__redactor]:!min-h-0 [&_.codex-editor__redactor]:!pb-8"
+            : "editorjs-container h-fit min-h-[76px] max-h-[60vh] overflow-y-auto px-2 pb-2 sm:px-4 [&_.codex-editor]:!h-auto [&_.codex-editor]:!min-h-0 [&_.codex-editor__redactor]:!h-auto [&_.codex-editor__redactor]:!min-h-0 [&_.codex-editor__redactor]:!pb-0"
+        }
       />
     </div>
   );

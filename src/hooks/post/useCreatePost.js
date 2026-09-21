@@ -56,6 +56,7 @@ export function useCreatePost() {
               ...attachment,
               credit_name: original?.credit_name ?? null,
               credit_url: original?.credit_url ?? null,
+              description: original?.description ?? null,
             };
           });
         }

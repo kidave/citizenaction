@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import EditorModalSkeleton from "@/components/skeletons/EditorModalSkeleton";
@@ -30,7 +29,6 @@ export default function EditorModal({
   const { data: profile, isLoading: profileLoading } = useMyProfile();
   const { data: spaces = [], isLoading: spacesLoading } = useSpaces();
   const loading = profileLoading || spacesLoading;
-
   const router = useRouter();
 
   const postEditor = usePostEditor(mode === "post" ? item : null, initialSpace);
@@ -39,11 +37,33 @@ export default function EditorModal({
     post,
   );
   const editor = mode === "post" ? postEditor : contributionEditor;
-  const [attachmentsOpen, setAttachmentsOpen] = useState(false);
+
+  function handleClose() {
+    if (mode === "post" && !item) {
+      editor.reset?.();
+    }
+    onClose?.();
+  }
+
+  function handleCreated(savedPost) {
+    handleClose();
+
+    if (savedPost?.slug) {
+      router.push("/post/" + savedPost.slug);
+    }
+  }
+
+  const isNewPost = mode === "post" && !item;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="flex h-full w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 pr-1 sm:h-[90vh] sm:max-w-2xl sm:rounded-xl">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent
+        className={
+          isNewPost
+            ? "flex max-h-[80vh] min-h-[320px] w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:max-w-2xl sm:rounded-xl"
+            : "flex h-full max-h-[90vh] w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-4xl sm:rounded-xl"
+        }
+      >
         {loading ? (
           <EditorModalSkeleton />
         ) : (
@@ -57,7 +77,7 @@ export default function EditorModal({
 
             {mode === "post" && <EditorContextSuggestions editor={editor} />}
 
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
               <EditorContent
                 title={editor.title}
                 setTitle={editor.setTitle}
@@ -65,30 +85,38 @@ export default function EditorModal({
                 setContent={editor.setContent}
                 contentJson={editor.contentJson}
                 setContentJson={editor.setContentJson}
+                contentFormat={editor.contentFormat}
                 setContentFormat={editor.setContentFormat}
                 attachments={editor.attachments}
                 addAttachments={editor.addAttachments}
+                documentMode={false}
+                showTitle={false}
+                forcePlain={isNewPost}
               />
 
-              <EditorAttachments
-                attachments={editor.attachments}
-                setAttachments={editor.setAttachments}
-                links={editor.links}
-              />
+              <div className="mt-auto shrink-0">
+                <EditorAttachments
+                  attachments={editor.attachments}
+                  setAttachments={editor.setAttachments}
+                  links={editor.links}
+                />
+              </div>
             </div>
 
             <EditorFooter
               mode={mode}
               item={item}
               editor={editor}
-              onClose={onClose}
-              onCreated={(post) => {
-                onClose();
-
-                if (post?.slug) {
-                  router.push(`/post/${post.slug}`);
-                }
-              }}
+              onClose={handleClose}
+              onCreated={handleCreated}
+              onDocumentMode={
+                isNewPost
+                  ? () => {
+                      handleClose();
+                      router.push("/document");
+                    }
+                  : undefined
+              }
             />
           </>
         )}

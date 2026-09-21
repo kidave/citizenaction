@@ -14,143 +14,67 @@ function safeDate(value) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-export function formatSuggestedDate(date) {
+function formatDate(date, options) {
   const safe = safeDate(date);
   if (!safe) return "";
 
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(safe);
+  return new Intl.DateTimeFormat("en-IN", options).format(safe);
 }
 
-function formatSuggestedDateOnly(date) {
-  const safe = safeDate(date);
-  if (!safe) return "";
-
-  return new Intl.DateTimeFormat("en-IN", {
+export function formatSuggestedDate(date) {
+  return formatDate(date, {
     day: "numeric",
     month: "long",
     year: "numeric",
-  }).format(safe);
+  });
 }
 
 function formatSuggestedMonth(date) {
-  const safe = safeDate(date);
-  if (!safe) return "";
-
-  return new Intl.DateTimeFormat("en-IN", {
+  return formatDate(date, {
     month: "long",
     year: "numeric",
-  }).format(safe);
-}
-
-function formatSuggestedTime(date) {
-  const safe = safeDate(date);
-  if (!safe) return "";
-
-  return new Intl.DateTimeFormat("en-IN", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(safe);
+  });
 }
 
 function detectPrecision(result) {
-  const text = result.text || "";
-  const start = result.start;
-  const hasTime = Boolean(
-    start?.isCertain?.("hour") ||
-      start?.isCertain?.("minute") ||
-      /\b(?:am|pm|a\.m\.|p\.m\.)\b/i.test(text),
-  );
+  const normalized = String(result.text || "").trim().toLowerCase();
 
-  if (hasTime) return "datetime";
+  if (/^\d{4}$/.test(normalized)) return "year";
 
-  const normalized = text.trim().toLowerCase();
-  const monthOnly = /^(?:the\s+)?(?:january|february|march|april|may|june|july|august|september|october|november|december)(?:\s+\d{4})?$/i.test(
-    normalized,
-  );
+  const monthOnly =
+    /^(?:the\s+)?(?:january|february|march|april|may|june|july|august|september|october|november|december)(?:\s+\d{4})?$/i.test(
+      normalized,
+    );
 
   if (monthOnly) return "month";
 
   return "date";
 }
 
-const NUMBER_WORDS = {
-  a: 1,
-  an: 1,
-  one: 1,
-  two: 2,
-  three: 3,
-  four: 4,
-  five: 5,
-  six: 6,
-  seven: 7,
-  eight: 8,
-  nine: 9,
-  ten: 10,
-  eleven: 11,
-  twelve: 12,
-};
-
-function startOfReferenceDay(reference) {
-  const date = new Date(reference);
-  date.setHours(12, 0, 0, 0);
-  return date;
+function hasExplicitYear(text) {
+  return /\b(?:19|20)\d{2}\b/.test(String(text || ""));
 }
 
-function inferExplicitStart(text, reference) {
-  if (!text) return null;
+function normalizeDatePrecision(date, precision, text) {
+  const next = new Date(date);
 
-  // Chrono can interpret the duration itself ("3 days") as a date-like
-  // result. When the sentence explicitly anchors the event to today/tomorrow,
-  // that anchor must win over the duration token.
-  const anchored = text.match(
-    /\b(?:starting\s+from|starting|from)\s+(today|tomorrow|yesterday)\b/i,
-  );
-
-  if (!anchored) return null;
-
-  const phrase = anchored[1].toLowerCase();
-  const parsed = chrono.parseDate(phrase, reference, { forwardDate: true });
-  return safeDate(parsed);
-}
-
-function inferDurationEnd(text, start, result) {
-  const safeStart = safeDate(start);
-  if (!safeStart || !text) return null;
-
-  // Look for a duration close to the detected start date. This handles
-  // natural event wording such as "starting from today for a week" and
-  // "on 2nd September for 3 days" without inventing an end date otherwise.
-  const resultStart = Number.isFinite(result?.index) ? result.index : 0;
-  const resultEnd = resultStart + String(result?.text || "").length;
-  const nearbyText = `${text.slice(Math.max(0, resultStart - 80), resultEnd + 100)} ${text}`;
-  const match = nearbyText.match(
-    /\bfor\s+(a|an|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d+)\s+(day|days|week|weeks|month|months)\b/i,
-  );
-
-  if (!match) return null;
-
-  const rawAmount = match[1].toLowerCase();
-  const amount = NUMBER_WORDS[rawAmount] ?? Number(rawAmount);
-  const unit = match[2].toLowerCase();
-  if (!Number.isFinite(amount) || amount <= 0) return null;
-
-  const end = new Date(safeStart);
-
-  if (unit.startsWith("day")) {
-    end.setDate(end.getDate() + amount);
-  } else if (unit.startsWith("week")) {
-    end.setDate(end.getDate() + amount * 7);
-  } else {
-    end.setMonth(end.getMonth() + amount);
+  if (precision === "year") {
+    next.setMonth(0, 1);
+    next.setHours(12, 0, 0, 0);
+    return next;
   }
 
-  return safeDate(end);
+  if (!hasExplicitYear(text)) {
+    next.setFullYear(currentYear());
+  }
+
+  if (precision === "month") {
+    next.setDate(1);
+  }
+
+  next.setHours(12, 0, 0, 0);
+
+  return next;
 }
 
 export function extractDateCandidates(text = "") {
@@ -160,34 +84,30 @@ export function extractDateCandidates(text = "") {
   const results = chrono.parse(text, reference, {
     forwardDate: false,
   });
-  const explicitStart = inferExplicitStart(text, reference);
 
   return results
     .map((result) => {
-      const chronoStart = safeDate(result.start?.date?.());
-      if (!chronoStart) return null;
+      const parsed = safeDate(result.start?.date?.());
+      if (!parsed) return null;
 
-      const start = explicitStart || chronoStart;
       const precision = detectPrecision(result);
-      const explicitEnd = safeDate(result.end?.date?.());
-      const inferredEnd = explicitEnd ? null : inferDurationEnd(text, start, result);
-      const end = explicitEnd || inferredEnd;
-      const hasTime = precision === "datetime";
+      const value = normalizeDatePrecision(parsed, precision, result.text);
 
-      let label = formatSuggestedDateOnly(start);
-      if (precision === "month") label = formatSuggestedMonth(start);
-      if (precision === "datetime") label = formatSuggestedDate(start);
+      let label = formatSuggestedDate(value);
+
+      if (precision === "year") {
+        label = formatDate(value, { year: "numeric" });
+      } else if (precision === "month") {
+        label = formatSuggestedMonth(value);
+      }
 
       return {
         type: "date",
         precision,
-        value: start.toISOString(),
-        endValue: end ? end.toISOString() : null,
+        value: value.toISOString(),
         label,
-        timeLabel: hasTime ? formatSuggestedTime(start) : null,
         source: result.text,
         index: result.index,
-        hasTime,
       };
     })
     .filter(Boolean)
@@ -196,7 +116,6 @@ export function extractDateCandidates(text = "") {
         list.findIndex(
           (item) =>
             item.value === candidate.value &&
-            item.endValue === candidate.endValue &&
             item.precision === candidate.precision,
         ) === index,
     );
@@ -234,6 +153,7 @@ export function extractLocationCandidates(text = "") {
   }
 
   const unique = new Map();
+
   candidates.forEach((candidate) => {
     const key = candidate.query.toLowerCase();
     if (!unique.has(key)) unique.set(key, candidate);

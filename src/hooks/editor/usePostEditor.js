@@ -14,6 +14,11 @@ export function usePostEditor(item = null, initialSpace = null) {
   const { deletePost } = useDeletePost();
 
   async function submit(onSuccess) {
+    if (!editor.title.trim()) {
+      toast.error("Enter a post title.");
+      return;
+    }
+
     if (!editor.content.trim()) {
       toast.error("Enter content.");
       return;
@@ -26,6 +31,7 @@ export function usePostEditor(item = null, initialSpace = null) {
       lat: editor.lat,
       lng: editor.lng,
     });
+
     if (!result.success) {
       toast.error(result.error.issues[0]?.message || "Check the post details.");
       return;
@@ -37,7 +43,7 @@ export function usePostEditor(item = null, initialSpace = null) {
       spaces: data.spaces,
       is_global: data.is_global,
       governance: data.governance,
-      title: data.title || data.content.slice(0, 200),
+      title: data.title.trim(),
       content: data.content,
       content_json: data.content_json,
       content_format: data.content_format,
@@ -55,6 +61,11 @@ export function usePostEditor(item = null, initialSpace = null) {
       const savedPost = item
         ? await updatePost({ postId: item.id, postData: payload })
         : await createPost(payload);
+
+      if (!item) {
+        editor.clearDraft();
+      }
+
       onSuccess?.(savedPost);
     } catch (error) {
       if (process.env.NODE_ENV !== "production") {
