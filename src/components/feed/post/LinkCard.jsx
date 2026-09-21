@@ -29,10 +29,6 @@ function getProviderIcon(type) {
   }
 }
 
-function shouldShowHostname(link) {
-  return link.type === "website" && !!link.hostname;
-}
-
 export default function LinkCard({ link, size = "default" }) {
   if (!link?.url) return null;
 
@@ -68,8 +64,7 @@ export default function LinkCard({ link, size = "default" }) {
         </div>
       )}
 
-      {(
-        <div className={`min-h-0 flex-1 ${compact ? "px-2 py-1.5" : "px-3 py-2"}`}>
+      <div className={`min-h-0 flex-1 ${compact ? "px-2 py-1.5" : "px-3 py-2"}`}>
           <div className="mb-1 flex items-center gap-1.5">
             <ProviderIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <span className="truncate text-xs font-medium text-muted-foreground">
@@ -82,7 +77,7 @@ export default function LinkCard({ link, size = "default" }) {
 
 
         </div>
-      )}
+      </div>
     </a>
   );
 }
