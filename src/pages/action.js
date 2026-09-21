@@ -84,6 +84,7 @@ export default function ActionPage() {
           profile={profile}
           editor={editor}
           spaces={spaces}
+          showTitle={false}
         />
 
         <EditorContextSuggestions editor={editor} />

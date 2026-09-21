@@ -90,7 +90,7 @@ export default function EditorModal({
                 attachments={editor.attachments}
                 addAttachments={editor.addAttachments}
                 documentMode={false}
-                showTitle={Boolean(item)}
+                showTitle={false}
               />
 
               <div className="mt-auto shrink-0">

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 
+import { Input } from "@/components/ui/input";
 import VisibilitySelector from "@/components/space/VisibilitySelector";
 
 export default function EditorHeader({
@@ -9,7 +10,10 @@ export default function EditorHeader({
   profile,
   editor,
   spaces = [],
+  showTitle = true,
 }) {
+  const isPost = mode === "post";
+
   return (
     <div className="flex min-w-0 shrink-0 items-center gap-3 px-4 py-3 pr-12">
       <Image
@@ -20,8 +24,21 @@ export default function EditorHeader({
         alt=""
       />
 
-      {mode === "post" && (
-        <VisibilitySelector editor={editor} spaces={spaces} />
+      {isPost && showTitle && (
+        <Input
+          placeholder="Post title..."
+          value={editor.title || ""}
+          onChange={(event) => editor.setTitle(event.target.value)}
+          aria-label="Post title"
+          aria-required="true"
+          className="h-9 min-w-0 flex-1 border-none bg-transparent px-0 text-base font-medium shadow-none focus-visible:ring-0"
+        />
+      )}
+
+      {isPost && (
+        <div className="ml-auto shrink-0">
+          <VisibilitySelector editor={editor} spaces={spaces} />
+        </div>
       )}
     </div>
   );
