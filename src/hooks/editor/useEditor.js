@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from "react";
 
 import { useAuth } from "@/context/AuthContext";
-
 import { extractContentMeta } from "@/utils/text/contentMeta";
 
 export function useEditor(item = null, initialSpace = null) {
@@ -12,24 +11,17 @@ export function useEditor(item = null, initialSpace = null) {
   const [spaces, setSpaces] = useState([]);
   const [is_global, setIsGlobal] = useState(false);
   const [governance, setSelectedAuthorities] = useState([]);
-
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-
   const [contentJson, setContentJson] = useState(null);
   const [contentFormat, setContentFormat] = useState("text");
-
   const [attachments, setAttachments] = useState([]);
-
   const [start_at, setStartAt] = useState(null);
   const [end_at, setEndAt] = useState(null);
   const [datePrecision, setDatePrecision] = useState(null);
-
   const [lat, setLat] = useState(null);
   const [lng, setLng] = useState(null);
-
   const [address, setAddress] = useState(null);
-
   const [links, setLinks] = useState([]);
 
   const addAttachments = (files) => {
@@ -94,7 +86,7 @@ export function useEditor(item = null, initialSpace = null) {
     setLinks((prev) => {
       const next = [...prev];
       const [item] = next.splice(from, 1);
-      next.splice(to, 0, item);
+      next.splice(to, 1);
       return next;
     });
   };
@@ -122,7 +114,6 @@ export function useEditor(item = null, initialSpace = null) {
       setSpaces(item.spaces ?? []);
       setIsGlobal(item.is_global ?? false);
       setSelectedAuthorities(item.governance ?? []);
-
       setTitle(item.title ?? "");
       setContent(item.content ?? "");
       setContentJson(item.content_json ?? null);
@@ -136,7 +127,7 @@ export function useEditor(item = null, initialSpace = null) {
       replaceLinks(item.links ?? []);
 
       setStartAt(item.start_at ?? null);
-      setEndAt(item.end_at ?? null);
+      setEndAt(null);
       setDatePrecision(item.metadata?.date_precision ?? null);
       setLat(item.lat ?? null);
       setLng(item.lng ?? null);
@@ -180,7 +171,7 @@ export function useEditor(item = null, initialSpace = null) {
       attachments,
       links,
       start_at,
-      end_at,
+      end_at: null,
       lat,
       lng,
       address,
@@ -202,7 +193,6 @@ export function useEditor(item = null, initialSpace = null) {
     attachments,
     links,
     start_at,
-    end_at,
     datePrecision,
     lat,
     lng,
@@ -215,16 +205,12 @@ export function useEditor(item = null, initialSpace = null) {
   return {
     title,
     setTitle,
-
     content,
     setContent,
-
     contentJson,
     setContentJson,
-
     contentFormat,
     setContentFormat,
-
     attachments,
     attachmentCount,
     hasAttachments,
@@ -235,7 +221,6 @@ export function useEditor(item = null, initialSpace = null) {
     clearAttachments,
     updateAttachment,
     moveAttachment,
-
     links,
     setLinks,
     replaceLinks,
@@ -244,29 +229,24 @@ export function useEditor(item = null, initialSpace = null) {
     clearLinks,
     updateLink,
     moveLink,
-
     start_at,
     setStartAt,
     end_at,
     setEndAt,
     datePrecision,
     setDatePrecision,
-
     lat,
     setLat,
     lng,
     setLng,
     address,
     setAddress,
-
     spaces,
     setSpaces,
     is_global,
     setIsGlobal,
-
     governance,
     setSelectedAuthorities,
-
     editorData,
     getEditorData: () => editorData,
   };

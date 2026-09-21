@@ -1,12 +1,9 @@
 "use client";
 
-import { Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-
 import LinkManager from "@/components/feed/editor/LinkManager";
-
 import ImagePicker from "@/components/attachment/ImagePicker";
 import DocumentPicker from "@/components/attachment/DocumentPicker";
 
@@ -20,10 +17,8 @@ export default function EditorFooter({ mode, item, editor, onClose }) {
   const handleSuccess = (post) => {
     onClose();
 
-    // Only navigate when creating a new post.
-    // Updates should simply close the editor.
     if (isPost && !item && post?.slug) {
-      router.push(`/post/${post.slug}`);
+      router.push("/post/" + post.slug);
     }
   };
 
@@ -54,8 +49,6 @@ export default function EditorFooter({ mode, item, editor, onClose }) {
           onClick={() => editor.submit(handleSuccess)}
           className="shrink-0"
         >
-          <Save className="mr-2 h-4 w-4" />
-
           {mode === "post"
             ? item
               ? "Update"

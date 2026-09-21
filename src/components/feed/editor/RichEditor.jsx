@@ -3,9 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import { Input } from "@/components/ui/input";
-
 import { loadEditorTools } from "@/components/editor/editorTools";
-
 import {
   getInitialBlocks,
   editorBlocksToFeedText,
@@ -25,18 +23,11 @@ export default function RichEditor({
   const holderRef = useRef(null);
   const editorRef = useRef(null);
 
-  const valuesRef = useRef({
-    content,
-    contentJson,
-  });
-
+  const valuesRef = useRef({ content, contentJson });
   const addAttachmentsRef = useRef(addAttachments);
 
   useEffect(() => {
-    valuesRef.current = {
-      content,
-      contentJson,
-    };
+    valuesRef.current = { content, contentJson };
   }, [content, contentJson]);
 
   useEffect(() => {
@@ -45,10 +36,7 @@ export default function RichEditor({
 
   useEffect(() => {
     const holderElement = holderRef.current;
-
-    if (!holderElement) {
-      return;
-    }
+    if (!holderElement) return;
 
     let cancelled = false;
 
@@ -56,9 +44,7 @@ export default function RichEditor({
       const { EditorJS, Header, Embed, Warning, List, ImageTool, Table } =
         await loadEditorTools();
 
-      if (cancelled) {
-        return;
-      }
+      if (cancelled) return;
 
       const { content: initialContent, contentJson: initialContentJson } =
         valuesRef.current;
@@ -72,48 +58,38 @@ export default function RichEditor({
 
       const editor = new EditorJS({
         holder: holderElement,
-
         placeholder: "Write your post...",
-
         data: {
           time: initialContentJson?.time ?? Date.now(),
           blocks: initialBlocks,
         },
-
         tools: {
           header: {
             class: Header,
             inlineToolbar: true,
-
             config: {
               levels: [1, 2, 3],
               defaultLevel: 2,
             },
           },
-
           list: {
             class: List,
             inlineToolbar: true,
-
             config: {
               defaultStyle: "unordered",
               maxLevel: 3,
             },
           },
-
           table: {
             class: Table,
             inlineToolbar: true,
-
             config: {
               rows: 2,
               cols: 3,
             },
           },
-
           image: {
             class: ImageTool,
-
             config: {
               uploader: {
                 uploadByFile: async (file) => {
@@ -137,26 +113,18 @@ export default function RichEditor({
 
                   return {
                     success: 1,
-
-                    file: {
-                      url: previewUrl,
-                      attachmentId,
-                    },
+                    file: { url: previewUrl, attachmentId },
                   };
                 },
-
                 uploadByUrl: async () => {
                   throw new Error("Please upload an image from your device.");
                 },
               },
             },
           },
-
           embed: {
             class: Embed,
-
             inlineToolbar: true,
-
             config: {
               services: {
                 youtube: true,
@@ -164,23 +132,18 @@ export default function RichEditor({
               },
             },
           },
-
           warning: {
             class: Warning,
-
             inlineToolbar: true,
           },
         },
-
         async onChange(api) {
           const saved = await api.saver.save();
-
           const blocks = saved?.blocks || [];
           const feedText = editorBlocksToFeedText(blocks);
 
           setContent(feedText);
           setContentFormat("editorjs");
-
           setContentJson({
             time: saved.time,
             blocks,
