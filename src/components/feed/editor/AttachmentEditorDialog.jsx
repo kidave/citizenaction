@@ -21,6 +21,7 @@ export default function AttachmentEditorDialog({
   onOpenChange,
   onChange,
   onRemove,
+  onIndexChange,
 }) {
   const [draft, setDraft] = useState(null);
 
@@ -65,14 +66,14 @@ export default function AttachmentEditorDialog({
         ? (index + 1) % attachments.length
         : (index - 1 + attachments.length) % attachments.length;
 
-    onChange?.(index, draft ? {
-      credit_name: draft.credit_name.trim(),
-      description: draft.description.trim(),
-    } : undefined);
+    if (draft) {
+      onChange?.(index, {
+        credit_name: draft.credit_name.trim(),
+        description: draft.description.trim(),
+      });
+    }
 
-    // Parent owns the active index.
-    onOpenChange?.(true);
-    return next;
+    onIndexChange?.(next);
   };
 
   if (!current) return null;
