@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { ArrowLeft, FileText } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
@@ -74,7 +75,9 @@ export default function DocumentPage() {
           </div>
         </div>
 
-        <span className="text-xs text-muted-foreground">New document</span>
+        <span className="text-xs text-muted-foreground">
+          {post ? "Edit document" : "New document"}
+        </span>
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
