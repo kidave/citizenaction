@@ -73,9 +73,8 @@ export default function GovernanceSelector({ editor }) {
     if (nextTab) setTab(nextTab);
   }
 
-  const visible = selected.slice(0, 10);
-  const mobileRemaining = Math.max(selected.length - 5, 0);
-  const desktopRemaining = Math.max(selected.length - 10, 0);
+  const visible = selected.slice(0, 5);
+  const remaining = Math.max(selected.length - 5, 0);
 
   return (
     <>
@@ -83,13 +82,12 @@ export default function GovernanceSelector({ editor }) {
         {selected.length ? (
           <div className="flex shrink-0 -space-x-1">
             {visible.map((entity, index) => (
-              <Avatar key={entity.id} className={"h-5 w-5 border border-background " + (index >= 5 ? "hidden sm:flex" : "")}>
+              <Avatar key={entity.id} className="h-5 w-5 border border-background">
                 <AvatarImage src={entity.image_url || undefined} alt="" />
                 <AvatarFallback className="text-[9px]">{getGovernanceInitials(getGovernanceLabel(entity))}</AvatarFallback>
               </Avatar>
             ))}
-            {mobileRemaining > 0 && <Avatar className="h-5 w-5 sm:hidden"><AvatarFallback className="text-[8px]">+{mobileRemaining}</AvatarFallback></Avatar>}
-            {desktopRemaining > 0 && <Avatar className="hidden h-5 w-5 sm:flex"><AvatarFallback className="text-[8px]">+{desktopRemaining}</AvatarFallback></Avatar>}
+            {remaining > 0 && <Avatar className="h-5 w-5 border border-background"><AvatarFallback className="text-[8px]">+{remaining}</AvatarFallback></Avatar>}
           </div>
         ) : (
           <Landmark className="h-3.5 w-3.5 shrink-0" />

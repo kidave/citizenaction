@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { Eye } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 
 import { useRequireAuth } from "@/hooks/useRequireAuth";
@@ -120,14 +121,10 @@ export default function DocumentPage() {
         showHome={false}
         backHref="/"
         actions={
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors hover:bg-muted"
-            onClick={() => setPreviewOpen(true)}
-          >
+          <Button type="button" variant="ghost" size="sm" className="gap-2" onClick={() => setPreviewOpen(true)}>
             <Eye className="h-4 w-4" />
             <span>Preview</span>
-          </button>
+          </Button>
         }
       />
 

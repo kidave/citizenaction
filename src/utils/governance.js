@@ -29,6 +29,7 @@ export const GOVERNANCE_STATUS_OPTIONS = [
 export const GOVERNANCE_DIRECTORY_TABS = [
   ["organizations", "Organizations"],
   ["positions", "Positions"],
+  ["people", "People"],
 ];
 
 export const GOVERNANCE_ROOT_TYPES = ["all", ...GOVERNANCE_TYPES];

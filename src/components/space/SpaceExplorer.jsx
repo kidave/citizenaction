@@ -39,16 +39,9 @@ export default function SpaceExplorer({ open, onOpenChange, spaces = [], selecte
   }, [spaces, search, categorySlug]);
 
   function toggleSpace(space) {
-    setDraftSpaces((current) =>
-      current.some((selected) => selected.id === space.id)
-        ? current.filter((selected) => selected.id !== space.id)
-        : [...current, space],
-    );
-  }
-
-  function cancel() {
-    setDraftSpaces(selectedSpaces);
-    onOpenChange(false);
+    setDraftSpaces((current) => current.some((selected) => selected.id === space.id)
+      ? current.filter((selected) => selected.id !== space.id)
+      : [...current, space]);
   }
 
   function save() {
@@ -56,18 +49,17 @@ export default function SpaceExplorer({ open, onOpenChange, spaces = [], selecte
     onOpenChange(false);
   }
 
-  return (
-    <Sheet open={open} onOpenChange={(nextOpen) => (nextOpen ? onOpenChange(true) : cancel())}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-4xl">
-        <SheetHeader className="shrink-0 border-b px-6 py-4"><SheetTitle>Spaces</SheetTitle></SheetHeader>
+  function discard() {
+    setDraftSpaces(selectedSpaces);
+    onOpenChange(false);
+  }
 
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b px-6 py-3">
-          <Button type="button" variant="ghost" size="sm" onClick={() => setDraftSpaces([])} disabled={!draftSpaces.length}>Clear</Button>
-          <div className="flex items-center gap-2">
-            <Button type="button" variant="ghost" size="sm" onClick={cancel}>Cancel</Button>
-            <Button type="button" size="sm" onClick={save}>Save</Button>
-          </div>
-        </div>
+  return (
+    <Sheet open={open} onOpenChange={(nextOpen) => (nextOpen ? onOpenChange(true) : discard())}>
+      <SheetContent side="right" className="flex w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-4xl">
+        <SheetHeader className="shrink-0 border-b px-6 py-4">
+          <SheetTitle>Spaces</SheetTitle>
+        </SheetHeader>
 
         <div className="shrink-0 border-b px-6 py-3">
           <div className="flex w-full items-center gap-2">
@@ -87,7 +79,7 @@ export default function SpaceExplorer({ open, onOpenChange, spaces = [], selecte
 
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
           <div className="mb-4 flex items-center gap-2 overflow-x-auto">
-            <Button type="button" size="sm" variant={draftSpaces.length === 0 ? "default" : "outline"} onClick={() => setDraftSpaces([])} className="shrink-0 rounded-full gap-2">
+            <Button type="button" size="sm" variant={draftSpaces.length === 0 ? "default" : "outline"} onClick={() => setDraftSpaces([])} className="shrink-0 gap-2 rounded-full">
               Global {draftSpaces.length === 0 && <Check className="h-3.5 w-3.5" />}
             </Button>
             {draftSpaces.slice(0, 5).map((space) => (
@@ -106,6 +98,11 @@ export default function SpaceExplorer({ open, onOpenChange, spaces = [], selecte
               {filteredSpaces.map((space) => <SpaceCard key={space.id} space={space} selectable selected={draftSpaces.some((selected) => selected.id === space.id)} onSelect={toggleSpace} />)}
             </div>
           )}
+        </div>
+
+        <div className="flex shrink-0 items-center justify-between gap-3 border-t bg-background px-6 py-3">
+          <Button type="button" variant="ghost" size="sm" onClick={() => setDraftSpaces([])} disabled={!draftSpaces.length}>Clear</Button>
+          <Button type="button" size="sm" onClick={save}>Save</Button>
         </div>
       </SheetContent>
     </Sheet>
