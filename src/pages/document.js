@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-import { FileText } from "lucide-react";
+import { Eye } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { useRequireAuth } from "@/hooks/useRequireAuth";
@@ -15,6 +15,7 @@ import Topbar from "@/components/navigation/Topbar";
 import EditorHeader from "@/components/feed/editor/EditorHeader";
 import EditorFooter from "@/components/feed/editor/EditorFooter";
 import EditorContextSuggestions from "@/components/feed/editor/EditorContextSuggestions";
+import DocumentPreview from "@/components/feed/editor/DocumentPreview";
 
 const EditorContent = dynamic(
   () => import("@/components/feed/editor/EditorContent"),
@@ -32,6 +33,7 @@ export default function DocumentPage() {
     typeof router.query.post === "string" ? router.query.post : null;
 
   const [post, setPost] = useState(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [postLoading, setPostLoading] = useState(true);
 
   useEffect(() => {
@@ -118,12 +120,14 @@ export default function DocumentPage() {
         showHome={false}
         backHref="/"
         actions={
-          <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">
-              {post ? "Edit document" : "New document"}
-            </span>
-          </div>
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors hover:bg-muted"
+            onClick={() => setPreviewOpen(true)}
+          >
+            <Eye className="h-4 w-4" />
+            <span>Preview</span>
+          </button>
         }
       />
 

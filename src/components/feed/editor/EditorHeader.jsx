@@ -16,7 +16,7 @@ export default function EditorHeader({
   const isPost = mode === "post";
 
   return (
-    <div className="flex min-w-0 shrink-0 flex-wrap items-center gap-2 px-4 py-3 pr-12">
+    <div className="mx-auto flex w-full max-w-6xl min-w-0 shrink-0 flex-wrap items-center gap-2 px-4 py-3 pr-12 sm:px-6">
       <Image
         src={profile?.avatar_url || "/user1.png"}
         width={40}

@@ -44,7 +44,7 @@ export default function EditorFooter({
 
   return (
     <TooltipProvider>
-      <div className="shrink-0 bg-background/95 px-3 py-2.5 backdrop-blur">
+      <div className="mx-auto w-full max-w-6xl bg-background/95 px-4 py-2.5 backdrop-blur sm:px-6">
         <div className="flex min-w-0 items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-0.5">
             {isPost && !item && onDocumentMode && (
