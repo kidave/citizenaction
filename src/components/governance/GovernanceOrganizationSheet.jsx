@@ -18,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase/client";
-import { deleteGovernanceAttachments, moveGovernanceFile, uploadGovernanceAttachments } from "@/lib/supabase/storage";
+import { moveGovernanceFile } from "@/lib/supabase/storage";
 import { useImportGovernanceOrganizationImage } from "@/hooks/governance/useImportGovernanceOrganizationImage";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 import { GOVERNANCE_STATUS_OPTIONS, GOVERNANCE_TYPES, formatGovernanceType, governanceRequiresValidTo } from "@/utils/governance";
@@ -70,7 +70,6 @@ export default function GovernanceOrganizationSheet({
   const [saving, setSaving] = useState(false);
   const [importingImage, setImportingImage] = useState(false);
 
-  const [links, setLinks] = useState([]);
   const draftId = useId().replace(/:/g, "");
   const { createOrganization, updateOrganization } = useGovernanceCrud();
   const { importOrganizationImage } = useImportGovernanceOrganizationImage();
@@ -351,15 +350,6 @@ export default function GovernanceOrganizationSheet({
             </div>
           </div>
         </div>
-
-        <EditorResourcePreview
-          attachments={pendingAttachments}
-          links={links}
-          setAttachments={updatePendingAttachments}
-          removable
-          showMetadata={false}
-          size="compact"
-        />
 
         <SheetFooter className="relative z-10 flex-row shrink-0 items-center justify-end gap-2 border-t bg-background px-5 py-4 sm:px-6">
           <div className="flex shrink-0 items-center gap-2">
