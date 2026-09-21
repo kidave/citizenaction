@@ -109,6 +109,7 @@ export function useEditor(item = null, initialSpace = null) {
       file_size: attachment.file_size ?? attachment.file?.size ?? null,
       credit_name: attachment.credit_name ?? "",
       credit_url: attachment.credit_url ?? "",
+      description: attachment.description ?? "",
       width: attachment.width ?? null,
       height: attachment.height ?? null,
       duration: attachment.duration ?? null,
