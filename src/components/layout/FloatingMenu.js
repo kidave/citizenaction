@@ -17,6 +17,10 @@ export default function FloatingMenu() {
 
   const [open, setOpen] = useState(false);
 
+  if (router.pathname === "/document") {
+    return null;
+  }
+
   const items = [
     {
       icon: Home,
