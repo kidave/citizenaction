@@ -5,8 +5,10 @@ import { Check, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { getFileExtension, formatFileSize } from "@/utils/attachment";
+
 import AttachmentPreview from "@/components/attachment/AttachmentPreview";
+import { useEffect, useState } from "react";
 
 export default function AttachmentCard({
   attachment,
@@ -80,19 +82,10 @@ export default function AttachmentCard({
       {showMetadata && (
         <div
           className={cn(
-            "space-y-2 overflow-hidden",
-            size === "sm" ? "p-2" : "p-3",
+            "space-y-1.5 overflow-hidden",
+            size === "sm" || size === "compact" ? "p-2" : "p-3",
           )}
         >
-          <p
-            className={cn(
-              "h-4 truncate font-medium leading-4",
-              size === "sm" ? "text-xs" : "text-sm",
-            )}
-          >
-            {attachment.file_name}
-          </p>
-
           <div className="flex h-7 min-w-0 items-center gap-1 overflow-hidden">
             {editingCredit ? (
               <>
@@ -100,6 +93,7 @@ export default function AttachmentCard({
                   autoFocus
                   value={creditDraft}
                   placeholder="Add credit"
+                  aria-label="Credit name"
                   onChange={(e) => setCreditDraft(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
@@ -111,9 +105,8 @@ export default function AttachmentCard({
                       cancelCredit();
                     }
                   }}
-                  className="h-7 min-w-0 flex-1 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
+                  className="h-7 min-w-0 flex-1 border-0 bg-transparent px-0 text-base shadow-none focus-visible:ring-0 md:text-xs"
                 />
-
                 <Button
                   type="button"
                   variant="ghost"
@@ -127,7 +120,6 @@ export default function AttachmentCard({
                 >
                   <Check className="h-4 w-4" />
                 </Button>
-
                 <Button
                   type="button"
                   variant="ghost"
@@ -145,7 +137,7 @@ export default function AttachmentCard({
             ) : (
               <button
                 type="button"
-                className="h-7 min-w-0 flex-1 truncate text-left text-xs leading-7 text-muted-foreground hover:text-foreground"
+                className="h-7 min-w-0 flex-1 truncate text-left text-base leading-7 text-muted-foreground hover:text-foreground md:text-xs"
                 onClick={(e) => {
                   e.stopPropagation();
                   setEditingCredit(true);
@@ -153,6 +145,18 @@ export default function AttachmentCard({
               >
                 {attachment.credit_name || "Add credit"}
               </button>
+            )}
+          </div>
+
+          <div className="truncate text-xs text-muted-foreground">
+            <span className="uppercase">
+              {getFileExtension(
+                attachment.file_name || attachment.file?.name || "",
+              )}
+            </span>
+            {" • "}
+            {formatFileSize(
+              attachment.file_size ?? attachment.file?.size ?? null,
             )}
           </div>
         </div>
