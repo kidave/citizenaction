@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, X } from "lucide-react";
+import { Check, Pencil, X } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ export default function AttachmentCard({
   onClick,
   onRemove,
   onCreditNameChange,
+  onEdit,
   removable = false,
   showMetadata = true,
   hovered = null,
@@ -68,6 +69,22 @@ export default function AttachmentCard({
         <div className="relative h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.06]">
           <AttachmentPreview attachment={attachment} />
         </div>
+
+        {onEdit && (
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="absolute left-2 top-2 z-10 rounded-full bg-background/90 px-3 font-semibold shadow-sm backdrop-blur"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(index);
+            }}
+          >
+            <Pencil className="mr-1.5 h-3.5 w-3.5" />
+            Edit
+          </Button>
+        )}
 
         {removable && (
           <Button
