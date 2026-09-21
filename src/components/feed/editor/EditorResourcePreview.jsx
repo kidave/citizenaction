@@ -46,7 +46,10 @@ export default function EditorResourcePreview({
           onEdit={(index) => setEditingIndex(index)}
           onRemove={removeAttachment}
           onCreditNameChange={(index, value) =>
-            updateAttachment(index, typeof value === "string" ? { credit_name: value } : value)
+            updateAttachment(
+              index,
+              typeof value === "string" ? { credit_name: value } : value,
+            )
           }
         />
       </div>
@@ -55,12 +58,15 @@ export default function EditorResourcePreview({
         attachments={attachments}
         open={editingIndex !== null}
         index={editingIndex ?? 0}
-        onOpenChange={(open) => { if (!open) setEditingIndex(null); }}
+        onOpenChange={(open) => {
+          if (!open) setEditingIndex(null);
+        }}
         onChange={(index, updates) => {
-          setAttachments?.((prev) => prev.map((item, i) => i === index ? { ...item, ...updates } : item));
+          updateAttachment(index, updates);
         }}
         onRemove={removeAttachment}
         onIndexChange={setEditingIndex}
       />
     </>
-    
+  );
+}
