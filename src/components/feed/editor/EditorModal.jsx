@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useEffect } from "react";
 import { useRouter } from "next/router";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -54,7 +55,18 @@ export default function EditorModal({
   }
 
   const isNewPost = mode === "post" && !item;
+  const isDocumentPost =
+    mode === "post" && !!item && item.content_format === "editorjs";
   const usePlainComposer = mode === "post" || mode === "contribution";
+
+  useEffect(() => {
+    if (isDocumentPost && item?.slug) {
+      onClose?.();
+      router.push("/document?post=" + encodeURIComponent(item.slug));
+    }
+  }, [isDocumentPost, item?.slug]);
+
+  if (isDocumentPost) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
