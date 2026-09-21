@@ -7,7 +7,10 @@ import { useUpdateContribution } from "@/hooks/contribution/useUpdateContributio
 import { useDeleteContribution } from "@/hooks/contribution/useDeleteContribution";
 
 export function useContributionEditor(contribution = null, post = null) {
-  const editor = useEditor(contribution);
+  const editor = useEditor(contribution, null, {
+    draftScope: "contribution",
+    draftContextId: post?.id || null,
+  });
   const { createContribution } = useCreateContribution();
   const { updateContribution } = useUpdateContribution();
   const { deleteContribution } = useDeleteContribution();
@@ -19,8 +22,8 @@ export function useContributionEditor(contribution = null, post = null) {
     const payload = {
       title: data.title ?? null,
       content: data.content ?? null,
-      content_json: data.contentJson ?? null,
-      content_format: data.contentFormat ?? "text",
+      content_json: data.content_json ?? null,
+      content_format: data.content_format ?? "text",
       contribution_type: contribution?.contribution_type ?? "comment",
       status: contribution?.status ?? null,
       attachments: data.attachments ?? [],
@@ -34,13 +37,27 @@ export function useContributionEditor(contribution = null, post = null) {
     };
     try {
       if (contribution) {
-        await updateContribution({ contributionId: contribution.id, postId: post.id, contributionData: payload });
+        await updateContribution({
+          contributionId: contribution.id,
+          postId: post.id,
+          contributionData: payload,
+        });
       } else {
-        await createContribution({ postId: post.id, contributionData: payload });
+        await createContribution({
+          postId: post.id,
+          contributionData: payload,
+        });
       }
+      editor.clearDraft();
       onSuccess?.();
     } catch (error) {
-      if (process.env.NODE_ENV !== "production") console.error("Failed to save contribution", { message: error?.message, code: error?.code, status: error?.status });
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Failed to save contribution", {
+          message: error?.message,
+          code: error?.code,
+          status: error?.status,
+        });
+      }
       toast.error(error?.message || "Something went wrong");
     }
   }
@@ -51,7 +68,13 @@ export function useContributionEditor(contribution = null, post = null) {
       await deleteContribution(contribution);
       onSuccess?.();
     } catch (error) {
-      if (process.env.NODE_ENV !== "production") console.error("Failed to delete contribution", { message: error?.message, code: error?.code, status: error?.status });
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Failed to delete contribution", {
+          message: error?.message,
+          code: error?.code,
+          status: error?.status,
+        });
+      }
       toast.error(error?.message || "Failed to delete contribution");
     }
   }

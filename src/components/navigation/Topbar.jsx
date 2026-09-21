@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ArrowLeft, Home, MoreVertical } from "lucide-react";
+import { ArrowLeft, Home, Menu, MoreVertical } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +18,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useFloatingMenu } from "@/components/layout/FloatingMenuContext";
+import MobileSidebar from "@/components/layout/MobileSidebar";
 
 function ActionButton({ action }) {
   const Icon = action.icon;
@@ -84,6 +89,9 @@ export default function Topbar({
   containerClassName = "max-w-6xl",
 }) {
   const router = useRouter();
+  const { hasSidebarToggle, toggleSidebar } = useFloatingMenu();
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
   const visibleItems = items.filter((item) => item?.label);
   const currentLabel = title || visibleItems.at(-1)?.label || "";
   const allActions = [...primaryActions, ...overflowActions];
@@ -95,6 +103,15 @@ export default function Topbar({
     }
 
     router.push(backHref);
+  }
+
+  function handleMobileMenu() {
+    if (hasSidebarToggle) {
+      toggleSidebar();
+      return;
+    }
+
+    setMobileSidebarOpen(true);
   }
 
   const backButton = (
@@ -114,9 +131,7 @@ export default function Topbar({
 
   return (
     <TooltipProvider delayDuration={250}>
-      <header
-        className={`sticky top-0 z-40 bg-background ${className}`}
-      >
+      <header className={`sticky top-0 z-40 bg-background ${className}`}>
         <div
           className={`mx-auto flex min-h-14 w-full items-center gap-1.5 px-3 sm:min-h-16 sm:px-4 ${containerClassName}`}
         >
@@ -175,10 +190,29 @@ export default function Topbar({
           ) : actions ? (
             <div className="flex shrink-0 items-center gap-1">{actions}</div>
           ) : null}
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="shrink-0 md:hidden"
+            aria-label="Open navigation"
+            title="Open navigation"
+            onClick={handleMobileMenu}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
         </div>
 
         {bottom ? <div className="bg-background">{bottom}</div> : null}
       </header>
+
+      {!hasSidebarToggle && (
+        <MobileSidebar
+          open={mobileSidebarOpen}
+          onOpenChange={setMobileSidebarOpen}
+        />
+      )}
     </TooltipProvider>
   );
 }

@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-import { ArrowLeft, FileText } from "lucide-react";
+import { Eye } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { useRequireAuth } from "@/hooks/useRequireAuth";
@@ -11,10 +11,11 @@ import { useSpaces } from "@/hooks/space/useSpaces";
 import { usePostEditor } from "@/hooks/editor/usePostEditor";
 import { supabase } from "@/lib/supabase/client";
 
-import { Button } from "@/components/ui/button";
+import Topbar from "@/components/navigation/Topbar";
 import EditorHeader from "@/components/feed/editor/EditorHeader";
 import EditorFooter from "@/components/feed/editor/EditorFooter";
 import EditorContextSuggestions from "@/components/feed/editor/EditorContextSuggestions";
+import DocumentPreview from "@/components/feed/editor/DocumentPreview";
 
 const EditorContent = dynamic(
   () => import("@/components/feed/editor/EditorContent"),
@@ -26,12 +27,18 @@ export default function DocumentPage() {
   const { user, loading } = useRequireAuth();
   const { data: profile, isLoading: profileLoading } = useMyProfile();
   const { data: spaces = [], isLoading: spacesLoading } = useSpaces();
+
+  const routerReady = router.isReady;
   const postSlug =
     typeof router.query.post === "string" ? router.query.post : null;
+
   const [post, setPost] = useState(null);
-  const [postLoading, setPostLoading] = useState(Boolean(postSlug));
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [postLoading, setPostLoading] = useState(true);
 
   useEffect(() => {
+    if (!routerReady) return;
+
     if (!postSlug) {
       setPost(null);
       setPostLoading(false);
@@ -42,6 +49,7 @@ export default function DocumentPage() {
 
     async function loadPost() {
       setPostLoading(true);
+
       const { data, error } = await supabase.rpc("get_post_by_slug", {
         p_slug: postSlug,
       });
@@ -52,7 +60,8 @@ export default function DocumentPage() {
         console.error("Failed to load document post:", error);
         setPost(null);
       } else {
-        setPost(Array.isArray(data) ? data[0] : data);
+        const loadedPost = Array.isArray(data) ? data[0] : data;
+        setPost(loadedPost || null);
       }
 
       setPostLoading(false);
@@ -63,11 +72,14 @@ export default function DocumentPage() {
     return () => {
       cancelled = true;
     };
-  }, [postSlug]);
+  }, [routerReady, postSlug]);
 
-  const editor = usePostEditor(post, null);
+  const editor = usePostEditor(post, null, {
+    draftScope: "document",
+  });
 
   const isLoading =
+    !routerReady ||
     loading ||
     profileLoading ||
     spacesLoading ||
@@ -91,9 +103,9 @@ export default function DocumentPage() {
     router.replace("/");
   }
 
-  function handleCreated(post) {
-    if (post?.slug) {
-      router.push("/post/" + post.slug);
+  function handleCreated(savedPost) {
+    if (savedPost?.slug) {
+      router.push("/post/" + savedPost.slug);
       return;
     }
 
@@ -102,28 +114,22 @@ export default function DocumentPage() {
 
   return (
     <div className="flex h-dvh w-full flex-col overflow-hidden bg-background">
-      <header className="flex shrink-0 items-center justify-between px-4 py-3 sm:px-8">
-        <div className="flex min-w-0 items-center gap-3">
-          <Button
+      <Topbar
+        items={[{ label: "Document" }]}
+        title="Document"
+        showHome={false}
+        backHref="/"
+        actions={
+          <button
             type="button"
-            variant="ghost"
-            size="icon"
-            onClick={handleClose}
-            aria-label="Back to feed"
+            className="inline-flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors hover:bg-muted"
+            onClick={() => setPreviewOpen(true)}
           >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-
-          <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-muted-foreground" />
-            <span className="font-medium">Document</span>
-          </div>
-        </div>
-
-        <span className="text-xs text-muted-foreground">
-          {post ? "Edit document" : "New document"}
-        </span>
-      </header>
+            <Eye className="h-4 w-4" />
+            <span>Preview</span>
+          </button>
+        }
+      />
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <EditorHeader
@@ -157,7 +163,7 @@ export default function DocumentPage() {
 
         <EditorFooter
           mode="post"
-          item={null}
+          item={post}
           editor={editor}
           onClose={handleClose}
           onCreated={handleCreated}

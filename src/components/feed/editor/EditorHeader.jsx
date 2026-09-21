@@ -4,6 +4,7 @@ import Image from "next/image";
 
 import { Input } from "@/components/ui/input";
 import VisibilitySelector from "@/components/space/VisibilitySelector";
+import GovernanceSelector from "@/components/governance/GovernanceSelector";
 
 export default function EditorHeader({
   mode = "post",
@@ -15,7 +16,7 @@ export default function EditorHeader({
   const isPost = mode === "post";
 
   return (
-    <div className="flex min-w-0 shrink-0 items-center gap-3 px-4 py-3 pr-12">
+    <div className="mx-auto flex w-full max-w-6xl min-w-0 shrink-0 flex-wrap items-center gap-2 px-4 py-3 pr-12 sm:px-6">
       <Image
         src={profile?.avatar_url || "/user1.png"}
         width={40}
@@ -31,13 +32,14 @@ export default function EditorHeader({
           onChange={(event) => editor.setTitle(event.target.value)}
           aria-label="Post title"
           aria-required="true"
-          className="h-9 min-w-0 flex-1 border-none bg-transparent px-0 text-base font-medium shadow-none focus-visible:ring-0"
+          className="order-3 h-9 basis-full min-w-0 border-none bg-transparent px-0 text-base font-medium shadow-none focus-visible:ring-0 sm:order-none sm:basis-auto sm:flex-1"
         />
       )}
 
       {isPost && (
-        <div className="ml-auto shrink-0">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5">
           <VisibilitySelector editor={editor} spaces={spaces} />
+          <GovernanceSelector editor={editor} />
         </div>
       )}
     </div>

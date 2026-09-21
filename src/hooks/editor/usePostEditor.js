@@ -7,8 +7,15 @@ import { useUpdatePost } from "@/hooks/post/useUpdatePost";
 import { useDeletePost } from "@/hooks/post/useDeletePost";
 import { postSchema } from "@/schemas/feed/postSchema";
 
-export function usePostEditor(item = null, initialSpace = null) {
-  const editor = useEditor(item, initialSpace);
+export function usePostEditor(
+  item = null,
+  initialSpace = null,
+  options = {},
+) {
+  const editor = useEditor(item, initialSpace, {
+    draftScope: options.draftScope || "post",
+    draftContextId: options.draftContextId || initialSpace?.id || null,
+  });
   const { createPost } = useCreatePost();
   const { updatePost } = useUpdatePost();
   const { deletePost } = useDeletePost();

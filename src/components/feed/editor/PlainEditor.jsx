@@ -21,6 +21,11 @@ export default function PlainEditor({
     const textarea = textareaRef.current;
     if (!textarea) return;
 
+    if (window.matchMedia("(max-width: 639px)").matches) {
+      textarea.style.height = "100%";
+      return;
+    }
+
     textarea.style.height = "auto";
     textarea.style.height =
       Math.min(textarea.scrollHeight, window.innerHeight * 0.32) + "px";
@@ -30,7 +35,7 @@ export default function PlainEditor({
     const value = event.target.value;
     const textarea = textareaRef.current;
 
-    if (textarea) {
+    if (textarea && !window.matchMedia("(max-width: 639px)").matches) {
       textarea.style.height = "auto";
       textarea.style.height =
         Math.min(textarea.scrollHeight, window.innerHeight * 0.32) + "px";
@@ -56,7 +61,7 @@ export default function PlainEditor({
   }
 
   return (
-    <div className="flex min-h-0 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       {showTitle && (
         <div className="px-3 pt-3">
           <Input
@@ -76,7 +81,7 @@ export default function PlainEditor({
         value={content || ""}
         onChange={handleChange}
         onFocus={onFocus}
-        className="min-h-[76px] max-h-[32vh] resize-none overflow-y-auto border-none bg-transparent px-4 py-3 text-base shadow-none focus-visible:ring-0"
+        className="h-full min-h-0 flex-1 resize-none overflow-y-auto border-none bg-transparent px-4 py-3 text-base shadow-none focus-visible:ring-0 sm:h-auto sm:min-h-[76px] sm:max-h-[32vh] sm:flex-none"
       />
     </div>
   );
