@@ -9,6 +9,7 @@ import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { useSpaces } from "@/hooks/space/useSpaces";
 import { usePostEditor } from "@/hooks/editor/usePostEditor";
+import { supabase } from "@/lib/supabase/client";
 
 import { Button } from "@/components/ui/button";
 import EditorHeader from "@/components/feed/editor/EditorHeader";
@@ -25,10 +26,54 @@ export default function DocumentPage() {
   const { user, loading } = useRequireAuth();
   const { data: profile, isLoading: profileLoading } = useMyProfile();
   const { data: spaces = [], isLoading: spacesLoading } = useSpaces();
-  const editor = usePostEditor(null, null);
+  const postSlug =
+    typeof router.query.post === "string" ? router.query.post : null;
+  const [post, setPost] = useState(null);
+  const [postLoading, setPostLoading] = useState(Boolean(postSlug));
+
+  useEffect(() => {
+    if (!postSlug) {
+      setPost(null);
+      setPostLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadPost() {
+      setPostLoading(true);
+      const { data, error } = await supabase.rpc("get_post_by_slug", {
+        p_slug: postSlug,
+      });
+
+      if (cancelled) return;
+
+      if (error) {
+        console.error("Failed to load document post:", error);
+        setPost(null);
+      } else {
+        setPost(Array.isArray(data) ? data[0] : data);
+      }
+
+      setPostLoading(false);
+    }
+
+    loadPost();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [postSlug]);
+
+  const editor = usePostEditor(post, null);
 
   const isLoading =
-    loading || profileLoading || spacesLoading || !profile || !user;
+    loading ||
+    profileLoading ||
+    spacesLoading ||
+    postLoading ||
+    !profile ||
+    !user;
 
   if (isLoading) {
     return <div className="min-h-dvh bg-background" />;
