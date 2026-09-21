@@ -14,6 +14,39 @@ import EmptyState from "@/components/ui/empty-state";
 import { formatGovernanceDate, getGovernanceInitials } from "@/utils/governance";
 import { useGovernanceOrganizationContext } from "@/hooks/governance/useGovernanceOrganizationContext";
 
+
+function OrganizationResources({ governance, canEdit }) {
+  const [attachments, setAttachments] = useState([]);
+  const [links, setLinks] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Resources</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Documents, images, links and the organization address are managed from the organization page.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {canEdit ? (
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" size="sm">Add image</Button>
+            <Button type="button" variant="outline" size="sm">Add document</Button>
+            <Button type="button" variant="outline" size="sm">Add link</Button>
+            <Button type="button" variant="outline" size="sm">Add address</Button>
+            <Button type="button" variant="outline" size="sm">Manage geography</Button>
+          </div>
+        ) : null}
+        <EmptyState
+          className="min-h-0 rounded-lg border border-dashed p-8"
+          title="No organization resources added yet"
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
 function OrganizationUnit({ node, childrenByParent, canEdit, onSelect, expandedPath, onToggle }) {
   const children = childrenByParent.get(node.id) || [];
   const hasChildren = children.length > 0;
@@ -231,6 +264,8 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
             </div>
           </CardContent>
         </Card>
+
+        <OrganizationResources governance={governance} canEdit={canEdit} />
 
         <Tabs defaultValue="structure" className="space-y-4">
           <TabsList className="w-max max-w-full">
