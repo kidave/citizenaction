@@ -1,12 +1,21 @@
 "use client";
 
 import { useRef } from "react";
-
 import { Paperclip } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-export default function DocumentPicker({ onUpload, disabled = false, accept = ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" }) {
+export default function DocumentPicker({
+  onUpload,
+  disabled = false,
+  accept = ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt",
+}) {
   const inputRef = useRef(null);
 
   function handleChange(e) {
@@ -16,26 +25,19 @@ export default function DocumentPicker({ onUpload, disabled = false, accept = ".
 
     const attachments = files.map((file) => ({
       id: crypto.randomUUID(),
-
-      // Upload this to storage
       file,
-
-      // Preview
       url: URL.createObjectURL(file),
-
-      // Metadata
       name: file.name,
       type: file.type,
       size: file.size,
     }));
 
     onUpload?.(attachments);
-
     e.target.value = "";
   }
 
   return (
-    <>
+    <TooltipProvider>
       <input
         ref={inputRef}
         hidden
@@ -45,15 +47,22 @@ export default function DocumentPicker({ onUpload, disabled = false, accept = ".
         onChange={handleChange}
       />
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        disabled={disabled}
-        onClick={() => inputRef.current?.click()}
-      >
-        <Paperclip className="h-5 w-5" />
-      </Button>
-    </>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            disabled={disabled}
+            className="h-9 w-9 shrink-0"
+            onClick={() => inputRef.current?.click()}
+            aria-label="Add document"
+          >
+            <Paperclip className="h-5 w-5" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="top">Add document</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

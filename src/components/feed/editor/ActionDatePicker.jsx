@@ -16,6 +16,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -140,105 +146,123 @@ export default function ActionDatePicker({
   const hasValue = Boolean(value);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant={hasValue ? "secondary" : "ghost"}
-          size={showLabel ? "sm" : "icon"}
-          className={showLabel ? "gap-1.5" : "shrink-0"}
-          aria-label={hasValue ? "Edit action date" : "Add action date"}
-        >
-          <CalendarDays className="h-4 w-4" />
-          {showLabel && (
-            <span>
-              {hasValue ? formatActionDate(value, precision) : "Add date"}
-            </span>
-          )}
-        </Button>
-      </PopoverTrigger>
+    <TooltipProvider>
+      <Popover open={open} onOpenChange={setOpen}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant={hasValue ? "secondary" : "ghost"}
+                size={showLabel ? "sm" : "icon"}
+                className={showLabel ? "gap-1.5" : "h-9 w-9 shrink-0"}
+                aria-label={hasValue ? "Edit action date" : "Add action date"}
+              >
+                <CalendarDays className="h-5 w-5" />
+                {showLabel && (
+                  <span>
+                    {hasValue
+                      ? formatActionDate(value, precision)
+                      : "Add date"}
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            {hasValue
+              ? "Action date: " + formatActionDate(value, precision)
+              : "Add action date"}
+          </TooltipContent>
+        </Tooltip>
 
-      <PopoverContent align="start" className="w-[300px] p-3">
-        <div className="mb-3">
-          <div className="text-sm font-semibold">Action date</div>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Use only the precision you know.
-          </p>
-        </div>
+        <PopoverContent align="start" className="w-[300px] p-3">
+          <div className="mb-3">
+            <div className="text-sm font-semibold">Action date</div>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Use only the precision you know.
+            </p>
+          </div>
 
-        <div className="grid grid-cols-[1fr_1.25fr_0.8fr] gap-2">
-          <Select value={year} onValueChange={setYear}>
-            <SelectTrigger className="h-9 px-2.5 text-xs">
-              <SelectValue placeholder="Year" />
-            </SelectTrigger>
-            <SelectContent>
-              {years.map((option) => (
-                <SelectItem key={option} value={String(option)}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="grid grid-cols-[1fr_1.25fr_0.8fr] gap-2">
+            <Select value={year} onValueChange={setYear}>
+              <SelectTrigger className="h-9 px-2.5 text-xs">
+                <SelectValue placeholder="Year" />
+              </SelectTrigger>
+              <SelectContent>
+                {years.map((option) => (
+                  <SelectItem key={option} value={String(option)}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-          <Select value={month || "none"} onValueChange={handleMonthChange}>
-            <SelectTrigger className="h-9 px-2.5 text-xs">
-              <SelectValue placeholder="Month" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Any month</SelectItem>
-              {MONTHS.map((name, index) => (
-                <SelectItem key={name} value={String(index + 1)}>
-                  {name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <Select value={month || "none"} onValueChange={handleMonthChange}>
+              <SelectTrigger className="h-9 px-2.5 text-xs">
+                <SelectValue placeholder="Month" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Any month</SelectItem>
+                {MONTHS.map((name, index) => (
+                  <SelectItem key={name} value={String(index + 1)}>
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-          <Select
-            value={day || "none"}
-            onValueChange={(nextDay) =>
-              setDay(nextDay === "none" ? "" : nextDay)
-            }
-            disabled={!month}
-          >
-            <SelectTrigger className="h-9 px-2.5 text-xs">
-              <SelectValue placeholder="Day" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Any day</SelectItem>
-              {Array.from(
-                { length: daysInMonth },
-                (_, index) => index + 1,
-              ).map((option) => (
-                <SelectItem key={option} value={String(option)}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+            <Select
+              value={day || "none"}
+              onValueChange={(nextDay) =>
+                setDay(nextDay === "none" ? "" : nextDay)
+              }
+              disabled={!month}
+            >
+              <SelectTrigger className="h-9 px-2.5 text-xs">
+                <SelectValue placeholder="Day" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Any day</SelectItem>
+                {Array.from(
+                  { length: daysInMonth },
+                  (_, index) => index + 1,
+                ).map((option) => (
+                  <SelectItem key={option} value={String(option)}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        <div className="mt-3 flex items-center justify-between border-t pt-3">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setYear("");
-              setMonth("");
-              setDay("");
-              onChange?.({ value: null, precision: null });
-              setOpen(false);
-            }}
-          >
-            Clear
-          </Button>
+          <div className="mt-3 flex items-center justify-between border-t pt-3">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setYear("");
+                setMonth("");
+                setDay("");
+                onChange?.({ value: null, precision: null });
+                setOpen(false);
+              }}
+            >
+              Clear
+            </Button>
 
-          <Button type="button" size="sm" onClick={handleDone} disabled={!year}>
-            Done
-          </Button>
-        </div>
-      </PopoverContent>
-    </Popover>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleDone}
+              disabled={!year}
+            >
+              Done
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </TooltipProvider>
   );
 }

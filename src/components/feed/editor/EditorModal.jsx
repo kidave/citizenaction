@@ -53,9 +53,17 @@ export default function EditorModal({
     }
   }
 
+  const isNewPost = mode === "post" && !item;
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="flex h-full w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-4xl sm:rounded-xl">
+      <DialogContent
+        className={
+          isNewPost
+            ? "flex max-h-[80vh] min-h-[320px] w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:max-w-2xl sm:rounded-xl"
+            : "flex h-full max-h-[90vh] w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-4xl sm:rounded-xl"
+        }
+      >
         {loading ? (
           <EditorModalSkeleton />
         ) : (
@@ -85,11 +93,13 @@ export default function EditorModal({
                 showTitle={Boolean(item)}
               />
 
-              <EditorAttachments
-                attachments={editor.attachments}
-                setAttachments={editor.setAttachments}
-                links={editor.links}
-              />
+              <div className="mt-auto shrink-0">
+                <EditorAttachments
+                  attachments={editor.attachments}
+                  setAttachments={editor.setAttachments}
+                  links={editor.links}
+                />
+              </div>
             </div>
 
             <EditorFooter
@@ -99,7 +109,7 @@ export default function EditorModal({
               onClose={handleClose}
               onCreated={handleCreated}
               onDocumentMode={
-                mode === "post" && !item
+                isNewPost
                   ? () => {
                       handleClose();
                       router.push("/action");

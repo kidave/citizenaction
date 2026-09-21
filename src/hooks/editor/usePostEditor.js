@@ -26,6 +26,7 @@ export function usePostEditor(item = null, initialSpace = null) {
       lat: editor.lat,
       lng: editor.lng,
     });
+
     if (!result.success) {
       toast.error(result.error.issues[0]?.message || "Check the post details.");
       return;
@@ -55,6 +56,11 @@ export function usePostEditor(item = null, initialSpace = null) {
       const savedPost = item
         ? await updatePost({ postId: item.id, postData: payload })
         : await createPost(payload);
+
+      if (!item) {
+        editor.clearDraft();
+      }
+
       onSuccess?.(savedPost);
     } catch (error) {
       if (process.env.NODE_ENV !== "production") {
