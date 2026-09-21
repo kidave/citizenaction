@@ -9,7 +9,7 @@ import PostCardSkeleton from "@/components/skeletons/PostCardSkeleton";
 
 import PostCard from "@/components/feed/post/PostCard";
 import EditorModal from "@/components/feed/editor/EditorModal";
-import CreatePostTrigger from "@/components/feed/CreatePostTrigger";
+import CreatePostComposer from "@/components/feed/editor/CreatePostComposer";
 import FeedFilters from "@/components/feed/FeedFilters";
 
 import { Card } from "@/components/ui/card";
@@ -38,7 +38,6 @@ export default function Feed() {
 
   const [editingPost, setEditingPost] = useState(null);
 
-  const [createPostOpen, setCreatePostOpen] = useState(false);
 
   // --------------------------------
   // Initial loading
@@ -57,7 +56,7 @@ export default function Feed() {
         {/* CREATE POST */}
         {/* ================================= */}
 
-        <CreatePostTrigger onCreate={() => setCreatePostOpen(true)} />
+        <CreatePostComposer />
 
         {/* ================================= */}
         {/* SEARCH + CATEGORY */}
@@ -122,15 +121,6 @@ export default function Feed() {
         )}
       </div>
 
-      {/* ================================= */}
-      {/* CREATE MODAL */}
-      {/* ================================= */}
-
-      <EditorModal
-        mode="post"
-        isOpen={createPostOpen}
-        onClose={() => setCreatePostOpen(false)}
-      />
 
       {/* ================================= */}
       {/* EDIT MODAL */}
