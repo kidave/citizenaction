@@ -68,8 +68,8 @@ export default function LinkCard({ link, size = "default" }) {
         </div>
       )}
 
-      {!compact && (
-        <div className="min-h-0 flex-1 px-3 py-2">
+      {(
+        <div className={`min-h-0 flex-1 ${compact ? "px-2 py-1.5" : "px-3 py-2"}`}>
           <div className="mb-1 flex items-center gap-1.5">
             <ProviderIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <span className="truncate text-xs font-medium text-muted-foreground">
@@ -81,13 +81,13 @@ export default function LinkCard({ link, size = "default" }) {
           <div className="truncate text-xs font-medium leading-snug">{title}</div>
 
           {link.description && (
-            <div className="mt-1 line-clamp-1 text-[11px] text-muted-foreground">
+            <div className={`mt-1 line-clamp-1 text-muted-foreground ${compact ? "text-[10px]" : "text-[11px]"}`}>
               {link.description}
             </div>
           )}
 
           {shouldShowHostname(link) && (
-            <div className="mt-1 truncate text-[10px] text-muted-foreground">
+            <div className={`mt-1 truncate text-muted-foreground ${compact ? "text-[9px]" : "text-[10px]"}`}>
               {link.hostname}
             </div>
           )}
