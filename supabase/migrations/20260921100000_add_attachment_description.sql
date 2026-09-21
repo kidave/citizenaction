@@ -1,8 +1,6 @@
 alter table public.attachment
   add column if not exists description text;
 
-alter table public.attachment add column if not exists alt_text text;
-
 create or replace function public.upsert_post_attachments(
   p_post_id uuid,
   p_attachments jsonb default '[]'::jsonb
@@ -42,7 +40,6 @@ begin
     credit_name,
     credit_url,
     description,
-    alt_text,
     thumbnail_path,
     thumbnail_url
   )
@@ -61,7 +58,6 @@ begin
     nullif(value->>'credit_name', ''),
     nullif(value->>'credit_url', ''),
     nullif(value->>'description', ''),
-    nullif(value->>'alt_text', ''),
     nullif(value->>'thumbnail_path', ''),
     nullif(value->>'thumbnail_url', '')
   from jsonb_array_elements(coalesce(p_attachments, '[]'::jsonb)) as value;
@@ -92,7 +88,6 @@ select
         'credit_name', a.credit_name,
         'credit_url', a.credit_url,
         'description', a.description,
-        'alt_text', a.alt_text,
         'thumbnail_path', a.thumbnail_path,
         'thumbnail_url', a.thumbnail_url
       )
@@ -202,8 +197,7 @@ select
         'sort_order', a.sort_order,
         'credit_name', a.credit_name,
         'credit_url', a.credit_url,
-        'description', a.description,
-        'alt_text', a.alt_text
+        'description', a.description
       )
       order by a.sort_order asc, a.created_at asc
     )

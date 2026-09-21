@@ -13,7 +13,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-export function DateTimePicker({ value, onDateChange, mode = "datetime", disabled = false }) {
+export function DateTimePicker({ value, onDateChange, mode = "datetime" }) {
   const [open, setOpen] = React.useState(false);
 
   const date = value ? new Date(value) : undefined;
@@ -88,7 +88,6 @@ export function DateTimePicker({ value, onDateChange, mode = "datetime", disable
           <Button
             type="button"
             variant="outline"
-            disabled={disabled}
             className="w-full justify-between font-normal"
           >
             {getDateLabel()}
@@ -118,7 +117,6 @@ export function DateTimePicker({ value, onDateChange, mode = "datetime", disable
     return (
       <input
         type="time"
-        disabled={disabled}
         value={getTimeValue()}
         onChange={handleTimeChange}
         className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"

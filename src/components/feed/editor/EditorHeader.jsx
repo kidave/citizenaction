@@ -3,6 +3,7 @@
 import Image from "next/image";
 
 import VisibilitySelector from "@/components/space/VisibilitySelector";
+import EditorTips from "./EditorTips";
 
 export default function EditorHeader({
   mode = "post",
@@ -21,7 +22,10 @@ export default function EditorHeader({
       />
 
       {mode === "post" && (
-        <VisibilitySelector editor={editor} spaces={spaces} />
+        <>
+          <VisibilitySelector editor={editor} spaces={spaces} />
+          <div className="ml-auto"><EditorTips /></div>
+        </>
       )}
     </div>
   );

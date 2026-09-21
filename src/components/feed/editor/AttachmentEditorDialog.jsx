@@ -36,6 +36,7 @@ export default function AttachmentEditorDialog({
     setDraft({
       credit_name: current.credit_name ?? "",
       description: current.description ?? "",
+      alt_text: current.alt_text ?? "",
     });
   }, [current?.id, open]);
 
@@ -47,6 +48,7 @@ export default function AttachmentEditorDialog({
     onChange?.(index, {
       credit_name: draft.credit_name.trim(),
       description: draft.description.trim(),
+      alt_text: draft.alt_text.trim(),
     });
 
     onOpenChange?.(false);
@@ -149,6 +151,16 @@ export default function AttachmentEditorDialog({
                   }
                   placeholder="Add credit"
                 />
+              </div>
+
+              {current.mime_type?.startsWith("image/") && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Alt text</label>
+                  <Input value={draft?.alt_text ?? ""} onChange={(event) => setDraft((value) => ({ ...value, alt_text: event.target.value }))} placeholder="Describe the image for accessibility" />
+                </div>
+              )}
+
+              <div className="space-y-2">
               </div>
 
               <div className="space-y-2">
