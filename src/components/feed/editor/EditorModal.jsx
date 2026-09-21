@@ -62,7 +62,7 @@ export default function EditorModal({
   useEffect(() => {
     if (isDocumentPost && item?.slug) {
       onClose?.();
-      router.push("/document?post=" + encodeURIComponent(item.slug));
+      router.replace("/document?post=" + encodeURIComponent(item.slug));
     }
   }, [isDocumentPost, item?.slug]);
 
