@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Monitor, Smartphone, X } from "lucide-react";
+import { Monitor, Smartphone } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import EditorRenderer from "@/components/editor/EditorRenderer";
 
 function getAuthorName(profile) {
@@ -21,7 +21,7 @@ export default function DocumentPreview({ open, onOpenChange, title, contentJson
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-[92dvh] max-h-[92dvh] w-[96vw] max-w-6xl flex-col gap-0 overflow-hidden p-0">
         <div className="flex shrink-0 items-center justify-between border-b px-4 py-3 sm:px-5">
-          <div className="text-sm font-medium">Preview</div>
+          <DialogTitle className="text-sm font-medium">Preview</DialogTitle>
           <div className="flex items-center gap-1 rounded-lg border p-1">
             <Button type="button" variant={viewport === "desktop" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setViewport("desktop")}>
               <Monitor className="h-3.5 w-3.5" /><span className="hidden sm:inline">Desktop</span>
