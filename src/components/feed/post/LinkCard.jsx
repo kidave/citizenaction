@@ -80,17 +80,7 @@ export default function LinkCard({ link, size = "default" }) {
 
           <div className="truncate text-xs font-medium leading-snug">{title}</div>
 
-          {link.description && (
-            <div className={`mt-1 line-clamp-1 text-muted-foreground ${compact ? "text-[10px]" : "text-[11px]"}`}>
-              {link.description}
-            </div>
-          )}
 
-          {shouldShowHostname(link) && (
-            <div className={`mt-1 truncate text-muted-foreground ${compact ? "text-[9px]" : "text-[10px]"}`}>
-              {link.hostname}
-            </div>
-          )}
         </div>
       )}
     </a>
