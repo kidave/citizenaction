@@ -20,8 +20,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/lib/supabase/client";
 import { deleteGovernanceAttachments, moveGovernanceFile, uploadGovernanceAttachments } from "@/lib/supabase/storage";
 import { useImportGovernanceOrganizationImage } from "@/hooks/governance/useImportGovernanceOrganizationImage";
-import GovernanceEditorResources from "@/components/governance/GovernanceEditorResources";
-import EditorResourcePreview from "@/components/feed/editor/EditorResourcePreview";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 import { GOVERNANCE_STATUS_OPTIONS, GOVERNANCE_TYPES, formatGovernanceType, governanceRequiresValidTo } from "@/utils/governance";
 
@@ -71,8 +69,7 @@ export default function GovernanceOrganizationSheet({
   const [form, setForm] = useState(() => emptyForm(record));
   const [saving, setSaving] = useState(false);
   const [importingImage, setImportingImage] = useState(false);
-  const [pendingAttachments, setPendingAttachments] = useState([]);
-  const [removedAttachments, setRemovedAttachments] = useState([]);
+
   const [links, setLinks] = useState([]);
   const draftId = useId().replace(/:/g, "");
   const { createOrganization, updateOrganization } = useGovernanceCrud();
@@ -151,28 +148,6 @@ export default function GovernanceOrganizationSheet({
   const setField = (field, value) =>
     setForm((current) => ({ ...current, [field]: value }));
 
-  const updatePendingAttachments = (updater) => {
-    const next = typeof updater === "function" ? updater(pendingAttachments) : updater;
-    const nextIds = new Set(
-      next.filter((item) => !item.file && item.id).map((item) => item.id),
-    );
-    const removed = pendingAttachments.filter(
-      (item) => !item.file && item.id && !nextIds.has(item.id),
-    );
-
-    if (removed.length) {
-      setRemovedAttachments((current) => {
-        const existingIds = new Set(current.map((item) => item.id));
-        return [
-          ...current,
-          ...removed.filter((item) => !existingIds.has(item.id)),
-        ];
-      });
-    }
-
-    setPendingAttachments(next);
-  };
-
   const save = async () => {
     if (!form.name.trim()) return toast.error("Organization name is required");
     if (!form.type) return toast.error("Governance type is required");
@@ -216,78 +191,6 @@ export default function GovernanceOrganizationSheet({
       let finalRecord = saved;
 
       if (saved?.id) {
-        const newAttachments = pendingAttachments.filter((item) => item.file);
-
-        if (newAttachments.length) {
-          const uploaded = await uploadGovernanceAttachments(
-            saved.id,
-            newAttachments.map((item) => ({
-              file: item.file,
-              attachmentId: item.id,
-            })),
-          );
-
-          const rows = uploaded.map((item) => ({
-            id: item.attachmentId,
-            governance_id: saved.id,
-            storage_path: item.storage_path,
-            public_url: item.public_url,
-            thumbnail_path: item.thumbnail_path || null,
-            thumbnail_url: item.thumbnail_url || null,
-            file_name: item.file_name,
-            mime_type: item.mime_type,
-            file_size: item.file_size,
-            credit_name: item.credit_name || null,
-            width: item.width,
-            height: item.height,
-            duration: item.duration,
-            sort_order: pendingAttachments.findIndex(
-              (candidate) => candidate.id === item.attachmentId,
-            ),
-          }));
-
-          const { error } = await supabase.from("attachment").insert(rows);
-          if (error) {
-            await deleteGovernanceAttachments(uploaded);
-            throw error;
-          }
-        }
-      }
-      if (saved?.id) {
-        const newLinks = links.filter((link) => !link.id);
-        if (newLinks.length) {
-          const { error } = await supabase
-            .from("link")
-            .insert(
-              newLinks.map((link, index) => ({
-                governance_id: saved.id,
-                url: link.url,
-                type: link.type || null,
-                title: link.title || null,
-                description: link.description || null,
-                hostname: link.hostname || null,
-                image_url: link.image_url || null,
-                icon_url: link.icon_url || null,
-                sort_order: index,
-              })),
-            );
-          if (error) throw error;
-        }
-      }
-
-      if (saved?.id && removedAttachments.length) {
-        const { error } = await supabase
-          .from("attachment")
-          .delete()
-          .in(
-            "id",
-            removedAttachments.map((attachment) => attachment.id),
-          );
-
-        if (error) throw error;
-
-        await deleteGovernanceAttachments(removedAttachments);
-      }
 
       if (!isEditing && form.imageUrl && saved?.id) {
         const marker = "/storage/v1/object/public/governance/";
@@ -484,8 +387,7 @@ export default function GovernanceOrganizationSheet({
           size="compact"
         />
 
-        <SheetFooter className="relative z-10 flex-row shrink-0 items-center justify-between gap-3 border-t bg-background px-5 py-4 sm:px-6">
-          <GovernanceEditorResources address={form.address} onAddressChange={(value) => setField("address", value)} links={links} onLinksChange={setLinks} onFiles={(files) => setPendingAttachments((current) => [...current, ...files])} disabled={busy} />
+        <SheetFooter className="relative z-10 flex-row shrink-0 items-center justify-end gap-2 border-t bg-background px-5 py-4 sm:px-6">
           <div className="flex shrink-0 items-center gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={busy}>Cancel</Button>
             <Button type="button" onClick={save} disabled={busy}>{busy ? (importingImage ? "Importing image..." : "Saving...") : isEditing ? "Save changes" : "Create organization"}</Button>
