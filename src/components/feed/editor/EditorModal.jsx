@@ -54,16 +54,11 @@ export default function EditorModal({
   }
 
   const isNewPost = mode === "post" && !item;
+  const usePlainComposer = mode === "post" || mode === "contribution";
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent
-        className={
-          isNewPost
-            ? "flex h-dvh max-h-dvh min-h-0 w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-auto sm:max-h-[80vh] sm:min-h-[320px] sm:max-w-2xl sm:rounded-xl"
-            : "flex h-full max-h-[90vh] w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-4xl sm:rounded-xl"
-        }
-      >
+      <DialogContent className="flex h-dvh max-h-dvh min-h-0 w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-auto sm:max-h-[80vh] sm:min-h-[320px] sm:max-w-2xl sm:rounded-xl">
         {loading ? (
           <EditorModalSkeleton />
         ) : (
@@ -91,7 +86,7 @@ export default function EditorModal({
                 addAttachments={editor.addAttachments}
                 documentMode={false}
                 showTitle={false}
-                forcePlain={isNewPost}
+                forcePlain={usePlainComposer}
               />
 
               <div className="mt-auto shrink-0">
