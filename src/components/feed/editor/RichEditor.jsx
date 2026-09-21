@@ -204,14 +204,20 @@ export default function RichEditor({
   }, [documentMode, setContent, setContentFormat, setContentJson]);
 
   return (
-    <div className={`flex min-h-0 flex-col ${documentMode ? "h-full flex-1" : ""}`}>
+    <div
+      className={
+        documentMode
+          ? "flex h-full min-h-0 flex-1 flex-col"
+          : "flex min-h-0 flex-col"
+      }
+    >
       {showTitle && (
-        <div className="px-3 pt-3 sm:px-0">
+        <div className="shrink-0 px-4 pt-5 sm:px-6 sm:pt-7">
           <Input
             placeholder="Document title..."
             value={title}
             onChange={(event) => setTitle(event.target.value)}
-            className="h-12 border-none bg-transparent px-0 text-2xl font-semibold shadow-none focus-visible:ring-0 sm:text-3xl"
+            className="h-auto border-none bg-transparent px-0 py-0 text-3xl font-semibold leading-tight shadow-none focus-visible:ring-0 sm:text-4xl"
             onFocus={onFocus}
           />
         </div>
@@ -222,7 +228,7 @@ export default function RichEditor({
         onFocus={onFocus}
         className={
           documentMode
-            ? "editorjs-container min-h-0 flex-1 overflow-y-auto px-2 pb-8 sm:px-4 [&_.codex-editor]:!h-auto [&_.codex-editor]:!min-h-0 [&_.codex-editor__redactor]:!h-auto [&_.codex-editor__redactor]:!min-h-0 [&_.codex-editor__redactor]:!pb-8"
+            ? "editorjs-container min-h-0 flex-1 overflow-y-auto px-4 pb-12 pt-4 sm:px-6 sm:pt-5 [&_.codex-editor]:!h-auto [&_.codex-editor]:!min-h-0 [&_.codex-editor__redactor]:!h-auto [&_.codex-editor__redactor]:!min-h-0 [&_.codex-editor__redactor]:!max-w-none [&_.ce-block__content]:!max-w-none [&_.ce-toolbar__content]:!max-w-none [&_.codex-editor__redactor]:!pb-12"
             : "editorjs-container h-fit min-h-[76px] max-h-[60vh] overflow-y-auto px-2 pb-2 sm:px-4 [&_.codex-editor]:!h-auto [&_.codex-editor]:!min-h-0 [&_.codex-editor__redactor]:!h-auto [&_.codex-editor__redactor]:!min-h-0 [&_.codex-editor__redactor]:!pb-0"
         }
       />
