@@ -89,9 +89,6 @@ export default function GovernanceOrganizationSheet({
     const load = async () => {
       setSaving(false);
       setImportingImage(false);
-      setPendingAttachments([]);
-      setRemovedAttachments([]);
-      setLinks([]);
 
       if (!record?.id) {
         setForm(emptyForm(null));
@@ -114,28 +111,7 @@ export default function GovernanceOrganizationSheet({
 
       setForm(emptyForm(data));
 
-      const { data: linkData } = await supabase
-        .from("link")
-        .select("*")
-        .eq("governance_id", record.id)
-        .order("sort_order", { ascending: true })
-        .order("created_at", { ascending: true });
-
-      const { data: attachmentData, error: attachmentError } = await supabase
-        .from("attachment")
-        .select("id,governance_id,storage_path,public_url,thumbnail_path,thumbnail_url,file_name,mime_type,file_size,credit_name,width,height,duration,sort_order")
-        .eq("governance_id", record.id)
-        .order("sort_order", { ascending: true })
-        .order("created_at", { ascending: true });
-
       if (cancelled) return;
-
-      if (attachmentError) {
-        toast.error(attachmentError.message || "Unable to load organization resources");
-      }
-
-      setLinks(linkData || []);
-      setPendingAttachments(attachmentData || []);
     };
 
     load();
@@ -189,8 +165,6 @@ export default function GovernanceOrganizationSheet({
       }
 
       let finalRecord = saved;
-
-      if (saved?.id) {
 
       if (!isEditing && form.imageUrl && saved?.id) {
         const marker = "/storage/v1/object/public/governance/";
