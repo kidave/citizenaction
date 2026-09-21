@@ -1,10 +1,11 @@
 "use client";
 
-import { X } from "lucide-react";
+import { Check, X } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 import { getFileExtension, formatFileSize } from "@/utils/attachment";
 
 import AttachmentPreview from "@/components/attachment/AttachmentPreview";
@@ -22,6 +23,23 @@ export default function AttachmentCard({
   className,
   size = "default",
 }) {
+  const [editingCredit, setEditingCredit] = useState(false);
+  const [creditDraft, setCreditDraft] = useState(attachment.credit_name ?? "");
+
+  useEffect(() => {
+    if (!editingCredit) setCreditDraft(attachment.credit_name ?? "");
+  }, [attachment.credit_name, editingCredit]);
+
+  const saveCredit = () => {
+    onCreditNameChange?.(index, creditDraft.trim());
+    setEditingCredit(false);
+  };
+
+  const cancelCredit = () => {
+    setCreditDraft(attachment.credit_name ?? "");
+    setEditingCredit(false);
+  };
+
   return (
     <div
       onMouseEnter={() => setHovered(index)}
@@ -79,26 +97,64 @@ export default function AttachmentCard({
             {attachment.file_name}
           </p>
 
-          <Input
-            value={attachment.credit_name ?? ""}
-            placeholder="Add credit"
-            onChange={(e) => onCreditNameChange?.(index, e.target.value)}
-            className="h-4 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
-          />
-
-          <div className="space-y-0.5 text-xs text-muted-foreground">
-            <p>
-              {getFileExtension(
-                attachment.file_name || attachment.file?.name || "",
-              )}{" "}
-              •{" "}
-              {formatFileSize(
-                attachment.file_size ?? attachment.file?.size ?? null,
-              )}
-            </p>
-
-            {attachment.credit_name && (
-              <p className="truncate">{attachment.credit_name}</p>
+          <div className="flex min-w-0 items-center gap-1">
+            {editingCredit ? (
+              <>
+                <Input
+                  autoFocus
+                  value={creditDraft}
+                  placeholder="Add credit"
+                  onChange={(e) => setCreditDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      saveCredit();
+                    }
+                    if (e.key === "Escape") {
+                      e.preventDefault();
+                      cancelCredit();
+                    }
+                  }}
+                  className="h-7 min-w-0 flex-1 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 shrink-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    saveCredit();
+                  }}
+                  aria-label="Save credit"
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 shrink-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    cancelCredit();
+                  }}
+                  aria-label="Cancel credit edit"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="min-w-0 truncate text-left text-xs text-muted-foreground hover:text-foreground"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingCredit(true);
+                }}
+              >
+                {attachment.credit_name || "Add credit"}
+              </button>
             )}
           </div>
         </div>
