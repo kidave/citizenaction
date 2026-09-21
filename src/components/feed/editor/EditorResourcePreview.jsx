@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
 import AttachmentCarousel from "@/components/attachment/AttachmentCarousel";
-import AttachmentEditorDialog from "./AttachmentEditorDialog";
 
 export default function EditorResourcePreview({
   attachments = [],
@@ -12,7 +10,6 @@ export default function EditorResourcePreview({
   showMetadata = true,
   size = "sm",
 }) {
-  const [editingIndex, setEditingIndex] = useState(null);
   const itemCount = (attachments?.length || 0) + (links?.length || 0);
 
   if (!itemCount) return null;
@@ -47,25 +44,11 @@ export default function EditorResourcePreview({
           removable={removable}
           size={size}
           onAttachmentClick={() => {}}
-          onEdit={(index) => setEditingIndex(index)}
+          onEdit={() => {}}
           onRemove={removeAttachment}
           onCreditNameChange={(index, value) =>
-            updateAttachment(index, { credit_name: value })
+            updateAttachment(index, typeof value === "string" ? { credit_name: value } : value)
           }
         />
       </div>
-
-      <AttachmentEditorDialog
-        attachments={attachments}
-        open={editingIndex !== null}
-        index={editingIndex ?? 0}
-        onOpenChange={(open) => {
-          if (!open) setEditingIndex(null);
-        }}
-        onChange={updateAttachment}
-        onRemove={removeAttachment}
-        onIndexChange={setEditingIndex}
-      />
     </>
-  );
-}

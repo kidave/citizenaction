@@ -24,22 +24,17 @@ export default function AttachmentCard({
   className,
   size = "default",
 }) {
-  const [editingCredit, setEditingCredit] = useState(false);
+  const [editingMetadata, setEditingMetadata] = useState(false);
   const [creditDraft, setCreditDraft] = useState(attachment.credit_name ?? "");
+  const [altTextDraft, setAltTextDraft] = useState(attachment.alt_text ?? "");
+  const isImage = attachment.mime_type?.startsWith("image/");
 
   useEffect(() => {
-    if (!editingCredit) setCreditDraft(attachment.credit_name ?? "");
-  }, [attachment.credit_name, editingCredit]);
+    if (!editingMetadata) { setCreditDraft(attachment.credit_name ?? ""); setAltTextDraft(attachment.alt_text ?? ""); }
+  }, [attachment.credit_name, attachment.alt_text, editingMetadata]);
 
-  const saveCredit = () => {
-    onCreditNameChange?.(index, creditDraft.trim());
-    setEditingCredit(false);
-  };
-
-  const cancelCredit = () => {
-    setCreditDraft(attachment.credit_name ?? "");
-    setEditingCredit(false);
-  };
+  const saveMetadata = () => { onCreditNameChange?.(index, { credit_name: creditDraft.trim(), ...(isImage ? { alt_text: altTextDraft.trim() } : {}) }); setEditingMetadata(false); };
+  const cancelMetadata = () => { setCreditDraft(attachment.credit_name ?? ""); setAltTextDraft(attachment.alt_text ?? ""); setEditingMetadata(false); };
 
   return (
     <div
@@ -58,7 +53,7 @@ export default function AttachmentCard({
       {/* Preview */}
 
       <div
-        onClick={() => onClick?.(index)}
+        onClick={() => { setHovered(null); onClick?.(index); }}
         className={cn(
           "relative cursor-pointer overflow-hidden bg-muted",
           size === "compact" || size === "sm"
@@ -78,7 +73,7 @@ export default function AttachmentCard({
             className="absolute left-2 top-2 z-10 rounded-full bg-background/90 px-3 font-semibold shadow-sm backdrop-blur"
             onClick={(e) => {
               e.stopPropagation();
-              onEdit(index);
+              setHovered(null); onEdit(index);
             }}
           >
             <Pencil className="mr-1.5 h-3.5 w-3.5" />
@@ -114,36 +109,28 @@ export default function AttachmentCard({
             {attachment.file_name}
           </p>
 
-          <div className="flex min-w-0 items-center gap-1">
-            {editingCredit ? (
+          <div className="space-y-2">
+            {editingMetadata ? (
               <>
                 <Input
                   autoFocus
                   value={creditDraft}
-                  placeholder="Add credit"
+                  placeholder="Credit name"
                   onChange={(e) => setCreditDraft(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      saveCredit();
-                    }
-                    if (e.key === "Escape") {
-                      e.preventDefault();
-                      cancelCredit();
-                    }
+                    if (e.key === "Enter") { e.preventDefault(); saveMetadata(); }
+                    if (e.key === "Escape") { e.preventDefault(); cancelMetadata(); }
                   }}
                   className="h-7 min-w-0 flex-1 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
                 />
+                {isImage && <Input value={altTextDraft} placeholder="Alt text for this image" onChange={(e) => setAltTextDraft(e.target.value)} className="h-8 text-xs" />}
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
                   className="h-7 w-7 shrink-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    saveCredit();
-                  }}
-                  aria-label="Save credit"
+                  onClick={(e) => { e.stopPropagation(); saveMetadata(); }}
+                  aria-label="Save attachment metadata"
                 >
                   <Check className="h-4 w-4" />
                 </Button>
@@ -154,9 +141,9 @@ export default function AttachmentCard({
                   className="h-7 w-7 shrink-0"
                   onClick={(e) => {
                     e.stopPropagation();
-                    cancelCredit();
+                    cancelMetadata();
                   }}
-                  aria-label="Cancel credit edit"
+                  aria-label="Cancel metadata edit"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -167,7 +154,7 @@ export default function AttachmentCard({
                 className="min-w-0 truncate text-left text-xs text-muted-foreground hover:text-foreground"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setEditingCredit(true);
+                  setHovered(null); setEditingMetadata(true);
                 }}
               >
                 {attachment.credit_name || "Add credit"}

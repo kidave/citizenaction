@@ -15,7 +15,7 @@ export function useUpdatePost() {
       try {
         const { data: existingAttachments, error: existingAttachmentsError } = await supabase
           .from("attachment")
-          .select("id,storage_path,thumbnail_path,thumbnail_url,public_url,file_name,mime_type,file_size,width,height,duration,sort_order,credit_name,credit_url")
+          .select("id,storage_path,thumbnail_path,thumbnail_url,public_url,file_name,mime_type,file_size,width,height,duration,sort_order,credit_name,credit_url,alt_text")
           .eq("post_id", postId)
           .is("contribution_id", null);
         if (existingAttachmentsError) throw existingAttachmentsError;
@@ -26,14 +26,14 @@ export function useUpdatePost() {
           .filter((attachment) => editorStoragePaths.has(attachment.storage_path))
           .map((attachment) => {
             const editorAttachment = editorAttachments.find((item) => item?.storage_path === attachment.storage_path);
-            return { ...attachment, thumbnail_path: attachment.thumbnail_path ?? null, thumbnail_url: attachment.thumbnail_url ?? null, credit_name: editorAttachment?.credit_name ?? attachment.credit_name ?? null, credit_url: editorAttachment?.credit_url ?? attachment.credit_url ?? null };
+            return { ...attachment, thumbnail_path: attachment.thumbnail_path ?? null, thumbnail_url: attachment.thumbnail_url ?? null, credit_name: editorAttachment?.credit_name ?? attachment.credit_name ?? null, credit_url: editorAttachment?.credit_url ?? attachment.credit_url ?? null, alt_text: editorAttachment?.alt_text ?? attachment.alt_text ?? null };
           });
         const newFiles = editorAttachments.filter((attachment) => !attachment?.storage_path && attachment?.file);
 
         if (newFiles.length) {
           toast.loading("Uploading attachments...", { id: "update-post" });
           const uploaded = await uploadPostAttachments(postId, newFiles);
-          newUploadedAttachments = uploaded.map((uploadedAttachment, index) => ({ ...uploadedAttachment, credit_name: newFiles[index]?.credit_name ?? null, credit_url: newFiles[index]?.credit_url ?? null, description: newFiles[index]?.description ?? null }));
+          newUploadedAttachments = uploaded.map((uploadedAttachment, index) => ({ ...uploadedAttachment, credit_name: newFiles[index]?.credit_name ?? null, credit_url: newFiles[index]?.credit_url ?? null, description: newFiles[index]?.description ?? null, alt_text: newFiles[index]?.alt_text ?? null }));
         }
 
         const finalAttachments = [...retainedAttachments, ...newUploadedAttachments].map((attachment, index) => ({ ...attachment, sort_order: index }));

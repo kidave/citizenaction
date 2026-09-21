@@ -110,6 +110,7 @@ export function useEditor(item = null, initialSpace = null) {
       credit_name: attachment.credit_name ?? "",
       credit_url: attachment.credit_url ?? "",
       description: attachment.description ?? "",
+      alt_text: attachment.alt_text ?? "",
       width: attachment.width ?? null,
       height: attachment.height ?? null,
       duration: attachment.duration ?? null,
