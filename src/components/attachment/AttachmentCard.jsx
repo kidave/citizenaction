@@ -42,11 +42,9 @@ export default function AttachmentCard({
         onClick={() => onClick?.(index)}
         className={cn(
           "relative cursor-pointer overflow-hidden bg-muted",
-          size === "compact"
+          size === "compact" || size === "sm"
             ? "aspect-[16/9]"
-            : size === "sm"
-              ? "aspect-[4/3]"
-              : "aspect-square md:aspect-[16/10]",
+            : "aspect-square md:aspect-[16/10]",
         )}
       >
         <div className="relative h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.06]">
