@@ -33,7 +33,7 @@ export function useUpdatePost() {
         if (newFiles.length) {
           toast.loading("Uploading attachments...", { id: "update-post" });
           const uploaded = await uploadPostAttachments(postId, newFiles);
-          newUploadedAttachments = uploaded.map((uploadedAttachment, index) => ({ ...uploadedAttachment, credit_name: newFiles[index]?.credit_name ?? null, credit_url: newFiles[index]?.credit_url ?? null }));
+          newUploadedAttachments = uploaded.map((uploadedAttachment, index) => ({ ...uploadedAttachment, credit_name: newFiles[index]?.credit_name ?? null, credit_url: newFiles[index]?.credit_url ?? null, description: newFiles[index]?.description ?? null }));
         }
 
         const finalAttachments = [...retainedAttachments, ...newUploadedAttachments].map((attachment, index) => ({ ...attachment, sort_order: index }));
