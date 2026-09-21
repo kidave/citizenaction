@@ -76,7 +76,6 @@ export default function LinkCard({ link, size = "default" }) {
           <div className="truncate text-xs font-medium leading-snug">{title}</div>
 
 
-        </div>
       </div>
     </a>
   );
