@@ -253,7 +253,7 @@ export default function RichEditor({
         onFocus={onFocus}
         className={
           documentMode
-            ? "editorjs-container min-h-0 flex-1 overflow-y-auto px-2 pb-8 sm:px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&_.codex-editor]:!min-h-full [&_.codex-editor__redactor]:!min-h-0 [&_.codex-editor__redactor]:!pb-8 [&_.ce-block__content]:!max-w-3xl [&_.ce-toolbar__content]:!max-w-3xl"
+            ? "editorjs-container min-h-0 flex-1 overflow-y-auto px-2 pb-8 sm:px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&_.codex-editor]:!min-h-full [&_.codex-editor__redactor]:!min-h-0 [&_.codex-editor__redactor]:!pb-8 [&_.ce-block__content]:!max-w-3xl [&_.ce-toolbar__content]:!max-w-3xl [&_.ce-paragraph]:font-serif [&_.ce-paragraph]:text-lg [&_.ce-paragraph]:leading-7 [&_.ce-header]:font-serif [&_.ce-header]:font-semibold [&_.ce-header]:tracking-tight [&_.ce-header]:leading-snug [&_.ce-header]:text-xl [&_.ce-block]:mb-4 [&_.cdx-list]:font-serif [&_.cdx-list]:text-lg [&_.cdx-list]:leading-7"
             : "editorjs-container h-fit min-h-[76px] max-h-[60vh] overflow-y-auto px-2 pb-2 sm:px-4 [&_.codex-editor]:!h-auto [&_.codex-editor]:!min-h-0 [&_.codex-editor__redactor]:!h-auto [&_.codex-editor__redactor]:!min-h-0 [&_.codex-editor__redactor]:!pb-0"
         }
       />
