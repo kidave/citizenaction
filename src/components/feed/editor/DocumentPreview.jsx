@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Monitor, Smartphone, X as CloseIcon } from "lucide-react";
+import { Monitor, Smartphone } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -35,8 +35,8 @@ function buildPreviewPost({ title, contentJson, profile, spaces, governance }) {
 
 function PreviewCard({ post }) {
   return (
-    <article className="relative overflow-hidden border-b p-2">
-      <div className="relative z-10 flex flex-col gap-4 p-2">
+    <article className="relative overflow-hidden border-b p-0 sm:p-2">
+      <div className="relative z-10 flex flex-col gap-4 p-3 sm:p-2">
         <PostHeader post={post} canEdit={false} />
         <div className="transition-opacity">
           <div className="sm:rounded-3xl sm:bg-muted sm:p-4">
@@ -70,7 +70,7 @@ export default function DocumentPreview({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-[92dvh] max-h-[92dvh] w-[96vw] max-w-6xl flex-col gap-0 overflow-hidden p-0">
-        <div className="flex shrink-0 items-center justify-between border-b px-4 py-3 sm:px-5">
+        <div className="flex shrink-0 items-center justify-center border-b px-4 py-3 sm:px-5">
           <DialogTitle className="text-sm font-medium">Preview</DialogTitle>
 
           <div className="flex items-center gap-1 rounded-lg border p-1">
@@ -95,22 +95,11 @@ export default function DocumentPreview({
               <span className="hidden sm:inline">Mobile</span>
             </Button>
           </div>
-
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => onOpenChange?.(false)}
-            aria-label="Close preview"
-          >
-            <CloseIcon className="h-4 w-4" />
-          </Button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-auto bg-muted/40 p-4 sm:p-8">
+        <div className="min-h-0 flex-1 overflow-auto bg-muted/40 p-0 sm:p-8">
           {viewport === "mobile" ? (
-            <div className="mx-auto w-full max-w-[390px] overflow-hidden rounded-[2rem] border bg-background shadow-xl">
+            <div className="mx-auto min-h-full w-full max-w-[390px] overflow-hidden bg-background sm:min-h-0 sm:rounded-2xl sm:border sm:shadow-xl">
               <PreviewCard post={post} />
             </div>
           ) : (
