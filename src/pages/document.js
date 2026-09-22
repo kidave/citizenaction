@@ -161,6 +161,16 @@ export default function DocumentPage() {
           </div>
         </main>
 
+        <DocumentPreview
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+          title={editor.title}
+          contentJson={editor.contentJson}
+          profile={profile}
+          spaces={editor.spaces}
+          governance={editor.governance}
+        />
+
         <EditorFooter
           mode="post"
           item={post}
