@@ -129,19 +129,20 @@ export default function DocumentPage() {
       />
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <EditorHeader
-          mode="post"
-          profile={profile}
-          editor={editor}
-          spaces={spaces}
-          showTitle
-          documentMode
-        />
+        <main className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 sm:px-8">
+          <div className="mx-auto flex w-full max-w-6xl flex-col">
+            <EditorHeader
+              mode="post"
+              profile={profile}
+              editor={editor}
+              spaces={spaces}
+              showTitle
+              documentMode
+            />
 
-        <EditorContextSuggestions editor={editor} />
+            <EditorContextSuggestions editor={editor} />
 
-        <main className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 pb-4 sm:px-8">
-          <div className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col">
+            <div className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col">
             <EditorContent
               title={editor.title}
               setTitle={editor.setTitle}
@@ -156,6 +157,7 @@ export default function DocumentPage() {
               documentMode
               showTitle={false}
             />
+            </div>
           </div>
         </main>
 

@@ -33,7 +33,7 @@ export default function EditorHeader({
           onChange={(event) => editor.setTitle(event.target.value)}
           aria-label="Post title"
           aria-required="true"
-          className={`min-w-0 border-none bg-transparent px-0 font-medium shadow-none focus-visible:ring-0 ${documentMode ? "order-none flex-1 text-lg leading-tight sm:text-3xl" : "order-3 basis-full text-base sm:order-none sm:basis-auto sm:flex-1"}`}
+          className={`min-w-0 border-none bg-transparent px-0 font-medium shadow-none focus-visible:ring-0 ${documentMode ? "order-none flex-1 text-base leading-tight sm:text-3xl" : "order-3 basis-full text-base sm:order-none sm:basis-auto sm:flex-1"}`}
         />
       )}
 
