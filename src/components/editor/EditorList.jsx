@@ -9,8 +9,8 @@ export default function EditorList({ items = [], style = "unordered" }) {
     <ListTag
       className={
         style === "ordered"
-          ? "list-decimal space-y-1 pl-6 text-xs leading-relaxed"
-          : "list-disc space-y-1 pl-6 text-xs leading-relaxed"
+          ? "list-decimal space-y-1 pl-6 font-serif text-lg leading-7"
+          : "list-disc space-y-1 pl-6 font-serif text-lg leading-7"
       }
     >
       {items.map((item, index) => {
