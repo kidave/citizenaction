@@ -129,8 +129,8 @@ export default function DocumentPage() {
       />
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <main className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 sm:px-8">
-          <div className="mx-auto flex w-full max-w-6xl flex-col">
+        <main className="min-h-0 flex-1 overflow-hidden px-4 pb-0 sm:overflow-y-auto sm:px-8 sm:pb-4">
+          <div className="mx-auto flex h-full w-full max-w-6xl flex-col">
             <EditorHeader
               mode="post"
               profile={profile}
