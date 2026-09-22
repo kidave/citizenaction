@@ -12,6 +12,7 @@ export default function EditorHeader({
   editor,
   spaces = [],
   showTitle = true,
+  documentMode = false,
 }) {
   const isPost = mode === "post";
 
@@ -27,12 +28,12 @@ export default function EditorHeader({
 
       {isPost && showTitle && (
         <Input
-          placeholder="Post title..."
+          placeholder={documentMode ? "Document title..." : "Post title..."}
           value={editor.title || ""}
           onChange={(event) => editor.setTitle(event.target.value)}
           aria-label="Post title"
           aria-required="true"
-          className="order-3 h-9 basis-full min-w-0 border-none bg-transparent px-0 text-base font-medium shadow-none focus-visible:ring-0 sm:order-none sm:basis-auto sm:flex-1"
+          className={`min-w-0 border-none bg-transparent px-0 font-medium shadow-none focus-visible:ring-0 ${documentMode ? "order-none flex-1 text-lg leading-tight sm:text-3xl" : "order-3 basis-full text-base sm:order-none sm:basis-auto sm:flex-1"}`}
         />
       )}
 

@@ -134,7 +134,8 @@ export default function DocumentPage() {
           profile={profile}
           editor={editor}
           spaces={spaces}
-          showTitle={false}
+          showTitle
+          documentMode
         />
 
         <EditorContextSuggestions editor={editor} />
@@ -153,7 +154,7 @@ export default function DocumentPage() {
               attachments={editor.attachments}
               addAttachments={editor.addAttachments}
               documentMode
-              showTitle
+              showTitle={false}
             />
           </div>
         </main>
