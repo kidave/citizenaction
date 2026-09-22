@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Monitor, Smartphone, X } from "lucide-react";
+import { Monitor, Smartphone, X as CloseIcon } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,7 @@ export default function DocumentPreview({ open, onOpenChange, title, contentJson
             </Button>
           </div>
           <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => onOpenChange?.(false)} aria-label="Close preview">
-            <X className="h-4 w-4" />
+            <CloseIcon className="h-4 w-4" />
           </Button>
         </div>
 
