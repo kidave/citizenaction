@@ -52,6 +52,32 @@ export default function RichEditor({
     const holderElement = holderRef.current;
     if (!holderElement) return;
 
+    // Editor.js toolbar controls compete with the mobile virtual keyboard.
+    // If the user taps + or settings while the caret is active, first dismiss
+    // the keyboard without cancelling the toolbar click itself.
+    const handleToolbarPointerDown = (event) => {
+      const toolbarButton = event.target.closest(
+        ".ce-toolbar__plus, .ce-toolbar__settings-btn",
+      );
+
+      if (!toolbarButton) return;
+
+      const activeElement = document.activeElement;
+      const isEditorInput =
+        activeElement?.isContentEditable ||
+        activeElement?.closest?.(".ce-block__content");
+
+      if (isEditorInput) {
+        activeElement.blur();
+      }
+    };
+
+    holderElement.addEventListener(
+      "pointerdown",
+      handleToolbarPointerDown,
+      true,
+    );
+
     let cancelled = false;
 
     async function initializeEditor() {
@@ -199,6 +225,11 @@ export default function RichEditor({
       }
 
       editorRef.current = null;
+      holderElement.removeEventListener(
+        "pointerdown",
+        handleToolbarPointerDown,
+        true,
+      );
       holderElement.innerHTML = "";
     };
   }, [documentMode, setContent, setContentFormat, setContentJson]);
@@ -222,7 +253,7 @@ export default function RichEditor({
         onFocus={onFocus}
         className={
           documentMode
-            ? "editorjs-container min-h-0 flex-1 overflow-y-auto px-2 pb-8 sm:px-4 [&_.codex-editor]:!min-h-full [&_.codex-editor__redactor]:!min-h-0 [&_.codex-editor__redactor]:!pb-8 [&_.ce-block__content]:!max-w-3xl [&_.ce-toolbar__content]:!max-w-3xl"
+            ? "editorjs-container min-h-0 flex-1 overflow-y-auto px-2 pb-8 sm:px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&_.codex-editor]:!min-h-full [&_.codex-editor__redactor]:!min-h-0 [&_.codex-editor__redactor]:!pb-8 [&_.ce-block__content]:!max-w-3xl [&_.ce-toolbar__content]:!max-w-3xl"
             : "editorjs-container h-fit min-h-[76px] max-h-[60vh] overflow-y-auto px-2 pb-2 sm:px-4 [&_.codex-editor]:!h-auto [&_.codex-editor]:!min-h-0 [&_.codex-editor__redactor]:!h-auto [&_.codex-editor__redactor]:!min-h-0 [&_.codex-editor__redactor]:!pb-0"
         }
       />
