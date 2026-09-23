@@ -4,8 +4,8 @@ import { useRouter } from "next/router";
 
 import UserTopbar from "@/components/user/UserTopbar";
 
-import UserProfile from "@/components/profile/UserProfile";
-import EditProfile from "@/components/profile/EditProfile";
+import UserProfile from "@/components/user/UserProfile";
+import EditProfile from "@/components/user/EditProfile";
 
 export default function PublicProfilePage() {
   const router = useRouter();

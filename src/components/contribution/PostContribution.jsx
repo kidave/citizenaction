@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
-import ContributionCard from "@/components/feed/contribution/ContributionCard";
-import EditorModal from "@/components/feed/editor/EditorModal";
+import ContributionCard from "@/components/contribution/ContributionCard";
+import EditorModal from "@/components/editor/EditorModal";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { UserIdentity } from "@/components/profile/UserIdentity";
+import { UserIdentity } from "@/components/user/UserIdentity";
 
 export default function UserAvatarGroup({ users = [], max = 5 }) {
   if (!users?.length) return null;

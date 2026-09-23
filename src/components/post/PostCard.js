@@ -14,7 +14,7 @@ import PostAttachments from "./PostAttachments";
 import PostLinks from "./PostLinks";
 import PostFooter from "./PostFooter";
 
-import PostContribution from "@/components/feed/contribution/PostContribution";
+import PostContribution from "@/components/contribution/PostContribution";
 
 export default function PostCard({
   post,

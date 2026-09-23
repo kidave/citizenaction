@@ -12,7 +12,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import ImageUpload from "@/components/media/ImageUpload";
+import ImageUpload from "@/components/ui/ImageUpload";
 import { moveGovernanceFile } from "@/lib/supabase/storage";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -93,7 +93,9 @@ export default function GovernancePersonSheet({
         isEditing
           ? supabase
               .from("person")
-              .select("id,name,biography,website,image_url,profile_user_id,metadata")
+              .select(
+                "id,name,biography,website,image_url,profile_user_id,metadata",
+              )
               .eq("id", record.id)
               .single()
           : Promise.resolve({ data: null, error: null }),
@@ -249,9 +251,10 @@ export default function GovernancePersonSheet({
         const marker = "/storage/v1/object/public/governance/";
         const imageUrl = form.imageUrl.split("?")[0];
         const markerIndex = imageUrl.indexOf(marker);
-        const draftPath = markerIndex >= 0
-          ? decodeURIComponent(imageUrl.slice(markerIndex + marker.length))
-          : null;
+        const draftPath =
+          markerIndex >= 0
+            ? decodeURIComponent(imageUrl.slice(markerIndex + marker.length))
+            : null;
 
         if (draftPath?.startsWith(`person/draft-${draftId}`)) {
           const extension = draftPath.split(".").pop() || "jpg";
@@ -290,9 +293,7 @@ export default function GovernancePersonSheet({
           p_biography: form.biography.trim() || null,
           p_image_url: imported.imageUrl,
           p_profile_user_id:
-            form.profileUserId === "none"
-              ? null
-              : form.profileUserId || null,
+            form.profileUserId === "none" ? null : form.profileUserId || null,
           p_metadata: null,
         });
 
@@ -323,7 +324,10 @@ export default function GovernancePersonSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex w-full max-w-none flex-col gap-0 overflow-x-hidden p-0 sm:max-w-xl">
+      <SheetContent
+        side="right"
+        className="flex w-full max-w-none flex-col gap-0 overflow-x-hidden p-0 sm:max-w-xl"
+      >
         <SheetHeader className="border-b px-5 py-4 sm:px-6">
           <SheetTitle className="flex items-center gap-2">
             <UserRound className="h-4 w-4" />
@@ -332,133 +336,144 @@ export default function GovernancePersonSheet({
         </SheetHeader>
 
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 py-5 sm:px-6">
+          {loadingRecord ? (
+            <div className="space-y-3 py-4">
+              <div className="h-9 animate-pulse rounded-md bg-muted" />
+              <div className="h-20 animate-pulse rounded-md bg-muted" />
+              <div className="h-9 animate-pulse rounded-md bg-muted" />
+            </div>
+          ) : (
+            <div className="space-y-4 py-2">
+              <ImageUpload
+                bucket="governance"
+                path={imagePath}
+                value={form.imageUrl || null}
+                onChange={(value) => setField("imageUrl", value || "")}
+                label="Person image"
+                helperText="PNG, JPG or WebP · up to 5 MB"
+                disabled={busy}
+              />
 
-        {loadingRecord ? (
-          <div className="space-y-3 py-4">
-            <div className="h-9 animate-pulse rounded-md bg-muted" />
-            <div className="h-20 animate-pulse rounded-md bg-muted" />
-            <div className="h-9 animate-pulse rounded-md bg-muted" />
-          </div>
-        ) : (
-          <div className="space-y-4 py-2">
-            <ImageUpload
-              bucket="governance"
-              path={imagePath}
-              value={form.imageUrl || null}
-              onChange={(value) => setField("imageUrl", value || "")}
-              label="Person image"
-              helperText="PNG, JPG or WebP · up to 5 MB"
-              disabled={busy}
-            />
-
-            <div className="space-y-2">
-              <Label htmlFor="governance-person-image-url">
-                Or import from URL
-              </Label>
-              <div className="flex gap-2">
-                <Input
-                  id="governance-person-image-url"
-                  type="url"
-                  value={form.imageSourceUrl}
-                  onChange={(event) =>
-                    setField("imageSourceUrl", event.target.value)
-                  }
-                  placeholder="Paste Instagram image URL"
-                  disabled={busy}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.preventDefault();
-                      importImage();
+              <div className="space-y-2">
+                <Label htmlFor="governance-person-image-url">
+                  Or import from URL
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="governance-person-image-url"
+                    type="url"
+                    value={form.imageSourceUrl}
+                    onChange={(event) =>
+                      setField("imageSourceUrl", event.target.value)
                     }
-                  }}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={importImage}
-                  disabled={
-                    busy ||
-                    !form.imageSourceUrl.trim() ||
-                    !imageSourceIsValid ||
-                    !isEditing
-                  }
-                >
-                  {importingImage ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Link2 className="h-4 w-4" />
-                  )}
-                  <span className="hidden sm:inline">
-                    {importingImage ? "Importing..." : "Import"}
-                  </span>
-                </Button>
+                    placeholder="Paste Instagram image URL"
+                    disabled={busy}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        importImage();
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={importImage}
+                    disabled={
+                      busy ||
+                      !form.imageSourceUrl.trim() ||
+                      !imageSourceIsValid ||
+                      !isEditing
+                    }
+                  >
+                    {importingImage ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Link2 className="h-4 w-4" />
+                    )}
+                    <span className="hidden sm:inline">
+                      {importingImage ? "Importing..." : "Import"}
+                    </span>
+                  </Button>
+                </div>
+
+                {!isEditing && form.imageSourceUrl.trim() && (
+                  <p className="text-xs text-muted-foreground">
+                    The person will be created first, then the image will be
+                    imported automatically.
+                  </p>
+                )}
+
+                {!imageSourceIsValid && (
+                  <p className="text-xs text-destructive">
+                    Use an Instagram or Meta CDN image URL.
+                  </p>
+                )}
               </div>
 
-              {!isEditing && form.imageSourceUrl.trim() && (
+              <div className="space-y-2">
+                <Label htmlFor="governance-person-name">Name</Label>
+                <Input
+                  id="governance-person-name"
+                  value={form.name}
+                  onChange={(event) => setField("name", event.target.value)}
+                  placeholder="e.g. Jane Doe"
+                  disabled={busy}
+                  autoFocus
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Linked profile</Label>
+                <SearchableSelect
+                  value={form.profileUserId || "none"}
+                  onValueChange={(value) => setField("profileUserId", value)}
+                  options={profileOptions}
+                  placeholder="No linked profile"
+                  searchPlaceholder="Search profiles..."
+                  emptyText="No profiles found."
+                  disabled={busy}
+                />
                 <p className="text-xs text-muted-foreground">
-                  The person will be created first, then the image will be
-                  imported automatically.
+                  Link this governance person to an existing Citizen Action
+                  profile when they represent the same person.
                 </p>
-              )}
+              </div>
 
-              {!imageSourceIsValid && (
-                <p className="text-xs text-destructive">
-                  Use an Instagram or Meta CDN image URL.
-                </p>
-              )}
+              <div className="space-y-2">
+                <Label htmlFor="governance-person-biography">Biography</Label>
+                <Textarea
+                  id="governance-person-biography"
+                  value={form.biography}
+                  onChange={(event) =>
+                    setField("biography", event.target.value)
+                  }
+                  placeholder="Short biography or background"
+                  rows={4}
+                  disabled={busy}
+                />
+              </div>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="governance-person-name">Name</Label>
-              <Input
-                id="governance-person-name"
-                value={form.name}
-                onChange={(event) => setField("name", event.target.value)}
-                placeholder="e.g. Jane Doe"
-                disabled={busy}
-                autoFocus
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Linked profile</Label>
-              <SearchableSelect
-                value={form.profileUserId || "none"}
-                onValueChange={(value) => setField("profileUserId", value)}
-                options={profileOptions}
-                placeholder="No linked profile"
-                searchPlaceholder="Search profiles..."
-                emptyText="No profiles found."
-                disabled={busy}
-              />
-              <p className="text-xs text-muted-foreground">
-                Link this governance person to an existing Citizen Action profile
-                when they represent the same person.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="governance-person-biography">Biography</Label>
-              <Textarea
-                id="governance-person-biography"
-                value={form.biography}
-                onChange={(event) => setField("biography", event.target.value)}
-                placeholder="Short biography or background"
-                rows={4}
-                disabled={busy}
-              />
-            </div>
-</div>
-        )}
-
+          )}
         </div>
 
         <SheetFooter className="flex-row items-center justify-between gap-3 border-t px-5 py-4 sm:px-6">
-          <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={busy}>Cancel</Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange?.(false)}
+            disabled={busy}
+          >
+            Cancel
+          </Button>
           <Button type="button" onClick={save} disabled={busy || loadingRecord}>
             {loading
-              ? importingImage ? "Importing image..." : "Saving..."
-              : isEditing ? "Save changes" : "Create person"}
+              ? importingImage
+                ? "Importing image..."
+                : "Saving..."
+              : isEditing
+                ? "Save changes"
+                : "Create person"}
           </Button>
         </SheetFooter>
       </SheetContent>

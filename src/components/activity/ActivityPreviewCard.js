@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import AutoImageCarousel from "@/components/attachment/AutoImageCarousel";
 import GovernanceAvatarGroup from "@/components/governance/GovernanceAvatarGroup";
-import PostModal from "@/components/feed/post/PostModal";
+import PostModal from "@/components/post/PostModal";
 
 import {
   TIMELINE_FALLBACK_IMAGES,

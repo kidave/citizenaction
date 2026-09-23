@@ -9,9 +9,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
-import ContributorAvatarGroup from "@/components/feed/contribution/ContributorAvatarGroup";
-import PostShareButton from "@/components/feed/PostShareButton";
-import ContributionDrawer from "@/components/feed/contribution/ContributionDrawer";
+import ContributorAvatarGroup from "@/components/contribution/ContributorAvatarGroup";
+import PostShareButton from "@/components/post/PostShareButton";
+import ContributionDrawer from "@/components/contribution/ContributionDrawer";
 import { LoginModal } from "@/components/auth/LoginModal";
 
 import {

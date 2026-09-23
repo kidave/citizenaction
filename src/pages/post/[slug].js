@@ -8,13 +8,12 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { usePost } from "@/hooks/feed/usePost";
 import { useDeletePost } from "@/hooks/post/useDeletePost";
 
-import PostCard from "@/components/feed/post/PostCard";
-import PageHeader from "@/components/navigation/PageHeader";
+import PostCard from "@/components/post/PostCard";
+import PageHeader from "@/components/layout/PageHeader";
 
-const EditorModal = dynamic(
-  () => import("@/components/feed/editor/EditorModal"),
-  { ssr: false },
-);
+const EditorModal = dynamic(() => import("@/components/editor/EditorModal"), {
+  ssr: false,
+});
 
 export async function getServerSideProps({ params }) {
   const supabase = createServerSupabase();
@@ -85,7 +84,9 @@ export default function SinglePostPage({ postId, initialPost }) {
   if (isError) {
     return (
       <div className="mx-auto w-full max-w-4xl px-4 py-16 text-center">
-        <p className="text-sm text-muted-foreground">Unable to load this post.</p>
+        <p className="text-sm text-muted-foreground">
+          Unable to load this post.
+        </p>
       </div>
     );
   }

@@ -6,7 +6,7 @@ import { ArrowUpRight } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
-import PostCard from "@/components/feed/post/PostCard";
+import PostCard from "@/components/post/PostCard";
 
 export default function PostModal({ post, open, onOpenChange }) {
   const handleOpenChange = (nextOpen) => {

@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { FiMenu } from "react-icons/fi";
 
-import Logo from "@/components/layout/Logo";
+import Logo from "@/components/system/Logo";
 import { useAuth } from "@/context/AuthContext";
 
 import { Button } from "@/components/ui/button";

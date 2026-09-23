@@ -2,13 +2,13 @@
 
 import { useRouter } from "next/router";
 
-import PageHeader from "@/components/navigation/PageHeader";
+import PageHeader from "@/components/layout/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import Appearance from "@/components/system/Appearance";
 import Notifications from "@/components/system/Notification";
 import Support from "@/components/system/Support";
-import About from "@/components/system/About";
+import About from "@/components/about/About";
 import PrivacyPolicy from "@/components/system/PrivacyPolicy";
 
 export default function SettingsPage() {
@@ -45,10 +45,7 @@ export default function SettingsPage() {
     <div className="mx-auto w-full">
       <Tabs value={activeTab} onValueChange={changeTab}>
         <PageHeader
-          items={[
-            { label: "Home", href: "/" },
-            { label: "Settings" },
-          ]}
+          items={[{ label: "Home", href: "/" }, { label: "Settings" }]}
           title="Settings"
           bottom={navigation}
         />

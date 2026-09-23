@@ -7,7 +7,7 @@ import {
   AvatarFallback,
   AvatarGroup,
 } from "@/components/ui/avatar";
-import EntityListSheet from "@/components/profile/EntityListSheet";
+import EntityListSheet from "@/components/governance/EntityListSheet";
 import { getGovernanceInitials, getGovernanceLabel } from "@/utils/governance";
 
 export default function GovernanceAvatarGroup({

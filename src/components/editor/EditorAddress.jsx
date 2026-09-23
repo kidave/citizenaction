@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import SelectedLocation from "@/components/shared/SelectedLocation";
+import SelectedLocation from "@/components/geography/SelectedLocation";
 import { useEffect, useRef, useState } from "react";
 import { Search, MapPin } from "lucide-react";
 
@@ -14,10 +14,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-import LocationSearchInput from "@/components/shared/LocationSearchInput";
+import LocationSearchInput from "@/components/geography/LocationSearchInput";
 
 const LocationMapPreview = dynamic(
-  () => import("@/components/shared/LocationMapPreview"),
+  () => import("@/components/geography/LocationMapPreview"),
   { ssr: false },
 );
 
@@ -35,7 +35,12 @@ function useIsMobile() {
   return isMobile;
 }
 
-export default function EditorAddress({ editor, openOverride, onOpenChange, initialQuery = "" }) {
+export default function EditorAddress({
+  editor,
+  openOverride,
+  onOpenChange,
+  initialQuery = "",
+}) {
   const [open, setOpen] = useState(false);
   const [searchMode, setSearchMode] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -55,13 +60,18 @@ export default function EditorAddress({ editor, openOverride, onOpenChange, init
     setSearchValue(initialQuery || editor.address || "");
     setShowLocationDrawer(Boolean(editor.address));
     setDrawerSnap(null);
-    setSnapshot({ address: editor.address ?? null, lat: editor.lat ?? null, lng: editor.lng ?? null });
+    setSnapshot({
+      address: editor.address ?? null,
+      lat: editor.lat ?? null,
+      lng: editor.lng ?? null,
+    });
   }, [editor.address, editor.lat, editor.lng, initialQuery, pickerOpen]);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      ({ coords }) => setUserLocation({ lat: coords.latitude, lng: coords.longitude }),
+      ({ coords }) =>
+        setUserLocation({ lat: coords.latitude, lng: coords.longitude }),
       () => {},
       { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 },
     );
@@ -89,7 +99,10 @@ export default function EditorAddress({ editor, openOverride, onOpenChange, init
     setShowLocationDrawer(true);
     setDrawerSnap(null);
     if (reverseDebounceRef.current) clearTimeout(reverseDebounceRef.current);
-    reverseDebounceRef.current = setTimeout(() => reverseGeocode(lat, lng), 350);
+    reverseDebounceRef.current = setTimeout(
+      () => reverseGeocode(lat, lng),
+      350,
+    );
   }
 
   function handleSelect(location) {
@@ -173,7 +186,9 @@ export default function EditorAddress({ editor, openOverride, onOpenChange, init
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" align="start" className="max-w-sm">
-              <span className="block max-w-[280px] truncate">{locationSummary}</span>
+              <span className="block max-w-[280px] truncate">
+                {locationSummary}
+              </span>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -181,7 +196,9 @@ export default function EditorAddress({ editor, openOverride, onOpenChange, init
 
       <Dialog
         open={pickerOpen}
-        onOpenChange={(value) => (value ? setPickerOpen(true) : cancelLocationEdit())}
+        onOpenChange={(value) =>
+          value ? setPickerOpen(true) : cancelLocationEdit()
+        }
       >
         <DialogContent
           className={`h-dvh max-w-none overflow-hidden rounded-none p-0 sm:h-[90vh] sm:max-w-5xl sm:rounded-xl ${

@@ -10,7 +10,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import LinkManager from "@/components/feed/editor/LinkManager";
+import LinkManager from "@/components/editor/LinkManager";
 import ImagePicker from "@/components/attachment/ImagePicker";
 import DocumentPicker from "@/components/attachment/DocumentPicker";
 
@@ -79,10 +79,7 @@ export default function EditorFooter({
                   }
                 />
 
-                <LinkManager
-                  value={editor.links}
-                  onChange={editor.setLinks}
-                />
+                <LinkManager value={editor.links} onChange={editor.setLinks} />
               </>
             )}
 

@@ -5,8 +5,8 @@ import { MapPin } from "lucide-react";
 
 import ImagePicker from "@/components/attachment/ImagePicker";
 import DocumentPicker from "@/components/attachment/DocumentPicker";
-import EditorAddress from "@/components/feed/editor/EditorAddress";
-import LinkManager from "@/components/feed/editor/LinkManager";
+import EditorAddress from "@/components/editor/EditorAddress";
+import LinkManager from "@/components/editor/LinkManager";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -48,11 +48,7 @@ export default function GovernanceEditorResources({
   return (
     <>
       <div className="flex min-w-0 items-center gap-1">
-        <ImagePicker
-          accept="image/*"
-          onUpload={onFiles}
-          disabled={disabled}
-        />
+        <ImagePicker accept="image/*" onUpload={onFiles} disabled={disabled} />
         <DocumentPicker
           accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
           onUpload={onFiles}
@@ -67,7 +63,9 @@ export default function GovernanceEditorResources({
               className="shrink-0"
               onClick={() => setAddressOpen(true)}
               disabled={disabled}
-              aria-label={address ? "Change office address" : "Add office address"}
+              aria-label={
+                address ? "Change office address" : "Add office address"
+              }
             >
               <MapPin className="h-5 w-5" />
             </Button>

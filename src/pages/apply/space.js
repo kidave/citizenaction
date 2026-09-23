@@ -11,7 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 
 import { LoginModal } from "@/components/auth/LoginModal";
 import ApplicationTopbar from "@/components/application/ApplicationTopbar";
-import DotLottieAnimation from "@/components/ui/DotLottieAnimation";
+import DotLottieAnimation from "@/components/animation/DotLottieAnimation";
 import { spaceApplicationSchema } from "@/schemas/spaceApplication";
 import { supabase } from "@/lib/supabase/client";
 import {

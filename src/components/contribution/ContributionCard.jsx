@@ -1,12 +1,12 @@
 "use client";
 
-import { UserIdentity } from "@/components/profile/UserIdentity";
+import { UserIdentity } from "@/components/user/UserIdentity";
 import formatDate from "@/utils/date/formatDate";
-import PostActions from "@/components/feed/post/PostActions";
+import PostActions from "@/components/post/PostActions";
 
-import PostContent from "@/components/feed/post/PostContent";
-import PostMetadata from "@/components/feed/post/PostMetadata";
-import PostAttachments from "@/components/feed/post/PostAttachments";
+import PostContent from "@/components/post/PostContent";
+import PostMetadata from "@/components/post/PostMetadata";
+import PostAttachments from "@/components/post/PostAttachments";
 
 export default function ContributionCard({
   contribution,

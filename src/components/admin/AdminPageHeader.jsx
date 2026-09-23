@@ -1,4 +1,4 @@
-import Topbar from "@/components/navigation/Topbar";
+import Topbar from "@/components/layout/Topbar";
 
 export default function AdminPageHeader({
   items = [],
@@ -10,7 +10,11 @@ export default function AdminPageHeader({
 }) {
   return (
     <Topbar
-      items={[{ label: "Home", href: "/" }, { label: "Administration", href: "/admin" }, ...items]}
+      items={[
+        { label: "Home", href: "/" },
+        { label: "Administration", href: "/admin" },
+        ...items,
+      ]}
       title={title || items.at(-1)?.label || "Administration"}
       actions={actions}
       primaryActions={primaryActions}

@@ -1,4 +1,4 @@
-import ActivityPreviewCard from "@/components/feed/activity/ActivityPreviewCard";
+import ActivityPreviewCard from "@/components/activity/ActivityPreviewCard";
 import MemberCard from "@/components/space/MemberCard";
 
 import { getTimelineColorForMonth } from "@/config/timeline";

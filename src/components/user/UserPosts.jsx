@@ -4,7 +4,7 @@ import { FileText } from "lucide-react";
 
 import { useUserPosts } from "@/hooks/user/useUserPosts";
 
-import UserPostCard from "@/components/profile/UserPostCard";
+import UserPostCard from "@/components/user/UserPostCard";
 import UserPostsSkeleton from "@/components/skeletons/UserPostsSkeleton";
 
 export default function UserPosts({ userId }) {

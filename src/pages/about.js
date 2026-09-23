@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ScrollButton from "@/components/ui/ScrollButton";
-import DotLottieAnimation from "@/components/ui/DotLottieAnimation";
+import DotLottieAnimation from "@/components/animation/DotLottieAnimation";
 
 const faqs = [
   {

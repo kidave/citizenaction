@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { useSpaces } from "@/hooks/space/useSpaces";
 import { useUpdateSpace } from "@/hooks/space/useUpdateSpace";
 
-import ImageUpload from "@/components/media/ImageUpload";
+import ImageUpload from "@/components/ui/ImageUpload";
 
 import {
   Card,
@@ -23,7 +23,11 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
 export default function SpaceGeneralSettings({ spaceSlug }) {
-  const { data: space, isLoading, error } = useSpaces({
+  const {
+    data: space,
+    isLoading,
+    error,
+  } = useSpaces({
     slug: spaceSlug,
     privateAccess: true,
     includeInactive: true,
@@ -164,7 +168,9 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
           <div className="space-y-2">
             <Label htmlFor="space-slug">Space URL</Label>
             <div className="flex items-center gap-2">
-              <span className="shrink-0 text-sm text-muted-foreground">/space/</span>
+              <span className="shrink-0 text-sm text-muted-foreground">
+                /space/
+              </span>
               <Input
                 id="space-slug"
                 value={form.slug}
@@ -187,7 +193,9 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
             <Textarea
               id="space-description"
               value={form.description}
-              onChange={(event) => updateField("description", event.target.value)}
+              onChange={(event) =>
+                updateField("description", event.target.value)
+              }
               rows={5}
               maxLength={2000}
               disabled={isUpdating}
@@ -202,7 +210,9 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
       <Card>
         <CardHeader>
           <CardTitle>Contact</CardTitle>
-          <CardDescription>Public contact information for this Space.</CardDescription>
+          <CardDescription>
+            Public contact information for this Space.
+          </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-6">
@@ -234,7 +244,9 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
             <Input
               id="space-contact"
               value={form.contact_number}
-              onChange={(event) => updateField("contact_number", event.target.value)}
+              onChange={(event) =>
+                updateField("contact_number", event.target.value)
+              }
               disabled={isUpdating}
             />
           </div>
@@ -277,7 +289,9 @@ export default function SpaceGeneralSettings({ spaceSlug }) {
               id="space-primary-color"
               placeholder="#000000"
               value={form.primary_color}
-              onChange={(event) => updateField("primary_color", event.target.value)}
+              onChange={(event) =>
+                updateField("primary_color", event.target.value)
+              }
               disabled={isUpdating}
             />
           </div>

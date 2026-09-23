@@ -7,7 +7,7 @@ import { Loader2, Users } from "lucide-react";
 
 import { useSpaceAdmin } from "@/hooks/space/useSpaceAdmin";
 
-import PageHeader from "@/components/navigation/PageHeader";
+import PageHeader from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -19,7 +19,8 @@ export default function SpaceAdminPage() {
   const router = useRouter();
   const { space: slug } = router.query;
 
-  const { space, isLoading, error, accessDenied, isOwner } = useSpaceAdmin(slug);
+  const { space, isLoading, error, accessDenied, isOwner } =
+    useSpaceAdmin(slug);
 
   if (isLoading) {
     return <PageLoader />;
@@ -72,7 +73,9 @@ export default function SpaceAdminPage() {
           { label: "Administration" },
         ]}
         title="Administration"
-        actions={<Badge variant="secondary">{isOwner ? "Owner" : "Admin"}</Badge>}
+        actions={
+          <Badge variant="secondary">{isOwner ? "Owner" : "Admin"}</Badge>
+        }
       />
 
       <main className="mx-auto w-full max-w-4xl space-y-8 px-4 py-6 sm:px-6 sm:py-8">

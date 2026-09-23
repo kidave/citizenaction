@@ -9,7 +9,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import AttachmentCard from "./AttachmentCard";
-import LinkCard from "@/components/feed/post/LinkCard";
+import LinkCard from "@/components/post/LinkCard";
 
 export default function AttachmentCarousel({
   attachments = [],
@@ -132,9 +132,7 @@ export default function AttachmentCarousel({
                             <div
                               key={row}
                               className={
-                                size === "sm"
-                                  ? "aspect-[4/3]"
-                                  : "aspect-square"
+                                size === "sm" ? "aspect-[4/3]" : "aspect-square"
                               }
                             />
                           );
@@ -170,10 +168,7 @@ export default function AttachmentCarousel({
                 key={item.type + "-" + (item.data.id ?? index)}
                 className="basis-[260px] lg:basis-[280px]"
               >
-                {renderItem(
-                  item,
-                  item.type + "-" + (item.data.id ?? index),
-                )}
+                {renderItem(item, item.type + "-" + (item.data.id ?? index))}
               </CarouselItem>
             ))}
           </CarouselContent>

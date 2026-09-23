@@ -17,7 +17,7 @@ import {
 import { useSpaceFeed } from "@/hooks/space/useSpaceFeed";
 import { useSpaceMembers } from "@/hooks/space/useSpaceMembers";
 
-import ActivityPreviewCard from "@/components/feed/activity/ActivityPreviewCard";
+import ActivityPreviewCard from "@/components/activity/ActivityPreviewCard";
 import MetricCard from "@/components/ui/metric-card";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";

@@ -12,16 +12,27 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import ImageUpload from "@/components/media/ImageUpload";
+import ImageUpload from "@/components/ui/ImageUpload";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/lib/supabase/client";
 import { moveGovernanceFile } from "@/lib/supabase/storage";
 import { useImportGovernanceOrganizationImage } from "@/hooks/governance/useImportGovernanceOrganizationImage";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
-import { GOVERNANCE_STATUS_OPTIONS, GOVERNANCE_TYPES, formatGovernanceType, governanceRequiresValidTo } from "@/utils/governance";
+import {
+  GOVERNANCE_STATUS_OPTIONS,
+  GOVERNANCE_TYPES,
+  formatGovernanceType,
+  governanceRequiresValidTo,
+} from "@/utils/governance";
 
 function emptyForm(record) {
   return {
@@ -32,7 +43,9 @@ function emptyForm(record) {
     type: record?.type || "organization",
     categoryId: record?.category_id || "",
     status: record?.status || "active",
-    validFrom: record?.valid_from ? String(record.valid_from).slice(0, 10) : new Date().toISOString().slice(0, 10),
+    validFrom: record?.valid_from
+      ? String(record.valid_from).slice(0, 10)
+      : new Date().toISOString().slice(0, 10),
     validTo: record?.valid_to ? String(record.valid_to).slice(0, 10) : "",
     imageUrl: record?.image_url || "",
     imageSourceUrl: "",
@@ -46,13 +59,14 @@ function isSupportedImageSource(value) {
   try {
     const url = new URL(value);
     const host = url.hostname.toLowerCase();
-    return url.protocol === "https:" && (
-      host === "instagram.com" ||
-      host.endsWith(".instagram.com") ||
-      host === "cdninstagram.com" ||
-      host.endsWith(".cdninstagram.com") ||
-      host === "fbcdn.net" ||
-      host.endsWith(".fbcdn.net")
+    return (
+      url.protocol === "https:" &&
+      (host === "instagram.com" ||
+        host.endsWith(".instagram.com") ||
+        host === "cdninstagram.com" ||
+        host.endsWith(".cdninstagram.com") ||
+        host === "fbcdn.net" ||
+        host.endsWith(".fbcdn.net"))
     );
   } catch {
     return false;
@@ -96,7 +110,9 @@ export default function GovernanceOrganizationSheet({
 
       const { data, error } = await supabase
         .from("governance")
-        .select("id,name,short_name,description,website,email,phone,address,type,category_id,status,valid_from,valid_to,image_url")
+        .select(
+          "id,name,short_name,description,website,email,phone,address,type,category_id,status,valid_from,valid_to,image_url",
+        )
         .eq("id", record.id)
         .single();
 
@@ -128,7 +144,9 @@ export default function GovernanceOrganizationSheet({
     if (!form.type) return toast.error("Governance type is required");
     if (!form.validFrom) return toast.error("Valid from is required");
     if (requiresValidTo && !form.validTo) {
-      return toast.error("Add Valid to when the entity becomes inactive or deprecated");
+      return toast.error(
+        "Add Valid to when the entity becomes inactive or deprecated",
+      );
     }
     if (form.validTo && form.validTo < form.validFrom) {
       return toast.error("Valid to cannot be earlier than valid from");
@@ -169,9 +187,10 @@ export default function GovernanceOrganizationSheet({
         const marker = "/storage/v1/object/public/governance/";
         const imageUrl = form.imageUrl.split("?")[0];
         const markerIndex = imageUrl.indexOf(marker);
-        const draftPath = markerIndex >= 0
-          ? decodeURIComponent(imageUrl.slice(markerIndex + marker.length))
-          : null;
+        const draftPath =
+          markerIndex >= 0
+            ? decodeURIComponent(imageUrl.slice(markerIndex + marker.length))
+            : null;
 
         if (draftPath?.startsWith(`organization/draft-${draftId}/`)) {
           const extension = draftPath.split(".").pop() || "jpg";
@@ -187,8 +206,12 @@ export default function GovernanceOrganizationSheet({
       }
 
       if (form.imageSourceUrl.trim()) {
-        if (!imageSourceIsValid) throw new Error("Use an Instagram or Meta CDN image URL");
-        if (!saved?.id) throw new Error("Organization was saved but no organization ID was returned.");
+        if (!imageSourceIsValid)
+          throw new Error("Use an Instagram or Meta CDN image URL");
+        if (!saved?.id)
+          throw new Error(
+            "Organization was saved but no organization ID was returned.",
+          );
 
         setImportingImage(true);
         const imported = await importOrganizationImage({
@@ -205,7 +228,9 @@ export default function GovernanceOrganizationSheet({
         setImportingImage(false);
       }
 
-      toast.success(isEditing ? "Organization updated" : "Organization created");
+      toast.success(
+        isEditing ? "Organization updated" : "Organization created",
+      );
       await onSaved?.(finalRecord);
       onOpenChange?.(false);
     } catch (error) {
@@ -218,7 +243,10 @@ export default function GovernanceOrganizationSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-xl">
+      <SheetContent
+        side="right"
+        className="flex w-full flex-col gap-0 p-0 sm:max-w-xl"
+      >
         <SheetHeader className="border-b px-5 py-4 sm:px-6">
           <SheetTitle className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
@@ -230,7 +258,11 @@ export default function GovernanceOrganizationSheet({
           <div className="space-y-4">
             <ImageUpload
               bucket="governance"
-              path={isEditing ? `organization/${record.id}/logo` : `organization/draft-${draftId}/logo`}
+              path={
+                isEditing
+                  ? `organization/${record.id}/logo`
+                  : `organization/draft-${draftId}/logo`
+              }
               value={form.imageUrl || null}
               onChange={(value) => setField("imageUrl", value || "")}
               label="Organization logo"
@@ -244,7 +276,9 @@ export default function GovernanceOrganizationSheet({
                 <Input
                   type="url"
                   value={form.imageSourceUrl}
-                  onChange={(event) => setField("imageSourceUrl", event.target.value)}
+                  onChange={(event) =>
+                    setField("imageSourceUrl", event.target.value)
+                  }
                   placeholder="Paste Instagram image URL"
                   disabled={busy}
                 />
@@ -253,10 +287,16 @@ export default function GovernanceOrganizationSheet({
                     type="button"
                     variant="outline"
                     onClick={async () => {
-                      if (!imageSourceIsValid) return toast.error("Use an Instagram or Meta CDN image URL");
+                      if (!imageSourceIsValid)
+                        return toast.error(
+                          "Use an Instagram or Meta CDN image URL",
+                        );
                       try {
                         setImportingImage(true);
-                        const imported = await importOrganizationImage({ organizationId: record.id, sourceUrl: form.imageSourceUrl.trim() });
+                        const imported = await importOrganizationImage({
+                          organizationId: record.id,
+                          sourceUrl: form.imageSourceUrl.trim(),
+                        });
                         await updateOrganization({
                           p_entity_id: record.id,
                           p_name: form.name.trim(),
@@ -266,7 +306,9 @@ export default function GovernanceOrganizationSheet({
                           p_type: form.type,
                           p_status: form.status,
                           p_valid_from: `${form.validFrom}T00:00:00Z`,
-                          p_valid_to: form.validTo ? `${form.validTo}T23:59:59.999Z` : null,
+                          p_valid_to: form.validTo
+                            ? `${form.validTo}T23:59:59.999Z`
+                            : null,
                           p_category_id: form.categoryId || null,
                           p_image_url: imported.imageUrl,
                         });
@@ -279,82 +321,212 @@ export default function GovernanceOrganizationSheet({
                         setImportingImage(false);
                       }
                     }}
-                    disabled={busy || !form.imageSourceUrl.trim() || !imageSourceIsValid}
+                    disabled={
+                      busy || !form.imageSourceUrl.trim() || !imageSourceIsValid
+                    }
                   >
-                    {importingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
-                    <span className="hidden sm:inline">{importingImage ? "Importing..." : "Import"}</span>
+                    {importingImage ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Link2 className="h-4 w-4" />
+                    )}
+                    <span className="hidden sm:inline">
+                      {importingImage ? "Importing..." : "Import"}
+                    </span>
                   </Button>
                 )}
               </div>
-              {!imageSourceIsValid && <p className="text-xs text-destructive">Use an Instagram or Meta CDN image URL.</p>}
-              {!isEditing && form.imageSourceUrl.trim() && imageSourceIsValid && (
-                <p className="text-xs text-muted-foreground">The organization will be created first, then the image will be imported automatically.</p>
+              {!imageSourceIsValid && (
+                <p className="text-xs text-destructive">
+                  Use an Instagram or Meta CDN image URL.
+                </p>
               )}
+              {!isEditing &&
+                form.imageSourceUrl.trim() &&
+                imageSourceIsValid && (
+                  <p className="text-xs text-muted-foreground">
+                    The organization will be created first, then the image will
+                    be imported automatically.
+                  </p>
+                )}
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2 sm:col-span-2">
                 <Label>Name</Label>
-                <Input value={form.name} onChange={(event) => setField("name", event.target.value)} placeholder="e.g. Mumbai Metropolitan Region Development Authority" disabled={busy} autoFocus />
+                <Input
+                  value={form.name}
+                  onChange={(event) => setField("name", event.target.value)}
+                  placeholder="e.g. Mumbai Metropolitan Region Development Authority"
+                  disabled={busy}
+                  autoFocus
+                />
               </div>
               <div className="space-y-2">
                 <Label>Short name</Label>
-                <Input value={form.shortName} onChange={(event) => setField("shortName", event.target.value)} placeholder="e.g. MMRDA" disabled={busy} />
+                <Input
+                  value={form.shortName}
+                  onChange={(event) =>
+                    setField("shortName", event.target.value)
+                  }
+                  placeholder="e.g. MMRDA"
+                  disabled={busy}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Type</Label>
-                <Select value={form.type} onValueChange={(value) => setField("type", value)} disabled={busy}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{GOVERNANCE_TYPES.map((item) => <SelectItem key={item} value={item}>{formatGovernanceType(item)}</SelectItem>)}</SelectContent>
+                <Select
+                  value={form.type}
+                  onValueChange={(value) => setField("type", value)}
+                  disabled={busy}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {GOVERNANCE_TYPES.map((item) => (
+                      <SelectItem key={item} value={item}>
+                        {formatGovernanceType(item)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label>Category</Label>
-                <Select value={form.categoryId || "none"} onValueChange={(value) => setField("categoryId", value === "none" ? "" : value)} disabled={busy}>
-                  <SelectTrigger><SelectValue placeholder="No category" /></SelectTrigger>
-                  <SelectContent><SelectItem value="none">No category</SelectItem>{categories.map((category) => <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>)}</SelectContent>
+                <Select
+                  value={form.categoryId || "none"}
+                  onValueChange={(value) =>
+                    setField("categoryId", value === "none" ? "" : value)
+                  }
+                  disabled={busy}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="No category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No category</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label>Status</Label>
-                <Select value={form.status} onValueChange={(value) => setField("status", value)} disabled={busy}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{GOVERNANCE_STATUS_OPTIONS.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent>
+                <Select
+                  value={form.status}
+                  onValueChange={(value) => setField("status", value)}
+                  disabled={busy}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {GOVERNANCE_STATUS_OPTIONS.map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label>Valid from</Label>
-                <Input type="date" value={form.validFrom} onChange={(event) => setField("validFrom", event.target.value)} disabled={busy} />
+                <Input
+                  type="date"
+                  value={form.validFrom}
+                  onChange={(event) =>
+                    setField("validFrom", event.target.value)
+                  }
+                  disabled={busy}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Valid to</Label>
-                <Input type="date" value={form.validTo} onChange={(event) => setField("validTo", event.target.value)} disabled={busy} />
+                <Input
+                  type="date"
+                  value={form.validTo}
+                  onChange={(event) => setField("validTo", event.target.value)}
+                  disabled={busy}
+                />
               </div>
               <div className="space-y-2">
-                <Label>Email</Label><Input type="email" value={form.email} onChange={(event) => setField("email", event.target.value)} placeholder="office@example.gov.in" disabled={busy} />
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={form.email}
+                  onChange={(event) => setField("email", event.target.value)}
+                  placeholder="office@example.gov.in"
+                  disabled={busy}
+                />
               </div>
               <div className="space-y-2">
-                <Label>Phone</Label><Input type="tel" value={form.phone} onChange={(event) => setField("phone", event.target.value)} placeholder="+91 ..." disabled={busy} />
+                <Label>Phone</Label>
+                <Input
+                  type="tel"
+                  value={form.phone}
+                  onChange={(event) => setField("phone", event.target.value)}
+                  placeholder="+91 ..."
+                  disabled={busy}
+                />
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>Official website</Label>
-                <Input type="url" value={form.website} onChange={(event) => setField("website", event.target.value)} placeholder="https://..." disabled={busy} />
+                <Input
+                  type="url"
+                  value={form.website}
+                  onChange={(event) => setField("website", event.target.value)}
+                  placeholder="https://..."
+                  disabled={busy}
+                />
               </div>
               <div className="space-y-2 sm:col-span-2">
-                <Label>Office address</Label><Input value={form.address} onChange={(event) => setField("address", event.target.value)} placeholder="Office address" disabled={busy} />
+                <Label>Office address</Label>
+                <Input
+                  value={form.address}
+                  onChange={(event) => setField("address", event.target.value)}
+                  placeholder="Office address"
+                  disabled={busy}
+                />
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>What they do</Label>
-                <Textarea value={form.description} onChange={(event) => setField("description", event.target.value)} placeholder="What is this organization for?" rows={5} disabled={busy} />
+                <Textarea
+                  value={form.description}
+                  onChange={(event) =>
+                    setField("description", event.target.value)
+                  }
+                  placeholder="What is this organization for?"
+                  rows={5}
+                  disabled={busy}
+                />
               </div>
             </div>
           </div>
         </div>
 
-        <SheetFooter className="relative z-10 flex-row shrink-0 items-center justify-end gap-2 border-t bg-background px-5 py-4 sm:px-6">
+        <SheetFooter className="relative z-10 shrink-0 flex-row items-center justify-end gap-2 border-t bg-background px-5 py-4 sm:px-6">
           <div className="flex shrink-0 items-center gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={busy}>Cancel</Button>
-            <Button type="button" onClick={save} disabled={busy}>{busy ? (importingImage ? "Importing image..." : "Saving...") : isEditing ? "Save changes" : "Create organization"}</Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange?.(false)}
+              disabled={busy}
+            >
+              Cancel
+            </Button>
+            <Button type="button" onClick={save} disabled={busy}>
+              {busy
+                ? importingImage
+                  ? "Importing image..."
+                  : "Saving..."
+                : isEditing
+                  ? "Save changes"
+                  : "Create organization"}
+            </Button>
           </div>
         </SheetFooter>
       </SheetContent>

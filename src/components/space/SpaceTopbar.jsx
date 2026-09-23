@@ -1,4 +1,4 @@
-import Topbar from "@/components/navigation/Topbar";
+import Topbar from "@/components/layout/Topbar";
 
 export default function SpaceTopbar({
   items = [],

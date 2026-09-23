@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { useUpdateProfile } from "@/hooks/user/useUpdateProfile";
 
-import ImageUpload from "@/components/media/ImageUpload";
+import ImageUpload from "@/components/ui/ImageUpload";
 
 import { CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -107,23 +107,43 @@ export default function EditProfile() {
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="profile-name">Name</Label>
-            <Input id="profile-name" value={form.name} onChange={(event) => updateField("name", event.target.value)} />
+            <Input
+              id="profile-name"
+              value={form.name}
+              onChange={(event) => updateField("name", event.target.value)}
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="profile-username">Username</Label>
-            <Input id="profile-username" value={form.username} onChange={(event) => updateField("username", event.target.value)} />
-            <p className="text-xs text-muted-foreground">Your username is used for your profile URL.</p>
+            <Input
+              id="profile-username"
+              value={form.username}
+              onChange={(event) => updateField("username", event.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Your username is used for your profile URL.
+            </p>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="profile-designation">Designation</Label>
-            <Input id="profile-designation" value={form.designation} onChange={(event) => updateField("designation", event.target.value)} />
+            <Input
+              id="profile-designation"
+              value={form.designation}
+              onChange={(event) =>
+                updateField("designation", event.target.value)
+              }
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="profile-locality">Locality</Label>
-            <Input id="profile-locality" value={form.locality} onChange={(event) => updateField("locality", event.target.value)} />
+            <Input
+              id="profile-locality"
+              value={form.locality}
+              onChange={(event) => updateField("locality", event.target.value)}
+            />
           </div>
 
           <div className="space-y-3">
@@ -131,26 +151,80 @@ export default function EditProfile() {
               <Label htmlFor="profile-email">Email</Label>
               <Input id="profile-email" value={form.email} disabled />
             </div>
-            <div className={cn("flex items-center justify-between rounded-md border px-3 py-2.5 transition-colors", form.is_email_public ? "border-success/30 bg-success/5" : "border-destructive/30 bg-destructive/5")}>
+            <div
+              className={cn(
+                "flex items-center justify-between rounded-md border px-3 py-2.5 transition-colors",
+                form.is_email_public
+                  ? "border-success/30 bg-success/5"
+                  : "border-destructive/30 bg-destructive/5",
+              )}
+            >
               <div className="space-y-0.5">
-                <p className={cn("text-sm font-medium", form.is_email_public ? "text-success" : "text-destructive")}>{form.is_email_public ? "Visible on your profile" : "Hidden from your profile"}</p>
-                <p className="text-xs text-muted-foreground">{form.is_email_public ? "Others can see your email" : "Only you can see your email"}</p>
+                <p
+                  className={cn(
+                    "text-sm font-medium",
+                    form.is_email_public ? "text-success" : "text-destructive",
+                  )}
+                >
+                  {form.is_email_public
+                    ? "Visible on your profile"
+                    : "Hidden from your profile"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {form.is_email_public
+                    ? "Others can see your email"
+                    : "Only you can see your email"}
+                </p>
               </div>
-              <Switch checked={form.is_email_public} onCheckedChange={(checked) => updateField("is_email_public", checked)} />
+              <Switch
+                checked={form.is_email_public}
+                onCheckedChange={(checked) =>
+                  updateField("is_email_public", checked)
+                }
+              />
             </div>
           </div>
 
           <div className="space-y-3">
             <div className="space-y-2">
               <Label htmlFor="profile-mobile">Mobile</Label>
-              <Input id="profile-mobile" value={form.mobile} onChange={(event) => updateField("mobile", event.target.value)} />
+              <Input
+                id="profile-mobile"
+                value={form.mobile}
+                onChange={(event) => updateField("mobile", event.target.value)}
+              />
             </div>
-            <div className={cn("flex items-center justify-between rounded-md border px-3 py-2.5 transition-colors", form.is_mobile_public ? "border-success/30 bg-success/5" : "border-destructive/30 bg-destructive/5")}>
+            <div
+              className={cn(
+                "flex items-center justify-between rounded-md border px-3 py-2.5 transition-colors",
+                form.is_mobile_public
+                  ? "border-success/30 bg-success/5"
+                  : "border-destructive/30 bg-destructive/5",
+              )}
+            >
               <div className="space-y-0.5">
-                <p className={cn("text-sm font-medium", form.is_mobile_public ? "text-success" : "text-destructive")}>{form.is_mobile_public ? "Visible on your profile" : "Hidden from your profile"}</p>
-                <p className="text-xs text-muted-foreground">{form.is_mobile_public ? "Others can see your mobile number" : "Only you can see your mobile number"}</p>
+                <p
+                  className={cn(
+                    "text-sm font-medium",
+                    form.is_mobile_public ? "text-success" : "text-destructive",
+                  )}
+                >
+                  {form.is_mobile_public
+                    ? "Visible on your profile"
+                    : "Hidden from your profile"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {form.is_mobile_public
+                    ? "Others can see your mobile number"
+                    : "Only you can see your mobile number"}
+                </p>
               </div>
-              <Switch checked={form.is_mobile_public} onCheckedChange={(checked) => updateField("is_mobile_public", checked)} />
+              <Switch
+                checked={form.is_mobile_public}
+                onCheckedChange={(checked) =>
+                  updateField("is_mobile_public", checked)
+                }
+              />
             </div>
           </div>
         </div>

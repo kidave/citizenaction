@@ -7,7 +7,7 @@ import {
   SidebarMenuButton,
   useSidebar,
 } from "@/components/ui/sidebar";
-import Logo from "@/components/layout/Logo";
+import Logo from "@/components/system/Logo";
 import { PanelLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 

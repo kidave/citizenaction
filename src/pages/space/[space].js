@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 
 import { Settings, UserPlus, Plus, History } from "lucide-react";
 
-import EditorModal from "@/components/feed/editor/EditorModal";
+import EditorModal from "@/components/editor/EditorModal";
 import SpaceTopbar from "@/components/space/SpaceTopbar";
 
 import { useAuth } from "@/context/AuthContext";

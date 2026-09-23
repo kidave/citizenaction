@@ -6,14 +6,20 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import PostAttachments from "@/components/feed/post/PostAttachments";
+import PostAttachments from "@/components/post/PostAttachments";
 import { supabase } from "@/lib/supabase/client";
 import {
   deleteGovernanceAttachments,
   uploadGovernanceAttachments,
 } from "@/lib/supabase/storage";
 
-export default function GovernanceResources({ governanceId, attachments = [], links = [], canEdit = false, onChanged }) {
+export default function GovernanceResources({
+  governanceId,
+  attachments = [],
+  links = [],
+  canEdit = false,
+  onChanged,
+}) {
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
@@ -32,7 +38,10 @@ export default function GovernanceResources({ governanceId, attachments = [], li
       const attachmentIds = files.map(() => crypto.randomUUID());
       const uploaded = await uploadGovernanceAttachments(
         governanceId,
-        files.map((file, index) => ({ file, attachmentId: attachmentIds[index] })),
+        files.map((file, index) => ({
+          file,
+          attachmentId: attachmentIds[index],
+        })),
       );
       const rows = uploaded.map((item, index) => ({
         id: item.attachmentId,
@@ -57,7 +66,9 @@ export default function GovernanceResources({ governanceId, attachments = [], li
         throw error;
       }
 
-      toast.success(`${files.length} resource${files.length === 1 ? "" : "s"} added`);
+      toast.success(
+        `${files.length} resource${files.length === 1 ? "" : "s"} added`,
+      );
       refresh();
     } catch (error) {
       toast.error(error?.message || "Unable to add resource");
@@ -103,30 +114,72 @@ export default function GovernanceResources({ governanceId, attachments = [], li
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Resources</p>
-          {hasResources && <p className="mt-0.5 text-xs text-muted-foreground">Documents, images and links</p>}
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Resources
+          </p>
+          {hasResources && (
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Documents, images and links
+            </p>
+          )}
         </div>
         {canEdit && (
           <div className="flex items-center gap-1">
-            <input ref={fileInputRef} type="file" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" className="hidden" onChange={handleFiles} />
-            <Button type="button" variant="ghost" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-              {uploading ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Upload className="mr-1.5 h-4 w-4" />}
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
+              className="hidden"
+              onChange={handleFiles}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+            >
+              {uploading ? (
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="mr-1.5 h-4 w-4" />
+              )}
               Add files
             </Button>
           </div>
         )}
       </div>
 
-      {hasResources && <PostAttachments attachments={attachments} links={links} />}
+      {hasResources && (
+        <PostAttachments attachments={attachments} links={links} />
+      )}
 
       {canEdit && (
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Link2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={linkUrl} onChange={(event) => setLinkUrl(event.target.value)} placeholder="Add a website or document link" className="pl-9" onKeyDown={(event) => { if (event.key === "Enter") handleAddLink(); }} />
+            <Input
+              value={linkUrl}
+              onChange={(event) => setLinkUrl(event.target.value)}
+              placeholder="Add a website or document link"
+              className="pl-9"
+              onKeyDown={(event) => {
+                if (event.key === "Enter") handleAddLink();
+              }}
+            />
           </div>
-          <Button type="button" variant="outline" onClick={handleAddLink} disabled={addingLink || !linkUrl.trim()}>
-            {addingLink ? <Loader2 className="h-4 w-4 animate-spin" /> : <FilePlus2 className="mr-1.5 h-4 w-4" />}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleAddLink}
+            disabled={addingLink || !linkUrl.trim()}
+          >
+            {addingLink ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <FilePlus2 className="mr-1.5 h-4 w-4" />
+            )}
             Add link
           </Button>
         </div>

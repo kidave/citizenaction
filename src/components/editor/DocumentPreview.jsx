@@ -2,8 +2,8 @@
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
-import PostHeader from "@/components/feed/post/PostHeader";
-import PostContent from "@/components/feed/post/PostContent";
+import PostHeader from "@/components/post/PostHeader";
+import PostContent from "@/components/post/PostContent";
 
 function getAuthorName(profile) {
   return profile?.display_name || profile?.full_name || profile?.name || "You";

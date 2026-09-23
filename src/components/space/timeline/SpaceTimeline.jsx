@@ -7,7 +7,7 @@ import { getTimelineColor, getTimelineColorForMonth } from "@/config/timeline";
 import { TIMELINE_ORIENTATION } from "@/config/timeline/orientation";
 import useSpaceTimeline from "@/hooks/space/useSpaceTimeline";
 
-import PageHeader from "@/components/navigation/PageHeader";
+import PageHeader from "@/components/layout/PageHeader";
 
 import TimelineControls from "./TimelineControls";
 import TimelineFilters from "./TimelineFilters";

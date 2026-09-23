@@ -12,14 +12,14 @@ import { useSpaces } from "@/hooks/space/useSpaces";
 import { usePostEditor } from "@/hooks/editor/usePostEditor";
 import { supabase } from "@/lib/supabase/client";
 
-import Topbar from "@/components/navigation/Topbar";
-import EditorHeader from "@/components/feed/editor/EditorHeader";
-import EditorFooter from "@/components/feed/editor/EditorFooter";
-import EditorContextSuggestions from "@/components/feed/editor/EditorContextSuggestions";
-import DocumentPreview from "@/components/feed/editor/DocumentPreview";
+import Topbar from "@/components/layout/Topbar";
+import EditorHeader from "@/components/editor/EditorHeader";
+import EditorFooter from "@/components/editor/EditorFooter";
+import EditorContextSuggestions from "@/components/editor/EditorContextSuggestions";
+import DocumentPreview from "@/components/editor/DocumentPreview";
 
 const EditorContent = dynamic(
-  () => import("@/components/feed/editor/EditorContent"),
+  () => import("@/components/editor/EditorContent"),
   { ssr: false },
 );
 
@@ -121,7 +121,13 @@ export default function DocumentPage() {
         showHome={false}
         backHref="/"
         actions={
-          <Button type="button" variant="ghost" size="sm" className="gap-2" onClick={() => setPreviewOpen(true)}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="gap-2"
+            onClick={() => setPreviewOpen(true)}
+          >
             <Eye className="h-4 w-4" />
             <span>Preview</span>
           </Button>
@@ -143,20 +149,20 @@ export default function DocumentPage() {
             <EditorContextSuggestions editor={editor} />
 
             <div className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col">
-            <EditorContent
-              title={editor.title}
-              setTitle={editor.setTitle}
-              content={editor.content}
-              setContent={editor.setContent}
-              contentJson={editor.contentJson}
-              setContentJson={editor.setContentJson}
-              contentFormat={editor.contentFormat}
-              setContentFormat={editor.setContentFormat}
-              attachments={editor.attachments}
-              addAttachments={editor.addAttachments}
-              documentMode
-              showTitle={false}
-            />
+              <EditorContent
+                title={editor.title}
+                setTitle={editor.setTitle}
+                content={editor.content}
+                setContent={editor.setContent}
+                contentJson={editor.contentJson}
+                setContentJson={editor.setContentJson}
+                contentFormat={editor.contentFormat}
+                setContentFormat={editor.setContentFormat}
+                attachments={editor.attachments}
+                addAttachments={editor.addAttachments}
+                documentMode
+                showTitle={false}
+              />
             </div>
           </div>
         </main>

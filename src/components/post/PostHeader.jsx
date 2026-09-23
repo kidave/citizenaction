@@ -1,6 +1,6 @@
 "use client";
 
-import { UserIdentity } from "@/components/profile/UserIdentity";
+import { UserIdentity } from "@/components/user/UserIdentity";
 import MenuButton from "@/components/ui/MenuButton";
 
 import GovernanceAvatarGroup from "@/components/governance/GovernanceAvatarGroup";

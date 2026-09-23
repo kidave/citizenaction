@@ -4,7 +4,7 @@ import { Users } from "lucide-react";
 
 import { useUserSpaces } from "@/hooks/user/useUserSpaces";
 
-import UserSpaceCard from "@/components/profile/UserSpaceCard";
+import UserSpaceCard from "@/components/user/UserSpaceCard";
 import UserSpacesSkeleton from "@/components/skeletons/UserSpacesSkeleton";
 
 export default function UserSpaces({ userId }) {
