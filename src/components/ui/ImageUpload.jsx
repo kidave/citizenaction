@@ -4,14 +4,6 @@ import { ImagePlus, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase/client";
 
-function fileExtension(file) {
-  const fromName = file?.name?.split(".").pop()?.toLowerCase();
-  if (fromName && /^[a-z0-9]+$/.test(fromName)) return fromName;
-
-  const mime = file?.type?.split("/")[1]?.toLowerCase();
-  return mime || "png";
-}
-
 function withCacheBust(url) {
   if (!url) return null;
   const separator = url.includes("?") ? "&" : "?";
@@ -32,6 +24,58 @@ function storagePathFromPublicUrl(url) {
   };
 }
 
+function getFileNameExtension(file) {
+  const fromName = file?.name?.split(".").pop()?.toLowerCase();
+  return fromName && /^[a-z0-9]+$/.test(fromName) ? fromName : "jpg";
+}
+
+async function prepareProfileImage(file) {
+  if (!file?.type?.startsWith("image/")) {
+    throw new Error("Please choose an image file.");
+  }
+
+  // Profile images are normalized before upload so the stored asset stays small.
+  const imageUrl = URL.createObjectURL(file);
+
+  try {
+    const image = new Image();
+
+    await new Promise((resolve, reject) => {
+      image.onload = resolve;
+      image.onerror = () => reject(new Error("Unable to read the selected image."));
+      image.src = imageUrl;
+    });
+
+    const size = Math.min(image.naturalWidth, image.naturalHeight);
+    const sx = (image.naturalWidth - size) / 2;
+    const sy = (image.naturalHeight - size) / 2;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 480;
+    canvas.height = 480;
+
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Unable to process the selected image.");
+
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+    context.drawImage(image, sx, sy, size, size, 0, 0, 480, 480);
+
+    const blob = await new Promise((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", 0.82),
+    );
+
+    if (!blob) throw new Error("Unable to process the selected image.");
+
+    return new File([blob], `avatar.jpg`, {
+      type: "image/jpeg",
+      lastModified: Date.now(),
+    });
+  } finally {
+    URL.revokeObjectURL(imageUrl);
+  }
+}
+
 export default function ImageUpload({
   bucket,
   path,
@@ -42,6 +86,7 @@ export default function ImageUpload({
   accept = "image/png,image/jpeg,image/webp",
   disabled = false,
   className = "",
+  profileImage = false,
 }) {
   const inputRef = useRef(null);
   const objectUrlRef = useRef(null);
@@ -55,9 +100,12 @@ export default function ImageUpload({
     previousStoragePathRef.current = storagePathFromPublicUrl(value);
   }, [value]);
 
-  useEffect(() => () => {
-    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    },
+    [],
+  );
 
   async function handleFile(file) {
     if (!file) return;
@@ -82,21 +130,27 @@ export default function ImageUpload({
 
     const previousValue = value || null;
     const previousStoragePath = storagePathFromPublicUrl(previousValue);
-    const localPreview = URL.createObjectURL(file);
-    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
-    objectUrlRef.current = localPreview;
-    setPreviewUrl(localPreview);
 
     try {
-      const extension = fileExtension(file);
-      const storagePath = `${path.replace(/^\/+|\/+$/g, "")}.${extension}`;
+      const uploadFile = profileImage
+        ? await prepareProfileImage(file)
+        : file;
+
+      const localPreview = URL.createObjectURL(uploadFile);
+
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = localPreview;
+      setPreviewUrl(localPreview);
+
+      const extension = profileImage ? "jpg" : getFileNameExtension(uploadFile);
+      const storagePath = `${path.replace(/^\\/+|\\/+$/g, "")}.${extension}`;
 
       const { error: uploadError } = await supabase.storage
         .from(bucket)
-        .upload(storagePath, file, {
+        .upload(storagePath, uploadFile, {
           upsert: true,
           cacheControl: "3600",
-          contentType: file.type,
+          contentType: uploadFile.type,
         });
 
       if (uploadError) throw uploadError;
@@ -114,11 +168,14 @@ export default function ImageUpload({
         await onChange(freshPublicUrl, storagePath);
       }
 
-      // Remove the old object when the extension changed (for example logo.jpg -> logo.png).
-      if (previousStoragePath?.bucket === bucket && previousStoragePath.path !== storagePath) {
+      if (
+        previousStoragePath?.bucket === bucket &&
+        previousStoragePath.path !== storagePath
+      ) {
         const { error: removeError } = await supabase.storage
           .from(bucket)
           .remove([previousStoragePath.path]);
+
         if (removeError) {
           console.warn("Unable to remove previous image:", removeError);
         }
@@ -145,15 +202,20 @@ export default function ImageUpload({
         const { error: removeError } = await supabase.storage
           .from(bucket)
           .remove([currentStoragePath.path]);
+
         if (removeError) throw removeError;
       }
 
       if (onChange) {
         await onChange(null, null);
       }
+
       setPreviewUrl(null);
       previousStoragePathRef.current = null;
-      if (inputRef.current) inputRef.current.value = "";
+
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
     } catch (clearError) {
       setError(clearError?.message || "Unable to remove image.");
     } finally {
@@ -163,16 +225,25 @@ export default function ImageUpload({
 
   return (
     <div className={className}>
-      <div className="flex items-start gap-4">
-        <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-muted/30">
+      <div className="flex items-center gap-3">
+        <div
+          className={`flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border bg-muted/30 ${
+            profileImage ? "" : "rounded-xl"
+          }`}
+        >
           {previewUrl ? (
-            <img key={previewUrl} src={previewUrl} alt="Preview" className="h-full w-full object-contain" />
+            <img
+              key={previewUrl}
+              src={previewUrl}
+              alt="Preview"
+              className="h-full w-full object-cover"
+            />
           ) : (
-            <ImagePlus className="h-7 w-7 text-muted-foreground" />
+            <ImagePlus className="h-6 w-6 text-muted-foreground" />
           )}
         </div>
 
-        <div className="min-w-0 space-y-2">
+        <div className="min-w-0 space-y-1.5">
           <div>
             <div className="text-sm font-medium">{label}</div>
             <div className="text-xs text-muted-foreground">{helperText}</div>
@@ -187,6 +258,7 @@ export default function ImageUpload({
               disabled={disabled || uploading}
               onChange={(event) => handleFile(event.target.files?.[0])}
             />
+
             <Button
               type="button"
               variant="outline"
@@ -194,12 +266,22 @@ export default function ImageUpload({
               disabled={disabled || uploading}
               onClick={() => inputRef.current?.click()}
             >
-              {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImagePlus className="mr-2 h-4 w-4" />}
+              {uploading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <ImagePlus className="mr-2 h-4 w-4" />
+              )}
               {uploading ? "Uploading..." : previewUrl ? "Change" : "Upload"}
             </Button>
 
             {previewUrl && !uploading && (
-              <Button type="button" variant="ghost" size="sm" onClick={clear} disabled={disabled}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={clear}
+                disabled={disabled}
+              >
                 <X className="mr-2 h-4 w-4" />
                 Remove
               </Button>
