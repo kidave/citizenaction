@@ -54,12 +54,8 @@ export default function PositionDirectory({
     [organizationsQuery.data],
   );
 
-  const organizationItems = useMemo(
-    () =>
-      Combobox.createItems(organizationOptions, {
-        getValue: (item) => item.value,
-        getLabel: (item) => item.label,
-      }),
+  const organizationNames = useMemo(
+    () => new Map(organizationOptions.map((item) => [item.value, item.label])),
     [organizationOptions],
   );
 
@@ -108,7 +104,8 @@ export default function PositionDirectory({
 
         {/* Organization filter */}
         <Combobox
-          items={organizationItems}
+          items={organizationOptions.map((item) => item.value)}
+          itemToStringValue={(value) => organizationNames.get(value) || ""}
           value={selectedOrganizationId}
           onValueChange={(value) =>
             setOrganizationId(value === "all" ? null : value || null)
@@ -125,8 +122,8 @@ export default function PositionDirectory({
             <ComboboxEmpty>No organizations found.</ComboboxEmpty>
             <ComboboxList>
               {(item) => (
-                <ComboboxItem key={item.value} value={item.value}>
-                  {item.name}
+                <ComboboxItem key={item} value={item}>
+                  {organizationNames.get(item) || ""}
                 </ComboboxItem>
               )}
             </ComboboxList>
