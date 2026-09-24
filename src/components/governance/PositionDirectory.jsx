@@ -125,7 +125,7 @@ export default function PositionDirectory({
             <ComboboxEmpty>No organizations found.</ComboboxEmpty>
             <ComboboxList>
               {(item) => (
-                <ComboboxItem key={item.id} value={item.id}>
+                <ComboboxItem key={item.value} value={item.value}>
                   {item.name}
                 </ComboboxItem>
               )}

@@ -57,17 +57,10 @@ export default function GovernanceDirectoryCard({
         </AvatarFallback>
       </Avatar>
 
-      <div className="min-w-0 flex-1 pr-5">
-        <div className="truncate text-sm font-medium leading-tight">{label}</div>
-        {name !== label &&
-          (isFullNameTruncated ? (
-            <Tooltip>
-              <TooltipTrigger asChild>{nameContent}</TooltipTrigger>
-              <TooltipContent side="top">{name}</TooltipContent>
-            </Tooltip>
-          ) : (
-            nameContent
-          ))}
+      <div className="min-w-0 flex-1 pr-5 text-center">
+        <div className="line-clamp-2 text-sm font-medium leading-snug">
+          {name}
+        </div>
       </div>
     </div>
   );
