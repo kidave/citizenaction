@@ -48,10 +48,14 @@ export default function PositionDirectory({
       (organizationsQuery.data || []).map((item) => ({
         value: item.id,
         label: getGovernanceLabel(item),
-        searchValue: `${item.name || ""} ${item.short_name || ""}`,
       })),
     [organizationsQuery.data],
   );
+
+  const allOrganizationsOption = { value: "all", label: "All organizations" };
+  const selectedOrganization =
+    options.find((item) => item.value === effectiveOrganizationId) ||
+    allOrganizationsOption;
 
   const query = useGovernanceDirectory({
     tab: "positions",
@@ -96,11 +100,13 @@ export default function PositionDirectory({
 
         {/* Organization filter */}
         <Combobox
-          items={[{ value: "all", label: "All organizations" }, ...options]}
+          items={[allOrganizationsOption, ...options]}
           itemToStringValue={(item) => item.label}
-          value={effectiveOrganizationId || "all"}
-          onValueChange={(value) =>
-            setOrganizationId(value === "all" ? null : value)
+          value={selectedOrganization}
+          onValueChange={(item) =>
+            setOrganizationId(
+              item?.value === "all" ? null : item?.value || null,
+            )
           }
           className="min-w-0"
         >
