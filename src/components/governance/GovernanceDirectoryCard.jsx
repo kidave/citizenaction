@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import GovernanceCardActions from "@/components/governance/GovernanceCardActions";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { getGovernanceHref, getGovernanceInitials, getGovernanceLabel } from "@/utils/governance";
+import { getGovernanceHref, getGovernanceInitials, getGovernanceLabel, getGovernanceName } from "@/utils/governance";
 
 export default function GovernanceDirectoryCard({
   entity,
@@ -16,6 +16,7 @@ export default function GovernanceDirectoryCard({
   onDelete,
 }) {
   const label = getGovernanceLabel(entity);
+  const name = getGovernanceName(entity);
   const href = getGovernanceHref({ ...entity, tab });
   const avatarUrl =
     entity.image_url ||
@@ -25,10 +26,10 @@ export default function GovernanceDirectoryCard({
   const canManage = !isSelectable && (onEdit || onDelete);
 
   const content = (
-    <Card className={`h-full transition-colors hover:border-primary/40 hover:bg-accent/30 ${selected ? "border-primary ring-2 ring-primary/15" : ""}`}>
-      <CardContent className="flex min-h-[72px] items-center gap-3 p-3 sm:min-h-[76px]">
+    <Card className={`relative h-full transition-colors hover:border-primary/40 hover:bg-accent/30 ${selected ? "border-primary ring-2 ring-primary/15" : ""}`}>
+      <CardContent className="flex min-h-[104px] flex-col items-center justify-center gap-2 p-3 text-center">
         {isSelectable && (
-          <span className="grid h-5 w-5 shrink-0 place-items-center text-muted-foreground" aria-hidden="true">
+          <span className="absolute right-2 top-2 grid h-5 w-5 place-items-center text-muted-foreground" aria-hidden="true">
             {selectionMode === "radio" ? (
               <Circle className={`h-4 w-4 ${selected ? "fill-primary stroke-primary" : ""}`} />
             ) : (
@@ -41,20 +42,16 @@ export default function GovernanceDirectoryCard({
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="flex shrink-0 flex-col items-center">
-              <Avatar className="h-10 w-10 rounded-lg sm:h-11 sm:w-11">
-                <AvatarImage src={avatarUrl || undefined} alt={avatarUrl ? fallbackLabel : ""} />
-                <AvatarFallback className="rounded-lg text-xs">{getGovernanceInitials(fallbackLabel)}</AvatarFallback>
+            <div className="flex w-full min-w-0 flex-col items-center gap-1.5">
+              <Avatar className="h-11 w-11 rounded-lg">
+                <AvatarImage src={avatarUrl || undefined} alt={name} />
+                <AvatarFallback className="rounded-lg text-xs">{getGovernanceInitials(name)}</AvatarFallback>
               </Avatar>
-              <span className="mt-1.5 max-w-[10rem] truncate text-center text-[11px] leading-tight text-muted-foreground sm:hidden">
-                {label}
-              </span>
+              <span className="w-full truncate text-xs font-medium leading-tight">{label}</span>
             </div>
           </TooltipTrigger>
-          <TooltipContent side="top">{label}</TooltipContent>
+          <TooltipContent side="top">{name}</TooltipContent>
         </Tooltip>
-
-
       </CardContent>
     </Card>
   );

@@ -147,7 +147,7 @@ export default function PositionDirectory({
       {!query.isLoading &&
         !query.error &&
         (data.length ? (
-          <div className={selectionMode ? "grid grid-cols-1 gap-2 sm:grid-cols-2" : "grid grid-cols-1 gap-2"}>
+          <div className={selectionMode ? "grid grid-cols-2 gap-2 sm:grid-cols-3" : "grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"}>
             {data.map((entity) => (
               <GovernanceDirectoryCard
                 key={entity.id}
