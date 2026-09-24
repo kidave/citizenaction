@@ -3,6 +3,7 @@ import { MapPinned } from "lucide-react";
 
 import {
   Combobox,
+  ComboboxCollection,
   ComboboxContent,
   ComboboxEmpty,
   ComboboxGroup,
@@ -10,7 +11,6 @@ import {
   ComboboxItem,
   ComboboxLabel,
   ComboboxList,
-  ComboboxCollection,
 } from "@/components/ui/combobox";
 import { InputGroupAddon } from "@/components/ui/input-group";
 import {
@@ -21,7 +21,7 @@ import {
 function formatGeographyType(value) {
   return value
     ? value.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())
-    : "Geography";
+    : "Other";
 }
 
 export default function GeographyFocusSelector({
@@ -48,22 +48,34 @@ export default function GeographyFocusSelector({
 
   const groupedOptions = useMemo(() => {
     const groups = new Map();
+
     for (const item of options) {
-      const key = item.geography_type || "other";
-      if (!groups.has(key)) groups.set(key, []);
-      groups.get(key).push(item);
+      const type = item.geography_type || "other";
+      if (!groups.has(type)) groups.set(type, []);
+      groups.get(type).push(item);
     }
+
     return [...groups.entries()]
-      .sort(([a], [b]) => formatGeographyType(a).localeCompare(formatGeographyType(b)))
+      .sort(([a], [b]) =>
+        formatGeographyType(a).localeCompare(formatGeographyType(b)),
+      )
       .map(([type, items]) => ({
-        type,
+        value: type,
         items: [...items].sort((a, b) =>
           (a.name || "").localeCompare(b.name || ""),
         ),
       }));
   }, [options]);
 
-  const ids = useMemo(() => options.map((item) => item.id), [options]);
+  const items = useMemo(
+    () => groupedOptions.map((group) => group.value),
+    [groupedOptions],
+  );
+
+  const optionById = useMemo(
+    () => new Map(options.map((item) => [item.id, item])),
+    [options],
+  );
 
   const handleValueChange = (nextValue) => {
     onValueChange?.(
@@ -74,16 +86,19 @@ export default function GeographyFocusSelector({
 
   return (
     <Combobox
-      items={ids}
-      value={effectiveValue}
-      open={open}
-      onOpenChange={setOpen}
-      inputValue={search}
-      onInputValueChange={setSearch}
-      onValueChange={handleValueChange}
+      items={options}
+      value={selected || undefined}
+      onValueChange={(nextValue) => {
+        const nextId =
+          nextValue && typeof nextValue === "object"
+            ? nextValue.id
+            : nextValue;
+        handleValueChange(nextId);
+      }}
       itemToStringValue={(item) => {
-        const option = options.find((candidate) => candidate.id === item);
-        return option?.name || selectedLabel || "";
+        if (!item) return "";
+        const id = typeof item === "object" ? item.id : item;
+        return optionById.get(id)?.name || (id === DEFAULT_GEOGRAPHY_FOCUS_ID ? "India" : selectedLabel);
       }}
       autoHighlight
       className={className}
@@ -92,6 +107,7 @@ export default function GeographyFocusSelector({
         placeholder="Search geography..."
         className="h-8 w-[min(18rem,calc(100vw-2rem))]"
         showClear={effectiveValue !== DEFAULT_GEOGRAPHY_FOCUS_ID}
+        onFocus={() => setOpen(true)}
       >
         <InputGroupAddon>
           <MapPinned className="h-4 w-4 text-muted-foreground" />
@@ -104,25 +120,22 @@ export default function GeographyFocusSelector({
         </ComboboxEmpty>
 
         <ComboboxList>
-          {(group) => {
-            const groupOptions = groupedOptions.find(
-              (entry) => entry.type === group,
-            );
-            return (
-              <ComboboxGroup key={group}>
-                <ComboboxLabel>{formatGeographyType(group)}</ComboboxLabel>
+          {() =>
+            groupedOptions.map((group) => (
+              <ComboboxGroup key={group.value} items={group.items}>
+                <ComboboxLabel>{formatGeographyType(group.value)}</ComboboxLabel>
                 <ComboboxCollection>
-                  {groupOptions?.items.map((item) => (
-                    <ComboboxItem key={item.id} value={item.id}>
+                  {(item) => (
+                    <ComboboxItem key={item.id} value={item}>
                       <div className="min-w-0">
                         <div className="truncate text-sm">{item.name}</div>
                       </div>
                     </ComboboxItem>
-                  ))}
+                  )}
                 </ComboboxCollection>
               </ComboboxGroup>
-            );
-          }}
+            ))
+          }
         </ComboboxList>
       </ComboboxContent>
     </Combobox>
