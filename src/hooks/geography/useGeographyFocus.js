@@ -49,7 +49,7 @@ export function useGeographyFocus({
 
         if (searchValue) {
           query = query.or(
-            \`name.ilike.%${searchValue}%,official_name.ilike.%${searchValue}%\`,
+            "name.ilike.%" + searchValue + "%,official_name.ilike.%" + searchValue + "%",
           );
         }
       }
