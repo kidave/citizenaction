@@ -142,8 +142,12 @@ export default function ImageUpload({
       objectUrlRef.current = localPreview;
       setPreviewUrl(localPreview);
 
+      // Profile avatars always use one canonical storage object regardless of
+      // the source file extension, so every new upload replaces the same asset.
       const extension = profileImage ? "jpg" : getFileNameExtension(uploadFile);
-      const storagePath = `${path.replace(/^\/+|\/+$/g, "")}.${extension}`;
+      const storagePath = profileImage
+        ? path.replace(/^\/+|\/+$/g, "")
+        : `${path.replace(/^\/+|\/+$/g, "")}.${extension}`;
 
       const { error: uploadError } = await supabase.storage
         .from(bucket)
