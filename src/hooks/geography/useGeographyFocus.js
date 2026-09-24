@@ -1,4 +1,3 @@
-import { useDeferredValue } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 import { queryKeys } from "@/lib/queryKeys";
@@ -9,9 +8,13 @@ export const DEFAULT_GEOGRAPHY_FOCUS_ID =
 const GEOGRAPHY_SELECT =
   "id,name,official_name,geography_type,parent_id";
 
-export function useGeographyFocus({ value = null, search = "", open = false } = {}) {
+export function useGeographyFocus({
+  value = null,
+  search = "",
+  open = false,
+} = {}) {
   const effectiveValue = value || DEFAULT_GEOGRAPHY_FOCUS_ID;
-  const deferredSearch = useDeferredValue(search.trim());
+  const normalizedSearch = search.trim();
 
   const selectedQuery = useQuery({
     queryKey: queryKeys.geography.focusSelected(effectiveValue),
@@ -30,7 +33,7 @@ export function useGeographyFocus({ value = null, search = "", open = false } = 
   });
 
   const searchQuery = useQuery({
-    queryKey: queryKeys.geography.focusSearch(deferredSearch),
+    queryKey: queryKeys.geography.focusSearch(normalizedSearch),
     enabled: open,
     queryFn: async () => {
       let query = supabase
@@ -39,11 +42,14 @@ export function useGeographyFocus({ value = null, search = "", open = false } = 
         .order("name")
         .limit(50);
 
-      if (deferredSearch) {
-        const value = deferredSearch.replace(/[%_]/g, "").slice(0, 80);
-        if (value) {
+      if (normalizedSearch) {
+        const searchValue = normalizedSearch
+          .replace(/[%_]/g, "")
+          .slice(0, 80);
+
+        if (searchValue) {
           query = query.or(
-            `name.ilike.%${value}%,official_name.ilike.%${value}%`,
+            \`name.ilike.%${searchValue}%,official_name.ilike.%${searchValue}%\`,
           );
         }
       }

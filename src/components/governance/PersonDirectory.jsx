@@ -4,20 +4,11 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@/components/ui/combobox";
 import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectoryCard";
 import GovernancePersonSheet from "@/components/governance/GovernancePersonSheet";
 import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
-import { useGovernanceOrganizations } from "@/hooks/governance/useGovernanceOrganizations";
-import { getGovernanceLabel } from "@/utils/governance";
+import GovernanceOrganizationSelector from "@/components/governance/GovernanceOrganizationSelector";
 import LoadingState from "@/components/ui/loading-state";
 import EmptyState from "@/components/ui/empty-state";
 import ErrorState from "@/components/ui/error-state";
@@ -41,25 +32,6 @@ export default function PersonDirectory({
   const { deletePerson: removePerson } = useGovernanceCrud();
   const effectiveOrganizationId = controlledOrganizationId ?? organizationId;
 
-  const organizationsQuery = useGovernanceOrganizations();
-
-  const organizationOptions = useMemo(
-    () => [
-      { value: "all", label: "All organizations" },
-      ...(organizationsQuery.data || []).map((item) => ({
-        value: item.id,
-        label: item.name || getGovernanceLabel(item),
-      })),
-    ],
-    [organizationsQuery.data],
-  );
-
-  const organizationNames = useMemo(
-    () => new Map(organizationOptions.map((item) => [item.value, item.label])),
-    [organizationOptions],
-  );
-
-  const selectedOrganizationId = effectiveOrganizationId || "all";
 
   const query = useGovernanceDirectory({
     tab: "people",
@@ -103,32 +75,11 @@ export default function PersonDirectory({
         </div>
 
         {/* Organization filter */}
-        <Combobox
-          items={organizationOptions.map((item) => item.value)}
-          itemToStringValue={(value) => organizationNames.get(value) || ""}
-          value={selectedOrganizationId}
-          onValueChange={(value) =>
-            setOrganizationId(value === "all" ? null : value || null)
-          }
-          autoHighlight
+        <GovernanceOrganizationSelector
+          value={effectiveOrganizationId}
+          onValueChange={setOrganizationId}
           className="min-w-0"
-        >
-          <ComboboxInput
-            placeholder="All organizations"
-            className="h-9"
-            showClear={Boolean(effectiveOrganizationId)}
-          />
-          <ComboboxContent>
-            <ComboboxEmpty>No organizations found.</ComboboxEmpty>
-            <ComboboxList>
-              {(item) => (
-                <ComboboxItem key={item} value={item}>
-                  {organizationNames.get(item) || ""}
-                </ComboboxItem>
-              )}
-            </ComboboxList>
-          </ComboboxContent>
-        </Combobox>
+        />
 
         {/* Add */}
         {canManage && (
