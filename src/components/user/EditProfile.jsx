@@ -97,7 +97,17 @@ export default function EditProfile() {
           bucket="profile"
           path={`profile/${user.id}/avatar`}
           value={form.avatar_url || null}
-          onChange={async (url) => {\n            const nextAvatarUrl = url || "";\n            updateField("avatar_url", nextAvatarUrl);\n\n            if (user?.id) {\n              await updateProfileAvatar({\n                userId: user.id,\n                avatar_url: nextAvatarUrl || null,\n              });\n            }\n          }}
+          onChange={async (url) => {
+            const nextAvatarUrl = url || "";
+            updateField("avatar_url", nextAvatarUrl);
+
+            if (user?.id) {
+              await updateProfileAvatar({
+                userId: user.id,
+                avatar_url: nextAvatarUrl || null,
+              });
+            }
+          }}
           label="Profile photo"
           helperText="Square JPG · automatically cropped and compressed"
           className="w-full"
