@@ -34,7 +34,7 @@ const nextConfig = {
     const ContentSecurityPolicy = `
       default-src 'self';
 
-      script-src 'self' 'wasm-unsafe-eval' ${isDev ? "'unsafe-eval'" : ""}
+      script-src 'self' 'wasm-unsafe-eval' 'sha256-uTXWRmJ7uPCAIGYViEt9N+/wBceFv1uw5unr/mdmM+0=' ${isDev ? "'unsafe-eval'" : ""}
         https://accounts.google.com
         https://apis.google.com
         https://vercel.live;

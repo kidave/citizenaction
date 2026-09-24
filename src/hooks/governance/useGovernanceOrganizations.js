@@ -14,7 +14,7 @@ export function useGovernanceOrganizations({ enabled = true } = {}) {
         const { data, error } = await supabase
           .from("governance")
           .select(
-            "id,name,short_name,slug,type,status,image_url,current_holder_name,current_holder_image_url",
+            "id,name,short_name,slug,type,status,image_url",
           )
           .eq("status", "active")
           .order("name")

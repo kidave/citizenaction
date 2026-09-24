@@ -3,13 +3,10 @@ import { MapPinned } from "lucide-react";
 
 import {
   Combobox,
-  ComboboxCollection,
   ComboboxContent,
   ComboboxEmpty,
-  ComboboxGroup,
   ComboboxInput,
   ComboboxItem,
-  ComboboxLabel,
   ComboboxList,
 } from "@/components/ui/combobox";
 import { InputGroupAddon } from "@/components/ui/input-group";
@@ -24,19 +21,12 @@ function formatGeographyType(value) {
     : "Other";
 }
 
-export default function GeographyFocusSelector({
-  value,
-  onValueChange,
-  className,
-}) {
+export default function GeographyFocusSelector({ value, onValueChange, className }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const { effectiveValue, selected, options, isSearching } = useGeographyFocus({
-    value,
-    search,
-    open,
-  });
+  const { effectiveValue, selected, options, isSearching, error } =
+    useGeographyFocus({ value, search, open });
 
   useEffect(() => {
     if (!open) setSearch("");
@@ -44,98 +34,75 @@ export default function GeographyFocusSelector({
 
   const selectedLabel =
     selected?.name ||
-    (effectiveValue === DEFAULT_GEOGRAPHY_FOCUS_ID ? "India" : "Choose area");
+    (effectiveValue === DEFAULT_GEOGRAPHY_FOCUS_ID ? "India" : "");
 
-  const groupedOptions = useMemo(() => {
-    const groups = new Map();
-
-    for (const item of options) {
-      const type = item.geography_type || "other";
-      if (!groups.has(type)) groups.set(type, []);
-      groups.get(type).push(item);
-    }
-
-    return [...groups.entries()]
-      .sort(([a], [b]) =>
-        formatGeographyType(a).localeCompare(formatGeographyType(b)),
-      )
-      .map(([type, items]) => ({
-        value: type,
-        items: [...items].sort((a, b) =>
-          (a.name || "").localeCompare(b.name || ""),
-        ),
-      }));
-  }, [options]);
-
-  const items = useMemo(
-    () => groupedOptions.map((group) => group.value),
-    [groupedOptions],
-  );
-
-  const optionById = useMemo(
-    () => new Map(options.map((item) => [item.id, item])),
+  const sortedOptions = useMemo(
+    () =>
+      [...options].sort((a, b) => {
+        const typeCompare = (a.geography_type || "other").localeCompare(
+          b.geography_type || "other",
+        );
+        return typeCompare || (a.name || "").localeCompare(b.name || "");
+      }),
     [options],
   );
 
-  const handleValueChange = (nextValue) => {
-    onValueChange?.(
-      nextValue === DEFAULT_GEOGRAPHY_FOCUS_ID ? null : nextValue,
-    );
-    setOpen(false);
-  };
+  const items = useMemo(() => {
+    if (!selected?.id || sortedOptions.some((item) => item.id === selected.id)) {
+      return sortedOptions;
+    }
+    return [selected, ...sortedOptions];
+  }, [selected, sortedOptions]);
 
   return (
     <Combobox
-      items={options}
+      items={items}
       value={selected || undefined}
-      onValueChange={(nextValue) => {
-        const nextId =
-          nextValue && typeof nextValue === "object"
-            ? nextValue.id
-            : nextValue;
-        handleValueChange(nextId);
+      open={open}
+      onOpenChange={setOpen}
+      inputValue={search}
+      onInputValueChange={setSearch}
+      onValueChange={(item) => {
+        const nextId = item?.id || item || null;
+        onValueChange?.(nextId === DEFAULT_GEOGRAPHY_FOCUS_ID ? null : nextId);
+        setOpen(false);
+        setSearch("");
       }}
-      itemToStringValue={(item) => {
-        if (!item) return "";
-        const id = typeof item === "object" ? item.id : item;
-        return optionById.get(id)?.name || (id === DEFAULT_GEOGRAPHY_FOCUS_ID ? "India" : selectedLabel);
-      }}
+      itemToStringValue={(item) => item?.name || ""}
       autoHighlight
       className={className}
     >
       <ComboboxInput
-        placeholder="Search geography..."
+        placeholder={selectedLabel || "Search geography..."}
         className="h-8 w-[min(18rem,calc(100vw-2rem))]"
-        showClear={effectiveValue !== DEFAULT_GEOGRAPHY_FOCUS_ID}
-        onFocus={() => setOpen(true)}
+        showClear={Boolean(value)}
       >
         <InputGroupAddon>
           <MapPinned className="h-4 w-4 text-muted-foreground" />
         </InputGroupAddon>
       </ComboboxInput>
 
-      <ComboboxContent className="w-[min(24rem,calc(100vw-1.5rem))]">
+      <ComboboxContent className="w-[min(28rem,calc(100vw-1.5rem))]">
         <ComboboxEmpty>
-          {isSearching ? "Searching..." : "No geographies found."}
+          {error
+            ? "Unable to search geographies."
+            : isSearching
+              ? "Searching..."
+              : "No geographies found."}
         </ComboboxEmpty>
-
         <ComboboxList>
-          {() =>
-            groupedOptions.map((group) => (
-              <ComboboxGroup key={group.value} items={group.items}>
-                <ComboboxLabel>{formatGeographyType(group.value)}</ComboboxLabel>
-                <ComboboxCollection>
-                  {(item) => (
-                    <ComboboxItem key={item.id} value={item}>
-                      <div className="min-w-0">
-                        <div className="truncate text-sm">{item.name}</div>
-                      </div>
-                    </ComboboxItem>
-                  )}
-                </ComboboxCollection>
-              </ComboboxGroup>
-            ))
-          }
+          {(item) => (
+            <ComboboxItem key={item.id} value={item}>
+              <div className="min-w-0">
+                <div className="truncate text-sm">{item.name}</div>
+                {item.geography_type && (
+                  <div className="text-xs text-muted-foreground">
+                    {formatGeographyType(item.geography_type)}
+                  </div>
+                )}
+              </div>
+            </ComboboxItem>
+          )}
         </ComboboxList>
       </ComboboxContent>
     </Combobox>
