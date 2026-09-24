@@ -143,7 +143,7 @@ export default function ImageUpload({
       setPreviewUrl(localPreview);
 
       const extension = profileImage ? "jpg" : getFileNameExtension(uploadFile);
-      const storagePath = `${path.replace(/^\\/+|\\/+$/g, "")}.${extension}`;
+      const storagePath = `${path.replace(/^\/+|\/+$/g, "")}.${extension}`;
 
       const { error: uploadError } = await supabase.storage
         .from(bucket)
