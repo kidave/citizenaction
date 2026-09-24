@@ -27,5 +27,28 @@ export function useUpdateProfile() {
     }
   };
 
-  return { updateProfile, isUpdating };
+  const updateProfileAvatar = async ({ userId, avatar_url }) => {
+    try {
+      setIsUpdating(true);
+      const { data, error } = await supabase
+        .from("profile")
+        .update({ avatar_url })
+        .eq("user_id", userId)
+        .select("*")
+        .single();
+
+      if (error) throw error;
+
+      queryClient.setQueryData(queryKeys.users.myProfile(userId), data);
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.users.publicProfiles,
+      });
+
+      return data;
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  return { updateProfile, updateProfileAvatar, isUpdating };
 }
