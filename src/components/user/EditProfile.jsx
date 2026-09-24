@@ -22,7 +22,7 @@ export default function EditProfile() {
   const router = useRouter();
   const { user } = useAuth();
   const { data: profile, isLoading } = useMyProfile();
-  const { updateProfile, isUpdating } = useUpdateProfile();
+  const { updateProfile, updateProfileAvatar, isUpdating } = useUpdateProfile();
 
   const [form, setForm] = useState({
     name: "",
@@ -97,7 +97,7 @@ export default function EditProfile() {
           bucket="profile"
           path={`profile/${user.id}/avatar`}
           value={form.avatar_url || null}
-          onChange={(url) => updateField("avatar_url", url || "")}
+          onChange={async (url) => {\n            const nextAvatarUrl = url || "";\n            updateField("avatar_url", nextAvatarUrl);\n\n            if (user?.id) {\n              await updateProfileAvatar({\n                userId: user.id,\n                avatar_url: nextAvatarUrl || null,\n              });\n            }\n          }}
           label="Profile photo"
           helperText="Square JPG · automatically cropped and compressed"
           className="w-full"
