@@ -48,6 +48,9 @@ export default function PersonDirectory({
       (organizationsQuery.data || []).map((item) => ({
         value: item.id,
         label: getGovernanceLabel(item),
+        searchText: [getGovernanceLabel(item), item.name]
+          .filter(Boolean)
+          .join(" "),
       })),
     [organizationsQuery.data],
   );
@@ -101,13 +104,14 @@ export default function PersonDirectory({
         {/* Organization filter */}
         <Combobox
           items={[allOrganizationsOption, ...options]}
-          itemToStringValue={(item) => item.label}
+          itemToStringValue={(item) => item?.searchText || item?.label || ""}
           value={selectedOrganization}
           onValueChange={(item) =>
             setOrganizationId(
               item?.value === "all" ? null : item?.value || null,
             )
           }
+          autoHighlight
           className="min-w-0"
         >
           <ComboboxInput

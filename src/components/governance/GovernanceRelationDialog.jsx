@@ -48,6 +48,7 @@ export default function GovernanceRelationDialog({
   const [step, setStep] = useState("relation");
   const [relationType, setRelationType] = useState("");
   const [existingId, setExistingId] = useState("");
+  const [existingIds, setExistingIds] = useState([]);
   const [name, setName] = useState("");
   const [type, setType] = useState("organization");
   const [categoryId, setCategoryId] = useState("");
@@ -65,6 +66,7 @@ export default function GovernanceRelationDialog({
     setStep(isEdit ? "edit" : "relation");
     setRelationType("");
     setExistingId("");
+    setExistingIds([]);
     setName("");
     setType("organization");
     setCategoryId("");
@@ -90,6 +92,7 @@ export default function GovernanceRelationDialog({
   const chooseRelation = (relation) => {
     setRelationType(relation);
     setExistingId("");
+    setExistingIds([]);
     setStep("target");
   };
   const back = () => {
@@ -134,15 +137,34 @@ export default function GovernanceRelationDialog({
       }
 
       if (step === "existing") {
-        if (!existingId) return toast.error("Choose an organization");
-        const result = await supabase.rpc("set_governance_parent", {
-          p_child_id:
-            relationType === "parent-of" ? existingId : sourceEntity.id,
-          p_parent_id:
-            relationType === "parent-of" ? sourceEntity.id : existingId,
-        });
-        if (result?.error) throw result.error;
-        toast.success("Governance relationship updated");
+        const targetIds =
+          relationType === "parent-of"
+            ? existingIds
+            : existingId
+              ? [existingId]
+              : [];
+
+        if (!targetIds.length) return toast.error("Choose an organization");
+
+        const results = await Promise.all(
+          targetIds.map((targetId) =>
+            supabase.rpc("set_governance_parent", {
+              p_child_id:
+                relationType === "parent-of" ? targetId : sourceEntity.id,
+              p_parent_id:
+                relationType === "parent-of" ? sourceEntity.id : targetId,
+            }),
+          ),
+        );
+
+        const failed = results.find((result) => result?.error);
+        if (failed?.error) throw failed.error;
+
+        toast.success(
+          targetIds.length > 1
+            ? "Governance relationships updated"
+            : "Governance relationship updated",
+        );
       } else if (step === "create") {
         if (!name.trim()) return toast.error("Name is required");
         if (!type) return toast.error("Governance type is required");
@@ -377,8 +399,27 @@ export default function GovernanceRelationDialog({
                 </p>
                 <OrganizationDirectory
                   selectionMode={selectionMode}
-                  selectedId={existingId || null}
-                  onSelect={(item) => setExistingId(item.id)}
+                  selectedIds={
+                    selectionMode === "checkbox"
+                      ? existingIds
+                      : existingId
+                        ? [existingId]
+                        : []
+                  }
+                  selectedId={
+                    selectionMode === "radio" ? existingId || null : null
+                  }
+                  onSelect={(item) => {
+                    if (selectionMode === "checkbox") {
+                      setExistingIds((current) =>
+                        current.includes(item.id)
+                          ? current.filter((id) => id !== item.id)
+                          : [...current, item.id],
+                      );
+                    } else {
+                      setExistingId(item.id);
+                    }
+                  }}
                   excludeIds={[sourceEntity?.id].filter(Boolean)}
                 />
               </div>
@@ -496,7 +537,13 @@ export default function GovernanceRelationDialog({
             <Button
               type="button"
               onClick={save}
-              disabled={saving || (step === "existing" && !existingId)}
+              disabled={
+                saving ||
+                (step === "existing" &&
+                  (selectionMode === "checkbox"
+                    ? !existingIds.length
+                    : !existingId))
+              }
             >
               {saving
                 ? "Saving..."
