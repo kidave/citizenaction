@@ -26,7 +26,7 @@ export default function GovernanceDirectoryCard({
 
   const content = (
     <Card className={`h-full transition-colors hover:border-primary/40 hover:bg-accent/30 ${selected ? "border-primary ring-2 ring-primary/15" : ""}`}>
-      <CardContent className="flex min-h-[72px] items-center gap-3 p-3">
+      <CardContent className="flex min-h-[72px] items-center gap-3 p-3 sm:min-h-[76px]">
         {isSelectable && (
           <span className="grid h-5 w-5 shrink-0 place-items-center text-muted-foreground" aria-hidden="true">
             {selectionMode === "radio" ? (
@@ -39,13 +39,22 @@ export default function GovernanceDirectoryCard({
           </span>
         )}
 
-        <Avatar className="h-10 w-10 shrink-0 rounded-lg">
-          <AvatarImage src={avatarUrl || undefined} alt={avatarUrl ? fallbackLabel : ""} />
-          <AvatarFallback className="rounded-lg text-xs">{getGovernanceInitials(fallbackLabel)}</AvatarFallback>
-        </Avatar>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex shrink-0 flex-col items-center">
+              <Avatar className="h-10 w-10 rounded-lg sm:h-11 sm:w-11">
+                <AvatarImage src={avatarUrl || undefined} alt={avatarUrl ? fallbackLabel : ""} />
+                <AvatarFallback className="rounded-lg text-xs">{getGovernanceInitials(fallbackLabel)}</AvatarFallback>
+              </Avatar>
+              <span className="mt-1.5 max-w-[10rem] truncate text-center text-[11px] leading-tight text-muted-foreground sm:hidden">
+                {label}
+              </span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top">{label}</TooltipContent>
+        </Tooltip>
 
-        <div className="min-w-0 flex-1 pr-7">
-          <h2 className="truncate text-sm font-medium">{label}</h2>
+        <div className="hidden min-w-0 flex-1 pr-7 sm:block">
           {tab === "organizations" && entity.type && (
             <p className="truncate text-xs text-muted-foreground">{entity.type}</p>
           )}
@@ -71,12 +80,7 @@ export default function GovernanceDirectoryCard({
   }
 
   const linked = href ? (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Link href={href} className="block h-full" aria-label={label}>{content}</Link>
-      </TooltipTrigger>
-      <TooltipContent side="top">{label}</TooltipContent>
-    </Tooltip>
+    <Link href={href} className="block h-full" aria-label={label}>{content}</Link>
   ) : content;
 
   return canManage ? (

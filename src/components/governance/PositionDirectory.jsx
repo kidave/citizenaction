@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import SearchableSelect from "@/components/ui/SearchableSelect";
+import Combobox from "@/components/ui/combobox";
 import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectoryCard";
 import GovernancePositionSheet from "@/components/governance/GovernancePositionSheet";
 import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
@@ -88,7 +88,7 @@ export default function PositionDirectory({
         </div>
 
         {/* Organization filter */}
-        <SearchableSelect
+        <Combobox
           value={effectiveOrganizationId}
           onValueChange={setOrganizationId}
           options={options}
@@ -118,7 +118,7 @@ export default function PositionDirectory({
       {!query.isLoading &&
         !query.error &&
         (data.length ? (
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <div className={selectionMode ? "grid grid-cols-1 gap-2 sm:grid-cols-2" : "grid grid-cols-1 gap-2"}>
             {data.map((entity) => (
               <GovernanceDirectoryCard
                 key={entity.id}
