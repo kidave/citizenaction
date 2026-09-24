@@ -39,7 +39,15 @@ export default function GeographyFocusSelector({
     if (!open) setSearch("");
   }, [open]);
 
-  const items = useMemo(() => options.map((item) => item.id), [options]);
+  const optionById = useMemo(
+    () => new Map(options.map((item) => [item.id, item])),
+    [options],
+  );
+  const items = useMemo(() => {
+    const ids = options.map((item) => item.id);
+    if (selected?.id && !ids.includes(selected.id)) ids.unshift(selected.id);
+    return ids;
+  }, [options, selected?.id]);
   const labels = useMemo(
     () => new Map(options.map((item) => [item.id, item.name])),
     [options],
@@ -62,6 +70,8 @@ export default function GeographyFocusSelector({
       value={effectiveValue}
       open={open}
       onOpenChange={setOpen}
+      inputValue={search}
+      onInputValueChange={setSearch}
       onValueChange={selectValue}
       itemToStringValue={(item) => labels.get(item) || selectedLabel || ""}
       autoHighlight
@@ -83,7 +93,7 @@ export default function GeographyFocusSelector({
         </ComboboxEmpty>
         <ComboboxList>
           {(item) => {
-            const option = options.find((candidate) => candidate.id === item);
+            const option = optionById.get(item) || (selected?.id === item ? selected : null);
             if (!option) return null;
 
             return (
