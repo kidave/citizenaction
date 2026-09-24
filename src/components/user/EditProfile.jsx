@@ -92,16 +92,17 @@ export default function EditProfile() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <CardContent className="space-y-6 p-4 sm:p-6">
+      <CardContent className="space-y-5 p-4 sm:p-6">
         <ImageUpload
           bucket="profile"
           path={`profile/${user.id}/avatar`}
           value={form.avatar_url || null}
           onChange={(url) => updateField("avatar_url", url || "")}
           label="Profile photo"
-          helperText="PNG, JPG or WebP · up to 5 MB"
-          className="flex justify-center"
+          helperText="Square JPG · automatically cropped and compressed"
+          className="w-full"
           disabled={isUpdating}
+          profileImage
         />
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -241,7 +242,7 @@ function EditProfileSkeleton() {
   return (
     <div className="mx-auto max-w-2xl">
       <CardContent className="grid grid-cols-1 gap-5 p-4 sm:grid-cols-2 sm:p-6">
-        <Skeleton className="h-24 w-24 rounded-full sm:col-span-2 sm:mx-auto" />
+        <Skeleton className="h-20 w-20 rounded-full sm:col-span-2 sm:mx-auto" />
         {Array.from({ length: 6 }).map((_, index) => (
           <div key={index} className="space-y-2">
             <Skeleton className="h-4 w-20" />
