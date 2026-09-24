@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { MapPinned, RotateCcw } from "lucide-react";
+import { MapPinned } from "lucide-react";
 
 import {
   Combobox,
   ComboboxContent,
   ComboboxEmpty,
+  ComboboxGroup,
   ComboboxInput,
   ComboboxItem,
+  ComboboxLabel,
   ComboboxList,
+  ComboboxCollection,
 } from "@/components/ui/combobox";
 import { InputGroupAddon } from "@/components/ui/input-group";
 import {
@@ -39,25 +42,30 @@ export default function GeographyFocusSelector({
     if (!open) setSearch("");
   }, [open]);
 
-  const optionById = useMemo(
-    () => new Map(options.map((item) => [item.id, item])),
-    [options],
-  );
-  const items = useMemo(() => {
-    const ids = options.map((item) => item.id);
-    if (selected?.id && !ids.includes(selected.id)) ids.unshift(selected.id);
-    return ids;
-  }, [options, selected?.id]);
-  const labels = useMemo(
-    () => new Map(options.map((item) => [item.id, item.name])),
-    [options],
-  );
-
   const selectedLabel =
     selected?.name ||
     (effectiveValue === DEFAULT_GEOGRAPHY_FOCUS_ID ? "India" : "Choose area");
 
-  const selectValue = (nextValue) => {
+  const groupedOptions = useMemo(() => {
+    const groups = new Map();
+    for (const item of options) {
+      const key = item.geography_type || "other";
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(item);
+    }
+    return [...groups.entries()]
+      .sort(([a], [b]) => formatGeographyType(a).localeCompare(formatGeographyType(b)))
+      .map(([type, items]) => ({
+        type,
+        items: [...items].sort((a, b) =>
+          (a.name || "").localeCompare(b.name || ""),
+        ),
+      }));
+  }, [options]);
+
+  const ids = useMemo(() => options.map((item) => item.id), [options]);
+
+  const handleValueChange = (nextValue) => {
     onValueChange?.(
       nextValue === DEFAULT_GEOGRAPHY_FOCUS_ID ? null : nextValue,
     );
@@ -66,14 +74,17 @@ export default function GeographyFocusSelector({
 
   return (
     <Combobox
-      items={items}
+      items={ids}
       value={effectiveValue}
       open={open}
       onOpenChange={setOpen}
       inputValue={search}
       onInputValueChange={setSearch}
-      onValueChange={selectValue}
-      itemToStringValue={(item) => labels.get(item) || selectedLabel || ""}
+      onValueChange={handleValueChange}
+      itemToStringValue={(item) => {
+        const option = options.find((candidate) => candidate.id === item);
+        return option?.name || selectedLabel || "";
+      }}
       autoHighlight
       className={className}
     >
@@ -87,38 +98,32 @@ export default function GeographyFocusSelector({
         </InputGroupAddon>
       </ComboboxInput>
 
-      <ComboboxContent className="w-[min(20rem,calc(100vw-1.5rem))]">
+      <ComboboxContent className="w-[min(24rem,calc(100vw-1.5rem))]">
         <ComboboxEmpty>
           {isSearching ? "Searching..." : "No geographies found."}
         </ComboboxEmpty>
-        <ComboboxList>
-          {(item) => {
-            const option = optionById.get(item) || (selected?.id === item ? selected : null);
-            if (!option) return null;
 
+        <ComboboxList>
+          {(group) => {
+            const groupOptions = groupedOptions.find(
+              (entry) => entry.type === group,
+            );
             return (
-              <ComboboxItem key={item} value={item}>
-                <div className="min-w-0">
-                  <div className="truncate text-sm">{option.name}</div>
-                  <div className="truncate text-xs text-muted-foreground">
-                    {formatGeographyType(option.geography_type)}
-                  </div>
-                </div>
-              </ComboboxItem>
+              <ComboboxGroup key={group}>
+                <ComboboxLabel>{formatGeographyType(group)}</ComboboxLabel>
+                <ComboboxCollection>
+                  {groupOptions?.items.map((item) => (
+                    <ComboboxItem key={item.id} value={item.id}>
+                      <div className="min-w-0">
+                        <div className="truncate text-sm">{item.name}</div>
+                      </div>
+                    </ComboboxItem>
+                  ))}
+                </ComboboxCollection>
+              </ComboboxGroup>
             );
           }}
         </ComboboxList>
-
-        {effectiveValue !== DEFAULT_GEOGRAPHY_FOCUS_ID && (
-          <button
-            type="button"
-            className="flex w-full items-center gap-2 border-t px-2 py-2 text-left text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-            onClick={() => selectValue(DEFAULT_GEOGRAPHY_FOCUS_ID)}
-          >
-            <RotateCcw className="h-4 w-4 shrink-0" />
-            <span>Reset to India</span>
-          </button>
-        )}
       </ComboboxContent>
     </Combobox>
   );
