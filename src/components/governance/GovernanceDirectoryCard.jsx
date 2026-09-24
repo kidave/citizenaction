@@ -54,28 +54,16 @@ export default function GovernanceDirectoryCard({
           <TooltipContent side="top">{label}</TooltipContent>
         </Tooltip>
 
-        <div className="hidden min-w-0 flex-1 pr-7 sm:block">
-          {tab === "organizations" && entity.type && (
-            <p className="truncate text-xs text-muted-foreground">{entity.type}</p>
-          )}
-          {tab !== "organizations" && entity.parent_name && (
-            <p className="truncate text-xs text-muted-foreground">{entity.parent_name}</p>
-          )}
-        </div>
+
       </CardContent>
     </Card>
   );
 
   if (isSelectable) {
     return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button type="button" onClick={() => onSelect?.(entity)} className="block h-full w-full text-left" aria-label={label} aria-pressed={selected}>
-            {content}
-          </button>
-        </TooltipTrigger>
-        <TooltipContent side="top">{label}</TooltipContent>
-      </Tooltip>
+      <button type="button" onClick={() => onSelect?.(entity)} className="block h-full w-full text-left" aria-label={label} aria-pressed={selected}>
+        {content}
+      </button>
     );
   }
 
