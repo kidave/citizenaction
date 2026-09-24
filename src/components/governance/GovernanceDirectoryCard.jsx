@@ -1,15 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+
 import { Check, Circle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import GovernanceCardActions from "@/components/governance/GovernanceCardActions";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   getGovernanceHref,
   getGovernanceInitials,
-  getGovernanceLabel,
   getGovernanceName,
 } from "@/utils/governance";
 
@@ -22,7 +20,6 @@ export default function GovernanceDirectoryCard({
   onEdit,
   onDelete,
 }) {
-  const label = getGovernanceLabel(entity);
   const name = getGovernanceName(entity);
   const href = getGovernanceHref({ ...entity, tab });
   const avatarUrl =
@@ -30,38 +27,6 @@ export default function GovernanceDirectoryCard({
     (tab === "organizations" ? entity.current_holder_image_url : null);
   const isSelectable = selectionMode === "radio" || selectionMode === "checkbox";
   const canManage = !isSelectable && (onEdit || onDelete);
-  const fullNameRef = useRef(null);
-  const [isFullNameTruncated, setIsFullNameTruncated] = useState(false);
-
-  useEffect(() => {
-    if (label === name) {
-      setIsFullNameTruncated(false);
-      return undefined;
-    }
-
-    const element = fullNameRef.current;
-    if (!element) return undefined;
-
-    const checkTruncation = () => {
-      setIsFullNameTruncated(element.scrollWidth > element.clientWidth);
-    };
-
-    checkTruncation();
-    const observer = new ResizeObserver(checkTruncation);
-    observer.observe(element);
-
-    return () => observer.disconnect();
-  }, [label, name]);
-
-  const nameContent = (
-    <div
-      ref={fullNameRef}
-      className="truncate text-xs leading-tight text-muted-foreground"
-    >
-      {name}
-    </div>
-  );
-
   const content = (
     <div
       className={`relative flex min-h-[76px] h-full items-center gap-2.5 px-3 py-2.5 transition-colors hover:bg-accent/50 ${selected ? "bg-primary/5" : ""}`}
@@ -113,7 +78,7 @@ export default function GovernanceDirectoryCard({
         type="button"
         onClick={() => onSelect?.(entity)}
         className="block h-full w-full text-left"
-        aria-label={label}
+        aria-label={name}
         aria-pressed={selected}
       >
         {content}
@@ -122,7 +87,7 @@ export default function GovernanceDirectoryCard({
   }
 
   const linked = href ? (
-    <Link href={href} className="block h-full" aria-label={label}>
+    <Link href={href} className="block h-full" aria-label={name}>
       {content}
     </Link>
   ) : (

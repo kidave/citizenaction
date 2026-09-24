@@ -43,22 +43,27 @@ export default function PersonDirectory({
 
   const organizationsQuery = useGovernanceOrganizations();
 
-  const options = useMemo(
-    () =>
-      (organizationsQuery.data || []).map((item) => ({
+  const organizationOptions = useMemo(
+    () => [
+      { value: "all", label: "All organizations" },
+      ...(organizationsQuery.data || []).map((item) => ({
         value: item.id,
-        label: getGovernanceLabel(item),
-        searchText: [getGovernanceLabel(item), item.name]
-          .filter(Boolean)
-          .join(" "),
+        label: item.name || getGovernanceLabel(item),
       })),
+    ],
     [organizationsQuery.data],
   );
 
-  const allOrganizationsOption = { value: "all", label: "All organizations" };
-  const selectedOrganization =
-    options.find((item) => item.value === effectiveOrganizationId) ||
-    allOrganizationsOption;
+  const organizationItems = useMemo(
+    () =>
+      Combobox.createItems(organizationOptions, {
+        getValue: (item) => item.value,
+        getLabel: (item) => item.label,
+      }),
+    [organizationOptions],
+  );
+
+  const selectedOrganizationId = effectiveOrganizationId || "all";
 
   const query = useGovernanceDirectory({
     tab: "people",
@@ -103,13 +108,10 @@ export default function PersonDirectory({
 
         {/* Organization filter */}
         <Combobox
-          items={[allOrganizationsOption, ...options]}
-          itemToStringValue={(item) => item?.searchText || item?.label || ""}
-          value={selectedOrganization}
-          onValueChange={(item) =>
-            setOrganizationId(
-              item?.value === "all" ? null : item?.value || null,
-            )
+          items={organizationItems}
+          value={selectedOrganizationId}
+          onValueChange={(value) =>
+            setOrganizationId(value === "all" ? null : value || null)
           }
           autoHighlight
           className="min-w-0"
@@ -123,8 +125,8 @@ export default function PersonDirectory({
             <ComboboxEmpty>No organizations found.</ComboboxEmpty>
             <ComboboxList>
               {(item) => (
-                <ComboboxItem key={item.value} value={item}>
-                  {item.label}
+                <ComboboxItem key={item.id} value={item.id}>
+                  {item.name}
                 </ComboboxItem>
               )}
             </ComboboxList>
@@ -151,7 +153,7 @@ export default function PersonDirectory({
       {!query.isLoading &&
         !query.error &&
         (data.length ? (
-          <div className="grid grid-cols-2 overflow-hidden rounded-md border sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 [&>*]:min-w-0 [&>*]:border-b [&>*]:border-r [&>*]:border-border [&>*]:last:border-r-0 sm:[&>*:nth-child(3n)]:border-r-0 lg:[&>*:nth-child(3n)]:border-r lg:[&>*:nth-child(4n)]:border-r-0 xl:[&>*:nth-child(4n)]:border-r xl:[&>*:nth-child(5n)]:border-r-0 2xl:[&>*:nth-child(5n)]:border-r 2xl:[&>*:nth-child(6n)]:border-r-0 [&>*:nth-last-child(-n+2)]:border-b-0 sm:[&>*:nth-last-child(-n+3)]:border-b-0 lg:[&>*:nth-last-child(-n+4)]:border-b-0 xl:[&>*:nth-last-child(-n+5)]:border-b-0 2xl:[&>*:nth-last-child(-n+6)]:border-b-0">
+          <div className="grid grid-cols-2 overflow-hidden rounded-md border-x border-t sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 [&>*]:min-w-0 [&>*]:border-t [&>*]:border-r [&>*]:border-border sm:[&>*:nth-child(3n)]:border-r-0 lg:[&>*:nth-child(3n)]:border-r lg:[&>*:nth-child(4n)]:border-r-0 xl:[&>*:nth-child(4n)]:border-r xl:[&>*:nth-child(5n)]:border-r-0 2xl:[&>*:nth-child(5n)]:border-r 2xl:[&>*:nth-child(6n)]:border-r-0">
             {data.map((entity) => (
               <GovernanceDirectoryCard
                 key={entity.id}
