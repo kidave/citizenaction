@@ -4,7 +4,14 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Combobox from "@/components/ui/combobox";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
 import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectoryCard";
 import GovernancePositionSheet from "@/components/governance/GovernancePositionSheet";
 import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
@@ -89,14 +96,30 @@ export default function PositionDirectory({
 
         {/* Organization filter */}
         <Combobox
-          value={effectiveOrganizationId}
-          onValueChange={setOrganizationId}
-          options={options}
-          placeholder="All organizations"
-          searchPlaceholder="Search organizations..."
-          emptyText="No organizations found."
+          items={[{ value: "all", label: "All organizations" }, ...options]}
+          itemToStringValue={(item) => item.label}
+          value={effectiveOrganizationId || "all"}
+          onValueChange={(value) =>
+            setOrganizationId(value === "all" ? null : value)
+          }
           className="min-w-0"
-        />
+        >
+          <ComboboxInput
+            placeholder="All organizations"
+            className="h-9"
+            showClear={Boolean(effectiveOrganizationId)}
+          />
+          <ComboboxContent>
+            <ComboboxEmpty>No organizations found.</ComboboxEmpty>
+            <ComboboxList>
+              {(item) => (
+                <ComboboxItem key={item.value} value={item}>
+                  {item.label}
+                </ComboboxItem>
+              )}
+            </ComboboxList>
+          </ComboboxContent>
+        </Combobox>
 
         {/* Add */}
         {canManage && (
