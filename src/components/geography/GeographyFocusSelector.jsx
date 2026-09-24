@@ -107,7 +107,7 @@ export default function GeographyFocusSelector({
       className={className}
     >
       <ComboboxTrigger
-        className="h-9 w-full justify-between rounded-md border border-input bg-background px-3 text-sm font-normal shadow-xs hover:bg-accent hover:text-accent-foreground"
+        className="inline-flex h-9 w-[9.5rem] max-w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 text-sm font-normal font-sans shadow-xs hover:bg-accent hover:text-accent-foreground"
         aria-label="Select geography"
       >
         <span className="flex min-w-0 items-center gap-2">
@@ -120,9 +120,11 @@ export default function GeographyFocusSelector({
         <ComboboxInput
           showTrigger={false}
           showClear={false}
+          showInputClear={Boolean(search)}
+          onClearInput={() => setSearch("")}
           placeholder="Search geography..."
           aria-label="Search geography"
-          className="h-10 rounded-md"
+          className="h-9 rounded-md"
         />
         <ComboboxEmpty>
           {error
@@ -132,7 +134,7 @@ export default function GeographyFocusSelector({
               : "No geographies found."}
         </ComboboxEmpty>
 
-        <ComboboxList>
+        <ComboboxList className="max-h-[min(24rem,calc(100vh-10rem))] overflow-y-auto">
           {(group) => (
             <ComboboxGroup key={group.value} items={group.items}>
               <ComboboxLabel>{group.value}</ComboboxLabel>

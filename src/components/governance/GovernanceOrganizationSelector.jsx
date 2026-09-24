@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import {
   Combobox,
@@ -20,6 +20,7 @@ export default function GovernanceOrganizationSelector({
   className,
 }) {
   const organizationsQuery = useGovernanceOrganizations();
+  const [search, setSearch] = useState("");
 
   const options = useMemo(
     () => [
@@ -48,19 +49,24 @@ export default function GovernanceOrganizationSelector({
         onValueChange?.(item?.id === "all" ? null : item?.id || null);
       }}
       itemToStringLabel={(item) => item?.name || ""}
-      itemToStringValue={(item) =>
-        item?.shortName
-          ? item.name + " " + item.shortName
-          : item?.name || ""
-      }
+      itemToStringValue={(item) => item?.name || ""}
       isItemEqualToValue={(item, currentValue) =>
         item?.id === currentValue?.id
       }
+      filter={(item, query) => {
+        const normalizedQuery = query.trim().toLocaleLowerCase();
+        if (!normalizedQuery) return true;
+        return [item?.name, item?.shortName]
+          .filter(Boolean)
+          .some((value) =>
+            value.toLocaleLowerCase().includes(normalizedQuery),
+          );
+      }}
       autoHighlight
       className={className}
     >
       <ComboboxTrigger
-        className="h-9 w-full justify-between rounded-md border border-input bg-background px-3 text-sm font-normal shadow-xs hover:bg-accent hover:text-accent-foreground"
+        className="inline-flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 text-sm font-normal font-sans shadow-xs hover:bg-accent hover:text-accent-foreground"
         aria-label="Select organization"
       >
         <ComboboxValue placeholder="All organizations" />
@@ -72,7 +78,11 @@ export default function GovernanceOrganizationSelector({
           showClear={false}
           placeholder="Search organizations..."
           aria-label="Search organizations"
-          className="h-10 rounded-md"
+          value={search}
+          onInputValueChange={setSearch}
+          showInputClear={Boolean(search)}
+          onClearInput={() => setSearch("")}
+          className="h-9 rounded-md"
         />
         <ComboboxEmpty>
           {organizationsQuery.isLoading
