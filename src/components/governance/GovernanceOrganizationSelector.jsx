@@ -29,6 +29,7 @@ export default function GovernanceOrganizationSelector({
         .map((item) => ({
           id: item.id,
           name: item.name,
+          shortName: item.short_name || "",
         })),
     ],
     [organizationsQuery.data],
@@ -47,7 +48,11 @@ export default function GovernanceOrganizationSelector({
         onValueChange?.(item?.id === "all" ? null : item?.id || null);
       }}
       itemToStringLabel={(item) => item?.name || ""}
-      itemToStringValue={(item) => item?.name || ""}
+      itemToStringValue={(item) =>
+        item?.shortName
+          ? item.name + " " + item.shortName
+          : item?.name || ""
+      }
       isItemEqualToValue={(item, currentValue) =>
         item?.id === currentValue?.id
       }
@@ -67,7 +72,7 @@ export default function GovernanceOrganizationSelector({
           showClear={false}
           placeholder="Search organizations..."
           aria-label="Search organizations"
-          className="h-8"
+          className="h-10 rounded-md"
         />
         <ComboboxEmpty>
           {organizationsQuery.isLoading

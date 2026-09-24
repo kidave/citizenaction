@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Globe2 } from "lucide-react";
+import { MapPinned } from "lucide-react";
 
 import {
   Combobox,
@@ -111,7 +111,7 @@ export default function GeographyFocusSelector({
         aria-label="Select geography"
       >
         <span className="flex min-w-0 items-center gap-2">
-          <Globe2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <MapPinned className="h-4 w-4 shrink-0 text-muted-foreground" />
           <ComboboxValue placeholder={selectedLabel || "Select geography"} />
         </span>
       </ComboboxTrigger>
@@ -122,7 +122,7 @@ export default function GeographyFocusSelector({
           showClear={false}
           placeholder="Search geography..."
           aria-label="Search geography"
-          className="h-8"
+          className="h-10 rounded-md"
         />
         <ComboboxEmpty>
           {error
