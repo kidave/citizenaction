@@ -64,7 +64,7 @@ export default function GovernanceDirectoryCard({
 
   const content = (
     <div
-      className={`relative flex min-h-[76px] h-full items-center gap-2.5 px-3 py-2.5 transition-colors hover:bg-accent/50 \${selected ? "bg-primary/5" : ""}`}
+      className={`relative flex min-h-[76px] h-full items-center gap-2.5 px-3 py-2.5 transition-colors hover:bg-accent/50 ${selected ? "bg-primary/5" : ""}`}
     >
       {isSelectable && (
         <span
@@ -73,11 +73,11 @@ export default function GovernanceDirectoryCard({
         >
           {selectionMode === "radio" ? (
             <Circle
-              className={`h-4 w-4 \${selected ? "fill-primary stroke-primary" : ""}`}
+              className={`h-4 w-4 ${selected ? "fill-primary stroke-primary" : ""}`}
             />
           ) : (
             <span
-              className={`grid h-4 w-4 place-items-center rounded-sm border \${selected ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/50"}`}
+              className={`grid h-4 w-4 place-items-center rounded-sm border ${selected ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/50"}`}
             >
               {selected && <Check className="h-3 w-3" />}
             </span>
@@ -133,7 +133,7 @@ export default function GovernanceDirectoryCard({
     <GovernanceCardActions
       onEdit={onEdit}
       onDelete={onDelete}
-      deleteTitle={`Delete \${tab === "organizations" ? "organization" : tab === "people" ? "person" : "position"}?`}
+      deleteTitle={`Delete ${tab === "organizations" ? "organization" : tab === "people" ? "person" : "position"}?`}
       deleteDescription="This action cannot be undone. Related governance history may need to be removed first."
     >
       {linked}
