@@ -54,23 +54,35 @@ export function usePostEditor(item = null, initialSpace = null, options = {}) {
     if (baselineRef.current === null) baselineRef.current = snapshot(editor);
   });
 
-  const draftPayload = useCallback(() => {
-    const data = editor.getEditorData();
-    return {
-      p_space_ids: data.spaces?.map((space) => space.id) ?? [],
-      p_title: data.title || null,
-      p_content: data.content || null,
-      p_metadata: data.metadata ?? {},
-      p_start_at: data.start_at ?? null,
-      p_end_at: data.end_at ?? null,
-      p_lat: data.lat ?? null,
-      p_lng: data.lng ?? null,
-      p_address: data.address ?? null,
-      p_governance_ids: data.governance?.map((g) => g.id) ?? [],
-      p_content_json: data.content_json ?? null,
-      p_content_format: data.content_format ?? "text",
-    };
-  }, [editor]);
+  const draftPayload = useCallback(() => ({
+    p_space_ids: editor.spaces?.map((space) => space.id) ?? [],
+    p_title: editor.title || null,
+    p_content: editor.content || null,
+    p_metadata: {
+      ...(editor.datePrecision ? { date_precision: editor.datePrecision } : {}),
+    },
+    p_start_at: editor.start_at ?? null,
+    p_end_at: editor.end_at ?? null,
+    p_lat: editor.lat ?? null,
+    p_lng: editor.lng ?? null,
+    p_address: editor.address ?? null,
+    p_governance_ids: editor.governance?.map((g) => g.id) ?? [],
+    p_content_json: editor.contentJson ?? null,
+    p_content_format: editor.contentFormat ?? "text",
+  }), [
+    editor.spaces,
+    editor.title,
+    editor.content,
+    editor.datePrecision,
+    editor.start_at,
+    editor.end_at,
+    editor.lat,
+    editor.lng,
+    editor.address,
+    editor.governance,
+    editor.contentJson,
+    editor.contentFormat,
+  ]);
 
   const saveDraftNow = useCallback(async () => {
     if (item || saveInFlightRef.current) return draftIdRef.current;
@@ -121,7 +133,24 @@ export function usePostEditor(item = null, initialSpace = null, options = {}) {
     }, 900);
 
     return () => window.clearTimeout(saveTimerRef.current);
-  }, [editor, item, saveDraftNow]);
+  }, [
+    item,
+    editor.title,
+    editor.content,
+    editor.contentJson,
+    editor.contentFormat,
+    editor.links,
+    editor.start_at,
+    editor.end_at,
+    editor.datePrecision,
+    editor.lat,
+    editor.lng,
+    editor.address,
+    editor.spaces,
+    editor.is_global,
+    editor.governance,
+    saveDraftNow,
+  ]);
 
   async function submit(onSuccess) {
     if (!editor.title.trim()) {
@@ -166,7 +195,7 @@ export function usePostEditor(item = null, initialSpace = null, options = {}) {
     };
 
     try {
-      if (!item) await saveDraftNow();
+      if (!item && !draftIdRef.current) await saveDraftNow();
 
       let savedPost;
       if (item) {
