@@ -38,7 +38,7 @@ export default function EditorHeader({
           aria-required="true"
           className={`min-w-0 font-medium shadow-none focus-visible:ring-0 ${
             documentStyle
-              ? "order-3 basis-full border-y-0 border-r-0 border-l-4 border-primary rounded-none bg-transparent pl-3 pr-0 py-1 font-serif text-xl leading-snug tracking-tight placeholder:text-muted-foreground/70 sm:order-none sm:basis-auto sm:flex-1 sm:py-0 sm:text-3xl"
+              ? "order-3 basis-full border-y-0 border-r-0 border-l-4 border-primary rounded-none bg-transparent pl-3 pr-0 py-1 font-serif text-2xl leading-snug tracking-tight placeholder:text-muted-foreground/70 sm:order-none sm:basis-auto sm:flex-1 sm:py-0 sm:text-4xl"
               : "order-3 basis-full border-none bg-transparent px-0 text-base sm:order-none sm:basis-auto sm:flex-1"
           }`}
         />
