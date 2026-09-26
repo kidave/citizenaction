@@ -3,61 +3,25 @@
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
-
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import EditorModalSkeleton from "@/components/skeletons/EditorModalSkeleton";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { useSpaces } from "@/hooks/space/useSpaces";
-import { usePostEditor } from "@/hooks/editor/usePostEditor";
 import { useContributionEditor } from "@/hooks/editor/useContributionEditor";
+import PostEditor from "./PostEditor";
 import EditorHeader from "./EditorHeader";
-import EditorAttachments from "./EditorAttachments";
 import EditorFooter from "./EditorFooter";
+import EditorAttachments from "./EditorAttachments";
 import EditorContextSuggestions from "./EditorContextSuggestions";
 
-const EditorContent = dynamic(() => import("./EditorContent"), {
-  ssr: false,
-});
+const PlainTextEditor = dynamic(() => import("./content/PlainTextEditor"), { ssr: false });
 
-export default function EditorModal({
-  isOpen,
-  onClose,
-  mode = "post",
-  item = null,
-  post = null,
-  initialSpace = null,
-}) {
+export default function EditorModal({ isOpen, onClose, mode = "post", item = null, post = null, initialSpace = null }) {
+  const router = useRouter();
   const { data: profile, isLoading: profileLoading } = useMyProfile();
   const { data: spaces = [], isLoading: spacesLoading } = useSpaces();
-  const loading = profileLoading || spacesLoading;
-  const router = useRouter();
-
-  const postEditor = usePostEditor(mode === "post" ? item : null, initialSpace);
-  const contributionEditor = useContributionEditor(
-    mode === "contribution" ? item : null,
-    post,
-  );
-  const editor = mode === "post" ? postEditor : contributionEditor;
-
-  function handleClose() {
-    if (mode === "post" && !item) {
-      editor.reset?.();
-    }
-    onClose?.();
-  }
-
-  function handleCreated(savedPost) {
-    handleClose();
-
-    if (savedPost?.slug) {
-      router.push("/post/" + savedPost.slug);
-    }
-  }
-
-  const isNewPost = mode === "post" && !item;
-  const isDocumentPost =
-    mode === "post" && !!item && item.content_format === "editorjs";
-  const usePlainComposer = mode === "post" || mode === "contribution";
+  const contributionEditor = useContributionEditor(mode === "contribution" ? item : null, post);
+  const isDocumentPost = mode === "post" && !!item && item.content_format === "editorjs";
 
   useEffect(() => {
     if (isDocumentPost && item?.slug) {
@@ -68,64 +32,50 @@ export default function EditorModal({
 
   if (isDocumentPost) return null;
 
+  function handleClose() {
+    if (mode === "contribution") contributionEditor.reset?.();
+    onClose?.();
+  }
+
+  function handleCreated(savedPost) {
+    handleClose();
+    if (savedPost?.slug) router.push("/post/" + savedPost.slug);
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="flex h-dvh max-h-dvh min-h-0 w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-auto sm:max-h-[80vh] sm:min-h-[320px] sm:max-w-2xl sm:rounded-xl">
-        {loading ? (
+        {mode === "post" ? (
+          <PostEditor item={item} initialSpace={initialSpace} onClose={handleClose} onCreated={handleCreated} />
+        ) : profileLoading || spacesLoading || !profile ? (
           <EditorModalSkeleton />
         ) : (
-          <>
-            <EditorHeader
-              mode={mode}
-              profile={profile}
-              editor={editor}
-              spaces={spaces}
-            />
-
-            {mode === "post" && <EditorContextSuggestions editor={editor} />}
-
+          <div className="flex h-full min-h-0 flex-col">
+            <EditorHeader profile={profile} editor={contributionEditor} spaces={spaces} showTitle={false} showSelectors={false} />
+            <EditorContextSuggestions editor={contributionEditor} />
             <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-              <EditorContent
-                title={editor.title}
-                setTitle={editor.setTitle}
-                content={editor.content}
-                setContent={editor.setContent}
-                contentJson={editor.contentJson}
-                setContentJson={editor.setContentJson}
-                contentFormat={editor.contentFormat}
-                setContentFormat={editor.setContentFormat}
-                attachments={editor.attachments}
-                addAttachments={editor.addAttachments}
-                documentMode={false}
-                showTitle={false}
-                forcePlain={usePlainComposer}
+              <PlainTextEditor
+                content={contributionEditor.content}
+                setContent={contributionEditor.setContent}
+                setContentJson={contributionEditor.setContentJson}
+                setContentFormat={contributionEditor.setContentFormat}
               />
-
               <div className="mt-auto shrink-0">
-                <EditorAttachments
-                  attachments={editor.attachments}
-                  setAttachments={editor.setAttachments}
-                  links={editor.links}
-                />
+                <EditorAttachments attachments={contributionEditor.attachments} setAttachments={contributionEditor.setAttachments} links={contributionEditor.links} />
               </div>
             </div>
-
             <EditorFooter
-              mode={mode}
+              editor={contributionEditor}
               item={item}
-              editor={editor}
               onClose={handleClose}
               onCreated={handleCreated}
-              onDocumentMode={
-                isNewPost
-                  ? () => {
-                      handleClose();
-                      router.push("/document");
-                    }
-                  : undefined
-              }
+              showDocumentAction={false}
+              showDateTime={false}
+              showAddress={false}
+              showDraftStatus={false}
+              submitLabel={item ? "Update" : "Add"}
             />
-          </>
+          </div>
         )}
       </DialogContent>
     </Dialog>
