@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 
 import { useLinkManager } from "@/hooks/editor/useLinkManager";
 
-import LinkManagerDialog from "@/components/editor/LinkManagerDialog";
+import LinkManagerDialog from "@/components/link/LinkManagerDialog";
 
 export default function LinkManager({ value = [], onChange }) {
   const [open, setOpen] = useState(false);

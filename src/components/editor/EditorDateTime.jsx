@@ -1,6 +1,6 @@
 "use client";
 
-import ActionDatePicker from "./ActionDatePicker";
+import ActionDatePicker from "@/components/calendar/ActionDatePicker";
 
 export default function EditorDateTime({ editor }) {
   return (

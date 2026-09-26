@@ -6,7 +6,7 @@ import { MapPin } from "lucide-react";
 import ImagePicker from "@/components/attachment/ImagePicker";
 import DocumentPicker from "@/components/attachment/DocumentPicker";
 import EditorAddress from "@/components/editor/EditorAddress";
-import LinkManager from "@/components/editor/LinkManager";
+import LinkManager from "@/components/link/LinkManager";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,

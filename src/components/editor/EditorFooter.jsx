@@ -10,7 +10,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import LinkManager from "@/components/editor/LinkManager";
+import LinkManager from "@/components/link/LinkManager";
 import ImagePicker from "@/components/attachment/ImagePicker";
 import DocumentPicker from "@/components/attachment/DocumentPicker";
 

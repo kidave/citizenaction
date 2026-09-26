@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
 
-import PlainEditor from "./PlainEditor";
+import PlainEditor from "@/components/editor/PlainEditor";
 
 const RichEditor = dynamic(() => import("./RichEditor"), {
   ssr: false,
@@ -47,14 +47,7 @@ export default function EditorContent({
           }
         : null,
     );
-  }, [
-    content,
-    contentFormat,
-    forcePlain,
-    setContentFormat,
-    setContentJson,
-  ]);
-
+  }, [content, contentFormat, forcePlain, setContentFormat, setContentJson]);
 
   if (!useRichEditor) {
     return (

@@ -4,8 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Check, Loader2, MapPin, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import EditorAddress from "./EditorAddress";
-import ActionDatePicker, { formatActionDate } from "./ActionDatePicker";
+import EditorAddress from "@/components/editor/EditorAddress";
+import ActionDatePicker, {
+  formatActionDate,
+} from "@/components/calendar/ActionDatePicker";
 import {
   extractDateCandidate,
   extractLocationCandidate,
@@ -101,9 +103,9 @@ export default function EditorContextSuggestions({ editor }) {
 
   const showLocation = Boolean(
     locationCandidate &&
-      !editor.address &&
-      !dismissed.location &&
-      locationResult,
+    !editor.address &&
+    !dismissed.location &&
+    locationResult,
   );
 
   if (!showDate && !showLocation && !locationEditorOpen) return null;
