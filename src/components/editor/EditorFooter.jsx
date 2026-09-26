@@ -39,7 +39,7 @@ export default function EditorFooter({
 
   return (
     <TooltipProvider>
-      <div className={`mx-auto w-full ${maxWidthClass} bg-background/95 px-4 py-2.5 backdrop-blur sm:px-6`}>
+      <div className={`mx-auto w-full ${maxWidthClass} shrink-0 bg-background/95 px-4 py-2.5 backdrop-blur sm:px-6`}>
         <div className="flex min-w-0 items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-0.5">
             {showDocumentAction && onDocumentMode && (
