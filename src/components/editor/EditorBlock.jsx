@@ -20,15 +20,14 @@ export default function EditorBlock({ block }) {
 
     case "header": {
       const level = Math.min(Math.max(Number(data.level) || 2, 1), 3);
-
       const Tag = level === 1 ? "h1" : level === 2 ? "h2" : "h3";
 
       const className =
         level === 1
-          ? "font-sans text-2xl font-semibold tracking-tight"
+          ? "font-sans text-3xl font-semibold leading-tight tracking-tight"
           : level === 2
-            ? "font-sans text-xl font-semibold tracking-tight"
-            : "font-sans text-lg font-semibold";
+            ? "font-sans text-2xl font-semibold leading-tight tracking-tight"
+            : "font-sans text-xl font-semibold leading-tight";
 
       return (
         <Tag className={className}>
