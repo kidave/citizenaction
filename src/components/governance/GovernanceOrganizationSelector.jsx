@@ -50,23 +50,19 @@ export default function GovernanceOrganizationSelector({
       }}
       itemToStringLabel={(item) => item?.name || ""}
       itemToStringValue={(item) => item?.name || ""}
-      isItemEqualToValue={(item, currentValue) =>
-        item?.id === currentValue?.id
-      }
+      isItemEqualToValue={(item, currentValue) => item?.id === currentValue?.id}
       filter={(item, query) => {
         const normalizedQuery = query.trim().toLocaleLowerCase();
         if (!normalizedQuery) return true;
         return [item?.name, item?.shortName]
           .filter(Boolean)
-          .some((value) =>
-            value.toLocaleLowerCase().includes(normalizedQuery),
-          );
+          .some((value) => value.toLocaleLowerCase().includes(normalizedQuery));
       }}
       autoHighlight
       className={className}
     >
       <ComboboxTrigger
-        className="inline-flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 text-sm font-normal font-sans shadow-xs hover:bg-accent hover:text-accent-foreground"
+        className="shadow-xs inline-flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 font-serif text-sm font-normal hover:bg-accent hover:text-accent-foreground"
         aria-label="Select organization"
       >
         <ComboboxValue placeholder="All organizations" />

@@ -13,7 +13,7 @@ export default function EditorBlock({ block }) {
   switch (block?.type) {
     case "paragraph":
       return (
-        <div className="font-sans text-lg leading-7">
+        <div className="font-serif text-lg leading-7">
           <EditorRichText html={data.text || ""} />
         </div>
       );
@@ -24,10 +24,10 @@ export default function EditorBlock({ block }) {
 
       const className =
         level === 1
-          ? "font-sans text-4xl font-semibold leading-tight tracking-tight"
+          ? "font-serif text-3xl font-semibold leading-tight tracking-tight"
           : level === 2
-            ? "font-sans text-3xl font-semibold leading-tight tracking-tight"
-            : "font-sans text-2xl font-semibold leading-tight";
+            ? "font-serif text-2xl font-semibold leading-tight tracking-tight"
+            : "font-serif text-xl font-semibold leading-tight";
 
       return (
         <Tag className={className}>

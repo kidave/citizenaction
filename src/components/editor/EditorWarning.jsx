@@ -4,13 +4,11 @@ export default function EditorWarning({ data }) {
   return (
     <div className="my-4 rounded-xl border bg-muted/50 p-4">
       {data?.title && (
-        <div className="font-sans font-medium">
-          {data.title}
-        </div>
+        <div className="font-serif font-medium">{data.title}</div>
       )}
 
       {data?.message && (
-        <div className="mt-1 font-sans text-lg leading-7 text-muted-foreground">
+        <div className="mt-1 font-serif text-lg leading-7 text-muted-foreground">
           {data.message}
         </div>
       )}

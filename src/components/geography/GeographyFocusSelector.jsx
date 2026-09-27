@@ -59,10 +59,7 @@ export default function GeographyFocusSelector({
       groups.get(type).push(item);
     }
 
-    if (
-      selected?.id &&
-      !options.some((item) => item.id === selected.id)
-    ) {
+    if (selected?.id && !options.some((item) => item.id === selected.id)) {
       const type = selected.geography_type || "other";
       if (!groups.has(type)) {
         groups.set(type, []);
@@ -92,22 +89,18 @@ export default function GeographyFocusSelector({
       onInputValueChange={setSearch}
       onValueChange={(item) => {
         const nextId = item?.id || null;
-        onValueChange?.(
-          nextId === DEFAULT_GEOGRAPHY_FOCUS_ID ? null : nextId,
-        );
+        onValueChange?.(nextId === DEFAULT_GEOGRAPHY_FOCUS_ID ? null : nextId);
         setOpen(false);
         setSearch("");
       }}
       itemToStringLabel={(item) => item?.name || ""}
       itemToStringValue={(item) => item?.name || ""}
-      isItemEqualToValue={(item, currentValue) =>
-        item?.id === currentValue?.id
-      }
+      isItemEqualToValue={(item, currentValue) => item?.id === currentValue?.id}
       autoHighlight
       className={className}
     >
       <ComboboxTrigger
-        className="inline-flex h-9 w-[9.5rem] max-w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 text-sm font-normal font-sans shadow-xs hover:bg-accent hover:text-accent-foreground"
+        className="shadow-xs inline-flex h-9 w-[9.5rem] max-w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 font-serif text-sm font-normal hover:bg-accent hover:text-accent-foreground"
         aria-label="Select geography"
       >
         <span className="flex min-w-0 items-center gap-2">
