@@ -40,7 +40,7 @@ function PostTitle({ title }) {
 
   return (
     <div className="border-l-4 border-primary pl-4">
-      <h2 className="font-serif text-xl leading-snug tracking-tight">
+      <h2 className="text-xl font-semibold leading-tight tracking-tight">
         {title}
       </h2>
     </div>

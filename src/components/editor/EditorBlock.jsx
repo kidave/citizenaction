@@ -13,22 +13,21 @@ export default function EditorBlock({ block }) {
   switch (block?.type) {
     case "paragraph":
       return (
-        <div className="font-serif text-lg leading-7">
+        <div className="font-sans text-lg leading-7">
           <EditorRichText html={data.text || ""} />
         </div>
       );
 
     case "header": {
       const level = Math.min(Math.max(Number(data.level) || 2, 1), 3);
-
       const Tag = level === 1 ? "h1" : level === 2 ? "h2" : "h3";
 
       const className =
         level === 1
-          ? "text-2xl font-semibold tracking-tight"
+          ? "font-sans text-4xl font-semibold leading-tight tracking-tight"
           : level === 2
-            ? "text-xl font-semibold tracking-tight"
-            : "text-lg font-semibold";
+            ? "font-sans text-3xl font-semibold leading-tight tracking-tight"
+            : "font-sans text-2xl font-semibold leading-tight";
 
       return (
         <Tag className={className}>
