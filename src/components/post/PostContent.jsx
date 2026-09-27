@@ -35,12 +35,12 @@ function LinkifiedText({ children }) {
   );
 }
 
-function PostTitle({ title, rich = false }) {
+function PostTitle({ title }) {
   if (!title) return null;
 
   return (
     <div className="border-l-4 border-primary pl-4">
-      <h2 className={`${rich ? "font-sans" : "font-serif"} text-xl leading-snug tracking-tight`}>
+      <h2 className="text-xl font-semibold leading-tight tracking-tight">
         {title}
       </h2>
     </div>
@@ -125,7 +125,7 @@ export default function PostContent({
       className={!forceExpanded ? "cursor-pointer" : ""}
     >
       <div className="space-y-4">
-        <PostTitle title={title} rich={isEditorJS} />
+        <PostTitle title={title} />
 
         {isEditorJS ? (
           <RichPostContent

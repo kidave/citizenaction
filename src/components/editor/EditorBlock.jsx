@@ -24,10 +24,10 @@ export default function EditorBlock({ block }) {
 
       const className =
         level === 1
-          ? "font-sans text-3xl font-semibold leading-tight tracking-tight"
+          ? "font-sans text-4xl font-semibold leading-tight tracking-tight"
           : level === 2
-            ? "font-sans text-2xl font-semibold leading-tight tracking-tight"
-            : "font-sans text-xl font-semibold leading-tight";
+            ? "font-sans text-3xl font-semibold leading-tight tracking-tight"
+            : "font-sans text-2xl font-semibold leading-tight";
 
       return (
         <Tag className={className}>
