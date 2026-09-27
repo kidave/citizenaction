@@ -3,29 +3,22 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/lib/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
 
 export function useSpaceMembers({ spaceId, enabled = true }) {
   return useQuery({
-    queryKey: ["space-members", spaceId],
-
+    queryKey: queryKeys.spaces.members(spaceId),
     enabled: enabled && !!spaceId,
-
     queryFn: async () => {
       const { data, error } = await supabase
         .from("space_member_view")
         .select("*")
         .eq("space_id", spaceId)
-        .order("created_at", {
-          ascending: false,
-        });
+        .order("created_at", { ascending: false });
 
-      if (error) {
-        throw error;
-      }
-
+      if (error) throw error;
       return data || [];
     },
-
     staleTime: 1000 * 60 * 5,
   });
 }

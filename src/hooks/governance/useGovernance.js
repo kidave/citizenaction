@@ -1,46 +1,32 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
 
 export function useGovernance({
-  scopeType,
-  scopeCode,
   search,
+  type,
   entityType,
+  parentId = null,
+  includeAll = false,
+  categoryId = null,
   enabled = true,
 } = {}) {
+  const governanceType = type || entityType || "all";
+
   return useQuery({
-    queryKey: [
-      "governance-directory",
-      scopeType,
-      scopeCode,
-      search,
-      entityType,
-    ],
+    queryKey: queryKeys.governance.tree({ parentId, search, type: governanceType }),
     enabled,
     queryFn: async () => {
-      let query = supabase
-        .from("governance_view")
-        .select("*")
-        .order("label", { ascending: true });
-
-      if (scopeType && scopeCode) {
-        query = query
-          .eq("geo_scope_type", scopeType)
-          .eq("geo_scope_code", scopeCode);
-      }
-
-      if (entityType && entityType !== "all") {
-        query = query.eq("entity_type", entityType);
-      }
-
-      if (search) {
-        query = query.ilike("label", `%${search}%`);
-      }
-
-      const { data, error } = await query;
-
+      const { data, error } = await supabase.rpc("get_governance_tree", {
+        p_search: search || null,
+        p_parent_id: parentId || null,
+        p_type: governanceType && governanceType !== "all" ? governanceType : null,
+        p_limit: 500,
+        p_include_all: includeAll,
+      });
       if (error) throw error;
-      return data || [];
+      const rows = data || [];
+      return rows.filter((entity) => !categoryId || entity.category_id === categoryId);
     },
   });
 }

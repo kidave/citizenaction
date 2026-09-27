@@ -1,11 +1,20 @@
 export default async function handler(req, res) {
   const { q } = req.query;
 
-  if (!q) return res.status(400).json([]);
+  if (!q || typeof q !== "string" || !q.trim()) {
+    return res.status(400).json([]);
+  }
 
   try {
+    const params = new URLSearchParams({
+      format: "json",
+      q: q.trim(),
+      addressdetails: "1",
+      countrycodes: "in",
+    });
+
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${q}&addressdetails=1&limit=5`,
+      `https://nominatim.openstreetmap.org/search?${params.toString()}`,
       {
         headers: {
           "User-Agent": "CitizenActionApp/1.0",
@@ -13,10 +22,15 @@ export default async function handler(req, res) {
       },
     );
 
+    if (!response.ok) {
+      return res.status(response.status).json([]);
+    }
+
     const data = await response.json();
 
-    res.status(200).json(data);
+    return res.status(200).json(Array.isArray(data) ? data : []);
   } catch (err) {
-    res.status(500).json([]);
+    console.error("OSM search failed:", err);
+    return res.status(500).json([]);
   }
 }

@@ -1,35 +1,43 @@
 "use client";
 
-import { useRouter } from "next/router";
+import { useEffect } from "react";
 
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import {
+  SidebarProvider,
+  SidebarInset,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { useFloatingMenu } from "./FloatingMenuContext";
 
 import LeftSidebar from "./LeftSidebar";
 import RightSidebar from "./RightSidebar";
 import CenterColumn from "./CenterColumn";
-import FloatingMenu from "./FloatingMenu";
 
-export default function AppShell({ children }) {
-  const { pathname } = useRouter();
+function AppShellContent({ children }) {
+  const { toggleSidebar } = useSidebar();
+  const { registerSidebarToggle } = useFloatingMenu();
 
-  const showRightSidebar = pathname === "/";
+  useEffect(() => {
+    return registerSidebarToggle(toggleSidebar);
+  }, [registerSidebarToggle, toggleSidebar]);
 
   return (
+    <>
+      <LeftSidebar />
+
+      <SidebarInset className="min-w-0 flex-1">
+        <CenterColumn>{children}</CenterColumn>
+      </SidebarInset>
+    </>
+  );
+}
+
+export default function AppShell({ children, showRightSidebar = false }) {
+  return (
     <div className="flex min-h-dvh w-full">
-      {/* LEFT SIDEBAR SYSTEM */}
-
       <SidebarProvider className="min-w-0 flex-1">
-        <LeftSidebar />
-
-        <SidebarInset className="min-w-0 flex-1">
-          <CenterColumn>{children}</CenterColumn>
-        </SidebarInset>
-
-        {/* FloatingMenu belongs to the LEFT sidebar provider */}
-        <FloatingMenu />
+        <AppShellContent>{children}</AppShellContent>
       </SidebarProvider>
-
-      {/* RIGHT SIDEBAR SYSTEM */}
 
       {showRightSidebar && (
         <div className="hidden xl:flex">

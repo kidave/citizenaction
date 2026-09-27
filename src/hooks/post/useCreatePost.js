@@ -2,7 +2,10 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
-import { uploadPostAttachments, deletePostAttachments } from "@/lib/supabase/storage";
+import {
+  uploadPostAttachments,
+  deletePostAttachments,
+} from "@/lib/supabase/storage";
 import { resolveEditorImageUrls } from "@/components/editor/resolveEditorImageUrls";
 import { toast } from "sonner";
 
@@ -18,7 +21,6 @@ export function useCreatePost() {
         toast.loading("Creating post...", { id: "create-post" });
 
         const { data, error } = await supabase.rpc("create_post", {
-          p_type: postData.type,
           p_space_ids: postData.spaces?.map((space) => space.id) ?? [],
           p_title: postData.title,
           p_content: postData.content,
@@ -34,19 +36,27 @@ export function useCreatePost() {
         });
 
         if (error) throw error;
+
         post = data;
 
         if (postData.attachments?.length) {
-          toast.loading("Uploading attachments...", { id: "create-post" });
+          toast.loading("Uploading attachments...", {
+            id: "create-post",
+          });
 
-          const uploaded = await uploadPostAttachments(post.id, postData.attachments);
+          const uploaded = await uploadPostAttachments(
+            post.id,
+            postData.attachments,
+          );
 
           uploadedAttachments = uploaded.map((attachment, index) => {
             const original = postData.attachments[index];
+
             return {
               ...attachment,
               credit_name: original?.credit_name ?? null,
               credit_url: original?.credit_url ?? null,
+              description: original?.description ?? null,
             };
           });
         }
@@ -57,13 +67,14 @@ export function useCreatePost() {
         );
 
         if (resolvedContentJson) {
-          toast.loading("Finalizing post...", { id: "create-post" });
+          toast.loading("Finalizing post...", {
+            id: "create-post",
+          });
 
           const { data: updatedPost, error: updateError } = await supabase.rpc(
             "update_post",
             {
               p_post_id: post.id,
-              p_type: postData.type,
               p_space_ids: postData.spaces?.map((space) => space.id) ?? [],
               p_title: postData.title,
               p_content: postData.content,
@@ -80,28 +91,43 @@ export function useCreatePost() {
           );
 
           if (updateError) throw updateError;
+
           post = updatedPost ?? post;
         }
 
         if (uploadedAttachments.length) {
-          toast.loading("Saving attachments...", { id: "create-post" });
+          toast.loading("Saving attachments...", {
+            id: "create-post",
+          });
+
           const { error: attachmentError } = await supabase.rpc(
             "upsert_post_attachments",
-            { p_post_id: post.id, p_attachments: uploadedAttachments },
+            {
+              p_post_id: post.id,
+              p_attachments: uploadedAttachments,
+            },
           );
+
           if (attachmentError) throw attachmentError;
         }
 
         if (postData.links?.length) {
-          toast.loading("Saving links...", { id: "create-post" });
+          toast.loading("Saving links...", {
+            id: "create-post",
+          });
+
           const { error: linkError } = await supabase.rpc("upsert_post_links", {
             p_post_id: post.id,
             p_links: postData.links,
           });
+
           if (linkError) throw linkError;
         }
 
-        toast.success("Post published", { id: "create-post" });
+        toast.success("Post published", {
+          id: "create-post",
+        });
+
         return post;
       } catch (error) {
         if (uploadedAttachments.length) {
@@ -111,18 +137,23 @@ export function useCreatePost() {
             console.error("Attachment rollback failed:", rollbackError);
           }
         }
+
         toast.dismiss("create-post");
+
         throw error;
       }
     },
 
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["feed"] });
-      toast.success("Post created successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["feed"],
+      });
     },
 
     onError: (error) => {
-      toast.error(error.message ?? "Failed to create post", { id: "create-post" });
+      toast.error(error.message ?? "Failed to create post", {
+        id: "create-post",
+      });
     },
   });
 

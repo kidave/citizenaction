@@ -20,7 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function SpaceMemberApplications({ space }) {
   const { pendingApplications, pendingCount, isLoading, error } =
-    useSpaceApplications(space?.id);
+    useSpaceApplications({ spaceId: space?.id });
 
   if (isLoading) {
     return (
@@ -39,7 +39,6 @@ export default function SpaceMemberApplications({ space }) {
       <Card>
         <CardContent className="py-12 text-center">
           <p className="font-medium">Unable to load applications</p>
-
           <p className="mt-1 text-sm text-muted-foreground">{error}</p>
         </CardContent>
       </Card>
@@ -53,9 +52,7 @@ export default function SpaceMemberApplications({ space }) {
           <div className="flex h-12 w-12 items-center justify-center rounded-full border bg-muted">
             <UserPlus className="h-5 w-5 text-muted-foreground" />
           </div>
-
           <h2 className="mt-4 font-semibold">No pending applications</h2>
-
           <p className="mt-1 max-w-sm text-sm text-muted-foreground">
             New membership applications will appear here when people request to
             join {space.name}.
@@ -71,12 +68,10 @@ export default function SpaceMemberApplications({ space }) {
         <div className="flex items-start justify-between gap-4">
           <div>
             <CardTitle>Pending applications</CardTitle>
-
             <CardDescription>
               Review people who want to become members of {space.name}.
             </CardDescription>
           </div>
-
           <Badge variant="secondary">{pendingCount}</Badge>
         </div>
       </CardHeader>
@@ -85,9 +80,7 @@ export default function SpaceMemberApplications({ space }) {
         <div className="divide-y">
           {pendingApplications.map((application) => {
             const applicant = application.applicant;
-
             const name = applicant?.name || "Unknown user";
-
             const initials =
               name
                 .split(" ")
@@ -105,22 +98,18 @@ export default function SpaceMemberApplications({ space }) {
                 <div className="flex items-center gap-4 px-4 py-4 sm:px-6">
                   <Avatar className="h-11 w-11 shrink-0">
                     <AvatarImage src={applicant?.avatar_url || undefined} />
-
                     <AvatarFallback>{initials}</AvatarFallback>
                   </Avatar>
 
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-medium">{name}</div>
-
                     {applicant?.username && (
                       <div className="truncate text-sm text-muted-foreground">
                         @{applicant.username}
                       </div>
                     )}
-
                     <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Clock3 className="h-3.5 w-3.5" />
-
                       {formatDate(application.created_at)}
                     </div>
                   </div>
@@ -131,7 +120,6 @@ export default function SpaceMemberApplications({ space }) {
                   >
                     Pending
                   </Badge>
-
                   <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                 </div>
               </Link>

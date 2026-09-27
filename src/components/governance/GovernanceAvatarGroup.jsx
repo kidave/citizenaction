@@ -1,15 +1,14 @@
 "use client";
 
 import { useState } from "react";
-
 import {
   Avatar,
   AvatarImage,
   AvatarFallback,
   AvatarGroup,
 } from "@/components/ui/avatar";
-
-import EntityListSheet from "@/components/profile/EntityListSheet";
+import EntityListSheet from "@/components/governance/EntityListSheet";
+import { getGovernanceInitials, getGovernanceLabel } from "@/utils/governance";
 
 export default function GovernanceAvatarGroup({
   authorities = [],
@@ -22,10 +21,8 @@ export default function GovernanceAvatarGroup({
   const uniqueAuthorities = Array.from(
     new Map(authorities.map((authority) => [authority.id, authority])).values(),
   );
-
   const visible = uniqueAuthorities.slice(0, maxVisible);
-
-  const hiddenCount = uniqueAuthorities.length - maxVisible;
+  const hiddenCount = Math.max(uniqueAuthorities.length - maxVisible, 0);
 
   return (
     <>
@@ -41,9 +38,8 @@ export default function GovernanceAvatarGroup({
               }}
             >
               <AvatarImage src={authority.image_url || undefined} />
-
               <AvatarFallback>
-                {authority.label?.charAt(0)?.toUpperCase() || "G"}
+                {getGovernanceInitials(getGovernanceLabel(authority))}
               </AvatarFallback>
             </Avatar>
           ))}
@@ -65,7 +61,7 @@ export default function GovernanceAvatarGroup({
       <EntityListSheet
         open={open}
         onOpenChange={setOpen}
-        title="Tagged Authorities"
+        title="Governance"
         items={uniqueAuthorities}
         type="authorities"
       />

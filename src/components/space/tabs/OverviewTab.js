@@ -17,7 +17,7 @@ import {
 import { useSpaceFeed } from "@/hooks/space/useSpaceFeed";
 import { useSpaceMembers } from "@/hooks/space/useSpaceMembers";
 
-import ActivityPreviewCard from "@/components/feed/activity/ActivityPreviewCard";
+import ActivityPreviewCard from "@/components/activity/ActivityPreviewCard";
 import MetricCard from "@/components/ui/metric-card";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -50,13 +50,13 @@ export default function OverviewTab({ space }) {
       <header>
         <div className="flex items-start gap-3 sm:gap-4">
           {space.logo_url && (
-            <Image
-              src={space.logo_url}
-              alt={space.name}
-              width={64}
-              height={64}
-              className="h-14 w-14 shrink-0 rounded-lg border bg-muted object-cover sm:h-16 sm:w-16"
-            />
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted sm:h-20 sm:w-20">
+              <img
+                src={space.logo_url}
+                alt={`${space.name} logo`}
+                className="max-h-full max-w-full object-contain"
+              />
+            </div>
           )}
 
           <div className="min-w-0 flex-1">

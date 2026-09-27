@@ -2,7 +2,7 @@ import { supabase } from "./client";
 import { prepareAttachment } from "@/utils/media/prepareAttachment";
 import { getPdfThumbnail } from "@/utils/media/pdfThumbnail";
 
-const BUCKETS = { POST: "post", CONTRIBUTION: "contribution" };
+const BUCKETS = { POST: "post", CONTRIBUTION: "contribution", GOVERNANCE: "governance" };
 
 function sanitizeFileName(name) {
   return name.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -10,6 +10,12 @@ function sanitizeFileName(name) {
 
 function makeFileName(originalName) {
   return `${crypto.randomUUID()}-${sanitizeFileName(originalName || "file")}`;
+}
+
+function getFileExtension(file) {
+  const name = file?.name || "";
+  const extension = name.includes(".") ? name.split(".").pop() : "";
+  return extension.replace(/[^a-zA-Z0-9]/g, "").toLowerCase() || "bin";
 }
 
 function buildImageTransformUrl(publicUrl, { width, quality = 75 } = {}) {
@@ -38,14 +44,24 @@ async function uploadFile(bucket, path, file) {
   return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
 }
 
-async function uploadAttachment({ bucket, ownerId, file, attachmentId = null }) {
+async function uploadAttachment({
+  bucket,
+  ownerId,
+  file,
+  attachmentId = null,
+  storagePrefix = null,
+  useAttachmentIdFileName = false,
+}) {
   if (!bucket) throw new Error("Missing bucket");
   if (!ownerId) throw new Error("Missing ownerId");
   if (!file) throw new Error("Missing file");
 
   const preparedFile = await prepareAttachment(file);
-  const fileName = makeFileName(preparedFile.name);
-  const storagePath = `${ownerId}/${fileName}`;
+  const resolvedAttachmentId = attachmentId || crypto.randomUUID();
+  const fileName = useAttachmentIdFileName
+    ? `${resolvedAttachmentId}.${getFileExtension(preparedFile)}`
+    : makeFileName(preparedFile.name);
+  const storagePath = `${storagePrefix ? `${storagePrefix}/` : ""}${ownerId}/${fileName}`;
   const publicUrl = await uploadFile(bucket, storagePath, preparedFile);
   const isImage = preparedFile.type?.startsWith("image/");
 
@@ -56,8 +72,10 @@ async function uploadAttachment({ bucket, ownerId, file, attachmentId = null }) 
     try {
       const thumbnail = await getPdfThumbnail(preparedFile);
       if (thumbnail) {
-        const thumbnailName = `${crypto.randomUUID()}-${sanitizeFileName(thumbnail.name)}`;
-        thumbnailPath = `${ownerId}/thumbnails/${thumbnailName}`;
+        const thumbnailName = useAttachmentIdFileName
+          ? `${resolvedAttachmentId}.${getFileExtension(thumbnail)}`
+          : `${crypto.randomUUID()}-${sanitizeFileName(thumbnail.name)}`;
+        thumbnailPath = `${storagePrefix ? `${storagePrefix}/` : ""}${ownerId}/thumbnails/${thumbnailName}`;
         thumbnailUrl = await uploadFile(bucket, thumbnailPath, thumbnail);
       }
     } catch (error) {
@@ -66,7 +84,7 @@ async function uploadAttachment({ bucket, ownerId, file, attachmentId = null }) 
   }
 
   return {
-    attachmentId,
+    attachmentId: resolvedAttachmentId,
     storage_path: storagePath,
     public_url: publicUrl,
     preview_url: isImage
@@ -84,7 +102,13 @@ async function uploadAttachment({ bucket, ownerId, file, attachmentId = null }) 
   };
 }
 
-async function uploadAttachments({ bucket, ownerId, attachments = [] }) {
+async function uploadAttachments({
+  bucket,
+  ownerId,
+  attachments = [],
+  storagePrefix = null,
+  useAttachmentIdFileName = false,
+}) {
   if (!Array.isArray(attachments) || attachments.length === 0) return [];
   return Promise.all(
     attachments.map((attachment) =>
@@ -93,6 +117,8 @@ async function uploadAttachments({ bucket, ownerId, attachments = [] }) {
         ownerId,
         file: attachment.file ?? attachment,
         attachmentId: attachment.attachmentId ?? null,
+        storagePrefix,
+        useAttachmentIdFileName,
       }),
     ),
   );
@@ -104,6 +130,16 @@ export function uploadPostAttachments(postId, attachments) {
 
 export function uploadContributionAttachments(contributionId, attachments) {
   return uploadAttachments({ bucket: BUCKETS.CONTRIBUTION, ownerId: contributionId, attachments });
+}
+
+export function uploadGovernanceAttachments(governanceId, attachments) {
+  return uploadAttachments({
+    bucket: BUCKETS.GOVERNANCE,
+    ownerId: governanceId,
+    storagePrefix: "organization",
+    useAttachmentIdFileName: true,
+    attachments,
+  });
 }
 
 export async function deleteAttachments(bucket, attachments = []) {
@@ -141,12 +177,22 @@ export async function deleteContributionAttachmentsByContributionId(contribution
   if (attachments.length) await deleteContributionAttachments(attachments);
 }
 
+export async function deleteGovernanceAttachmentsByGovernanceId(governanceId) {
+  if (!governanceId) throw new Error("Missing governanceId");
+  const attachments = await getAttachmentsForOwner("governance_id", governanceId);
+  if (attachments.length) await deleteGovernanceAttachments(attachments);
+}
+
 export function deletePostAttachments(paths) {
   return deleteAttachments(BUCKETS.POST, paths);
 }
 
 export function deleteContributionAttachments(paths) {
   return deleteAttachments(BUCKETS.CONTRIBUTION, paths);
+}
+
+export function deleteGovernanceAttachments(paths) {
+  return deleteAttachments(BUCKETS.GOVERNANCE, paths);
 }
 
 export function getAttachmentPaths(attachments = []) {
@@ -163,4 +209,18 @@ export function getFileCategory(mimeType) {
   if (mimeType?.startsWith("text/")) return "text";
   if (mimeType?.includes("zip") || mimeType?.includes("rar")) return "archive";
   return "file";
+}
+
+
+export async function moveGovernanceFile(fromPath, toPath) {
+  if (!fromPath || !toPath) throw new Error("Missing governance storage path");
+  const { error } = await supabase.storage
+    .from(BUCKETS.GOVERNANCE)
+    .move(fromPath, toPath);
+  if (error) throw error;
+
+  return supabase.storage
+    .from(BUCKETS.GOVERNANCE)
+    .getPublicUrl(toPath)
+    .data.publicUrl;
 }

@@ -16,7 +16,7 @@ export default function EditorEmbed({ data }) {
       />
 
       {data.caption && (
-        <div className="border-t px-3 py-2 text-xs text-muted-foreground">
+        <div className="border-t px-3 py-2 text-center font-serif text-xs leading-relaxed text-muted-foreground">
           {data.caption}
         </div>
       )}

@@ -3,6 +3,8 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
+import { queryKeys } from "@/lib/queryKeys";
+
 const AuthContext = createContext();
 
 const DEV_MODE = process.env.NEXT_PUBLIC_DEV_AUTH === "true";
@@ -28,11 +30,6 @@ export function AuthProvider({ children }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  /**
-   * Universal login
-   * - Local → Email OTP
-   * - Production → Google OAuth
-   */
   const login = async (email = null) => {
     if (DEV_MODE) {
       if (!email) throw new Error("Email required for local login");
@@ -57,7 +54,7 @@ export function AuthProvider({ children }) {
     await supabase.auth.signOut();
 
     localStorage.removeItem("userStatus");
-    queryClient.removeQueries({ queryKey: ["userStatus"] });
+    queryClient.removeQueries({ queryKey: queryKeys.auth.userStatus });
 
     setUser(null);
   };

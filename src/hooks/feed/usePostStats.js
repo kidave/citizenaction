@@ -2,13 +2,12 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
 
 export function usePostStats(postId, userId) {
   return useQuery({
-    queryKey: ["post-stats", postId, userId],
-
+    queryKey: queryKeys.posts.stats(postId, userId),
     enabled: !!postId,
-
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_post_stats", {
         p_post_id: postId,
@@ -27,7 +26,6 @@ export function usePostStats(postId, userId) {
         }
       );
     },
-
     staleTime: 1000 * 60 * 5,
   });
 }

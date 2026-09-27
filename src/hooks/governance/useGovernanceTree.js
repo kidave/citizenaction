@@ -2,59 +2,23 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
 
-export function useGovernanceTree({
-  parentId = null,
-  scopes = [],
-  search,
-  enabled = true,
-}) {
+export function useGovernanceTree({ parentId = null, search, type = null, entityType = null, enabled = true } = {}) {
+  const governanceType = type || entityType;
+
   return useQuery({
-    queryKey: ["governance-tree", parentId, scopes, search],
+    queryKey: queryKeys.governance.tree({ parentId, search, type: governanceType }),
     enabled,
     queryFn: async () => {
-      let query = supabase.from("governance_view").select("*").order("label");
+      const { data, error } = await supabase.rpc("get_governance_tree", {
+        p_search: search || null,
+        p_parent_id: parentId || null,
+        p_type: governanceType && governanceType !== "all" ? governanceType : null,
+        p_limit: 100,
+      });
 
-      /* -------------------------
-         HIERARCHY
-      ------------------------- */
-      if (parentId) {
-        query = query.eq("parent_id", parentId);
-      } else {
-        query = query.is("parent_id", null);
-      }
-
-      /* -------------------------
-         SCOPES (NEW LOGIC)
-      ------------------------- */
-      if (scopes?.length > 0) {
-        const conditions = scopes.map((s) => {
-          /* -------------------------
-            ALL STATES CASE
-          ------------------------- */
-          if (s.type === "state" && !s.code) {
-            return `geo_scope_type.eq.state`;
-          }
-
-          /* -------------------------
-            NORMAL
-          ------------------------- */
-          return `and(geo_scope_type.eq.${s.type},geo_scope_code.eq.${s.code})`;
-        });
-
-        query = query.or(conditions.join(","));
-      }
-
-      /* -------------------------
-         SEARCH
-      ------------------------- */
-      if (search) {
-        query = query.ilike("label", `%${search}%`);
-      }
-
-      const { data, error } = await query;
       if (error) throw error;
-
       return data || [];
     },
   });

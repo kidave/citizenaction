@@ -1,22 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import BackButton from "@/components/ui/back-button";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import {
-  ArrowLeft,
-  Building2,
-  Plus,
-  Users,
-  Megaphone,
-  CalendarDays,
-} from "lucide-react";
+import { Plus } from "lucide-react";
+import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 
 import { LoginModal } from "@/components/auth/LoginModal";
+import ApplicationTopbar from "@/components/application/ApplicationTopbar";
+import DotLottieAnimation from "@/components/animation/DotLottieAnimation";
 import { spaceApplicationSchema } from "@/schemas/spaceApplication";
 import { supabase } from "@/lib/supabase/client";
 import {
@@ -30,7 +25,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-
 import {
   Select,
   SelectContent,
@@ -52,16 +46,43 @@ const SOCIAL_PLATFORMS = [
   "Other",
 ];
 
+const STORY = [
+  {
+    title: "Start with a Space",
+    description:
+      "Give your local work a home where people, ideas and discussions can come together.",
+    animation: "/lottie/city.lottie",
+  },
+  {
+    title: "Connect it to a place",
+    description:
+      "Make the work easier to understand by connecting it to the neighbourhoods and places it affects.",
+    animation: "/lottie/map.lottie",
+  },
+  {
+    title: "Bring people together",
+    description:
+      "A Space can become a shared place for contributions, updates, documents and the work that follows.",
+    animation: "/lottie/people.lottie",
+  },
+  {
+    title: "Keep the story moving",
+    description:
+      "Over time, the Space becomes a living record of what happened and what comes next.",
+    animation: "/lottie/calendar.lottie",
+  },
+];
+
 export default function ApplySpace() {
   const { user, loading: authLoading } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
+  const [storyIndex, setStoryIndex] = useState(0);
   const router = useRouter();
   const [socialLinks, setSocialLinks] = useState([]);
   const [socialPlatform, setSocialPlatform] = useState("Instagram");
   const [socialValue, setSocialValue] = useState("");
   const form = useForm({
     resolver: zodResolver(spaceApplicationSchema),
-
     defaultValues: {
       proposed_name: "",
       proposed_slug: "",
@@ -84,31 +105,24 @@ export default function ApplySpace() {
     );
   }
 
+  const currentStory = STORY[storyIndex];
+
   function addSocialLink() {
-    if (!socialValue.trim()) {
-      return;
-    }
+    if (!socialValue.trim()) return;
 
     const updated = [
       ...socialLinks,
-      {
-        platform: socialPlatform,
-        value: socialValue.trim(),
-      },
+      { platform: socialPlatform, value: socialValue.trim() },
     ];
 
     setSocialLinks(updated);
-
     form.setValue("social_links", updated);
-
     setSocialValue("");
   }
 
   function removeSocialLink(index) {
     const updated = socialLinks.filter((_, i) => i !== index);
-
     setSocialLinks(updated);
-
     form.setValue("social_links", updated);
   }
 
@@ -121,17 +135,8 @@ export default function ApplySpace() {
     try {
       const { data, error } = await supabase
         .from("space_application")
-        .insert({
-          ...values,
-          applicant_user_id: user.id,
-        })
-        .select(
-          `
-        id,
-        proposed_name,
-        status
-      `,
-        )
+        .insert({ ...values, applicant_user_id: user.id })
+        .select(`id, proposed_name, status`)
         .single();
 
       if (error) {
@@ -148,97 +153,174 @@ export default function ApplySpace() {
 
   return (
     <div className="mx-auto w-full">
-      <div className="sticky top-0 z-40 border-b bg-background">
-        <div className="flex h-14 items-center gap-3 px-4 sm:h-16">
-          <BackButton />
+      <ApplicationTopbar
+        items={[{ label: "Home", href: "/" }, { label: "Apply for a Space" }]}
+        title="Apply for a Space"
+        backHref="/"
+      />
 
-          <h1 className="truncate font-semibold sm:text-lg">
-            Give your project a home
-          </h1>
-        </div>
-      </div>
-
-      <div className="mx-4 space-y-4 p-4">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <div className="grid gap-5 md:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="proposed_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Organization / Initiative Name</FormLabel>
-
-                    <FormControl className="bg-muted">
-                      <Input
-                        placeholder="Mumbai Walkability Forum"
-                        {...field}
-                      />
-                    </FormControl>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="proposed_slug"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Space URL</FormLabel>
-
-                    <FormControl className="bg-muted">
-                      <Input placeholder="mumbai-walkability" {...field} />
-                    </FormControl>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category (optional)</FormLabel>
-
-                    <FormControl className="bg-muted">
-                      <Input
-                        placeholder="Mobility, Heritage, Environment..."
-                        {...field}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="website"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Website (optional)</FormLabel>
-
-                    <FormControl className="bg-muted">
-                      <Input placeholder="https://example.org" {...field} />
-                    </FormControl>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+      <div className="mx-auto w-full max-w-4xl space-y-4 px-4 sm:px-6">
+        <section
+          className="relative overflow-hidden py-2 sm:py-4"
+          aria-label="How Spaces work"
+        >
+          <div className="grid items-center gap-6 md:grid-cols-[180px_1fr]">
+            <div className="flex justify-center md:justify-start">
+              <motion.div
+                key={currentStory.animation}
+                initial={{ opacity: 0, scale: 0.92, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+                className="h-32 w-32 sm:h-36 sm:w-36"
+              >
+                <DotLottieAnimation
+                  src={currentStory.animation}
+                  className="h-full min-h-0 w-full"
+                />
+              </motion.div>
             </div>
 
-            <div className="space-y-5">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                <span>How it works</span>
+                <span aria-hidden="true">·</span>
+                <span>
+                  {storyIndex + 1}/{STORY.length}
+                </span>
+              </div>
+
+              <motion.div
+                key={storyIndex}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mt-2"
+              >
+                <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">
+                  {currentStory.title}
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                  {currentStory.description}
+                </p>
+              </motion.div>
+
+              <div className="mt-4 flex items-center gap-2">
+                {STORY.map((story, index) => (
+                  <button
+                    key={story.title}
+                    type="button"
+                    aria-label={`Show story step ${index + 1}`}
+                    onClick={() => setStoryIndex(index)}
+                    className={`h-1.5 rounded-full transition-all ${
+                      index === storyIndex
+                        ? "w-8 bg-foreground"
+                        : "w-2 bg-border hover:bg-muted-foreground/50"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="mb-8 mt-8">
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
+            Tell us about your Space
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            Give people a clear place to organize around a purpose, a community,
+            or a place.
+          </p>
+        </div>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
+            <section className="space-y-5">
+              <div>
+                <h2 className="text-base font-semibold">Identity</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Choose how your Space will appear to people.
+                </p>
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="proposed_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Organization / Initiative Name</FormLabel>
+                      <FormControl className="bg-muted">
+                        <Input
+                          placeholder="Mumbai Walkability Forum"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="proposed_slug"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Space URL</FormLabel>
+                      <FormControl className="bg-muted">
+                        <Input placeholder="mumbai-walkability" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category (optional)</FormLabel>
+                      <FormControl className="bg-muted">
+                        <Input
+                          placeholder="Mobility, Heritage, Environment..."
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="website"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Website (optional)</FormLabel>
+                      <FormControl className="bg-muted">
+                        <Input placeholder="https://example.org" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </section>
+
+            <section className="space-y-5 border-t pt-8">
+              <div>
+                <h2 className="text-base font-semibold">Purpose</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Help people understand what this Space is for.
+                </p>
+              </div>
+
               <FormField
                 control={form.control}
                 name="description"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>What does your organization do?</FormLabel>
-
                     <FormControl className="bg-muted">
                       <Textarea
                         rows={4}
@@ -246,7 +328,6 @@ export default function ApplySpace() {
                         {...field}
                       />
                     </FormControl>
-
                     <FormMessage />
                   </FormItem>
                 )}
@@ -257,81 +338,86 @@ export default function ApplySpace() {
                 name="justification"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Why should this space exist?</FormLabel>
-
+                    <FormLabel>Why should this Space exist?</FormLabel>
                     <FormControl className="bg-muted">
                       <Textarea
                         rows={4}
-                        placeholder="How will this space help people organize or collaborate?"
+                        placeholder="How will this Space help people organize or collaborate?"
                         {...field}
                       />
                     </FormControl>
-
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
+            </section>
 
-            <div className="grid gap-5 md:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contact Email</FormLabel>
+            <section className="space-y-5 border-t pt-8">
+              <div>
+                <h2 className="text-base font-semibold">Contact</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Give us a way to reach the people responsible for this Space.
+                </p>
+              </div>
 
-                    <FormControl className="bg-muted">
-                      <Input
-                        type="email"
-                        placeholder="contact@example.org"
-                        {...field}
-                      />
-                    </FormControl>
+              <div className="grid gap-5 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contact Email</FormLabel>
+                      <FormControl className="bg-muted">
+                        <Input
+                          type="email"
+                          placeholder="contact@example.org"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="contact_number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contact Number</FormLabel>
+                      <FormControl className="bg-muted">
+                        <Input placeholder="+91 9876543210" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="contact_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contact Number</FormLabel>
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>Address (optional)</FormLabel>
+                      <FormControl className="bg-muted">
+                        <Textarea
+                          rows={3}
+                          placeholder="Organization or office address"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </section>
 
-                    <FormControl className="bg-muted">
-                      <Input placeholder="+91 9876543210" {...field} />
-                    </FormControl>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>Address (optional)</FormLabel>
-
-                    <FormControl className="bg-muted">
-                      <Textarea
-                        rows={3}
-                        placeholder="Organization or office address"
-                        {...field}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <h3 className="font-semibold">Social Links</h3>
+            <section className="space-y-5 border-t pt-8">
+              <div>
+                <h2 className="text-base font-semibold">Social presence</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Add public links that help people find or verify your work.
+                </p>
               </div>
 
               <div className="flex flex-col gap-3 md:flex-row">
@@ -342,7 +428,6 @@ export default function ApplySpace() {
                   <SelectTrigger className="bg-muted md:w-56">
                     <SelectValue />
                   </SelectTrigger>
-
                   <SelectContent>
                     {SOCIAL_PLATFORMS.map((platform) => (
                       <SelectItem key={platform} value={platform}>
@@ -380,19 +465,24 @@ export default function ApplySpace() {
                   ))}
                 </div>
               )}
-            </div>
+            </section>
 
-            <Button
-              type="submit"
-              disabled={form.formState.isSubmitting}
-              className="h-14 w-full rounded-2xl text-base font-bold"
-            >
-              {form.formState.isSubmitting
-                ? "Submitting..."
-                : user
-                  ? "Submit Application"
-                  : "Sign in to Continue"}
-            </Button>
+            <div className="border-t pt-8">
+              <Button
+                type="submit"
+                disabled={form.formState.isSubmitting}
+                className="h-14 w-full rounded-2xl text-base font-bold"
+              >
+                {form.formState.isSubmitting
+                  ? "Submitting..."
+                  : user
+                    ? "Submit Application"
+                    : "Sign in to Continue"}
+              </Button>
+              <p className="mt-3 text-center text-xs text-muted-foreground">
+                Your application will be reviewed before the Space is created.
+              </p>
+            </div>
           </form>
         </Form>
       </div>

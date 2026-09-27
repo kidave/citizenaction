@@ -1,149 +1,117 @@
 # Database
 
-This document uses only information available from the repository. The actual Supabase schema, constraints, RLS policies, triggers, indexes, generated types, and migrations are not present in this checkout.
+The database is a first-class part of Citizen Action architecture. Supabase migrations under `supabase/migrations/` are the GitHub source of truth for schema changes. The live Supabase project remains the runtime source of truth and should be checked when validating current grants, policies, functions, views, and extensions.
 
-## Tables referenced
+This document is intentionally a high-level map, not a replacement for migrations.
 
-The following table names are directly referenced through Supabase `.from()` calls and appear to be base tables based on usage. This classification is inferred from reads/writes in code and may need confirmation against Supabase.
+## Current schemas
 
-| Table                        | Evidence from code usage                             |
-| ---------------------------- | ---------------------------------------------------- |
-| `action_contribute`          | count/select, insert/delete contribution actions     |
-| `action_escalate`            | insert/delete escalation/authority actions           |
-| `action_support`             | count/select, insert/delete support actions          |
-| `club`                       | create, read, update, delete clubs/committees        |
-| `club_member`                | inserts creator as club member                       |
-| `delete_account_requests`    | inserts account deletion request                     |
-| `feed`                       | create, update, delete feed posts                    |
-| `post_governance`            | join table for feed posts and governance authorities |
-| `feed_space`                 | join table for feed posts and spaces                 |
-| `geographic_scope`           | scope lookup by type/code and post scope reads       |
-| `geographic_scope_hierarchy` | geographic scope hierarchy reads                     |
-| `meeting_item`               | meeting item create/update/delete/read               |
-| `profile`                    | user profile reads/updates and contact fallback      |
-| `space`                      | space reads/updates/deletes and ownership checks     |
-| `space_application`          | space application create/read/update flows           |
-| `space_member`               | user-space membership reads                          |
+### `public`
 
-## Views referenced
+Core Citizen Action data currently includes:
 
-These names are read through `.from()` and appear to be views because of naming and read-only style usage:
+- `profile`
+- `space`, `space_application`, `space_member`, `space_member_application`, `space_records`
+- `post`, `post_space`, `post_governance`, `contribution`, `action_support`, `attachment`, `link`
+- `meeting`-related records where present in the active migrations
+- `governance`, `governance_contribution`, `governance_timeline`
+- normalized governance directory entities: `person`, `position`, `position_appointment`
+- `geographies`
+- `category` and classification/taxonomy tables
+- `directory_contributions`
+- `website_metadata`
+- `user_capabilities`
+- `audit_log`
+- `delete_account_requests`
 
-| View                | Evidence from code usage       |
-| ------------------- | ------------------------------ |
-| `club_view`         | club display/settings reads    |
-| `feed_light_view`   | feed and post detail reads     |
-| `governance_view`   | governance explorer/tree reads |
-| `meeting_view`      | meeting list reads             |
-| `public_profile`    | public and self profile reads  |
-| `space_member_view` | space member display reads     |
+The live database also contains PostGIS's `spatial_ref_sys` table and extension metadata. Treat extension/system objects separately from application tables.
 
-## RPC functions referenced
+### `map`
 
-| RPC               | Usage                                                |
-| ----------------- | ---------------------------------------------------- |
-| `can_manage_post` | checks whether a user can manage a feed item/context |
-| `get_scope_chain` | returns geographic scope ancestry/chain              |
+The mapping schema currently contains transport/network and Mapillary data such as:
 
-## Storage buckets
+- `roads`, `roadways`, `ward`, `ward_roads`
+- `junction`, `transportation`
+- `bus_stop`, `bus_station`, `bus_depot`
+- `railway_station`, `train_station`
+- `mapillary_features`, `mapillary_feature_images`, `mapillary_images_raw`
+- supporting map classification tables such as `layer` and `fclass`
 
-| Bucket               | Usage                                                             |
-| -------------------- | ----------------------------------------------------------------- |
-| `post-attachments`   | post/feed attachment upload, public URL lookup, delete            |
-| `community-branding` | space logo/cover branding upload/delete/public URL usage          |
-| `committee-branding` | club/committee logo/cover branding upload/delete/public URL usage |
+These datasets are primarily infrastructure/geospatial data and should not be treated like user-owned application records.
 
-## Database relationships inferred from code
+## Current views
 
-These relationships are inferred from query filters and inserted fields. They should be confirmed against the actual Supabase schema before relying on them for migrations or policy work.
+The live database currently exposes application/read-model views including:
 
-### Space and club
+- `feed_card_view`
+- `governance_view`
+- `space_view`
+- `space_public_view`
+- `space_member_view`
+- `public_profile`
+- `post_stats`
+- classification views
+- PostGIS metadata views
 
-- `space.slug` is used as a public identifier in routes.
-- `space.id` is used as the foreign key value for `club.space_id`.
-- `space.owner_user_id` is compared to `auth.user.id` when creating clubs.
-- `club.created_by` is compared to `auth.user.id` for club ownership in settings APIs.
-- `club.scope_type` and `club.scope_code` connect a club to a geographic scope.
-- `club_view` exposes display/query fields including `space_slug`, `scope_type`, and `scope_code`.
+Views require the same authorization review as tables. In particular, the security posture of the current security-definer views must be reviewed before changing them to `security_invoker` or changing their grants.
 
-### Geographic scope
+## Canonical data models
 
-- `geographic_scope.type` and `geographic_scope.code` identify a location scope.
-- `geographic_scope_hierarchy` appears to model parent/child or hierarchy information.
-- `get_scope_chain` returns a scope ancestry/chain from a scope input.
+### Feed/posts
 
-### Feed
+`post` is the canonical post record. Relationships to spaces and governance are represented by dedicated join tables. Attachments and links are separate records/RPC-managed relationships. Read models such as `feed_card_view` are optimized for application display and should not become a second source of truth.
 
-- `feed` stores core post/action records.
-- `feed_light_view` is the read model used for feed and post details.
-- `feed_space` associates feed posts with spaces.
-- `post_governance` associates feed posts with governance authorities.
-- `action_support`, `action_contribute`, and `action_escalate` store user interactions/engagements with feed posts or actions.
-- `can_manage_post` determines whether the current user may manage a feed entity.
+### Spaces
 
-### Meetings
+Spaces own the community/work context. Membership and applications are represented separately. Authorization for management actions belongs in RLS and database functions, not only in the UI.
 
-- `meeting_item` stores meeting item records.
-- `meeting_view` is the read model for meeting lists.
-- Meeting items are associated with posts/feed records based on hook names and query usage, but exact foreign keys should be confirmed in the database.
+### Governance
 
-### Profiles and users
+Governance is the canonical model for public authorities/entities. The normalized directory model uses:
 
-- `profile.user_id` links a profile to a Supabase auth user.
-- `public_profile` exposes profile fields for public/self reads.
-- `delete_account_requests` stores user-initiated account deletion requests.
+- `governance` — entity/organization records and hierarchy.
+- `person` — people.
+- `position` — roles/positions.
+- `position_appointment` — person-to-position appointments and reporting relationships.
+- `governance_contribution` and `governance_timeline` — contribution/history data.
+- `geographies` — canonical geographic entities/jurisdictions.
 
-### Space membership
+The recent governance migrations intentionally consolidated older overlapping models. New code should use the canonical model rather than recreating legacy scope/authority structures.
 
-- `space_member` stores memberships between users and spaces.
-- `space_member_view` exposes membership display data.
+### Geography
 
-### Club membership
+`geographies` is the canonical application geography model. OSM-derived identifiers and geometry are stored with geography records where required. Mapping/import/cache tables should remain implementation-specific and should not become competing application geography sources of truth.
 
-- `club_member.club_id` links to `club.id`.
-- `club_member.user_id` links to an authenticated user.
-- `club_member.role` is inserted with value `chair` for club creators.
-- `club_member.is_active` is set to true when creator membership is inserted.
+## Authorization model
 
-## Columns observed in code
+Citizen Action uses multiple layers:
 
-This is not a complete schema. It lists only columns directly visible in repository code.
+1. Postgres grants decide which roles can reach a table/view/function through the Data API.
+2. RLS policies decide which rows those roles can access.
+3. `SECURITY DEFINER` functions may intentionally bypass RLS and therefore require explicit authorization checks and tightly scoped execution grants.
+4. Frontend visibility checks are UX only and are not an authorization boundary.
 
-### `space`
+Privileged mutation RPCs should be callable only by the roles that need them. Anonymous execution of privileged mutation functions has been explicitly restricted in migration `20260913155036_restrict_privileged_rpc_anon_execute_v3`.
 
-Observed columns: `id`, `slug`, `owner_user_id`, `name`, `logo_url`, `cover_url`.
+## Source of truth rules
 
-### `club`
+- Schema changes: `supabase/migrations/`.
+- Runtime schema/permissions: live Supabase project.
+- Frontend data contracts: generated Supabase types when available.
+- Authorization: database grants + RLS + function checks.
+- Read models: views/RPCs, without duplicating business truth in the frontend.
 
-Observed columns: `id`, `space_id`, `name`, `description`, `scope_type`, `scope_code`, `contact_email`, `contact_phone`, `is_active`, `created_by`, `logo_url`, `cover_url`.
+## Database maintenance priorities
 
-### `club_member`
+1. Keep migrations synchronized with production.
+2. Generate and track Supabase types.
+3. Review RLS policies and grants for every exposed application table.
+4. Review `SECURITY DEFINER` functions individually; never remove `SECURITY DEFINER` merely to silence a linter.
+5. Set an explicit `search_path` on privileged functions where required.
+6. Review security-definer views and their intended public/authenticated access.
+7. Add indexes based on real query plans and common feed/governance/geography/membership lookups.
+8. Keep extension/system objects separate from application security decisions.
 
-Observed columns: `club_id`, `user_id`, `role`, `is_active`.
+## Legacy documentation rule
 
-### `geographic_scope`
-
-Observed columns: `id`, `name`, `type`, `code`.
-
-### `profile`
-
-Observed columns: `name`, `email`, `mobile`, `phone`, `user_id`.
-
-Additional columns exist in code across feed, meeting, application, and membership flows, but this document avoids asserting full schemas where the repository does not provide a schema source.
-
-## Missing schema information outside this repository
-
-The following information is not available in the repository and should be exported from Supabase or added as migrations/types before major backend changes:
-
-- Complete table definitions and column types
-- Primary keys and foreign keys
-- Unique constraints
-- Check constraints and enum types
-- Row Level Security policies
-- Storage bucket policies
-- Database functions/RPC definitions
-- Database triggers
-- Indexes and query performance plans
-- Seed data
-- Generated Supabase TypeScript types
-- Local Supabase configuration and migrations
+Removed Club/scope models and routes must not be documented as current database architecture. Historical migrations may still mention older names because migration history is immutable; current application documentation should describe only the canonical active model.

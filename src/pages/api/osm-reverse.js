@@ -7,9 +7,11 @@ export default async function handler(req, res) {
 
   try {
     const url = new URL("https://nominatim.openstreetmap.org/reverse");
+
     url.searchParams.set("format", "json");
     url.searchParams.set("lat", String(lat));
     url.searchParams.set("lon", String(lng));
+    url.searchParams.set("addressdetails", "1");
 
     const response = await fetch(url, {
       headers: {
@@ -34,9 +36,15 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
+    // Only accept locations within India.
+    if (data?.address?.country_code !== "in") {
+      return res.status(200).json({});
+    }
+
     return res.status(200).json(data);
   } catch (error) {
     console.error("Reverse geocoding failed", error);
+
     return res.status(500).json({});
   }
 }

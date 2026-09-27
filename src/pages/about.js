@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, HeartHandshake, SendIcon } from "lucide-react";
+import { ArrowRight, SendIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
@@ -10,7 +10,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ScrollButton from "@/components/ui/ScrollButton";
+import DotLottieAnimation from "@/components/animation/DotLottieAnimation";
 
 const faqs = [
   {
@@ -42,35 +44,59 @@ const faqs = [
 const title1 = "Local action,";
 const title2 = "made simple.";
 
+const features = [
+  {
+    title: "Space",
+    animation: "/lottie/city.lottie",
+    description:
+      "Bring people, discussions, meetings and projects together around a topic or place.",
+  },
+  {
+    title: "Geography",
+    animation: "/lottie/location.lottie",
+    description:
+      "Connect civic work to the places it affects, from neighbourhoods to larger geographic areas.",
+  },
+  {
+    title: "Governance",
+    animation: "/lottie/politician.lottie",
+    description:
+      "Explore organizations, public institutions and the people and positions that make up local governance.",
+  },
+  {
+    title: "Post",
+    animation: "/lottie/report.lottie",
+    description:
+      "Share issues, ideas, updates, documents and other information that helps move work forward.",
+  },
+  {
+    title: "Contribution",
+    animation: "/lottie/people.lottie",
+    description:
+      "Turn ideas, issues, updates, documents and discussions into a shared record of civic work.",
+  },
+  {
+    title: "Timeline",
+    animation: "/lottie/calendar.lottie",
+    description:
+      "Follow what has happened in a Space over time and keep the history of local work visible.",
+  },
+];
+
 export default function AboutPage() {
   return (
     <div className="relative overflow-hidden bg-background">
       <section className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-background">
-        {/* Background */}
         <div className="absolute inset-0 overflow-hidden">
           <motion.div
-            animate={{
-              x: [-40, 40, -40],
-              y: [0, -30, 0],
-            }}
-            transition={{
-              duration: 18,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
+            animate={{ x: [-40, 40, -40], y: [0, -30, 0] }}
+            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
             className="absolute left-[-10%] top-20 h-[520px] w-[520px] rounded-full bg-primary/10 blur-[120px]"
           />
 
           <motion.div
-            animate={{
-              x: [30, -30, 30],
-              y: [0, 40, 0],
-            }}
-            transition={{
-              duration: 22,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
+            animate={{ x: [30, -30, 30], y: [0, 40, 0] }}
+            transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
             className="absolute bottom-0 right-[-10%] h-[500px] w-[500px] rounded-full bg-primary/5 blur-[140px]"
           />
 
@@ -86,41 +112,21 @@ export default function AboutPage() {
           />
         </div>
 
-        {/* Content */}
-
         <div className="relative z-10 mx-auto max-w-5xl px-6 text-center">
           <motion.h1
-            initial={{
-              opacity: 0,
-              y: 40,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            transition={{
-              duration: 0.8,
-              ease: [0.22, 1, 0.36, 1],
-            }}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             className="text-5xl font-semibold tracking-tight md:text-8xl"
           >
             <span className="block">{title1}</span>
-
             <span className="mt-4 block text-primary">{title2}</span>
           </motion.h1>
 
           <motion.div
-            initial={{
-              opacity: 0,
-              y: 20,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            transition={{
-              delay: 0.4,
-            }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
             className="mt-10 flex justify-center gap-4"
           >
             <Button size="lg" className="rounded-full text-base" asChild>
@@ -131,50 +137,79 @@ export default function AboutPage() {
             </Button>
           </motion.div>
 
-          {/* Scroll Indicator */}
-
           <motion.div
-            animate={{
-              y: [0, 10, 0],
-            }}
-            transition={{
-              repeat: Infinity,
-              duration: 2,
-            }}
+            animate={{ y: [0, 10, 0] }}
+            transition={{ repeat: Infinity, duration: 2 }}
             className="mt-24 flex justify-center"
           >
             <div className="flex h-14 w-8 justify-center rounded-full border border-border">
               <motion.div
-                animate={{
-                  y: [4, 20, 4],
-                }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 2,
-                }}
+                animate={{ y: [4, 20, 4] }}
+                transition={{ repeat: Infinity, duration: 2 }}
                 className="mt-2 h-2 w-2 rounded-full bg-primary"
               />
             </div>
           </motion.div>
         </div>
       </section>
-      <section className="flex min-h-dvh items-center">
-        <div className="mx-auto max-w-5xl px-6 text-center">
+
+      <section className="relative flex min-h-dvh items-center border-y bg-muted/20">
+        <div className="mx-auto w-full max-w-6xl px-6 py-24">
           <motion.div
-            initial={{
-              opacity: 0,
-              y: 30,
-            }}
-            whileInView={{
-              opacity: 1,
-              y: 0,
-            }}
-            viewport={{
-              once: true,
-            }}
-            transition={{
-              duration: 0.5,
-            }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="mx-auto max-w-3xl text-center"
+          >
+            <h2 className="mt-4 text-4xl tracking-tight md:text-6xl">
+              Everything local action needs.
+            </h2>
+            <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
+              A space brings together people, places, governance, contributions
+              and the history of work around a shared
+            </p>
+            <h2 className="mt-4 text-4xl tracking-tight md:text-6xl">
+              Purpose
+            </h2>
+          </motion.div>
+
+          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map((feature, index) => (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
+              >
+                <Card className="h-full overflow-hidden rounded-3xl border bg-background/80 shadow-none transition-colors hover:bg-background">
+                  <div className="flex h-48 items-center justify-center px-6 pt-6">
+                    <DotLottieAnimation
+                      src={feature.animation}
+                      className="h-full min-h-0 w-full"
+                    />
+                  </div>
+                  <CardHeader className="pb-2">
+                    <CardTitle>{feature.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-sm leading-relaxed text-muted-foreground">
+                    {feature.description}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="flex min-h-dvh items-center">
+        <div className="mx-auto max-w-4xl px-6 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
           >
             <span className="block">Start Anywhere</span>
 
@@ -192,10 +227,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* =====================================================
-          FAQ
-      ===================================================== */}
-
       <section className="flex min-h-dvh items-center">
         <div className="mx-auto max-w-4xl px-6">
           <div className="text-center">
@@ -212,7 +243,6 @@ export default function AboutPage() {
                 <AccordionTrigger className="text-left text-lg font-semibold">
                   {item.title}
                 </AccordionTrigger>
-
                 <AccordionContent className="leading-relaxed text-muted-foreground">
                   {item.content}
                 </AccordionContent>
@@ -221,10 +251,6 @@ export default function AboutPage() {
           </Accordion>
         </div>
       </section>
-
-      {/* =====================================================
-          FINAL CTA
-      ===================================================== */}
 
       <section className="flex min-h-dvh items-center">
         <div className="mx-auto max-w-4xl px-6 text-center">
@@ -251,3 +277,5 @@ export default function AboutPage() {
     </div>
   );
 }
+
+AboutPage.getLayout = (page) => page;

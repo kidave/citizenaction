@@ -1,34 +1,37 @@
 "use client";
 
 import { toast } from "sonner";
-
 import { useEditor } from "@/hooks/editor/useEditor";
-
 import { useCreatePost } from "@/hooks/post/useCreatePost";
 import { useUpdatePost } from "@/hooks/post/useUpdatePost";
 import { useDeletePost } from "@/hooks/post/useDeletePost";
-
 import { postSchema } from "@/schemas/feed/postSchema";
 
-export function usePostEditor(item = null, initialSpace = null) {
-  const editor = useEditor(item, initialSpace);
-
+export function usePostEditor(
+  item = null,
+  initialSpace = null,
+  options = {},
+) {
+  const editor = useEditor(item, initialSpace, {
+    draftScope: options.draftScope || "post",
+    draftContextId: options.draftContextId || initialSpace?.id || null,
+  });
   const { createPost } = useCreatePost();
   const { updatePost } = useUpdatePost();
   const { deletePost } = useDeletePost();
 
   async function submit(onSuccess) {
+    if (!editor.title.trim()) {
+      toast.error("Enter a post title.");
+      return;
+    }
+
     if (!editor.content.trim()) {
-      toast.error(
-        editor.type === "event"
-          ? "Add a description for the event."
-          : "Enter content.",
-      );
+      toast.error("Enter content.");
       return;
     }
 
     const result = postSchema.safeParse({
-      type: editor.type,
       start_at: editor.start_at,
       end_at: editor.end_at,
       address: editor.address,
@@ -42,14 +45,12 @@ export function usePostEditor(item = null, initialSpace = null) {
     }
 
     const data = editor.getEditorData();
-
     const payload = {
       author_id: data.author_id,
       spaces: data.spaces,
       is_global: data.is_global,
       governance: data.governance,
-      type: data.type,
-      title: data.title || data.content.slice(0, 200),
+      title: data.title.trim(),
       content: data.content,
       content_json: data.content_json,
       content_format: data.content_format,
@@ -64,49 +65,43 @@ export function usePostEditor(item = null, initialSpace = null) {
     };
 
     try {
-      if (item) {
-        await updatePost({
-          postId: item.id,
-          postData: payload,
-        });
-      } else {
-        await createPost(payload);
+      const savedPost = item
+        ? await updatePost({ postId: item.id, postData: payload })
+        : await createPost(payload);
+
+      if (!item) {
+        editor.clearDraft();
       }
 
-      onSuccess?.();
+      onSuccess?.(savedPost);
     } catch (error) {
-      console.error("Failed to save post", {
-        message: error?.message,
-        code: error?.code,
-        status: error?.status,
-      });
-
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Failed to save post", {
+          message: error?.message,
+          code: error?.code,
+          status: error?.status,
+        });
+      }
       toast.error(error?.message || "Something went wrong");
     }
   }
 
   async function remove(onSuccess) {
-    if (!item) {
-      return;
-    }
-
+    if (!item) return;
     try {
       await deletePost(item.id);
       onSuccess?.();
     } catch (error) {
-      console.error("Failed to delete post", {
-        message: error?.message,
-        code: error?.code,
-        status: error?.status,
-      });
-
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Failed to delete post", {
+          message: error?.message,
+          code: error?.code,
+          status: error?.status,
+        });
+      }
       toast.error(error?.message || "Failed to delete post");
     }
   }
 
-  return {
-    ...editor,
-    submit,
-    remove,
-  };
+  return { ...editor, submit, remove };
 }

@@ -1,38 +1,29 @@
 "use client";
 
 import { toast } from "sonner";
-
 import { useEditor } from "./useEditor";
-
 import { useCreateContribution } from "@/hooks/contribution/useCreateContribution";
 import { useUpdateContribution } from "@/hooks/contribution/useUpdateContribution";
 import { useDeleteContribution } from "@/hooks/contribution/useDeleteContribution";
 
 export function useContributionEditor(contribution = null, post = null) {
-  const editor = useEditor(contribution);
-
+  const editor = useEditor(contribution, null, {
+    draftScope: "contribution",
+    draftContextId: post?.id || null,
+  });
   const { createContribution } = useCreateContribution();
   const { updateContribution } = useUpdateContribution();
   const { deleteContribution } = useDeleteContribution();
 
   async function submit(onSuccess) {
-    if (!editor.content.trim()) {
-      toast.error("Enter content.");
-      return;
-    }
-
-    if (!post?.id) {
-      toast.error("Post ID is missing.");
-      return;
-    }
-
+    if (!editor.content.trim()) return toast.error("Enter content.");
+    if (!post?.id) return toast.error("Post ID is missing.");
     const data = editor.getEditorData();
-
     const payload = {
       title: data.title ?? null,
       content: data.content ?? null,
-      content_json: data.contentJson ?? null,
-      content_format: data.contentFormat ?? "text",
+      content_json: data.content_json ?? null,
+      content_format: data.content_format ?? "text",
       contribution_type: contribution?.contribution_type ?? "comment",
       status: contribution?.status ?? null,
       attachments: data.attachments ?? [],
@@ -44,7 +35,6 @@ export function useContributionEditor(contribution = null, post = null) {
       address: data.address ?? null,
       metadata: data.metadata ?? {},
     };
-
     try {
       if (contribution) {
         await updateContribution({
@@ -58,41 +48,36 @@ export function useContributionEditor(contribution = null, post = null) {
           contributionData: payload,
         });
       }
-
+      editor.clearDraft();
       onSuccess?.();
     } catch (error) {
-      console.error("Failed to save contribution", {
-        message: error?.message,
-        code: error?.code,
-        status: error?.status,
-      });
-
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Failed to save contribution", {
+          message: error?.message,
+          code: error?.code,
+          status: error?.status,
+        });
+      }
       toast.error(error?.message || "Something went wrong");
     }
   }
 
   async function remove(onSuccess) {
-    if (!contribution?.id) {
-      return;
-    }
-
+    if (!contribution?.id) return;
     try {
       await deleteContribution(contribution);
       onSuccess?.();
     } catch (error) {
-      console.error("Failed to delete contribution", {
-        message: error?.message,
-        code: error?.code,
-        status: error?.status,
-      });
-
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Failed to delete contribution", {
+          message: error?.message,
+          code: error?.code,
+          status: error?.status,
+        });
+      }
       toast.error(error?.message || "Failed to delete contribution");
     }
   }
 
-  return {
-    ...editor,
-    submit,
-    remove,
-  };
+  return { ...editor, submit, remove };
 }

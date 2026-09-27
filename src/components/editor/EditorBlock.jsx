@@ -13,7 +13,7 @@ export default function EditorBlock({ block }) {
   switch (block?.type) {
     case "paragraph":
       return (
-        <div className="leading-7">
+        <div className="font-serif text-lg leading-7">
           <EditorRichText html={data.text || ""} />
         </div>
       );

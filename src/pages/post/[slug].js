@@ -1,4 +1,5 @@
 import Head from "next/head";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
@@ -7,13 +8,15 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { usePost } from "@/hooks/feed/usePost";
 import { useDeletePost } from "@/hooks/post/useDeletePost";
 
-import PostCard from "@/components/feed/post/PostCard";
-import EditorModal from "@/components/feed/editor/EditorModal";
-import BackButton from "@/components/ui/back-button";
+import PostCard from "@/components/post/PostCard";
+import PageHeader from "@/components/layout/PageHeader";
+
+const EditorModal = dynamic(() => import("@/components/editor/EditorModal"), {
+  ssr: false,
+});
 
 export async function getServerSideProps({ params }) {
   const supabase = createServerSupabase();
-
   const { slug } = params;
 
   const { data, error } = await supabase.rpc("get_post_by_slug", {
@@ -21,20 +24,14 @@ export async function getServerSideProps({ params }) {
   });
 
   if (error) {
-    console.error("Failed to load post by slug:", error);
-
-    return {
-      notFound: true,
-    };
+    if (process.env.NODE_ENV !== "production") {
+      console.error("Failed to load post by slug:", error);
+    }
+    return { notFound: true };
   }
 
   const post = Array.isArray(data) ? data[0] : data;
-
-  if (!post) {
-    return {
-      notFound: true,
-    };
-  }
+  if (!post) return { notFound: true };
 
   return {
     props: {
@@ -44,13 +41,8 @@ export async function getServerSideProps({ params }) {
   };
 }
 
-// =========================================================
-// SEO HELPERS
-// =========================================================
-
 function cleanText(text) {
   if (!text) return "";
-
   return text
     .replace(/https?:\/\/\S+/g, "")
     .replace(/\s+/g, " ")
@@ -59,20 +51,13 @@ function cleanText(text) {
 
 function getDescription(post) {
   const clean = cleanText(post.content);
-
-  if (!clean) {
-    return "Citizen Action";
-  }
-
+  if (!clean) return "Citizen Action";
   return clean.length > 140 ? `${clean.slice(0, 140)}...` : clean;
 }
 
 function getImage(attachments = []) {
   const fallback = "https://citizenaction.in/logo.png";
-
-  if (!Array.isArray(attachments)) {
-    return fallback;
-  }
+  if (!Array.isArray(attachments)) return fallback;
 
   const image = attachments.find(
     (attachment) =>
@@ -82,17 +67,10 @@ function getImage(attachments = []) {
   return image?.public_url || fallback;
 }
 
-// =========================================================
-// PAGE
-// =========================================================
-
 export default function SinglePostPage({ postId, initialPost }) {
   const router = useRouter();
-
   const { deletePost } = useDeletePost();
-
   const [editingPost, setEditingPost] = useState(null);
-
   const { data: post, isLoading, isError } = usePost(postId, initialPost);
 
   if (isLoading || !post) {
@@ -142,14 +120,14 @@ export default function SinglePostPage({ postId, initialPost }) {
       </Head>
 
       <div className="flex min-h-dvh w-full flex-col">
-        <div className="sticky top-0 z-40 border-b bg-background">
-          <div className="mx-auto flex h-14 max-w-4xl items-center px-3 sm:h-16 sm:px-4">
-            <BackButton />
-            <span className="min-w-0 flex-1 truncate">
-              {post.title || "Post"}
-            </span>
-          </div>
-        </div>
+        <PageHeader
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Posts", href: "/" },
+            { label: title },
+          ]}
+          title={title}
+        />
 
         <div className="flex w-full justify-center">
           <div className="w-full max-w-4xl">
@@ -163,7 +141,9 @@ export default function SinglePostPage({ postId, initialPost }) {
                   await deletePost(post.id);
                   router.push("/");
                 } catch (error) {
-                  console.error("Failed to delete post:", error);
+                  if (process.env.NODE_ENV !== "production") {
+                    console.error("Failed to delete post:", error);
+                  }
                 }
               }}
             />
@@ -173,7 +153,7 @@ export default function SinglePostPage({ postId, initialPost }) {
         {editingPost && (
           <EditorModal
             mode="post"
-            isOpen={true}
+            isOpen
             onClose={() => setEditingPost(null)}
             item={editingPost}
           />
