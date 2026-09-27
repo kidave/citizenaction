@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { loadEditorTools } from "@/components/editor/editorTools";
 import { getInitialBlocks, editorBlocksToFeedText } from "@/components/editor/editorUtils";
+import { typography } from "@/components/editor/typography";
 
 function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {

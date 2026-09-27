@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import VisibilitySelector from "@/components/space/VisibilitySelector";
 import GovernanceSelector from "@/components/governance/GovernanceSelector";
+import { typography } from "./typography";
 
 export default function EditorHeader({
   profile,
@@ -40,7 +41,7 @@ export default function EditorHeader({
           aria-required="true"
           className={`min-w-0 shadow-none focus-visible:ring-0 ${
             documentStyle
-              ? "order-3 basis-full border-y-0 border-r-0 border-l-4 border-primary rounded-none bg-transparent pl-3 pr-0 py-1 font-serif text-2xl font-semibold leading-tight tracking-tight placeholder:text-muted-foreground/70 sm:order-none sm:basis-auto sm:flex-1 sm:py-0 sm:text-4xl"
+              ? `order-3 basis-full border-y-0 border-r-0 border-l-4 border-primary rounded-none bg-transparent pl-3 pr-0 py-1 ${typography.documentEditor.title} placeholder:text-muted-foreground/70 sm:order-none sm:basis-auto sm:flex-1 sm:py-0 sm:text-4xl`
               : "order-3 basis-full border-none bg-transparent px-0 text-base font-medium sm:order-none sm:basis-auto sm:flex-1"
           }`}
         />
