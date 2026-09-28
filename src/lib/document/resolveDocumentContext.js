@@ -1,71 +1,60 @@
-"use client";
+export async function resolveDocumentContext(supabase, post) {
+  const spaces = Array.isArray(post?.spaces) ? post.spaces : [];
+  const governance = Array.isArray(post?.governance) ? post.governance : [];
 
-import dynamic from "next/dynamic";
-import { useMyProfile } from "@/hooks/user/useMyProfile";
-import { useSpaces } from "@/hooks/space/useSpaces";
-import { usePostEditor } from "@/hooks/editor/usePostEditor";
-import EditorModalSkeleton from "@/components/skeletons/EditorModalSkeleton";
-import PostEditorLayout from "./PostEditorLayout";
-import EditorHeader from "./EditorHeader";
-import EditorFooter from "./EditorFooter";
-import EditorAttachments from "./EditorAttachments";
-import EditorContextSuggestions from "./EditorContextSuggestions";
+  const spaceCategoryIds = [...new Set(spaces.map((s) => s?.category_id).filter(Boolean))];
+  const governanceIds = [...new Set(governance.map((g) => g?.id).filter(Boolean))];
 
-const PlainTextEditor = dynamic(() => import("./content/PlainTextEditor"), {
-  ssr: false,
-});
+  const [categoryResult, governanceResult] = await Promise.all([
+    spaceCategoryIds.length
+      ? supabase.from("category").select("id,name,slug").in("id", spaceCategoryIds)
+      : Promise.resolve({ data: [], error: null }),
+    governanceIds.length
+      ? supabase
+          .from("governance")
+          .select("id,name,short_name,slug,type,image_url,website,category_id,geography_id")
+          .in("id", governanceIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
 
-export default function PostEditor({
-  item = null,
-  initialSpace = null,
-  onClose,
-  onCreated,
-}) {
-  const { data: profile, isLoading: profileLoading } = useMyProfile();
-  const { data: spaces = [], isLoading: spacesLoading } = useSpaces();
-  const editor = usePostEditor(item, initialSpace, { draftScope: "post" });
+  const categories = categoryResult.data || [];
+  const governanceRows = governanceResult.data || [];
 
-  if (profileLoading || spacesLoading || !profile)
-    return <EditorModalSkeleton />;
+  let geography = null;
+  let geographySource = null;
 
-  return (
-    <PostEditorLayout
-      header={
-        <>
-          <EditorHeader profile={profile} editor={editor} spaces={spaces} />
-          <EditorContextSuggestions editor={editor} />
-        </>
-      }
-      content={
-        <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
-          <PlainTextEditor
-            content={editor.content}
-            setContent={editor.setContent}
-            setContentJson={editor.setContentJson}
-            setContentFormat={editor.setContentFormat}
-          />
-          <div className="shrink-0">
-            <EditorAttachments
-              attachments={editor.attachments}
-              setAttachments={editor.setAttachments}
-              links={editor.links}
-            />
-          </div>
-        </div>
-      }
-      footer={
-        <EditorFooter
-          editor={editor}
-          item={item}
-          onClose={onClose}
-          onCreated={onCreated}
-          showDocumentAction={!item}
-          onDocumentMode={() => {
-            onClose?.();
-            window.location.assign("/document");
-          }}
-        />
-      }
-    />
-  );
+  const governanceWithGeo = governanceRows.find((row) => row?.geography_id);
+  if (governanceWithGeo?.geography_id) {
+    const { data } = await supabase
+      .from("geographies")
+      .select("id,name,official_name,slug,geography_type,parent_id")
+      .eq("id", governanceWithGeo.geography_id)
+      .maybeSingle();
+
+    if (data) {
+      geography = data;
+      geographySource = "organization";
+    }
+  }
+
+  // The current post aggregate gives us the human-readable OSM address but not
+  // the normalized district id. Don't guess a district by scanning geography
+  // names. We leave geography unresolved here until address->district mapping
+  // is available in the data layer.
+  const firstSpaceCategoryId = spaces.find((space) => space?.category_id)?.category_id;
+  const category =
+    categories.find((item) => item.id === firstSpaceCategoryId) ||
+    governanceRows
+      .map((row) => categories.find((item) => item.id === row?.category_id))
+      .find(Boolean) ||
+    null;
+
+  return {
+    category,
+    geography,
+    geographySource,
+    organization: governanceRows[0] || null,
+    organizations: governanceRows,
+    spaces,
+  };
 }
