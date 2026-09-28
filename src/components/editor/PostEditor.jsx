@@ -37,14 +37,14 @@ export default function PostEditor({
         </>
       }
       content={
-        <div className="editor-scroll flex h-full min-h-0 flex-col">
+        <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
           <PlainTextEditor
             content={editor.content}
             setContent={editor.setContent}
             setContentJson={editor.setContentJson}
             setContentFormat={editor.setContentFormat}
           />
-          <div className="mt-auto shrink-0">
+          <div className="shrink-0">
             <EditorAttachments
               attachments={editor.attachments}
               setAttachments={editor.setAttachments}

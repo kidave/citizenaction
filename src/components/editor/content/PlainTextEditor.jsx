@@ -22,8 +22,7 @@ export default function PlainTextEditor({
     }
 
     textarea.style.height = "auto";
-    textarea.style.height =
-      Math.min(textarea.scrollHeight, window.innerHeight * 0.32) + "px";
+    textarea.style.height = Math.min(textarea.scrollHeight, window.innerHeight * 0.32) + "px";
   }, [content]);
 
   function handleChange(event) {
@@ -32,8 +31,7 @@ export default function PlainTextEditor({
 
     if (textarea && !window.matchMedia("(max-width: 639px)").matches) {
       textarea.style.height = "auto";
-      textarea.style.height =
-        Math.min(textarea.scrollHeight, window.innerHeight * 0.32) + "px";
+      textarea.style.height = Math.min(textarea.scrollHeight, window.innerHeight * 0.32) + "px";
     }
 
     setContent(value);
@@ -56,7 +54,7 @@ export default function PlainTextEditor({
       value={content || ""}
       onChange={handleChange}
       onFocus={onFocus}
-      className="h-full min-h-0 flex-1 resize-none overflow-y-auto border-none bg-transparent px-4 py-3 text-base shadow-none focus-visible:ring-0 sm:h-auto sm:min-h-[76px] sm:max-h-[32vh] sm:flex-none"
+      className="min-h-0 flex-1 resize-none overflow-y-auto border-none bg-transparent px-4 py-3 text-base shadow-none focus-visible:ring-0 scrollbar-hide"
     />
   );
 }
