@@ -4,16 +4,14 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 
 import { createServerSupabase } from "@/lib/supabase/server";
-
 import { usePost } from "@/hooks/feed/usePost";
 import { useDeletePost } from "@/hooks/post/useDeletePost";
-
 import PostCard from "@/components/post/PostCard";
 import PageHeader from "@/components/layout/PageHeader";
+import DocumentPage from "@/components/document/DocumentPage";
+import { resolveDocumentContext } from "@/lib/document/resolveDocumentContext";
 
-const EditorModal = dynamic(() => import("@/components/editor/EditorModal"), {
-  ssr: false,
-});
+const EditorModal = dynamic(() => import("@/components/editor/EditorModal"), { ssr: false });
 
 export async function getServerSideProps({ params }) {
   const supabase = createServerSupabase();
@@ -33,20 +31,23 @@ export async function getServerSideProps({ params }) {
   const post = Array.isArray(data) ? data[0] : data;
   if (!post) return { notFound: true };
 
+  const context =
+    post.content_format === "editorjs"
+      ? await resolveDocumentContext(supabase, post)
+      : null;
+
   return {
     props: {
       initialPost: post,
       postId: post.id,
+      context,
     },
   };
 }
 
 function cleanText(text) {
   if (!text) return "";
-  return text
-    .replace(/https?:\/\/\S+/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+  return text.replace(/https?:\/\/\S+/g, "").replace(/\s+/g, " ").trim();
 }
 
 function getDescription(post) {
@@ -58,44 +59,30 @@ function getDescription(post) {
 function getImage(attachments = []) {
   const fallback = "https://citizenaction.in/logo.png";
   if (!Array.isArray(attachments)) return fallback;
-
   const image = attachments.find(
-    (attachment) =>
-      attachment?.public_url && attachment?.mime_type?.startsWith("image/"),
+    (attachment) => attachment?.public_url && attachment?.mime_type?.startsWith("image/"),
   );
-
   return image?.public_url || fallback;
 }
 
-export default function SinglePostPage({ postId, initialPost }) {
+function PostPage({ postId, initialPost }) {
   const router = useRouter();
   const { deletePost } = useDeletePost();
   const [editingPost, setEditingPost] = useState(null);
   const { data: post, isLoading, isError } = usePost(postId, initialPost);
 
   if (isLoading || !post) {
-    return (
-      <div className="mx-auto w-full max-w-4xl">
-        <PostCard loading borderless forceExpanded />
-      </div>
-    );
+    return <div className="mx-auto w-full max-w-4xl"><PostCard loading borderless forceExpanded /></div>;
   }
 
   if (isError) {
-    return (
-      <div className="mx-auto w-full max-w-4xl px-4 py-16 text-center">
-        <p className="text-sm text-muted-foreground">
-          Unable to load this post.
-        </p>
-      </div>
-    );
+    return <div className="mx-auto w-full max-w-4xl px-4 py-16 text-center"><p className="text-sm text-muted-foreground">Unable to load this post.</p></div>;
   }
 
   const title = post.title || "Citizen Action";
   const description = getDescription(post);
   const image = getImage(post.attachments);
   const url = `https://citizenaction.in/post/${post.slug}`;
-  const isDocument = post.content_format === "editorjs";
 
   return (
     <>
@@ -122,11 +109,7 @@ export default function SinglePostPage({ postId, initialPost }) {
 
       <div className="flex min-h-dvh w-full flex-col">
         <PageHeader
-          items={[
-            { label: "Home", href: "/" },
-            { label: "Posts", href: "/" },
-            { label: title },
-          ]}
+          items={[{ label: "Home", href: "/" }, { label: "Posts", href: "/" }, { label: title }]}
           title={title}
         />
 
@@ -136,17 +119,13 @@ export default function SinglePostPage({ postId, initialPost }) {
               post={post}
               borderless
               forceExpanded
-              hideAttachments={isDocument}
-              transparentContent={isDocument}
               onEdit={() => setEditingPost(post)}
               onDelete={async () => {
                 try {
                   await deletePost(post.id);
                   router.push("/");
                 } catch (error) {
-                  if (process.env.NODE_ENV !== "production") {
-                    console.error("Failed to delete post:", error);
-                  }
+                  if (process.env.NODE_ENV !== "production") console.error("Failed to delete post:", error);
                 }
               }}
             />
@@ -154,14 +133,16 @@ export default function SinglePostPage({ postId, initialPost }) {
         </div>
 
         {editingPost && (
-          <EditorModal
-            mode="post"
-            isOpen
-            onClose={() => setEditingPost(null)}
-            item={editingPost}
-          />
+          <EditorModal mode="post" isOpen onClose={() => setEditingPost(null)} item={editingPost} />
         )}
       </div>
     </>
   );
+}
+
+export default function SinglePostPage({ postId, initialPost, context }) {
+  if (initialPost?.content_format === "editorjs") {
+    return <DocumentPage postId={postId} initialPost={initialPost} context={context} />;
+  }
+  return <PostPage postId={postId} initialPost={initialPost} />;
 }
