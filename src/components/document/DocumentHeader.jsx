@@ -1,3 +1,4 @@
+
 "use client";
 
 import { CalendarDays, MapPin } from "lucide-react";
@@ -32,20 +33,10 @@ export default function DocumentHeader({ post, context, canEdit, onEdit }) {
           avatar={post.author_avatar}
           createdAt={formatDate(post.created_at)}
         />
-
         <div className="mr-2 flex min-w-0 items-center gap-2">
           {spaces.length > 0 && <SpaceAvatarGroup spaces={spaces} />}
           {post.governance?.length > 0 && <GovernanceAvatarGroup authorities={post.governance} />}
-          {canEdit && (
-            <button
-              type="button"
-              className="rounded-lg px-2 py-1 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-              onClick={onEdit}
-              aria-label="Edit document"
-            >
-              •••
-            </button>
-          )}
+          {canEdit && <button type="button" className="rounded-lg px-2 py-1 text-sm text-muted-foreground hover:bg-muted hover:text-foreground" onClick={onEdit} aria-label="Edit document">•••</button>}
         </div>
       </div>
 
@@ -58,45 +49,20 @@ export default function DocumentHeader({ post, context, canEdit, onEdit }) {
       )}
 
       <div className="border-l-4 border-primary pl-4">
-        <h1 className="font-serif text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">
-          {post.title || "Untitled document"}
-        </h1>
+        <h1 className="font-serif text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">{post.title || "Untitled document"}</h1>
       </div>
 
       {(formatDocumentDate(post) || post.address) && (
         <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-2">
-          {formatDocumentDate(post) && (
-            <div className="flex items-center gap-2">
-              <CalendarDays className="h-4 w-4 shrink-0" />
-              <span>{formatDocumentDate(post)}</span>
-            </div>
-          )}
-          {post.address && (
-            <a
-              href={"https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(post.address)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex min-w-0 items-start gap-2 hover:text-foreground"
-            >
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-              <span className="break-words underline-offset-4 hover:underline">{post.address}</span>
-            </a>
-          )}
+          {formatDocumentDate(post) && <div className="flex items-center gap-2"><CalendarDays className="h-4 w-4 shrink-0" /><span>{formatDocumentDate(post)}</span></div>}
+          {post.address && <a href={"https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(post.address)} target="_blank" rel="noopener noreferrer" className="flex min-w-0 items-start gap-2 hover:text-foreground"><MapPin className="mt-0.5 h-4 w-4 shrink-0" /><span className="break-words underline-offset-4 hover:underline">{post.address}</span></a>}
         </div>
       )}
 
       {organization && (
         <div className="flex min-w-0 items-center gap-3">
-          <Avatar className="h-8 w-8 shrink-0">
-            <AvatarImage src={organization.image_url || undefined} alt="" />
-            <AvatarFallback>{organization.short_name?.[0] || organization.name?.[0] || "O"}</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0">
-            <p className="text-sm font-medium">{organization.short_name || organization.name}</p>
-            {organization.short_name && organization.short_name !== organization.name && (
-              <p className="text-xs text-muted-foreground">{organization.name}</p>
-            )}
-          </div>
+          <Avatar className="h-8 w-8 shrink-0"><AvatarImage src={organization.image_url || undefined} alt="" /><AvatarFallback>{organization.short_name?.[0] || organization.name?.[0] || "O"}</AvatarFallback></Avatar>
+          <div className="min-w-0"><p className="text-sm font-medium">{organization.short_name || organization.name}</p>{organization.short_name && organization.short_name !== organization.name && <p className="text-xs text-muted-foreground">{organization.name}</p>}</div>
         </div>
       )}
     </header>
