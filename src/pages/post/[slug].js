@@ -95,6 +95,7 @@ export default function SinglePostPage({ postId, initialPost }) {
   const description = getDescription(post);
   const image = getImage(post.attachments);
   const url = `https://citizenaction.in/post/${post.slug}`;
+  const isDocument = post.content_format === "editorjs";
 
   return (
     <>
@@ -135,6 +136,8 @@ export default function SinglePostPage({ postId, initialPost }) {
               post={post}
               borderless
               forceExpanded
+              hideAttachments={isDocument}
+              transparentContent={isDocument}
               onEdit={() => setEditingPost(post)}
               onDelete={async () => {
                 try {
