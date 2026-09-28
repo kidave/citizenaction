@@ -10,69 +10,14 @@ import { usePostEditor } from "@/hooks/editor/usePostEditor";
 
 const RichTextEditor = dynamic(() => import("./content/RichTextEditor"), { ssr: false });
 
-export default function DocumentEditor({
-  profile,
-  spaces = [],
-  post = null,
-  previewOpen,
-  onPreviewOpenChange,
-  onClose,
-  onCreated,
-}) {
+export default function DocumentEditor({ profile, spaces = [], post = null, previewOpen, onPreviewOpenChange, onClose, onCreated }) {
   const editor = usePostEditor(post, null, { draftScope: "document" });
 
   return (
     <DocumentEditorLayout
-      header={
-        <>
-          <EditorHeader
-            profile={profile}
-            editor={editor}
-            spaces={spaces}
-            showTitle
-            titlePlaceholder="Document title..."
-            titleAriaLabel="Document title"
-            documentStyle
-          />
-          <EditorContextSuggestions editor={editor} />
-        </>
-      }
-      content={
-        <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col">
-          <RichTextEditor
-            content={editor.content}
-            setContent={editor.setContent}
-            contentJson={editor.contentJson}
-            setContentJson={editor.setContentJson}
-            setContentFormat={editor.setContentFormat}
-            addAttachments={editor.addAttachments}
-          />
-        </div>
-      }
-      footer={
-        <>
-          <DocumentPreview
-            open={previewOpen}
-            onOpenChange={onPreviewOpenChange}
-            title={editor.title}
-            contentJson={editor.contentJson}
-            profile={profile}
-            spaces={editor.spaces}
-            governance={editor.governance}
-          />
-          <EditorFooter
-            editor={editor}
-            item={post}
-            onClose={onClose}
-            onCreated={onCreated}
-            showAttachments={false}
-            showLinks={false}
-            showDateTime
-            showAddress
-            maxWidthClass="max-w-4xl"
-          />
-        </>
-      }
+      header={<><EditorHeader profile={profile} editor={editor} spaces={spaces} showTitle titlePlaceholder="Document title..." titleAriaLabel="Document title" documentStyle /><EditorContextSuggestions editor={editor} /></>}
+      content={<div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col"><RichTextEditor content={editor.content} setContent={editor.setContent} contentJson={editor.contentJson} setContentJson={editor.setContentJson} setContentFormat={editor.setContentFormat} addAttachments={editor.addAttachments} /></div>}
+      footer={<><DocumentPreview open={previewOpen} onOpenChange={onPreviewOpenChange} title={editor.title} contentJson={editor.contentJson} profile={profile} spaces={editor.spaces} governance={editor.governance} /><EditorFooter editor={editor} item={post} onClose={onClose} onCreated={onCreated} showAttachments={false} showLinks={false} showDateTime showAddress maxWidthClass="max-w-4xl" /></>}
     />
   );
 }
