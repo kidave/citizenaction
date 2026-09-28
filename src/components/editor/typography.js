@@ -61,27 +61,4 @@ export const typography = {
 
     caption: "font-serif text-xs leading-relaxed",
   },
-
-  /**
-   * Public post content that is not a document.
-   */
-  publicPost: {
-    body: "text-base leading-7",
-
-    title: "text-lg font-semibold leading-tight tracking-tight",
-
-    h1: "text-3xl font-semibold leading-tight tracking-tight",
-
-    h2: "text-2xl font-semibold leading-tight tracking-tight",
-
-    h3: "text-xl font-semibold leading-tight",
-
-    list: "text-base leading-7",
-
-    table: "text-base leading-7",
-
-    warning: "text-base leading-7",
-
-    caption: "text-xs leading-relaxed text-muted-foreground",
-  },
 };

@@ -69,7 +69,7 @@ function PlainPostContent({ post, onNavigate, forceExpanded }) {
   const displayContent = forceExpanded || !isLong ? content : truncatedText;
 
   return (
-    <div className="whitespace-pre-wrap text-lg">
+    <div className="text-medium whitespace-pre-wrap">
       <LinkifiedText>{displayContent}</LinkifiedText>
 
       {!forceExpanded && isLong && <ReadMore post={post} />}
@@ -95,7 +95,7 @@ function RichPostContent({ post, onNavigate, forceExpanded }) {
   const displayContent = isLong ? truncatedText : content;
 
   return (
-    <div className="whitespace-pre-wrap text-lg">
+    <div className="text-medium whitespace-pre-wrap">
       <LinkifiedText>{displayContent}</LinkifiedText>
 
       {isLong && <ReadMore post={post} />}
