@@ -58,7 +58,7 @@ export default function DocumentEditor({ profile, spaces = [], post = null, prev
             onClose={onClose}
             onCreated={onCreated}
             showAttachments={false}
-            showLinks
+            showLinks={false}
             showDateTime
             showAddress
             maxWidthClass="max-w-4xl"
