@@ -63,6 +63,14 @@ export function extractListText(data = {}) {
   return walk(items).filter(Boolean).join("\n");
 }
 
+function extractTableText(data = {}) {
+  return (data?.content || [])
+    .flatMap((row) => (Array.isArray(row) ? row : []))
+    .map((cell) => stripHtml(cell || ""))
+    .filter(Boolean)
+    .join(" | ");
+}
+
 /* =========================================================
    EDITOR.JS → PLAIN TEXT
    ========================================================= */
@@ -81,6 +89,22 @@ export function editorBlocksToFeedText(blocks = []) {
 
         case "list":
           return extractListText(data);
+
+        case "image":
+          // Keep the caption for card previews/linkification, but never copy
+          // the image URL or data URL into the feed text.
+          return stripHtml(data.caption || "");
+
+        case "warning":
+          return [
+            stripHtml(data.title || ""),
+            stripHtml(data.message || ""),
+          ]
+            .filter(Boolean)
+            .join("\n");
+
+        case "table":
+          return extractTableText(data);
 
         default:
           return "";

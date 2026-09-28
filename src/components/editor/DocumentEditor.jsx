@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import EditorShell from "./EditorShell";
+import DocumentEditorLayout from "./DocumentEditorLayout";
 import EditorHeader from "./EditorHeader";
 import EditorFooter from "./EditorFooter";
 import EditorContextSuggestions from "./EditorContextSuggestions";
@@ -14,7 +14,7 @@ export default function DocumentEditor({ profile, spaces = [], post = null, prev
   const editor = usePostEditor(post, null, { draftScope: "document" });
 
   return (
-    <EditorShell
+    <DocumentEditorLayout
       header={
         <>
           <EditorHeader
@@ -30,7 +30,7 @@ export default function DocumentEditor({ profile, spaces = [], post = null, prev
         </>
       }
       content={
-        <div className="mx-auto flex min-h-0 h-full w-full max-w-4xl flex-col">
+        <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col">
           <RichTextEditor
             content={editor.content}
             setContent={editor.setContent}
@@ -58,6 +58,7 @@ export default function DocumentEditor({ profile, spaces = [], post = null, prev
             onClose={onClose}
             onCreated={onCreated}
             showAttachments={false}
+            showLinks={false}
             showDateTime
             showAddress
             maxWidthClass="max-w-4xl"

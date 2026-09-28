@@ -5,7 +5,7 @@ import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { useSpaces } from "@/hooks/space/useSpaces";
 import { usePostEditor } from "@/hooks/editor/usePostEditor";
 import EditorModalSkeleton from "@/components/skeletons/EditorModalSkeleton";
-import EditorShell from "./EditorShell";
+import PostEditorLayout from "./PostEditorLayout";
 import EditorHeader from "./EditorHeader";
 import EditorFooter from "./EditorFooter";
 import EditorAttachments from "./EditorAttachments";
@@ -29,7 +29,7 @@ export default function PostEditor({
     return <EditorModalSkeleton />;
 
   return (
-    <EditorShell
+    <PostEditorLayout
       header={
         <>
           <EditorHeader profile={profile} editor={editor} spaces={spaces} />
@@ -37,14 +37,14 @@ export default function PostEditor({
         </>
       }
       content={
-        <div className="editor-scroll flex h-full min-h-0 flex-col">
+        <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
           <PlainTextEditor
             content={editor.content}
             setContent={editor.setContent}
             setContentJson={editor.setContentJson}
             setContentFormat={editor.setContentFormat}
           />
-          <div className="mt-auto shrink-0">
+          <div className="shrink-0">
             <EditorAttachments
               attachments={editor.attachments}
               setAttachments={editor.setAttachments}

@@ -23,6 +23,7 @@ export default function EditorFooter({
   showDocumentAction = false,
   onDocumentMode,
   showAttachments = true,
+  showLinks = true,
   showDateTime = true,
   showAddress = true,
   showDraftStatus = true,
@@ -79,15 +80,18 @@ export default function EditorFooter({
                     editor.setAttachments((prev) => [...prev, ...files])
                   }
                 />
-                <LinkManager value={editor.links} onChange={editor.setLinks} />
               </>
+            )}
+
+            {showLinks && (
+              <LinkManager value={editor.links} onChange={editor.setLinks} />
             )}
 
             {showDateTime && <EditorDateTime editor={editor} />}
             {showAddress && <EditorAddress editor={editor} />}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {showDraftStatus && editor.draftStatus === "saved" && (
               <span className="hidden items-center gap-1 text-xs text-muted-foreground sm:flex">
                 <Check className="h-3.5 w-3.5" />
@@ -98,6 +102,16 @@ export default function EditorFooter({
               <span className="hidden text-xs text-muted-foreground sm:flex">
                 Saving draft…
               </span>
+            )}
+            {onClose && (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={onClose}
+                className="shrink-0"
+              >
+                Cancel
+              </Button>
             )}
             <Button
               type="button"
