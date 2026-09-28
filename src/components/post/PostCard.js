@@ -27,6 +27,8 @@ export default function PostCard({
   edgeToEdgeMobile = false,
   loading = false,
   queryKey,
+  hideAttachments = false,
+  transparentContent = false,
 }) {
   const router = useRouter();
   const { user } = useAuth();
@@ -37,7 +39,7 @@ export default function PostCard({
         borderless={borderless}
         edgeToEdgeMobile={edgeToEdgeMobile}
         forceExpanded={forceExpanded}
-        hasAttachments={post?.attachments?.length > 0}
+        hasAttachments={!hideAttachments && post?.attachments?.length > 0}
       />
     );
   }
@@ -72,7 +74,7 @@ export default function PostCard({
           onDelete={onDelete}
         />
 
-        {post.attachments?.length > 0 && (
+        {!hideAttachments && post.attachments?.length > 0 && (
           <div className="overflow-hidden rounded-3xl">
             <PostAttachments attachments={post.attachments} />
           </div>
@@ -94,7 +96,13 @@ export default function PostCard({
               : undefined
           }
         >
-          <div className="sm:rounded-3xl sm:bg-muted sm:p-4">
+          <div
+            className={
+              transparentContent
+                ? "p-0"
+                : "sm:rounded-3xl sm:bg-muted sm:p-4"
+            }
+          >
             <PostContent
               post={post}
               onNavigate={handleNavigate}
@@ -105,12 +113,11 @@ export default function PostCard({
           </div>
         </div>
 
-        {post.links?.length > 0 &&
-          (forceExpanded || isDocumentCard || !post.attachments?.length) && (
-            <div className="overflow-hidden">
-              <PostLinks links={post.links} />
-            </div>
-          )}
+        {post.links?.length > 0 && !isDocumentCard && (
+          <div className="overflow-hidden">
+            <PostLinks links={post.links} />
+          </div>
+        )}
 
         {!profileMode && (
           <div className="sm:rounded-3xl">
