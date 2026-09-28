@@ -8,10 +8,17 @@ import EditorContextSuggestions from "./EditorContextSuggestions";
 import DocumentPreview from "./DocumentPreview";
 import { usePostEditor } from "@/hooks/editor/usePostEditor";
 
-// Keep the document editor as an explicit composition of its own layout, header, footer, and preview.
 const RichTextEditor = dynamic(() => import("./content/RichTextEditor"), { ssr: false });
 
-export default function DocumentEditor({ profile, spaces = [], post = null, previewOpen, onPreviewOpenChange, onClose, onCreated }) {
+export default function DocumentEditor({
+  profile,
+  spaces = [],
+  post = null,
+  previewOpen,
+  onPreviewOpenChange,
+  onClose,
+  onCreated,
+}) {
   const editor = usePostEditor(post, null, { draftScope: "document" });
 
   return (
