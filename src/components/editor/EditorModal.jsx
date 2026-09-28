@@ -14,14 +14,27 @@ import EditorFooter from "./EditorFooter";
 import EditorAttachments from "./EditorAttachments";
 import EditorContextSuggestions from "./EditorContextSuggestions";
 
-const PlainTextEditor = dynamic(() => import("./content/PlainTextEditor"), { ssr: false });
+const PlainTextEditor = dynamic(() => import("./content/PlainTextEditor"), {
+  ssr: false,
+});
 
-export default function EditorModal({ isOpen, onClose, mode = "post", item = null, post = null, initialSpace = null }) {
+export default function EditorModal({
+  isOpen,
+  onClose,
+  mode = "post",
+  item = null,
+  post = null,
+  initialSpace = null,
+}) {
   const router = useRouter();
   const { data: profile, isLoading: profileLoading } = useMyProfile();
   const { data: spaces = [], isLoading: spacesLoading } = useSpaces();
-  const contributionEditor = useContributionEditor(mode === "contribution" ? item : null, post);
-  const isDocumentPost = mode === "post" && !!item && item.content_format === "editorjs";
+  const contributionEditor = useContributionEditor(
+    mode === "contribution" ? item : null,
+    post,
+  );
+  const isDocumentPost =
+    mode === "post" && !!item && item.content_format === "editorjs";
 
   useEffect(() => {
     if (isDocumentPost && item?.slug) {
@@ -44,16 +57,27 @@ export default function EditorModal({ isOpen, onClose, mode = "post", item = nul
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="flex h-dvh max-h-dvh min-h-0 w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[80vh] sm:max-h-[80vh] sm:min-h-[480px] sm:max-w-2xl sm:rounded-xl">
+      <DialogContent className="flex h-dvh max-h-dvh min-h-0 w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-auto sm:max-h-[80vh] sm:min-h-[320px] sm:max-w-2xl sm:rounded-xl">
         {mode === "post" ? (
-          <PostEditor item={item} initialSpace={initialSpace} onClose={handleClose} onCreated={handleCreated} />
+          <PostEditor
+            item={item}
+            initialSpace={initialSpace}
+            onClose={handleClose}
+            onCreated={handleCreated}
+          />
         ) : profileLoading || spacesLoading || !profile ? (
           <EditorModalSkeleton />
         ) : (
           <div className="flex h-full min-h-0 flex-col">
-            <EditorHeader profile={profile} editor={contributionEditor} spaces={spaces} showTitle={false} showSelectors={false} />
+            <EditorHeader
+              profile={profile}
+              editor={contributionEditor}
+              spaces={spaces}
+              showTitle={false}
+              showSelectors={false}
+            />
             <EditorContextSuggestions editor={contributionEditor} />
-            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+            <div className="editor-scroll flex min-h-0 flex-1 flex-col">
               <PlainTextEditor
                 content={contributionEditor.content}
                 setContent={contributionEditor.setContent}
@@ -61,7 +85,11 @@ export default function EditorModal({ isOpen, onClose, mode = "post", item = nul
                 setContentFormat={contributionEditor.setContentFormat}
               />
               <div className="mt-auto shrink-0">
-                <EditorAttachments attachments={contributionEditor.attachments} setAttachments={contributionEditor.setAttachments} links={contributionEditor.links} />
+                <EditorAttachments
+                  attachments={contributionEditor.attachments}
+                  setAttachments={contributionEditor.setAttachments}
+                  links={contributionEditor.links}
+                />
               </div>
             </div>
             <EditorFooter

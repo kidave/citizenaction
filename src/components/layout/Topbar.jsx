@@ -133,12 +133,17 @@ export default function Topbar({
     <TooltipProvider delayDuration={250}>
       <header className={`sticky top-0 z-40 bg-background ${className}`}>
         <div
-          className={`mx-auto flex min-h-14 w-full items-center gap-1.5 px-3 sm:min-h-16 sm:px-4 ${containerClassName}`}
+          className={`mx-auto flex min-h-14 w-full items-center gap-1 px-3 sm:min-h-16 sm:px-4 ${containerClassName}`}
         >
           {showHome && homeItem ? (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button asChild variant="ghost" size="icon" className="shrink-0">
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0"
+                >
                   <Link href={homeItem.href} aria-label="Home">
                     <Home className="h-4 w-4" />
                   </Link>
@@ -153,14 +158,15 @@ export default function Topbar({
             <TooltipContent>Back</TooltipContent>
           </Tooltip>
 
-          <div className="min-w-0 flex-1 truncate font-semibold">
-            {currentLabel}
-          </div>
+          <div className="min-w-0 flex-1 truncate">{currentLabel}</div>
 
           {allActions.length ? (
-            <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+            <div className="flex shrink-0 items-center gap-1">
               {allActions.slice(0, 3).map((action, index) => (
-                <ActionButton key={`${action.label}-${index}`} action={action} />
+                <ActionButton
+                  key={`${action.label}-${index}`}
+                  action={action}
+                />
               ))}
 
               {allActions.length > 3 ? (

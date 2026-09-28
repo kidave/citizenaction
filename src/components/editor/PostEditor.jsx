@@ -11,14 +11,22 @@ import EditorFooter from "./EditorFooter";
 import EditorAttachments from "./EditorAttachments";
 import EditorContextSuggestions from "./EditorContextSuggestions";
 
-const PlainTextEditor = dynamic(() => import("./content/PlainTextEditor"), { ssr: false });
+const PlainTextEditor = dynamic(() => import("./content/PlainTextEditor"), {
+  ssr: false,
+});
 
-export default function PostEditor({ item = null, initialSpace = null, onClose, onCreated }) {
+export default function PostEditor({
+  item = null,
+  initialSpace = null,
+  onClose,
+  onCreated,
+}) {
   const { data: profile, isLoading: profileLoading } = useMyProfile();
   const { data: spaces = [], isLoading: spacesLoading } = useSpaces();
   const editor = usePostEditor(item, initialSpace, { draftScope: "post" });
 
-  if (profileLoading || spacesLoading || !profile) return <EditorModalSkeleton />;
+  if (profileLoading || spacesLoading || !profile)
+    return <EditorModalSkeleton />;
 
   return (
     <EditorShell
@@ -29,7 +37,7 @@ export default function PostEditor({ item = null, initialSpace = null, onClose, 
         </>
       }
       content={
-        <div className="flex min-h-0 h-full flex-col overflow-y-auto">
+        <div className="editor-scroll flex h-full min-h-0 flex-col">
           <PlainTextEditor
             content={editor.content}
             setContent={editor.setContent}

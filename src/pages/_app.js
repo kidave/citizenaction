@@ -1,7 +1,7 @@
 import Head from "next/head";
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
-import { Playfair_Display } from "next/font/google";
+
 import "@/styles/main.css";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -15,11 +15,6 @@ import { FloatingMenuProvider } from "@/components/layout/FloatingMenuContext";
 
 const GoogleOneTap = dynamic(() => import("@/components/auth/GoogleOneTap"), {
   ssr: false,
-});
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  variable: "--font-playfair",
 });
 
 function MyApp({ Component, pageProps }) {
@@ -41,7 +36,7 @@ function MyApp({ Component, pageProps }) {
   }, []);
 
   return (
-    <div className={playfair.variable}>
+    <>
       <Head>
         <title key="title">Citizen Action - Mumbai Sustainability Center</title>
         <meta
@@ -75,7 +70,7 @@ function MyApp({ Component, pageProps }) {
 
       <Analytics mode="production" />
       <SpeedInsights />
-    </div>
+    </>
   );
 }
 
