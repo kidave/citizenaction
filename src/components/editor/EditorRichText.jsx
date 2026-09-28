@@ -8,6 +8,7 @@ export default function EditorRichText({ html = "" }) {
 
   return (
     <span
+      className="[&_a]:text-info [&_a]:break-all [&_a]:hover:underline"
       dangerouslySetInnerHTML={{
         __html: safeHtml,
       }}
