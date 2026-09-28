@@ -5,7 +5,7 @@ import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { useSpaces } from "@/hooks/space/useSpaces";
 import { usePostEditor } from "@/hooks/editor/usePostEditor";
 import EditorModalSkeleton from "@/components/skeletons/EditorModalSkeleton";
-import EditorShell from "./EditorShell";
+import PostEditorLayout from "./PostEditorLayout";
 import EditorHeader from "./EditorHeader";
 import EditorFooter from "./EditorFooter";
 import EditorAttachments from "./EditorAttachments";
@@ -29,7 +29,7 @@ export default function PostEditor({
     return <EditorModalSkeleton />;
 
   return (
-    <EditorShell
+    <PostEditorLayout
       header={
         <>
           <EditorHeader profile={profile} editor={editor} spaces={spaces} />
