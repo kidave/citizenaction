@@ -23,6 +23,7 @@ export default function EditorFooter({
   showDocumentAction = false,
   onDocumentMode,
   showAttachments = true,
+  showLinks = true,
   showDateTime = true,
   showAddress = true,
   showDraftStatus = true,
@@ -79,8 +80,11 @@ export default function EditorFooter({
                     editor.setAttachments((prev) => [...prev, ...files])
                   }
                 />
-                <LinkManager value={editor.links} onChange={editor.setLinks} />
               </>
+            )}
+
+            {showLinks && (
+              <LinkManager value={editor.links} onChange={editor.setLinks} />
             )}
 
             {showDateTime && <EditorDateTime editor={editor} />}

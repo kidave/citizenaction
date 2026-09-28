@@ -51,6 +51,8 @@ export default function PostCard({
       ? canEdit
       : Boolean(post.permissions?.can_manage || post.author_id === user?.id);
 
+  const isDocumentCard = post.content_format === "editorjs";
+
   const handleNavigate = () => {
     sessionStorage.setItem("feed-scroll", window.scrollY.toString());
     router.push(`/post/${post.slug}`);
@@ -104,7 +106,7 @@ export default function PostCard({
         </div>
 
         {post.links?.length > 0 &&
-          (forceExpanded || !post.attachments?.length) && (
+          (forceExpanded || isDocumentCard || !post.attachments?.length) && (
             <div className="overflow-hidden">
               <PostLinks links={post.links} />
             </div>

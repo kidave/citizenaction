@@ -50,10 +50,24 @@ export function usePostEditor(item = null, initialSpace = null, options = {}) {
 
   useEffect(() => {
     if (baselineRef.current !== null) return;
+
     const expectedSpaces = item?.spaces ?? (initialSpace ? [initialSpace] : []);
     const expectedFormat = item?.content_format === "editorjs" ? "editorjs" : "text";
+
+    // For an existing draft, wait until useEditor has hydrated its state before
+    // establishing the baseline. Otherwise the first render looks like a user edit.
+    if (item?.status === "draft") {
+      const hydrated =
+        editor.title === (item.title ?? "") &&
+        editor.content === (item.content ?? "") &&
+        JSON.stringify(editor.contentJson ?? null) === JSON.stringify(item.content_json ?? null) &&
+        JSON.stringify(editor.links ?? []) === JSON.stringify(item.links ?? []);
+
+      if (!hydrated) return;
+    }
+
     baselineRef.current = snapshot(editor, expectedSpaces, expectedFormat);
-  }, [item?.id, initialSpace?.id, editor.title, editor.content, editor.contentJson, editor.contentFormat, editor.spaces, editor.is_global, editor.governance, editor.links, editor.start_at, editor.end_at, editor.datePrecision, editor.lat, editor.lng, editor.address]);
+  }, [item, initialSpace?.id, editor.title, editor.content, editor.contentJson, editor.contentFormat, editor.spaces, editor.is_global, editor.governance, editor.links, editor.start_at, editor.end_at, editor.datePrecision, editor.lat, editor.lng, editor.address]);
 
   const draftPayload = useCallback(() => ({
     p_space_ids: editor.spaces?.map((space) => space.id) ?? [],
@@ -70,26 +84,55 @@ export function usePostEditor(item = null, initialSpace = null, options = {}) {
     p_content_format: editor.contentFormat ?? "text",
   }), [editor.spaces, editor.title, editor.content, editor.datePrecision, editor.start_at, editor.end_at, editor.lat, editor.lng, editor.address, editor.governance, editor.contentJson, editor.contentFormat]);
 
+  const saveDraftLinks = useCallback(async (postId) => {
+    const links = Array.isArray(editor.links)
+      ? editor.links.map((link, index) => ({
+          url: link.url,
+          type: link.type ?? "website",
+          title: link.title ?? null,
+          description: link.description ?? null,
+          hostname: link.hostname ?? null,
+          image_url: link.image_url ?? null,
+          icon_url: link.icon_url ?? null,
+          sort_order: index,
+        }))
+      : [];
+
+    const { error } = await supabase.rpc("upsert_post_links", {
+      p_post_id: postId,
+      p_links: links,
+    });
+
+    if (error) throw error;
+  }, [editor.links]);
+
   const saveDraftNow = useCallback(async () => {
-    if (item || saveInFlightRef.current) return draftIdRef.current;
+    if ((item && item.status !== "draft") || saveInFlightRef.current) {
+      return draftIdRef.current;
+    }
+
     saveInFlightRef.current = true;
     setDraftStatus("saving");
     try {
       const payload = draftPayload();
       let saved;
-      if (!draftIdRef.current) {
+      let id = draftIdRef.current;
+
+      if (!id) {
         const { data, error } = await supabase.rpc("create_post_draft", payload);
         if (error) throw error;
         saved = data;
-        const id = data?.id ?? data?.[0]?.id;
+        id = data?.id ?? data?.[0]?.id;
         if (!id) throw new Error("Draft was created without an id.");
         setDraftId(id);
         draftIdRef.current = id;
       } else {
-        const { data, error } = await supabase.rpc("update_post", { p_post_id: draftIdRef.current, ...payload });
+        const { data, error } = await supabase.rpc("update_post", { p_post_id: id, ...payload });
         if (error) throw error;
         saved = data;
       }
+
+      await saveDraftLinks(id);
       setDraftStatus("saved");
       return saved;
     } catch (error) {
@@ -99,11 +142,13 @@ export function usePostEditor(item = null, initialSpace = null, options = {}) {
     } finally {
       saveInFlightRef.current = false;
     }
-  }, [draftPayload, item]);
+  }, [draftPayload, item, saveDraftLinks]);
 
   useEffect(() => {
-    if (item || baselineRef.current === null) return;
+    const isDraftEditor = !item || item.status === "draft";
+    if (!isDraftEditor || baselineRef.current === null) return;
     if (snapshot(editor) === baselineRef.current) return;
+
     setDraftStatus("saving");
     window.clearTimeout(saveTimerRef.current);
     saveTimerRef.current = window.setTimeout(() => { saveDraftNow(); }, 900);
@@ -112,11 +157,21 @@ export function usePostEditor(item = null, initialSpace = null, options = {}) {
 
   async function submit(onSuccess) {
     if (!editor.title.trim()) { toast.error("Enter a post title."); return; }
-    if (!editor.content.trim()) { toast.error("Enter content."); return; }
+
+    const data = editor.getEditorData();
+    const hasEditorBlocks =
+      data.content_format === "editorjs" &&
+      Array.isArray(data.content_json?.blocks) &&
+      data.content_json.blocks.length > 0;
+
+    if (!data.content.trim() && !hasEditorBlocks) {
+      toast.error("Enter content.");
+      return;
+    }
+
     const result = postSchema.safeParse({ start_at: editor.start_at, end_at: editor.end_at, address: editor.address, lat: editor.lat, lng: editor.lng });
     if (!result.success) { toast.error(result.error.issues[0]?.message || "Check the post details."); return; }
 
-    const data = editor.getEditorData();
     const payload = {
       author_id: data.author_id,
       spaces: data.spaces,

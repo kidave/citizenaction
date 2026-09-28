@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import { loadEditorTools } from "@/components/editor/editorTools";
 import { getInitialBlocks, editorBlocksToFeedText } from "@/components/editor/editorUtils";
-import { typography } from "@/components/editor/typography";
 
 function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -102,5 +101,11 @@ export default function RichTextEditor({ content, setContent, contentJson, setCo
     };
   }, [setContent, setContentFormat, setContentJson]);
 
-  return <div ref={holderRef} onFocus={onFocus} className="editorjs-container min-h-0 h-full flex-1 overflow-y-auto px-2 pb-8 sm:px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&_.codex-editor]:!min-h-full [&_.codex-editor__redactor]:!min-h-0 [&_.codex-editor__redactor]:!pb-8 [&_.ce-block__content]:!max-w-3xl [&_.ce-toolbar__content]:!max-w-3xl [&_.ce-paragraph]:font-serif [&_.ce-paragraph]:text-lg [&_.ce-paragraph]:leading-7 [&_.ce-header]:font-serif [&_.ce-header]:font-semibold [&_.ce-header]:tracking-tight [&_.ce-header]:leading-snug [&_.ce-header]:text-xl [&_.ce-block]:mb-4 [&_.image-tool__caption]:font-serif [&_.image-tool__caption]:text-xs [&_.image-tool__caption]:leading-relaxed [&_.cdx-list]:font-serif [&_.cdx-list]:text-lg [&_.cdx-list]:leading-7 [&_.cdx-list__item]:!min-h-0 [&_.cdx-list__item]:!py-0 [&_.cdx-list__item-content]:font-serif [&_.cdx-list__item-content]:text-lg [&_.cdx-list__item-content]:leading-7 [&_.tc-table]:font-serif [&_.tc-table]:text-lg [&_.tc-cell]:font-serif [&_.tc-cell]:text-lg [&_.tc-cell]:leading-7 [&_.cdx-warning]:font-serif [&_.cdx-warning]:text-lg [&_.cdx-warning]:leading-7" />;
+  return (
+    <div
+      ref={holderRef}
+      onFocus={onFocus}
+      className="editorjs-container min-h-0 h-full flex-1 overflow-y-auto px-2 pb-8 sm:px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&_.codex-editor]:!min-h-full [&_.codex-editor__redactor]:!min-h-0 [&_.codex-editor__redactor]:!pb-8 [&_.ce-block__content]:!max-w-3xl [&_.ce-toolbar__content]:!max-w-3xl [&_.ce-paragraph]:font-serif [&_.ce-paragraph]:text-lg [&_.ce-paragraph]:leading-7 [&_.ce-header]:font-serif [&_.ce-header]:font-semibold [&_.ce-header]:tracking-tight [&_.ce-header]:text-xl [&_.ce-header]:leading-snug [&_.ce-block]:mb-4 [&_.image-tool]:!h-auto [&_.image-tool__image]:!h-auto [&_.image-tool__caption]:!relative [&_.image-tool__caption]:!z-10 [&_.image-tool__caption]:!box-border [&_.image-tool__caption]:!h-auto [&_.image-tool__caption]:!min-h-10 [&_.image-tool__caption]:!w-full [&_.image-tool__caption]:!max-w-full [&_.image-tool__caption]:!whitespace-normal [&_.image-tool__caption]:!break-words [&_.image-tool__caption]:!overflow-visible [&_.image-tool__caption]:font-serif [&_.image-tool__caption]:text-xs [&_.image-tool__caption]:leading-relaxed [&_.cdx-list]:font-serif [&_.cdx-list]:text-lg [&_.cdx-list]:leading-7 [&_.cdx-list__item]:!min-h-0 [&_.cdx-list__item]:!py-0 [&_.cdx-list__item-content]:font-serif [&_.cdx-list__item-content]:text-lg [&_.cdx-list__item-content]:leading-7 [&_.tc-table]:font-serif [&_.tc-table]:text-lg [&_.tc-cell]:font-serif [&_.tc-cell]:text-lg [&_.tc-cell]:leading-7 [&_.cdx-warning]:font-serif [&_.cdx-warning]:text-lg [&_.cdx-warning]:leading-7"
+    />
+  );
 }
