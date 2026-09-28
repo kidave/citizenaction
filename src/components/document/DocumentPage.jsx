@@ -20,13 +20,8 @@ export default function DocumentPage({ postId, initialPost, context }) {
   const [editingPost, setEditingPost] = useState(null);
   const { data: post, isLoading, isError } = usePost(postId, initialPost);
 
-  if (isLoading || !post) {
-    return <div className="mx-auto w-full max-w-4xl px-4 py-8 text-sm text-muted-foreground">Loading document…</div>;
-  }
-
-  if (isError) {
-    return <div className="mx-auto w-full max-w-4xl px-4 py-16 text-center text-sm text-muted-foreground">Unable to load this document.</div>;
-  }
+  if (isLoading || !post) return <div className="mx-auto w-full max-w-4xl px-4 py-8 text-sm text-muted-foreground">Loading document…</div>;
+  if (isError) return <div className="mx-auto w-full max-w-4xl px-4 py-16 text-center text-sm text-muted-foreground">Unable to load this document.</div>;
 
   const blocks = post.content_json?.blocks || [];
   const canManage = Boolean(post.permissions?.can_manage || post.author_id === user?.id);
@@ -34,32 +29,13 @@ export default function DocumentPage({ postId, initialPost, context }) {
   return (
     <>
       <article className="mx-auto w-full max-w-4xl pb-12">
-        <DocumentHeader
-          post={post}
-          context={context}
-          canEdit={canManage}
-          onEdit={() => setEditingPost(post)}
-        />
-
-        <div className="px-4 pt-8 sm:px-0 sm:pt-10">
-          <EditorRenderer blocks={blocks} className="mx-auto w-full max-w-3xl space-y-4 text-lg" />
-        </div>
-
-        <div className="px-4 pt-10 sm:px-0">
-          <PostFooter post={post} forceExpanded queryKey={["posts", "detail", post.id]} />
-        </div>
-
+        <DocumentHeader post={post} context={context} canEdit={canManage} onEdit={() => setEditingPost(post)} />
+        <div className="px-4 pt-8 sm:px-0 sm:pt-10"><EditorRenderer blocks={blocks} className="mx-auto w-full max-w-3xl space-y-4 text-lg" /></div>
+        <div className="px-4 pt-10 sm:px-0"><PostFooter post={post} forceExpanded queryKey={["posts", "detail", post.id]} /></div>
         <PostContribution post={post} queryKey={["posts", "detail", post.id]} />
       </article>
 
-      {editingPost && (
-        <EditorModal
-          mode="post"
-          isOpen
-          onClose={() => setEditingPost(null)}
-          item={editingPost}
-        />
-      )}
+      {editingPost && <EditorModal mode="post" isOpen onClose={() => setEditingPost(null)} item={editingPost} />}
     </>
   );
 }
