@@ -57,7 +57,7 @@ export default function EditorModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="flex h-dvh max-h-dvh min-h-0 w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[80vh] sm:max-h-[80vh] sm:min-h-[320px] sm:max-w-2xl sm:rounded-xl">
+      <DialogContent className="flex h-dvh max-h-dvh min-h-0 w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[520px] sm:max-h-[80vh] sm:min-h-[320px] sm:max-w-2xl sm:rounded-xl">
         {mode === "post" ? (
           <PostEditor
             item={item}
