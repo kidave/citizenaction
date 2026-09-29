@@ -10,7 +10,7 @@ import {
   useMapEvents,
   useMap,
 } from "react-leaflet";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -37,30 +37,31 @@ function MapController({ lat, lng, onChange, boundary, boundaries }) {
       onChange?.(e.latlng.lat, e.latlng.lng);
     },
   });
+  const previousBoundaryKeyRef = useRef(null);
 
   useEffect(() => {
-    if (boundary) {
-      const bounds = L.geoJSON(boundary).getBounds();
-      if (bounds.isValid()) {
-        map.fitBounds(bounds, { padding: [28, 28], maxZoom: 13, animate: false });
-        return;
-      }
-    }
-
     const group = (boundaries || []).filter((item) => item?.geojson);
-    if (group.length) {
-      const primary = group.find((item) => item?.kind === "district") || group[0];
-      const bounds = L.geoJSON(primary.geojson).getBounds();
+    const primaryBoundary = boundary
+      ? { geojson: boundary, id: "single-boundary" }
+      : group.find((item) => item?.kind === "district") || group[0];
+    const boundaryKey = primaryBoundary
+      ? JSON.stringify(primaryBoundary.id ?? primaryBoundary.osm_id ?? primaryBoundary.geojson)
+      : null;
+
+    // Boundary selection is an explicit map-navigation event. Fit the map
+    // only when the selected boundary changes. Do not react to lat/lng edits:
+    // those are frequently produced by clicking the OSM map itself, and
+    // recentering here would make the map jump back to an old/default point.
+    if (primaryBoundary?.geojson && boundaryKey !== previousBoundaryKeyRef.current) {
+      const bounds = L.geoJSON(primaryBoundary.geojson).getBounds();
       if (bounds.isValid()) {
         map.fitBounds(bounds, { padding: [28, 28], maxZoom: 13, animate: false });
-        return;
       }
+      previousBoundaryKeyRef.current = boundaryKey;
+    } else if (!primaryBoundary?.geojson) {
+      previousBoundaryKeyRef.current = null;
     }
-
-    if (Number.isFinite(lat) && Number.isFinite(lng)) {
-      map.setView([lat, lng], map.getZoom(), { animate: false });
-    }
-  }, [boundary, boundaries, lat, lng, map]);
+  }, [boundary, boundaries, map]);
 
   return null;
 }
