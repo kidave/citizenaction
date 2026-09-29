@@ -104,8 +104,8 @@ function MarkerGroup({ markers = [] }) {
       return (
         <Marker key={`${item.kind || "marker"}-${item.id || index}`} position={[Number(item.lat), Number(item.lng)]} icon={icon}>
           {item.popupPost ? (
-            <Popup closeButton className="citizen-action-map-popup" maxWidth={320} minWidth={280}>
-              <ActivityPreviewCard post={item.popupPost} variant="map" className="border-0 shadow-none" />
+            <Popup closeButton className="citizen-action-map-popup" maxWidth={560} minWidth={300}>
+              <ActivityPreviewCard post={item.popupPost} className="border-0 shadow-none" />
             </Popup>
           ) : item.label ? (
             <Popup closeButton>{item.label}</Popup>
