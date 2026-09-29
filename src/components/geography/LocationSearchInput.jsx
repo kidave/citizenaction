@@ -31,9 +31,7 @@ export default function LocationSearchInput({
     const delay = setTimeout(async () => {
       try {
         setLoading(true);
-        const res = await fetch(
-          `/api/osm?q=${encodeURIComponent(query.trim())}`,
-        );
+        const res = await fetch(`/api/osm?q=${encodeURIComponent(query.trim())}`);
         if (!res.ok) throw new Error(`Location search failed (${res.status})`);
         const data = await res.json();
         setResults(Array.isArray(data) ? data : []);
@@ -59,15 +57,8 @@ export default function LocationSearchInput({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-background">
-      <div className="flex shrink-0 items-center gap-2 border-b px-3 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={onBack}
-          aria-label="Back to map"
-          className="shrink-0 rounded-full"
-        >
+      <div className="flex shrink-0 items-center gap-2 border-b bg-background px-3 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+        <Button type="button" variant="ghost" size="icon" onClick={onBack} aria-label="Back to map" className="shrink-0 rounded-full">
           <ArrowLeft className="h-5 w-5" />
         </Button>
 
@@ -77,74 +68,36 @@ export default function LocationSearchInput({
             placeholder="Search location"
             value={query}
             onChange={(e) => handleChange(e.target.value)}
-            className="h-11 rounded-full bg-muted/50 pr-10"
+            className="!h-11 rounded-full border-border bg-background text-foreground shadow-sm placeholder:text-muted-foreground focus-visible:bg-background focus-visible:ring-1"
           />
 
           {query && !loading && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={clearSearch}
-              aria-label="Clear search"
-              className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2 rounded-full"
-            >
+            <Button type="button" variant="ghost" size="icon" onClick={clearSearch} aria-label="Clear search" className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2 rounded-full bg-background hover:bg-muted">
               <X className="h-4 w-4" />
             </Button>
           )}
 
-          {loading && (
-            <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
-          )}
+          {loading && <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />}
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto bg-background">
         {results.map((place) => (
-          <button
-            key={`${place.lat}-${place.lon}-${place.osm_id ?? place.display_name}`}
-            type="button"
-            onClick={() =>
-              onSelect({
-                name: place.display_name,
-                lat: parseFloat(place.lat),
-                lng: parseFloat(place.lon),
-                address: place.display_name,
-              })
-            }
-            className="flex w-full items-start gap-4 border-b px-5 py-4 text-left transition-colors hover:bg-muted/60 active:bg-muted"
-          >
-            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted">
-              <MapPin className="h-4 w-4" />
-            </span>
+          <button key={`${place.lat}-${place.lon}-${place.osm_id ?? place.display_name}`} type="button" onClick={() => onSelect({ name: place.display_name, lat: parseFloat(place.lat), lng: parseFloat(place.lon), address: place.display_name })} className="flex w-full items-start gap-4 border-b px-5 py-4 text-left transition-colors hover:bg-muted/60 active:bg-muted">
+            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted"><MapPin className="h-4 w-4" /></span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium text-foreground">
-                {place.name || place.display_name?.split(",")[0]}
-              </span>
-              <span className="mt-0.5 line-clamp-2 block text-sm text-muted-foreground">
-                {place.display_name}
-              </span>
+              <span className="block truncate text-sm font-medium text-foreground">{place.name || place.display_name?.split(",")[0]}</span>
+              <span className="mt-0.5 line-clamp-2 block text-sm text-muted-foreground">{place.display_name}</span>
             </span>
           </button>
         ))}
 
-        {!loading && results.length === 0 && query.trim().length >= 3 && (
-          <div className="px-5 py-8 text-center text-sm text-muted-foreground">
-            No locations found
-          </div>
-        )}
+        {!loading && results.length === 0 && query.trim().length >= 3 && <div className="px-5 py-8 text-center text-sm text-muted-foreground">No locations found</div>}
 
         {query.trim().length < 3 && (
-          <div className="flex flex-col items-center gap-3 px-5 py-10 text-center text-sm text-muted-foreground">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onUseCurrentLocation}
-            >
-              {loadingGPS ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : null}
+          <div className="flex flex-col items-center gap-3 bg-background px-5 py-10 text-center text-sm text-muted-foreground">
+            <Button type="button" variant="outline" size="sm" onClick={onUseCurrentLocation}>
+              {loadingGPS ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Use my location
             </Button>
           </div>
