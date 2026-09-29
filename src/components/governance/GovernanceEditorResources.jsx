@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MapPin, PanelsTopLeft } from "lucide-react";
+import { toast } from "sonner";
 
 import ImagePicker from "@/components/attachment/ImagePicker";
 import DocumentPicker from "@/components/attachment/DocumentPicker";
@@ -38,10 +39,37 @@ export default function GovernanceEditorResources({
     lat,
     lng,
   });
+  const initialLocationRef = useRef(true);
+  const saveTimerRef = useRef(null);
 
   useEffect(() => {
     setLocation({ address: address || "", lat: lat ?? null, lng: lng ?? null });
+    initialLocationRef.current = true;
   }, [address, lat, lng]);
+
+  useEffect(() => {
+    if (!governanceId || initialLocationRef.current) {
+      initialLocationRef.current = false;
+      return undefined;
+    }
+
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(async () => {
+      const { error } = await import("@/lib/supabase/client").then(({ supabase }) =>
+        supabase.rpc("update_governance_location", {
+          p_governance_id: governanceId,
+          p_address: location.address || null,
+          p_lat: location.lat ?? null,
+          p_lng: location.lng ?? null,
+        })
+      );
+      if (error) toast.error(error.message || "Unable to save office location");
+    }, 350);
+
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [governanceId, location.address, location.lat, location.lng]);
 
   const editor = {
     address: location.address,
