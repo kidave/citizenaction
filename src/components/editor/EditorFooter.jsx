@@ -20,7 +20,7 @@ export default function EditorFooter({ editor, item = null, onClose, onCreated, 
       <div className={`mx-auto w-full ${maxWidthClass} shrink-0 bg-background/95 px-4 py-2.5 backdrop-blur sm:px-6`}>
         <div className="flex min-w-0 items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-0.5">
-            {showDocumentAction && onDocumentMode && <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={onDocumentMode} aria-label="Open document editor"><FileText className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent side="top">Document editor</TooltipContent></Tooltip>}
+            {showDocumentAction && onDocumentMode && <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0 hover:bg-muted/70 hover:text-foreground" onClick={onDocumentMode} aria-label="Open document editor"><FileText className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent side="top">Document editor</TooltipContent></Tooltip>}
             {showAttachments && <><ImagePicker onUpload={(files) => editor.setAttachments((prev) => [...prev, ...files])} /><DocumentPicker onUpload={(files) => editor.setAttachments((prev) => [...prev, ...files])} /></>}
             {showLinks && <LinkManager value={editor.links} onChange={editor.setLinks} />}
             {showDateTime && <EditorDateTime editor={editor} />}
