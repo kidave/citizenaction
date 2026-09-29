@@ -1,16 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 
 import {
   Activity,
-  CalendarDays,
   ExternalLink,
   Globe,
   Mail,
   Phone,
-  Presentation,
   Users,
 } from "lucide-react";
 
@@ -19,6 +16,7 @@ import { useSpaceMembers } from "@/hooks/space/useSpaceMembers";
 
 import ActivityPreviewCard from "@/components/activity/ActivityPreviewCard";
 import MetricCard from "@/components/ui/metric-card";
+import SpaceActionMap from "@/components/space/SpaceActionMap";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
@@ -30,10 +28,6 @@ export default function OverviewTab({ space }) {
   });
 
   const { data: spaceFeed = [] } = useSpaceFeed(space.id);
-
-  const meetings = spaceFeed.filter((f) => f.type === "meeting");
-
-  const events = spaceFeed.filter((f) => f.type === "event");
 
   const recentFeed = [...spaceFeed]
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
@@ -73,22 +67,19 @@ export default function OverviewTab({ space }) {
           METRICS
       ===================================================== */}
 
-      <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <section className="grid max-w-xl grid-cols-2 gap-4">
         <MetricCard icon={Users} label="Members" value={members.length} />
-
-        <MetricCard icon={Activity} label="Activity" value={spaceFeed.length} />
-
-        <MetricCard
-          icon={Presentation}
-          label="Meetings"
-          value={meetings.length}
-        />
-
-        <MetricCard icon={CalendarDays} label="Events" value={events.length} />
+        <MetricCard icon={Activity} label="Action" value={spaceFeed.length} />
       </section>
 
       {/* =====================================================
-          LATEST ACTIVITY
+          ACTION MAP
+      ===================================================== */}
+
+      <SpaceActionMap posts={spaceFeed} />
+
+      {/* =====================================================
+          LATEST ACTIONS
       ===================================================== */}
 
       <div className="space-y-4">
@@ -98,7 +89,7 @@ export default function OverviewTab({ space }) {
         >
           <div>
             <p className="text-sm font-semibold text-muted-foreground">
-              Latest updates from {space.name}
+              Latest actions from {space.name}
             </p>
           </div>
         </Link>
@@ -106,7 +97,7 @@ export default function OverviewTab({ space }) {
 
       {/* =====================================================
           OVERVIEW CARDS
-      ===================================================== */}
+      ===================================================== */
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {recentFeed.slice(0, 1).map((post) => (
@@ -115,7 +106,7 @@ export default function OverviewTab({ space }) {
 
         {!recentFeed.length && (
           <div className="text-sm text-muted-foreground">
-            No recent activity.
+            No recent actions.
           </div>
         )}
 
@@ -138,13 +129,11 @@ export default function OverviewTab({ space }) {
                   <div className="flex min-w-0 items-center gap-3">
                     <Avatar className="h-10 w-10">
                       <AvatarImage src={member.avatar_url} />
-
                       <AvatarFallback>{member.name?.[0] || "U"}</AvatarFallback>
                     </Avatar>
 
                     <div className="min-w-0">
                       <div className="truncate font-medium">{member.name}</div>
-
                       <div className="truncate text-xs text-muted-foreground">
                         @{member.username}
                       </div>
@@ -167,10 +156,8 @@ export default function OverviewTab({ space }) {
             {space.website && (
               <div className="flex items-start gap-3 p-2">
                 <Globe className="mt-0.5 h-4 w-4 text-muted-foreground" />
-
                 <div>
                   <div className="text-xs text-muted-foreground">Website</div>
-
                   <a
                     href={space.website}
                     target="_blank"
@@ -178,11 +165,8 @@ export default function OverviewTab({ space }) {
                     className="inline-flex items-center gap-1 transition hover:opacity-70"
                   >
                     <span className="max-w-[160px] truncate">
-                      {space.website
-                        .replace("https://", "")
-                        .replace("http://", "")}
+                      {space.website.replace("https://", "").replace("http://", "")}
                     </span>
-
                     <ExternalLink className="h-3 w-3" />
                   </a>
                 </div>
@@ -192,14 +176,9 @@ export default function OverviewTab({ space }) {
             {space.email && (
               <div className="flex items-start gap-3 p-2">
                 <Mail className="mt-0.5 h-4 w-4 text-muted-foreground" />
-
                 <div>
                   <div className="text-xs text-muted-foreground">Email</div>
-
-                  <a
-                    href={`mailto:${space.email}`}
-                    className="break-all hover:underline"
-                  >
+                  <a href={`mailto:${space.email}`} className="break-all hover:underline">
                     {space.email}
                   </a>
                 </div>
@@ -209,10 +188,8 @@ export default function OverviewTab({ space }) {
             {space.contact_number && (
               <div className="flex items-start gap-3 p-2">
                 <Phone className="mt-0.5 h-4 w-4 text-muted-foreground" />
-
                 <div>
                   <div className="text-xs text-muted-foreground">Phone</div>
-
                   <div>{space.contact_number}</div>
                 </div>
               </div>
