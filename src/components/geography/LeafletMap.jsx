@@ -56,13 +56,22 @@ function MapController({ lat, lng, onChange, boundary, boundaries }) {
 
     const group = (boundaries || []).filter((item) => item?.geojson);
     if (group.length) {
-      const bounds = L.featureGroup(
-        group.map((item) => L.geoJSON(item.geojson)),
-      ).getBounds();
+      // Prefer the district/address boundary as the map's framing boundary.
+      // Jurisdiction boundaries can still be rendered, but should not zoom
+      // the map out so far that the local district becomes invisible.
+      const primary =
+        group.find(
+          (item) =>
+            item?.relationship_type === "district" ||
+            item?.source_type === "address" ||
+            item?.geography_type === "district",
+        ) || group[0];
+
+      const bounds = L.geoJSON(primary.geojson).getBounds();
       if (bounds.isValid()) {
         map.fitBounds(bounds, {
           padding: [28, 28],
-          maxZoom: 9,
+          maxZoom: 13,
           animate: false,
         });
         return;
@@ -159,11 +168,11 @@ export default function LeafletMap({
   const safeLng = Number.isFinite(lng) ? lng : 72.8777;
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative z-0 isolate h-full w-full overflow-hidden">
       <MapContainer
         center={[safeLat, safeLng]}
         zoom={zoom}
-        className="h-full w-full"
+        className="relative z-0 h-full w-full"
       >
         <LayersControl position="topleft">
           <LayersControl.BaseLayer checked name="Map">
