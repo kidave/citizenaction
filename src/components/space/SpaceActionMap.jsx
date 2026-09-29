@@ -17,7 +17,8 @@ export default function SpaceActionMap({ posts = [] }) {
     lat: Number(post.lat),
     lng: Number(post.lng),
     image_url: post.author_avatar || null,
-    label: `${post.author_name || post.author_username || "Citizen"}${post.title ? ` — ${post.title}` : ""}${post.address ? ` — ${post.address}` : ""}`,
+    label: post.title || post.author_name || "Action",
+    popupPost: post,
   }));
 
   if (!locatedPosts.length) {
@@ -32,9 +33,7 @@ export default function SpaceActionMap({ posts = [] }) {
     <section className="overflow-hidden rounded-3xl border bg-muted/20">
       <div className="border-b bg-background px-4 py-3">
         <div className="text-sm font-semibold">Actions</div>
-        <div className="text-xs text-muted-foreground">
-          Where this Space has taken action
-        </div>
+        <div className="text-xs text-muted-foreground">Where this Space has taken action</div>
       </div>
       <div className="h-[360px] sm:h-[420px]">
         <LeafletMap markers={markers} fitMarkers zoom={11} />
