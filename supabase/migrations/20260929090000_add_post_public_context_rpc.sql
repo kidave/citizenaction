@@ -23,7 +23,10 @@ WITH categories AS (
     'geography_type', g.geography_type,
     'relationship_type', pg.relationship_type,
     'source_type', pg.source_type,
-    'confidence', pg.confidence
+    'confidence', pg.confidence,
+    'osm_type', g.osm_type,
+    'osm_id', g.osm_id,
+    'geojson', CASE WHEN g.geom IS NULL THEN NULL ELSE ST_AsGeoJSON(g.geom)::jsonb END
   ) ORDER BY CASE WHEN pg.relationship_type = 'district' OR pg.source_type = 'address' THEN 0 ELSE 1 END, g.name), '[]'::jsonb) AS value
   FROM public.post_geography pg
   JOIN public.geographies g ON g.id = pg.geography_id

@@ -48,7 +48,7 @@ export default function DocumentSlugPage({ postId, initialPost, initialContext }
     <Head><title>{title}</title><meta name="description" content={description} /><link rel="canonical" href={url} /><meta property="og:type" content="article" /><meta property="og:site_name" content="Citizen Action" /><meta property="og:title" content={title} /><meta property="og:description" content={description} /><meta property="og:url" content={url} /></Head>
     <div className="min-h-dvh w-full bg-background">
       <PageHeader items={[{ label: "Home", href: "/" }, { label: "Documents", href: "/" }]} title="Document" />
-      <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-8 sm:py-12">
+      <main className="mx-auto w-full max-w-4xl px-4 sm:px-8">
         <DocumentHeader post={post} publicContext={publicContext} canEdit={canEdit} onEdit={() => setEditingPost(post)} onDelete={async () => { await deletePost(post.id); router.push("/"); }} />
         <article className="mt-8 bg-transparent">
           <PostContent post={post} forceExpanded onNavigate={() => {}} />
