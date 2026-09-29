@@ -9,9 +9,82 @@ import { supabase } from "@/lib/supabase/client";
 
 const LeafletMap = dynamic(() => import("@/components/geography/LeafletMap"), { ssr: false });
 
-function firstValue(...values) { return values.find((value) => value != null && value !== "") ?? null; }
-function geometryOf(value) { return firstValue(value?.geojson, value?.geometry, value?.boundary, value?.geography?.geojson, value?.geography?.geometry); }
-function districtName(context, post) { return firstValue(context?.district?.name, context?.district?.district_name, post?.district_name, post?.district?.name); }
+function firstValue(...values) {
+  return values.find((value) => value != null && value !== "") ?? null;
+}
+
+function geometryOf(value) {
+  if (!value) return null;
+  if (value.geojson) return value.geojson;
+  if (value.geometry) return value.geometry;
+  if (value.boundary) return value.boundary;
+  if (value.geography?.geojson) return value.geography.geojson;
+  if (value.geography?.geometry) return value.geography.geometry;
+  if (value.geography?.boundary) return value.geography.boundary;
+  return null;
+}
+
+function asArray(value) {
+  if (!value) return [];
+  return Array.isArray(value) ? value : [value];
+}
+
+function districtName(context, post) {
+  const district = context?.district;
+  return firstValue(
+    Array.isArray(district) ? district[0]?.name : district?.name,
+    Array.isArray(district) ? district[0]?.district_name : district?.district_name,
+    post?.district_name,
+    post?.district?.name,
+  );
+}
+
+function boundaryId(value, fallback) {
+  return firstValue(value?.geography_id, value?.id, value?.osm_id, fallback);
+}
+
+function collectJurisdictionBoundaries(context) {
+  const candidates = [
+    ...asArray(context?.jurisdiction),
+    ...asArray(context?.jurisdictions),
+    ...asArray(context?.governance_jurisdiction),
+    ...asArray(context?.governance_jurisdictions),
+  ];
+
+  for (const governance of asArray(context?.governance)) {
+    candidates.push(...asArray(governance?.jurisdiction));
+    candidates.push(...asArray(governance?.jurisdictions));
+    candidates.push(...asArray(governance?.geography));
+    candidates.push(...asArray(governance?.geographies));
+  }
+
+  const seen = new Set();
+  return candidates.flatMap((row, index) => {
+    const geo = geometryOf(row);
+    if (!geo) return [];
+    const id = boundaryId(row, `jurisdiction-${index}`);
+    const key = `${id}-${JSON.stringify(geo).slice(0, 120)}`;
+    if (seen.has(key)) return [];
+    seen.add(key);
+    return [{ id, kind: "jurisdiction", geojson: geo, name: firstValue(row?.name, row?.geography?.name) }];
+  });
+}
+
+function collectDistrictBoundary(context, post) {
+  const candidates = [
+    ...asArray(context?.district),
+    ...asArray(context?.district_boundary),
+    ...asArray(context?.districtBoundary),
+    ...asArray(post?.district),
+    ...asArray(post?.district_boundary),
+  ];
+
+  for (const row of candidates) {
+    const geo = geometryOf(row);
+    if (geo) return [{ id: boundaryId(row, "district"), kind: "district", geojson: geo, name: firstValue(row?.name, row?.district_name) }];
+  }
+  return [];
+}
 
 export default function PostMapDialog({ post }) {
   const [open, setOpen] = useState(false);
@@ -36,24 +109,31 @@ export default function PostMapDialog({ post }) {
   }, [open, post?.id]);
 
   const mapData = useMemo(() => {
-    const district = context?.district;
-    const jurisdictionRows = Array.isArray(context?.jurisdiction) ? context.jurisdiction : [];
-    const governanceRows = Array.isArray(context?.governance) ? context.governance : Array.isArray(post?.governance) ? post.governance : [];
-    const boundaries = [];
-    const districtGeo = geometryOf(district);
-    if (districtGeo) boundaries.push({ id: district?.id || "district", kind: "district", geojson: districtGeo });
-    jurisdictionRows.forEach((row, index) => {
-      const geo = geometryOf(row);
-      if (geo) boundaries.push({ id: row.geography_id || row.id || `jurisdiction-${index}`, kind: "jurisdiction", geojson: geo });
+    const boundaries = [
+      ...collectDistrictBoundary(context, post),
+      ...collectJurisdictionBoundaries(context),
+    ];
+
+    const governanceRows = [
+      ...asArray(context?.governance),
+      ...asArray(post?.governance),
+    ];
+    const seenGovernance = new Set();
+    const markers = governanceRows.flatMap((org, index) => {
+      const id = firstValue(org?.id, org?.governance_id, `governance-${index}`);
+      if (seenGovernance.has(String(id))) return [];
+      seenGovernance.add(String(id));
+      const marker = {
+        id,
+        kind: "governance",
+        lat: Number(firstValue(org?.office_lat, org?.lat, org?.latitude, org?.office?.lat, org?.address_lat)),
+        lng: Number(firstValue(org?.office_lng, org?.lng, org?.longitude, org?.office?.lng, org?.address_lng)),
+        image_url: firstValue(org?.image_url, org?.logo_url, org?.avatar_url),
+        label: firstValue(org?.name, org?.short_name),
+      };
+      return Number.isFinite(marker.lat) && Number.isFinite(marker.lng) ? [marker] : [];
     });
-    const markers = governanceRows.map((org) => ({
-      id: org.id,
-      kind: "governance",
-      lat: Number(firstValue(org.office_lat, org.lat, org.latitude)),
-      lng: Number(firstValue(org.office_lng, org.lng, org.longitude)),
-      image_url: firstValue(org.image_url, org.logo_url),
-      label: firstValue(org.name, org.short_name),
-    })).filter((marker) => Number.isFinite(marker.lat) && Number.isFinite(marker.lng));
+
     return { boundaries, markers };
   }, [context, post]);
 
