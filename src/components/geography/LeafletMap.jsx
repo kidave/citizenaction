@@ -31,13 +31,13 @@ function imageIcon(url, size = 32) {
   });
 }
 
-function MapController({ onChange, boundary, boundaries }) {
+function MapController({ onChange, boundary, boundaries, markers = [], fitMarkers = false }) {
   const map = useMapEvents({
     click(e) {
       onChange?.(e.latlng.lat, e.latlng.lng);
     },
   });
-  const previousBoundaryKeyRef = useRef(null);
+  const previousViewKeyRef = useRef(null);
 
   useEffect(() => {
     const group = (boundaries || []).filter((item) => item?.geojson);
@@ -48,14 +48,34 @@ function MapController({ onChange, boundary, boundaries }) {
       ? JSON.stringify(primaryBoundary.id ?? primaryBoundary.osm_id ?? primaryBoundary.geojson)
       : null;
 
-    if (primaryBoundary?.geojson && boundaryKey !== previousBoundaryKeyRef.current) {
+    if (primaryBoundary?.geojson && boundaryKey !== previousViewKeyRef.current) {
       const bounds = L.geoJSON(primaryBoundary.geojson).getBounds();
       if (bounds.isValid()) map.fitBounds(bounds, { padding: [28, 28], maxZoom: 13, animate: false });
-      previousBoundaryKeyRef.current = boundaryKey;
-    } else if (!primaryBoundary?.geojson) {
-      previousBoundaryKeyRef.current = null;
+      previousViewKeyRef.current = boundaryKey;
+      return;
     }
-  }, [boundary, boundaries, map]);
+
+    if (!primaryBoundary?.geojson && fitMarkers && markers.length) {
+      const points = markers
+        .filter((item) => Number.isFinite(Number(item?.lat)) && Number.isFinite(Number(item?.lng)))
+        .map((item) => [Number(item.lat), Number(item.lng)]);
+      if (points.length) {
+        const bounds = L.latLngBounds(points);
+        if (bounds.isValid()) {
+          map.fitBounds(bounds, {
+            padding: [40, 40],
+            maxZoom: points.length === 1 ? 14 : 12,
+            animate: false,
+          });
+          previousViewKeyRef.current = `markers:${points.map((point) => point.join(",")).join("|")}`;
+        }
+      }
+    }
+
+    if (!primaryBoundary?.geojson && !fitMarkers) {
+      previousViewKeyRef.current = null;
+    }
+  }, [boundary, boundaries, fitMarkers, map, markers]);
 
   return null;
 }
@@ -117,6 +137,7 @@ export default function LeafletMap({
   selectedBoundaryId = null,
   onBoundaryClick,
   showMarker = true,
+  fitMarkers = false,
   zoom = 15,
 }) {
   const safeLat = Number.isFinite(lat) ? lat : 19.076;
@@ -147,7 +168,13 @@ export default function LeafletMap({
           </LayersControl.BaseLayer>
         </LayersControl>
 
-        <MapController onChange={onChange} boundary={boundary} boundaries={boundaries} />
+        <MapController
+          onChange={onChange}
+          boundary={boundary}
+          boundaries={boundaries}
+          markers={allMarkers}
+          fitMarkers={fitMarkers}
+        />
         {boundary && <GeoJSON data={boundary} style={{ color: "#2563eb", weight: 2.5, opacity: 0.9, fillColor: "#3b82f6", fillOpacity: 0.1 }} />}
         <BoundaryGroup boundaries={boundaries} selectedId={selectedBoundaryId} onBoundaryClick={onBoundaryClick} />
         <MarkerGroup markers={allMarkers} />
