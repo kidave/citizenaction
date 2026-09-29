@@ -7,7 +7,9 @@ const LeafletMap = dynamic(() => import("@/components/geography/LeafletMap"), {
 });
 
 export default function SpaceActionMap({ posts = [] }) {
-  const locatedPosts = posts.filter(
+  const safePosts = Array.isArray(posts) ? posts : [];
+
+  const locatedPosts = safePosts.filter(
     (post) => Number.isFinite(Number(post?.lat)) && Number.isFinite(Number(post?.lng)),
   );
 
@@ -36,7 +38,7 @@ export default function SpaceActionMap({ posts = [] }) {
         <div className="text-xs text-muted-foreground">Where this Space has taken action</div>
       </div>
       <div className="h-[360px] sm:h-[420px]">
-        <LeafletMap markers={markers} fitMarkers zoom={11} />
+        <LeafletMap markers={markers} fitMarkers={markers} zoom={11} />
       </div>
     </section>
   );
