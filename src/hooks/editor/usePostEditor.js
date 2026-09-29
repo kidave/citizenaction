@@ -54,8 +54,6 @@ export function usePostEditor(item = null, initialSpace = null, options = {}) {
     const expectedSpaces = item?.spaces ?? (initialSpace ? [initialSpace] : []);
     const expectedFormat = item?.content_format === "editorjs" ? "editorjs" : "text";
 
-    // For an existing draft, wait until useEditor has hydrated its state before
-    // establishing the baseline. Otherwise the first render looks like a user edit.
     if (item?.status === "draft") {
       const hydrated =
         editor.title === (item.title ?? "") &&
@@ -105,6 +103,16 @@ export function usePostEditor(item = null, initialSpace = null, options = {}) {
 
     if (error) throw error;
   }, [editor.links]);
+
+  const resolvePostContext = useCallback(async (postId) => {
+    if (!postId) return null;
+    const { data, error } = await supabase.rpc("resolve_post_context", { p_post_id: postId });
+    if (error) {
+      if (process.env.NODE_ENV !== "production") console.error("Post context resolution failed:", error);
+      return null;
+    }
+    return data;
+  }, []);
 
   const saveDraftNow = useCallback(async () => {
     if ((item && item.status !== "draft") || saveInFlightRef.current) {
@@ -196,13 +204,16 @@ export function usePostEditor(item = null, initialSpace = null, options = {}) {
       let savedPost;
       if (item) {
         savedPost = await updatePost({ postId: item.id, postData: payload });
+        await resolvePostContext(item.id);
       } else if (draftIdRef.current) {
         savedPost = await updatePost({ postId: draftIdRef.current, postData: payload });
         const { data: published, error } = await supabase.rpc("publish_post", { p_post_id: draftIdRef.current });
         if (error) throw error;
         savedPost = published || savedPost;
+        await resolvePostContext(draftIdRef.current);
       } else {
         savedPost = await createPost(payload);
+        await resolvePostContext(savedPost?.id ?? savedPost?.post?.id);
       }
       setDraftStatus("idle");
       setDraftId(null);
