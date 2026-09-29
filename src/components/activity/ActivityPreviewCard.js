@@ -61,51 +61,50 @@ export default function ActivityPreviewCard({
         <Card
           onClick={handleClick}
           className={[
-            "w-[280px] max-w-[calc(100vw-48px)] cursor-pointer overflow-hidden rounded-2xl bg-background shadow-lg",
+            "w-[170px] max-w-[calc(100vw-64px)] cursor-pointer overflow-hidden rounded-xl bg-background shadow-md",
             className,
           ].join(" ")}
         >
           {attachments.length > 0 ? (
-            <div className="relative h-24 overflow-hidden bg-muted">
+            <div className="relative h-14 overflow-hidden bg-muted">
               <AutoImageCarousel attachments={attachments} />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-              <div className="pointer-events-none absolute inset-x-3 bottom-2 line-clamp-2 text-sm font-semibold leading-tight text-white">
+              <div className="pointer-events-none absolute inset-x-2 bottom-1 line-clamp-2 text-[9px] font-semibold leading-tight text-white">
                 {post.title || "Untitled"}
               </div>
             </div>
           ) : (
-            <div className="border-b px-3 pt-3">
-              <div className="line-clamp-2 text-sm font-semibold leading-tight">
+            <div className="border-b px-2 pt-2">
+              <div className="line-clamp-2 text-[10px] font-semibold leading-tight">
                 {post.title || "Untitled"}
               </div>
             </div>
           )}
 
-          <CardContent className="space-y-2 p-3">
+          <CardContent className="space-y-1.5 p-2">
             {post.content ? (
-              <div className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+              <div className="line-clamp-2 text-[9px] leading-snug text-muted-foreground">
                 {post.content}
               </div>
             ) : null}
 
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex min-w-0 items-center gap-2">
-                <Avatar className="h-7 w-7 shrink-0">
+            <div className="flex items-center justify-between gap-1">
+              <div className="flex min-w-0 items-center gap-1">
+                <Avatar className="h-4 w-4 shrink-0">
                   <AvatarImage src={post.author_avatar} alt={post.author_name || ""} />
-                  <AvatarFallback>{authorInitial}</AvatarFallback>
+                  <AvatarFallback className="text-[7px]">{authorInitial}</AvatarFallback>
                 </Avatar>
-                <span className="truncate text-xs font-medium">
+                <span className="truncate text-[8px] font-medium">
                   {post.author_name || "Citizen"}
                 </span>
               </div>
               {governance.length > 0 ? <GovernanceAvatarGroup authorities={governance} /> : null}
             </div>
 
-            {parsedDate || post.address ? (
-              <div className="flex items-center gap-2 border-t pt-2 text-[11px] text-muted-foreground">
-                {parsedDate ? <span>{format(parsedDate, "d MMM yyyy")}</span> : null}
-                {parsedDate && post.address ? <span>·</span> : null}
-                {post.address ? <span className="truncate">{post.address}</span> : null}
+            {parsedDate ? (
+              <div className="flex items-center gap-1 border-t pt-1 text-[8px] text-muted-foreground">
+                <CalendarDays className="h-2.5 w-2.5 shrink-0" />
+                <span>{format(parsedDate, "d MMM yyyy")}</span>
               </div>
             ) : null}
           </CardContent>
