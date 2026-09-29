@@ -21,7 +21,12 @@ export default function EditorContextSuggestions({ editor, resolvedContext = nul
   const [locationResult, setLocationResult] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
 
-  useEffect(() => { setDismissed({ date: false, location: false, contexts: new Set() }); setLocationEditorQuery(locationCandidate?.query || ""); }, [dateCandidate?.value, locationCandidate?.query]);
+  // Do not reset context dismissals when the text changes. An X only dismisses
+  // that individual suggestion for the current editor session.
+  useEffect(() => {
+    setDismissed((prev) => ({ ...prev, date: false, location: false }));
+    setLocationEditorQuery(locationCandidate?.query || "");
+  }, [dateCandidate?.value, locationCandidate?.query]);
 
   useEffect(() => {
     const query = locationCandidate?.query?.trim();
