@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { usePost } from "@/hooks/feed/usePost";
+import { usePostPublicContext } from "@/hooks/feed/usePostPublicContext";
 import { useDeletePost } from "@/hooks/post/useDeletePost";
 import { useAuth } from "@/context/AuthContext";
 import DocumentHeader from "@/components/document/DocumentHeader";
@@ -21,18 +22,20 @@ export async function getServerSideProps({ params }) {
   if (error) return { notFound: true };
   const post = Array.isArray(data) ? data[0] : data;
   if (!post || post.content_format !== "editorjs") return { notFound: true };
-  return { props: { initialPost: post, postId: post.id } };
+  const { data: publicContext } = await supabase.rpc("get_post_public_context", { p_post_id: post.id });
+  return { props: { initialPost: post, postId: post.id, initialContext: publicContext || { categories: [], geography: [] } } };
 }
 
 function cleanText(text) { return String(text || "").replace(/https?:\/\/\S+/g, "").replace(/\s+/g, " ").trim(); }
 function getDescription(post) { const text = cleanText(post.content); return text ? (text.length > 160 ? `${text.slice(0, 160)}...` : text) : "Citizen Action document"; }
 
-export default function DocumentSlugPage({ postId, initialPost }) {
+export default function DocumentSlugPage({ postId, initialPost, initialContext }) {
   const router = useRouter();
   const { user } = useAuth();
   const { deletePost } = useDeletePost();
   const [editingPost, setEditingPost] = useState(null);
   const { data: post, isLoading, isError } = usePost(postId, initialPost);
+  const { data: publicContext } = usePostPublicContext(postId, initialContext);
   if (isLoading || !post) return <div className="min-h-dvh bg-background" />;
   if (isError) return <div className="mx-auto max-w-3xl px-4 py-16 text-center text-sm text-muted-foreground">Unable to load this document.</div>;
 
@@ -44,9 +47,9 @@ export default function DocumentSlugPage({ postId, initialPost }) {
   return <>
     <Head><title>{title}</title><meta name="description" content={description} /><link rel="canonical" href={url} /><meta property="og:type" content="article" /><meta property="og:site_name" content="Citizen Action" /><meta property="og:title" content={title} /><meta property="og:description" content={description} /><meta property="og:url" content={url} /></Head>
     <div className="min-h-dvh w-full bg-background">
-      <PageHeader items={[{ label: "Home", href: "/" }, { label: "Documents", href: "/" }, { label: title }]} title="Document" />
+      <PageHeader items={[{ label: "Home", href: "/" }, { label: "Documents", href: "/" }]} title="Document" />
       <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-8 sm:py-12">
-        <DocumentHeader post={post} canEdit={canEdit} onEdit={() => setEditingPost(post)} onDelete={async () => { await deletePost(post.id); router.push("/"); }} />
+        <DocumentHeader post={post} publicContext={publicContext} canEdit={canEdit} onEdit={() => setEditingPost(post)} onDelete={async () => { await deletePost(post.id); router.push("/"); }} />
         <article className="mt-8 bg-transparent">
           <PostContent post={post} forceExpanded onNavigate={() => {}} />
           <PostMetadata post={post} forceExpanded />
