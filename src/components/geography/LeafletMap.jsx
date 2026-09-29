@@ -6,7 +6,7 @@ import {
   Marker,
   GeoJSON,
   LayersControl,
-  Tooltip,
+  Popup,
   useMapEvents,
   useMap,
 } from "react-leaflet";
@@ -50,9 +50,7 @@ function MapController({ onChange, boundary, boundaries }) {
 
     if (primaryBoundary?.geojson && boundaryKey !== previousBoundaryKeyRef.current) {
       const bounds = L.geoJSON(primaryBoundary.geojson).getBounds();
-      if (bounds.isValid()) {
-        map.fitBounds(bounds, { padding: [28, 28], maxZoom: 13, animate: false });
-      }
+      if (bounds.isValid()) map.fitBounds(bounds, { padding: [28, 28], maxZoom: 13, animate: false });
       previousBoundaryKeyRef.current = boundaryKey;
     } else if (!primaryBoundary?.geojson) {
       previousBoundaryKeyRef.current = null;
@@ -63,10 +61,7 @@ function MapController({ onChange, boundary, boundaries }) {
 }
 
 function BoundaryGroup({ boundaries = [], selectedId, onBoundaryClick }) {
-  const normalized = useMemo(
-    () => boundaries.filter((item) => item?.geojson),
-    [boundaries],
-  );
+  const normalized = useMemo(() => boundaries.filter((item) => item?.geojson), [boundaries]);
 
   return normalized.map((item, index) => {
     const selected = selectedId != null && String(item.id ?? item.osm_id) === String(selectedId);
@@ -102,10 +97,10 @@ function MarkerGroup({ markers = [] }) {
     .map((item, index) => {
       const icon = item.kind === "governance" || item.kind === "person"
         ? imageIcon(item.image_url, item.kind === "person" ? 34 : 36)
-        : citizenIcon;
+        : imageIcon(item.image_url, 34);
       return (
         <Marker key={`${item.kind || "marker"}-${item.id || index}`} position={[Number(item.lat), Number(item.lng)]} icon={icon}>
-          {item.label && <Tooltip direction="top" offset={[0, -8]} opacity={0.95}>{item.label}</Tooltip>}
+          {item.label && <Popup closeButton>{item.label}</Popup>}
         </Marker>
       );
     });
@@ -118,6 +113,7 @@ export default function LeafletMap({
   boundary = null,
   boundaries = [],
   markers = [],
+  citizenMarker = null,
   selectedBoundaryId = null,
   onBoundaryClick,
   showMarker = true,
@@ -126,7 +122,17 @@ export default function LeafletMap({
   const safeLat = Number.isFinite(lat) ? lat : 19.076;
   const safeLng = Number.isFinite(lng) ? lng : 72.8777;
   const allMarkers = showMarker
-    ? [{ id: "post-location", kind: "citizen", lat: safeLat, lng: safeLng, label: "Citizen Action location" }, ...markers]
+    ? [
+        {
+          id: "post-location",
+          kind: "citizen",
+          lat: safeLat,
+          lng: safeLng,
+          image_url: citizenMarker?.image_url || null,
+          label: citizenMarker?.label || "Post location",
+        },
+        ...markers,
+      ]
     : markers;
 
   return (
