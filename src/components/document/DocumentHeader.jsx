@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { UserIdentity } from "@/components/user/UserIdentity";
 import GovernanceAvatarGroup from "@/components/governance/GovernanceAvatarGroup";
@@ -11,20 +11,123 @@ import formatDate from "@/utils/date/formatDate";
 
 const LeafletMap = dynamic(() => import("@/components/geography/LeafletMap"), { ssr: false });
 
+function asNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
 export default function DocumentHeader({ post, publicContext, canEdit, onEdit, onDelete }) {
   const [mapOpen, setMapOpen] = useState(false);
-  const governance = post?.governance ?? [];
+  const governance = Array.isArray(post?.governance) ? post.governance : [];
   const spaces = Array.isArray(post?.spaces) ? post.spaces : [];
   const categories = Array.isArray(publicContext?.categories) ? publicContext.categories : [];
   const geography = Array.isArray(publicContext?.geography) ? publicContext.geography : [];
-  const district = geography.find((item) => item?.relationship_type === "district" || item?.source_type === "address" || item?.geography_type === "district")?.name || null;
-  const boundaries = geography
-    .filter((item) => item?.geojson)
-    .map((item) => ({
-      ...item,
-      osm_id: item.osm_id || item.id,
-      osm_type: item.osm_type || "relation",
-    }));
+  const governanceContext = Array.isArray(publicContext?.governance) ? publicContext.governance : [];
+  const peopleContext = Array.isArray(publicContext?.people) ? publicContext.people : [];
+
+  const district = geography.find(
+    (item) => item?.relationship_type === "district" || item?.source_type === "address" || item?.geography_type === "district",
+  );
+
+  const boundaries = useMemo(() => {
+    const result = [];
+    const seen = new Set();
+
+    for (const item of geography) {
+      if (!item?.geojson) continue;
+      const id = `district-${item.id}`;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      result.push({
+        id,
+        kind: "district",
+        name: item.name,
+        label: item.name,
+        geojson: item.geojson,
+        osm_id: item.osm_id,
+        osm_type: item.osm_type,
+      });
+    }
+
+    for (const org of governanceContext) {
+      const jurisdiction = org?.jurisdiction;
+      if (!jurisdiction?.geojson) continue;
+      const id = `jurisdiction-${jurisdiction.id}`;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      result.push({
+        id,
+        kind: "jurisdiction",
+        name: jurisdiction.name || org.name,
+        label: jurisdiction.name || org.name,
+        geojson: jurisdiction.geojson,
+        osm_id: jurisdiction.osm_id,
+        osm_type: jurisdiction.osm_type,
+      });
+    }
+
+    for (const person of peopleContext) {
+      const jurisdiction = person?.organization?.jurisdiction;
+      if (!jurisdiction?.geojson) continue;
+      const id = `jurisdiction-${jurisdiction.id}`;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      result.push({
+        id,
+        kind: "jurisdiction",
+        name: jurisdiction.name || person.organization.name,
+        label: jurisdiction.name || person.organization.name,
+        geojson: jurisdiction.geojson,
+        osm_id: jurisdiction.osm_id,
+        osm_type: jurisdiction.osm_type,
+      });
+    }
+
+    return result;
+  }, [geography, governanceContext, peopleContext]);
+
+  const markers = useMemo(() => {
+    const result = [];
+    const seen = new Set();
+
+    for (const org of governanceContext) {
+      const lat = asNumber(org?.office_lat);
+      const lng = asNumber(org?.office_lng);
+      if (lat == null || lng == null) continue;
+      const id = `governance-${org.id}`;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      result.push({
+        id,
+        kind: "governance",
+        lat,
+        lng,
+        image_url: org.image_url,
+        label: org.short_name || org.name,
+      });
+    }
+
+    for (const person of peopleContext) {
+      const org = person?.organization;
+      const lat = asNumber(org?.office_lat);
+      const lng = asNumber(org?.office_lng);
+      if (lat == null || lng == null) continue;
+      const id = `person-${person.id}`;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      result.push({
+        id,
+        kind: "person",
+        lat,
+        lng,
+        image_url: person.image_url || org.image_url,
+        label: person.position_name ? `${person.name} · ${person.position_name}` : person.name,
+      });
+    }
+
+    return result;
+  }, [governanceContext, peopleContext]);
+
   const hasMap = Number.isFinite(Number(post?.lat)) && Number.isFinite(Number(post?.lng));
 
   const openMap = () => setMapOpen(true);
@@ -80,12 +183,13 @@ export default function DocumentHeader({ post, publicContext, canEdit, onEdit, o
                   lat={Number(post.lat)}
                   lng={Number(post.lng)}
                   boundaries={boundaries}
+                  markers={markers}
                   showMarker
                   zoom={11}
                 />
                 <div className="absolute inset-0 z-20" aria-hidden="true" />
                 <div className="absolute inset-x-0 bottom-0 z-30 bg-background/85 px-3 py-2 text-xs text-muted-foreground backdrop-blur-sm">
-                  {district || post.address || "View location"}
+                  {district?.name || post.address || "View location"}
                 </div>
               </div>
             )}
@@ -96,13 +200,14 @@ export default function DocumentHeader({ post, publicContext, canEdit, onEdit, o
       <Dialog open={mapOpen} onOpenChange={setMapOpen}>
         <DialogContent className="flex h-[85dvh] max-h-[85dvh] w-[calc(100%-1rem)] max-w-5xl flex-col gap-0 overflow-hidden p-0 sm:w-[calc(100%-2rem)]">
           <DialogHeader className="shrink-0 border-b px-5 py-4">
-            <DialogTitle>{post.address || district || "Location"}</DialogTitle>
+            <DialogTitle>{post.address || district?.name || "Location"}</DialogTitle>
           </DialogHeader>
           <div className="min-h-0 flex-1">
             <LeafletMap
               lat={Number(post.lat)}
               lng={Number(post.lng)}
               boundaries={boundaries}
+              markers={markers}
               showMarker
               zoom={11}
             />
