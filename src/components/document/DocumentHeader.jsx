@@ -147,39 +147,36 @@ export default function DocumentHeader({ post, publicContext, canEdit, onEdit, o
   return (
     <>
       <header className="border-b pb-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-          <div className="min-w-0 flex-1 space-y-3">
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_15rem] sm:gap-x-6 sm:gap-y-4">
+          <div className="flex min-w-0 items-start justify-between gap-3 sm:col-start-1 sm:row-start-1">
             <div className="min-w-0">
               <UserIdentity username={post.author_username} name={post.author_name} avatar={post.author_avatar} createdAt={formatDate(post.created_at)} />
             </div>
-
-            {(spaces.length > 0 || governance.length > 0 || district?.name) && (
-              <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
-                {spaces.length > 0 && <SpaceAvatarGroup spaces={spaces} />}
-                {governance.length > 0 && <GovernanceAvatarGroup authorities={governance} />}
-                {district?.name && <span className="truncate">{district.name}</span>}
-              </div>
-            )}
-
-            {categories.length > 0 && (
-              <div className="flex min-w-0 flex-wrap gap-2">
-                {categories.map((category) => <span key={category.id || category.name} className="rounded-md bg-muted px-2.5 py-1 text-sm text-muted-foreground">{category.name}</span>)}
-              </div>
-            )}
+            {canEdit && <div className="shrink-0 pt-1"><MenuButton onEdit={onEdit} onDelete={onDelete} /></div>}
           </div>
 
-          <div className="flex w-full shrink-0 flex-col items-stretch gap-2 sm:w-auto sm:items-end">
-            <div className="flex justify-end">
-              {canEdit && <MenuButton onEdit={onEdit} onDelete={onDelete} />}
+          {(spaces.length > 0 || governance.length > 0) && (
+            <div className="min-w-0 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground sm:col-start-1 sm:row-start-2">
+              {spaces.length > 0 && <SpaceAvatarGroup spaces={spaces} />}
+              {governance.length > 0 && <GovernanceAvatarGroup authorities={governance} />}
             </div>
-            {hasMap && (
-              <div role="button" tabIndex={0} onClick={openMap} onKeyDown={handleMapKeyDown} className="group relative h-36 w-full cursor-pointer overflow-hidden rounded-xl border bg-muted text-left outline-none transition hover:ring-2 hover:ring-ring/40 focus-visible:ring-2 focus-visible:ring-ring sm:h-36 sm:w-60" aria-label="Open location map">
+          )}
+
+          {hasMap && (
+            <div className="order-3 min-w-0 sm:order-none sm:col-start-2 sm:row-span-3 sm:row-start-1">
+              <div role="button" tabIndex={0} onClick={openMap} onKeyDown={handleMapKeyDown} className="group relative h-36 w-full cursor-pointer overflow-hidden rounded-xl border bg-muted text-left outline-none transition hover:ring-2 hover:ring-ring/40 focus-visible:ring-2 focus-visible:ring-ring" aria-label="Open location map">
                 <LeafletMap lat={Number(post.lat)} lng={Number(post.lng)} boundaries={boundaries} markers={markers} citizenMarker={citizenMarker} showMarker zoom={11} />
                 <div className="absolute inset-0 z-20" aria-hidden="true" />
                 <div className="absolute inset-x-0 bottom-0 z-30 bg-background/85 px-3 py-2 text-xs text-muted-foreground backdrop-blur-sm">{district?.name || post.address || "View location"}</div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
+
+          {categories.length > 0 && (
+            <div className="order-4 min-w-0 flex flex-wrap gap-2 sm:order-none sm:col-start-1 sm:row-start-3 sm:pt-1">
+              {categories.map((category) => <span key={category.id || category.name} className="rounded-md bg-muted px-2.5 py-1 text-sm text-muted-foreground">{category.name}</span>)}
+            </div>
+          )}
         </div>
       </header>
 
