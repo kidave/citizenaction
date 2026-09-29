@@ -126,8 +126,11 @@ export function extractDateCandidate(text) {
 }
 
 function cleanLocation(value) {
-  return value
+  return String(value || "")
     .replace(/\b(?:on|at|near|in)\s+$/i, "")
+    // A place mention often ends at a comma or a discourse connector.
+    // Do not send the rest of the sentence to the geocoder.
+    .split(/[,;]|\s+(?:where|we|i|he|she|they|that|which|who|for|with)\b/i)[0]
     .replace(/[,:;]+$/, "")
     .trim();
 }
@@ -136,9 +139,9 @@ export function extractLocationCandidates(text = "") {
   if (!text) return [];
 
   const patterns = [
-    /\b(?:at|near|in)\s+([A-Za-z][^.!?\n]{2,80})/gi,
-    /\b(?:venue|location|place)\s*[:\-]\s*([^.!?\n]{3,80})/gi,
-    /\b((?:[^.!?\n]+\s+)?(?:Road|Rd|Street|St|Circle|Junction|Gymkhana|Ground|Garden|Park|School|College|Station|Hospital|Market|Office)\b(?:\s+[^.!?\n]{0,50})?)/gi,
+    /\b(?:at|near|in)\s+([A-Za-z0-9][^.!?\n,;]{2,80})/gi,
+    /\b(?:venue|location|place)\s*[:\-]\s*([^.!?\n,;]{3,80})/gi,
+    /\b((?:[^.!?\n,;]+\s+)?(?:Road|Rd|Street|St|Circle|Junction|Gymkhana|Ground|Garden|Park|School|College|Station|Hospital|Market|Office)\b(?:\s+[^.!?\n,;]{0,50})?)/gi,
   ];
 
   const candidates = [];

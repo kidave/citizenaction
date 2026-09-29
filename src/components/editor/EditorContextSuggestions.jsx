@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Check, Loader2, MapPin, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import EditorAddress from "@/components/editor/EditorAddress";
 import ActionDatePicker, {
   formatActionDate,
@@ -17,6 +18,16 @@ function toValidDate(value) {
   if (!value) return null;
   const date = value instanceof Date ? value : new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function initials(name = "") {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
 }
 
 export default function EditorContextSuggestions({ editor, resolvedContext = null }) {
@@ -99,9 +110,15 @@ export default function EditorContextSuggestions({ editor, resolvedContext = nul
 
   const suggestedPeople = resolvedContext?.people ?? [];
   const suggestedGovernance = resolvedContext?.governance ?? [];
-  const suggestedCategories = resolvedContext?.categories ?? [];
+  // Keyword categories remain a backend enrichment signal. The editor shows
+  // categories that have a stronger, explainable context source.
+  const suggestedCategories = (resolvedContext?.categories ?? []).filter(
+    (category) => category.source !== "content",
+  );
+  const district = resolvedContext?.district ?? null;
   const showEntities = !dismissed.entities && (suggestedPeople.length > 0 || suggestedGovernance.length > 0);
   const showCategories = suggestedCategories.length > 0;
+  const showDistrict = Boolean(editor.address && district?.name);
 
   const showDate = Boolean(
     validDateCandidate && !editor.start_at && !dismissed.date,
@@ -114,7 +131,7 @@ export default function EditorContextSuggestions({ editor, resolvedContext = nul
     locationResult,
   );
 
-  if (!showDate && !showLocation && !showEntities && !showCategories && !locationEditorOpen) return null;
+  if (!showDate && !showLocation && !showEntities && !showCategories && !showDistrict && !locationEditorOpen) return null;
 
   function acceptDate() {
     if (!validDateCandidate) return;
@@ -173,13 +190,23 @@ export default function EditorContextSuggestions({ editor, resolvedContext = nul
           {showEntities && (
             <div className="flex min-w-0 items-center gap-1.5 rounded-md border bg-background px-2 py-1 text-xs shadow-sm">
               <span className="font-medium">Entities</span>
-              <div className="flex min-w-0 flex-wrap items-center gap-1">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
                 {suggestedGovernance.slice(0, 3).map((org) => (
-                  <span key={org.id} className="rounded bg-muted px-1.5 py-0.5">{org.short_name || org.name}</span>
+                  <span key={org.id} className="inline-flex items-center gap-1.5 rounded bg-muted px-1.5 py-0.5">
+                    <Avatar className="h-5 w-5">
+                      <AvatarImage src={org.image_url || undefined} alt="" />
+                      <AvatarFallback className="text-[9px]">{initials(org.short_name || org.name)}</AvatarFallback>
+                    </Avatar>
+                    <span>{org.short_name || org.name}</span>
+                  </span>
                 ))}
                 {suggestedPeople.slice(0, 4).map((person) => (
-                  <span key={person.id} className="rounded bg-muted px-1.5 py-0.5">
-                    {person.name}{person.position_name ? ` · ${person.position_name}` : ""}
+                  <span key={person.id} className="inline-flex items-center gap-1.5 rounded bg-muted px-1.5 py-0.5">
+                    <Avatar className="h-5 w-5">
+                      <AvatarImage src={person.image_url || undefined} alt="" />
+                      <AvatarFallback className="text-[9px]">{initials(person.name)}</AvatarFallback>
+                    </Avatar>
+                    <span>{person.name}{person.position_name ? ` · ${person.position_name}` : ""}</span>
                   </span>
                 ))}
               </div>
@@ -189,19 +216,20 @@ export default function EditorContextSuggestions({ editor, resolvedContext = nul
             </div>
           )}
 
+          {showDistrict && (
+            <div className="inline-flex min-w-0 items-center gap-1.5 rounded-md border bg-background px-2 py-1 text-xs shadow-sm">
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              <span className="font-medium">{district.name}</span>
+              <span className="text-muted-foreground">district</span>
+            </div>
+          )}
+
           {showDate && (
             <div className="flex min-w-0 items-center gap-1.5 rounded-md border bg-background px-2 py-1 text-xs shadow-sm">
               <CalendarDays className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               <span className="min-w-0 truncate">Use {dateText}?</span>
 
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 shrink-0"
-                onClick={acceptDate}
-                aria-label="Use suggested action date"
-              >
+              <Button type="button" variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={acceptDate} aria-label="Use suggested action date">
                 <Check className="h-3.5 w-3.5" />
               </Button>
 
@@ -212,68 +240,32 @@ export default function EditorContextSuggestions({ editor, resolvedContext = nul
                 showLabel
               />
 
-              <button
-                type="button"
-                className="text-muted-foreground hover:text-foreground"
-                onClick={() =>
-                  setDismissed((prev) => ({ ...prev, date: true }))
-                }
-                aria-label="Dismiss date suggestion"
-              >
+              <button type="button" className="text-muted-foreground hover:text-foreground" onClick={() => setDismissed((prev) => ({ ...prev, date: true }))} aria-label="Dismiss date suggestion">
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
           )}
 
-          {locationLoading &&
-            locationCandidate &&
-            !editor.address &&
-            !dismissed.location && (
-              <div className="flex items-center gap-1.5 rounded-md border bg-background px-2 py-1 text-xs text-muted-foreground shadow-sm">
-                <MapPin className="h-3.5 w-3.5" />
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                Finding {locationCandidate.query}…
-              </div>
-            )}
+          {locationLoading && locationCandidate && !editor.address && !dismissed.location && (
+            <div className="flex items-center gap-1.5 rounded-md border bg-background px-2 py-1 text-xs text-muted-foreground shadow-sm">
+              <MapPin className="h-3.5 w-3.5" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Finding {locationCandidate.query}…
+            </div>
+          )}
 
           {showLocation && (
             <div className="flex min-w-0 items-center gap-1.5 rounded-md border bg-background px-2 py-1 text-xs shadow-sm">
               <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-
               <div className="min-w-0 max-w-[280px]">
                 <p className="truncate font-medium">{locationResult.name}</p>
-                <p className="truncate text-muted-foreground">
-                  {locationResult.address}
-                </p>
+                <p className="truncate text-muted-foreground">{locationResult.address}</p>
               </div>
-
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 shrink-0"
-                onClick={acceptLocation}
-                aria-label="Use suggested location"
-              >
+              <Button type="button" variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={acceptLocation} aria-label="Use suggested location">
                 <Check className="h-3.5 w-3.5" />
               </Button>
-
-              <button
-                type="button"
-                className="text-muted-foreground hover:text-foreground"
-                onClick={openLocationPicker}
-              >
-                Edit
-              </button>
-
-              <button
-                type="button"
-                className="text-muted-foreground hover:text-foreground"
-                onClick={() =>
-                  setDismissed((prev) => ({ ...prev, location: true }))
-                }
-                aria-label="Dismiss location suggestion"
-              >
+              <button type="button" className="text-muted-foreground hover:text-foreground" onClick={openLocationPicker}>Edit</button>
+              <button type="button" className="text-muted-foreground hover:text-foreground" onClick={() => setDismissed((prev) => ({ ...prev, location: true }))} aria-label="Dismiss location suggestion">
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
