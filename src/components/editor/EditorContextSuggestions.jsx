@@ -19,7 +19,7 @@ function toValidDate(value) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-export default function EditorContextSuggestions({ editor }) {
+export default function EditorContextSuggestions({ editor, resolvedContext = null }) {
   const text = (editor.title || "") + "\n" + (editor.content || "");
   const dateCandidate = useMemo(() => extractDateCandidate(text), [text]);
   const locationCandidate = useMemo(
@@ -27,14 +27,14 @@ export default function EditorContextSuggestions({ editor }) {
     [text],
   );
 
-  const [dismissed, setDismissed] = useState({ date: false, location: false });
+  const [dismissed, setDismissed] = useState({ date: false, location: false, entities: false });
   const [locationEditorOpen, setLocationEditorOpen] = useState(false);
   const [locationEditorQuery, setLocationEditorQuery] = useState("");
   const [locationResult, setLocationResult] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
 
   useEffect(() => {
-    setDismissed({ date: false, location: false });
+    setDismissed({ date: false, location: false, entities: false });
     setLocationEditorQuery(locationCandidate?.query || "");
   }, [dateCandidate?.value, locationCandidate?.query]);
 
@@ -97,6 +97,12 @@ export default function EditorContextSuggestions({ editor }) {
     };
   }, [dateCandidate]);
 
+  const suggestedPeople = resolvedContext?.people ?? [];
+  const suggestedGovernance = resolvedContext?.governance ?? [];
+  const suggestedCategories = resolvedContext?.categories ?? [];
+  const showEntities = !dismissed.entities && (suggestedPeople.length > 0 || suggestedGovernance.length > 0);
+  const showCategories = suggestedCategories.length > 0;
+
   const showDate = Boolean(
     validDateCandidate && !editor.start_at && !dismissed.date,
   );
@@ -108,7 +114,7 @@ export default function EditorContextSuggestions({ editor }) {
     locationResult,
   );
 
-  if (!showDate && !showLocation && !locationEditorOpen) return null;
+  if (!showDate && !showLocation && !showEntities && !showCategories && !locationEditorOpen) return null;
 
   function acceptDate() {
     if (!validDateCandidate) return;
@@ -153,6 +159,36 @@ export default function EditorContextSuggestions({ editor }) {
     <>
       <div className="bg-muted/20 px-3 py-1.5">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
+          {showCategories && (
+            <div className="flex min-w-0 items-center gap-1.5 rounded-md border bg-background px-2 py-1 text-xs shadow-sm">
+              <span className="font-medium">Context</span>
+              <div className="flex min-w-0 flex-wrap items-center gap-1">
+                {suggestedCategories.slice(0, 5).map((category) => (
+                  <span key={category.id} className="rounded bg-muted px-1.5 py-0.5 text-muted-foreground">{category.name}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {showEntities && (
+            <div className="flex min-w-0 items-center gap-1.5 rounded-md border bg-background px-2 py-1 text-xs shadow-sm">
+              <span className="font-medium">Entities</span>
+              <div className="flex min-w-0 flex-wrap items-center gap-1">
+                {suggestedGovernance.slice(0, 3).map((org) => (
+                  <span key={org.id} className="rounded bg-muted px-1.5 py-0.5">{org.short_name || org.name}</span>
+                ))}
+                {suggestedPeople.slice(0, 4).map((person) => (
+                  <span key={person.id} className="rounded bg-muted px-1.5 py-0.5">
+                    {person.name}{person.position_name ? ` · ${person.position_name}` : ""}
+                  </span>
+                ))}
+              </div>
+              <button type="button" className="ml-auto text-muted-foreground hover:text-foreground" onClick={() => setDismissed((prev) => ({ ...prev, entities: true }))} aria-label="Dismiss context suggestions">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
+
           {showDate && (
             <div className="flex min-w-0 items-center gap-1.5 rounded-md border bg-background px-2 py-1 text-xs shadow-sm">
               <CalendarDays className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />

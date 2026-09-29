@@ -10,6 +10,7 @@ import EditorHeader from "./EditorHeader";
 import EditorFooter from "./EditorFooter";
 import EditorAttachments from "./EditorAttachments";
 import EditorContextSuggestions from "./EditorContextSuggestions";
+import { useResolvedPostContext } from "@/hooks/editor/useResolvedPostContext";
 
 const PlainTextEditor = dynamic(() => import("./content/PlainTextEditor"), {
   ssr: false,
@@ -24,6 +25,7 @@ export default function PostEditor({
   const { data: profile, isLoading: profileLoading } = useMyProfile();
   const { data: spaces = [], isLoading: spacesLoading } = useSpaces();
   const editor = usePostEditor(item, initialSpace, { draftScope: "post" });
+  const resolvedContext = useResolvedPostContext(editor);
 
   if (profileLoading || spacesLoading || !profile)
     return <EditorModalSkeleton />;
@@ -33,7 +35,7 @@ export default function PostEditor({
       header={
         <>
           <EditorHeader profile={profile} editor={editor} spaces={spaces} />
-          <EditorContextSuggestions editor={editor} />
+          <EditorContextSuggestions editor={editor} resolvedContext={resolvedContext} />
         </>
       }
       content={
@@ -56,6 +58,7 @@ export default function PostEditor({
       footer={
         <EditorFooter
           editor={editor}
+          districtName={resolvedContext?.district?.name || null}
           item={item}
           onClose={onClose}
           onCreated={onCreated}

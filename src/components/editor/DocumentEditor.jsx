@@ -5,6 +5,7 @@ import DocumentEditorLayout from "./DocumentEditorLayout";
 import EditorHeader from "./EditorHeader";
 import EditorFooter from "./EditorFooter";
 import EditorContextSuggestions from "./EditorContextSuggestions";
+import { useResolvedPostContext } from "@/hooks/editor/useResolvedPostContext";
 import DocumentPreview from "./DocumentPreview";
 import { usePostEditor } from "@/hooks/editor/usePostEditor";
 
@@ -12,6 +13,7 @@ const RichTextEditor = dynamic(() => import("./content/RichTextEditor"), { ssr: 
 
 export default function DocumentEditor({ profile, spaces = [], post = null, previewOpen, onPreviewOpenChange, onClose, onCreated }) {
   const editor = usePostEditor(post, null, { draftScope: "document" });
+  const resolvedContext = useResolvedPostContext(editor);
 
   return (
     <DocumentEditorLayout
@@ -26,7 +28,7 @@ export default function DocumentEditor({ profile, spaces = [], post = null, prev
             titleAriaLabel="Document title"
             documentStyle
           />
-          <EditorContextSuggestions editor={editor} />
+          <EditorContextSuggestions editor={editor} resolvedContext={resolvedContext} />
         </>
       }
       content={
