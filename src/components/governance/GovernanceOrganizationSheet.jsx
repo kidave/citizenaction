@@ -24,9 +24,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase/client";
-import { moveGovernanceFile } from "@/lib/supabase/storage";
+import {
+  deleteGovernanceAttachments,
+  moveGovernanceFile,
+  uploadGovernanceAttachments,
+} from "@/lib/supabase/storage";
 import { useImportGovernanceOrganizationImage } from "@/hooks/governance/useImportGovernanceOrganizationImage";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
+import GovernanceEditorResources from "@/components/governance/GovernanceEditorResources";
 import {
   GOVERNANCE_STATUS_OPTIONS,
   GOVERNANCE_TYPES,
@@ -35,6 +40,7 @@ import {
 } from "@/utils/governance";
 
 function emptyForm(record) {
+  const metadata = record?.metadata || {};
   return {
     name: record?.name || "",
     shortName: record?.short_name || "",
@@ -52,6 +58,9 @@ function emptyForm(record) {
     email: record?.email || "",
     phone: record?.phone || "",
     address: record?.address || "",
+    lat: metadata.office_lat == null ? null : Number(metadata.office_lat),
+    lng: metadata.office_lng == null ? null : Number(metadata.office_lng),
+    geographyId: record?.geography_id || "",
   };
 }
 
@@ -83,6 +92,8 @@ export default function GovernanceOrganizationSheet({
   const [form, setForm] = useState(() => emptyForm(record));
   const [saving, setSaving] = useState(false);
   const [importingImage, setImportingImage] = useState(false);
+  const [links, setLinks] = useState([]);
+  const [pendingFiles, setPendingFiles] = useState([]);
 
   const draftId = useId().replace(/:/g, "");
   const { createOrganization, updateOrganization } = useGovernanceCrud();
@@ -102,6 +113,8 @@ export default function GovernanceOrganizationSheet({
     const load = async () => {
       setSaving(false);
       setImportingImage(false);
+      setPendingFiles([]);
+      setLinks([]);
 
       if (!record?.id) {
         setForm(emptyForm(null));
@@ -111,7 +124,7 @@ export default function GovernanceOrganizationSheet({
       const { data, error } = await supabase
         .from("governance")
         .select(
-          "id,name,short_name,description,website,email,phone,address,type,category_id,status,valid_from,valid_to,image_url",
+          "id,name,short_name,description,website,email,phone,address,type,category_id,status,valid_from,valid_to,image_url,metadata,geography_id",
         )
         .eq("id", record.id)
         .single();
@@ -124,9 +137,23 @@ export default function GovernanceOrganizationSheet({
         return;
       }
 
-      setForm(emptyForm(data));
+      const [{ data: linkRows }, { data: attachmentRows }] = await Promise.all([
+        supabase
+          .from("link")
+          .select("id,url,title,sort_order")
+          .eq("governance_id", record.id)
+          .order("sort_order", { ascending: true }),
+        supabase
+          .from("attachment")
+          .select("id,storage_path,thumbnail_path,file_name,public_url,preview_url,mime_type,file_size,width,height,duration,sort_order")
+          .eq("governance_id", record.id)
+          .order("sort_order", { ascending: true }),
+      ]);
 
       if (cancelled) return;
+      setForm(emptyForm(data));
+      setLinks(linkRows || []);
+      void attachmentRows;
     };
 
     load();
@@ -138,6 +165,58 @@ export default function GovernanceOrganizationSheet({
 
   const setField = (field, value) =>
     setForm((current) => ({ ...current, [field]: value }));
+
+  const saveResources = async (governanceId) => {
+    if (!governanceId) return;
+
+    if (pendingFiles.length) {
+      const attachmentIds = pendingFiles.map(() => crypto.randomUUID());
+      const uploaded = await uploadGovernanceAttachments(
+        governanceId,
+        pendingFiles.map((file, index) => ({
+          file: file.file ?? file,
+          attachmentId: attachmentIds[index],
+        })),
+      );
+
+      const rows = uploaded.map((item, index) => ({
+        id: item.attachmentId,
+        governance_id: governanceId,
+        storage_path: item.storage_path,
+        public_url: item.public_url,
+        preview_url: item.preview_url || null,
+        thumbnail_path: item.thumbnail_path || null,
+        thumbnail_url: item.thumbnail_url || null,
+        file_name: item.file_name,
+        mime_type: item.mime_type,
+        file_size: item.file_size,
+        width: item.width,
+        height: item.height,
+        duration: item.duration,
+        sort_order: index,
+      }));
+
+      const { error } = await supabase.from("attachment").insert(rows);
+      if (error) {
+        await deleteGovernanceAttachments(uploaded);
+        throw error;
+      }
+    }
+
+    await supabase.from("link").delete().eq("governance_id", governanceId);
+    if (links.length) {
+      const { error } = await supabase.from("link").insert(
+        links.map((link, index) => ({
+          id: link.id || crypto.randomUUID(),
+          governance_id: governanceId,
+          url: link.url,
+          title: link.title || link.url,
+          sort_order: index,
+        })),
+      );
+      if (error) throw error;
+    }
+  };
 
   const save = async () => {
     if (!form.name.trim()) return toast.error("Organization name is required");
@@ -154,6 +233,11 @@ export default function GovernanceOrganizationSheet({
 
     try {
       setSaving(true);
+      const metadata = {
+        ...(record?.metadata || {}),
+        office_lat: Number.isFinite(form.lat) ? form.lat : null,
+        office_lng: Number.isFinite(form.lng) ? form.lng : null,
+      };
       const baseParams = {
         p_name: form.name.trim(),
         p_short_name: form.shortName.trim() || null,
@@ -168,6 +252,7 @@ export default function GovernanceOrganizationSheet({
         p_email: form.email.trim() || null,
         p_phone: form.phone.trim() || null,
         p_address: form.address.trim() || null,
+        p_metadata: metadata,
       };
 
       let saved = isEditing
@@ -224,9 +309,9 @@ export default function GovernanceOrganizationSheet({
           p_entity_id: saved.id,
           p_image_url: imported.imageUrl,
         });
-
-        setImportingImage(false);
       }
+
+      await saveResources(saved.id);
 
       toast.success(
         isEditing ? "Organization updated" : "Organization created",
@@ -311,6 +396,14 @@ export default function GovernanceOrganizationSheet({
                             : null,
                           p_category_id: form.categoryId || null,
                           p_image_url: imported.imageUrl,
+                          p_email: form.email.trim() || null,
+                          p_phone: form.phone.trim() || null,
+                          p_address: form.address.trim() || null,
+                          p_metadata: {
+                            ...(record?.metadata || {}),
+                            office_lat: Number.isFinite(form.lat) ? form.lat : null,
+                            office_lng: Number.isFinite(form.lng) ? form.lng : null,
+                          },
                         });
                         setField("imageUrl", imported.imageUrl);
                         setField("imageSourceUrl", "");
@@ -341,14 +434,6 @@ export default function GovernanceOrganizationSheet({
                   Use an Instagram or Meta CDN image URL.
                 </p>
               )}
-              {!isEditing &&
-                form.imageSourceUrl.trim() &&
-                imageSourceIsValid && (
-                  <p className="text-xs text-muted-foreground">
-                    The organization will be created first, then the image will
-                    be imported automatically.
-                  </p>
-                )}
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -366,166 +451,85 @@ export default function GovernanceOrganizationSheet({
                 <Label>Short name</Label>
                 <Input
                   value={form.shortName}
-                  onChange={(event) =>
-                    setField("shortName", event.target.value)
-                  }
+                  onChange={(event) => setField("shortName", event.target.value)}
                   placeholder="e.g. MMRDA"
                   disabled={busy}
                 />
               </div>
               <div className="space-y-2">
                 <Label>Type</Label>
-                <Select
-                  value={form.type}
-                  onValueChange={(value) => setField("type", value)}
-                  disabled={busy}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                <Select value={form.type} onValueChange={(value) => setField("type", value)} disabled={busy}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {GOVERNANCE_TYPES.map((item) => (
-                      <SelectItem key={item} value={item}>
-                        {formatGovernanceType(item)}
-                      </SelectItem>
-                    ))}
+                    {GOVERNANCE_TYPES.map((item) => <SelectItem key={item} value={item}>{formatGovernanceType(item)}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label>Category</Label>
-                <Select
-                  value={form.categoryId || "none"}
-                  onValueChange={(value) =>
-                    setField("categoryId", value === "none" ? "" : value)
-                  }
-                  disabled={busy}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="No category" />
-                  </SelectTrigger>
+                <Select value={form.categoryId || "none"} onValueChange={(value) => setField("categoryId", value === "none" ? "" : value)} disabled={busy}>
+                  <SelectTrigger><SelectValue placeholder="No category" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No category</SelectItem>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
+                    {categories.map((category) => <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label>Status</Label>
-                <Select
-                  value={form.status}
-                  onValueChange={(value) => setField("status", value)}
-                  disabled={busy}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {GOVERNANCE_STATUS_OPTIONS.map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
+                <Select value={form.status} onValueChange={(value) => setField("status", value)} disabled={busy}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{GOVERNANCE_STATUS_OPTIONS.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label>Valid from</Label>
-                <Input
-                  type="date"
-                  value={form.validFrom}
-                  onChange={(event) =>
-                    setField("validFrom", event.target.value)
-                  }
-                  disabled={busy}
-                />
+                <Input type="date" value={form.validFrom} onChange={(event) => setField("validFrom", event.target.value)} disabled={busy} />
               </div>
               <div className="space-y-2">
                 <Label>Valid to</Label>
-                <Input
-                  type="date"
-                  value={form.validTo}
-                  onChange={(event) => setField("validTo", event.target.value)}
-                  disabled={busy}
-                />
+                <Input type="date" value={form.validTo} onChange={(event) => setField("validTo", event.target.value)} disabled={busy} />
               </div>
               <div className="space-y-2">
                 <Label>Email</Label>
-                <Input
-                  type="email"
-                  value={form.email}
-                  onChange={(event) => setField("email", event.target.value)}
-                  placeholder="office@example.gov.in"
-                  disabled={busy}
-                />
+                <Input type="email" value={form.email} onChange={(event) => setField("email", event.target.value)} placeholder="office@example.gov.in" disabled={busy} />
               </div>
               <div className="space-y-2">
                 <Label>Phone</Label>
-                <Input
-                  type="tel"
-                  value={form.phone}
-                  onChange={(event) => setField("phone", event.target.value)}
-                  placeholder="+91 ..."
-                  disabled={busy}
-                />
+                <Input type="tel" value={form.phone} onChange={(event) => setField("phone", event.target.value)} placeholder="+91 ..." disabled={busy} />
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>Official website</Label>
-                <Input
-                  type="url"
-                  value={form.website}
-                  onChange={(event) => setField("website", event.target.value)}
-                  placeholder="https://..."
-                  disabled={busy}
-                />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label>Office address</Label>
-                <Input
-                  value={form.address}
-                  onChange={(event) => setField("address", event.target.value)}
-                  placeholder="Office address"
-                  disabled={busy}
-                />
+                <Input type="url" value={form.website} onChange={(event) => setField("website", event.target.value)} placeholder="https://..." disabled={busy} />
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>What they do</Label>
-                <Textarea
-                  value={form.description}
-                  onChange={(event) =>
-                    setField("description", event.target.value)
-                  }
-                  placeholder="What is this organization for?"
-                  rows={5}
-                  disabled={busy}
-                />
+                <Textarea value={form.description} onChange={(event) => setField("description", event.target.value)} placeholder="What is this organization for?" rows={5} disabled={busy} />
               </div>
             </div>
           </div>
         </div>
 
-        <SheetFooter className="relative z-10 shrink-0 flex-row items-center justify-end gap-2 border-t bg-background px-5 py-4 sm:px-6">
+        <SheetFooter className="relative z-10 shrink-0 flex-col gap-3 border-t bg-background px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <GovernanceEditorResources
+            governanceId={record?.id || null}
+            entityName={form.name}
+            address={form.address}
+            lat={form.lat}
+            lng={form.lng}
+            onAddressChange={(value) => setField("address", value)}
+            onLocationChange={(value) => setForm((current) => ({ ...current, ...value }))}
+            links={links}
+            onLinksChange={setLinks}
+            onFiles={(files) => setPendingFiles((current) => [...current, ...(files || [])])}
+            geographyId={form.geographyId}
+            onGeographySaved={(geography) => setField("geographyId", geography?.id || "")}
+            disabled={busy}
+          />
           <div className="flex shrink-0 items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange?.(false)}
-              disabled={busy}
-            >
-              Cancel
-            </Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={busy}>Cancel</Button>
             <Button type="button" onClick={save} disabled={busy}>
-              {busy
-                ? importingImage
-                  ? "Importing image..."
-                  : "Saving..."
-                : isEditing
-                  ? "Save changes"
-                  : "Create organization"}
+              {busy ? (importingImage ? "Importing image..." : "Saving...") : isEditing ? "Save changes" : "Create organization"}
             </Button>
           </div>
         </SheetFooter>
