@@ -14,6 +14,8 @@ import { useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
+import ActivityPreviewCard from "@/components/activity/ActivityPreviewCard";
+
 const citizenIcon = L.divIcon({
   className: "",
   html: `<img src="/ca.png" style="width:32px;height:32px;object-fit:contain;filter:drop-shadow(1px 0 0 white) drop-shadow(-1px 0 0 white) drop-shadow(0 1px 0 white) drop-shadow(0 -1px 0 white);" />`,
@@ -31,13 +33,10 @@ function imageIcon(url, size = 32) {
   });
 }
 
-function MapController({ onChange, boundary, boundaries }) {
-  const map = useMapEvents({
-    click(e) {
-      onChange?.(e.latlng.lat, e.latlng.lng);
-    },
-  });
+function MapController({ onChange, boundary, boundaries, fitMarkers }) {
+  const map = useMapEvents({ click(e) { onChange?.(e.latlng.lat, e.latlng.lng); } });
   const previousBoundaryKeyRef = useRef(null);
+  const previousMarkerKeyRef = useRef(null);
 
   useEffect(() => {
     const group = (boundaries || []).filter((item) => item?.geojson);
@@ -57,6 +56,16 @@ function MapController({ onChange, boundary, boundaries }) {
     }
   }, [boundary, boundaries, map]);
 
+  useEffect(() => {
+    if (!fitMarkers) return;
+    const valid = (fitMarkers || []).filter((item) => Number.isFinite(Number(item?.lat)) && Number.isFinite(Number(item?.lng)));
+    const key = valid.map((item) => `${item.id || ""}:${item.lat}:${item.lng}`).join("|");
+    if (!valid.length || key === previousMarkerKeyRef.current) return;
+    const bounds = L.latLngBounds(valid.map((item) => [Number(item.lat), Number(item.lng)]));
+    if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 13, animate: false });
+    previousMarkerKeyRef.current = key;
+  }, [fitMarkers, map]);
+
   return null;
 }
 
@@ -74,13 +83,7 @@ function BoundaryGroup({ boundaries = [], selectedId, onBoundaryClick }) {
       <GeoJSON
         key={`${item.kind || "boundary"}-${item.id || item.osm_id || index}`}
         data={item.geojson}
-        style={() => ({
-          color: stroke,
-          weight: selected ? 4 : isDistrict || isJurisdiction ? 2.5 : 2,
-          opacity: selected ? 1 : 0.9,
-          fillColor: fill,
-          fillOpacity: isDistrict ? 0.12 : isJurisdiction ? 0.1 : 0.1,
-        })}
+        style={() => ({ color: stroke, weight: selected ? 4 : isDistrict || isJurisdiction ? 2.5 : 2, opacity: selected ? 1 : 0.9, fillColor: fill, fillOpacity: isDistrict ? 0.12 : isJurisdiction ? 0.1 : 0.1 })}
         eventHandlers={{
           click: () => onBoundaryClick?.(item),
           mouseover: (event) => event.target.setStyle({ weight: selected ? 4 : 3, opacity: 1, fillOpacity: isDistrict ? 0.16 : isJurisdiction ? 0.14 : 0.12 }),
@@ -100,7 +103,13 @@ function MarkerGroup({ markers = [] }) {
         : imageIcon(item.image_url, 34);
       return (
         <Marker key={`${item.kind || "marker"}-${item.id || index}`} position={[Number(item.lat), Number(item.lng)]} icon={icon}>
-          {item.label && <Popup closeButton>{item.label}</Popup>}
+          {item.popupPost ? (
+            <Popup closeButton className="citizen-action-map-popup" maxWidth={320} minWidth={280}>
+              <ActivityPreviewCard post={item.popupPost} variant="map" className="border-0 shadow-none" />
+            </Popup>
+          ) : item.label ? (
+            <Popup closeButton>{item.label}</Popup>
+          ) : null}
         </Marker>
       );
     });
@@ -118,21 +127,12 @@ export default function LeafletMap({
   onBoundaryClick,
   showMarker = true,
   zoom = 15,
+  fitMarkers = null,
 }) {
   const safeLat = Number.isFinite(lat) ? lat : 19.076;
   const safeLng = Number.isFinite(lng) ? lng : 72.8777;
   const allMarkers = showMarker
-    ? [
-        {
-          id: "post-location",
-          kind: "citizen",
-          lat: safeLat,
-          lng: safeLng,
-          image_url: citizenMarker?.image_url || null,
-          label: citizenMarker?.label || "Post location",
-        },
-        ...markers,
-      ]
+    ? [{ id: "post-location", kind: "citizen", lat: safeLat, lng: safeLng, image_url: citizenMarker?.image_url || null, label: citizenMarker?.label || "Post location" }, ...markers]
     : markers;
 
   return (
@@ -147,7 +147,7 @@ export default function LeafletMap({
           </LayersControl.BaseLayer>
         </LayersControl>
 
-        <MapController onChange={onChange} boundary={boundary} boundaries={boundaries} />
+        <MapController onChange={onChange} boundary={boundary} boundaries={boundaries} fitMarkers={fitMarkers} />
         {boundary && <GeoJSON data={boundary} style={{ color: "#2563eb", weight: 2.5, opacity: 0.9, fillColor: "#3b82f6", fillOpacity: 0.1 }} />}
         <BoundaryGroup boundaries={boundaries} selectedId={selectedBoundaryId} onBoundaryClick={onBoundaryClick} />
         <MarkerGroup markers={allMarkers} />
