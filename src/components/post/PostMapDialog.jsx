@@ -29,11 +29,29 @@ function asArray(value) {
   return Array.isArray(value) ? value : [value];
 }
 
+function districtRows(context, post) {
+  const rows = [
+    ...asArray(context?.geography),
+    ...asArray(context?.district),
+    ...asArray(context?.district_boundary),
+    ...asArray(context?.districtBoundary),
+    ...asArray(post?.district),
+    ...asArray(post?.district_boundary),
+  ];
+
+  return rows.filter((row) => {
+    const relationship = String(row?.relationship_type || "").toLowerCase();
+    const source = String(row?.source_type || "").toLowerCase();
+    const type = String(row?.geography_type || "").toLowerCase();
+    return relationship === "district" || source === "address" || type === "district";
+  });
+}
+
 function districtName(context, post) {
-  const district = context?.district;
+  const row = districtRows(context, post).find((item) => item?.name || item?.district_name);
   return firstValue(
-    Array.isArray(district) ? district[0]?.name : district?.name,
-    Array.isArray(district) ? district[0]?.district_name : district?.district_name,
+    row?.name,
+    row?.district_name,
     post?.district_name,
     post?.district?.name,
   );
@@ -41,6 +59,24 @@ function districtName(context, post) {
 
 function boundaryId(value, fallback) {
   return firstValue(value?.geography_id, value?.id, value?.osm_id, fallback);
+}
+
+function collectDistrictBoundary(context, post) {
+  const seen = new Set();
+  return districtRows(context, post).flatMap((row, index) => {
+    const geo = geometryOf(row);
+    if (!geo) return [];
+    const id = boundaryId(row, `district-${index}`);
+    const key = `${id}-${JSON.stringify(geo).slice(0, 120)}`;
+    if (seen.has(key)) return [];
+    seen.add(key);
+    return [{
+      id,
+      kind: "district",
+      geojson: geo,
+      name: firstValue(row?.name, row?.district_name),
+    }];
+  });
 }
 
 function collectJurisdictionBoundaries(context) {
@@ -58,6 +94,11 @@ function collectJurisdictionBoundaries(context) {
     candidates.push(...asArray(governance?.geographies));
   }
 
+  for (const person of asArray(context?.people)) {
+    candidates.push(person?.organization?.jurisdiction);
+    candidates.push(...asArray(person?.organization?.geography));
+  }
+
   const seen = new Set();
   return candidates.flatMap((row, index) => {
     const geo = geometryOf(row);
@@ -66,24 +107,30 @@ function collectJurisdictionBoundaries(context) {
     const key = `${id}-${JSON.stringify(geo).slice(0, 120)}`;
     if (seen.has(key)) return [];
     seen.add(key);
-    return [{ id, kind: "jurisdiction", geojson: geo, name: firstValue(row?.name, row?.geography?.name) }];
+    return [{
+      id,
+      kind: "jurisdiction",
+      geojson: geo,
+      name: firstValue(row?.name, row?.geography?.name),
+    }];
   });
 }
 
-function collectDistrictBoundary(context, post) {
-  const candidates = [
-    ...asArray(context?.district),
-    ...asArray(context?.district_boundary),
-    ...asArray(context?.districtBoundary),
-    ...asArray(post?.district),
-    ...asArray(post?.district_boundary),
-  ];
+function collectGovernanceRows(context, post) {
+  const rows = [
+    ...asArray(context?.governance),
+    ...asArray(post?.governance),
+    ...asArray(context?.people).map((person) => person?.organization),
+  ].filter(Boolean);
 
-  for (const row of candidates) {
-    const geo = geometryOf(row);
-    if (geo) return [{ id: boundaryId(row, "district"), kind: "district", geojson: geo, name: firstValue(row?.name, row?.district_name) }];
-  }
-  return [];
+  const seen = new Set();
+  return rows.filter((row) => {
+    const id = firstValue(row?.id, row?.governance_id, row?.organization_id);
+    const key = String(id || `${row?.name}-${row?.address}`);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 export default function PostMapDialog({ post }) {
@@ -114,15 +161,8 @@ export default function PostMapDialog({ post }) {
       ...collectJurisdictionBoundaries(context),
     ];
 
-    const governanceRows = [
-      ...asArray(context?.governance),
-      ...asArray(post?.governance),
-    ];
-    const seenGovernance = new Set();
-    const markers = governanceRows.flatMap((org, index) => {
-      const id = firstValue(org?.id, org?.governance_id, `governance-${index}`);
-      if (seenGovernance.has(String(id))) return [];
-      seenGovernance.add(String(id));
+    const markers = collectGovernanceRows(context, post).flatMap((org, index) => {
+      const id = firstValue(org?.id, org?.governance_id, org?.organization_id, `governance-${index}`);
       const marker = {
         id,
         kind: "governance",
@@ -138,8 +178,10 @@ export default function PostMapDialog({ post }) {
   }, [context, post]);
 
   if (!hasLocation) return null;
-  const title = districtName(context, post) || firstValue(post?.address, "Location");
-  const citizenLabel = firstValue(post?.address, districtName(context, post), "Post location");
+
+  const district = districtName(context, post);
+  const title = district || firstValue(post?.address, "Location");
+  const citizenLabel = firstValue(post?.address, district, "Post location");
   const citizenImage = firstValue(post?.author_avatar, post?.avatar_url, post?.author?.avatar_url);
 
   return (
@@ -154,7 +196,9 @@ export default function PostMapDialog({ post }) {
           <DialogTitle className="truncate text-sm font-medium">{title}</DialogTitle>
         </div>
         <div className="min-h-0 flex-1 bg-muted/20 p-2 sm:p-3">
-          {loading ? <div className="flex h-full items-center justify-center text-sm text-muted-foreground">Loading map…</div> : (
+          {loading ? (
+            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">Loading map…</div>
+          ) : (
             <div className="h-full w-full overflow-hidden rounded-lg border">
               <LeafletMap
                 lat={lat}
