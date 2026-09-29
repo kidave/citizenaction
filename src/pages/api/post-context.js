@@ -86,24 +86,15 @@ export default async function handler(req, res) {
     ? await supabase.from("category").select("id,slug,name").in("id", categoryIds)
     : { data: [] };
 
-  const districtPromise =
-    Number.isFinite(Number(body.lat)) && Number.isFinite(Number(body.lng))
-      ? supabase
-          .from("geographies")
-          .select("id,name,official_name,geography_type")
-          .eq("geography_type", "district")
-          .not("geom", "is", null)
-      : Promise.resolve({ data: [] });
-
-  const [{ data: districts }] = await Promise.all([districtPromise]);
-
   let district = null;
   const lat = Number(body.lat);
   const lng = Number(body.lng);
-
   if (Number.isFinite(lat) && Number.isFinite(lng)) {
-    const { data: districtRow } = await supabase.rpc("get_geography_geometry", { p_geography_id: "95574967-7596-413b-8f3b-950c5a4e62eb" });
-    if (districtRow) district = { id: "95574967-7596-413b-8f3b-950c5a4e62eb", name: "Mumbai Suburban District", source_type: "address" };
+    const { data: districtData, error: districtError } = await supabase.rpc("find_district_for_point", {
+      p_lat: lat,
+      p_lng: lng,
+    });
+    if (!districtError) district = districtData || null;
   }
 
   return res.status(200).json({
@@ -114,9 +105,11 @@ export default async function handler(req, res) {
         ...category,
         confidence: categoryMap.get(category.id)?.confidence || 0,
         source: categoryMap.get(category.id)?.source || "content",
-      })).sort((a,b) => b.confidence-a.confidence || a.name.localeCompare(b.name)),
+      })).sort((a, b) => b.confidence - a.confidence || a.name.localeCompare(b.name)),
       district,
-      jurisdiction: matchedGovernance.filter((row) => row.geography_id).map((row) => ({ governance_id: row.id, geography_id: row.geography_id, source_type: "governance" })),
+      jurisdiction: matchedGovernance
+        .filter((row) => row.geography_id)
+        .map((row) => ({ governance_id: row.id, geography_id: row.geography_id, source_type: "governance" })),
     },
   });
 }
