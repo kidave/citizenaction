@@ -187,7 +187,7 @@ export default function DocumentHeader({ post, publicContext, canEdit, onEdit, o
 
       <Dialog open={mapOpen} onOpenChange={setMapOpen}>
         <DialogContent className="flex h-[85dvh] max-h-[85dvh] w-[calc(100%-1rem)] max-w-5xl flex-col gap-0 overflow-hidden p-0 sm:w-[calc(100%-2rem)]">
-          <DialogHeader className="shrink-0 border-b px-5 py-4"><DialogTitle>{post.address || district?.name || "Location"}</DialogTitle></DialogHeader>
+          <DialogHeader className="shrink-0 border-b px-5 py-4"><DialogTitle>{district?.name || post.address || "Location"}</DialogTitle></DialogHeader>
           <div className="min-h-0 flex-1"><LeafletMap lat={Number(post.lat)} lng={Number(post.lng)} boundaries={boundaries} markers={markers} citizenMarker={citizenMarker} showMarker zoom={11} /></div>
         </DialogContent>
       </Dialog>
