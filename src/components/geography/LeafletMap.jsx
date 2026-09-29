@@ -7,10 +7,11 @@ import {
   GeoJSON,
   LayersControl,
   Tooltip,
+  Polyline,
   useMapEvents,
   useMap,
 } from "react-leaflet";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -48,10 +49,6 @@ function MapController({ lat, lng, onChange, boundary, boundaries }) {
       ? JSON.stringify(primaryBoundary.id ?? primaryBoundary.osm_id ?? primaryBoundary.geojson)
       : null;
 
-    // Boundary selection is an explicit map-navigation event. Fit the map
-    // only when the selected boundary changes. Do not react to lat/lng edits:
-    // those are frequently produced by clicking the OSM map itself, and
-    // recentering here would make the map jump back to an old/default point.
     if (primaryBoundary?.geojson && boundaryKey !== previousBoundaryKeyRef.current) {
       const bounds = L.geoJSON(primaryBoundary.geojson).getBounds();
       if (bounds.isValid()) {
@@ -66,6 +63,113 @@ function MapController({ lat, lng, onChange, boundary, boundaries }) {
   return null;
 }
 
+function pointInRing(point, ring) {
+  let inside = false;
+  const x = point.lng;
+  const y = point.lat;
+
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0];
+    const yi = ring[i][1];
+    const xj = ring[j][0];
+    const yj = ring[j][1];
+    const intersects = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+    if (intersects) inside = !inside;
+  }
+
+  return inside;
+}
+
+function pointInGeometry(lat, lng, geometry) {
+  if (!geometry) return false;
+  const point = { lat, lng };
+
+  if (geometry.type === "Polygon") {
+    const [outer, ...holes] = geometry.coordinates || [];
+    if (!outer || !pointInRing(point, outer)) return false;
+    return !holes.some((hole) => pointInRing(point, hole));
+  }
+
+  if (geometry.type === "MultiPolygon") {
+    return (geometry.coordinates || []).some((polygon) => {
+      const [outer, ...holes] = polygon || [];
+      if (!outer || !pointInRing(point, outer)) return false;
+      return !holes.some((hole) => pointInRing(point, hole));
+    });
+  }
+
+  if (geometry.type === "Feature") return pointInGeometry(lat, lng, geometry.geometry);
+  if (geometry.type === "FeatureCollection") {
+    return (geometry.features || []).some((feature) => pointInGeometry(lat, lng, feature));
+  }
+
+  return false;
+}
+
+function BoundaryContextLabelController({ boundaries = [] }) {
+  const map = useMap();
+  const [activeId, setActiveId] = useState(null);
+  const timeoutRef = useRef(null);
+  const previousIdRef = useRef(null);
+
+  const normalized = useMemo(
+    () => boundaries.filter((item) => item?.geojson && (item?.label || item?.name)),
+    [boundaries],
+  );
+
+  useEffect(() => {
+    const update = () => {
+      const center = map.getCenter();
+      const containing = normalized
+        .filter((item) => pointInGeometry(center.lat, center.lng, item.geojson))
+        .map((item) => {
+          const bounds = L.geoJSON(item.geojson).getBounds();
+          const area = Math.max(0, bounds.getEast() - bounds.getWest()) * Math.max(0, bounds.getNorth() - bounds.getSouth());
+          return { item, area };
+        })
+        .sort((a, b) => a.area - b.area);
+
+      const nextId = containing[0]?.item?.id ?? containing[0]?.item?.osm_id ?? null;
+      if (String(nextId ?? "") === String(previousIdRef.current ?? "")) return;
+
+      previousIdRef.current = nextId;
+      setActiveId(nextId);
+      if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+      if (nextId != null) {
+        timeoutRef.current = window.setTimeout(() => setActiveId(null), 3500);
+      }
+    };
+
+    update();
+    map.on("moveend", update);
+    map.on("zoomend", update);
+    return () => {
+      map.off("moveend", update);
+      map.off("zoomend", update);
+      if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+    };
+  }, [map, normalized]);
+
+  const active = normalized.find(
+    (item) => String(item.id ?? item.osm_id) === String(activeId),
+  );
+  if (!active) return null;
+
+  const center = L.geoJSON(active.geojson).getBounds().getCenter();
+  return (
+    <Marker
+      position={[center.lat, center.lng]}
+      interactive={false}
+      icon={L.divIcon({
+        className: "citizen-map-boundary-label-anchor",
+        html: `<span class="citizen-map-boundary-label-pill">${active.label || active.name}</span>`,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+      })}
+    />
+  );
+}
+
 function BoundaryGroup({ boundaries = [], selectedId, onBoundaryClick }) {
   const normalized = useMemo(
     () => boundaries.filter((item) => item?.geojson),
@@ -76,8 +180,9 @@ function BoundaryGroup({ boundaries = [], selectedId, onBoundaryClick }) {
     const selected = selectedId != null && String(item.id ?? item.osm_id) === String(selectedId);
     const isJurisdiction = item.kind === "jurisdiction";
     const isDistrict = item.kind === "district";
-    const stroke = isJurisdiction ? "#dc2626" : isDistrict ? "#2563eb" : "#64748b";
-    const fill = isJurisdiction ? "#ef4444" : isDistrict ? "#3b82f6" : "#64748b";
+    // Geography convention: jurisdiction = blue, district = red.
+    const stroke = isJurisdiction ? "#2563eb" : isDistrict ? "#dc2626" : "#2563eb";
+    const fill = isJurisdiction ? "#3b82f6" : isDistrict ? "#ef4444" : "#3b82f6";
 
     return (
       <GeoJSON
@@ -88,33 +193,22 @@ function BoundaryGroup({ boundaries = [], selectedId, onBoundaryClick }) {
           weight: selected ? 4 : isDistrict || isJurisdiction ? 2.5 : 2,
           opacity: selected ? 1 : 0.9,
           fillColor: fill,
-          fillOpacity: isDistrict ? 0.12 : isJurisdiction ? 0.1 : 0.06,
+          fillOpacity: isDistrict ? 0.12 : isJurisdiction ? 0.1 : 0.1,
         })}
-        onEachFeature={(feature, layer) => {
-          const label = item.label || item.name;
-          if (label) {
-            layer.bindTooltip(label, {
-              sticky: true,
-              direction: "center",
-              className: "citizen-map-boundary-label",
-              opacity: 0.95,
-            });
-          }
-        }}
         eventHandlers={{
           click: () => onBoundaryClick?.(item),
           mouseover: (event) => {
             event.target.setStyle({
               weight: selected ? 4 : 3,
               opacity: 1,
-              fillOpacity: isDistrict ? 0.16 : isJurisdiction ? 0.14 : 0.08,
+              fillOpacity: isDistrict ? 0.16 : isJurisdiction ? 0.14 : 0.12,
             });
           },
           mouseout: (event) => {
             event.target.setStyle({
               weight: selected ? 4 : isDistrict || isJurisdiction ? 2.5 : 2,
               opacity: selected ? 1 : 0.9,
-              fillOpacity: isDistrict ? 0.12 : isJurisdiction ? 0.1 : 0.06,
+              fillOpacity: isDistrict ? 0.12 : isJurisdiction ? 0.1 : 0.1,
             });
           },
         }}
@@ -142,6 +236,31 @@ function MarkerGroup({ markers = [] }) {
     });
 }
 
+function ConnectionLine({ connections = [] }) {
+  return connections
+    .filter((item) =>
+      Number.isFinite(Number(item?.from?.lat)) &&
+      Number.isFinite(Number(item?.from?.lng)) &&
+      Number.isFinite(Number(item?.to?.lat)) &&
+      Number.isFinite(Number(item?.to?.lng)),
+    )
+    .map((item, index) => (
+      <Polyline
+        key={item.id || index}
+        positions={[
+          [Number(item.from.lat), Number(item.from.lng)],
+          [Number(item.to.lat), Number(item.to.lng)],
+        ]}
+        pathOptions={{
+          color: item.color || "#64748b",
+          weight: 2,
+          opacity: 0.65,
+          dashArray: "6 6",
+        }}
+      />
+    ));
+}
+
 export default function LeafletMap({
   lat,
   lng,
@@ -149,6 +268,7 @@ export default function LeafletMap({
   boundary = null,
   boundaries = [],
   markers = [],
+  connections = [],
   selectedBoundaryId = null,
   onBoundaryClick,
   showMarker = true,
@@ -159,6 +279,13 @@ export default function LeafletMap({
   const allMarkers = showMarker
     ? [{ id: "post-location", kind: "citizen", lat: safeLat, lng: safeLng, label: "Citizen Action location" }, ...markers]
     : markers;
+  const labelBoundaries = useMemo(
+    () => [
+      ...(boundary ? [{ id: "single-boundary", kind: "jurisdiction", geojson: boundary, label: "Jurisdiction" }] : []),
+      ...boundaries,
+    ],
+    [boundary, boundaries],
+  );
 
   return (
     <div className="relative z-0 isolate h-full w-full overflow-hidden">
@@ -173,8 +300,10 @@ export default function LeafletMap({
         </LayersControl>
 
         <MapController lat={safeLat} lng={safeLng} onChange={onChange} boundary={boundary} boundaries={boundaries} />
-        {boundary && <GeoJSON data={boundary} style={{ color: "#2563eb", weight: 2.5, opacity: 0.9, fillColor: "#3b82f6", fillOpacity: 0.12 }} />}
+        {boundary && <GeoJSON data={boundary} style={{ color: "#2563eb", weight: 2.5, opacity: 0.9, fillColor: "#3b82f6", fillOpacity: 0.1 }} />}
         <BoundaryGroup boundaries={boundaries} selectedId={selectedBoundaryId} onBoundaryClick={onBoundaryClick} />
+        <BoundaryContextLabelController boundaries={labelBoundaries} />
+        <ConnectionLine connections={connections} />
         <MarkerGroup markers={allMarkers} />
       </MapContainer>
     </div>
