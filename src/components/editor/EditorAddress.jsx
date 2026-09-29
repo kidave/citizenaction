@@ -166,8 +166,6 @@ export default function EditorAddress({
     setPickerOpen(false);
   }
 
-  const locationSummary = editor.address || "Set location";
-
   return (
     <>
       {!isControlled && (
@@ -185,10 +183,8 @@ export default function EditorAddress({
                 <MapPin className="h-5 w-5" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom" align="start" className="max-w-sm">
-              <span className="block max-w-[280px] truncate">
-                {locationSummary}
-              </span>
+            <TooltipContent side="top" align="center">
+              {editor.address ? "Change location" : "Add location"}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

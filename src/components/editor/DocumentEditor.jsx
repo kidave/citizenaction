@@ -14,6 +14,7 @@ const RichTextEditor = dynamic(() => import("./content/RichTextEditor"), { ssr: 
 export default function DocumentEditor({ profile, spaces = [], post = null, previewOpen, onPreviewOpenChange, onClose, onCreated }) {
   const editor = usePostEditor(post, null, { draftScope: "document" });
   const resolvedContext = useResolvedPostContext(editor);
+  const footerDistrict = resolvedContext?.district?.name || null;
 
   return (
     <DocumentEditorLayout
@@ -28,7 +29,10 @@ export default function DocumentEditor({ profile, spaces = [], post = null, prev
             titleAriaLabel="Document title"
             documentStyle
           />
-          <EditorContextSuggestions editor={editor} resolvedContext={resolvedContext} />
+          <EditorContextSuggestions
+            editor={editor}
+            resolvedContext={{ ...resolvedContext, district: null }}
+          />
         </>
       }
       content={
@@ -56,6 +60,7 @@ export default function DocumentEditor({ profile, spaces = [], post = null, prev
           />
           <EditorFooter
             editor={editor}
+            districtName={footerDistrict}
             item={post}
             onClose={onClose}
             onCreated={onCreated}

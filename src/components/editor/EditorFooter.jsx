@@ -29,6 +29,7 @@ export default function EditorFooter({
   showDraftStatus = true,
   submitLabel,
   maxWidthClass = "max-w-6xl",
+  districtName = null,
 }) {
   const router = useRouter();
 
@@ -88,7 +89,19 @@ export default function EditorFooter({
             )}
 
             {showDateTime && <EditorDateTime editor={editor} />}
-            {showAddress && <EditorAddress editor={editor} />}
+            {showAddress && (
+              <div className="flex min-w-0 items-center">
+                <EditorAddress editor={editor} />
+                {districtName && editor.address && (
+                  <span
+                    className="ml-0.5 max-w-[180px] truncate text-xs text-muted-foreground sm:max-w-[240px]"
+                    title={districtName}
+                  >
+                    · {districtName}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-2">

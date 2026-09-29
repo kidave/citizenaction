@@ -26,6 +26,7 @@ export default function PostEditor({
   const { data: spaces = [], isLoading: spacesLoading } = useSpaces();
   const editor = usePostEditor(item, initialSpace, { draftScope: "post" });
   const resolvedContext = useResolvedPostContext(editor);
+  const footerDistrict = resolvedContext?.district?.name || null;
 
   if (profileLoading || spacesLoading || !profile)
     return <EditorModalSkeleton />;
@@ -35,7 +36,10 @@ export default function PostEditor({
       header={
         <>
           <EditorHeader profile={profile} editor={editor} spaces={spaces} />
-          <EditorContextSuggestions editor={editor} resolvedContext={resolvedContext} />
+          <EditorContextSuggestions
+            editor={editor}
+            resolvedContext={{ ...resolvedContext, district: null }}
+          />
         </>
       }
       content={
@@ -58,7 +62,7 @@ export default function PostEditor({
       footer={
         <EditorFooter
           editor={editor}
-          districtName={resolvedContext?.district?.name || null}
+          districtName={footerDistrict}
           item={item}
           onClose={onClose}
           onCreated={onCreated}
