@@ -161,8 +161,8 @@ function BoundaryContextLabelController({ boundaries = [] }) {
       position={[center.lat, center.lng]}
       interactive={false}
       icon={L.divIcon({
-        className: "citizen-map-boundary-label-anchor",
-        html: `<span class="citizen-map-boundary-label-pill">${active.label || active.name}</span>`,
+        className: "",
+        html: `<span style="display:inline-block;white-space:nowrap;padding:4px 8px;border:1px solid rgba(0,0,0,.12);border-radius:999px;background:rgba(255,255,255,.94);box-shadow:0 1px 4px rgba(0,0,0,.16);font:600 12px/1.2 system-ui,sans-serif;color:#18181b;">${active.label || active.name}</span>`,
         iconSize: [0, 0],
         iconAnchor: [0, 0],
       })}
