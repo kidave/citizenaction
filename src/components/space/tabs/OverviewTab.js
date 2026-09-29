@@ -7,7 +7,6 @@ import { Activity, ExternalLink, Globe, Mail, Phone, Users } from "lucide-react"
 import { useSpaceFeed } from "@/hooks/space/useSpaceFeed";
 import { useSpaceMembers } from "@/hooks/space/useSpaceMembers";
 
-import ActivityPreviewCard from "@/components/activity/ActivityPreviewCard";
 import MetricCard from "@/components/ui/metric-card";
 import SpaceActionMap from "@/components/space/SpaceActionMap";
 
@@ -18,15 +17,11 @@ export default function OverviewTab({ space }) {
   const { data: members = [] } = useSpaceMembers({ spaceId: space.id });
   const { data: spaceFeed = [] } = useSpaceFeed(space.id);
 
-  const recentFeed = [...spaceFeed]
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-    .slice(0, 4);
-
   const admins = members.filter((m) => ["owner", "admin"].includes(m.role));
 
   return (
     <div className="space-y-6">
-      <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(360px,0.8fr)] lg:items-stretch">
+      <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(380px,0.9fr)] lg:items-stretch">
         <div className="flex min-w-0 flex-col gap-5">
           <header>
             <div className="flex items-start gap-3 sm:gap-4">
@@ -49,87 +44,84 @@ export default function OverviewTab({ space }) {
             <MetricCard icon={Users} label="Members" value={members.length} />
             <MetricCard icon={Activity} label="Action" value={spaceFeed.length} />
           </section>
+
+          <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+            <Card className="flex h-full flex-col overflow-hidden rounded-3xl bg-muted">
+              <CardHeader>
+                <Link href={`/space/${space.slug}?tab=members`} className="flex items-center justify-between">
+                  <CardTitle>Team</CardTitle>
+                </Link>
+              </CardHeader>
+              <CardContent className="flex-1 bg-background py-2">
+                {admins.length ? (
+                  admins.map((member) => (
+                    <Link key={member.user_id} href={`/user/${member.username}`}>
+                      <div className="flex items-center justify-between gap-3 rounded-lg p-2 transition">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={member.avatar_url} />
+                            <AvatarFallback>{member.name?.[0] || "U"}</AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <div className="truncate font-medium">{member.name}</div>
+                            <div className="truncate text-xs text-muted-foreground">@{member.username}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <div className="p-2 text-sm text-muted-foreground">No team members listed.</div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="flex h-full flex-col overflow-hidden rounded-3xl bg-muted">
+              <CardHeader>
+                <CardTitle>{space.name}</CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 bg-background py-2">
+                {space.website && (
+                  <div className="flex items-start gap-3 p-2">
+                    <Globe className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <div className="text-xs text-muted-foreground">Website</div>
+                      <a href={space.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 transition hover:opacity-70">
+                        <span className="max-w-[160px] truncate">{space.website.replace("https://", "").replace("http://", "")}</span>
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  </div>
+                )}
+                {space.email && (
+                  <div className="flex items-start gap-3 p-2">
+                    <Mail className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <div className="text-xs text-muted-foreground">Email</div>
+                      <a href={`mailto:${space.email}`} className="break-all hover:underline">{space.email}</a>
+                    </div>
+                  </div>
+                )}
+                {space.contact_number && (
+                  <div className="flex items-start gap-3 p-2">
+                    <Phone className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <div className="text-xs text-muted-foreground">Phone</div>
+                      <div>{space.contact_number}</div>
+                    </div>
+                  </div>
+                )}
+                {!space.website && !space.email && !space.contact_number && (
+                  <div className="p-2 text-sm text-muted-foreground">No additional details available.</div>
+                )}
+              </CardContent>
+            </Card>
+          </section>
         </div>
 
         <div className="min-w-0">
           <SpaceActionMap posts={spaceFeed} />
         </div>
-      </section>
-
-      <div className="space-y-4">
-        <Link href={`/space/${space.slug}?tab=activity`} className="flex items-center justify-between">
-          <p className="text-sm font-semibold text-muted-foreground">Latest actions from {space.name}</p>
-        </Link>
-      </div>
-
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {recentFeed.slice(0, 1).map((post) => (
-          <ActivityPreviewCard key={post.id} post={post} />
-        ))}
-
-        {!recentFeed.length && <div className="text-sm text-muted-foreground">No recent actions.</div>}
-
-        <Card className="flex h-full flex-col overflow-hidden rounded-3xl bg-muted">
-          <CardHeader>
-            <Link href={`/space/${space.slug}?tab=members`} className="flex items-center justify-between">
-              <CardTitle>Team</CardTitle>
-            </Link>
-          </CardHeader>
-          <CardContent className="flex-1 bg-background py-2">
-            {admins.map((member) => (
-              <Link key={member.user_id} href={`/user/${member.username}`}>
-                <div className="flex items-center justify-between gap-3 rounded-lg p-2 transition">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={member.avatar_url} />
-                      <AvatarFallback>{member.name?.[0] || "U"}</AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0">
-                      <div className="truncate font-medium">{member.name}</div>
-                      <div className="truncate text-xs text-muted-foreground">@{member.username}</div>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Card className="flex h-full flex-col overflow-hidden rounded-3xl bg-muted">
-          <CardHeader><CardTitle>{space.name}</CardTitle></CardHeader>
-          <CardContent className="flex-1 bg-background py-2">
-            {space.website && (
-              <div className="flex items-start gap-3 p-2">
-                <Globe className="mt-0.5 h-4 w-4 text-muted-foreground" />
-                <div>
-                  <div className="text-xs text-muted-foreground">Website</div>
-                  <a href={space.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 transition hover:opacity-70">
-                    <span className="max-w-[160px] truncate">{space.website.replace("https://", "").replace("http://", "")}</span>
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
-                </div>
-              </div>
-            )}
-            {space.email && (
-              <div className="flex items-start gap-3 p-2">
-                <Mail className="mt-0.5 h-4 w-4 text-muted-foreground" />
-                <div>
-                  <div className="text-xs text-muted-foreground">Email</div>
-                  <a href={`mailto:${space.email}`} className="break-all hover:underline">{space.email}</a>
-                </div>
-              </div>
-            )}
-            {space.contact_number && (
-              <div className="flex items-start gap-3 p-2">
-                <Phone className="mt-0.5 h-4 w-4 text-muted-foreground" />
-                <div>
-                  <div className="text-xs text-muted-foreground">Phone</div>
-                  <div>{space.contact_number}</div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </section>
     </div>
   );
