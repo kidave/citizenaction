@@ -26,29 +26,35 @@ export default function OverviewTab({ space }) {
 
   return (
     <div className="space-y-6">
-      <header>
-        <div className="flex items-start gap-3 sm:gap-4">
-          {space.logo_url && (
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted sm:h-20 sm:w-20">
-              <img src={space.logo_url} alt={`${space.name} logo`} className="max-h-full max-w-full object-contain" />
+      <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(360px,0.8fr)] lg:items-stretch">
+        <div className="flex min-w-0 flex-col gap-5">
+          <header>
+            <div className="flex items-start gap-3 sm:gap-4">
+              {space.logo_url && (
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted sm:h-20 sm:w-20">
+                  <img src={space.logo_url} alt={`${space.name} logo`} className="max-h-full max-w-full object-contain" />
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                {space.description && (
+                  <p className="text-sm leading-relaxed text-muted-foreground lg:text-base">
+                    {space.description}
+                  </p>
+                )}
+              </div>
             </div>
-          )}
-          <div className="min-w-0 flex-1">
-            {space.description && (
-              <p className="text-sm leading-relaxed text-muted-foreground lg:text-base">
-                {space.description}
-              </p>
-            )}
-          </div>
+          </header>
+
+          <section className="grid max-w-xl grid-cols-2 gap-4">
+            <MetricCard icon={Users} label="Members" value={members.length} />
+            <MetricCard icon={Activity} label="Action" value={spaceFeed.length} />
+          </section>
         </div>
-      </header>
 
-      <section className="grid max-w-xl grid-cols-2 gap-4">
-        <MetricCard icon={Users} label="Members" value={members.length} />
-        <MetricCard icon={Activity} label="Action" value={spaceFeed.length} />
+        <div className="min-w-0">
+          <SpaceActionMap posts={spaceFeed} />
+        </div>
       </section>
-
-      <SpaceActionMap posts={spaceFeed} />
 
       <div className="space-y-4">
         <Link href={`/space/${space.slug}?tab=activity`} className="flex items-center justify-between">
