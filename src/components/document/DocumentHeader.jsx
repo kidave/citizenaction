@@ -37,7 +37,6 @@ export default function DocumentHeader({ post, publicContext, canEdit, onEdit, o
   const boundaries = useMemo(() => {
     const result = [];
     const seen = new Set();
-
     for (const item of geography) {
       const isDistrict = item?.relationship_type === "district" || item?.source_type === "address" || item?.geography_type === "district";
       if (!isDistrict || !item?.geojson) continue;
@@ -46,7 +45,6 @@ export default function DocumentHeader({ post, publicContext, canEdit, onEdit, o
       seen.add(id);
       result.push({ id, kind: "district", name: item.name, label: item.name, geojson: item.geojson, osm_id: item.osm_id, osm_type: item.osm_type });
     }
-
     for (const org of governanceContext) {
       const jurisdiction = org?.jurisdiction;
       if (!jurisdiction?.geojson) continue;
@@ -55,7 +53,6 @@ export default function DocumentHeader({ post, publicContext, canEdit, onEdit, o
       seen.add(id);
       result.push({ id, kind: "jurisdiction", name: jurisdiction.name || org.name, label: jurisdiction.name || org.name, geojson: jurisdiction.geojson, osm_id: jurisdiction.osm_id, osm_type: jurisdiction.osm_type });
     }
-
     for (const person of peopleContext) {
       const jurisdiction = person?.organization?.jurisdiction;
       if (!jurisdiction?.geojson) continue;
@@ -64,7 +61,6 @@ export default function DocumentHeader({ post, publicContext, canEdit, onEdit, o
       seen.add(id);
       result.push({ id, kind: "jurisdiction", name: jurisdiction.name || person.organization.name, label: jurisdiction.name || person.organization.name, geojson: jurisdiction.geojson, osm_id: jurisdiction.osm_id, osm_type: jurisdiction.osm_type });
     }
-
     return result;
   }, [geography, governanceContext, peopleContext]);
 
@@ -76,11 +72,10 @@ export default function DocumentHeader({ post, publicContext, canEdit, onEdit, o
     const unique = new Map();
     for (const org of organizations) {
       const address = getOfficeAddress(org);
-      if (!org?.id || !address || asNumber(org.office_lat) != null && asNumber(org.office_lng) != null) continue;
+      if (!org?.id || !address || (asNumber(org.office_lat) != null && asNumber(org.office_lng) != null)) continue;
       unique.set(org.id, { id: org.id, address });
     }
     if (!unique.size) return;
-
     let cancelled = false;
     Promise.all(
       [...unique.values()].map(async ({ id, address }) => {
@@ -105,14 +100,12 @@ export default function DocumentHeader({ post, publicContext, canEdit, onEdit, o
         return next;
       });
     });
-
     return () => { cancelled = true; };
   }, [governanceContext, peopleContext]);
 
   const markers = useMemo(() => {
     const result = [];
     const seen = new Set();
-
     for (const org of governanceContext) {
       const resolved = resolvedOfficeCoords[org.id];
       const lat = asNumber(org?.office_lat) ?? resolved?.lat;
@@ -123,7 +116,6 @@ export default function DocumentHeader({ post, publicContext, canEdit, onEdit, o
       seen.add(id);
       result.push({ id, kind: "governance", lat, lng, image_url: org.image_url, label: org.short_name || org.name });
     }
-
     for (const person of peopleContext) {
       const org = person?.organization;
       if (!org) continue;
@@ -136,7 +128,6 @@ export default function DocumentHeader({ post, publicContext, canEdit, onEdit, o
       seen.add(id);
       result.push({ id, kind: "person", lat, lng, image_url: person.image_url || org.image_url, label: person.position_name ? `${person.name} · ${person.position_name}` : person.name });
     }
-
     return result;
   }, [governanceContext, peopleContext, resolvedOfficeCoords]);
 
@@ -156,26 +147,33 @@ export default function DocumentHeader({ post, publicContext, canEdit, onEdit, o
   return (
     <>
       <header className="border-b pb-5">
-        <div className="flex items-start justify-between gap-6">
-          <div className="min-w-0 flex-1 space-y-4">
-            <UserIdentity username={post.author_username} name={post.author_name} avatar={post.author_avatar} createdAt={formatDate(post.created_at)} />
-            {(spaces.length > 0 || governance.length > 0) && (
-              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+          <div className="min-w-0 flex-1 space-y-3">
+            <div className="min-w-0">
+              <UserIdentity username={post.author_username} name={post.author_name} avatar={post.author_avatar} createdAt={formatDate(post.created_at)} />
+            </div>
+
+            {(spaces.length > 0 || governance.length > 0 || district?.name) && (
+              <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
                 {spaces.length > 0 && <SpaceAvatarGroup spaces={spaces} />}
                 {governance.length > 0 && <GovernanceAvatarGroup authorities={governance} />}
+                {district?.name && <span className="truncate">{district.name}</span>}
               </div>
             )}
+
             {categories.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex min-w-0 flex-wrap gap-2">
                 {categories.map((category) => <span key={category.id || category.name} className="rounded-md bg-muted px-2.5 py-1 text-sm text-muted-foreground">{category.name}</span>)}
               </div>
             )}
           </div>
 
-          <div className="flex shrink-0 flex-col items-end gap-2">
-            {canEdit && <MenuButton onEdit={onEdit} onDelete={onDelete} />}
+          <div className="flex w-full shrink-0 flex-col items-stretch gap-2 sm:w-auto sm:items-end">
+            <div className="flex justify-end">
+              {canEdit && <MenuButton onEdit={onEdit} onDelete={onDelete} />}
+            </div>
             {hasMap && (
-              <div role="button" tabIndex={0} onClick={openMap} onKeyDown={handleMapKeyDown} className="group relative h-32 w-52 cursor-pointer overflow-hidden rounded-xl border bg-muted text-left outline-none transition hover:ring-2 hover:ring-ring/40 focus-visible:ring-2 focus-visible:ring-ring sm:h-36 sm:w-60" aria-label="Open location map">
+              <div role="button" tabIndex={0} onClick={openMap} onKeyDown={handleMapKeyDown} className="group relative h-36 w-full cursor-pointer overflow-hidden rounded-xl border bg-muted text-left outline-none transition hover:ring-2 hover:ring-ring/40 focus-visible:ring-2 focus-visible:ring-ring sm:h-36 sm:w-60" aria-label="Open location map">
                 <LeafletMap lat={Number(post.lat)} lng={Number(post.lng)} boundaries={boundaries} markers={markers} citizenMarker={citizenMarker} showMarker zoom={11} />
                 <div className="absolute inset-0 z-20" aria-hidden="true" />
                 <div className="absolute inset-x-0 bottom-0 z-30 bg-background/85 px-3 py-2 text-xs text-muted-foreground backdrop-blur-sm">{district?.name || post.address || "View location"}</div>
