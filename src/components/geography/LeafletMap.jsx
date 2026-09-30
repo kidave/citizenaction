@@ -14,7 +14,10 @@ import { useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-import ActivityPreviewCard from "@/components/activity/ActivityPreviewCard";
+import { format } from "date-fns";
+
+import { getActivityDate } from "@/utils/activity";
+import { getGovernanceLabel } from "@/utils/governance";
 
 const citizenIcon = L.divIcon({
   className: "",
@@ -31,6 +34,51 @@ function imageIcon(url, size = 32) {
     iconSize: [size, size],
     iconAnchor: [size / 2, size],
   });
+}
+
+function MapPostPopup({ post }) {
+  const actionDate = getActivityDate(post);
+  const governance = Array.isArray(post?.governance) ? post.governance : [];
+  const organization = governance[0] || null;
+  const organizationLabel = organization ? getGovernanceLabel(organization) : null;
+  const authorInitial = post?.author_name?.charAt(0)?.toUpperCase() || "U";
+
+  return (
+    <div className="min-w-[220px] max-w-[280px] space-y-2 py-0.5">
+      <div className="text-sm font-semibold leading-tight">
+        {post?.title || "Untitled"}
+      </div>
+
+      {actionDate || organizationLabel || post?.author_avatar ? (
+        <div className="flex items-center gap-2 border-t pt-2">
+          {post?.author_avatar ? (
+            <img
+              src={post.author_avatar}
+              alt={post.author_name || "Person"}
+              className="h-7 w-7 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-medium">
+              {authorInitial}
+            </div>
+          )}
+
+          <div className="min-w-0 flex-1 space-y-0.5">
+            {actionDate ? (
+              <div className="text-xs text-muted-foreground">
+                {format(actionDate, "d MMM yyyy")}
+              </div>
+            ) : null}
+            {organizationLabel ? (
+              <div className="truncate text-xs font-medium">
+                {organizationLabel}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 function MapController({ onChange, boundary, boundaries, fitMarkers }) {
@@ -104,8 +152,8 @@ function MarkerGroup({ markers = [] }) {
       return (
         <Marker key={`${item.kind || "marker"}-${item.id || index}`} position={[Number(item.lat), Number(item.lng)]} icon={icon}>
           {item.popupPost ? (
-            <Popup closeButton className="citizen-action-map-popup" maxWidth={560} minWidth={300}>
-              <ActivityPreviewCard post={item.popupPost} className="border-0 shadow-none" />
+            <Popup closeButton className="citizen-action-map-popup" maxWidth={320} minWidth={240}>
+              <MapPostPopup post={item.popupPost} />
             </Popup>
           ) : item.label ? (
             <Popup closeButton>{item.label}</Popup>
