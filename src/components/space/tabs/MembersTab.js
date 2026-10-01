@@ -1,9 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
-import { Users, UserPlus } from "lucide-react";
-
 import { useSpaceMembers } from "@/hooks/space/useSpaceMembers";
 
 import {
@@ -14,7 +10,6 @@ import {
   CardContent,
 } from "@/components/ui/card";
 
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import MemberCard from "@/components/space/MemberCard";
 
@@ -26,8 +21,6 @@ export default function MembersTab({ spaceId, spaceSlug }) {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <BecomeMemberCard spaceSlug={spaceSlug} />
-
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <Card key={i}>
@@ -51,8 +44,6 @@ export default function MembersTab({ spaceId, spaceSlug }) {
 
   return (
     <div className="space-y-6">
-      <BecomeMemberCard spaceSlug={spaceSlug} />
-
       {!members.length ? (
         <Card className="border-dashed">
           <CardHeader>
@@ -70,33 +61,5 @@ export default function MembersTab({ spaceId, spaceSlug }) {
         </div>
       )}
     </div>
-  );
-}
-
-function BecomeMemberCard({ spaceSlug }) {
-  return (
-    <Card className="border-dashed">
-      <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-            <Users className="h-5 w-5 text-primary" />
-          </div>
-
-          <div>
-            <h3 className="font-semibold">Become a member</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Join this Space to participate, contribute, and stay connected.
-            </p>
-          </div>
-        </div>
-
-        <Button asChild>
-          <Link href={`/space/${spaceSlug}/application/member`}>
-            <UserPlus className="mr-2 h-4 w-4" />
-            Become a member
-          </Link>
-        </Button>
-      </CardContent>
-    </Card>
   );
 }

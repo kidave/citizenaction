@@ -32,7 +32,6 @@ function ActionButton({ action }) {
       size="icon"
       className="shrink-0"
       aria-label={action.label}
-      title={action.label}
       disabled={action.href ? undefined : action.disabled}
       onClick={action.href ? undefined : action.onClick}
     >
@@ -203,7 +202,6 @@ export default function Topbar({
             size="icon"
             className="shrink-0 md:hidden"
             aria-label="Open navigation"
-            title="Open navigation"
             onClick={handleMobileMenu}
           >
             <Menu className="h-5 w-5" />

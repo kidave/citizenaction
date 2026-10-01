@@ -198,7 +198,7 @@ export default function SpacePage() {
 
   const navigation = (
     <div className="bg-background">
-      <div className="mx-auto max-w-6xl px-2 sm:px-4">
+      <div className="mx-auto max-w-6xl px-0">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           {/* Tabs */}
           <Tabs value={activeTab} className="min-w-0">
@@ -246,10 +246,10 @@ export default function SpacePage() {
           title={space.name}
           primaryActions={primaryActions}
           overflowActions={overflowActions}
-          bottom={navigation}
         />
 
-        <div className="space-y-4 p-2 sm:p-4">
+        <div className="space-y-4 px-2 pb-2 sm:px-4 sm:pb-4">
+          {navigation}
           <Tabs value={activeTab}>
             <TabsContent value="overview">
               <OverviewTab space={space} />
