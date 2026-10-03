@@ -7,13 +7,17 @@ export function useRequireAuth(redirectTo = "/auth/login") {
   const router = useRouter();
 
   useEffect(() => {
-    if (loading || user) return;
+    if (loading || user || !router.isReady) return;
 
-    if (typeof window !== "undefined") {
-      localStorage.setItem("returnTo", router.asPath);
-    }
+    const nextPath = router.asPath || "/";
 
-    router.replace(redirectTo);
+    router.replace({
+      pathname: redirectTo,
+      query:
+        redirectTo === "/auth/login" && nextPath !== "/auth/login"
+          ? { next: nextPath }
+          : {},
+    });
   }, [loading, user, router, redirectTo]);
 
   return { user, loading };
