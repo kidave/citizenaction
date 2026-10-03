@@ -26,15 +26,17 @@ export function Profile() {
   const { data: profile, isLoading } = useMyProfile();
 
   const handleLogin = () => {
-    if (typeof window !== "undefined") {
-      const currentPath = window.location.pathname + window.location.search;
+    const currentPath =
+      router.pathname +
+      (router.asPath.includes("?")
+        ? router.asPath.slice(router.asPath.indexOf("?"))
+        : "");
 
-      if (currentPath !== "/auth/login") {
-        localStorage.setItem("returnTo", currentPath);
-      }
-    }
-
-    router.push("/auth/login");
+    router.push({
+      pathname: "/auth/login",
+      query:
+        currentPath === "/auth/login" ? {} : { next: currentPath },
+    });
   };
 
   const handleLogout = async () => {
