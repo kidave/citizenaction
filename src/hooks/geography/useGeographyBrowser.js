@@ -11,7 +11,7 @@ export function useGeographyBrowser({ parentId = null, search = "", type = "all"
   const PAGE_SIZE = 50;
   const query = useInfiniteQuery({
     queryKey: search.trim()
-      ? queryKeys.geography.search({ search: search.trim(), type, limit: PAGE_SIZE })
+      ? queryKeys.geography.browserSearch({ search: search.trim(), type, limit: PAGE_SIZE })
       : queryKeys.geography.children(parentId || "india", type),
     enabled,
     initialPageParam: 0,
