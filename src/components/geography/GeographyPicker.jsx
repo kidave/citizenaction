@@ -19,7 +19,7 @@ export default function GeographyPicker({ open, onOpenChange, value = null, onVa
   useEffect(() => { if (!open) setSearch(""); }, [open]);
 
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useInfiniteQuery({
-    queryKey: queryKeys.geography.search(search.trim()),
+    queryKey: queryKeys.geography.pickerSearch(search.trim()),
     enabled: open,
     initialPageParam: 0,
     queryFn: async ({ pageParam = 0 }) => {
@@ -40,6 +40,21 @@ export default function GeographyPicker({ open, onOpenChange, value = null, onVa
   });
 
   const rows = data?.pages?.flatMap((page) => page) || [];
+  const visibleRows = rows.filter((item) => item.id !== excludeId);
+  const groupedRows = visibleRows.reduce((groups, item) => {
+    const type = item.geography_type || "other";
+    const label = type === "state" ? "States & Union Territories" : type.replace(/_/g, " ").replace(/\\b\\w/g, (letter) => letter.toUpperCase());
+    const group = groups.find((entry) => entry.value === type);
+    if (group) group.items.push(item);
+    else groups.push({ value: type, label, items: [item] });
+    return groups;
+  }, []);
+  const groupOrder = ["state", "district", "subdistrict", "sub_district", "local_government", "zone", "ward"];
+  groupedRows.sort((a, b) => {
+    const ai = groupOrder.indexOf(a.value);
+    const bi = groupOrder.indexOf(b.value);
+    return (ai < 0 ? groupOrder.length : ai) - (bi < 0 ? groupOrder.length : bi) || a.label.localeCompare(b.label);
+  });
 
   useEffect(() => {
     const node = loadMoreRef.current;
@@ -65,22 +80,26 @@ export default function GeographyPicker({ open, onOpenChange, value = null, onVa
           <div className="p-2">
             {isLoading ? (
               <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Loading geographies…</div>
-            ) : rows.length === 0 ? (
+            ) : visibleRows.length === 0 ? (
               <div className="py-12 text-center text-sm text-muted-foreground">No matching boundaries found.</div>
-            ) : rows.map((item) => {
-              if (item.id === excludeId) return null;
-              const selected = item.id === value;
-              return (
+            ) : groupedRows.map((group) => (
+              <div key={group.value} className="space-y-1">
+                <div className="px-3 pt-3 text-xs font-medium text-muted-foreground">{group.label}</div>
+                {group.items.map((item) => {
+                  const selected = item.id === value;
+                  return (
                 <button key={item.id} type="button" onClick={() => { onValueChange?.(item); onOpenChange?.(false); }} className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-left hover:bg-muted">
                   <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium">{item.official_name || item.name}</span>
-                    <span className="block truncate text-xs text-muted-foreground">{item.geography_type?.replace(/_/g, " ") || "Boundary"}</span>
+                    <span className="block truncate text-xs text-muted-foreground">{item.official_name && item.name !== item.official_name ? item.name : ""}</span>
                   </span>
                   {selected && <Check className="h-4 w-4 shrink-0" />}
                 </button>
-              );
-            })}
+                  );
+                })}
+              </div>
+            ))
             <div ref={loadMoreRef} className="h-2" aria-hidden="true" />
             {isFetchingNextPage && <div className="flex items-center justify-center gap-2 py-3 text-xs text-muted-foreground"><Loader2 className="h-3.5 w-3.5 animate-spin" />Loading more boundaries…</div>}
           </div>
