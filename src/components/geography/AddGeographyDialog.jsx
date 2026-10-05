@@ -90,7 +90,7 @@ export default function AddGeographyDialog({
   );
   const currentGeography = relationships[0]?.geographies || null;
   const currentGeographyId = relationships[0]?.geography_id || null;
-  const { data: items = [], isLoading } = useGeographyBrowser({
+  const { data: items = [], isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useGeographyBrowser({
     parentId: parent?.id || null,
     search,
     type,
@@ -328,6 +328,18 @@ export default function AddGeographyDialog({
                       </div>
                     );
                   })
+                )}
+                {hasNextPage && !isLoading && (
+                  <div className="flex justify-center border-t p-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fetchNextPage()}
+                      disabled={isFetchingNextPage}
+                    >
+                      {isFetchingNextPage ? "Loading…" : "Load more boundaries"}
+                    </Button>
+                  </div>
                 )}
               </RadioGroup>
             </ScrollArea>
