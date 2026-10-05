@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { MapPinned, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { MapPinned, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import GeographySearch from "@/components/geography/GeographySearch";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase/client";
 import { queryKeys } from "@/lib/queryKeys";
@@ -87,10 +88,7 @@ export default function AdminGeography({ embedded = false }) {
             ))}
           </SelectContent>
         </Select>
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input className="pl-9" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search within this geography type" />
-        </div>
+        <GeographySearch className="flex-1" value={query} onChange={setQuery} placeholder="Search geography..." />
         <span className="self-center text-sm text-muted-foreground">{filtered.length} shown</span>
       </div>
       <Card><CardContent className="p-0">
