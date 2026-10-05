@@ -29,7 +29,7 @@ import {
 
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function SpaceMembersSettings({ spaceSlug }) {
+export default function SpaceMembersSettings({ spaceSlug, isOwner = false, isAdmin = false }) {
   /* ========================================
      SPACE
   ======================================== */
@@ -291,45 +291,53 @@ export default function SpaceMembersSettings({ spaceSlug }) {
                       <DropdownMenuContent align="end">
                         {/* MAKE ADMIN */}
 
-                        <DropdownMenuItem
-                          disabled={isUpdating || member.role === "admin"}
-                          onClick={() => handleChangeRole(member, "admin")}
-                        >
+                        {(isOwner || isAdmin) && (
+                          <DropdownMenuItem
+                            disabled={isUpdating || member.role === "admin"}
+                            onClick={() => handleChangeRole(member, "admin")}
+                          >
                           <UserRoundCog className="mr-2 h-4 w-4" />
                           Make admin
                         </DropdownMenuItem>
+                        )}
 
                         {/* MAKE MEMBER */}
 
-                        <DropdownMenuItem
-                          disabled={isUpdating || member.role === "member"}
-                          onClick={() => handleChangeRole(member, "member")}
-                        >
+                        {isOwner && (
+                          <DropdownMenuItem
+                            disabled={isUpdating || member.role === "member"}
+                            onClick={() => handleChangeRole(member, "member")}
+                          >
                           <Users className="mr-2 h-4 w-4" />
                           Make member
                         </DropdownMenuItem>
+                        )}
 
                         {/* SUSPEND / RESTORE */}
 
-                        <DropdownMenuItem
-                          disabled={isUpdating}
-                          onClick={() => handleToggleSuspension(member)}
-                        >
+                        {isOwner && (
+                          <DropdownMenuItem
+                            disabled={isUpdating}
+                            onClick={() => handleToggleSuspension(member)}
+                          >
                           {member.is_suspended
                             ? "Restore member"
                             : "Suspend member"}
                         </DropdownMenuItem>
+                        )}
 
                         {/* REMOVE */}
 
-                        <DropdownMenuItem
-                          disabled={isUpdating}
-                          className="text-destructive focus:text-destructive"
-                          onClick={() => handleRemoveMember(member)}
-                        >
+                        {isOwner && (
+                          <DropdownMenuItem
+                            disabled={isUpdating}
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => handleRemoveMember(member)}
+                          >
                           <UserMinus className="mr-2 h-4 w-4" />
                           Remove member
                         </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
