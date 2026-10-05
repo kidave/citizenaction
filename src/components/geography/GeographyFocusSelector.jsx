@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { MapPinned } from "lucide-react";
+import { useEffect, useState } from "react";
+import { MapPinned, X } from "lucide-react";
 
 import {
   Combobox,
@@ -21,67 +21,29 @@ import {
   useGeographyFocus,
 } from "@/hooks/geography/useGeographyFocus";
 
-function formatGeographyType(value) {
-  return value
-    ? value.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())
-    : "Other";
-}
-
-export default function GeographyFocusSelector({
-  value,
-  onValueChange,
-  className,
-}) {
+export default function GeographyFocusSelector({ value, onValueChange, className }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const { effectiveValue, selected, options, isSearching, error } =
-    useGeographyFocus({ value, search, open });
+  const {
+    effectiveValue, selected, options, isSearching, error,
+    hasNextPage, fetchNextPage, isFetchingNextPage,
+  } = useGeographyFocus({ value, search, open });
 
   useEffect(() => {
-    if (!open) {
-      setSearch("");
-    }
+    if (!open) setSearch("");
   }, [open]);
 
-  const selectedLabel =
-    selected?.name ||
+  const selectedLabel = selected?.name ||
     (effectiveValue === DEFAULT_GEOGRAPHY_FOCUS_ID ? "India" : "");
 
-  const groupedOptions = useMemo(() => {
-    const groups = new Map();
-
-    for (const item of options) {
-      const type = item.geography_type || "other";
-      if (!groups.has(type)) {
-        groups.set(type, []);
-      }
-      groups.get(type).push(item);
-    }
-
-    if (selected?.id && !options.some((item) => item.id === selected.id)) {
-      const type = selected.geography_type || "other";
-      if (!groups.has(type)) {
-        groups.set(type, []);
-      }
-      groups.get(type).push(selected);
-    }
-
-    return [...groups.entries()]
-      .sort(([a], [b]) =>
-        formatGeographyType(a).localeCompare(formatGeographyType(b)),
-      )
-      .map(([type, items]) => ({
-        value: formatGeographyType(type),
-        items: [...items].sort((a, b) =>
-          (a.name || "").localeCompare(b.name || ""),
-        ),
-      }));
-  }, [options, selected]);
+  const loadMore = () => {
+    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+  };
 
   return (
     <Combobox
-      items={groupedOptions}
+      items={[{ value: "Boundaries", items: options }]}
       value={selected || undefined}
       open={open}
       onOpenChange={setOpen}
@@ -99,15 +61,34 @@ export default function GeographyFocusSelector({
       autoHighlight
       className={className}
     >
-      <ComboboxTrigger
-        className="shadow-xs inline-flex h-9 w-[9.5rem] max-w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 font-serif text-sm font-normal hover:bg-accent hover:text-accent-foreground"
-        aria-label="Select geography"
-      >
-        <span className="flex min-w-0 items-center gap-2">
-          <MapPinned className="h-4 w-4 shrink-0 text-muted-foreground" />
-          <ComboboxValue placeholder={selectedLabel || "Select geography"} />
-        </span>
-      </ComboboxTrigger>
+      <div className="relative">
+        <ComboboxTrigger
+          className="shadow-xs inline-flex h-9 w-[9.5rem] max-w-full items-center justify-between gap-2 rounded-md border border-input bg-background pl-3 pr-2 font-serif text-sm font-normal hover:bg-accent hover:text-accent-foreground"
+          aria-label="Select geography"
+        >
+          <span className="flex min-w-0 items-center gap-2">
+            <MapPinned className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <ComboboxValue placeholder={selectedLabel || "Select geography"} />
+          </span>
+        </ComboboxTrigger>
+        {effectiveValue !== DEFAULT_GEOGRAPHY_FOCUS_ID && (
+          <button
+            type="button"
+            aria-label="Clear geography boundary"
+            title="Clear boundary"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onValueChange?.(null);
+              setSearch("");
+              setOpen(false);
+            }}
+            className="absolute left-1 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md bg-background text-muted-foreground shadow-sm ring-1 ring-border hover:bg-accent hover:text-foreground"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
 
       <ComboboxContent className="w-[min(28rem,calc(100vw-1.5rem))]">
         <ComboboxInput
@@ -115,19 +96,23 @@ export default function GeographyFocusSelector({
           showClear={false}
           showInputClear={Boolean(search)}
           onClearInput={() => setSearch("")}
-          placeholder="Search geography..."
-          aria-label="Search geography"
+          placeholder="Search boundary..."
+          aria-label="Search geography boundary"
           className="h-9 rounded-md"
         />
         <ComboboxEmpty>
-          {error
-            ? "Unable to search geographies."
-            : isSearching
-              ? "Searching..."
-              : "No geographies found."}
+          {error ? "Unable to search boundaries." : isSearching ? "Searching..." : "No boundaries found."}
         </ComboboxEmpty>
-
-        <ComboboxList className="max-h-[min(24rem,calc(100vh-10rem))] overflow-y-auto">
+        <ComboboxList
+          className="max-h-[min(24rem,calc(100vh-10rem))] overflow-y-auto"
+          onScroll={(event) => {
+            const target = event.currentTarget;
+            if (hasNextPage && !isFetchingNextPage &&
+                target.scrollTop + target.clientHeight >= target.scrollHeight - 80) {
+              loadMore();
+            }
+          }}
+        >
           {(group) => (
             <ComboboxGroup key={group.value} items={group.items}>
               <ComboboxLabel>{group.value}</ComboboxLabel>
@@ -143,6 +128,11 @@ export default function GeographyFocusSelector({
             </ComboboxGroup>
           )}
         </ComboboxList>
+        {isFetchingNextPage && (
+          <div className="border-t px-3 py-2 text-center text-xs text-muted-foreground">
+            Loading more boundaries…
+          </div>
+        )}
       </ComboboxContent>
     </Combobox>
   );
