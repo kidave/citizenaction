@@ -117,27 +117,16 @@ export default function GeographyFocusSelector({ value, onValueChange, className
       autoHighlight
       className={className}
     >
-      <ComboboxTrigger
-        className="shadow-xs inline-flex h-10 w-[12rem] max-w-full items-center gap-2 rounded-md border border-input bg-background px-2.5 hover:bg-accent hover:text-accent-foreground"
-        aria-label="Select geography"
-      >
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground">
-          {isIndia ? (
+      <div className="relative w-[12rem] max-w-full">
+        <ComboboxTrigger
+          className={`shadow-xs inline-flex h-10 w-full items-center gap-2 rounded-md border border-input bg-background px-2.5 hover:bg-accent hover:text-accent-foreground ${!isIndia ? "pl-11" : ""}`}
+          aria-label="Select geography"
+        >
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground">
             <MapPinned className="h-4 w-4" />
-          ) : (
-            <button
-              type="button"
-              aria-label="Clear geography boundary"
-              title="Clear boundary"
-              onClick={clearBoundary}
-              className="flex h-7 w-7 items-center justify-center rounded-md bg-background text-muted-foreground ring-1 ring-border hover:bg-accent hover:text-foreground"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </span>
+          </span>
 
-        <span className="min-w-0 flex-1 text-left">
+          <span className="min-w-0 flex-1 text-left">
           <ComboboxValue
             placeholder={selectedLabel || "Select geography"}
             className="block truncate font-serif text-sm font-normal"
@@ -147,8 +136,21 @@ export default function GeographyFocusSelector({ value, onValueChange, className
               {selectedType}
             </span>
           )}
-        </span>
-      </ComboboxTrigger>
+          </span>
+        </ComboboxTrigger>
+
+        {!isIndia && (
+          <button
+            type="button"
+            aria-label="Clear geography boundary"
+            title="Clear boundary"
+            onClick={clearBoundary}
+            className="absolute left-2 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md bg-background text-muted-foreground ring-1 ring-border hover:bg-accent hover:text-foreground"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
 
       <ComboboxContent className="w-[min(28rem,calc(100vw-1.5rem))]">
         <ComboboxInput
