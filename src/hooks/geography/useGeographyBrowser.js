@@ -7,9 +7,9 @@ const geographyGeometryCache = new Map();
 export const GEOGRAPHY_METADATA_SELECT =
   "id,name,official_name,geography_type,parent_id,country_code,osm_type,osm_id,admin_level,source,source_url,center,metadata";
 
-export function useGeographyBrowser({ parentId = null, search = "", enabled = true }) {
+export function useGeographyBrowser({ parentId = null, search = "", type = "all", enabled = true }) {
   return useQuery({
-    queryKey: search.trim() ? queryKeys.geography.search({ search: search.trim(), type: "all", limit: 50 }) : queryKeys.geography.children(parentId || "india"),
+    queryKey: search.trim() ? queryKeys.geography.search({ search: search.trim(), type, limit: 50 }) : queryKeys.geography.children(parentId || "india"),
     enabled,
     queryFn: async () => {
       let query = supabase
@@ -26,6 +26,8 @@ export function useGeographyBrowser({ parentId = null, search = "", enabled = tr
       } else {
         query = query.eq("geography_type", "country").eq("country_code", "IN");
       }
+
+      if (type !== "all") query = query.eq("geography_type", type);
 
       const { data, error } = await query;
       if (error) throw error;
