@@ -27,24 +27,33 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-dvh w-full">
       <AdminPageHeader items={[]} />
-      <Tabs value={activeTab} onValueChange={changeTab} className="w-full">
-        <div className="border-b bg-background">
-          <div className="mx-auto w-full max-w-4xl px-4 sm:px-6">
-            <div className="overflow-x-auto">
-              <TabsList className="h-10 w-max min-w-full justify-start rounded-none bg-transparent p-0">
-                <TabsTrigger value="users" className="mr-6 h-10 rounded-none border-b-2 border-transparent bg-transparent px-1 shadow-none data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none">Users</TabsTrigger>
-                <TabsTrigger value="spaces" className="mr-6 h-10 rounded-none border-b-2 border-transparent bg-transparent px-1 shadow-none data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none">Spaces</TabsTrigger>
-                <TabsTrigger value="geography" className="mr-6 h-10 rounded-none border-b-2 border-transparent bg-transparent px-1 shadow-none data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none">Geography</TabsTrigger>
-              </TabsList>
-            </div>
-          </div>
-        </div>
-        <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
-          <TabsContent value="users"><AdminUserList embedded /></TabsContent>
-          <TabsContent value="spaces"><AdminSpaceApplications embedded /></TabsContent>
-          <TabsContent value="geography"><AdminGeography embedded /></TabsContent>
-        </main>
-      </Tabs>
+      <div className="mx-auto w-full max-w-4xl px-2 pb-2 sm:px-4 sm:pb-4">
+        <Tabs value={activeTab} onValueChange={changeTab} className="min-w-0">
+          <TabsList className="w-max max-w-full">
+            <TabsTrigger value="users" className="px-3 sm:px-4">
+              Users
+            </TabsTrigger>
+            <TabsTrigger value="spaces" className="px-3 sm:px-4">
+              Spaces
+            </TabsTrigger>
+            <TabsTrigger value="geography" className="px-3 sm:px-4">
+              Geography
+            </TabsTrigger>
+          </TabsList>
+
+          <main className="pt-4">
+            <TabsContent value="users">
+              <AdminUserList embedded />
+            </TabsContent>
+            <TabsContent value="spaces">
+              <AdminSpaceApplications embedded />
+            </TabsContent>
+            <TabsContent value="geography">
+              <AdminGeography embedded />
+            </TabsContent>
+          </main>
+        </Tabs>
+      </div>
     </div>
   );
 }
