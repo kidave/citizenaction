@@ -71,15 +71,7 @@ export default function AuthCard({
           ? window.location.pathname + window.location.search
           : "/");
 
-      if (currentPath !== "/auth/login") {
-        localStorage.setItem("returnTo", currentPath);
-      }
-
-      await login(email);
-
-      if (redirectPath) {
-        router.replace(redirectPath);
-      }
+      await login(email, currentPath);
 
       onSuccess?.();
     } catch (err) {

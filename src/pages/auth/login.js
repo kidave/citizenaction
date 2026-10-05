@@ -24,10 +24,9 @@ export default function Auth() {
   const [email, setEmail] = useState("");
 
   useEffect(() => {
-    if (user) {
-      const returnTo = localStorage.getItem("returnTo") || "/";
-      localStorage.removeItem("returnTo");
-      router.replace(returnTo);
+    if (user && router.isReady) {
+      const next = typeof router.query.next === "string" ? router.query.next : "/";
+      router.replace(next);
     }
   }, [user, router]);
 
@@ -36,18 +35,14 @@ export default function Auth() {
     setError("");
 
     try {
-      const currentPath =
-        typeof window !== "undefined"
-          ? window.location.pathname + window.location.search
+      const next =
+        typeof router.query.next === "string"
+          ? router.query.next
           : "/";
 
-      if (currentPath !== "/auth/login") {
-        localStorage.setItem("returnTo", currentPath);
-      }
-
-      await login(email);
+      await login(email, next);
     } catch (err) {
-      setError(err.message || "Failed to sign in");
+      setError(err?.message || "Failed to sign in");
       setLoading(false);
     }
   };

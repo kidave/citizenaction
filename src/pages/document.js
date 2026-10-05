@@ -41,8 +41,6 @@ export default function DocumentPage() {
   const isLoading = !routerReady || loading || profileLoading || spacesLoading || postLoading || !profile || !user;
 
   function handleClose() {
-    const returnTo = localStorage.getItem("returnTo");
-    if (returnTo) { localStorage.removeItem("returnTo"); router.replace(returnTo); return; }
     router.replace("/");
   }
 
