@@ -100,6 +100,7 @@ export const queryKeys = {
     all: ["geography"],
     byId: (geographyId) => ["geography", "by-id", geographyId],
     search: ({ search = "", type = "all", limit = 50 } = {}) => ["geography", "search", { search, type, limit }],
+    browserSearch: ({ search = "", type = "all", limit = 50 } = {}) => ["geography", "browser-search", { search, type, limit }],
     children: (parentId, type = "all") => ["geography", "children", parentId, type],
     geometry: (geographyId) => ["geography", "geometry", geographyId],
     list: ({ type = "all", search = "", page = 0, pageSize = 100 } = {}) => [
