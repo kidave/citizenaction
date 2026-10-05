@@ -1,4 +1,5 @@
 import Head from "next/head";
+import { useRouter } from "next/router";
 import PageHeader from "@/components/layout/PageHeader";
 import Appearance from "@/components/system/Appearance";
 import Notifications from "@/components/system/Notification";
@@ -8,7 +9,7 @@ import PrivacyPolicy from "@/components/system/PrivacyPolicy";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export default function SettingsPage() {
-  const router = require("next/router").useRouter();
+  const router = useRouter();
   const requestedTab = Array.isArray(router.query.tab) ? router.query.tab[0] : router.query.tab;
   const tabs = [
     { value: "appearance", label: "Appearance" },
