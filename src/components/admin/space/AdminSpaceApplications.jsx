@@ -2,7 +2,6 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, Clock3, XCircle } from "lucide-react";
 
 import { useAdminSpaceApplications } from "@/hooks/admin/useAdminSpaceApplications";
-import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,29 +12,18 @@ function StatusBadge({ status }) {
   return <Badge variant="secondary" className="gap-1"><Clock3 className="h-3.5 w-3.5" />Pending</Badge>;
 }
 
-export default function AdminSpaceApplications() {
+export default function AdminSpaceApplications({ embedded = false }) {
   const { data: applications = [], isLoading, error } = useAdminSpaceApplications();
-  const breadcrumbItems = [{ label: "Spaces" }];
-
   if (isLoading) {
-    return (
-      <div className="min-h-dvh">
-        <AdminPageHeader items={breadcrumbItems} />
-        <main className="flex min-h-[60vh] items-center justify-center px-4 text-sm text-muted-foreground">
-          Loading Space applications...
-        </main>
-      </div>
-    );
+    return <div className="flex min-h-40 items-center justify-center text-sm text-muted-foreground">Loading Space applications...</div>;
   }
 
   const pending = applications.filter((item) => item.status === "pending");
   const reviewed = applications.filter((item) => item.status !== "pending");
 
   return (
-    <div className="min-h-dvh">
-      <AdminPageHeader items={breadcrumbItems} />
-
-      <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
+    <div className={embedded ? "w-full" : "min-h-dvh"}>
+      <main className={embedded ? "w-full" : "mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-8"}>
         <div className="mb-8">
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Spaces</h1>
           <p className="mt-1 text-sm text-muted-foreground">Review applications for new Spaces.</p>
