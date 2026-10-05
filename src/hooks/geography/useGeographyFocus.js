@@ -12,6 +12,7 @@ export function useGeographyFocus({
   value = null,
   search = "",
   open = false,
+  type = "all",
 } = {}) {
   const effectiveValue = value || DEFAULT_GEOGRAPHY_FOCUS_ID;
   const normalizedSearch = search.trim();
@@ -33,7 +34,7 @@ export function useGeographyFocus({
   });
 
   const searchQuery = useQuery({
-    queryKey: queryKeys.geography.search({ search: normalizedSearch, type: "all", limit: 50 }),
+    queryKey: queryKeys.geography.search({ search: normalizedSearch, type, limit: 50 }),
     enabled: open,
     queryFn: async () => {
       let query = supabase
@@ -53,6 +54,8 @@ export function useGeographyFocus({
           );
         }
       }
+
+      if (type !== "all") query = query.eq("geography_type", type);
 
       const { data, error } = await query;
       if (error) throw error;
