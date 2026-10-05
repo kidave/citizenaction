@@ -96,8 +96,17 @@ export const queryKeys = {
     adminState: ["governance-admin-state"],
   },
   geography: {
-    focusSelected: (geographyId) => ["geography-focus-selected", geographyId],
-    focusSearch: (search) => ["geography-focus-search", search],
+    all: ["geography"],
+    byId: (geographyId) => ["geography", "by-id", geographyId],
+    search: (search) => ["geography", "search", search],
+    children: (parentId) => ["geography", "children", parentId],
+    list: ({ type = "all", search = "", page = 0, pageSize = 100 } = {}) => [
+      "geography",
+      "list",
+      { type, search, page, pageSize },
+    ],
+    focusSelected: (geographyId) => ["geography", "focus-selected", geographyId],
+    focusSearch: (search) => ["geography", "focus-search", search],
   },
   admin: {
     users: ["admin-users"],
