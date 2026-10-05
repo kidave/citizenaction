@@ -107,6 +107,7 @@ export const queryKeys = {
     ],
     focusSelected: (geographyId) => ["geography", "focus-selected", geographyId],
     focusSearch: (search) => ["geography", "focus-search", search],
+    pickerSearch: (search) => ["geography", "picker-search", search],
   },
   admin: {
     users: ["admin-users"],
