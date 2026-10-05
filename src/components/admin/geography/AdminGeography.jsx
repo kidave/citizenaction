@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { MapPinned, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import GeographyEditor from "@/components/admin/geography/GeographyEditor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,7 @@ const TYPES = {
   other: "Other",
 };
 
-export default function AdminGeography() {
+export default function AdminGeography({ embedded = false }) {
   const [rows, setRows] = useState([]);
   const [query, setQuery] = useState("");
   const [type, setType] = useState("all");
@@ -35,7 +34,7 @@ export default function AdminGeography() {
   const load = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from("jurisdiction_geography")
+      .from("geographies")
       .select("id,name,official_name,geography_type,parent_id,country_code,osm_type,osm_id,admin_level,source,source_url,geom")
       .order("name", { ascending: true })
       .limit(5000);
@@ -59,15 +58,14 @@ export default function AdminGeography() {
     const linked = await supabase.from("governance_boundary").select("id", { count: "exact", head: true }).eq("geography_id", id);
     if (linked.error) return toast.error(linked.error.message || "Unable to check geography links");
     if ((linked.count || 0) > 0) return toast.error("This geography is linked to governance entities and cannot be deleted yet.");
-    const { error } = await supabase.rpc("delete_jurisdiction_geography", { p_id: id });
+    const { error } = await supabase.rpc("delete_geography", { p_id: id });
     if (error) return toast.error(error.message || "Unable to delete geography");
     toast.success(`${row.name} deleted`);
     load();
   };
 
-  return <div className="min-h-dvh bg-background">
-    <AdminPageHeader items={[{ label: "Geography" }]} />
-    <main className="mx-auto w-full max-w-6xl space-y-6 p-4 sm:p-6">
+  return <div className={embedded ? "w-full bg-background" : "min-h-dvh bg-background"}>
+    <main className={embedded ? "w-full space-y-6" : "mx-auto w-full max-w-6xl space-y-6 p-4 sm:p-6"}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div><h1 className="text-2xl font-semibold tracking-tight">Geography</h1><p className="mt-1 text-sm text-muted-foreground">Manage reusable areas and their boundary geometry.</p></div>
         <Button onClick={() => { setEditing(null); setEditorOpen(true); }}><Plus className="mr-2 h-4 w-4" />Add geography</Button>
