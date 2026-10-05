@@ -25,11 +25,6 @@ export default function GeographyEditor({ open, onOpenChange, geography, onSaved
     setForm(geography ? { ...blank, ...geography, parent_id: geography.parent_id || "none", osm_id: geography.osm_id ? String(geography.osm_id) : "", admin_level: geography.admin_level != null ? String(geography.admin_level) : "" } : blank);
   }, [geography, open]);
 
-  useEffect(() => {
-    if (!open) return;
-    supabase.from("geographies").select("id,name,geography_type").order("name").limit(5000).then(({ data, error }) => { if (error) toast.error(error.message); else setParents(data || []); });
-  }, [open]);
-
   const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
 
   const importGeoJson = async (event) => {
