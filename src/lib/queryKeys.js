@@ -95,7 +95,8 @@ export const queryKeys = {
     contributions: ["governance-contributions"],
     adminState: ["governance-admin-state"],
   },
-  // Geography keys are shared across admin, governance search, and jurisdiction pickers.\n  geography: {
+  // Geography keys are shared across admin, governance search, and jurisdiction pickers.
+  geography: {
     all: ["geography"],
     byId: (geographyId) => ["geography", "by-id", geographyId],
     search: (search) => ["geography", "search", search],
