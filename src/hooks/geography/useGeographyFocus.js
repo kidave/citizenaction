@@ -10,6 +10,65 @@ const GEOGRAPHY_SELECT =
 
 const EXCLUDED_FOCUS_TYPES = ["country", "city", "division"];
 
+const GEOGRAPHY_TYPE_LABELS = {
+  ward: "Ward",
+  zone: "Zone",
+  constituency: "Constituency",
+  district: "District",
+  sub_district: "Sub-district",
+  local_government: "Local government",
+  administrative_area: "Administrative area",
+  neighborhood: "Neighborhood",
+  suburb: "Suburb",
+  village: "Village",
+  town: "Town",
+  state: "State",
+};
+
+const GEOGRAPHY_TYPE_ORDER = [
+  "ward",
+  "zone",
+  "constituency",
+  "district",
+  "sub_district",
+  "local_government",
+  "administrative_area",
+  "neighborhood",
+  "suburb",
+  "village",
+  "town",
+  "state",
+];
+
+export function getGeographyTypeLabel(type) {
+  if (!type) return "Boundary";
+  return GEOGRAPHY_TYPE_LABELS[type] || type.replace(/_/g, " ");
+}
+
+function groupGeographies(rows) {
+  const groups = new Map();
+
+  rows.forEach((row) => {
+    const type = row.geography_type || "other";
+    if (!groups.has(type)) groups.set(type, []);
+    groups.get(type).push(row);
+  });
+
+  return [...groups.entries()]
+    .sort(([a], [b]) => {
+      const aIndex = GEOGRAPHY_TYPE_ORDER.indexOf(a);
+      const bIndex = GEOGRAPHY_TYPE_ORDER.indexOf(b);
+      const aRank = aIndex === -1 ? GEOGRAPHY_TYPE_ORDER.length : aIndex;
+      const bRank = bIndex === -1 ? GEOGRAPHY_TYPE_ORDER.length : bIndex;
+      return aRank - bRank || getGeographyTypeLabel(a).localeCompare(getGeographyTypeLabel(b));
+    })
+    .map(([type, items]) => ({
+      value: type,
+      label: getGeographyTypeLabel(type),
+      items,
+    }));
+}
+
 export function useGeographyFocus({ value = null, search = "", open = false } = {}) {
   const effectiveValue = value || DEFAULT_GEOGRAPHY_FOCUS_ID;
   const normalizedSearch = search.trim();
@@ -38,6 +97,7 @@ export function useGeographyFocus({ value = null, search = "", open = false } = 
       let query = supabase
         .from("geographies")
         .select(GEOGRAPHY_SELECT)
+        .order("geography_type")
         .order("name")
         .range(pageParam * pageSize, pageParam * pageSize + pageSize - 1);
 
@@ -65,10 +125,13 @@ export function useGeographyFocus({ value = null, search = "", open = false } = 
     staleTime: 5 * 60 * 1000,
   });
 
+  const options = searchQuery.data?.pages?.flatMap((page) => page) || [];
+
   return {
     effectiveValue,
     selected: selectedQuery.data || null,
-    options: searchQuery.data?.pages?.flatMap((page) => page) || [],
+    options,
+    groupedOptions: groupGeographies(options),
     hasNextPage: searchQuery.hasNextPage,
     fetchNextPage: searchQuery.fetchNextPage,
     isFetchingNextPage: searchQuery.isFetchingNextPage,
