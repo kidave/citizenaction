@@ -16,7 +16,7 @@ import SpaceMembersSettings from "@/components/space/SpaceMembersSettings";
 export default function SpaceAdminPage() {
   const router = useRouter();
   const { space: slug, tab } = router.query;
-  const { space, isLoading, error, accessDenied, isOwner } = useSpaceAdmin(slug);
+  const { space, isLoading, error, accessDenied, isOwner, isAdmin } = useSpaceAdmin(slug);
 
   if (isLoading) return <PageLoader />;
 
@@ -49,12 +49,13 @@ export default function SpaceAdminPage() {
   if (!space) return null;
 
   const requestedTab = Array.isArray(tab) ? tab[0] : tab;
-  const activeTab = requestedTab === "members" || requestedTab === "applications" ? requestedTab : "profile";
+  const allowedTabs = isOwner ? ["profile", "members", "applications"] : isAdmin ? ["members", "applications"] : [];
+  const activeTab = allowedTabs.includes(requestedTab) ? requestedTab : allowedTabs[0];
   const tabs = [
     { value: "profile", label: "Profile" },
     { value: "members", label: "Members" },
     { value: "applications", label: "Applications" },
-  ].filter((item) => isOwner || item.value === "applications");
+  ].filter((item) => allowedTabs.includes(item.value));
 
   return (
     <div className="w-full">
