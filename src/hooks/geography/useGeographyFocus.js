@@ -33,7 +33,7 @@ export function useGeographyFocus({
   });
 
   const searchQuery = useQuery({
-    queryKey: queryKeys.geography.search(normalizedSearch),
+    queryKey: queryKeys.geography.search({ search: normalizedSearch, type: "all", limit: 50 }),
     enabled: open,
     queryFn: async () => {
       let query = supabase
