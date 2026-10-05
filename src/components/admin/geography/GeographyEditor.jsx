@@ -26,7 +26,7 @@ export default function GeographyEditor({ open, onOpenChange, geography, onSaved
 
   useEffect(() => {
     if (!open) return;
-    supabase.from("jurisdiction_geography").select("id,name,geography_type").order("name").limit(5000).then(({ data, error }) => { if (error) toast.error(error.message); else setParents(data || []); });
+    supabase.from("geographies").select("id,name,geography_type").order("name").limit(5000).then(({ data, error }) => { if (error) toast.error(error.message); else setParents(data || []); });
   }, [open]);
 
   const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
@@ -52,7 +52,7 @@ export default function GeographyEditor({ open, onOpenChange, geography, onSaved
     let geojson = null;
     if (form.geojson.trim()) { try { geojson = JSON.parse(form.geojson); } catch { return toast.error("Boundary must be valid GeoJSON"); } }
     setSaving(true);
-    const { data, error } = await supabase.rpc("set_jurisdiction_geography", {
+    const { data, error } = await supabase.rpc("upsert_geography", {
       p_id: form.id || null,
       p_name: form.name.trim(),
       p_official_name: form.official_name.trim() || null,
