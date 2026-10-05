@@ -9,7 +9,7 @@ export const GEOGRAPHY_METADATA_SELECT =
 
 export function useGeographyBrowser({ parentId = null, search = "", type = "all", enabled = true }) {
   return useQuery({
-    queryKey: search.trim() ? queryKeys.geography.search({ search: search.trim(), type, limit: 50 }) : queryKeys.geography.children(parentId || "india"),
+    queryKey: search.trim() ? queryKeys.geography.search({ search: search.trim(), type, limit: 50 }) : queryKeys.geography.children(parentId || "india", type),
     enabled,
     queryFn: async () => {
       let query = supabase
