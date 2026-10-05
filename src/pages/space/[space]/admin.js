@@ -57,6 +57,13 @@ export default function SpaceAdminPage() {
     { value: "applications", label: "Applications" },
   ].filter((item) => allowedTabs.includes(item.value));
 
+  const changeTab = (value) =>
+    router.push(
+      { pathname: router.pathname, query: { ...router.query, tab: value } },
+      undefined,
+      { shallow: true },
+    );
+
   return (
     <div className="w-full">
       <PageHeader
@@ -67,44 +74,44 @@ export default function SpaceAdminPage() {
           { label: "Administration" },
         ]}
       />
-      <Tabs value={activeTab} onValueChange={(value) => router.push({ pathname: router.pathname, query: { ...router.query, tab: value } }, undefined, { shallow: true })} className="w-full">
-        <div className="border-b bg-background">
-          <div className="mx-auto w-full max-w-4xl px-4 sm:px-6">
-            <div className="overflow-x-auto">
-              <TabsList className="h-10 w-max min-w-full justify-start rounded-none bg-transparent p-0">
-                {tabs.map((item) => (
-                  <TabsTrigger key={item.value} value={item.value} className="mr-6 h-10 rounded-none border-b-2 border-transparent bg-transparent px-1 shadow-none data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none">
-                    {item.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
-          </div>
-        </div>
-        <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
-          <TabsContent value="profile">
-            <SpaceGeneralSettings spaceSlug={space.slug} />
-          </TabsContent>
-          <TabsContent value="members">
-            <section className="space-y-3">
-              <div>
-                <h2 className="text-lg font-semibold">Members</h2>
-                <p className="text-sm text-muted-foreground">Manage Space membership and roles.</p>
-              </div>
-              <SpaceMembersSettings spaceSlug={space.slug} isOwner={isOwner} isAdmin={isAdmin} />
-            </section>
-          </TabsContent>
-          <TabsContent value="applications">
-            <section className="space-y-3">
-              <div>
-                <h2 className="text-lg font-semibold">Applications</h2>
-                <p className="text-sm text-muted-foreground">Review people requesting to join this Space.</p>
-              </div>
-              <SpaceMemberApplications space={space} />
-            </section>
-          </TabsContent>
-        </main>
-      </Tabs>
+
+      <div className="mx-auto w-full max-w-4xl px-2 pb-2 sm:px-4 sm:pb-4">
+        <Tabs value={activeTab} onValueChange={changeTab} className="min-w-0">
+          <TabsList className="w-max max-w-full">
+            {tabs.map((item) => (
+              <TabsTrigger key={item.value} value={item.value} className="px-3 sm:px-4">
+                {item.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          <main className="pt-4">
+            <TabsContent value="profile">
+              <SpaceGeneralSettings spaceSlug={space.slug} />
+            </TabsContent>
+
+            <TabsContent value="members">
+              <section className="space-y-3">
+                <div>
+                  <h2 className="text-lg font-semibold">Members</h2>
+                  <p className="text-sm text-muted-foreground">Manage Space membership and roles.</p>
+                </div>
+                <SpaceMembersSettings spaceSlug={space.slug} isOwner={isOwner} isAdmin={isAdmin} />
+              </section>
+            </TabsContent>
+
+            <TabsContent value="applications">
+              <section className="space-y-3">
+                <div>
+                  <h2 className="text-lg font-semibold">Applications</h2>
+                  <p className="text-sm text-muted-foreground">Review people requesting to join this Space.</p>
+                </div>
+                <SpaceMemberApplications space={space} />
+              </section>
+            </TabsContent>
+          </main>
+        </Tabs>
+      </div>
     </div>
   );
 }
