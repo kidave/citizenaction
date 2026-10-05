@@ -72,3 +72,17 @@ export async function fetchGeographyGeometry(geography) {
   if (geometry) geographyGeometryCache.set(geographyId, geometry);
   return geometry;
 }
+
+
+export function useGeographyGeometry(geography) {
+  const geographyId = geography?.id || null;
+  return useQuery({
+    queryKey: queryKeys.geography.geometry(geographyId),
+    enabled: Boolean(geographyId),
+    queryFn: () => fetchGeographyGeometry(geography),
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
+}
