@@ -57,7 +57,7 @@ export default function GeographyFocusSelector({ value, onValueChange, className
   return (
     <Combobox
       items={groupedOptions}
-      value={selected || undefined}
+      value={isIndia ? { id: DEFAULT_GEOGRAPHY_FOCUS_ID, name: "India" } : selected || undefined}
       open={open}
       onOpenChange={setOpen}
       inputValue={search}
