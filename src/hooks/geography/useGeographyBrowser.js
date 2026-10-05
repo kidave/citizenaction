@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
 
 const geographyGeometryCache = new Map();
 
 export function useGeographyBrowser({ parentId = null, search = "", enabled = true }) {
   return useQuery({
-    queryKey: ["geography-browser", parentId, search],
+    queryKey: search.trim() ? queryKeys.geography.search(search.trim()) : queryKeys.geography.children(parentId || "india"),
     enabled,
     queryFn: async () => {
       let query = supabase
