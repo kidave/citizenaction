@@ -8,6 +8,9 @@ export const DEFAULT_GEOGRAPHY_FOCUS_ID =
 const GEOGRAPHY_SELECT =
   "id,name,official_name,geography_type,parent_id,country_code,osm_type,osm_id,admin_level,source,source_url,center,metadata";
 
+// India is the implicit default. The top-bar selector is for choosing a more specific jurisdiction.
+const EXCLUDED_FOCUS_TYPES = ["country", "city", "division"];
+
 export function useGeographyFocus({
   value = null,
   search = "",
@@ -58,6 +61,7 @@ export function useGeographyFocus({
       }
 
       if (type !== "all") query = query.eq("geography_type", type);
+      else query = query.not("geography_type", "in", `(${EXCLUDED_FOCUS_TYPES.join(",")})`);
 
       const { data, error } = await query;
       if (error) throw error;
