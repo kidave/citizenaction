@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { MapPinned, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 
 import GeographyEditor from "@/components/admin/geography/GeographyEditor";
 import { Badge } from "@/components/ui/badge";
@@ -26,13 +26,13 @@ export default function AdminGeography({ embedded = false }) {
   const [editing, setEditing] = useState(null);
 
   const { data: rows = [], isLoading, error } = useQuery({
-    queryKey: queryKeys.geography.list({ type, search: query.trim(), page, pageSize }),
-    queryFn: async () => {
+    queryKey: queryKeys.geography.list({ type, search: query.trim(), pageSize }),
+    queryFn: async ({ pageParam = 0 }) => {
       let request = supabase
         .from("geographies")
         .select("id,name,official_name,geography_type,parent_id,country_code,osm_type,osm_id,admin_level,source,source_url")
         .order("name", { ascending: true })
-        .range(page * pageSize, page * pageSize + pageSize - 1);
+        .range(pageParam * pageSize, pageParam * pageSize + pageSize - 1);
 
       if (type !== "all") {
         request = request.eq("geography_type", type);
@@ -47,18 +47,20 @@ export default function AdminGeography({ embedded = false }) {
       if (error) throw error;
       return data || [];
     },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length === pageSize ? allPages.length : undefined,
     staleTime: Infinity,
     gcTime: Infinity,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   });
 
-  useEffect(() => { setPage(0); }, [type, query]);
-
-  const filtered = rows;
+  const filtered = data?.pages?.flatMap((pageRows) => pageRows) || [];
+  const hasNextPage = Boolean(data?.pages?.length && data.pages[data.pages.length - 1]?.length === pageSize);
 
   const remove = async (id) => {
-    const row = rows.find((item) => item.id === id);
+    const row = filtered.find((item) => item.id === id);
     if (!row) return;
     const linked = await supabase.from("governance_geography").select("id", { count: "exact", head: true }).eq("geography_id", id);
     if (linked.error) return toast.error(linked.error.message || "Unable to check geography links");
