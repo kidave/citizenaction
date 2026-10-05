@@ -18,61 +18,23 @@ import {
 } from "@/components/ui/combobox";
 import {
   DEFAULT_GEOGRAPHY_FOCUS_ID,
+  getGeographyTypeLabel,
   useGeographyFocus,
 } from "@/hooks/geography/useGeographyFocus";
-
-"use client";
-
-import { useEffect, useState } from "react";
-import { MapPinned, X } from "lucide-react";
-
-import {
-  Combobox,
-  ComboboxCollection,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxGroup,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxLabel,
-  ComboboxList,
-  ComboboxTrigger,
-  ComboboxValue,
-} from "@/components/ui/combobox";
-import {
-  DEFAULT_GEOGRAPHY_FOCUS_ID,
-  useGeographyFocus,
-} from "@/hooks/geography/useGeographyFocus";
-
-const GEOGRAPHY_TYPE_LABELS = {
-  ward: "Ward",
-  zone: "Zone",
-  constituency: "Constituency",
-  district: "District",
-  sub_district: "Sub-district",
-  local_government: "Local government",
-  administrative_area: "Administrative area",
-  neighborhood: "Neighborhood",
-  suburb: "Suburb",
-  village: "Village",
-  town: "Town",
-  city: "City",
-  state: "State",
-  country: "Country",
-};
-
-function getGeographyTypeLabel(type) {
-  if (!type) return "Boundary";
-  return GEOGRAPHY_TYPE_LABELS[type] || type.replace(/_/g, " ");
-}
 
 export default function GeographyFocusSelector({ value, onValueChange, className }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
   const {
-    effectiveValue, selected, options, isSearching, error,
-    hasNextPage, fetchNextPage, isFetchingNextPage,
+    effectiveValue,
+    selected,
+    groupedOptions,
+    isSearching,
+    error,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
   } = useGeographyFocus({ value, search, open });
 
   useEffect(() => {
@@ -99,7 +61,7 @@ export default function GeographyFocusSelector({ value, onValueChange, className
 
   return (
     <Combobox
-      items={[{ value: "Boundaries", items: options }]}
+      items={groupedOptions}
       value={selected || undefined}
       open={open}
       onOpenChange={setOpen}
@@ -117,25 +79,25 @@ export default function GeographyFocusSelector({ value, onValueChange, className
       autoHighlight
       className={className}
     >
-      <div className="relative w-[12rem] max-w-full">
+      <div className="relative w-[min(16rem,calc(100vw-7rem))] min-w-[12rem]">
         <ComboboxTrigger
-          className={`shadow-xs inline-flex h-10 w-full items-center gap-2 rounded-md border border-input bg-background px-2.5 hover:bg-accent hover:text-accent-foreground ${!isIndia ? "pl-11" : ""}`}
+          className="inline-flex h-10 w-full items-center gap-2 rounded-md border border-input bg-background px-2.5 shadow-xs hover:bg-accent hover:text-accent-foreground"
           aria-label="Select geography"
         >
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground">
             <MapPinned className="h-4 w-4" />
           </span>
 
-          <span className="min-w-0 flex-1 text-left">
-          <ComboboxValue
-            placeholder={selectedLabel || "Select geography"}
-            className="block truncate font-serif text-sm font-normal"
-          />
-          {!isIndia && selectedType && (
-            <span className="block truncate text-[11px] leading-3 text-muted-foreground">
-              {selectedType}
-            </span>
-          )}
+          <span className="min-w-0 flex-1 overflow-hidden text-left">
+            <ComboboxValue
+              placeholder={selectedLabel || "Select geography"}
+              className="block min-w-0 max-w-full truncate whitespace-nowrap font-serif text-sm font-normal"
+            />
+            {!isIndia && selectedType && (
+              <span className="block truncate whitespace-nowrap text-[11px] leading-3 text-muted-foreground">
+                {selectedType}
+              </span>
+            )}
           </span>
         </ComboboxTrigger>
 
@@ -163,7 +125,11 @@ export default function GeographyFocusSelector({ value, onValueChange, className
           className="h-9 rounded-md"
         />
         <ComboboxEmpty>
-          {error ? "Unable to search boundaries." : isSearching ? "Searching..." : "No boundaries found."}
+          {error
+            ? "Unable to search boundaries."
+            : isSearching
+              ? "Searching..."
+              : "No boundaries found."}
         </ComboboxEmpty>
         <ComboboxList
           className="max-h-[min(24rem,calc(100vh-10rem))] overflow-y-auto"
@@ -180,7 +146,7 @@ export default function GeographyFocusSelector({ value, onValueChange, className
         >
           {(group) => (
             <ComboboxGroup key={group.value} items={group.items}>
-              <ComboboxLabel>{group.value}</ComboboxLabel>
+              <ComboboxLabel>{group.label}</ComboboxLabel>
               <ComboboxCollection>
                 {(item) => (
                   <ComboboxItem key={item.id} value={item}>
