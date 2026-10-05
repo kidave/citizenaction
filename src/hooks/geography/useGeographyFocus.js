@@ -6,7 +6,7 @@ export const DEFAULT_GEOGRAPHY_FOCUS_ID =
   "6f3dda25-6cf4-43f2-a5b7-1c8aa9d2113f";
 
 const GEOGRAPHY_SELECT =
-  "id,name,official_name,geography_type,parent_id";
+  "id,name,official_name,geography_type,parent_id,country_code,osm_type,osm_id,admin_level,source,source_url,center,metadata";
 
 export function useGeographyFocus({
   value = null,
