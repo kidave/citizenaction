@@ -30,7 +30,7 @@ export function useGeographyFocus({ value = null, search = "", open = false } = 
   });
 
   const searchQuery = useInfiniteQuery({
-    queryKey: queryKeys.geography.search({ search: normalizedSearch, type: "all", limit: 50 }),
+    queryKey: queryKeys.geography.focusSearch(normalizedSearch),
     enabled: open,
     initialPageParam: 0,
     queryFn: async ({ pageParam = 0 }) => {
