@@ -22,22 +22,23 @@ const GEOGRAPHY_TYPE_LABELS = {
   suburb: "Suburb",
   village: "Village",
   town: "Town",
-  state: "State",
+  state: "States & Union Territories",
 };
 
 const GEOGRAPHY_TYPE_ORDER = [
-  "ward",
-  "zone",
-  "constituency",
+  "state",
   "district",
+  "subdistrict",
   "sub_district",
   "local_government",
+  "zone",
+  "ward",
+  "constituency",
   "administrative_area",
   "neighborhood",
   "suburb",
   "village",
   "town",
-  "state",
 ];
 
 export function getGeographyTypeLabel(type) {
