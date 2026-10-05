@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -33,15 +33,17 @@ export function useGeographyFocus({
     staleTime: 10 * 60 * 1000,
   });
 
-  const searchQuery = useQuery({
+  const searchQuery = useInfiniteQuery({
     queryKey: queryKeys.geography.search({ search: normalizedSearch, type, limit: 50 }),
     enabled: open,
-    queryFn: async () => {
+    initialPageParam: 0,
+    queryFn: async ({ pageParam = 0 }) => {
+      const pageSize = 50;
       let query = supabase
         .from("geographies")
         .select(GEOGRAPHY_SELECT)
         .order("name")
-        .limit(50);
+        .range(pageParam * pageSize, pageParam * pageSize + pageSize - 1);
 
       if (normalizedSearch) {
         const searchValue = normalizedSearch
@@ -61,13 +63,18 @@ export function useGeographyFocus({
       if (error) throw error;
       return data || [];
     },
-    staleTime: 2 * 60 * 1000,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length === 50 ? allPages.length : undefined,
+    staleTime: 5 * 60 * 1000,
   });
 
   return {
     effectiveValue,
     selected: selectedQuery.data || null,
-    options: searchQuery.data || [],
+    options: searchQuery.data?.pages?.flatMap((page) => page) || [],
+    hasNextPage: searchQuery.hasNextPage,
+    fetchNextPage: searchQuery.fetchNextPage,
+    isFetchingNextPage: searchQuery.isFetchingNextPage,
     isLoading: selectedQuery.isLoading || searchQuery.isLoading,
     isSearching: searchQuery.isLoading,
     error: selectedQuery.error || searchQuery.error || null,
