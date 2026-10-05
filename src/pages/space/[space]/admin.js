@@ -6,7 +6,7 @@ import { Loader2, Users } from "lucide-react";
 
 import { useSpaceAdmin } from "@/hooks/space/useSpaceAdmin";
 import PageHeader from "@/components/layout/PageHeader";
-import AdminSettingsShell from "@/components/layout/AdminSettingsShell";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 
 import SpaceMemberApplications from "@/components/space/SpaceMemberApplications";
@@ -56,31 +56,6 @@ export default function SpaceAdminPage() {
     { value: "applications", label: "Applications" },
   ].filter((item) => isOwner || item.value === "applications");
 
-  let content;
-  if (activeTab === "profile" && isOwner) {
-    content = <SpaceGeneralSettings spaceSlug={space.slug} />;
-  } else if (activeTab === "members" && isOwner) {
-    content = (
-      <section className="space-y-3">
-        <div>
-          <h2 className="text-lg font-semibold">Members</h2>
-          <p className="text-sm text-muted-foreground">Manage Space membership and roles.</p>
-        </div>
-        <SpaceMembersSettings spaceSlug={space.slug} />
-      </section>
-    );
-  } else {
-    content = (
-      <section className="space-y-3">
-        <div>
-          <h2 className="text-lg font-semibold">Applications</h2>
-          <p className="text-sm text-muted-foreground">Review people requesting to join this Space.</p>
-        </div>
-        <SpaceMemberApplications space={space} />
-      </section>
-    );
-  }
-
   return (
     <div className="w-full">
       <PageHeader
@@ -91,9 +66,44 @@ export default function SpaceAdminPage() {
           { label: "Administration" },
         ]}
       />
-      <AdminSettingsShell tabs={tabs}>
-        {content}
-      </AdminSettingsShell>
+      <Tabs value={activeTab} onValueChange={(value) => router.push({ pathname: router.pathname, query: { ...router.query, tab: value } }, undefined, { shallow: true })} className="w-full">
+        <div className="border-b bg-background">
+          <div className="mx-auto w-full max-w-4xl px-4 sm:px-6">
+            <div className="overflow-x-auto">
+              <TabsList className="h-10 w-max min-w-full justify-start rounded-none bg-transparent p-0">
+                {tabs.map((item) => (
+                  <TabsTrigger key={item.value} value={item.value} className="mr-6 h-10 rounded-none border-b-2 border-transparent bg-transparent px-1 shadow-none data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none">
+                    {item.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
+          </div>
+        </div>
+        <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
+          <TabsContent value="profile">
+            <SpaceGeneralSettings spaceSlug={space.slug} />
+          </TabsContent>
+          <TabsContent value="members">
+            <section className="space-y-3">
+              <div>
+                <h2 className="text-lg font-semibold">Members</h2>
+                <p className="text-sm text-muted-foreground">Manage Space membership and roles.</p>
+              </div>
+              <SpaceMembersSettings spaceSlug={space.slug} />
+            </section>
+          </TabsContent>
+          <TabsContent value="applications">
+            <section className="space-y-3">
+              <div>
+                <h2 className="text-lg font-semibold">Applications</h2>
+                <p className="text-sm text-muted-foreground">Review people requesting to join this Space.</p>
+              </div>
+              <SpaceMemberApplications space={space} />
+            </section>
+          </TabsContent>
+        </main>
+      </Tabs>
     </div>
   );
 }
