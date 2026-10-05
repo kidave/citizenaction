@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import GeographyEditor from "@/components/admin/geography/GeographyEditor";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,18 +18,29 @@ const GEOGRAPHY_QUERY_KEY = ["admin-geographies"];
 export default function AdminGeography({ embedded = false }) {
   const queryClient = useQueryClient();
   const [query, setQuery] = useState("");
-  const [type, setType] = useState("all");
+  const [type, setType] = useState("district");
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState(null);
 
   const { data: rows = [], isLoading, error } = useQuery({
-    queryKey: GEOGRAPHY_QUERY_KEY,
+    queryKey: [...GEOGRAPHY_QUERY_KEY, type, query],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let request = supabase
         .from("geographies")
         .select("id,name,official_name,geography_type,parent_id,country_code,osm_type,osm_id,admin_level,source,source_url")
         .order("name", { ascending: true })
-        .limit(5000);
+        .limit(200);
+
+      if (type !== "all") {
+        request = request.eq("geography_type", type);
+      }
+
+      const needle = query.trim();
+      if (needle) {
+        request = request.or(`name.ilike.%${needle}%,official_name.ilike.%${needle}%`);
+      }
+
+      const { data, error } = await request;
       if (error) throw error;
       return data || [];
     },
@@ -38,12 +50,7 @@ export default function AdminGeography({ embedded = false }) {
     refetchOnMount: false,
   });
 
-  const filtered = useMemo(() => rows.filter((row) => {
-    if (type !== "all" && row.geography_type !== type) return false;
-    const needle = query.trim().toLowerCase();
-    if (!needle) return true;
-    return `${row.name || ""} ${row.official_name || ""} ${row.source || ""}`.toLowerCase().includes(needle);
-  }), [query, rows, type]);
+  const filtered = rows;
 
   const remove = async (id) => {
     const row = rows.find((item) => item.id === id);
@@ -63,7 +70,24 @@ export default function AdminGeography({ embedded = false }) {
         <div><h1 className="text-2xl font-semibold tracking-tight">Geography</h1><p className="mt-1 text-sm text-muted-foreground">Manage reusable areas and their boundary geometry.</p></div>
         <Button onClick={() => { setEditing(null); setEditorOpen(true); }}> <Plus className="mr-2 h-4 w-4" />Add geography</Button>
       </div>
-      <div className="flex items-center gap-3"><div className="relative flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input className="pl-9" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search geography" /></div><span className="text-sm text-muted-foreground">{filtered.length} areas</span></div>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <Select value={type} onValueChange={setType}>
+          <SelectTrigger className="w-full sm:w-52">
+            <SelectValue placeholder="Geography type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All geography</SelectItem>
+            {Object.entries(TYPES).map(([value, label]) => (
+              <SelectItem key={value} value={value}>{label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input className="pl-9" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search within this geography type" />
+        </div>
+        <span className="self-center text-sm text-muted-foreground">{filtered.length} areas</span>
+      </div>
       <Card><CardContent className="p-0">
         {isLoading ? <div className="p-8 text-center text-sm text-muted-foreground">Loading geography…</div>
           : error ? <div className="p-8 text-center text-sm text-destructive">Unable to load geography.</div>
