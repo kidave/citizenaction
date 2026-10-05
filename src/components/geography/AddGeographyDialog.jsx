@@ -3,9 +3,9 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, ChevronRight, Loader2, MapPin, Search } from "lucide-react";
+import { ArrowLeft, ChevronRight, Loader2, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import GeographySearch from "@/components/geography/GeographySearch";
 import {
   Sheet,
   SheetContent,
@@ -212,15 +212,11 @@ export default function AddGeographyDialog({
         <div className="grid min-h-0 flex-1 md:grid-cols-[360px_1fr]">
           <div className="flex min-h-0 flex-col border-r">
             <div className="space-y-3 border-b p-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Search India, Mumbai, BMC..."
-                  className="pl-9"
-                />
-              </div>
+              <GeographySearch
+                value={search}
+                onChange={setSearch}
+                placeholder="Search India, Mumbai, BMC..."
+              />
               {path.length > 0 && !search && (
                 <div className="flex items-center gap-1 overflow-hidden text-xs text-muted-foreground">
                   <button
