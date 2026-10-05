@@ -139,7 +139,6 @@ export default function AddGeographyDialog({
   };
 
   const openChildren = async (item) => {
-    setSelected(item);
     setSearch("");
     setParent(item);
     setPath((current) => [...current, item]);
@@ -275,12 +274,6 @@ export default function AddGeographyDialog({
                       >
                         <label
                           htmlFor={`geography-${item.id}`}
-                          onClick={(event) => {
-                            if (browsing && !search) {
-                              event.preventDefault();
-                              browse();
-                            }
-                          }}
                           className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-left hover:bg-muted"
                         >
                           <RadioGroupItem
