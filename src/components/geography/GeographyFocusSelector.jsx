@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { MapPinned } from "lucide-react";
+import GeographyTypeFilter from "@/components/geography/GeographyTypeFilter";
 
 import {
   Combobox,
@@ -34,13 +35,15 @@ export default function GeographyFocusSelector({
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [type, setType] = useState("all");
 
   const { effectiveValue, selected, options, isSearching, error } =
-    useGeographyFocus({ value, search, open });
+    useGeographyFocus({ value, search, type, open });
 
   useEffect(() => {
     if (!open) {
       setSearch("");
+      setType("all");
     }
   }, [open]);
 
@@ -110,6 +113,9 @@ export default function GeographyFocusSelector({
       </ComboboxTrigger>
 
       <ComboboxContent className="w-[min(28rem,calc(100vw-1.5rem))]">
+        <div className="border-b p-2">
+          <GeographyTypeFilter value={type} onValueChange={setType} className="h-8 w-full text-xs" />
+        </div>
         <ComboboxInput
           showTrigger={false}
           showClear={false}
