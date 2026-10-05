@@ -91,7 +91,7 @@ export default function SpaceAdminPage() {
                 <h2 className="text-lg font-semibold">Members</h2>
                 <p className="text-sm text-muted-foreground">Manage Space membership and roles.</p>
               </div>
-              <SpaceMembersSettings spaceSlug={space.slug} />
+              <SpaceMembersSettings spaceSlug={space.slug} isOwner={isOwner} isAdmin={isAdmin} />
             </section>
           </TabsContent>
           <TabsContent value="applications">
