@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { ArrowLeft, ChevronRight, Loader2, MapPin, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import GeographyTypeFilter from "@/components/geography/GeographyTypeFilter";
 import {
   Sheet,
   SheetContent,
@@ -79,6 +80,7 @@ export default function AddGeographyDialog({
   const [selected, setSelected] = useState(null);
   const [geometry, setGeometry] = useState(null);
   const [search, setSearch] = useState("");
+  const [type, setType] = useState("all");
   const [path, setPath] = useState([]);
   const [loadingGeometry, setLoadingGeometry] = useState(false);
 
@@ -91,6 +93,7 @@ export default function AddGeographyDialog({
   const { data: items = [], isLoading } = useGeographyBrowser({
     parentId: parent?.id || null,
     search,
+    type,
     enabled: open,
   });
   const { setGeography, isSetting } = useGovernanceGeographyMutation();
@@ -101,6 +104,7 @@ export default function AddGeographyDialog({
     setSelected(currentGeography || null);
     setGeometry(null);
     setSearch("");
+    setType("all");
     setPath([]);
     if (currentGeography) {
       setLoadingGeometry(true);
@@ -221,6 +225,7 @@ export default function AddGeographyDialog({
                   className="pl-9"
                 />
               </div>
+              <GeographyTypeFilter value={type} onValueChange={setType} />
               {path.length > 0 && !search && (
                 <div className="flex items-center gap-1 overflow-hidden text-xs text-muted-foreground">
                   <button
