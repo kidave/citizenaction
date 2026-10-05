@@ -37,7 +37,7 @@ export default function GeographyFocusSelector({
   const [search, setSearch] = useState("");
   const [type, setType] = useState("all");
 
-  const { effectiveValue, selected, options, isSearching, error } =
+  const { effectiveValue, selected, options, isSearching, error, hasNextPage, fetchNextPage, isFetchingNextPage } =
     useGeographyFocus({ value, search, type, open });
 
   useEffect(() => {
@@ -149,6 +149,18 @@ export default function GeographyFocusSelector({
             </ComboboxGroup>
           )}
         </ComboboxList>
+        {hasNextPage && (
+          <div className="border-t p-2">
+            <button
+              type="button"
+              className="w-full rounded-md border px-3 py-2 text-xs font-medium hover:bg-accent disabled:opacity-50"
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+            >
+              {isFetchingNextPage ? "Loading…" : "Load more geographies"}
+            </button>
+          </div>
+        )}
       </ComboboxContent>
     </Combobox>
   );
