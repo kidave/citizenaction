@@ -99,7 +99,7 @@ export const queryKeys = {
   geography: {
     all: ["geography"],
     byId: (geographyId) => ["geography", "by-id", geographyId],
-    search: (search) => ["geography", "search", search],
+    search: ({ search = "", type = "all", limit = 50 } = {}) => ["geography", "search", { search, type, limit }],
     children: (parentId) => ["geography", "children", parentId],
     list: ({ type = "all", search = "", page = 0, pageSize = 100 } = {}) => [
       "geography",
