@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { MapPinned, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
@@ -14,18 +14,15 @@ import { queryKeys } from "@/lib/queryKeys";
 
 const TYPES = { country: "Country", state: "State / Union territory", division: "Division", district: "District", city: "City", local_government: "Local government", zone: "Zone", ward: "Ward", other: "Other" };
 
-const GEOGRAPHY_QUERY_KEY = ["admin-geographies"];
-
 export default function AdminGeography({ embedded = false }) {
   const queryClient = useQueryClient();
   const [query, setQuery] = useState("");
   const [type, setType] = useState("district");
-  const [page, setPage] = useState(0);
   const pageSize = 100;
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState(null);
 
-  const { data: rows = [], isLoading, error } = useQuery({
+  const { data, isLoading, error, fetchNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: queryKeys.geography.list({ type, search: query.trim(), pageSize }),
     queryFn: async ({ pageParam = 0 }) => {
       let request = supabase
