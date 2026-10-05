@@ -7,19 +7,16 @@ on storage.objects for insert
 to authenticated
 with check (
   bucket_id = 'space'
-  and (storage.foldername(name))[1] = 'space'
+  and (storage.foldername(storage.objects.name))[1] = 'space'
   and exists (
     select 1 from public.space s
-    where s.slug = (storage.foldername(name))[2]
+    where s.slug = (storage.foldername(storage.objects.name))[2]
       and (
         s.owner_user_id = auth.uid()
         or exists (
           select 1 from public.space_member sm
-          where sm.space_id = s.id
-            and sm.user_id = auth.uid()
-            and sm.role = 'admin'
-            and sm.is_active = true
-            and sm.is_suspended = false
+          where sm.space_id = s.id and sm.user_id = auth.uid()
+            and sm.role = 'admin' and sm.is_active = true and sm.is_suspended = false
         )
       )
   )
@@ -30,38 +27,32 @@ on storage.objects for update
 to authenticated
 using (
   bucket_id = 'space'
-  and (storage.foldername(name))[1] = 'space'
+  and (storage.foldername(storage.objects.name))[1] = 'space'
   and exists (
     select 1 from public.space s
-    where s.slug = (storage.foldername(name))[2]
+    where s.slug = (storage.foldername(storage.objects.name))[2]
       and (
         s.owner_user_id = auth.uid()
         or exists (
           select 1 from public.space_member sm
-          where sm.space_id = s.id
-            and sm.user_id = auth.uid()
-            and sm.role = 'admin'
-            and sm.is_active = true
-            and sm.is_suspended = false
+          where sm.space_id = s.id and sm.user_id = auth.uid()
+            and sm.role = 'admin' and sm.is_active = true and sm.is_suspended = false
         )
       )
   )
 )
 with check (
   bucket_id = 'space'
-  and (storage.foldername(name))[1] = 'space'
+  and (storage.foldername(storage.objects.name))[1] = 'space'
   and exists (
     select 1 from public.space s
-    where s.slug = (storage.foldername(name))[2]
+    where s.slug = (storage.foldername(storage.objects.name))[2]
       and (
         s.owner_user_id = auth.uid()
         or exists (
           select 1 from public.space_member sm
-          where sm.space_id = s.id
-            and sm.user_id = auth.uid()
-            and sm.role = 'admin'
-            and sm.is_active = true
-            and sm.is_suspended = false
+          where sm.space_id = s.id and sm.user_id = auth.uid()
+            and sm.role = 'admin' and sm.is_active = true and sm.is_suspended = false
         )
       )
   )
@@ -72,19 +63,16 @@ on storage.objects for delete
 to authenticated
 using (
   bucket_id = 'space'
-  and (storage.foldername(name))[1] = 'space'
+  and (storage.foldername(storage.objects.name))[1] = 'space'
   and exists (
     select 1 from public.space s
-    where s.slug = (storage.foldername(name))[2]
+    where s.slug = (storage.foldername(storage.objects.name))[2]
       and (
         s.owner_user_id = auth.uid()
         or exists (
           select 1 from public.space_member sm
-          where sm.space_id = s.id
-            and sm.user_id = auth.uid()
-            and sm.role = 'admin'
-            and sm.is_active = true
-            and sm.is_suspended = false
+          where sm.space_id = s.id and sm.user_id = auth.uid()
+            and sm.role = 'admin' and sm.is_active = true and sm.is_suspended = false
         )
       )
   )
