@@ -43,7 +43,7 @@ export default function GeographyPicker({ open, onOpenChange, value = null, onVa
   const visibleRows = rows.filter((item) => item.id !== excludeId);
   const groupedRows = visibleRows.reduce((groups, item) => {
     const type = item.geography_type || "other";
-    const label = type === "state" ? "States & Union Territories" : type.replace(/_/g, " ").replace(/\\b\\w/g, (letter) => letter.toUpperCase());
+    const label = type === "state" ? "States & Union Territories" : type.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
     const group = groups.find((entry) => entry.value === type);
     if (group) group.items.push(item);
     else groups.push({ value: type, label, items: [item] });
