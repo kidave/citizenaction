@@ -4,6 +4,9 @@ import { queryKeys } from "@/lib/queryKeys";
 
 const geographyGeometryCache = new Map();
 
+export const GEOGRAPHY_METADATA_SELECT =
+  "id,name,official_name,geography_type,parent_id,country_code,osm_type,osm_id,admin_level,source,source_url,center,metadata";
+
 export function useGeographyBrowser({ parentId = null, search = "", enabled = true }) {
   return useQuery({
     queryKey: search.trim() ? queryKeys.geography.search({ search: search.trim(), type: "all", limit: 50 }) : queryKeys.geography.children(parentId || "india"),
