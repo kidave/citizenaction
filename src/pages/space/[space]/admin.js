@@ -7,7 +7,6 @@ import { Loader2, Users } from "lucide-react";
 import { useSpaceAdmin } from "@/hooks/space/useSpaceAdmin";
 import PageHeader from "@/components/layout/PageHeader";
 import AdminSettingsShell from "@/components/layout/AdminSettingsShell";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
 import SpaceMemberApplications from "@/components/space/SpaceMemberApplications";
@@ -92,12 +91,7 @@ export default function SpaceAdminPage() {
           { label: "Administration" },
         ]}
       />
-      <AdminSettingsShell
-        title="Administration"
-        description={`Manage ${space.name}`}
-        badge={<Badge variant="secondary">{isOwner ? "Owner" : "Admin"}</Badge>}
-        tabs={tabs}
-      >
+      <AdminSettingsShell tabs={tabs}>
         {content}
       </AdminSettingsShell>
     </div>
