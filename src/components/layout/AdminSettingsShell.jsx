@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/router";
-import { cn } from "@/lib/utils";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AdminSettingsShell({
   title,
@@ -10,17 +9,33 @@ export default function AdminSettingsShell({
   badge,
   tabs,
   children,
+  className = "",
 }) {
   const router = useRouter();
-  const activeTab =
-    typeof router.query.tab === "string" ? router.query.tab : tabs[0]?.value;
+  const requestedTab = Array.isArray(router.query.tab)
+    ? router.query.tab[0]
+    : router.query.tab;
+  const activeTab = tabs.some((tab) => tab.value === requestedTab)
+    ? requestedTab
+    : tabs[0]?.value;
+
+  function changeTab(value) {
+    router.push(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, tab: value },
+      },
+      undefined,
+      { shallow: true },
+    );
+  }
 
   return (
-    <div className="w-full">
+    <Tabs value={activeTab} onValueChange={changeTab} className={className}>
       <div className="border-b bg-background">
         <div className="mx-auto w-full max-w-4xl px-4 sm:px-6">
-          <div className="flex min-h-20 items-center justify-between gap-4 py-5">
-            <div className="min-w-0">
+          <div className="flex min-h-20 items-center gap-3 py-5">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <h1 className="truncate text-xl font-semibold tracking-tight">{title}</h1>
                 {badge}
@@ -30,33 +45,26 @@ export default function AdminSettingsShell({
               ) : null}
             </div>
           </div>
-          <nav className="flex gap-6 overflow-x-auto" aria-label="Administration">
-            {tabs.map((tab) => {
-              const isActive = activeTab === tab.value;
-              return (
-                <Link
+
+          <div className="overflow-x-auto">
+            <TabsList className="h-10 w-max min-w-full justify-start rounded-none bg-transparent p-0">
+              {tabs.map((tab) => (
+                <TabsTrigger
                   key={tab.value}
-                  href={{
-                    pathname: router.pathname,
-                    query: { ...router.query, tab: tab.value },
-                  }}
-                  className={cn(
-                    "relative whitespace-nowrap border-b-2 px-0 py-3 text-sm font-medium transition-colors",
-                    isActive
-                      ? "border-foreground text-foreground"
-                      : "border-transparent text-muted-foreground hover:text-foreground",
-                  )}
+                  value={tab.value}
+                  className="h-10 rounded-none border-b-2 border-transparent bg-transparent px-1 mr-6 shadow-none data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                 >
                   {tab.label}
-                </Link>
-              );
-            })}
-          </nav>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
         </div>
       </div>
+
       <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
         {children}
       </main>
-    </div>
+    </Tabs>
   );
 }

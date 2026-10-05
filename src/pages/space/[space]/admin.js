@@ -9,6 +9,7 @@ import PageHeader from "@/components/layout/PageHeader";
 import AdminSettingsShell from "@/components/layout/AdminSettingsShell";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+
 import SpaceMemberApplications from "@/components/space/SpaceMemberApplications";
 import SpaceGeneralSettings from "@/components/space/SpaceGeneralSettings";
 import SpaceMembersSettings from "@/components/space/SpaceMembersSettings";
@@ -32,15 +33,13 @@ export default function SpaceAdminPage() {
   if (accessDenied) {
     return (
       <div className="w-full px-4 py-16">
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto max-w-4xl">
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12 text-center">
               <Users className="h-8 w-8 text-muted-foreground" />
               <h1 className="mt-4 text-xl font-semibold">Access denied</h1>
               <p className="mt-2 max-w-md text-sm text-muted-foreground">You do not have permission to manage this Space.</p>
-              <Link href={`/space/${slug}`} className="mt-6 inline-flex rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted">
-                Back to Space
-              </Link>
+              <Link href={`/space/${slug}`} className="mt-6 inline-flex rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted">Back to Space</Link>
             </CardContent>
           </Card>
         </div>
@@ -106,9 +105,5 @@ export default function SpaceAdminPage() {
 }
 
 function PageLoader() {
-  return (
-    <div className="flex min-h-[50vh] items-center justify-center">
-      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-    </div>
-  );
+  return <div className="flex min-h-[50vh] items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
 }
