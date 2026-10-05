@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 
@@ -11,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
 
 const TYPES = { state: "State / Union territory", division: "Division", district: "District", city: "City", local_government: "Local government", zone: "Zone", ward: "Ward", other: "Other" };
 
@@ -20,6 +22,17 @@ export default function GeographyEditor({ open, onOpenChange, geography, onSaved
   const [form, setForm] = useState(blank);
   const [parentPickerOpen, setParentPickerOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const parentId = form.parent_id === "none" ? null : form.parent_id;
+  const { data: parentGeography } = useQuery({
+    queryKey: queryKeys.geography.byId(parentId),
+    enabled: Boolean(parentId),
+    queryFn: async () => {
+      const { data, error } = await supabase.from("geographies").select("id,name,official_name").eq("id", parentId).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 10 * 60 * 1000,
+  });
 
   useEffect(() => {
     setForm(geography ? { ...blank, ...geography, parent_id: geography.parent_id || "none", osm_id: geography.osm_id ? String(geography.osm_id) : "", admin_level: geography.admin_level != null ? String(geography.admin_level) : "" } : blank);
@@ -74,7 +87,7 @@ export default function GeographyEditor({ open, onOpenChange, geography, onSaved
 
   return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"><DialogHeader><DialogTitle>{form.id ? "Edit geography" : "Add geography"}</DialogTitle></DialogHeader><div className="grid gap-4 py-2">
     <div className="grid gap-4 sm:grid-cols-2"><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Name</span><Input value={form.name} onChange={(e) => set("name", e.target.value)} /></label><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Type</span><Select value={form.geography_type} onValueChange={(v) => set("geography_type", v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{Object.entries(TYPES).map(([key, label]) => <SelectItem key={key} value={key}>{label}</SelectItem>)}</SelectContent></Select></label></div>
-    <div className="grid gap-4 sm:grid-cols-2"><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Official name</span><Input value={form.official_name} onChange={(e) => set("official_name", e.target.value)} /></label><div className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Parent geography</span><div className="flex gap-2"><Button type="button" variant="outline" className="min-w-0 flex-1 justify-start font-normal" onClick={() => setParentPickerOpen(true)}>{form.parent_id === "none" ? "No parent geography" : "Select parent geography"}</Button>{form.parent_id !== "none" && <Button type="button" variant="ghost" onClick={() => set("parent_id", "none")}>Clear</Button>}</div></div></div>
+    <div className="grid gap-4 sm:grid-cols-2"><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Official name</span><Input value={form.official_name} onChange={(e) => set("official_name", e.target.value)} /></label><div className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Parent geography</span><div className="flex gap-2"><Button type="button" variant="outline" className="min-w-0 flex-1 justify-start font-normal" onClick={() => setParentPickerOpen(true)}>{form.parent_id === "none" ? "No parent geography" : parentGeography?.official_name || parentGeography?.name || "Loading parent geography…"}</Button>{form.parent_id !== "none" && <Button type="button" variant="ghost" onClick={() => set("parent_id", "none")}>Clear</Button>}</div></div></div>
     <div className="grid gap-4 sm:grid-cols-3"><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Country code</span><Input value={form.country_code} onChange={(e) => set("country_code", e.target.value)} /></label><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">OSM type</span><Input value={form.osm_type} onChange={(e) => set("osm_type", e.target.value)} /></label><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">OSM ID</span><Input value={form.osm_id} onChange={(e) => set("osm_id", e.target.value)} /></label></div>
     <div className="grid gap-4 sm:grid-cols-2"><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Source</span><Input value={form.source} onChange={(e) => set("source", e.target.value)} /></label><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Source URL</span><Input value={form.source_url} onChange={(e) => set("source_url", e.target.value)} /></label></div>
     <div className="space-y-2"><div className="flex items-center justify-between gap-3"><div><p className="text-sm font-medium">Boundary geometry</p><p className="text-xs text-muted-foreground">Upload or paste GeoJSON. This geometry is stored on the reusable geography record.</p></div><label className="cursor-pointer"><input type="file" accept=".geojson,.json,application/geo+json,application/json" className="hidden" onChange={importGeoJson} /><span className="inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-muted"><Upload className="mr-2 h-4 w-4" />Import</span></label></div><Textarea value={form.geojson} onChange={(e) => set("geojson", e.target.value)} rows={9} className="font-mono text-xs" placeholder='{"type":"MultiPolygon","coordinates":[...]}' /></div>
