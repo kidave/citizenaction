@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { MapPinned } from "lucide-react";
+import { MapPinned, X } from "lucide-react";
 import GeographyTypeFilter from "@/components/geography/GeographyTypeFilter";
 
 import {
@@ -113,6 +113,23 @@ export default function GeographyFocusSelector({
       </ComboboxTrigger>
 
       <ComboboxContent className="w-[min(28rem,calc(100vw-1.5rem))]">
+        <div className="flex items-center justify-between border-b p-2">
+          <span className="text-xs text-muted-foreground">Boundary: {selectedLabel || "India"}</span>
+          {effectiveValue !== DEFAULT_GEOGRAPHY_FOCUS_ID && (
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium hover:bg-accent"
+              onClick={() => {
+                onValueChange?.(null);
+                setOpen(false);
+                setSearch("");
+              }}
+            >
+              <X className="h-3.5 w-3.5" />
+              Clear
+            </button>
+          )}
+        </div>
         <div className="border-b p-2">
           <GeographyTypeFilter value={type} onValueChange={setType} className="h-8 w-full text-xs" />
         </div>
