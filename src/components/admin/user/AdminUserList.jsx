@@ -3,7 +3,6 @@ import { ShieldCheck, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAdminUsers, useSetPlatformUserRole } from "@/hooks/admin/useAdminUsers";
-import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,7 +11,7 @@ function initials(name) {
   return name?.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "U";
 }
 
-export default function AdminUserList() {
+export default function AdminUserList({ embedded = false }) {
   const { data: users = [], isLoading, error } = useAdminUsers();
   const { mutateAsync: setRole, isPending } = useSetPlatformUserRole();
   const [savingUserId, setSavingUserId] = useState(null);
@@ -29,24 +28,13 @@ export default function AdminUserList() {
     }
   }
 
-  const breadcrumbItems = [{ label: "Users" }];
-
   if (isLoading) {
-    return (
-      <div className="min-h-dvh">
-        <AdminPageHeader items={breadcrumbItems} />
-        <main className="flex min-h-[60vh] items-center justify-center px-4 text-sm text-muted-foreground">
-          Loading users...
-        </main>
-      </div>
-    );
+    return <div className="flex min-h-40 items-center justify-center text-sm text-muted-foreground">Loading users...</div>;
   }
 
   return (
-    <div className="min-h-dvh">
-      <AdminPageHeader items={breadcrumbItems} />
-
-      <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
+    <div className={embedded ? "w-full" : "min-h-dvh"}>
+      <main className={embedded ? "w-full" : "mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-8"}>
         <div className="mb-6">
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Users</h1>
           <p className="mt-1 text-sm text-muted-foreground">
