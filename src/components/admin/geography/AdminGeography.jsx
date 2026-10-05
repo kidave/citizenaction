@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { MapPinned, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { MapPinned, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 
 import GeographyEditor from "@/components/admin/geography/GeographyEditor";
 import GeographyTypeFilter, { geographyTypeLabel } from "@/components/geography/GeographyTypeFilter";
+import GeographySearch from "@/components/geography/GeographySearch";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase/client";
 import { queryKeys } from "@/lib/queryKeys";
@@ -74,10 +74,7 @@ export default function AdminGeography({ embedded = false }) {
       </div>
       <div className="flex flex-col gap-3 sm:flex-row">
         <GeographyTypeFilter value={type} onValueChange={setType} className="w-full sm:w-52" />
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input className="pl-9" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search within this geography type" />
-        </div>
+        <GeographySearch value={query} onChange={setQuery} placeholder="Search within this geography type" />
         <span className="self-center text-sm text-muted-foreground">{filtered.length} shown</span>
       </div>
       <Card><CardContent className="p-0">
