@@ -6,7 +6,7 @@ const geographyGeometryCache = new Map();
 
 export function useGeographyBrowser({ parentId = null, search = "", enabled = true }) {
   return useQuery({
-    queryKey: search.trim() ? queryKeys.geography.search(search.trim()) : queryKeys.geography.children(parentId || "india"),
+    queryKey: search.trim() ? queryKeys.geography.search({ search: search.trim(), type: "all", limit: 50 }) : queryKeys.geography.children(parentId || "india"),
     enabled,
     queryFn: async () => {
       let query = supabase
