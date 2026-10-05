@@ -62,7 +62,7 @@ export default function AdminSpaceApplicationReview({ id }) {
   }
 
   const breadcrumbItems = [
-    { label: "Spaces", href: "/admin/space" },
+    { label: "Spaces", href: "/admin?tab=spaces" },
     { label: application?.proposed_name || "Application" },
   ];
 
@@ -91,10 +91,10 @@ export default function AdminSpaceApplicationReview({ id }) {
   if (error || !application) {
     return (
       <div className="min-h-dvh">
-        <AdminPageHeader items={[{ label: "Spaces", href: "/admin/space" }, { label: "Application" }]} />
+        <AdminPageHeader items={[{ label: "Spaces", href: "/admin?tab=spaces" }, { label: "Application" }]} />
         <main className="mx-auto max-w-4xl px-4 py-10 text-center">
           <h1 className="text-xl font-semibold">Application not found</h1>
-          <Button asChild variant="outline" className="mt-4"><Link href="/admin/space">Back to Spaces</Link></Button>
+          <Button asChild variant="outline" className="mt-4"><Link href="/admin?tab=spaces">Back to Spaces</Link></Button>
         </main>
       </div>
     );
