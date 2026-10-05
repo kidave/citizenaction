@@ -17,7 +17,7 @@ export function useGeographyFocus({
   const normalizedSearch = search.trim();
 
   const selectedQuery = useQuery({
-    queryKey: queryKeys.geography.focusSelected(effectiveValue),
+    queryKey: queryKeys.geography.byId(effectiveValue),
     enabled: !!effectiveValue,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -33,7 +33,7 @@ export function useGeographyFocus({
   });
 
   const searchQuery = useQuery({
-    queryKey: queryKeys.geography.focusSearch(normalizedSearch),
+    queryKey: queryKeys.geography.search(normalizedSearch),
     enabled: open,
     queryFn: async () => {
       let query = supabase
