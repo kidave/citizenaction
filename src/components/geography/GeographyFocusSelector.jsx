@@ -21,6 +21,51 @@ import {
   useGeographyFocus,
 } from "@/hooks/geography/useGeographyFocus";
 
+"use client";
+
+import { useEffect, useState } from "react";
+import { MapPinned, X } from "lucide-react";
+
+import {
+  Combobox,
+  ComboboxCollection,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxGroup,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxLabel,
+  ComboboxList,
+  ComboboxTrigger,
+  ComboboxValue,
+} from "@/components/ui/combobox";
+import {
+  DEFAULT_GEOGRAPHY_FOCUS_ID,
+  useGeographyFocus,
+} from "@/hooks/geography/useGeographyFocus";
+
+const GEOGRAPHY_TYPE_LABELS = {
+  ward: "Ward",
+  zone: "Zone",
+  constituency: "Constituency",
+  district: "District",
+  sub_district: "Sub-district",
+  local_government: "Local government",
+  administrative_area: "Administrative area",
+  neighborhood: "Neighborhood",
+  suburb: "Suburb",
+  village: "Village",
+  town: "Town",
+  city: "City",
+  state: "State",
+  country: "Country",
+};
+
+function getGeographyTypeLabel(type) {
+  if (!type) return "Boundary";
+  return GEOGRAPHY_TYPE_LABELS[type] || type.replace(/_/g, " ");
+}
+
 export default function GeographyFocusSelector({ value, onValueChange, className }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -34,11 +79,22 @@ export default function GeographyFocusSelector({ value, onValueChange, className
     if (!open) setSearch("");
   }, [open]);
 
-  const selectedLabel = selected?.name ||
-    (effectiveValue === DEFAULT_GEOGRAPHY_FOCUS_ID ? "India" : "");
+  const isIndia = effectiveValue === DEFAULT_GEOGRAPHY_FOCUS_ID;
+  const selectedLabel = selected?.name || (isIndia ? "India" : "");
+  const selectedType = selected?.geography_type
+    ? getGeographyTypeLabel(selected.geography_type)
+    : null;
 
   const loadMore = () => {
     if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+  };
+
+  const clearBoundary = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onValueChange?.(null);
+    setSearch("");
+    setOpen(false);
   };
 
   return (
@@ -61,34 +117,38 @@ export default function GeographyFocusSelector({ value, onValueChange, className
       autoHighlight
       className={className}
     >
-      <div className="relative">
-        <ComboboxTrigger
-          className="shadow-xs inline-flex h-9 w-[9.5rem] max-w-full items-center justify-between gap-2 rounded-md border border-input bg-background pl-3 pr-2 font-serif text-sm font-normal hover:bg-accent hover:text-accent-foreground"
-          aria-label="Select geography"
-        >
-          <span className="flex min-w-0 items-center gap-2">
-            <MapPinned className="h-4 w-4 shrink-0 text-muted-foreground" />
-            <ComboboxValue placeholder={selectedLabel || "Select geography"} />
-          </span>
-        </ComboboxTrigger>
-        {effectiveValue !== DEFAULT_GEOGRAPHY_FOCUS_ID && (
-          <button
-            type="button"
-            aria-label="Clear geography boundary"
-            title="Clear boundary"
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              onValueChange?.(null);
-              setSearch("");
-              setOpen(false);
-            }}
-            className="absolute left-1 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md bg-background text-muted-foreground shadow-sm ring-1 ring-border hover:bg-accent hover:text-foreground"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        )}
-      </div>
+      <ComboboxTrigger
+        className="shadow-xs inline-flex h-10 w-[12rem] max-w-full items-center gap-2 rounded-md border border-input bg-background px-2.5 hover:bg-accent hover:text-accent-foreground"
+        aria-label="Select geography"
+      >
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground">
+          {isIndia ? (
+            <MapPinned className="h-4 w-4" />
+          ) : (
+            <button
+              type="button"
+              aria-label="Clear geography boundary"
+              title="Clear boundary"
+              onClick={clearBoundary}
+              className="flex h-7 w-7 items-center justify-center rounded-md bg-background text-muted-foreground ring-1 ring-border hover:bg-accent hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </span>
+
+        <span className="min-w-0 flex-1 text-left">
+          <ComboboxValue
+            placeholder={selectedLabel || "Select geography"}
+            className="block truncate font-serif text-sm font-normal"
+          />
+          {!isIndia && selectedType && (
+            <span className="block truncate text-[11px] leading-3 text-muted-foreground">
+              {selectedType}
+            </span>
+          )}
+        </span>
+      </ComboboxTrigger>
 
       <ComboboxContent className="w-[min(28rem,calc(100vw-1.5rem))]">
         <ComboboxInput
@@ -107,8 +167,11 @@ export default function GeographyFocusSelector({ value, onValueChange, className
           className="max-h-[min(24rem,calc(100vh-10rem))] overflow-y-auto"
           onScroll={(event) => {
             const target = event.currentTarget;
-            if (hasNextPage && !isFetchingNextPage &&
-                target.scrollTop + target.clientHeight >= target.scrollHeight - 80) {
+            if (
+              hasNextPage &&
+              !isFetchingNextPage &&
+              target.scrollTop + target.clientHeight >= target.scrollHeight - 80
+            ) {
               loadMore();
             }
           }}
@@ -121,6 +184,9 @@ export default function GeographyFocusSelector({ value, onValueChange, className
                   <ComboboxItem key={item.id} value={item}>
                     <div className="min-w-0">
                       <div className="truncate text-sm">{item.name}</div>
+                      <div className="truncate text-[11px] text-muted-foreground">
+                        {getGeographyTypeLabel(item.geography_type)}
+                      </div>
                     </div>
                   </ComboboxItem>
                 )}
