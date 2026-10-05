@@ -6,7 +6,6 @@ import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import GeographyEditor from "@/components/admin/geography/GeographyEditor";
 import GeographyTypeFilter, { geographyTypeLabel } from "@/components/geography/GeographyTypeFilter";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,7 +33,7 @@ export default function AdminGeography({ embedded = false }) {
         request = request.eq("geography_type", type);
       }
 
-      const needle = query.trim();
+      const needle = query.trim().replace(/[%_]/g, "").slice(0, 80);
       if (needle) {
         request = request.or(`name.ilike.%${needle}%,official_name.ilike.%${needle}%`);
       }
