@@ -14,7 +14,7 @@ export function useGeographyBrowser({ parentId = null, search = "", enabled = tr
     queryFn: async () => {
       let query = supabase
         .from("geographies")
-        .select("id,name,official_name,geography_type,parent_id,country_code,osm_type,osm_id,admin_level,source,source_url,center,metadata")
+        .select(GEOGRAPHY_METADATA_SELECT)
         .order("name", { ascending: true })
         .limit(search.trim() ? 50 : 200);
 
