@@ -1,10 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, MapPin, Search } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,8 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
   const [selected, setSelected] = useState(null);
   const [geometry, setGeometry] = useState(null);
   const [loadingGeometry, setLoadingGeometry] = useState(false);
+  const geometryRequestRef = useRef(0);
+  const loadMoreRef = useRef(null);
   const { data: relationships = [] } = useGovernanceGeography(governanceId, open);
   const currentGeography = relationships[0]?.geographies || null;
   const currentGeographyId = relationships[0]?.geography_id || null;
@@ -37,20 +39,35 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
     setSearch("");
     setSelected(currentGeography || null);
     setGeometry(null);
+    geometryRequestRef.current += 1;
   }, [open, currentGeography]);
 
   const activeCategory = GEOGRAPHY_BOUNDARY_CATEGORIES.find((item) => item.value === category) || GEOGRAPHY_BOUNDARY_CATEGORIES[0];
 
-  const { data: items = [], isLoading } = useQuery({
+  const {
+    data: geographyPages,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
     queryKey: ["geography-picker", category, type, search.trim()],
     enabled: open,
     staleTime: 5 * 60 * 1000,
-    queryFn: async () => {
-      let query = supabase.from("geographies")
-        .select("id,name,official_name,geography_type,boundary_category,parent_id,country_code,osm_type,osm_id,center,metadata")
+    initialPageParam: 0,
+    queryFn: async ({ pageParam = 0 }) => {
+      const from = pageParam * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      const needle = search.trim().replace(/[%_]/g, "").slice(0, 80);
+
+      let query = supabase
+        .from("geographies")
+        .select(
+          "id,name,official_name,geography_type,boundary_category,parent_id,country_code,osm_type,osm_id,center,metadata",
+        )
         .eq("boundary_category", category)
         .order("name", { ascending: true })
-        .limit(PAGE_SIZE);
+        .range(from, to);
 
       if (category === "administrative" && type === "all") {
         query = query.neq("geography_type", "country");
@@ -58,7 +75,6 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
         query = query.eq("geography_type", type);
       }
 
-      const needle = search.trim().replace(/[%_]/g, "").slice(0, 80);
       if (needle) {
         query = query.or(`name.ilike.%${needle}%,official_name.ilike.%${needle}%`);
       }
@@ -69,22 +85,36 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
       const rows = data || [];
 
       // India is the default national context, not a type filter.
-      // Keep it available as the administrative fallback when the user
-      // has not narrowed the list to a specific boundary type.
-      if (category === "administrative" && type === "all" && !needle) {
+      // Only add it once at the beginning of the unfiltered administrative list.
+      if (pageParam === 0 && category === "administrative" && type === "all" && !needle) {
         const { data: india } = await supabase
           .from("geographies")
-          .select("id,name,official_name,geography_type,boundary_category,parent_id,country_code,osm_type,osm_id,center,metadata")
+          .select(
+            "id,name,official_name,geography_type,boundary_category,parent_id,country_code,osm_type,osm_id,center,metadata",
+          )
           .eq("geography_type", "country")
           .eq("name", "India")
           .maybeSingle();
 
-        return india ? [india, ...rows] : rows;
+        return {
+          rows: india ? [india, ...rows] : rows,
+          hasMore: rows.length === PAGE_SIZE,
+        };
       }
 
-      return rows;
+      return {
+        rows,
+        hasMore: rows.length === PAGE_SIZE,
+      };
     },
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.hasMore ? allPages.length : undefined,
   });
+
+  const items = useMemo(
+    () => (geographyPages?.pages || []).flatMap((page) => page.rows || []),
+    [geographyPages],
+  );
 
   const typeOptions = useMemo(
     () => activeCategory.types.filter((item) => item !== "country"),
@@ -92,11 +122,23 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
   );
 
   const selectGeography = async (item) => {
+    const requestId = ++geometryRequestRef.current;
     setSelected(item);
+    // Clear the previous boundary immediately so it can never remain visible
+    // while the newly selected boundary is loading.
+    setGeometry(null);
     setLoadingGeometry(true);
-    try { setGeometry(await fetchGeographyGeometry(item)); }
-    catch { setGeometry(null); }
-    finally { setLoadingGeometry(false); }
+
+    try {
+      const nextGeometry = await fetchGeographyGeometry(item);
+      if (requestId !== geometryRequestRef.current) return;
+      setGeometry(nextGeometry);
+    } catch {
+      if (requestId !== geometryRequestRef.current) return;
+      setGeometry(null);
+    } finally {
+      if (requestId === geometryRequestRef.current) setLoadingGeometry(false);
+    }
   };
 
   const handleSave = async () => {
@@ -109,9 +151,32 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
     } catch (error) { toast.error(error?.message || "Unable to save geography"); }
   };
 
+  useEffect(() => {
+    if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) fetchNextPage();
+      },
+      { rootMargin: "240px" },
+    );
+
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
   const label = selected?.official_name || selected?.name || "Geography";
   const center = selected?.center || { lat: 20.5937, lng: 78.9629 };
-  const mapBoundary = selected && geometry ? [{ osm_type: selected.osm_type, osm_id: selected.osm_id, name: label, center: selected.center, geojson: geometry }] : [];
+  const mapBoundary = selected && geometry
+    ? [{
+        id: selected.id,
+        osm_type: selected.osm_type,
+        osm_id: selected.osm_id,
+        name: label,
+        center: selected.center,
+        geojson: geometry,
+      }]
+    : [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -153,7 +218,9 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
                 </div>
               ) : items.length === 0 ? (
                 <div className="py-12 text-center text-sm text-muted-foreground">No boundaries found.</div>
-              ) : items.map((item) => {
+              ) : (
+                <>
+                  {items.map((item) => {
                 const isSelected = selected?.id === item.id;
                 return (
                   <button key={item.id} type="button" onClick={() => selectGeography(item)}
@@ -164,8 +231,22 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
                       <span className="block truncate text-xs text-muted-foreground">{getGeographyTypeLabel(item.geography_type)}</span>
                     </span>
                   </button>
-                );
-              })}
+                  );
+                  })}
+                  <div ref={loadMoreRef} className="flex min-h-10 items-center justify-center">
+                    {isFetchingNextPage ? (
+                      <div className="flex items-center gap-2 py-3 text-xs text-muted-foreground">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        Loading more boundaries...
+                      </div>
+                    ) : hasNextPage ? (
+                      <span className="py-3 text-xs text-muted-foreground">Scroll for more boundaries</span>
+                    ) : (
+                      <span className="py-3 text-xs text-muted-foreground">All boundaries loaded</span>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </ScrollArea>
         </aside>
@@ -176,8 +257,14 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
         </DialogHeader>
 
         <main className="relative min-h-0 overflow-hidden bg-muted/20">
-          <LeafletMap lat={Number(center?.lat) || 20.5937} lng={Number(center?.lng) || 78.9629}
-            boundaries={mapBoundary} selectedBoundaryId={selected?.osm_id || null} showMarker={false} zoom={8}
+          <LeafletMap
+            key={selected?.id || "empty-boundary-map"}
+            lat={Number(center?.lat) || 20.5937}
+            lng={Number(center?.lng) || 78.9629}
+            boundaries={mapBoundary}
+            selectedBoundaryId={selected?.id || null}
+            showMarker={false}
+            zoom={8}
             onChange={() => {}} onBoundaryClick={() => {}} />
           {loadingGeometry && (
             <div className="absolute right-3 top-3 flex items-center gap-2 rounded-md border bg-background/90 px-3 py-2 text-xs text-muted-foreground shadow-sm">
