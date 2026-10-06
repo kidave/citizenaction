@@ -139,6 +139,9 @@ export default function OrganizationDirectory({
       queryClient.invalidateQueries({
         queryKey: ["governance-organizations"],
       }),
+      queryClient.invalidateQueries({
+        queryKey: ["governance-directory-resources"],
+      }),
     ]);
   };
 
