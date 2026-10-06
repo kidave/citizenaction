@@ -196,6 +196,28 @@ export default function OrganizationDirectory({
           <EmptyState title="No organizations found" description="Try another search or filter." />
         ))}
 
+      {canManage && resourceRecord && (
+        <GovernanceOrganizationResourceDialogs
+          entity={resourceRecord}
+          addressOpen={addressOpen}
+          onAddressOpenChange={(value) => {
+            setAddressOpen(value);
+            if (!value && !geographyOpen && !linksOpen) setResourceRecord(null);
+          }}
+          geographyOpen={geographyOpen}
+          onGeographyOpenChange={(value) => {
+            setGeographyOpen(value);
+            if (!value && !addressOpen && !linksOpen) setResourceRecord(null);
+          }}
+          linksOpen={linksOpen}
+          onLinksOpenChange={(value) => {
+            setLinksOpen(value);
+            if (!value && !addressOpen && !geographyOpen) setResourceRecord(null);
+          }}
+          onSaved={refresh}
+        />
+      )}
+
       {canManage && (
         <GovernanceOrganizationSheet
           open={dialogOpen}
