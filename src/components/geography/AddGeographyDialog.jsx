@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Loader2, MapPin, Search } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -50,16 +51,45 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
         .eq("boundary_category", category)
         .order("name", { ascending: true })
         .limit(PAGE_SIZE);
-      if (type !== "all") query = query.eq("geography_type", type);
+
+      if (category === "administrative" && type === "all") {
+        query = query.neq("geography_type", "country");
+      } else if (type !== "all") {
+        query = query.eq("geography_type", type);
+      }
+
       const needle = search.trim().replace(/[%_]/g, "").slice(0, 80);
-      if (needle) query = query.or(`name.ilike.%${needle}%,official_name.ilike.%${needle}%`);
+      if (needle) {
+        query = query.or(`name.ilike.%${needle}%,official_name.ilike.%${needle}%`);
+      }
+
       const { data, error } = await query;
       if (error) throw error;
-      return data || [];
+
+      const rows = data || [];
+
+      // India is the default national context, not a type filter.
+      // Keep it available as the administrative fallback when the user
+      // has not narrowed the list to a specific boundary type.
+      if (category === "administrative" && type === "all" && !needle) {
+        const { data: india } = await supabase
+          .from("geographies")
+          .select("id,name,official_name,geography_type,boundary_category,parent_id,country_code,osm_type,osm_id,center,metadata")
+          .eq("geography_type", "country")
+          .eq("name", "India")
+          .maybeSingle();
+
+        return india ? [india, ...rows] : rows;
+      }
+
+      return rows;
     },
   });
 
-  const typeOptions = useMemo(() => activeCategory.types, [activeCategory]);
+  const typeOptions = useMemo(
+    () => activeCategory.types.filter((item) => item !== "country"),
+    [activeCategory],
+  );
 
   const selectGeography = async (item) => {
     setSelected(item);
@@ -101,18 +131,19 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search boundary..." className="pl-9" />
             </div>
-            <div className="flex gap-1.5 overflow-x-auto pb-0.5">
-              <button type="button" onClick={() => setType("all")}
-                className={`shrink-0 rounded-full border px-2.5 py-1.5 text-xs ${type === "all" ? "bg-foreground text-background" : "hover:bg-muted"}`}>
-                All
-              </button>
-              {typeOptions.map((item) => (
-                <button key={item} type="button" onClick={() => setType(item)}
-                  className={`shrink-0 rounded-full border px-2.5 py-1.5 text-xs ${type === item ? "bg-foreground text-background" : "hover:bg-muted"}`}>
-                  {getGeographyTypeLabel(item)}
-                </button>
-              ))}
-            </div>
+            <Select value={type} onValueChange={setType}>
+              <SelectTrigger className="h-9 w-full">
+                <SelectValue placeholder="All boundary types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All boundary types</SelectItem>
+                {typeOptions.map((item) => (
+                  <SelectItem key={item} value={item}>
+                    {getGeographyTypeLabel(item)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <ScrollArea className="min-h-0 flex-1">
             <div className="p-2">
