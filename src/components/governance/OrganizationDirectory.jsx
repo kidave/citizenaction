@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectoryCard";
 import GovernanceOrganizationSheet from "@/components/governance/GovernanceOrganizationSheet";
+import GovernanceOrganizationResourceDialogs from "@/components/governance/GovernanceOrganizationResourceDialogs";
 import LoadingState from "@/components/ui/loading-state";
 import EmptyState from "@/components/ui/empty-state";
 import ErrorState from "@/components/ui/error-state";
@@ -42,6 +43,10 @@ export default function OrganizationDirectory({
   const queryClient = useQueryClient();
   const { deleteOrganization } = useGovernanceCrud();
   const [editingRecord, setEditingRecord] = useState(null);
+  const [resourceRecord, setResourceRecord] = useState(null);
+  const [addressOpen, setAddressOpen] = useState(false);
+  const [geographyOpen, setGeographyOpen] = useState(false);
+  const [linksOpen, setLinksOpen] = useState(false);
 
   const query = useGovernanceDirectory({
     tab: "organizations",
@@ -67,6 +72,12 @@ export default function OrganizationDirectory({
   );
 
   const openEdit = (entity) => { setEditingRecord(entity); setDialogOpen(true); };
+  const openResource = (entity, resource) => {
+    setResourceRecord(entity);
+    setAddressOpen(resource === "address");
+    setGeographyOpen(resource === "geography");
+    setLinksOpen(resource === "links");
+  };
 
   const deleteOrganizationRecord = async (entity) => {
     try {
@@ -174,6 +185,9 @@ export default function OrganizationDirectory({
                 selected={selectedSet.has(entity.id)}
                 onSelect={onSelect}
                 onEdit={canManage ? () => openEdit(entity) : undefined}
+                onAddAddress={canManage ? () => openResource(entity, "address") : undefined}
+                onAddGeography={canManage ? () => openResource(entity, "geography") : undefined}
+                onManageLinks={canManage ? () => openResource(entity, "links") : undefined}
                 onDelete={canManage ? () => deleteOrganizationRecord(entity) : undefined}
               />
             ))}
