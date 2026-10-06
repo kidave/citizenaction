@@ -203,6 +203,9 @@ export default function OrganizationDirectory({
           categories={categories}
           record={editingRecord}
           onSaved={refresh}
+          onAddressAction={() => editingRecord && openResource(editingRecord, "address")}
+          onGeographyAction={() => editingRecord && openResource(editingRecord, "geography")}
+          onLinksAction={() => editingRecord && openResource(editingRecord, "links")}
         />
       )}
     </div>
