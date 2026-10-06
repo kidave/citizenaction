@@ -86,16 +86,16 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-3xl md:max-w-5xl">
-        <SheetHeader className="border-b px-5 py-4 text-left sm:px-6">
-          <SheetTitle>{currentGeographyId ? "Change geography" : "Add geography"}</SheetTitle>
+        <SheetHeader className="border-b px-4 py-3 text-left sm:px-5">
+          <SheetTitle className="text-base">{currentGeographyId ? "Change geography" : "Add geography"}</SheetTitle>
           <SheetDescription>Choose the boundary associated with {entityName || "this entity"}.</SheetDescription>
         </SheetHeader>
-        <div className="grid min-h-0 flex-1 md:grid-cols-[380px_1fr]">
+        <div className="grid min-h-0 flex-1 md:grid-cols-[280px_1fr]">
           <div className="flex min-h-0 flex-col border-r">
-            <div className="space-y-3 border-b p-4">
-              <div className="grid grid-cols-3 rounded-lg border bg-muted/40 p-1">
+            <div className="relative space-y-2 border-b p-3 pt-14">
+              <div className="absolute left-4 right-4 top-3 z-[1000] grid grid-cols-3 rounded-md border bg-background/95 p-0.5 shadow-sm backdrop-blur">
                 {GEOGRAPHY_BOUNDARY_CATEGORIES.map((item) => (
-                  <button key={item.value} type="button" onClick={() => { setCategory(item.value); setType("all"); setSearch(""); }} className={`rounded-md px-2 py-2 text-xs font-medium ${category === item.value ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
+                  <button key={item.value} type="button" onClick={() => { setCategory(item.value); setType("all"); setSearch(""); }} className={`rounded px-2 py-1.5 text-xs font-medium ${category === item.value ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
                     {item.label}
                   </button>
                 ))}
@@ -105,10 +105,10 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search boundary..." className="pl-9" />
               </div>
-              <div className="flex gap-1.5 overflow-x-auto pb-0.5">
-                <button type="button" onClick={() => setType("all")} className={`shrink-0 rounded-full border px-2.5 py-1 text-xs ${type === "all" ? "bg-foreground text-background" : "hover:bg-muted"}`}>All</button>
+              <div className="flex gap-1 overflow-x-auto pb-0.5">
+                <button type="button" onClick={() => setType("all")} className={`shrink-0 rounded-full border px-2 py-1 text-[11px] ${type === "all" ? "bg-foreground text-background" : "hover:bg-muted"}`}>All</button>
                 {typeOptions.map((item) => (
-                  <button key={item} type="button" onClick={() => setType(item)} className={`shrink-0 rounded-full border px-2.5 py-1 text-xs ${type === item ? "bg-foreground text-background" : "hover:bg-muted"}`}>
+                  <button key={item} type="button" onClick={() => setType(item)} className={`shrink-0 rounded-full border px-2 py-1 text-[11px] ${type === item ? "bg-foreground text-background" : "hover:bg-muted"}`}>
                     {getGeographyTypeLabel(item)}
                   </button>
                 ))}
@@ -147,7 +147,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
               <div className="min-w-0"><p className="truncate text-sm font-semibold">{label}</p><p className="text-xs text-muted-foreground">{getGeographyTypeLabel(selected.geography_type)}</p></div>
               <div className="flex shrink-0 gap-2"><Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={isSetting}>Cancel</Button><Button type="button" onClick={handleSave} disabled={isSetting || selected.id === currentGeographyId || loadingGeometry}>{isSetting ? "Saving..." : currentGeographyId ? "Change geography" : "Add geography"}</Button></div>
             </div>
-          ) : <div className="w-full text-xs text-muted-foreground">Choose a boundary category, then search or filter by boundary type.</div>}
+          )  : null}
         </SheetFooter>
       </SheetContent>
     </Sheet>
