@@ -1,180 +1,72 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, ChevronRight, Loader2, MapPin, Search } from "lucide-react";
+import { Loader2, MapPin, Search } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  fetchGeographyGeometry,
-  useGeographyBrowser,
-} from "@/hooks/geography/useGeographyBrowser";
-import {
-  useGovernanceGeography,
-  useGovernanceGeographyMutation,
-} from "@/hooks/geography/useGovernanceGeography";
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { supabase } from "@/lib/supabase/client";
+import { fetchGeographyGeometry } from "@/hooks/geography/useGeographyBrowser";
+import { useGovernanceGeography, useGovernanceGeographyMutation } from "@/hooks/geography/useGovernanceGeography";
+import { GEOGRAPHY_BOUNDARY_CATEGORIES, getGeographyBoundaryCategory, getGeographyTypeLabel } from "@/config/geography/boundaryCategories";
 
-const LeafletMap = dynamic(() => import("@/components/geography/LeafletMap"), {
-  ssr: false,
-});
+const LeafletMap = dynamic(() => import("@/components/geography/LeafletMap"), { ssr: false });
+const PAGE_SIZE = 80;
 
-function geographyLabel(item) {
-  return item?.official_name || item?.name || "Geography";
-}
-function geographyTypeLabel(item) {
-  if (!item) return "Boundary";
-  const labels = {
-    country: "Country",
-    state: "State / Union territory",
-    division: "Division",
-    district: "District",
-    subdistrict: "Subdistrict / Taluka",
-    city: "City",
-    local_government: "Local government",
-    metropolitan_area: "Metropolitan area",
-    zone: "Zone",
-    ward: "Ward",
-  };
-  return labels[item.geography_type] || "Boundary";
-}
-
-async function fetchGeographyAncestors(item) {
-  const ancestors = [];
-  let parentId = item?.parent_id || null;
-  while (parentId && ancestors.length < 20) {
-    const { data, error } = await supabase
-      .from("geographies")
-      .select(
-        "id,name,official_name,geography_type,parent_id,country_code,osm_type,osm_id,admin_level,center,metadata",
-      )
-      .eq("id", parentId)
-      .maybeSingle();
-    if (error || !data) break;
-    ancestors.unshift(data);
-    parentId = data.parent_id || null;
-  }
-  return ancestors;
-}
-
-export default function AddGeographyDialog({
-  open,
-  onOpenChange,
-  governanceId,
-  entityName,
-  onSaved,
-}) {
-  const [parent, setParent] = useState(null);
+export default function AddGeographyDialog({ open, onOpenChange, governanceId, entityName, onSaved }) {
+  const [category, setCategory] = useState("administrative");
+  const [type, setType] = useState("all");
+  const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
   const [geometry, setGeometry] = useState(null);
-  const [search, setSearch] = useState("");
-  const [path, setPath] = useState([]);
   const [loadingGeometry, setLoadingGeometry] = useState(false);
-
-  const { data: relationships = [] } = useGovernanceGeography(
-    governanceId,
-    open,
-  );
+  const { data: relationships = [] } = useGovernanceGeography(governanceId, open);
   const currentGeography = relationships[0]?.geographies || null;
   const currentGeographyId = relationships[0]?.geography_id || null;
-  const { data: items = [], isLoading } = useGeographyBrowser({
-    parentId: parent?.id || null,
-    search,
-    enabled: open,
-  });
   const { setGeography, isSetting } = useGovernanceGeographyMutation();
 
   useEffect(() => {
     if (!open) return;
-    setParent(null);
+    setCategory(currentGeography ? getGeographyBoundaryCategory(currentGeography) : "administrative");
+    setType("all");
+    setSearch("");
     setSelected(currentGeography || null);
     setGeometry(null);
-    setSearch("");
-    setPath([]);
-    if (currentGeography) {
-      setLoadingGeometry(true);
-      fetchGeographyGeometry(currentGeography)
-        .then(setGeometry)
-        .catch(() => setGeometry(null))
-        .finally(() => setLoadingGeometry(false));
-    }
   }, [open, currentGeography]);
 
-  const selectedId = selected?.id || "";
-  const mapBoundary =
-    selected && geometry
-      ? [
-          {
-            osm_type: selected.osm_type,
-            osm_id: selected.osm_id,
-            name: geographyLabel(selected),
-            center: selected.center,
-            geojson: geometry,
-          },
-        ]
-      : [];
+  const activeCategory = GEOGRAPHY_BOUNDARY_CATEGORIES.find((item) => item.value === category) || GEOGRAPHY_BOUNDARY_CATEGORIES[0];
+
+  const { data: items = [], isLoading } = useQuery({
+    queryKey: ["geography-picker", category, type, search.trim()],
+    enabled: open,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      let query = supabase.from("geographies")
+        .select("id,name,official_name,geography_type,boundary_category,parent_id,country_code,osm_type,osm_id,center,metadata")
+        .eq("boundary_category", category)
+        .order("name", { ascending: true })
+        .limit(PAGE_SIZE);
+      if (type !== "all") query = query.eq("geography_type", type);
+      const needle = search.trim().replace(/[%_]/g, "").slice(0, 80);
+      if (needle) query = query.or(`name.ilike.%${needle}%,official_name.ilike.%${needle}%`);
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const typeOptions = useMemo(() => activeCategory.types, [activeCategory]);
 
   const selectGeography = async (item) => {
     setSelected(item);
-    setSearch("");
     setLoadingGeometry(true);
-    try {
-      setGeometry(await fetchGeographyGeometry(item));
-    } catch {
-      setGeometry(null);
-    } finally {
-      setLoadingGeometry(false);
-    }
-  };
-
-  const openChildren = async (item) => {
-    setSelected(item);
-    setSearch("");
-    setParent(item);
-    setPath((current) => [...current, item]);
-    setLoadingGeometry(true);
-    try {
-      setGeometry(await fetchGeographyGeometry(item));
-    } catch {
-      setGeometry(null);
-    } finally {
-      setLoadingGeometry(false);
-    }
-  };
-
-  const handleSearchSelection = async (item) => {
-    setSelected(item);
-    setLoadingGeometry(true);
-    try {
-      setGeometry(await fetchGeographyGeometry(item));
-    } catch {
-      setGeometry(null);
-    } finally {
-      setLoadingGeometry(false);
-    }
-    const ancestors = await fetchGeographyAncestors(item);
-    setPath(ancestors);
-    setParent(ancestors[ancestors.length - 1] || null);
-    setSearch("");
-  };
-
-  const goBack = () => {
-    if (!path.length) return;
-    const nextPath = path.slice(0, -1);
-    setPath(nextPath);
-    setParent(nextPath[nextPath.length - 1] || null);
-    setSearch("");
+    try { setGeometry(await fetchGeographyGeometry(item)); }
+    catch { setGeometry(null); }
+    finally { setLoadingGeometry(false); }
   };
 
   const handleSave = async () => {
@@ -182,218 +74,80 @@ export default function AddGeographyDialog({
     try {
       await setGeography({ governanceId, geographyId: selected.id });
       onSaved?.(selected);
-      toast.success(
-        currentGeographyId ? "Geography changed" : "Geography added",
-      );
+      toast.success(currentGeographyId ? "Geography changed" : "Geography added");
       onOpenChange?.(false);
-    } catch (error) {
-      toast.error(error?.message || "Unable to save geography");
-    }
+    } catch (error) { toast.error(error?.message || "Unable to save geography"); }
   };
 
+  const label = selected?.official_name || selected?.name || "Geography";
   const center = selected?.center || { lat: 20.5937, lng: 78.9629 };
-  const submitLabel = currentGeographyId ? "Change geography" : "Add geography";
+  const mapBoundary = selected && geometry ? [{ osm_type: selected.osm_type, osm_id: selected.osm_id, name: label, center: selected.center, geojson: geometry }] : [];
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
-        className="flex w-full flex-col gap-0 p-0 sm:max-w-3xl md:max-w-5xl"
-      >
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-3xl md:max-w-5xl">
         <SheetHeader className="border-b px-5 py-4 text-left sm:px-6">
-          <SheetTitle>
-            {currentGeographyId ? "Change geography" : "Add geography"}
-          </SheetTitle>
-          <SheetDescription>
-            Choose the jurisdiction associated with{" "}
-            {entityName || "this entity"}.
-          </SheetDescription>
+          <SheetTitle>{currentGeographyId ? "Change geography" : "Add geography"}</SheetTitle>
+          <SheetDescription>Choose the boundary associated with {entityName || "this entity"}.</SheetDescription>
         </SheetHeader>
-        <div className="grid min-h-0 flex-1 md:grid-cols-[360px_1fr]">
+        <div className="grid min-h-0 flex-1 md:grid-cols-[380px_1fr]">
           <div className="flex min-h-0 flex-col border-r">
             <div className="space-y-3 border-b p-4">
+              <div className="grid grid-cols-3 rounded-lg border bg-muted/40 p-1">
+                {GEOGRAPHY_BOUNDARY_CATEGORIES.map((item) => (
+                  <button key={item.value} type="button" onClick={() => { setCategory(item.value); setType("all"); setSearch(""); }} className={`rounded-md px-2 py-2 text-xs font-medium ${category === item.value ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">{activeCategory.description}</p>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Search India, Mumbai, BMC..."
-                  className="pl-9"
-                />
+                <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search boundary..." className="pl-9" />
               </div>
-              {path.length > 0 && !search && (
-                <div className="flex items-center gap-1 overflow-hidden text-xs text-muted-foreground">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setParent(null);
-                      setPath([]);
-                      setSearch("");
-                    }}
-                    className="shrink-0 hover:text-foreground"
-                  >
-                    India
+              <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+                <button type="button" onClick={() => setType("all")} className={`shrink-0 rounded-full border px-2.5 py-1 text-xs ${type === "all" ? "bg-foreground text-background" : "hover:bg-muted"}`}>All</button>
+                {typeOptions.map((item) => (
+                  <button key={item} type="button" onClick={() => setType(item)} className={`shrink-0 rounded-full border px-2.5 py-1 text-xs ${type === item ? "bg-foreground text-background" : "hover:bg-muted"}`}>
+                    {getGeographyTypeLabel(item)}
                   </button>
-                  {path.slice(1).map((item) => (
-                    <span
-                      key={item.id}
-                      className="flex min-w-0 items-center gap-1"
-                    >
-                      <ChevronRight className="h-3 w-3 shrink-0" />
-                      <span className="truncate">{geographyLabel(item)}</span>
-                    </span>
-                  ))}
-                </div>
-              )}
+                ))}
+              </div>
             </div>
             <ScrollArea className="min-h-0 flex-1">
-              <RadioGroup value={selectedId} className="p-2">
-                {path.length > 0 && !search && (
-                  <button
-                    type="button"
-                    onClick={goBack}
-                    className="mb-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    Back
-                  </button>
-                )}
+              <div className="p-2">
                 {isLoading ? (
-                  <div className="flex items-center gap-2 px-3 py-8 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Loading boundaries...
-                  </div>
+                  <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Loading boundaries...</div>
                 ) : items.length === 0 ? (
-                  <div className="px-3 py-8 text-center text-sm text-muted-foreground">
-                    No matching boundaries found.
-                  </div>
-                ) : (
-                  items.map((item) => {
-                    const isSelected = selected?.id === item.id;
-                    const browsing = !search && item.has_children;
-                    const browse = () => openChildren(item);
-                    return (
-                      <div
-                        key={item.id}
-                        className={`flex items-center gap-2 rounded-lg px-2 py-1 ${isSelected ? "bg-accent" : ""}`}
-                      >
-                        <label
-                          htmlFor={`geography-${item.id}`}
-                          onClick={(event) => {
-                            if (browsing && !search) {
-                              event.preventDefault();
-                              browse();
-                            }
-                          }}
-                          className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-left hover:bg-muted"
-                        >
-                          <RadioGroupItem
-                            id={`geography-${item.id}`}
-                            value={item.id}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              if (search) handleSearchSelection(item);
-                              else selectGeography(item);
-                            }}
-                            className="shrink-0"
-                          />
-                          <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
-                          <span className="min-w-0 flex-1">
-                            <span className="block truncate text-sm font-medium">
-                              {geographyLabel(item)}
-                            </span>
-                            <span className="block truncate text-xs text-muted-foreground">
-                              {geographyTypeLabel(item)}
-                            </span>
-                          </span>
-                        </label>
-                        {browsing && (
-                          <Button
-                            type="button"
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 shrink-0"
-                            onClick={browse}
-                            title={`Browse inside ${geographyLabel(item)}`}
-                            aria-label={`Browse inside ${geographyLabel(item)}`}
-                          >
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    );
-                  })
-                )}
-              </RadioGroup>
+                  <div className="py-12 text-center text-sm text-muted-foreground">No boundaries found.</div>
+                ) : items.map((item) => {
+                  const isSelected = selected?.id === item.id;
+                  return <button key={item.id} type="button" onClick={() => selectGeography(item)} className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left ${isSelected ? "bg-accent" : "hover:bg-muted"}`}>
+                    <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium">{item.official_name || item.name}</span>
+                      <span className="block truncate text-xs text-muted-foreground">{getGeographyTypeLabel(item.geography_type)}</span>
+                    </span>
+                  </button>;
+                })}
+              </div>
             </ScrollArea>
           </div>
           <div className="flex min-h-0 flex-col">
             <div className="relative min-h-[22rem] flex-1 bg-muted/20">
-              <LeafletMap
-                lat={Number(center?.lat) || 20.5937}
-                lng={Number(center?.lng) || 78.9629}
-                boundaries={mapBoundary}
-                selectedBoundaryId={selected?.osm_id || null}
-                showMarker={false}
-                zoom={8}
-                onChange={() => {}}
-                onBoundaryClick={() => {}}
-              />
-              {loadingGeometry && (
-                <div className="absolute right-3 top-3 flex items-center gap-2 rounded-md border bg-background/90 px-3 py-2 text-xs text-muted-foreground shadow-sm">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Loading boundary...
-                </div>
-              )}
-              {!selected && (
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                  <div className="rounded-lg border bg-background/90 px-4 py-3 text-center text-sm shadow-sm">
-                    Select a boundary to preview it on the map.
-                  </div>
-                </div>
-              )}
+              <LeafletMap lat={Number(center?.lat) || 20.5937} lng={Number(center?.lng) || 78.9629} boundaries={mapBoundary} selectedBoundaryId={selected?.osm_id || null} showMarker={false} zoom={8} onChange={() => {}} onBoundaryClick={() => {}} />
+              {loadingGeometry && <div className="absolute right-3 top-3 flex items-center gap-2 rounded-md border bg-background/90 px-3 py-2 text-xs text-muted-foreground shadow-sm"><Loader2 className="h-3.5 w-3.5 animate-spin" />Loading boundary...</div>}
+              {!selected && <div className="pointer-events-none absolute inset-0 flex items-center justify-center"><div className="rounded-lg border bg-background/90 px-4 py-3 text-center text-sm shadow-sm">Select a boundary to preview it on the map.</div></div>}
             </div>
           </div>
         </div>
         <SheetFooter className="border-t bg-background px-5 py-4 sm:px-6">
           {selected ? (
             <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold">
-                  {geographyLabel(selected)}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {geographyTypeLabel(selected)}
-                </p>
-              </div>
-              <div className="flex shrink-0 gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => onOpenChange?.(false)}
-                  disabled={isSetting}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={
-                    isSetting ||
-                    selected.id === currentGeographyId ||
-                    loadingGeometry
-                  }
-                >
-                  {isSetting ? "Saving..." : submitLabel}
-                </Button>
-              </div>
+              <div className="min-w-0"><p className="truncate text-sm font-semibold">{label}</p><p className="text-xs text-muted-foreground">{getGeographyTypeLabel(selected.geography_type)}</p></div>
+              <div className="flex shrink-0 gap-2"><Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={isSetting}>Cancel</Button><Button type="button" onClick={handleSave} disabled={isSetting || selected.id === currentGeographyId || loadingGeometry}>{isSetting ? "Saving..." : currentGeographyId ? "Change geography" : "Add geography"}</Button></div>
             </div>
-          ) : (
-            <div className="w-full text-xs text-muted-foreground">
-              India is the default starting point. Browse down through the
-              actual geography hierarchy or search for a boundary directly.
-            </div>
-          )}
+          ) : <div className="w-full text-xs text-muted-foreground">Choose a boundary category, then search or filter by boundary type.</div>}
         </SheetFooter>
       </SheetContent>
     </Sheet>
