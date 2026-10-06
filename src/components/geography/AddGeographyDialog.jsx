@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase/client";
 import { fetchGeographyGeometry } from "@/hooks/geography/useGeographyBrowser";
 import { useGovernanceGeography, useGovernanceGeographyMutation } from "@/hooks/geography/useGovernanceGeography";
@@ -84,75 +84,105 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
   const mapBoundary = selected && geometry ? [{ osm_type: selected.osm_type, osm_id: selected.osm_id, name: label, center: selected.center, geojson: geometry }] : [];
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-3xl md:max-w-5xl">
-        <SheetHeader className="border-b px-4 py-3 text-left sm:px-5">
-          <SheetTitle className="text-base">{currentGeographyId ? "Change geography" : "Add geography"}</SheetTitle>
-          <SheetDescription>Choose the boundary associated with {entityName || "this entity"}.</SheetDescription>
-        </SheetHeader>
-        <div className="grid min-h-0 flex-1 md:grid-cols-[280px_1fr]">
-          <div className="flex min-h-0 flex-col border-r">
-            <div className="relative space-y-2 border-b p-3 pt-14">
-              <div className="absolute left-4 right-4 top-3 z-[1000] grid grid-cols-3 rounded-md border bg-background/95 p-0.5 shadow-sm backdrop-blur">
-                {GEOGRAPHY_BOUNDARY_CATEGORIES.map((item) => (
-                  <button key={item.value} type="button" onClick={() => { setCategory(item.value); setType("all"); setSearch(""); }} className={`rounded px-2 py-1.5 text-xs font-medium ${category === item.value ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground">{activeCategory.description}</p>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search boundary..." className="pl-9" />
-              </div>
-              <div className="flex gap-1 overflow-x-auto pb-0.5">
-                <button type="button" onClick={() => setType("all")} className={`shrink-0 rounded-full border px-2 py-1 text-[11px] ${type === "all" ? "bg-foreground text-background" : "hover:bg-muted"}`}>All</button>
-                {typeOptions.map((item) => (
-                  <button key={item} type="button" onClick={() => setType(item)} className={`shrink-0 rounded-full border px-2 py-1 text-[11px] ${type === item ? "bg-foreground text-background" : "hover:bg-muted"}`}>
-                    {getGeographyTypeLabel(item)}
-                  </button>
-                ))}
-              </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="grid h-[90vh] w-[96vw] max-w-[1400px] grid-cols-1 grid-rows-[auto_minmax(0,1fr)_auto] gap-0 overflow-hidden p-0 md:grid-cols-[400px_minmax(0,1fr)]">
+        <aside className="row-span-3 flex min-h-0 flex-col border-b md:border-b-0 md:border-r">
+          <div className="space-y-3 border-b p-4">
+            <div className="grid grid-cols-3 rounded-md border bg-muted/30 p-0.5">
+              {GEOGRAPHY_BOUNDARY_CATEGORIES.map((item) => (
+                <button key={item.value} type="button" onClick={() => { setCategory(item.value); setType("all"); setSearch(""); }}
+                  className={`rounded px-2 py-2 text-sm font-medium transition-colors ${category === item.value ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
+                  {item.label}
+                </button>
+              ))}
             </div>
-            <ScrollArea className="min-h-0 flex-1">
-              <div className="p-2">
-                {isLoading ? (
-                  <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Loading boundaries...</div>
-                ) : items.length === 0 ? (
-                  <div className="py-12 text-center text-sm text-muted-foreground">No boundaries found.</div>
-                ) : items.map((item) => {
-                  const isSelected = selected?.id === item.id;
-                  return <button key={item.id} type="button" onClick={() => selectGeography(item)} className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left ${isSelected ? "bg-accent" : "hover:bg-muted"}`}>
+            <p className="text-sm text-muted-foreground">{activeCategory.description}</p>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search boundary..." className="pl-9" />
+            </div>
+            <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+              <button type="button" onClick={() => setType("all")}
+                className={`shrink-0 rounded-full border px-2.5 py-1.5 text-xs ${type === "all" ? "bg-foreground text-background" : "hover:bg-muted"}`}>
+                All
+              </button>
+              {typeOptions.map((item) => (
+                <button key={item} type="button" onClick={() => setType(item)}
+                  className={`shrink-0 rounded-full border px-2.5 py-1.5 text-xs ${type === item ? "bg-foreground text-background" : "hover:bg-muted"}`}>
+                  {getGeographyTypeLabel(item)}
+                </button>
+              ))}
+            </div>
+          </div>
+          <ScrollArea className="min-h-0 flex-1">
+            <div className="p-2">
+              {isLoading ? (
+                <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />Loading boundaries...
+                </div>
+              ) : items.length === 0 ? (
+                <div className="py-12 text-center text-sm text-muted-foreground">No boundaries found.</div>
+              ) : items.map((item) => {
+                const isSelected = selected?.id === item.id;
+                return (
+                  <button key={item.id} type="button" onClick={() => selectGeography(item)}
+                    className={`flex w-full items-center gap-3 border-b px-3 py-3 text-left last:border-b-0 ${isSelected ? "bg-accent" : "hover:bg-muted"}`}>
                     <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium">{item.official_name || item.name}</span>
                       <span className="block truncate text-xs text-muted-foreground">{getGeographyTypeLabel(item.geography_type)}</span>
                     </span>
-                  </button>;
-                })}
-              </div>
-            </ScrollArea>
+                  </button>
+                );
+              })}
+            </div>
+          </ScrollArea>
+        </aside>
+
+        <DialogHeader className="min-w-0 border-b px-5 py-4 pr-14 text-left">
+          <DialogTitle className="text-lg">{currentGeographyId ? "Change geography" : "Add geography"}</DialogTitle>
+          <DialogDescription className="truncate">Choose the boundary associated with {entityName || "this entity"}.</DialogDescription>
+        </DialogHeader>
+
+        <main className="relative min-h-0 overflow-hidden bg-muted/20">
+          <LeafletMap lat={Number(center?.lat) || 20.5937} lng={Number(center?.lng) || 78.9629}
+            boundaries={mapBoundary} selectedBoundaryId={selected?.osm_id || null} showMarker={false} zoom={8}
+            onChange={() => {}} onBoundaryClick={() => {}} />
+          {loadingGeometry && (
+            <div className="absolute right-3 top-3 flex items-center gap-2 rounded-md border bg-background/90 px-3 py-2 text-xs text-muted-foreground shadow-sm">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />Loading boundary...
+            </div>
+          )}
+          {!selected && (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <div className="rounded-lg border bg-background/90 px-4 py-3 text-center text-sm shadow-sm">Select a boundary to preview it on the map.</div>
+            </div>
+          )}
+        </main>
+
+        <div className="flex min-w-0 flex-col border-t bg-background px-5 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <div className="min-w-0">
+            {selected ? (
+              <>
+                <p className="truncate text-sm font-semibold">{label}</p>
+                <p className="truncate text-xs text-muted-foreground">{getGeographyTypeLabel(selected.geography_type)}</p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-medium">No boundary selected</p>
+                <p className="text-xs text-muted-foreground">Select a boundary from the list to preview it on the map.</p>
+              </>
+            )}
           </div>
-          <div className="flex min-h-0 flex-col">
-            <div className="relative min-h-[22rem] flex-1 bg-muted/20">
-              <LeafletMap lat={Number(center?.lat) || 20.5937} lng={Number(center?.lng) || 78.9629} boundaries={mapBoundary} selectedBoundaryId={selected?.osm_id || null} showMarker={false} zoom={8} onChange={() => {}} onBoundaryClick={() => {}} />
-              {loadingGeometry && <div className="absolute right-3 top-3 flex items-center gap-2 rounded-md border bg-background/90 px-3 py-2 text-xs text-muted-foreground shadow-sm"><Loader2 className="h-3.5 w-3.5 animate-spin" />Loading boundary...</div>}
-              {!selected && <div className="pointer-events-none absolute inset-0 flex items-center justify-center"><div className="rounded-lg border bg-background/90 px-4 py-3 text-center text-sm shadow-sm">Select a boundary to preview it on the map.</div></div>}
-            </div>
-            <div className="border-t px-4 py-2.5 text-xs text-muted-foreground">
-              Choose a boundary category, then search or filter by boundary type.
-            </div>
+          <div className="flex shrink-0 gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={isSetting}>Cancel</Button>
+            <Button type="button" onClick={handleSave}
+              disabled={isSetting || !selected || selected.id === currentGeographyId || loadingGeometry}>
+              {isSetting ? "Saving..." : currentGeographyId ? "Change geography" : "Add geography"}
+            </Button>
           </div>
         </div>
-        <SheetFooter className="border-t bg-background px-5 py-4 sm:px-6">
-          {selected ? (
-            <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0"><p className="truncate text-sm font-semibold">{label}</p><p className="text-xs text-muted-foreground">{getGeographyTypeLabel(selected.geography_type)}</p></div>
-              <div className="flex shrink-0 gap-2"><Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={isSetting}>Cancel</Button><Button type="button" onClick={handleSave} disabled={isSetting || selected.id === currentGeographyId || loadingGeometry}>{isSetting ? "Saving..." : currentGeographyId ? "Change geography" : "Add geography"}</Button></div>
-            </div>
-          )  : null}
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
