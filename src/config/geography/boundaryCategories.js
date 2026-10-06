@@ -7,7 +7,7 @@ export const GEOGRAPHY_BOUNDARY_CATEGORIES = [
   },
   {
     value: "local_government",
-    label: "Local Government",
+    label: "Local Body",
     description: "Municipal and civic boundaries",
     types: ["metropolitan_area", "local_government", "zone", "ward"],
   },
