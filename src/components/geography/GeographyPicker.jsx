@@ -12,6 +12,10 @@ import { queryKeys } from "@/lib/queryKeys";
 
 const PAGE_SIZE = 50;
 
+const GROUP_LABELS = { state: "States & Union Territories", parliamentary_constituency: "Parliamentary Constituencies", assembly_constituency: "Assembly Constituencies" };
+const GROUP_ORDER = ["state","district","subdistrict","sub_district","local_government","zone","ward","parliamentary_constituency","assembly_constituency"];
+function getGroupLabel(type) { return GROUP_LABELS[type] || type.replace(/_/g, " ").replace(/\\b\\w/g, (letter) => letter.toUpperCase()); }
+
 export default function GeographyPicker({ open, onOpenChange, value = null, onValueChange, excludeId = null, title = "Select geography" }) {
   const [search, setSearch] = useState("");
   const loadMoreRef = useRef(null);
@@ -43,18 +47,13 @@ export default function GeographyPicker({ open, onOpenChange, value = null, onVa
   const visibleRows = rows.filter((item) => item.id !== excludeId);
   const groupedRows = visibleRows.reduce((groups, item) => {
     const type = item.geography_type || "other";
-    const label = type === "state" ? "States & Union Territories" : type.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+    const label = getGroupLabel(type);
     const group = groups.find((entry) => entry.value === type);
     if (group) group.items.push(item);
     else groups.push({ value: type, label, items: [item] });
     return groups;
   }, []);
-  const groupOrder = ["state", "district", "subdistrict", "sub_district", "local_government", "zone", "ward"];
-  groupedRows.sort((a, b) => {
-    const ai = groupOrder.indexOf(a.value);
-    const bi = groupOrder.indexOf(b.value);
-    return (ai < 0 ? groupOrder.length : ai) - (bi < 0 ? groupOrder.length : bi) || a.label.localeCompare(b.label);
-  });
+  groupedRows.sort((a, b) => { const ai = GROUP_ORDER.indexOf(a.value); const bi = GROUP_ORDER.indexOf(b.value); return (ai < 0 ? GROUP_ORDER.length : ai) - (bi < 0 ? GROUP_ORDER.length : bi) || a.label.localeCompare(b.label); });
 
   useEffect(() => {
     const node = loadMoreRef.current;
