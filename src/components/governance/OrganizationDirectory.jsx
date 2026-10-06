@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import { Plus, Search } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabase/client";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -69,6 +70,49 @@ export default function OrganizationDirectory({
         selectedIds.length ? selectedIds : selectedId ? [selectedId] : [],
       ),
     [selectedIds, selectedId],
+  );
+
+  const resourceIds = useMemo(() => data.map((item) => item.id), [data]);
+  const resourceSummary = useQuery({
+    queryKey: ["governance-directory-resources", resourceIds],
+    enabled: canManage && resourceIds.length > 0,
+    queryFn: async () => {
+      const [{ data: governanceRows, error: governanceError }, { data: linkRows, error: linkError }] =
+        await Promise.all([
+          supabase
+            .from("governance")
+            .select("id,address,metadata,geography_id")
+            .in("id", resourceIds),
+          supabase
+            .from("link")
+            .select("governance_id")
+            .in("governance_id", resourceIds),
+        ]);
+
+      if (governanceError) throw governanceError;
+      if (linkError) throw linkError;
+
+      const linksByGovernance = new Set((linkRows || []).map((row) => row.governance_id));
+      return (governanceRows || []).reduce((acc, row) => {
+        const metadata = row.metadata || {};
+        acc[row.id] = {
+          address: row.address || null,
+          geography_id: row.geography_id || null,
+          hasLinks: linksByGovernance.has(row.id),
+          metadata,
+        };
+        return acc;
+      }, {});
+    },
+  });
+
+  const dataWithResources = useMemo(
+    () =>
+      data.map((entity) => ({
+        ...entity,
+        ...(resourceSummary.data?.[entity.id] || {}),
+      })),
+    [data, resourceSummary.data],
   );
 
   const openEdit = (entity) => { setEditingRecord(entity); setDialogOpen(true); };
@@ -176,7 +220,7 @@ export default function OrganizationDirectory({
         !query.error &&
         (data.length ? (
           <div className="grid grid-cols-2 overflow-hidden rounded-md border-x border-t sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 [&>*]:min-w-0 [&>*]:border-t [&>*]:border-r [&>*]:border-border sm:[&>*:nth-child(3n)]:border-r-0 lg:[&>*:nth-child(3n)]:border-r lg:[&>*:nth-child(4n)]:border-r-0 xl:[&>*:nth-child(4n)]:border-r xl:[&>*:nth-child(5n)]:border-r-0 2xl:[&>*:nth-child(5n)]:border-r 2xl:[&>*:nth-child(6n)]:border-r-0">
-            {data.map((entity) => (
+            {dataWithResources.map((entity) => (
               <GovernanceDirectoryCard
                 key={entity.id}
                 entity={entity}
@@ -188,6 +232,9 @@ export default function OrganizationDirectory({
                 onAddAddress={canManage ? () => openResource(entity, "address") : undefined}
                 onAddGeography={canManage ? () => openResource(entity, "geography") : undefined}
                 onManageLinks={canManage ? () => openResource(entity, "links") : undefined}
+                hasAddress={Boolean(entity.address)}
+                hasGeography={Boolean(entity.geography_id)}
+                hasLinks={Boolean(entity.hasLinks)}
                 onDelete={canManage ? () => deleteOrganizationRecord(entity) : undefined}
               />
             ))}
