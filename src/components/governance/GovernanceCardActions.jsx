@@ -26,6 +26,9 @@ export default function GovernanceCardActions({
   onAddAddress,
   onAddGeography,
   onManageLinks,
+  hasAddress = false,
+  hasGeography = false,
+  hasLinks = false,
   deleteTitle = "Delete this item?",
   deleteDescription = "This action cannot be undone.",
 }) {
@@ -56,9 +59,9 @@ export default function GovernanceCardActions({
               <DropdownMenuContent align="end">
                 {onEdit && <DropdownMenuItem onSelect={edit}><Pencil className="mr-2 h-4 w-4" />Edit organization</DropdownMenuItem>}
                 {(onAddAddress || onAddGeography || onManageLinks) && <DropdownMenuSeparator />}
-                {onAddAddress && <DropdownMenuItem onSelect={(event) => { event.stopPropagation(); onAddAddress?.(); }}>Add address</DropdownMenuItem>}
-                {onAddGeography && <DropdownMenuItem onSelect={(event) => { event.stopPropagation(); onAddGeography?.(); }}>Add geography</DropdownMenuItem>}
-                {onManageLinks && <DropdownMenuItem onSelect={(event) => { event.stopPropagation(); onManageLinks?.(); }}>Manage links</DropdownMenuItem>}
+                {onAddAddress && <DropdownMenuItem onSelect={(event) => { event.stopPropagation(); onAddAddress?.(); }}>{hasAddress ? "Edit address" : "Add address"}</DropdownMenuItem>}
+                {onAddGeography && <DropdownMenuItem onSelect={(event) => { event.stopPropagation(); onAddGeography?.(); }}>{hasGeography ? "Change geography" : "Add geography"}</DropdownMenuItem>}
+                {onManageLinks && <DropdownMenuItem onSelect={(event) => { event.stopPropagation(); onManageLinks?.(); }}>{hasLinks ? "Manage links" : "Add links"}</DropdownMenuItem>}
                 {(onDelete && (onEdit || onAddAddress || onAddGeography || onManageLinks)) && <DropdownMenuSeparator />}
                 {onDelete && <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={requestDelete}><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem>}
               </DropdownMenuContent>
@@ -68,9 +71,9 @@ export default function GovernanceCardActions({
         <ContextMenuContent>
           {onEdit && <ContextMenuItem onSelect={edit}><Pencil className="mr-2 h-4 w-4" />Edit organization</ContextMenuItem>}
           {(onAddAddress || onAddGeography || onManageLinks) && <ContextMenuSeparator />}
-          {onAddAddress && <ContextMenuItem onSelect={(event) => { event.stopPropagation(); onAddAddress?.(); }}>Add address</ContextMenuItem>}
-          {onAddGeography && <ContextMenuItem onSelect={(event) => { event.stopPropagation(); onAddGeography?.(); }}>Add geography</ContextMenuItem>}
-          {onManageLinks && <ContextMenuItem onSelect={(event) => { event.stopPropagation(); onManageLinks?.(); }}>Manage links</ContextMenuItem>}
+          {onAddAddress && <ContextMenuItem onSelect={(event) => { event.stopPropagation(); onAddAddress?.(); }}>{hasAddress ? "Edit address" : "Add address"}</ContextMenuItem>}
+          {onAddGeography && <ContextMenuItem onSelect={(event) => { event.stopPropagation(); onAddGeography?.(); }}>{hasGeography ? "Change geography" : "Add geography"}</ContextMenuItem>}
+          {onManageLinks && <ContextMenuItem onSelect={(event) => { event.stopPropagation(); onManageLinks?.(); }}>{hasLinks ? "Manage links" : "Add links"}</ContextMenuItem>}
           {onDelete && <ContextMenuSeparator />}
           {onDelete && <ContextMenuItem className="text-destructive focus:text-destructive" onSelect={requestDelete}><Trash2 className="mr-2 h-4 w-4" />Delete</ContextMenuItem>}
         </ContextMenuContent>
