@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { MapPinned, X } from "lucide-react";
+import { getGeographyCategoryLabel } from "@/config/geography/boundaryCategories";
 
 import {
   Combobox,
