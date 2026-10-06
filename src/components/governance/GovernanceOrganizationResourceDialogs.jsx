@@ -34,6 +34,30 @@ export default function GovernanceOrganizationResourceDialogs({
   }, [entity]);
 
   useEffect(() => {
+    if (!entity?.id || (!addressOpen && !geographyOpen && !linksOpen)) return undefined;
+
+    let cancelled = false;
+
+    supabase
+      .from("governance")
+      .select("id,address,metadata,geography_id")
+      .eq("id", entity.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled || error || !data) return;
+
+        const metadata = data.metadata || {};
+        setAddress(data.address || "");
+        setLat(metadata.office_lat == null ? null : Number(metadata.office_lat));
+        setLng(metadata.office_lng == null ? null : Number(metadata.office_lng));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [entity?.id, addressOpen, geographyOpen, linksOpen]);
+
+  useEffect(() => {
     if (!addressOpen || !entity?.id) return undefined;
     if (initialAddressRef.current) {
       initialAddressRef.current = false;
