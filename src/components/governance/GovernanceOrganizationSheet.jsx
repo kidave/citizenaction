@@ -88,6 +88,9 @@ export default function GovernanceOrganizationSheet({
   categories = [],
   record = null,
   onSaved,
+  onAddressAction,
+  onGeographyAction,
+  onLinksAction,
 }) {
   const [form, setForm] = useState(() => emptyForm(record));
   const [saving, setSaving] = useState(false);
@@ -524,6 +527,9 @@ export default function GovernanceOrganizationSheet({
             onFiles={(files) => setPendingFiles((current) => [...current, ...(files || [])])}
             geographyId={form.geographyId}
             onGeographySaved={(geography) => setField("geographyId", geography?.id || "")}
+            onAddressAction={onAddressAction}
+            onGeographyAction={onGeographyAction}
+            onLinksAction={onLinksAction}
             disabled={busy}
           />
           <div className="flex shrink-0 items-center gap-2">
