@@ -16,8 +16,11 @@ import { useLinkManager } from "@/hooks/editor/useLinkManager";
 
 import LinkManagerDialog from "@/components/link/LinkManagerDialog";
 
-export default function LinkManager({ value = [], onChange }) {
+export default function LinkManager({ value = [], onChange, openOverride, onOpenChange }) {
   const [open, setOpen] = useState(false);
+  const isControlled = typeof openOverride === "boolean";
+  const dialogOpen = isControlled ? openOverride : open;
+  const setDialogOpen = (value) => { if (isControlled) onOpenChange?.(value); else setOpen(value); };
 
   const {
     links,
@@ -40,7 +43,7 @@ export default function LinkManager({ value = [], onChange }) {
               variant={links.length > 0 ? "secondary" : "ghost"}
               size="icon"
               className="relative shrink-0"
-              onClick={() => setOpen(true)}
+              onClick={() => setDialogOpen(true)}
             >
               <Link2 className="h-5 w-5" />
 
@@ -57,8 +60,8 @@ export default function LinkManager({ value = [], onChange }) {
       </TooltipProvider>
 
       <LinkManagerDialog
-        open={open}
-        onOpenChange={setOpen}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
         links={links}
         draft={draft}
         setDraft={setDraft}
