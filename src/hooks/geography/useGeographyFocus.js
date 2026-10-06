@@ -1,71 +1,36 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 import { queryKeys } from "@/lib/queryKeys";
+import { getGeographyCategoryLabel, getGeographyTypeLabel as getSharedGeographyTypeLabel } from "@/config/geography/boundaryCategories";
 
 export const DEFAULT_GEOGRAPHY_FOCUS_ID =
   "6f3dda25-6cf4-43f2-a5b7-1c8aa9d2113f";
 
 const GEOGRAPHY_SELECT =
-  "id,name,official_name,geography_type,parent_id,country_code,osm_type,osm_id,admin_level,source,source_url,center,metadata";
+  "id,name,official_name,geography_type,boundary_category,parent_id,country_code,osm_type,osm_id,admin_level,source,source_url,center,metadata";
 
 const EXCLUDED_FOCUS_TYPES = ["country", "city", "division"];
 
-const GEOGRAPHY_TYPE_LABELS = {
-  ward: "Ward",
-  zone: "Zone",
-  constituency: "Constituency",
-  district: "District",
-  sub_district: "Sub-district",
-  local_government: "Local government",
-  administrative_area: "Administrative area",
-  neighborhood: "Neighborhood",
-  suburb: "Suburb",
-  village: "Village",
-  town: "Town",
-  state: "State",
-};
-
-const GEOGRAPHY_TYPE_ORDER = [
-  "ward",
-  "zone",
-  "constituency",
-  "district",
-  "sub_district",
-  "local_government",
-  "administrative_area",
-  "neighborhood",
-  "suburb",
-  "village",
-  "town",
-  "state",
-];
-
 export function getGeographyTypeLabel(type) {
-  if (!type) return "Boundary";
-  return GEOGRAPHY_TYPE_LABELS[type] || type.replace(/_/g, " ");
+  return getSharedGeographyTypeLabel(type);
 }
 
 function groupGeographies(rows) {
   const groups = new Map();
-
   rows.forEach((row) => {
-    const type = row.geography_type || "other";
-    if (!groups.has(type)) groups.set(type, []);
-    groups.get(type).push(row);
+    const category = row.boundary_category || "administrative";
+    if (!groups.has(category)) groups.set(category, []);
+    groups.get(category).push(row);
   });
-
   return [...groups.entries()]
-    .sort(([a], [b]) => {
-      const aIndex = GEOGRAPHY_TYPE_ORDER.indexOf(a);
-      const bIndex = GEOGRAPHY_TYPE_ORDER.indexOf(b);
-      const aRank = aIndex === -1 ? GEOGRAPHY_TYPE_ORDER.length : aIndex;
-      const bRank = bIndex === -1 ? GEOGRAPHY_TYPE_ORDER.length : bIndex;
-      return aRank - bRank || getGeographyTypeLabel(a).localeCompare(getGeographyTypeLabel(b));
-    })
-    .map(([type, items]) => ({
-      value: type,
-      label: getGeographyTypeLabel(type),
-      items,
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([category, items]) => ({
+      value: category,
+      label: getGeographyCategoryLabel(category),
+      items: items.sort((x, y) =>
+        getGeographyTypeLabel(x.geography_type).localeCompare(getGeographyTypeLabel(y.geography_type)) ||
+        x.name.localeCompare(y.name)
+      ),
     }));
 }
 
