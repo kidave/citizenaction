@@ -18,6 +18,12 @@ export default function GovernanceDirectoryCard({
   selected = false,
   onSelect,
   onEdit,
+  onAddAddress,
+  onAddGeography,
+  onManageLinks,
+  hasAddress = false,
+  hasGeography = false,
+  hasLinks = false,
   onDelete,
 }) {
   const name = getGovernanceName(entity);
@@ -90,6 +96,12 @@ export default function GovernanceDirectoryCard({
   return canManage ? (
     <GovernanceCardActions
       onEdit={onEdit}
+      onAddAddress={onAddAddress}
+      onAddGeography={onAddGeography}
+      onManageLinks={onManageLinks}
+      hasAddress={hasAddress}
+      hasGeography={hasGeography}
+      hasLinks={hasLinks}
       onDelete={onDelete}
       deleteTitle={`Delete ${tab === "organizations" ? "organization" : tab === "people" ? "person" : "position"}?`}
       deleteDescription="This action cannot be undone. Related governance history may need to be removed first."
