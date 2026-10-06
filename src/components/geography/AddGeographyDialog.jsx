@@ -46,6 +46,8 @@ function geographyTypeLabel(item) {
     metropolitan_area: "Metropolitan area",
     zone: "Zone",
     ward: "Ward",
+    parliamentary_constituency: "Parliamentary Constituency",
+    assembly_constituency: "Assembly Constituency",
   };
   return labels[item.geography_type] || "Boundary";
 }
