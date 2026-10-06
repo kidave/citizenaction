@@ -99,7 +99,7 @@ export default function GeographyPicker({ open, onOpenChange, value = null, onVa
                   );
                 })}
               </div>
-            ))
+            ))}
             <div ref={loadMoreRef} className="h-2" aria-hidden="true" />
             {isFetchingNextPage && <div className="flex items-center justify-center gap-2 py-3 text-xs text-muted-foreground"><Loader2 className="h-3.5 w-3.5 animate-spin" />Loading more boundaries…</div>}
           </div>
