@@ -51,7 +51,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
     hasNextPage,
     fetchNextPage,
   } = useInfiniteQuery({
-    queryKey: ["geography-picker", category, type, search.trim()],
+    queryKey: ["geography-picker", category, type, search.trim(), currentGeographyId],
     enabled: open,
     staleTime: 5 * 60 * 1000,
     initialPageParam: 0,
@@ -82,11 +82,29 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
       const { data, error } = await query;
       if (error) throw error;
 
-      const rows = data || [];
+      let rows = data || [];
+
+      // When editing an existing geography, keep that persisted selection
+      // visible at the top of the list. This prevents the editor from opening
+      // on an unrelated alphabetical page and makes the current value obvious.
+      if (pageParam === 0 && currentGeographyId && !needle) {
+        const { data: currentRow } = await supabase
+          .from("geographies")
+          .select(
+            "id,name,official_name,geography_type,boundary_category,parent_id,country_code,osm_type,osm_id,center,metadata",
+          )
+          .eq("id", currentGeographyId)
+          .maybeSingle();
+
+        if (currentRow) {
+          rows = [currentRow, ...rows.filter((row) => row.id !== currentRow.id)];
+        }
+      }
 
       // India is the default national context, not a type filter.
-      // Only add it once at the beginning of the unfiltered administrative list.
-      if (pageParam === 0 && category === "administrative" && type === "all" && !needle) {
+      // Keep it available as the administrative fallback when no geography
+      // has already been assigned.
+      if (pageParam === 0 && !currentGeographyId && category === "administrative" && type === "all" && !needle) {
         const { data: india } = await supabase
           .from("geographies")
           .select(
@@ -96,15 +114,12 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
           .eq("name", "India")
           .maybeSingle();
 
-        return {
-          rows: india ? [india, ...rows] : rows,
-          hasMore: rows.length === PAGE_SIZE,
-        };
+        rows = india ? [india, ...rows] : rows;
       }
 
       return {
         rows,
-        hasMore: rows.length === PAGE_SIZE,
+        hasMore: data?.length === PAGE_SIZE,
       };
     },
     getNextPageParam: (lastPage, allPages) =>
@@ -164,6 +179,25 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
     observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  useEffect(() => {
+    if (!open || !currentGeography) return;
+
+    let cancelled = false;
+    const loadCurrentGeometry = async () => {
+      try {
+        const nextGeometry = await fetchGeographyGeometry(currentGeography);
+        if (!cancelled) setGeometry(nextGeometry);
+      } catch {
+        if (!cancelled) setGeometry(null);
+      }
+    };
+
+    loadCurrentGeometry();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, currentGeography]);
 
   const label = selected?.official_name || selected?.name || "Geography";
   const center = selected?.center || { lat: 20.5937, lng: 78.9629 };
@@ -228,7 +262,10 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
                     <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium">{item.official_name || item.name}</span>
-                      <span className="block truncate text-xs text-muted-foreground">{getGeographyTypeLabel(item.geography_type)}</span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {getGeographyTypeLabel(item.geography_type)}
+                        {item.id === currentGeographyId ? " · Current" : ""}
+                      </span>
                     </span>
                   </button>
                   );
