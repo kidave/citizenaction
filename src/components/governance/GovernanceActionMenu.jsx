@@ -69,7 +69,7 @@ export function GovernanceActionMenuItems({
       {onEdit && (
         <MenuItem onSelect={(event) => run(onEdit, event)}>
           <Pencil className="mr-2 h-4 w-4" />
-          Edit Organization
+          {editLabel}
         </MenuItem>
       )}
       {onManageRelations && (
