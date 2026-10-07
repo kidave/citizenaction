@@ -234,8 +234,6 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
           </CardContent>
         </Card>
 
-        <OrganizationResources governance={governance} canEdit={canEdit} />
-
         <Tabs defaultValue="structure" className="space-y-4">
           <TabsList className="w-max max-w-full">
             <TabsTrigger value="structure">Structure</TabsTrigger>
