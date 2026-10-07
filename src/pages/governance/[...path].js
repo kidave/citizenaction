@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import GovernanceEntityModal from "@/components/governance/GovernanceEntityModal";
@@ -40,17 +40,6 @@ export default function GovernanceRecordPage() {
   const view = router.query.view === "organization" ? "organization" : "tree";
   const year = Number(router.query.year) || new Date().getFullYear();
   const asOf = `${year}-12-31T23:59:59.999Z`;
-
-  const hasExplicitView = router.query.view === "organization" || router.query.view === "tree";
-
-  useEffect(() => {
-    if (!router.isReady || !slug || hasExplicitView) return;
-    router.replace(
-      { pathname: router.pathname, query: { ...router.query, view: "tree" } },
-      undefined,
-      { shallow: true },
-    );
-  }, [router.isReady, router.pathname, router.query, slug, hasExplicitView]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalEntity, setModalEntity] = useState(null);
