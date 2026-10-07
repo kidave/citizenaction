@@ -77,14 +77,14 @@ export function GovernanceActionMenuItems({
       {onManageLinks && (
         <MenuItem onSelect={(event) => run(onManageLinks, event)}>
           <LinkIcon className="mr-2 h-4 w-4" />
-          {hasLinks ? "Manage Links" : "Add Links"}
+          "Add/Edit Links"
         </MenuItem>
       )}
 
       {onAddAddress && (
         <MenuItem onSelect={(event) => run(onAddAddress, event)}>
           <MapPin className="mr-2 h-4 w-4" />
-          {hasAddress ? "Edit Address" : "Add Address"}
+          "Add/Edit Address"
         </MenuItem>
       )}
 
@@ -101,7 +101,7 @@ export function GovernanceActionMenuItems({
       {onAddGeography && (
         <MenuItem onSelect={(event) => run(onAddGeography, event)}>
           <MapPin className="mr-2 h-4 w-4" />
-          {hasGeography ? "Edit Geography" : "Add Geography"}
+          "Add/Edit Geography"
         </MenuItem>
       )}
 
