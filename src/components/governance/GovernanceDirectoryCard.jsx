@@ -12,7 +12,8 @@ export default function GovernanceDirectoryCard({
   onRemoveGeography, onManageLinks, hasAddress = false, hasGeography = false,
   hasLinks = false, onDelete,
 }) {
-  const name = getGovernanceName(entity);\n  const editLabel = tab === "people" ? "Edit Person" : tab === "positions" ? "Edit Position" : "Edit Organization";
+  const name = getGovernanceName(entity);
+  const editLabel = tab === "people" ? "Edit Person" : tab === "positions" ? "Edit Position" : "Edit Organization";
   const href = getGovernanceHref({ ...entity, tab });
   const avatarUrl = entity.image_url || (tab === "organizations" ? entity.current_holder_image_url : null);
   const isSelectable = selectionMode === "radio" || selectionMode === "checkbox";
