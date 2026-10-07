@@ -81,7 +81,7 @@ export default function GovernanceEntityModal({
               onAddAddress={onAddAddress ? () => onAddAddress(entity) : undefined}
               onRemoveAddress={onRemoveAddress ? () => onRemoveAddress(entity) : undefined}
               onManageLinks={onManageLinks ? () => onManageLinks(entity) : undefined}
-              onAddGeography={!hasGeography ? addGeography : undefined}
+              onAddGeography={addGeography}
               onRemoveGeography={hasGeography ? removeGeographyLink : undefined}
               hasAddress={Boolean(entity.address)}
               hasLinks={Boolean(details?.links?.length)}
