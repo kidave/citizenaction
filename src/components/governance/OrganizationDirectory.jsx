@@ -129,7 +129,7 @@ export default function OrganizationDirectory({
   const openView = (entity) => {
     const href = getGovernanceHref(entity);
     if (!href) return;
-    router.push({ pathname: href, query: { view: "organization" } });
+    router.push(href);
   };
   const openTree = (entity) => {
     const href = getGovernanceHref(entity);

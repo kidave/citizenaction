@@ -166,7 +166,7 @@ export default function GovernanceRecordPage() {
   };
 
   const openOrganizationPage = async (entity) => {
-    const href = getViewHref(entity, "organization");
+    const href = getGovernanceHref(entity);
     if (href) await router.push(href);
   };
 
