@@ -383,7 +383,10 @@ export default function GovernanceRelationDialog({
                   excludeIds={[sourceEntity?.id].filter(Boolean)}
                   onlyWithoutParent={activeMode === "add-child"}
                 />
-              </div>        <SheetFooter className="border-t bg-background px-5 py-4 sm:px-6">
+              </div>
+            )
+
+        <SheetFooter className="border-t bg-background px-5 py-4 sm:px-6">
           {((!isEdit && step !== "relation") ||
             (isEdit && step !== "edit")) && (
             <Button
