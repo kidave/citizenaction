@@ -446,31 +446,13 @@ export default function GovernanceOrganizationSheet({
           </div>
         </div>
 
-        <SheetFooter className="relative z-10 shrink-0 flex-col gap-3 border-t bg-background px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <GovernanceEditorResources
-            governanceId={record?.id || null}
-            entityName={form.name}
-            address={form.address}
-            lat={form.lat}
-            lng={form.lng}
-            onAddressChange={(value) => setField("address", value)}
-            onLocationChange={(value) => setForm((current) => ({ ...current, ...value }))}
-            links={links}
-            onLinksChange={setLinks}
-            onFiles={(files) => setPendingFiles((current) => [...current, ...(files || [])])}
-            geographyId={form.geographyId}
-            onGeographySaved={(geography) => setField("geographyId", geography?.id || "")}
-            onAddressAction={onAddressAction}
-            onGeographyAction={onGeographyAction}
-            onLinksAction={onLinksAction}
-            disabled={busy}
-          />
-          <div className="flex shrink-0 items-center gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={busy}>Cancel</Button>
-            <Button type="button" onClick={save} disabled={busy}>
-              {busy ? (importingImage ? "Importing image..." : "Saving...") : isEditing ? "Save changes" : "Create organization"}
-            </Button>
-          </div>
+        <SheetFooter className="relative z-10 shrink-0 flex-col gap-3 border-t bg-background px-4 py-3 sm:flex-row sm:justify-end sm:px-6">
+          <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={busy}>
+            Cancel
+          </Button>
+          <Button type="button" onClick={save} disabled={busy}>
+            {busy ? (importingImage ? "Importing image..." : "Saving...") : isEditing ? "Save changes" : "Create organization"}
+          </Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>
