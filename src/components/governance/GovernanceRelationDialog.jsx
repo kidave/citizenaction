@@ -352,7 +352,7 @@ export default function GovernanceRelationDialog({
                   )}
                 </div>
               </>
-               : (
+            ) : (
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
                   {activeMode === "add-parent"
@@ -384,7 +384,9 @@ export default function GovernanceRelationDialog({
                   onlyWithoutParent={activeMode === "add-child"}
                 />
               </div>
-            )
+            )}
+          </div>
+        </div>
 
         <SheetFooter className="border-t bg-background px-5 py-4 sm:px-6">
           {((!isEdit && step !== "relation") ||
