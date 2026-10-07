@@ -59,6 +59,7 @@ export default function GovernanceRelationDialog({
   );
   const [status, setStatus] = useState("active");
   const [validTo, setValidTo] = useState("");
+  const [selectedParent, setSelectedParent] = useState(null);
   const isEdit = mode === "edit-relations";
 
   useEffect(() => {
@@ -75,6 +76,7 @@ export default function GovernanceRelationDialog({
     setValidFrom(new Date().toISOString().slice(0, 10));
     setStatus("active");
     setValidTo("");
+    setSelectedParent(null);
   }, [open, isEdit]);
 
   const currentParent = useMemo(
@@ -95,11 +97,34 @@ export default function GovernanceRelationDialog({
     setExistingIds([]);
     setStep("target");
   };
+
+  const openParentEditor = () => {
+    setExistingId(currentParent?.id || "");
+    setSelectedParent(currentParent);
+    setStep("edit-parent");
+  };
   const back = () => {
     if (step === "target" || step === "create" || step === "existing") {
       setExistingId("");
       setStep(step === "create" || step === "existing" ? "target" : "relation");
     } else if (step === "edit-parent") setStep("edit");
+  };
+
+  const removeParent = async () => {
+    try {
+      setSaving(true);
+      const result = await supabase.rpc("set_governance_parent", {
+        p_child_id: sourceEntity.id,
+        p_parent_id: null,
+      });
+      if (result?.error) throw result.error;
+      toast.success("Parent relation removed");
+      await onCompleted?.();
+    } catch (error) {
+      toast.error(error?.message || "Unable to remove parent relation");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const removeChild = async (childId) => {
@@ -222,7 +247,13 @@ export default function GovernanceRelationDialog({
         <SheetHeader className="border-b px-5 py-4 text-left sm:px-6">
           <SheetTitle className="flex items-center gap-2">
             <GitBranch className="h-4 w-4" />
-            {isEdit ? "Edit relations" : "Add relation"}
+            {step === "edit-parent"
+              ? currentParent
+                ? "Change parent"
+                : "Add parent"
+              : isEdit
+                ? "Edit relations"
+                : "Add relation"}
           </SheetTitle>
           <div className="text-sm text-muted-foreground">
             {getGovernanceLabel(sourceEntity)}
@@ -233,53 +264,49 @@ export default function GovernanceRelationDialog({
           <div className="mx-auto w-full max-w-2xl space-y-5">
             {isEdit ? (
               <>
-                <div className="rounded-lg border bg-muted/30 p-3 text-sm">
-                  <span className="font-medium">
-                    {getGovernanceLabel(sourceEntity)}
-                  </span>
-                  <span className="mx-1 text-muted-foreground">·</span>
-                  <span className="text-muted-foreground">
-                    manage reporting relationships
-                  </span>
-                </div>
                 <div className="space-y-2">
                   <div className="text-xs font-medium text-muted-foreground">
                     Parent
                   </div>
-                  <div className="flex items-center gap-2 rounded-lg border p-3">
-                    <span className="min-w-0 flex-1 truncate text-sm">
-                      {currentParent
-                        ? getGovernanceLabel(currentParent)
-                        : "No parent"}
-                    </span>
+                  <div className="flex items-center gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium">
+                        {currentParent
+                          ? getGovernanceLabel(currentParent)
+                          : "No parent assigned"}
+                      </div>
+                    </div>
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        setExistingId(sourceEntity.parent_id || "none");
-                        setStep("edit-parent");
-                      }}
+                      onClick={openParentEditor}
                     >
-                      Change
+                      {currentParent ? "Change" : "Add parent"}
                     </Button>
+                    {currentParent && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={removeParent}
+                        disabled={saving}
+                      >
+                        <Trash2 className="mr-1.5 h-4 w-4" />
+                        Remove
+                      </Button>
+                    )}
                   </div>
                   {step === "edit-parent" && (
                     <div className="space-y-3 pt-2">
-                      <Button
-                        type="button"
-                        variant={
-                          existingId === "none" ? "secondary" : "outline"
-                        }
-                        className="w-full justify-start"
-                        onClick={() => setExistingId("none")}
-                      >
-                        No parent — make independent
-                      </Button>
                       <OrganizationDirectory
                         selectionMode="radio"
-                        selectedId={existingId === "none" ? null : existingId}
-                        onSelect={(item) => setExistingId(item.id)}
+                        selectedId={existingId || null}
+                        onSelect={(item) => {
+                          setExistingId(item.id);
+                          setSelectedParent(item);
+                        }}
                         excludeIds={[sourceEntity?.id].filter(Boolean)}
                       />
                     </div>
@@ -529,8 +556,17 @@ export default function GovernanceRelationDialog({
               type="button"
               onClick={save}
               disabled={saving || !existingId}
+              className="max-w-[22rem]"
             >
-              {saving ? "Saving..." : "Save parent"}
+              {saving
+                ? "Saving..."
+                : currentParent
+                  ? `Change parent: ${getGovernanceLabel(
+                      selectedParent || currentParent,
+                    )}`
+                  : selectedParent
+                    ? `Add parent: ${getGovernanceLabel(selectedParent)}`
+                    : "Add parent"}
             </Button>
           )}
           {!isEdit && (step === "existing" || step === "create") && (
