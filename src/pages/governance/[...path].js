@@ -261,7 +261,7 @@ export default function GovernanceRecordPage() {
   const directoryTabHref = "/governance?tab=organizations";
 
   if (loading) {
-    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: directoryTabHref }, { label: "Loading..." }]} backHref={directoryTabHref} /><main className="flex flex-1"><LoadingState className="w-full" label="Loading governance" /></main></div>;
+    return <div className="flex min-h-dvh w-full max-w-full flex-col overflow-x-hidden"><GovernancePageHeader items={[{ label: "Governance", href: directoryTabHref }, { label: "Loading..." }]} backHref={directoryTabHref} /><main className="flex flex-1"><LoadingState className="w-full" label="Loading governance" /></main></div>;
   }
 
   if (governanceQuery.error || !governance) {
@@ -271,7 +271,7 @@ export default function GovernanceRecordPage() {
   return (
     <div className="flex min-h-dvh w-full flex-col">
       <GovernancePageHeader items={[{ label: "Governance", href: directoryTabHref }, ...lineage.slice(0, -1).map((item) => ({ label: getGovernanceLabel(item), href: getGovernanceHref(item) })), { label: getGovernanceLabel(governance) }, ...(view === "organization" ? [{ label: "Organization" }] : [])]} backHref={directoryTabHref} />
-      <main className="min-h-0 flex-1 p-0">
+      <main className="min-h-0 max-w-full flex-1 overflow-x-hidden p-0">
         {view === "organization" ? (
           <GovernanceOrganizationOverview
             governance={governance}

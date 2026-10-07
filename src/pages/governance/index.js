@@ -54,7 +54,7 @@ export default function GovernancePage() {
   );
 
   return (
-    <div className="flex min-h-dvh w-full flex-col">
+    <div className="flex min-h-dvh w-full max-w-full flex-col overflow-x-hidden">
       <GovernancePageHeader
         items={[{ label: "Governance" }]}
         actions={
@@ -64,7 +64,7 @@ export default function GovernancePage() {
           />
         }
       />
-      <main className="flex-1 px-4 sm:px-6 lg:px-8">
+      <main className="min-w-0 flex-1 overflow-x-hidden px-4 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-6xl">
           <Tabs value={tab} onValueChange={handleTabChange} className="mb-4">
             <TabsList className="w-max max-w-full">
