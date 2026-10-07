@@ -36,7 +36,6 @@ export default function GovernanceCardActions({
       hasAddress={hasAddress}
       hasGeography={hasGeography}
       hasLinks={hasLinks}
-      onDelete={undefined}
     >
       <div className="group relative h-full">
         {children}
