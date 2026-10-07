@@ -8,7 +8,7 @@ import { getGovernanceHref, getGovernanceInitials, getGovernanceName } from "@/u
 
 export default function GovernanceDirectoryCard({
   entity, tab = "organizations", selectionMode = null, selected = false, onSelect,
-  onOpen, onView, onViewTree, onEdit, onManageRelations, onAddAddress, onRemoveAddress, onAddGeography,
+  onOpen, onView, onViewTree, onEdit, onManageRelations, onAddParent, onAddChild, onAddAddress, onRemoveAddress, onAddGeography,
   onRemoveGeography, onManageLinks, hasAddress = false, hasGeography = false,
   hasLinks = false, onDelete,
 }) {
@@ -17,7 +17,7 @@ export default function GovernanceDirectoryCard({
   const avatarUrl = entity.image_url || (tab === "organizations" ? entity.current_holder_image_url : null);
   const isSelectable = selectionMode === "radio" || selectionMode === "checkbox";
   const canManage = !isSelectable && (
-    onOpen || onView || onViewTree || onEdit || onManageRelations || onAddAddress || onRemoveAddress ||
+    onOpen || onView || onViewTree || onEdit || onManageRelations || onAddParent || onAddChild || onAddAddress || onRemoveAddress ||
     onAddGeography || onRemoveGeography || onManageLinks || onDelete
   );
 
@@ -66,6 +66,8 @@ export default function GovernanceDirectoryCard({
       onViewTree={tab === "organizations" ? () => onViewTree?.(entity) : undefined}
       onEdit={onEdit}
       onManageRelations={onManageRelations}
+      onAddParent={onAddParent}
+      onAddChild={onAddChild}
       onAddAddress={onAddAddress}
       onRemoveAddress={onRemoveAddress}
       onAddGeography={onAddGeography}
