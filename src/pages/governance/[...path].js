@@ -14,6 +14,7 @@ import LoadingState from "@/components/ui/loading-state";
 import ErrorState from "@/components/ui/error-state";
 import { useGovernanceCatalog } from "@/hooks/governance/useGovernanceCatalog";
 import { useGovernanceGeographyMutation } from "@/hooks/geography/useGovernanceGeography";
+import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { supabase } from "@/lib/supabase/client";
 import { queryKeys } from "@/lib/queryKeys";
@@ -59,6 +60,7 @@ export default function GovernanceRecordPage() {
   const canEdit = profile?.role === "admin";
   const { categories = [] } = useGovernanceCatalog({ enabled: canEdit });
   const { removeGeography } = useGovernanceGeographyMutation();
+  const { deleteOrganization } = useGovernanceCrud();
 
   const governanceQuery = useQuery({
     queryKey: queryKeys.governance.record(slug),
@@ -217,6 +219,19 @@ export default function GovernanceRecordPage() {
     setOrganizationSheetEntity(null);
     setOrganizationSheetOpen(false);
   };
+  const deleteEntity = async (entity) => {
+    if (!entity?.id) return;
+    try {
+      await deleteOrganization(entity.id);
+      await handleChanged();
+      const { toast } = await import("sonner");
+      toast.success("Organization deleted");
+    } catch (error) {
+      const { toast } = await import("sonner");
+      toast.error(error?.message || "Unable to delete organization");
+    }
+  };
+
   const removeEntityGeography = async (entity) => {
     if (!entity?.id) return;
     try {
@@ -269,7 +284,7 @@ export default function GovernanceRecordPage() {
             onManageLinks={(entity) => openResource(entity, "links")}
             onAddGeography={openGeography}
             onRemoveGeography={removeEntityGeography}
-            onDelete={selectEntity}
+            onDelete={deleteEntity}
             className="min-h-[calc(100vh-5.5rem)]"
           />
         )}
