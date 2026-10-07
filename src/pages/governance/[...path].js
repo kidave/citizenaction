@@ -37,7 +37,7 @@ export default function GovernanceRecordPage() {
   const queryClient = useQueryClient();
   const segments = getPathSegments(router.query.path);
   const slug = segments[segments.length - 1] || null;
-  const view = router.query.view === "organization" ? "organization" : "tree";
+  const view = router.query.view === "tree" ? "tree" : "organization";
   const year = Number(router.query.year) || new Date().getFullYear();
   const asOf = `${year}-12-31T23:59:59.999Z`;
 
@@ -295,6 +295,8 @@ export default function GovernanceRecordPage() {
             onViewOrganization={(entity) => openOrganizationPage(entity)}
             onEdit={editEntity}
             onManageRelations={(entity) => openRelation("edit-relations", entity)}
+            onAddParent={(entity) => openRelation("add-parent", entity)}
+            onAddChild={(entity) => openRelation("add-child", entity)}
             onAddAddress={(entity) => openResource(entity, "address")}
             onRemoveAddress={removeAddress}
             onManageLinks={(entity) => openResource(entity, "links")}
