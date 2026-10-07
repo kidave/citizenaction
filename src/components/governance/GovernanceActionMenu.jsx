@@ -162,6 +162,7 @@ export function GovernanceActionDropdown({
   onManageRelations,
   onAddParent,
   onAddChild,
+  hasParent = false,
   onAddAddress,
   onRemoveAddress,
   onManageLinks,
