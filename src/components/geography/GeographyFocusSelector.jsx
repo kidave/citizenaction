@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/combobox";
 import {
   DEFAULT_GEOGRAPHY_FOCUS_ID,
+  getGeographyTypeLabel,
   useGeographyFocus,
 } from "@/hooks/geography/useGeographyFocus";
 
@@ -43,6 +44,9 @@ export default function GeographyFocusSelector({ value, onValueChange, className
 
   const isIndia = effectiveValue === DEFAULT_GEOGRAPHY_FOCUS_ID;
   const selectedLabel = selected?.name || (isIndia ? "India" : "");
+  const selectedType = selected?.geography_type
+    ? getGeographyTypeLabel(selected.geography_type)
+    : null;
 
   const loadMore = () => {
     if (hasNextPage && !isFetchingNextPage) fetchNextPage();
@@ -59,7 +63,7 @@ export default function GeographyFocusSelector({ value, onValueChange, className
   return (
     <Combobox
       items={groupedOptions}
-      value={isIndia ? { id: DEFAULT_GEOGRAPHY_FOCUS_ID, name: "India" } : selected || undefined}
+      value={selected || undefined}
       open={open}
       onOpenChange={setOpen}
       inputValue={search}
@@ -90,6 +94,11 @@ export default function GeographyFocusSelector({ value, onValueChange, className
               placeholder={selectedLabel || "Select geography"}
               className="block min-w-0 max-w-full truncate whitespace-nowrap font-serif text-sm font-normal"
             />
+            {!isIndia && selectedType && (
+              <span className="block truncate whitespace-nowrap text-[11px] leading-3 text-muted-foreground">
+                {selectedType}
+              </span>
+            )}
           </span>
         </ComboboxTrigger>
 
@@ -144,6 +153,9 @@ export default function GeographyFocusSelector({ value, onValueChange, className
                   <ComboboxItem key={item.id} value={item}>
                     <div className="min-w-0">
                       <div className="truncate text-sm">{item.name}</div>
+                      <div className="truncate text-[11px] text-muted-foreground">
+                        {getGeographyTypeLabel(item.geography_type)}
+                      </div>
                     </div>
                   </ComboboxItem>
                 )}
