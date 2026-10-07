@@ -324,7 +324,7 @@ export default function GovernanceRelationDialog({
                         selectedId={existingId === "none" ? null : existingId}
                         onSelect={(item) => setExistingId(item.id)}
                         excludeIds={[sourceEntity?.id].filter(Boolean)}
-                      onlyWithoutParent={relationType === "parent-of"}
+                      
                       />
                     </div>
                   )}
