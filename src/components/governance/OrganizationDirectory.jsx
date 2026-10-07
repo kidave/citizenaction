@@ -41,6 +41,7 @@ export default function OrganizationDirectory({
   onlyWithoutParent = false,
   canManage = false,
 }) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [type, setType] = useState("all");
   const [categoryId, setCategoryId] = useState("all");
