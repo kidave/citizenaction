@@ -8,13 +8,12 @@ import {
   ChevronRight,
   Loader2,
   MapPin,
-  Search,
 } from "lucide-react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+import GeographySearch from "@/components/geography/GeographySearch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase/client";
