@@ -33,6 +33,8 @@ export function GovernanceActionMenuItems({
   onViewTree,
   onEdit,
   onManageRelations,
+  onAddParent,
+  onAddChild,
   onAddAddress,
   onRemoveAddress,
   onManageLinks,
@@ -76,6 +78,18 @@ export function GovernanceActionMenuItems({
             <Plus className="mr-2 h-4 w-4" />
             Manage Relations
           </MenuItem>
+          {onAddParent && (
+            <MenuItem onSelect={(event) => run(onAddParent, event)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Parent
+            </MenuItem>
+          )}
+          {onAddChild && (
+            <MenuItem onSelect={(event) => run(onAddChild, event)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Child
+            </MenuItem>
+          )}
         </>
       )}
 
@@ -145,6 +159,8 @@ export function GovernanceActionDropdown({
   onViewTree,
   onEdit,
   onManageRelations,
+  onAddParent,
+  onAddChild,
   onAddAddress,
   onRemoveAddress,
   onManageLinks,
@@ -185,6 +201,8 @@ export function GovernanceActionDropdown({
             onViewTree={onViewTree}
             onEdit={onEdit}
             onManageRelations={onManageRelations}
+            onAddParent={onAddParent}
+            onAddChild={onAddChild}
             onAddAddress={onAddAddress}
             onRemoveAddress={onRemoveAddress}
             onManageLinks={onManageLinks}
