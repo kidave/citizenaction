@@ -464,7 +464,7 @@ export default function GovernanceRelationDialog({
                     }
                   }}
                   excludeIds={[sourceEntity?.id].filter(Boolean)}
-                onlyWithoutParent={relationType === "parent-of"}
+                onlyWithoutParent={activeMode === "add-child"}
                 />
               </div>
             ) : (
