@@ -13,6 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectoryCard";
+import GovernanceEntityModal from "@/components/governance/GovernanceEntityModal";
+import GovernanceRelationDialog from "@/components/governance/GovernanceRelationDialog";
 import GovernanceOrganizationSheet from "@/components/governance/GovernanceOrganizationSheet";
 import GovernanceOrganizationResourceDialogs from "@/components/governance/GovernanceOrganizationResourceDialogs";
 import LoadingState from "@/components/ui/loading-state";
@@ -50,6 +52,9 @@ export default function OrganizationDirectory({
   const [addressOpen, setAddressOpen] = useState(false);
   const [geographyOpen, setGeographyOpen] = useState(false);
   const [linksOpen, setLinksOpen] = useState(false);
+  const [viewRecord, setViewRecord] = useState(null);
+  const [relationRecord, setRelationRecord] = useState(null);
+  const [relationOpen, setRelationOpen] = useState(false);
 
   const query = useGovernanceDirectory({
     tab: "organizations",
@@ -123,6 +128,42 @@ export default function OrganizationDirectory({
     setAddressOpen(resource === "address");
     setGeographyOpen(resource === "geography");
     setLinksOpen(resource === "links");
+  };
+
+  const openRelations = (entity) => {
+    if (!entity?.id) return;
+    setViewRecord(null);
+    setRelationRecord(entity);
+    setRelationOpen(true);
+  };
+
+  const removeAddress = async (entity) => {
+    const { error } = await supabase.rpc("update_governance_location", {
+      p_governance_id: entity.id,
+      p_address: null,
+      p_lat: null,
+      p_lng: null,
+    });
+    if (error) {
+      const { toast } = await import("sonner");
+      toast.error(error.message || "Unable to remove address");
+      return;
+    }
+    await refresh();
+    const { toast } = await import("sonner");
+    toast.success("Address removed");
+  };
+
+  const removeGeographyRecord = async (entity) => {
+    try {
+      await removeGeography({ governanceId: entity.id });
+      await refresh();
+      const { toast } = await import("sonner");
+      toast.success("Geography removed");
+    } catch (error) {
+      const { toast } = await import("sonner");
+      toast.error(error?.message || "Unable to remove geography");
+    }
   };
 
   const deleteOrganizationRecord = async (entity) => {

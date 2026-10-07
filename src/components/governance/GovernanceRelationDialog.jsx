@@ -59,11 +59,13 @@ export default function GovernanceRelationDialog({
   );
   const [status, setStatus] = useState("active");
   const [validTo, setValidTo] = useState("");
-  const isEdit = mode === "edit-relations";
+  const [activeMode, setActiveMode] = useState(mode);
+  const isEdit = activeMode === "edit-relations";
 
   useEffect(() => {
     if (!open) return;
-    setStep(isEdit ? "edit" : "relation");
+    setActiveMode(mode);
+    setStep(mode === "edit-relations" ? "edit" : "relation");
     setRelationType("");
     setExistingId("");
     setExistingIds([]);
@@ -95,6 +97,21 @@ export default function GovernanceRelationDialog({
     setExistingIds([]);
     setStep("target");
   };
+  const startAddRelation = () => {
+    setActiveMode("add-relation");
+    setStep("relation");
+    setRelationType("");
+    setExistingId("");
+    setExistingIds([]);
+    setName("");
+    setType("organization");
+    setCategoryId("");
+    setImageUrl(null);
+    setValidFrom(new Date().toISOString().slice(0, 10));
+    setStatus("active");
+    setValidTo("");
+  };
+
   const back = () => {
     if (step === "target" || step === "create" || step === "existing") {
       setExistingId("");
@@ -234,13 +251,22 @@ export default function GovernanceRelationDialog({
             {isEdit ? (
               <>
                 <div className="rounded-lg border bg-muted/30 p-3 text-sm">
-                  <span className="font-medium">
-                    {getGovernanceLabel(sourceEntity)}
-                  </span>
-                  <span className="mx-1 text-muted-foreground">·</span>
-                  <span className="text-muted-foreground">
-                    manage reporting relationships
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="min-w-0 flex-1 font-medium">
+                      {getGovernanceLabel(sourceEntity)}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={startAddRelation}
+                    >
+                      Add relation
+                    </Button>
+                  </div>
+                  <div className="mt-1 text-muted-foreground">
+                    Manage reporting relationships
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <div className="text-xs font-medium text-muted-foreground">

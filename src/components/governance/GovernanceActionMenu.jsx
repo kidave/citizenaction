@@ -28,6 +28,7 @@ import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
 export function GovernanceActionMenuItems({
   MenuItem,
+  MenuSeparator,
   onView,
   onEdit,
   onManageRelations,
