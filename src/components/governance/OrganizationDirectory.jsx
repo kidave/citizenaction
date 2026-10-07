@@ -294,7 +294,10 @@ export default function OrganizationDirectory({
                 onView={() => openView(entity)}
                 onViewTree={() => openTree(entity)}
                 onEdit={canManage ? () => openEdit(entity) : undefined}
-                onManageRelations={canManage ? () => openRelations(entity) : undefined}
+                onManageRelations={canManage ? () => openRelations(entity, "edit-relations") : undefined}
+                onAddParent={canManage ? () => openRelations(entity, "add-parent") : undefined}
+                onAddChild={canManage ? () => openRelations(entity, "add-child") : undefined}
+                hasParent={Boolean(entity.parent_id)}
                 onAddAddress={canManage ? () => openResource(entity, "address") : undefined}
                 onRemoveAddress={canManage ? () => removeAddress(entity) : undefined}
                 onAddGeography={canManage ? () => openResource(entity, "geography") : undefined}
@@ -346,9 +349,9 @@ export default function OrganizationDirectory({
           onSaved={refresh}
           onDeleted={refresh}
           onEdit={canManage ? () => { setViewRecord(null); openEdit(viewRecord); } : undefined}
-          onAddRelation={canManage ? () => openRelations(viewRecord) : undefined}
+          onAddRelation={canManage ? () => openRelations(viewRecord, "add-parent") : undefined}
           onEditRelations={canManage ? () => openRelations(viewRecord) : undefined}
-          onManageRelations={canManage ? () => openRelations(viewRecord) : undefined}
+          onManageRelations={canManage ? () => openRelations(viewRecord, "edit-relations") : undefined}
           onAddAddress={canManage ? () => openResource(viewRecord, "address") : undefined}
           onRemoveAddress={canManage ? () => removeAddress(viewRecord) : undefined}
           onManageLinks={canManage ? () => openResource(viewRecord, "links") : undefined}
@@ -362,7 +365,7 @@ export default function OrganizationDirectory({
         <GovernanceRelationDialog
           open={relationOpen}
           onOpenChange={(value) => { setRelationOpen(value); if (!value) setRelationRecord(null); }}
-          mode="edit-relations"
+          mode={relationMode}
           sourceEntity={relationRecord}
           childEntities={data.filter((item) => item.parent_id === relationRecord.id)}
           categories={categories}
