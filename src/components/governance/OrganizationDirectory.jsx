@@ -58,6 +58,7 @@ export default function OrganizationDirectory({
   const [viewRecord, setViewRecord] = useState(null);
   const [relationRecord, setRelationRecord] = useState(null);
   const [relationOpen, setRelationOpen] = useState(false);
+  const [relationMode, setRelationMode] = useState("edit-relations");
 
   const query = useGovernanceDirectory({
     tab: "organizations",
@@ -144,11 +145,12 @@ export default function OrganizationDirectory({
     setLinksOpen(resource === "links");
   };
 
-  const openRelations = (entity) => {
+  const openRelations = (entity, mode = "edit-relations") => {
     if (!entity?.id) return;
     setViewRecord(null);
     setRelationRecord(entity);
     setRelationOpen(true);
+    setRelationMode(mode);
   };
 
   const removeAddress = async (entity) => {
