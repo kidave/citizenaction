@@ -63,7 +63,7 @@ export function GovernanceActionMenuItems({
       {onViewTree && (
         <MenuItem onSelect={(event) => run(onViewTree, event)}>
           <ExternalLink className="mr-2 h-4 w-4" />
-          View Tree
+          View Organization Tree
         </MenuItem>
       )}
       {onEdit && (
