@@ -593,7 +593,11 @@ export default function GovernanceRelationDialog({
                 ? "Saving..."
                 : step === "create"
                   ? "Create relation"
-                  : "Save relation"}
+                  : activeMode === "add-parent"
+                    ? "Save parent"
+                    : activeMode === "add-child"
+                      ? "Save children"
+                      : "Save relation"}
             </Button>
           )}
         </SheetFooter>
