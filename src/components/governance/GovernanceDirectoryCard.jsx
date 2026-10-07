@@ -8,7 +8,7 @@ import { getGovernanceHref, getGovernanceInitials, getGovernanceName } from "@/u
 
 export default function GovernanceDirectoryCard({
   entity, tab = "organizations", selectionMode = null, selected = false, onSelect,
-  onOpen, onView, onViewTree, onEdit, onManageRelations, onAddParent, onAddChild, onAddAddress, onRemoveAddress, onAddGeography,
+  onOpen, onView, onViewTree, onEdit, onManageRelations, onAddParent, onAddChild, hasParent = false, onAddAddress, onRemoveAddress, onAddGeography,
   onRemoveGeography, onManageLinks, hasAddress = false, hasGeography = false,
   hasLinks = false, onDelete,
 }) {
@@ -68,6 +68,7 @@ export default function GovernanceDirectoryCard({
       onManageRelations={onManageRelations}
       onAddParent={onAddParent}
       onAddChild={onAddChild}
+      hasParent={hasParent}
       onAddAddress={onAddAddress}
       onRemoveAddress={onRemoveAddress}
       onAddGeography={onAddGeography}
