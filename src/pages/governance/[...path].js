@@ -9,6 +9,7 @@ import GovernanceOrganizationSheet from "@/components/governance/GovernanceOrgan
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import GovernanceRelationDialog from "@/components/governance/GovernanceRelationDialog";
 import AddGeographyDialog from "@/components/geography/AddGeographyDialog";
+import GovernanceOrganizationResourceDialogs from "@/components/governance/GovernanceOrganizationResourceDialogs";
 import LoadingState from "@/components/ui/loading-state";
 import ErrorState from "@/components/ui/error-state";
 import { useGovernanceCatalog } from "@/hooks/governance/useGovernanceCatalog";
@@ -50,6 +51,9 @@ export default function GovernanceRecordPage() {
   const [geographyEntity, setGeographyEntity] = useState(null);
   const [leadershipOpen, setLeadershipOpen] = useState(false);
   const [leadershipRecord, setLeadershipRecord] = useState(null);
+  const [resourceEntity, setResourceEntity] = useState(null);
+  const [addressOpen, setAddressOpen] = useState(false);
+  const [linksOpen, setLinksOpen] = useState(false);
 
   const { data: profile } = useMyProfile();
   const canEdit = profile?.role === "admin";
@@ -67,7 +71,7 @@ export default function GovernanceRecordPage() {
     queryKey: queryKeys.governance.family(slug),
     enabled: !!slug && !!governance,
     queryFn: async () => {
-      const [directoryResult, geographyResult] = await Promise.all([
+      const [directoryResult, governanceResult, linkResult] = await Promise.all([
         supabase.rpc("get_governance_tree", {
           p_search: null,
           p_parent_id: null,
@@ -75,16 +79,23 @@ export default function GovernanceRecordPage() {
           p_limit: 500,
           p_include_all: true,
         }),
-        supabase.from("governance").select("id,geography_id"),
+        supabase.from("governance").select("id,address,metadata,geography_id"),
+        supabase.from("link").select("governance_id"),
       ]);
       if (!directoryResult || directoryResult.error) throw directoryResult?.error || new Error("Unable to load governance tree");
-      if (geographyResult?.error) throw geographyResult.error;
-      const geographyById = new Map((geographyResult.data || []).map((item) => [item.id, item.geography_id || null]));
-      return (directoryResult.data || []).map((entity) => ({
-        ...entity,
-        image_url: entity.image_url || entity.metadata?.image_url || null,
-        geography_id: geographyById.get(entity.id) ?? entity.geography_id ?? null,
-      }));
+      if (governanceResult?.error) throw governanceResult.error;
+      if (linkResult?.error) throw linkResult.error;
+      const governanceById = new Map((governanceResult.data || []).map((item) => [item.id, item]));
+      const linkedIds = new Set((linkResult.data || []).map((item) => item.governance_id));
+      return (directoryResult.data || []).map((entity) => {
+        const resource = governanceById.get(entity.id) || {};
+        return {
+          ...entity,
+          ...resource,
+          image_url: entity.image_url || resource.metadata?.image_url || entity.metadata?.image_url || null,
+          hasLinks: linkedIds.has(entity.id),
+        };
+      });
     },
   });
 
@@ -168,6 +179,32 @@ export default function GovernanceRecordPage() {
     setGeographyEntity(entity);
     setGeographyOpen(true);
   };
+
+  const openResource = (entity, resource) => {
+    if (!entity?.id) return;
+    setModalOpen(false);
+    setModalEntity(null);
+    setResourceEntity(entity);
+    setAddressOpen(resource === "address");
+    setLinksOpen(resource === "links");
+  };
+
+  const removeAddress = async (entity) => {
+    const { error } = await supabase.rpc("update_governance_location", {
+      p_governance_id: entity.id,
+      p_address: null,
+      p_lat: null,
+      p_lng: null,
+    });
+    if (error) {
+      const { toast } = await import("sonner");
+      toast.error(error.message || "Unable to remove address");
+      return;
+    }
+    await handleChanged();
+    const { toast } = await import("sonner");
+    toast.success("Address removed");
+  };
   const handleChanged = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.governance.family(slug) }),
@@ -224,15 +261,13 @@ export default function GovernanceRecordPage() {
             initialExpandedIds={initialExpandedIds}
             onSelect={selectEntity}
             canEdit={canEdit}
-            onOpenOrganization={(entity) => {
-              const href = getGovernanceHref(entity);
-              if (href) router.push({ pathname: href, query: { view: "organization" } });
-            }}
+            onViewOrganization={(entity) => selectEntity(entity)}
             onEdit={editEntity}
-            onAddRelation={(entity) => openRelation("add-relation", entity)}
-            onEditRelations={(entity) => openRelation("edit-relations", entity)}
+            onManageRelations={(entity) => openRelation("edit-relations", entity)}
+            onAddAddress={(entity) => openResource(entity, "address")}
+            onRemoveAddress={removeAddress}
+            onManageLinks={(entity) => openResource(entity, "links")}
             onAddGeography={openGeography}
-            onChangeGeography={openGeography}
             onRemoveGeography={removeEntityGeography}
             onDelete={selectEntity}
             className="min-h-[calc(100vh-5.5rem)]"
@@ -252,8 +287,11 @@ export default function GovernanceRecordPage() {
         onDeleted={handleChanged}
         onAddRelation={(entity) => openRelation("add-relation", entity)}
         onEditRelations={(entity) => openRelation("edit-relations", entity)}
+        onManageRelations={(entity) => openRelation("edit-relations", entity)}
+        onAddAddress={(entity) => openResource(entity || currentEntity, "address")}
+        onRemoveAddress={(entity) => removeAddress(entity || currentEntity)}
+        onManageLinks={(entity) => openResource(entity || currentEntity, "links")}
         onAddGeography={(entity) => openGeography(entity || currentEntity)}
-        onChangeGeography={(entity) => openGeography(entity || currentEntity)}
         onRemoveGeography={(entity) => removeEntityGeography(entity || currentEntity)}
         categories={categories}
       />
@@ -288,6 +326,23 @@ export default function GovernanceRecordPage() {
         records={queryClient.getQueryData(queryKeys.governance.organization(governance.id)) || []}
         onSaved={handleChanged}
       />
+
+      {resourceEntity && (
+        <GovernanceOrganizationResourceDialogs
+          entity={resourceEntity}
+          addressOpen={addressOpen}
+          onAddressOpenChange={(value) => {
+            setAddressOpen(value);
+            if (!value && !linksOpen) setResourceEntity(null);
+          }}
+          linksOpen={linksOpen}
+          onLinksOpenChange={(value) => {
+            setLinksOpen(value);
+            if (!value && !addressOpen) setResourceEntity(null);
+          }}
+          onSaved={handleChanged}
+        />
+      )}
 
       {geographyEntity && (
         <AddGeographyDialog
