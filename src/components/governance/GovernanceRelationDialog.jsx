@@ -59,12 +59,25 @@ export default function GovernanceRelationDialog({
   );
   const [status, setStatus] = useState("active");
   const [validTo, setValidTo] = useState("");
-  const isEdit = mode === "edit-relations";
+  const [activeMode, setActiveMode] = useState(mode);
+  const isEdit = activeMode === "edit-relations";
 
   useEffect(() => {
     if (!open) return;
-    setStep(isEdit ? "edit" : "relation");
-    setRelationType("");
+    setActiveMode(mode);
+    if (mode === "edit-relations") {
+      setStep("edit");
+      setRelationType("");
+    } else if (mode === "add-parent") {
+      setStep("existing");
+      setRelationType("child-of");
+    } else if (mode === "add-child") {
+      setStep("existing");
+      setRelationType("parent-of");
+    } else {
+      setStep("relation");
+      setRelationType("");
+    }
     setExistingId("");
     setExistingIds([]);
     setName("");
@@ -76,6 +89,25 @@ export default function GovernanceRelationDialog({
     setStatus("active");
     setValidTo("");
   }, [open, isEdit]);
+
+  const removeParent = async () => {
+    if (!sourceEntity?.id || !currentParent) return;
+    try {
+      setSaving(true);
+      const result = await supabase.rpc("set_governance_parent", {
+        p_child_id: sourceEntity.id,
+        p_parent_id: null,
+      });
+      if (result?.error) throw result.error;
+      toast.success("Parent relation removed");
+      await onCompleted?.();
+      onOpenChange?.(false);
+    } catch (error) {
+      toast.error(error?.message || "Unable to remove parent relation");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const currentParent = useMemo(
     () =>
@@ -89,17 +121,13 @@ export default function GovernanceRelationDialog({
         : null,
     [sourceEntity],
   );
-  const chooseRelation = (relation) => {
-    setRelationType(relation);
-    setExistingId("");
-    setExistingIds([]);
-    setStep("target");
-  };
   const back = () => {
-    if (step === "target" || step === "create" || step === "existing") {
-      setExistingId("");
-      setStep(step === "create" || step === "existing" ? "target" : "relation");
-    } else if (step === "edit-parent") setStep("edit");
+    if (step === "edit-parent") {
+      setStep("edit");
+      setExistingId(sourceEntity?.parent_id || "");
+      return;
+    }
+    if (!isEdit) onOpenChange?.(false);
   };
 
   const removeChild = async (childId) => {
@@ -211,7 +239,7 @@ export default function GovernanceRelationDialog({
     }
   };
 
-  const selectionMode = relationType === "parent-of" ? "checkbox" : "radio";
+  const selectionMode = relationType === "child-of" ? "radio" : "checkbox";
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -222,7 +250,7 @@ export default function GovernanceRelationDialog({
         <SheetHeader className="border-b px-5 py-4 text-left sm:px-6">
           <SheetTitle className="flex items-center gap-2">
             <GitBranch className="h-4 w-4" />
-            {isEdit ? "Edit relations" : "Add relation"}
+            {isEdit ? "Edit relations" : activeMode === "add-parent" ? "Add parent" : activeMode === "add-child" ? "Add child" : "Add relation"}
           </SheetTitle>
           <div className="text-sm text-muted-foreground">
             {getGovernanceLabel(sourceEntity)}
@@ -234,67 +262,75 @@ export default function GovernanceRelationDialog({
             {isEdit ? (
               <>
                 <div className="rounded-lg border bg-muted/30 p-3 text-sm">
-                  <span className="font-medium">
-                    {getGovernanceLabel(sourceEntity)}
-                  </span>
-                  <span className="mx-1 text-muted-foreground">·</span>
-                  <span className="text-muted-foreground">
-                    manage reporting relationships
-                  </span>
+                  <div className="font-medium">{getGovernanceLabel(sourceEntity)}</div>
+                  <div className="mt-1 text-muted-foreground">
+                    Manage existing reporting relationships.
+                  </div>
                 </div>
+
                 <div className="space-y-2">
-                  <div className="text-xs font-medium text-muted-foreground">
-                    Parent
-                  </div>
+                  <div className="text-xs font-medium text-muted-foreground">Parent</div>
                   <div className="flex items-center gap-2 rounded-lg border p-3">
-                    <span className="min-w-0 flex-1 truncate text-sm">
-                      {currentParent
-                        ? getGovernanceLabel(currentParent)
-                        : "No parent"}
-                    </span>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setExistingId(sourceEntity.parent_id || "none");
-                        setStep("edit-parent");
-                      }}
-                    >
-                      Change
-                    </Button>
-                  </div>
-                  {step === "edit-parent" && (
-                    <div className="space-y-3 pt-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs text-muted-foreground">Current parent</div>
+                      <div className="mt-1 truncate text-sm font-medium">
+                        {currentParent ? getGovernanceLabel(currentParent) : "No parent assigned"}
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 gap-2">
                       <Button
                         type="button"
-                        variant={
-                          existingId === "none" ? "secondary" : "outline"
-                        }
-                        className="w-full justify-start"
-                        onClick={() => setExistingId("none")}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setExistingId(sourceEntity.parent_id || "");
+                          setStep("edit-parent");
+                        }}
                       >
-                        No parent — make independent
+                        Change
                       </Button>
+                      {currentParent && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          onClick={removeParent}
+                          disabled={saving}
+                        >
+                          <Trash2 className="mr-1.5 h-4 w-4" />
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  {step === "edit-parent" && (
+                    <div className="space-y-3 pt-2">
+                      <div className="rounded-lg border bg-muted/30 p-3 text-sm">
+                        <div className="text-xs font-medium text-muted-foreground">Current parent</div>
+                        <div className="mt-1 font-medium">
+                          {currentParent ? getGovernanceLabel(currentParent) : "No parent assigned"}
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Select a different organization to replace the current parent.
+                        </p>
+                      </div>
                       <OrganizationDirectory
                         selectionMode="radio"
-                        selectedId={existingId === "none" ? null : existingId}
+                        selectedId={existingId || null}
                         onSelect={(item) => setExistingId(item.id)}
                         excludeIds={[sourceEntity?.id].filter(Boolean)}
                       />
                     </div>
                   )}
                 </div>
+
                 <div className="space-y-2">
-                  <div className="text-xs font-medium text-muted-foreground">
-                    Children
-                  </div>
+                  <div className="text-xs font-medium text-muted-foreground">Children</div>
                   {childEntities.length ? (
                     childEntities.map((child) => (
-                      <div
-                        key={child.id}
-                        className="flex items-center gap-2 rounded-lg border p-3"
-                      >
+                      <div key={child.id} className="flex items-center gap-2 rounded-lg border p-3">
                         <span className="min-w-0 flex-1 truncate text-sm">
                           {getGovernanceLabel(child)}
                         </span>
@@ -312,90 +348,16 @@ export default function GovernanceRelationDialog({
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm text-muted-foreground">
-                      No child relations.
-                    </p>
+                    <p className="text-sm text-muted-foreground">No child relations.</p>
                   )}
                 </div>
               </>
-            ) : step === "relation" ? (
+            ) : (
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  How should the new relation connect to this entity?
-                </p>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-auto justify-start p-4 text-left"
-                    onClick={() => chooseRelation("parent-of")}
-                  >
-                    <div>
-                      <div className="font-medium">Parent of</div>
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        Connect one or more entities that report to this one.
-                      </div>
-                    </div>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-auto justify-start p-4 text-left"
-                    onClick={() => chooseRelation("child-of")}
-                  >
-                    <div>
-                      <div className="font-medium">Child of</div>
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        Connect this entity to the entity it reports to.
-                      </div>
-                    </div>
-                  </Button>
-                </div>
-              </div>
-            ) : step === "target" ? (
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  Choose how you want to add the connected entity.
-                </p>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-auto justify-start p-4 text-left"
-                    onClick={() => setStep("existing")}
-                  >
-                    <div>
-                      <div className="font-medium">
-                        Use existing organizations
-                      </div>
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        Select directly from the Governance organization
-                        directory.
-                      </div>
-                    </div>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-auto justify-start p-4 text-left"
-                    onClick={() => setStep("create")}
-                  >
-                    <div>
-                      <div className="font-medium">
-                        Create a new organization
-                      </div>
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        Add a new record here.
-                      </div>
-                    </div>
-                  </Button>
-                </div>
-              </div>
-            ) : step === "existing" ? (
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  Select organization{selectionMode === "checkbox" ? "s" : ""}{" "}
-                  from the directory.
+                  {activeMode === "add-parent"
+                    ? "Select one organization to become this organization's parent."
+                    : "Select one or more organizations that currently have no parent."}
                 </p>
                 <OrganizationDirectory
                   selectionMode={selectionMode}
@@ -406,9 +368,7 @@ export default function GovernanceRelationDialog({
                         ? [existingId]
                         : []
                   }
-                  selectedId={
-                    selectionMode === "radio" ? existingId || null : null
-                  }
+                  selectedId={selectionMode === "radio" ? existingId || null : null}
                   onSelect={(item) => {
                     if (selectionMode === "checkbox") {
                       setExistingIds((current) =>
@@ -421,90 +381,7 @@ export default function GovernanceRelationDialog({
                     }
                   }}
                   excludeIds={[sourceEntity?.id].filter(Boolean)}
-                />
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <Field label="Name">
-                  <Input
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    placeholder="e.g. Western Railway"
-                    autoFocus
-                  />
-                </Field>
-                <Field label="Governance type">
-                  <Select value={type} onValueChange={setType}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-72">
-                      {GOVERNANCE_TYPES.map((item) => (
-                        <SelectItem key={item} value={item}>
-                          {formatGovernanceType(item)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field label="Category">
-                  <Select
-                    value={categoryId || "none"}
-                    onValueChange={(value) =>
-                      setCategoryId(value === "none" ? "" : value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose a category" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-72">
-                      <SelectItem value="none">No category</SelectItem>
-                      {categories.map((item) => (
-                        <SelectItem key={item.id} value={item.id}>
-                          {item.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="Valid from">
-                    <Input
-                      type="date"
-                      value={validFrom}
-                      onChange={(event) => setValidFrom(event.target.value)}
-                    />
-                  </Field>
-                  <Field label="Valid to">
-                    <Input
-                      type="date"
-                      value={validTo}
-                      onChange={(event) => setValidTo(event.target.value)}
-                    />
-                  </Field>
-                </div>
-                <Field label="Status">
-                  <Select value={status} onValueChange={setStatus}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {GOVERNANCE_STATUS_OPTIONS.map(([value, text]) => (
-                        <SelectItem key={value} value={value}>
-                          {text}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <ImageUpload
-                  bucket="governance"
-                  path={`governance/draft-${sourceEntity?.id || "entity"}/logo`}
-                  value={imageUrl}
-                  onChange={(value) => setImageUrl(value || null)}
-                  label="Logo"
-                  helperText="PNG, JPG or WebP · up to 5 MB"
-                  disabled={saving}
+                  onlyWithoutParent={activeMode === "add-child"}
                 />
               </div>
             )}
@@ -549,7 +426,11 @@ export default function GovernanceRelationDialog({
                 ? "Saving..."
                 : step === "create"
                   ? "Create relation"
-                  : "Save relation"}
+                  : activeMode === "add-parent"
+                    ? "Save parent"
+                    : activeMode === "add-child"
+                      ? "Save children"
+                      : "Save relation"}
             </Button>
           )}
         </SheetFooter>

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useRouter } from "next/router";
 import { Plus, Search } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -13,6 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectoryCard";
+import GovernanceEntityModal from "@/components/governance/GovernanceEntityModal";
+import GovernanceRelationDialog from "@/components/governance/GovernanceRelationDialog";
 import GovernanceOrganizationSheet from "@/components/governance/GovernanceOrganizationSheet";
 import GovernanceOrganizationResourceDialogs from "@/components/governance/GovernanceOrganizationResourceDialogs";
 import LoadingState from "@/components/ui/loading-state";
@@ -21,9 +24,11 @@ import ErrorState from "@/components/ui/error-state";
 import { useGovernanceCatalog } from "@/hooks/governance/useGovernanceCatalog";
 import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
+import { useGovernanceGeographyMutation } from "@/hooks/geography/useGovernanceGeography";
 import {
   GOVERNANCE_TYPES,
   formatGovernanceFilterType,
+  getGovernanceHref,
 } from "@/utils/governance";
 
 export default function OrganizationDirectory({
@@ -33,6 +38,7 @@ export default function OrganizationDirectory({
   selectedId = null,
   onSelect,
   excludeIds = [],
+  onlyWithoutParent = false,
   canManage = false,
 }) {
   const [search, setSearch] = useState("");
@@ -43,11 +49,16 @@ export default function OrganizationDirectory({
     useGovernanceCatalog({ enabled: true });
   const queryClient = useQueryClient();
   const { deleteOrganization } = useGovernanceCrud();
+  const { removeGeography } = useGovernanceGeographyMutation();
   const [editingRecord, setEditingRecord] = useState(null);
   const [resourceRecord, setResourceRecord] = useState(null);
   const [addressOpen, setAddressOpen] = useState(false);
   const [geographyOpen, setGeographyOpen] = useState(false);
   const [linksOpen, setLinksOpen] = useState(false);
+  const [viewRecord, setViewRecord] = useState(null);
+  const [relationRecord, setRelationRecord] = useState(null);
+  const [relationOpen, setRelationOpen] = useState(false);
+  const [relationMode, setRelationMode] = useState("edit-relations");
 
   const query = useGovernanceDirectory({
     tab: "organizations",
@@ -60,9 +71,9 @@ export default function OrganizationDirectory({
   const data = useMemo(
     () =>
       Array.isArray(query.data)
-        ? query.data.filter((item) => !excluded.has(item.id))
+        ? query.data.filter((item) => !excluded.has(item.id) && (!onlyWithoutParent || !item.parent_id))
         : [],
-    [query.data, excluded],
+    [query.data, excluded, onlyWithoutParent],
   );
   const selectedSet = useMemo(
     () =>
@@ -115,12 +126,60 @@ export default function OrganizationDirectory({
     [data, resourceSummary.data],
   );
 
+  const openView = (entity) => {
+    const href = getGovernanceHref(entity);
+    if (!href) return;
+    router.push(href);
+  };
+  const openTree = (entity) => {
+    const href = getGovernanceHref(entity);
+    if (!href) return;
+    router.push({ pathname: href, query: { view: "tree" } });
+  };
+
   const openEdit = (entity) => { setEditingRecord(entity); setDialogOpen(true); };
   const openResource = (entity, resource) => {
     setResourceRecord(entity);
     setAddressOpen(resource === "address");
     setGeographyOpen(resource === "geography");
     setLinksOpen(resource === "links");
+  };
+
+  const openRelations = (entity, mode = "edit-relations") => {
+    if (!entity?.id) return;
+    setViewRecord(null);
+    setRelationRecord(entity);
+    setRelationOpen(true);
+    setRelationMode(mode);
+  };
+
+  const removeAddress = async (entity) => {
+    const { error } = await supabase.rpc("update_governance_location", {
+      p_governance_id: entity.id,
+      p_address: null,
+      p_lat: null,
+      p_lng: null,
+    });
+    if (error) {
+      const { toast } = await import("sonner");
+      toast.error(error.message || "Unable to remove address");
+      return;
+    }
+    await refresh();
+    const { toast } = await import("sonner");
+    toast.success("Address removed");
+  };
+
+  const removeGeographyRecord = async (entity) => {
+    try {
+      await removeGeography({ governanceId: entity.id });
+      await refresh();
+      const { toast } = await import("sonner");
+      toast.success("Geography removed");
+    } catch (error) {
+      const { toast } = await import("sonner");
+      toast.error(error?.message || "Unable to remove geography");
+    }
   };
 
   const deleteOrganizationRecord = async (entity) => {
@@ -231,9 +290,18 @@ export default function OrganizationDirectory({
                 selectionMode={selectionMode}
                 selected={selectedSet.has(entity.id)}
                 onSelect={onSelect}
+                onOpen={() => setViewRecord(entity)}
+                onView={() => openView(entity)}
+                onViewTree={() => openTree(entity)}
                 onEdit={canManage ? () => openEdit(entity) : undefined}
+                onManageRelations={canManage ? () => openRelations(entity, "edit-relations") : undefined}
+                onAddParent={canManage ? () => openRelations(entity, "add-parent") : undefined}
+                onAddChild={canManage ? () => openRelations(entity, "add-child") : undefined}
+                hasParent={Boolean(entity.parent_id)}
                 onAddAddress={canManage ? () => openResource(entity, "address") : undefined}
+                onRemoveAddress={canManage ? () => removeAddress(entity) : undefined}
                 onAddGeography={canManage ? () => openResource(entity, "geography") : undefined}
+                onRemoveGeography={canManage ? () => removeGeographyRecord(entity) : undefined}
                 onManageLinks={canManage ? () => openResource(entity, "links") : undefined}
                 hasAddress={Boolean(entity.address)}
                 hasGeography={Boolean(entity.geography_id)}
@@ -265,6 +333,43 @@ export default function OrganizationDirectory({
             if (!value && !addressOpen && !geographyOpen) setResourceRecord(null);
           }}
           onSaved={refresh}
+        />
+      )}
+
+      {viewRecord && (
+        <GovernanceEntityModal
+          open={Boolean(viewRecord)}
+          onOpenChange={(value) => { if (!value) setViewRecord(null); }}
+          entity={viewRecord}
+          parent={null}
+          childEntities={[]}
+          canEdit={canManage}
+          categories={categories}
+          onSelect={(entity) => setViewRecord(entity)}
+          onSaved={refresh}
+          onDeleted={refresh}
+          onEdit={canManage ? () => { setViewRecord(null); openEdit(viewRecord); } : undefined}
+          onAddRelation={canManage ? () => openRelations(viewRecord, "add-parent") : undefined}
+          onEditRelations={canManage ? () => openRelations(viewRecord) : undefined}
+          onManageRelations={canManage ? () => openRelations(viewRecord, "edit-relations") : undefined}
+          onAddAddress={canManage ? () => openResource(viewRecord, "address") : undefined}
+          onRemoveAddress={canManage ? () => removeAddress(viewRecord) : undefined}
+          onManageLinks={canManage ? () => openResource(viewRecord, "links") : undefined}
+          onAddGeography={canManage ? () => openResource(viewRecord, "geography") : undefined}
+          onChangeGeography={canManage ? () => openResource(viewRecord, "geography") : undefined}
+          onRemoveGeography={canManage ? () => removeGeographyRecord(viewRecord) : undefined}
+        />
+      )}
+
+      {relationRecord && canManage && (
+        <GovernanceRelationDialog
+          open={relationOpen}
+          onOpenChange={(value) => { setRelationOpen(value); if (!value) setRelationRecord(null); }}
+          mode={relationMode}
+          sourceEntity={relationRecord}
+          childEntities={data.filter((item) => item.parent_id === relationRecord.id)}
+          categories={categories}
+          onCompleted={refresh}
         />
       )}
 

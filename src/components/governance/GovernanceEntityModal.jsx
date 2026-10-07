@@ -24,6 +24,10 @@ export default function GovernanceEntityModal({
   onEdit,
   onAddRelation,
   onEditRelations,
+  onManageRelations,
+  onAddAddress,
+  onRemoveAddress,
+  onManageLinks,
   onAddGeography: externalAddGeography,
   onChangeGeography: externalChangeGeography,
   onRemoveGeography: externalRemoveGeography,
@@ -73,9 +77,15 @@ export default function GovernanceEntityModal({
               onEdit={onEdit}
               onAddRelation={() => onAddRelation?.(entity)}
               onEditRelations={() => onEditRelations?.(entity)}
-              onAddGeography={!hasGeography ? addGeography : undefined}
-              onChangeGeography={hasGeography ? changeGeography : undefined}
+              onManageRelations={() => onManageRelations?.(entity) || onEditRelations?.(entity)}
+              onAddAddress={onAddAddress ? () => onAddAddress(entity) : undefined}
+              onRemoveAddress={onRemoveAddress ? () => onRemoveAddress(entity) : undefined}
+              onManageLinks={onManageLinks ? () => onManageLinks(entity) : undefined}
+              onAddGeography={addGeography}
               onRemoveGeography={hasGeography ? removeGeographyLink : undefined}
+              hasAddress={Boolean(entity.address)}
+              hasLinks={Boolean(details?.links?.length)}
+              hasGeography={hasGeography}
               onDelete={isPending ? undefined : handleDelete}
             />
             <div className="mt-2">
