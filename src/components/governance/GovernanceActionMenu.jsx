@@ -6,6 +6,7 @@ import {
   Pencil,
   Plus,
   Trash2,
+  MoreHorizontal,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -77,14 +78,14 @@ export function GovernanceActionMenuItems({
       {onManageLinks && (
         <MenuItem onSelect={(event) => run(onManageLinks, event)}>
           <LinkIcon className="mr-2 h-4 w-4" />
-          "Add/Edit Links"
+          Add/Edit Links
         </MenuItem>
       )}
 
       {onAddAddress && (
         <MenuItem onSelect={(event) => run(onAddAddress, event)}>
           <MapPin className="mr-2 h-4 w-4" />
-          "Add/Edit Address"
+          Add/Edit Address
         </MenuItem>
       )}
 
@@ -101,7 +102,7 @@ export function GovernanceActionMenuItems({
       {onAddGeography && (
         <MenuItem onSelect={(event) => run(onAddGeography, event)}>
           <MapPin className="mr-2 h-4 w-4" />
-          "Add/Edit Geography"
+          Add/Edit Geography
         </MenuItem>
       )}
 
@@ -164,7 +165,7 @@ export function GovernanceActionDropdown({
             aria-label="More actions"
             onClick={(event) => event.stopPropagation()}
           >
-            <span className="text-lg leading-none">⋯</span>
+            <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
