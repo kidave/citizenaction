@@ -5,7 +5,7 @@ import { Building2, ChevronDown, ChevronRight, ExternalLink, GitBranch } from "l
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import LoadingState from "@/components/ui/loading-state";
@@ -243,86 +243,85 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
             <TabsTrigger value="positions">Positions</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="structure" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Organization structure</CardTitle>
-                <p className="text-sm text-muted-foreground">Governance units are nested from the organization records. Nothing here is hardcoded for a particular government.</p>
-              </CardHeader>
-              <CardContent>
-                <OrganizationUnit
-                  node={root}
-                  childrenByParent={childrenByParent}
-                  canEdit={canEdit}
-                  onSelect={onEdit}
-                  expandedPath={expandedPath}
-                  onToggle={toggleOrganizationUnit}
-                />
-              </CardContent>
-            </Card>
+          <TabsContent value="structure" className="space-y-3">
+            <div>
+              <h2 className="text-sm font-semibold">Organization structure</h2>
+              <p className="mt-1 text-xs text-muted-foreground">Units and hierarchy within this organization.</p>
+            </div>
+            <OrganizationUnit
+              node={root}
+              childrenByParent={childrenByParent}
+              canEdit={canEdit}
+              onSelect={onEdit}
+              expandedPath={expandedPath}
+              onToggle={toggleOrganizationUnit}
+            />
           </TabsContent>
 
-          <TabsContent value="reporting" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Reporting structure</CardTitle>
-                <p className="text-sm text-muted-foreground">Reporting lines are derived from the appointment-level <code className="rounded bg-muted px-1">reports_to_appointment_id</code> relationship. This allows a position in one unit to report to a position in another unit.</p>
-              </CardHeader>
-              <CardContent>
-                {reportingRoots.length ? (
-                  <div className="space-y-3">
-                    {reportingRoots.map((item) => <ReportingNode key={item.appointment_id} node={item} childrenByParent={appointmentsByParent} />)}
-                  </div>
-                ) : (
-                  <EmptyState className="min-h-0 rounded-lg border border-dashed p-8" title="No reporting relationships mapped" />
-                )}
-              </CardContent>
-            </Card>
+          <TabsContent value="reporting" className="space-y-3">
+            <div>
+              <h2 className="text-sm font-semibold">Reporting structure</h2>
+              <p className="mt-1 text-xs text-muted-foreground">Who reports to whom across the organization.</p>
+            </div>
+            {reportingRoots.length ? (
+              <div className="space-y-3">
+                {reportingRoots.map((item) => (
+                  <ReportingNode key={item.appointment_id} node={item} childrenByParent={appointmentsByParent} />
+                ))}
+              </div>
+            ) : (
+              <EmptyState className="min-h-0 rounded-lg border border-dashed p-8" title="No reporting relationships mapped" />
+            )}
 
             {unmapped.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Positions without a reporting link</CardTitle>
-                  <p className="text-sm text-muted-foreground">These are not assumed to be incorrect. They simply do not currently have a reporting appointment recorded.</p>
-                </CardHeader>
-                <CardContent className="grid gap-2 sm:grid-cols-2">
+              <div className="pt-2">
+                <h3 className="mb-2 text-xs font-medium text-muted-foreground">Without a reporting link</h3>
+                <div className="grid gap-2 sm:grid-cols-2">
                   {unmapped.map((item) => (
                     <div key={item.appointment_id} className="flex items-center gap-3 rounded-lg border p-3">
-                      <Avatar className="h-9 w-9 rounded-lg"><AvatarImage src={item.person_avatar_url || item.position_avatar_url || undefined} alt="" /><AvatarFallback className="rounded-lg">{getGovernanceInitials(item.person_name || item.position_name)}</AvatarFallback></Avatar>
-                      <div className="min-w-0 flex-1"><div className="truncate text-sm font-medium">{item.position_name}</div><div className="truncate text-xs text-muted-foreground">{item.organization_name}</div></div>
+                      <Avatar className="h-9 w-9 rounded-lg">
+                        <AvatarImage src={item.person_avatar_url || item.position_avatar_url || undefined} alt="" />
+                        <AvatarFallback className="rounded-lg">{getGovernanceInitials(item.person_name || item.position_name)}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-medium">{item.position_name}</div>
+                        <div className="truncate text-xs text-muted-foreground">{item.organization_name}</div>
+                      </div>
                     </div>
                   ))}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
           </TabsContent>
 
-          <TabsContent value="positions">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Current positions</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {appointments.map((item) => {
-                  const href = item.position_slug && item.organization_slug ? `/governance/${item.organization_slug}/${item.position_slug}` : null;
-                  return (
-                    <Card key={item.appointment_id} className="shadow-none">
-                      <CardContent className="p-3">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-9 w-9 rounded-lg"><AvatarImage src={item.person_avatar_url || item.position_avatar_url || undefined} alt="" /><AvatarFallback className="rounded-lg">{getGovernanceInitials(item.person_name || item.position_name)}</AvatarFallback></Avatar>
-                          <div className="min-w-0 flex-1">
-                            {href ? <Link href={href} className="block truncate text-sm font-medium hover:underline">{item.position_name}</Link> : <div className="truncate text-sm font-medium">{item.position_name}</div>}
-                            <div className="truncate text-xs text-muted-foreground">{item.person_name || (item.is_vacant ? "Vacant" : "Unassigned")}</div>
-                            <div className="truncate text-[11px] text-muted-foreground">{item.organization_name}</div>
-                          </div>
+          <TabsContent value="positions" className="space-y-3">
+            <div>
+              <h2 className="text-sm font-semibold">Current positions</h2>
+              <p className="mt-1 text-xs text-muted-foreground">Positions currently recorded for this organization.</p>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {appointments.map((item) => {
+                const href = item.position_slug && item.organization_slug ? `/governance/${item.organization_slug}/${item.position_slug}` : null;
+                return (
+                  <Card key={item.appointment_id} className="shadow-none">
+                    <CardContent className="p-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9 rounded-lg">
+                          <AvatarImage src={item.person_avatar_url || item.position_avatar_url || undefined} alt="" />
+                          <AvatarFallback className="rounded-lg">{getGovernanceInitials(item.person_name || item.position_name)}</AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1">
+                          {href ? <Link href={href} className="block truncate text-sm font-medium hover:underline">{item.position_name}</Link> : <div className="truncate text-sm font-medium">{item.position_name}</div>}
+                          <div className="truncate text-xs text-muted-foreground">{item.person_name || (item.is_vacant ? "Vacant" : "Unassigned")}</div>
+                          <div className="truncate text-[11px] text-muted-foreground">{item.organization_name}</div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-                {!appointments.length && <EmptyState className="col-span-full min-h-0 rounded-lg border border-dashed p-8" title="No current positions mapped" />}
-              </CardContent>
-            </Card>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+              {!appointments.length && <EmptyState className="col-span-full min-h-0 rounded-lg border border-dashed p-8" title="No current positions mapped" />}
+            </div>
           </TabsContent>
         </Tabs>
       </div>
