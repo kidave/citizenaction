@@ -28,7 +28,7 @@ import { useGovernanceGeographyMutation } from "@/hooks/geography/useGovernanceG
 import {
   GOVERNANCE_TYPES,
   formatGovernanceFilterType,
-  getGovernanceHref,
+  getGovernanceRoute,
 } from "@/utils/governance";
 
 export default function OrganizationDirectory({
@@ -41,6 +41,7 @@ export default function OrganizationDirectory({
   onlyWithoutParent = false,
   canManage = false,
 }) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [type, setType] = useState("all");
   const [categoryId, setCategoryId] = useState("all");
@@ -126,15 +127,15 @@ export default function OrganizationDirectory({
     [data, resourceSummary.data],
   );
 
-  const openView = (entity) => {
-    const href = getGovernanceHref(entity);
-    if (!href) return;
-    router.push(href);
+  const openView = async (entity) => {
+    const route = getGovernanceRoute(entity, "organization");
+    if (!route) return;
+    await router.push(route);
   };
-  const openTree = (entity) => {
-    const href = getGovernanceHref(entity);
-    if (!href) return;
-    router.push({ pathname: href, query: { view: "tree" } });
+  const openTree = async (entity) => {
+    const route = getGovernanceRoute(entity, "tree");
+    if (!route) return;
+    await router.push(route);
   };
 
   const openEdit = (entity) => { setEditingRecord(entity); setDialogOpen(true); };

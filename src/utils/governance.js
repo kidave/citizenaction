@@ -49,6 +49,24 @@ export function getGovernanceHref(entity) {
   return null;
 }
 
+export function getGovernanceRoute(entity, view = null) {
+  const href = getGovernanceHref(entity);
+  if (!href) return null;
+
+  const path = href
+    .replace(/^\/governance\//, "")
+    .split("/")
+    .filter(Boolean);
+
+  return {
+    pathname: "/governance/[...path]",
+    query: {
+      path,
+      ...(view ? { view } : {}),
+    },
+  };
+}
+
 export function getGovernanceLabel(entity) {
   return entity?.short_name || entity?.name || entity?.label || "Governance";
 }
