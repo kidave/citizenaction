@@ -23,7 +23,7 @@ function TreeConnector({ count }) {
 
 function TreeNode({
   node, expandedIds, onToggle, selectedId, onSelect, canEdit,
-  onViewOrganization, onEdit, onManageRelations, onAddAddress, onRemoveAddress,
+  onViewOrganization, onEdit, onManageRelations, onAddParent, onAddChild, onAddAddress, onRemoveAddress,
   onManageLinks, onAddGeography, onRemoveGeography, onDelete,
 }) {
   const hasChildren = node.children.length > 0;
@@ -52,6 +52,9 @@ function TreeNode({
           onView={onViewOrganization ? () => onViewOrganization(node) : undefined}
           onEdit={canEdit ? () => onEdit?.(node) : undefined}
           onManageRelations={canEdit ? () => onManageRelations?.(node) : undefined}
+          onAddParent={canEdit ? () => onAddParent?.(node) : undefined}
+          onAddChild={canEdit ? () => onAddChild?.(node) : undefined}
+          hasParent={Boolean(node.parent_id)}
           onAddAddress={canEdit ? () => onAddAddress?.(node) : undefined}
           onRemoveAddress={canEdit ? () => onRemoveAddress?.(node) : undefined}
           onManageLinks={canEdit ? () => onManageLinks?.(node) : undefined}
@@ -66,14 +69,14 @@ function TreeNode({
         </GovernanceActionContextMenu>
         {hasChildren && <button type="button" onClick={(event) => { event.stopPropagation(); onToggle(node.id); }} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border bg-background text-muted-foreground hover:bg-muted hover:text-foreground" aria-label={expanded ? "Collapse " + label : "Expand " + label}>{expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</button>}
       </div>
-      {hasChildren && expanded && <div className="relative mt-2 w-max pt-10"><TreeConnector count={node.children.length} /><ul className="flex items-start justify-center gap-6">{node.children.map((child) => <TreeNode key={child.id} node={child} expandedIds={expandedIds} onToggle={onToggle} selectedId={selectedId} onSelect={onSelect} canEdit={canEdit} onViewOrganization={onViewOrganization} onEdit={onEdit} onManageRelations={onManageRelations} onAddAddress={onAddAddress} onRemoveAddress={onRemoveAddress} onManageLinks={onManageLinks} onAddGeography={onAddGeography} onRemoveGeography={onRemoveGeography} onDelete={onDelete} />)}</ul></div>}
+      {hasChildren && expanded && <div className="relative mt-2 w-max pt-10"><TreeConnector count={node.children.length} /><ul className="flex items-start justify-center gap-6">{node.children.map((child) => <TreeNode key={child.id} node={child} expandedIds={expandedIds} onToggle={onToggle} selectedId={selectedId} onSelect={onSelect} canEdit={canEdit} onViewOrganization={onViewOrganization} onEdit={onEdit} onManageRelations={onManageRelations} onAddAddress={onAddAddress} onRemoveAddress={onRemoveAddress} onManageLinks={onManageLinks} onAddParent={onAddParent} onAddChild={onAddChild} onAddGeography={onAddGeography} onRemoveGeography={onRemoveGeography} onDelete={onDelete} />)}</ul></div>}
     </li>
   );
 }
 
 export default function GovernanceFamilyTree({
   records = [], selectedId = null, onSelect, className, initialExpandedIds = [], canEdit = false,
-  onViewOrganization, onEdit, onManageRelations, onAddAddress, onRemoveAddress, onManageLinks,
+  onViewOrganization, onEdit, onManageRelations, onAddParent, onAddChild, onAddAddress, onRemoveAddress, onManageLinks,
   onAddGeography, onRemoveGeography, onDelete,
 }) {
   const roots = useMemo(() => buildGovernanceTree(records), [records]);
