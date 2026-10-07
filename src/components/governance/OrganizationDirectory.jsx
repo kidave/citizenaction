@@ -28,7 +28,6 @@ import { useGovernanceGeographyMutation } from "@/hooks/geography/useGovernanceG
 import {
   GOVERNANCE_TYPES,
   formatGovernanceFilterType,
-  getGovernanceHref,
   getGovernanceRoute,
 } from "@/utils/governance";
 
