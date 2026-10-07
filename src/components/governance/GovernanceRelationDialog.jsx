@@ -65,8 +65,19 @@ export default function GovernanceRelationDialog({
   useEffect(() => {
     if (!open) return;
     setActiveMode(mode);
-    setStep(mode === "edit-relations" ? "edit" : "relation");
-    setRelationType("");
+    if (mode === "edit-relations") {
+      setStep("edit");
+      setRelationType("");
+    } else if (mode === "add-parent") {
+      setStep("existing");
+      setRelationType("child-of");
+    } else if (mode === "add-child") {
+      setStep("existing");
+      setRelationType("parent-of");
+    } else {
+      setStep("relation");
+      setRelationType("");
+    }
     setExistingId("");
     setExistingIds([]);
     setName("");
@@ -245,7 +256,7 @@ export default function GovernanceRelationDialog({
         <SheetHeader className="border-b px-5 py-4 text-left sm:px-6">
           <SheetTitle className="flex items-center gap-2">
             <GitBranch className="h-4 w-4" />
-            {isEdit ? "Edit relations" : "Add relation"}
+            {isEdit ? "Edit relations" : activeMode === "add-parent" ? "Add parent" : activeMode === "add-child" ? "Add child" : "Add relation"}
           </SheetTitle>
           <div className="text-sm text-muted-foreground">
             {getGovernanceLabel(sourceEntity)}
