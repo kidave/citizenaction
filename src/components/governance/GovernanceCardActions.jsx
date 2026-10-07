@@ -8,6 +8,8 @@ export default function GovernanceCardActions({
   onViewTree,
   onEdit,
   onManageRelations,
+  onAddParent,
+  onAddChild,
   onAddAddress,
   onRemoveAddress,
   onAddGeography,
@@ -18,7 +20,7 @@ export default function GovernanceCardActions({
   hasLinks = false,
   onDelete,
 }) {
-  const hasActions = onView || onViewTree || onEdit || onManageRelations || onAddAddress || onRemoveAddress ||
+  const hasActions = onView || onViewTree || onEdit || onManageRelations || onAddParent || onAddChild || onAddAddress || onRemoveAddress ||
     onAddGeography || onRemoveGeography || onManageLinks || onDelete;
 
   if (!hasActions) return children;
@@ -29,6 +31,8 @@ export default function GovernanceCardActions({
       onViewTree={onViewTree}
       onEdit={onEdit}
       onManageRelations={onManageRelations}
+      onAddParent={onAddParent}
+      onAddChild={onAddChild}
       onAddAddress={onAddAddress}
       onRemoveAddress={onRemoveAddress}
       onAddGeography={onAddGeography}
@@ -46,6 +50,8 @@ export default function GovernanceCardActions({
           onViewTree={onViewTree}
           onEdit={onEdit}
           onManageRelations={onManageRelations}
+          onAddParent={onAddParent}
+          onAddChild={onAddChild}
           onAddAddress={onAddAddress}
           onRemoveAddress={onRemoveAddress}
           onAddGeography={onAddGeography}
