@@ -24,11 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase/client";
-import {
-  deleteGovernanceAttachments,
-  moveGovernanceFile,
-  uploadGovernanceAttachments,
-} from "@/lib/supabase/storage";
+import { moveGovernanceFile } from "@/lib/supabase/storage";
 import { useImportGovernanceOrganizationImage } from "@/hooks/governance/useImportGovernanceOrganizationImage";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 import {
@@ -94,7 +90,6 @@ export default function GovernanceOrganizationSheet({
   const [form, setForm] = useState(() => emptyForm(record));
   const [saving, setSaving] = useState(false);
   const [importingImage, setImportingImage] = useState(false);
-  const [links, setLinks] = useState([]);
   const [pendingFiles, setPendingFiles] = useState([]);
 
   const draftId = useId().replace(/:/g, "");
@@ -115,8 +110,6 @@ export default function GovernanceOrganizationSheet({
     const load = async () => {
       setSaving(false);
       setImportingImage(false);
-      setPendingFiles([]);
-      setLinks([]);
 
       if (!record?.id) {
         setForm(emptyForm(null));
@@ -140,8 +133,6 @@ export default function GovernanceOrganizationSheet({
       }
 
       setForm(emptyForm(data));
-      setLinks(linkRows || []);
-      void attachmentRows;
     };
 
     load();
