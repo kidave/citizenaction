@@ -60,13 +60,6 @@ export function GovernanceActionMenuItems({
           Edit Organization
         </MenuItem>
       )}
-
-      {(onView || onEdit) && (onManageRelations || onManageLinks || onAddAddress || onRemoveAddress || onAddGeography || onRemoveGeography) && (
-        <MenuItem asChild>
-          <span className="hidden" aria-hidden="true" />
-        </MenuItem>
-      )}
-
       {onManageRelations && (
         <>
           {(onView || onEdit) && <MenuSeparator />}
