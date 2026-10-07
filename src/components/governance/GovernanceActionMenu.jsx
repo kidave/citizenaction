@@ -218,7 +218,6 @@ export function GovernanceActionDropdown({
 export function GovernanceActionContextMenu({
   children,
   onView,
-  onViewTree,
   onEdit,
   onManageRelations,
   onAddAddress,
@@ -242,7 +241,6 @@ export function GovernanceActionContextMenu({
             MenuItem={ContextMenuItem}
             MenuSeparator={ContextMenuSeparator}
             onView={onView}
-            onViewTree={onViewTree}
             onEdit={onEdit}
             onManageRelations={onManageRelations}
             onAddAddress={onAddAddress}
