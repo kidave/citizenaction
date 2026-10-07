@@ -21,6 +21,7 @@ import ErrorState from "@/components/ui/error-state";
 import { useGovernanceCatalog } from "@/hooks/governance/useGovernanceCatalog";
 import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
+import { useGovernanceGeographyMutation } from "@/hooks/geography/useGovernanceGeography";
 import {
   GOVERNANCE_TYPES,
   formatGovernanceFilterType,
@@ -43,6 +44,7 @@ export default function OrganizationDirectory({
     useGovernanceCatalog({ enabled: true });
   const queryClient = useQueryClient();
   const { deleteOrganization } = useGovernanceCrud();
+  const { removeGeography } = useGovernanceGeographyMutation();
   const [editingRecord, setEditingRecord] = useState(null);
   const [resourceRecord, setResourceRecord] = useState(null);
   const [addressOpen, setAddressOpen] = useState(false);
@@ -231,9 +233,13 @@ export default function OrganizationDirectory({
                 selectionMode={selectionMode}
                 selected={selectedSet.has(entity.id)}
                 onSelect={onSelect}
+                onView={() => setViewRecord(entity)}
                 onEdit={canManage ? () => openEdit(entity) : undefined}
+                onManageRelations={canManage ? () => openRelations(entity) : undefined}
                 onAddAddress={canManage ? () => openResource(entity, "address") : undefined}
+                onRemoveAddress={canManage ? () => removeAddress(entity) : undefined}
                 onAddGeography={canManage ? () => openResource(entity, "geography") : undefined}
+                onRemoveGeography={canManage ? () => removeGeographyRecord(entity) : undefined}
                 onManageLinks={canManage ? () => openResource(entity, "links") : undefined}
                 hasAddress={Boolean(entity.address)}
                 hasGeography={Boolean(entity.geography_id)}
@@ -265,6 +271,38 @@ export default function OrganizationDirectory({
             if (!value && !addressOpen && !geographyOpen) setResourceRecord(null);
           }}
           onSaved={refresh}
+        />
+      )}
+
+      {viewRecord && (
+        <GovernanceEntityModal
+          open={Boolean(viewRecord)}
+          onOpenChange={(value) => { if (!value) setViewRecord(null); }}
+          entity={viewRecord}
+          parent={null}
+          childEntities={[]}
+          canEdit={canManage}
+          onSelect={(entity) => setViewRecord(entity)}
+          onSaved={refresh}
+          onDeleted={refresh}
+          onEdit={canManage ? () => { setViewRecord(null); openEdit(viewRecord); } : undefined}
+          onAddRelation={canManage ? () => openRelations(viewRecord) : undefined}
+          onEditRelations={canManage ? () => openRelations(viewRecord) : undefined}
+          onAddGeography={canManage ? () => openResource(viewRecord, "geography") : undefined}
+          onChangeGeography={canManage ? () => openResource(viewRecord, "geography") : undefined}
+          onRemoveGeography={canManage ? () => removeGeographyRecord(viewRecord) : undefined}
+        />
+      )}
+
+      {relationRecord && canManage && (
+        <GovernanceRelationDialog
+          open={relationOpen}
+          onOpenChange={(value) => { setRelationOpen(value); if (!value) setRelationRecord(null); }}
+          mode="edit-relations"
+          sourceEntity={relationRecord}
+          childEntities={data.filter((item) => item.parent_id === relationRecord.id)}
+          categories={categories}
+          onCompleted={refresh}
         />
       )}
 
