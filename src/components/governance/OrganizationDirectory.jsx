@@ -282,6 +282,7 @@ export default function OrganizationDirectory({
           parent={null}
           childEntities={[]}
           canEdit={canManage}
+          categories={categories}
           onSelect={(entity) => setViewRecord(entity)}
           onSaved={refresh}
           onDeleted={refresh}
