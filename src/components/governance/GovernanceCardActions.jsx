@@ -20,6 +20,7 @@ export default function GovernanceCardActions({
   hasGeography = false,
   hasLinks = false,
   onDelete,
+  editLabel = "Edit Organization",
 }) {
   const hasActions = onView || onViewTree || onEdit || onManageRelations || onAddParent || onAddChild || onAddAddress || onRemoveAddress ||
     onAddGeography || onRemoveGeography || onManageLinks || onDelete;
@@ -31,6 +32,7 @@ export default function GovernanceCardActions({
       onView={onView}
       onViewTree={onViewTree}
       onEdit={onEdit}
+      editLabel={editLabel}
       onManageRelations={onManageRelations}
       onAddParent={onAddParent}
       onAddChild={onAddChild}
@@ -51,6 +53,7 @@ export default function GovernanceCardActions({
           onView={onView}
           onViewTree={onViewTree}
           onEdit={onEdit}
+          editLabel={editLabel}
           onManageRelations={onManageRelations}
           onAddParent={onAddParent}
           onAddChild={onAddChild}
