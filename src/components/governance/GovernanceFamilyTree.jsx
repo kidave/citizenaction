@@ -49,7 +49,7 @@ function TreeNode({
     <li className="flex w-[240px] shrink-0 flex-col items-center">
       <div className="flex w-full min-w-0 items-center justify-center gap-1">
         <GovernanceActionContextMenu
-          onView={canEdit ? onViewOrganization ? () => onViewOrganization(node) : undefined : undefined}
+          onView={onViewOrganization ? () => onViewOrganization(node) : undefined}
           onEdit={canEdit ? () => onEdit?.(node) : undefined}
           onManageRelations={canEdit ? () => onManageRelations?.(node) : undefined}
           onAddAddress={canEdit ? () => onAddAddress?.(node) : undefined}
