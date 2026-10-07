@@ -35,6 +35,7 @@ export function GovernanceActionMenuItems({
   onManageRelations,
   onAddParent,
   onAddChild,
+  hasParent = false,
   onAddAddress,
   onRemoveAddress,
   onManageLinks,
@@ -81,7 +82,7 @@ export function GovernanceActionMenuItems({
           {onAddParent && (
             <MenuItem onSelect={(event) => run(onAddParent, event)}>
               <Plus className="mr-2 h-4 w-4" />
-              Add Parent
+              {hasParent ? "Change Parent" : "Add Parent"}
             </MenuItem>
           )}
           {onAddChild && (
@@ -203,6 +204,7 @@ export function GovernanceActionDropdown({
             onManageRelations={onManageRelations}
             onAddParent={onAddParent}
             onAddChild={onAddChild}
+            hasParent={hasParent}
             onAddAddress={onAddAddress}
             onRemoveAddress={onRemoveAddress}
             onManageLinks={onManageLinks}
@@ -239,6 +241,9 @@ export function GovernanceActionContextMenu({
   onViewTree,
   onEdit,
   onManageRelations,
+  onAddParent,
+  onAddChild,
+  hasParent = false,
   onAddAddress,
   onRemoveAddress,
   onManageLinks,
