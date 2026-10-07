@@ -29,7 +29,7 @@ import {
   GOVERNANCE_TYPES,
   formatGovernanceFilterType,
   getGovernanceHref,
-} from "@/utils/governance;
+} from "@/utils/governance";
 
 export default function OrganizationDirectory({
   geographyId = null,
@@ -72,7 +72,7 @@ export default function OrganizationDirectory({
       Array.isArray(query.data)
         ? query.data.filter((item) => !excluded.has(item.id) && (!onlyWithoutParent || !item.parent_id))
         : [],
-    [query.data, excluded],
+    [query.data, excluded, onlyWithoutParent],
   );
   const selectedSet = useMemo(
     () =>
