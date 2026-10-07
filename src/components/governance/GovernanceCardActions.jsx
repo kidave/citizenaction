@@ -5,6 +5,7 @@ import { GovernanceActionContextMenu, GovernanceActionDropdown } from "@/compone
 export default function GovernanceCardActions({
   children,
   onView,
+  onViewTree,
   onEdit,
   onManageRelations,
   onAddAddress,
@@ -17,7 +18,7 @@ export default function GovernanceCardActions({
   hasLinks = false,
   onDelete,
 }) {
-  const hasActions = onView || onEdit || onManageRelations || onAddAddress || onRemoveAddress ||
+  const hasActions = onView || onViewTree || onEdit || onManageRelations || onAddAddress || onRemoveAddress ||
     onAddGeography || onRemoveGeography || onManageLinks || onDelete;
 
   if (!hasActions) return children;
@@ -25,6 +26,7 @@ export default function GovernanceCardActions({
   return (
     <GovernanceActionContextMenu
       onView={onView}
+      onViewTree={onViewTree}
       onEdit={onEdit}
       onManageRelations={onManageRelations}
       onAddAddress={onAddAddress}
@@ -41,6 +43,7 @@ export default function GovernanceCardActions({
         {children}
         <GovernanceActionDropdown
           onView={onView}
+          onViewTree={onViewTree}
           onEdit={onEdit}
           onManageRelations={onManageRelations}
           onAddAddress={onAddAddress}

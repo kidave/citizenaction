@@ -30,6 +30,7 @@ export function GovernanceActionMenuItems({
   MenuItem,
   MenuSeparator,
   onView,
+  onViewTree,
   onEdit,
   onManageRelations,
   onAddAddress,
@@ -54,6 +55,12 @@ export function GovernanceActionMenuItems({
         <MenuItem onSelect={(event) => run(onView, event)}>
           <ExternalLink className="mr-2 h-4 w-4" />
           View Organization
+        </MenuItem>
+      )}
+      {onViewTree && (
+        <MenuItem onSelect={(event) => run(onViewTree, event)}>
+          <ExternalLink className="mr-2 h-4 w-4" />
+          View Tree
         </MenuItem>
       )}
       {onEdit && (
@@ -135,6 +142,7 @@ export function GovernanceActionMenuItems({
 
 export function GovernanceActionDropdown({
   onView,
+  onViewTree,
   onEdit,
   onManageRelations,
   onAddAddress,
@@ -174,6 +182,7 @@ export function GovernanceActionDropdown({
             MenuItem={DropdownMenuItem}
             MenuSeparator={DropdownMenuSeparator}
             onView={onView}
+            onViewTree={onViewTree}
             onEdit={onEdit}
             onManageRelations={onManageRelations}
             onAddAddress={onAddAddress}

@@ -37,7 +37,7 @@ export default function GovernanceRecordPage() {
   const queryClient = useQueryClient();
   const segments = getPathSegments(router.query.path);
   const slug = segments[segments.length - 1] || null;
-  const view = router.query.view === "organization" ? "organization" : "governance";
+  const view = router.query.view === "organization" ? "organization" : "tree";
   const year = Number(router.query.year) || new Date().getFullYear();
   const asOf = `${year}-12-31T23:59:59.999Z`;
 
@@ -151,13 +151,28 @@ export default function GovernanceRecordPage() {
     [governance],
   );
 
-  const openEntity = async (entity) => {
-    if (!entity?.slug) return;
+  const getViewHref = (entity, nextView) => {
     const href = getGovernanceHref(entity);
+    if (!href) return null;
+    return { pathname: href, query: { view: nextView } };
+  };
+
+  const openEntity = async (entity) => {
+    const href = getViewHref(entity, "organization");
     if (!href) return;
     setModalEntity(entity);
     setModalOpen(true);
     await router.push(href, undefined, { shallow: true });
+  };
+
+  const openOrganizationPage = async (entity) => {
+    const href = getViewHref(entity, "organization");
+    if (href) await router.push(href);
+  };
+
+  const openTreePage = async (entity) => {
+    const href = getViewHref(entity, "tree");
+    if (href) await router.push(href);
   };
 
   const selectEntity = (entity) => openEntity(entity);
@@ -268,6 +283,7 @@ export default function GovernanceRecordPage() {
             canEdit={canEdit}
             onAdd={() => { setLeadershipRecord(null); setLeadershipOpen(true); }}
             onEdit={editEntity}
+            onViewTree={() => openTreePage(governance)}
           />
         ) : (
           <GovernanceFamilyTree
@@ -276,7 +292,7 @@ export default function GovernanceRecordPage() {
             initialExpandedIds={initialExpandedIds}
             onSelect={selectEntity}
             canEdit={canEdit}
-            onViewOrganization={(entity) => selectEntity(entity)}
+            onViewOrganization={(entity) => openOrganizationPage(entity)}
             onEdit={editEntity}
             onManageRelations={(entity) => openRelation("edit-relations", entity)}
             onAddAddress={(entity) => openResource(entity, "address")}

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useRouter } from "next/router";
 import { Plus, Search } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -27,7 +28,8 @@ import { useGovernanceGeographyMutation } from "@/hooks/geography/useGovernanceG
 import {
   GOVERNANCE_TYPES,
   formatGovernanceFilterType,
-} from "@/utils/governance";
+  getGovernanceHref,
+} from "@/utils/governance;
 
 export default function OrganizationDirectory({
   geographyId = null,
@@ -36,6 +38,7 @@ export default function OrganizationDirectory({
   selectedId = null,
   onSelect,
   excludeIds = [],
+  onlyWithoutParent = false,
   canManage = false,
 }) {
   const [search, setSearch] = useState("");
@@ -67,7 +70,7 @@ export default function OrganizationDirectory({
   const data = useMemo(
     () =>
       Array.isArray(query.data)
-        ? query.data.filter((item) => !excluded.has(item.id))
+        ? query.data.filter((item) => !excluded.has(item.id) && (!onlyWithoutParent || !item.parent_id))
         : [],
     [query.data, excluded],
   );
@@ -121,6 +124,17 @@ export default function OrganizationDirectory({
       })),
     [data, resourceSummary.data],
   );
+
+  const openView = (entity) => {
+    const href = getGovernanceHref(entity);
+    if (!href) return;
+    router.push({ pathname: href, query: { view: "organization" } });
+  };
+  const openTree = (entity) => {
+    const href = getGovernanceHref(entity);
+    if (!href) return;
+    router.push({ pathname: href, query: { view: "tree" } });
+  };
 
   const openEdit = (entity) => { setEditingRecord(entity); setDialogOpen(true); };
   const openResource = (entity, resource) => {
@@ -274,7 +288,9 @@ export default function OrganizationDirectory({
                 selectionMode={selectionMode}
                 selected={selectedSet.has(entity.id)}
                 onSelect={onSelect}
-                onView={() => setViewRecord(entity)}
+                onOpen={() => setViewRecord(entity)}
+                onView={() => openView(entity)}
+                onViewTree={() => openTree(entity)}
                 onEdit={canManage ? () => openEdit(entity) : undefined}
                 onManageRelations={canManage ? () => openRelations(entity) : undefined}
                 onAddAddress={canManage ? () => openResource(entity, "address") : undefined}

@@ -97,10 +97,9 @@ export default function GovernanceRelationDialog({
     setExistingIds([]);
     setStep("target");
   };
-  const startAddRelation = () => {
+  const startAddRelation = (direction) => {
     setActiveMode("add-relation");
-    setStep("relation");
-    setRelationType("");
+    setRelationType(direction);
     setExistingId("");
     setExistingIds([]);
     setName("");
@@ -110,9 +109,16 @@ export default function GovernanceRelationDialog({
     setValidFrom(new Date().toISOString().slice(0, 10));
     setStatus("active");
     setValidTo("");
+    setStep("target");
   };
 
   const back = () => {
+    if (step === "target" && activeMode === "add-relation") {
+      setActiveMode("edit-relations");
+      setRelationType("");
+      setStep("edit");
+      return;
+    }
     if (step === "target" || step === "create" || step === "existing") {
       setExistingId("");
       setStep(step === "create" || step === "existing" ? "target" : "relation");
@@ -228,7 +234,7 @@ export default function GovernanceRelationDialog({
     }
   };
 
-  const selectionMode = relationType === "parent-of" ? "checkbox" : "radio";
+  const selectionMode = relationType === "child-of" ? "radio" : "checkbox";
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -255,14 +261,14 @@ export default function GovernanceRelationDialog({
                     <span className="min-w-0 flex-1 font-medium">
                       {getGovernanceLabel(sourceEntity)}
                     </span>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={startAddRelation}
-                    >
-                      Add relation
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                      <Button type="button" variant="outline" size="sm" onClick={() => startAddRelation("child-of")}>
+                        Add parent
+                      </Button>
+                      <Button type="button" variant="outline" size="sm" onClick={() => startAddRelation("parent-of")}>
+                        Add children
+                      </Button>
+                    </div>
                   </div>
                   <div className="mt-1 text-muted-foreground">
                     Manage reporting relationships
@@ -307,6 +313,7 @@ export default function GovernanceRelationDialog({
                         selectedId={existingId === "none" ? null : existingId}
                         onSelect={(item) => setExistingId(item.id)}
                         excludeIds={[sourceEntity?.id].filter(Boolean)}
+                      onlyWithoutParent={relationType === "parent-of"}
                       />
                     </div>
                   )}
@@ -420,8 +427,7 @@ export default function GovernanceRelationDialog({
             ) : step === "existing" ? (
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Select organization{selectionMode === "checkbox" ? "s" : ""}{" "}
-                  from the directory.
+                  Select {selectionMode === "checkbox" ? "one or more child organizations" : "one parent organization"} from the directory.
                 </p>
                 <OrganizationDirectory
                   selectionMode={selectionMode}
@@ -447,6 +453,7 @@ export default function GovernanceRelationDialog({
                     }
                   }}
                   excludeIds={[sourceEntity?.id].filter(Boolean)}
+                onlyWithoutParent={relationType === "parent-of"}
                 />
               </div>
             ) : (

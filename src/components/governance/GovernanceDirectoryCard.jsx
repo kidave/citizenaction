@@ -8,7 +8,7 @@ import { getGovernanceHref, getGovernanceInitials, getGovernanceName } from "@/u
 
 export default function GovernanceDirectoryCard({
   entity, tab = "organizations", selectionMode = null, selected = false, onSelect,
-  onView, onEdit, onManageRelations, onAddAddress, onRemoveAddress, onAddGeography,
+  onOpen, onView, onViewTree, onEdit, onManageRelations, onAddAddress, onRemoveAddress, onAddGeography,
   onRemoveGeography, onManageLinks, hasAddress = false, hasGeography = false,
   hasLinks = false, onDelete,
 }) {
@@ -17,7 +17,7 @@ export default function GovernanceDirectoryCard({
   const avatarUrl = entity.image_url || (tab === "organizations" ? entity.current_holder_image_url : null);
   const isSelectable = selectionMode === "radio" || selectionMode === "checkbox";
   const canManage = !isSelectable && (
-    onView || onEdit || onManageRelations || onAddAddress || onRemoveAddress ||
+    onOpen || onView || onViewTree || onEdit || onManageRelations || onAddAddress || onRemoveAddress ||
     onAddGeography || onRemoveGeography || onManageLinks || onDelete
   );
 
@@ -52,8 +52,8 @@ export default function GovernanceDirectoryCard({
     );
   }
 
-  const linked = tab === "organizations" && onView ? (
-    <button type="button" onClick={(event) => { event.stopPropagation(); onView?.(entity); }} className="block h-full w-full text-left" aria-label={"View " + name}>
+  const linked = tab === "organizations" && onOpen ? (
+    <button type="button" onClick={(event) => { event.stopPropagation(); onOpen?.(entity); }} className="block h-full w-full text-left" aria-label={"View " + name}>
       {content}
     </button>
   ) : href ? (
@@ -63,6 +63,7 @@ export default function GovernanceDirectoryCard({
   return canManage ? (
     <GovernanceCardActions
       onView={tab === "organizations" ? () => onView?.(entity) : undefined}
+      onViewTree={tab === "organizations" ? () => onViewTree?.(entity) : undefined}
       onEdit={onEdit}
       onManageRelations={onManageRelations}
       onAddAddress={onAddAddress}
