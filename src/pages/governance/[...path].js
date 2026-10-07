@@ -18,7 +18,7 @@ import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { supabase } from "@/lib/supabase/client";
 import { queryKeys } from "@/lib/queryKeys";
-import { getGovernanceHref, getGovernanceLabel } from "@/utils/governance";
+import { getGovernanceHref, getGovernanceLabel, getGovernanceRoute } from "@/utils/governance";
 
 function getPathSegments(value) {
   if (Array.isArray(value)) return value.filter(Boolean);
@@ -151,11 +151,7 @@ export default function GovernanceRecordPage() {
     [governance],
   );
 
-  const getViewHref = (entity, nextView) => {
-    const href = getGovernanceHref(entity);
-    if (!href) return null;
-    return { pathname: href, query: { view: nextView } };
-  };
+  const getViewHref = (entity, nextView) => getGovernanceRoute(entity, nextView);
 
   const openEntity = async (entity) => {
     const href = getViewHref(entity, "organization");
@@ -166,13 +162,13 @@ export default function GovernanceRecordPage() {
   };
 
   const openOrganizationPage = async (entity) => {
-    const href = getGovernanceHref(entity);
-    if (href) await router.push(href);
+    const route = getGovernanceRoute(entity, "organization");
+    if (route) await router.push(route);
   };
 
   const openTreePage = async (entity) => {
-    const href = getViewHref(entity, "tree");
-    if (href) await router.push(href);
+    const route = getGovernanceRoute(entity, "tree");
+    if (route) await router.push(route);
   };
 
   const selectEntity = (entity) => openEntity(entity);

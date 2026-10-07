@@ -60,6 +60,7 @@ export default function GovernanceRelationDialog({
   const [status, setStatus] = useState("active");
   const [validTo, setValidTo] = useState("");
   const [activeMode, setActiveMode] = useState(mode);
+  const [selectedParent, setSelectedParent] = useState(null);
   const isEdit = activeMode === "edit-relations";
 
   useEffect(() => {
@@ -88,6 +89,7 @@ export default function GovernanceRelationDialog({
     setValidFrom(new Date().toISOString().slice(0, 10));
     setStatus("active");
     setValidTo("");
+    setSelectedParent(null);
   }, [open, isEdit]);
 
   const removeParent = async () => {
@@ -125,6 +127,7 @@ export default function GovernanceRelationDialog({
     if (step === "edit-parent") {
       setStep("edit");
       setExistingId(sourceEntity?.parent_id || "");
+      setSelectedParent(currentParent);
       return;
     }
     if (!isEdit) onOpenChange?.(false);
@@ -284,10 +287,11 @@ export default function GovernanceRelationDialog({
                         size="sm"
                         onClick={() => {
                           setExistingId(sourceEntity.parent_id || "");
+                          setSelectedParent(currentParent);
                           setStep("edit-parent");
                         }}
                       >
-                        Change
+                        {currentParent ? "Change" : "Add parent"}
                       </Button>
                       {currentParent && (
                         <Button
@@ -319,7 +323,10 @@ export default function GovernanceRelationDialog({
                       <OrganizationDirectory
                         selectionMode="radio"
                         selectedId={existingId || null}
-                        onSelect={(item) => setExistingId(item.id)}
+                        onSelect={(item) => {
+                          setExistingId(item.id);
+                          setSelectedParent(item);
+                        }}
                         excludeIds={[sourceEntity?.id].filter(Boolean)}
                       />
                     </div>
@@ -407,7 +414,13 @@ export default function GovernanceRelationDialog({
               onClick={save}
               disabled={saving || !existingId}
             >
-              {saving ? "Saving..." : "Save parent"}
+              {saving
+                ? "Saving..."
+                : currentParent
+                  ? `Change parent: ${getGovernanceLabel(selectedParent || currentParent)}`
+                  : selectedParent
+                    ? `Add parent: ${getGovernanceLabel(selectedParent)}`
+                    : "Add parent"}
             </Button>
           )}
           {!isEdit && (step === "existing" || step === "create") && (
