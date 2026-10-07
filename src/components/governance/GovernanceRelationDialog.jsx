@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, GitBranch, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -26,6 +27,24 @@ import {
   getGovernanceLabel,
 } from "@/utils/governance";
 import { supabase } from "@/lib/supabase/client";
+
+function EntityAvatar({ entity, size = "h-9 w-9" }) {
+  const label = getGovernanceLabel(entity);
+  const initials = label
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+
+  return (
+    <Avatar className={`${size} shrink-0 rounded-md`}>
+      <AvatarImage src={entity?.image_url || undefined} alt={label} />
+      <AvatarFallback className="rounded-md text-[11px]">{initials}</AvatarFallback>
+    </Avatar>
+  );
+}
 
 function Field({ label, children }) {
   return (
@@ -264,13 +283,6 @@ export default function GovernanceRelationDialog({
           <div className="mx-auto w-full max-w-2xl space-y-5">
             {isEdit ? (
               <>
-                <div className="rounded-lg border bg-muted/30 p-3 text-sm">
-                  <div className="font-medium">{getGovernanceLabel(sourceEntity)}</div>
-                  <div className="mt-1 text-muted-foreground">
-                    Manage existing reporting relationships.
-                  </div>
-                </div>
-
                 <div className="space-y-2">
                   <div className="text-xs font-medium text-muted-foreground">Parent</div>
                   {step === "edit-parent" ? (
@@ -300,7 +312,14 @@ export default function GovernanceRelationDialog({
                       />
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 rounded-lg border p-3">
+                    <div className="flex items-center gap-3 rounded-lg border p-3">
+                      {currentParent ? (
+                        <EntityAvatar entity={currentParent} />
+                      ) : (
+                        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-muted text-xs text-muted-foreground">
+                          —
+                        </div>
+                      )}
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-medium">
                           {currentParent ? getGovernanceLabel(currentParent) : "No parent assigned"}
@@ -341,8 +360,9 @@ export default function GovernanceRelationDialog({
                   <div className="text-xs font-medium text-muted-foreground">Children</div>
                   {childEntities.length ? (
                     childEntities.map((child) => (
-                      <div key={child.id} className="flex items-center gap-2 rounded-lg border p-3">
-                        <span className="min-w-0 flex-1 truncate text-sm">
+                      <div key={child.id} className="flex items-center gap-3 rounded-lg border p-3">
+                        <EntityAvatar entity={child} />
+                        <span className="min-w-0 flex-1 truncate text-sm font-medium">
                           {getGovernanceLabel(child)}
                         </span>
                         <Button
