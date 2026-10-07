@@ -289,6 +289,10 @@ export default function OrganizationDirectory({
           onEdit={canManage ? () => { setViewRecord(null); openEdit(viewRecord); } : undefined}
           onAddRelation={canManage ? () => openRelations(viewRecord) : undefined}
           onEditRelations={canManage ? () => openRelations(viewRecord) : undefined}
+          onManageRelations={canManage ? () => openRelations(viewRecord) : undefined}
+          onAddAddress={canManage ? () => openResource(viewRecord, "address") : undefined}
+          onRemoveAddress={canManage ? () => removeAddress(viewRecord) : undefined}
+          onManageLinks={canManage ? () => openResource(viewRecord, "links") : undefined}
           onAddGeography={canManage ? () => openResource(viewRecord, "geography") : undefined}
           onChangeGeography={canManage ? () => openResource(viewRecord, "geography") : undefined}
           onRemoveGeography={canManage ? () => removeGeographyRecord(viewRecord) : undefined}
