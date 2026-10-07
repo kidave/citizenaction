@@ -10,6 +10,7 @@ export default function GovernanceCardActions({
   onManageRelations,
   onAddParent,
   onAddChild,
+  hasParent = false,
   onAddAddress,
   onRemoveAddress,
   onAddGeography,
@@ -33,6 +34,7 @@ export default function GovernanceCardActions({
       onManageRelations={onManageRelations}
       onAddParent={onAddParent}
       onAddChild={onAddChild}
+      hasParent={hasParent}
       onAddAddress={onAddAddress}
       onRemoveAddress={onRemoveAddress}
       onAddGeography={onAddGeography}
@@ -52,6 +54,7 @@ export default function GovernanceCardActions({
           onManageRelations={onManageRelations}
           onAddParent={onAddParent}
           onAddChild={onAddChild}
+          hasParent={hasParent}
           onAddAddress={onAddAddress}
           onRemoveAddress={onRemoveAddress}
           onAddGeography={onAddGeography}
