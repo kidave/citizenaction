@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase/client";
+import { queryKeys } from "@/lib/queryKeys";
 import { GEOGRAPHY_BOUNDARY_CATEGORIES, getGeographyTypeLabel } from "@/config/geography/boundaryCategories";
 
 const blank = { id: null, name: "", official_name: "", boundary_category: "administrative", geography_type: "state", parent_id: "none", country_code: "IN", osm_type: "", osm_id: "", admin_level: "", source: "manual", source_url: "", metadata: "{}", geojson: "" };
@@ -18,6 +20,21 @@ export default function GeographyEditor({ open, onOpenChange, geography, onSaved
   const [form, setForm] = useState(blank);
   const [parentPickerOpen, setParentPickerOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const parentId = form.parent_id === "none" ? null : form.parent_id;
+  const { data: parentGeography } = useQuery({
+    queryKey: queryKeys.geography.byId(parentId),
+    enabled: Boolean(parentId),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("geographies")
+        .select("id,name,official_name")
+        .eq("id", parentId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 10 * 60 * 1000,
+  });
 
   useEffect(() => {
     setForm(geography ? { ...blank, ...geography, boundary_category: geography.boundary_category || "administrative", parent_id: geography.parent_id || "none", osm_id: geography.osm_id ? String(geography.osm_id) : "", admin_level: geography.admin_level != null ? String(geography.admin_level) : "" } : blank);
@@ -84,7 +101,7 @@ export default function GeographyEditor({ open, onOpenChange, geography, onSaved
     </div>
     <div className="grid gap-4 sm:grid-cols-2">
       <label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Boundary type</span><Select value={form.geography_type} onValueChange={(v) => set("geography_type", v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{category.types.map((value) => <SelectItem key={value} value={value}>{getGeographyTypeLabel(value)}</SelectItem>)}</SelectContent></Select></label>
-      <div className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Parent geography</span><div className="flex gap-2"><Button type="button" variant="outline" className="min-w-0 flex-1 justify-start font-normal" onClick={() => setParentPickerOpen(true)}>{form.parent_id === "none" ? "No parent geography" : "Select parent geography"}</Button>{form.parent_id !== "none" && <Button type="button" variant="ghost" onClick={() => set("parent_id", "none")}>Clear</Button>}</div></div>
+      <div className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Parent geography</span><div className="flex gap-2"><Button type="button" variant="outline" className="min-w-0 flex-1 justify-start font-normal" onClick={() => setParentPickerOpen(true)}>{form.parent_id === "none" ? "No parent geography" : parentGeography?.official_name || parentGeography?.name || "Loading parent geography…"}</Button>{form.parent_id !== "none" && <Button type="button" variant="ghost" onClick={() => set("parent_id", "none")}>Clear</Button>}</div></div>
     </div>
     <div className="grid gap-4 sm:grid-cols-2"><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Official name</span><Input value={form.official_name} onChange={(e) => set("official_name", e.target.value)} /></label><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Country code</span><Input value={form.country_code} onChange={(e) => set("country_code", e.target.value)} /></label></div>
     <div className="grid gap-4 sm:grid-cols-3"><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">OSM type</span><Input value={form.osm_type} onChange={(e) => set("osm_type", e.target.value)} /></label><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">OSM ID</span><Input value={form.osm_id} onChange={(e) => set("osm_id", e.target.value)} /></label><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Admin level</span><Input value={form.admin_level} onChange={(e) => set("admin_level", e.target.value)} /></label></div>
