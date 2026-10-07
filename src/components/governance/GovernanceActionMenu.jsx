@@ -268,6 +268,9 @@ export function GovernanceActionContextMenu({
             onViewTree={onViewTree}
             onEdit={onEdit}
             onManageRelations={onManageRelations}
+            onAddParent={onAddParent}
+            onAddChild={onAddChild}
+            hasParent={hasParent}
             onAddAddress={onAddAddress}
             onRemoveAddress={onRemoveAddress}
             onManageLinks={onManageLinks}
