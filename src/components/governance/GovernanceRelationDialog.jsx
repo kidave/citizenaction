@@ -362,11 +362,6 @@ export default function GovernanceRelationDialog({
                 </div>
               </>
             ) : (
-                    <p className="text-sm text-muted-foreground">No child relations.</p>
-                  )}
-                </div>
-              </>
-            ) : (
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
                   {activeMode === "add-parent"
