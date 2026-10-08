@@ -196,6 +196,9 @@ export default function GovernancePersonSheet({
         p_name: form.name.trim(),
         p_biography: form.biography.trim() || null,
         p_image_url: imported.imageUrl,
+        p_birthdate: form.birthdate || null,
+        p_hometown: form.hometown.trim() || null,
+        p_education: form.education.trim() || null,
         p_profile_user_id:
           form.profileUserId === "none" ? null : form.profileUserId || null,
         p_metadata: null,
