@@ -28,11 +28,10 @@ export default function GovernanceEditorFooter({
   const [address, setAddress] = useState("");
   const [lat, setLat] = useState(null);
   const [lng, setLng] = useState(null);
-  const [resourcesVersion, setResourcesVersion] = useState(0);
   const initialAddressRef = useRef(true);
   const addressSaveTimerRef = useRef(null);
 
-  const details = useGovernanceEntityDetails(governanceId, Boolean(governanceId));
+  const { data: detailsData, refetch: refetchDetails } = useGovernanceEntityDetails(governanceId, Boolean(governanceId));
 
   useEffect(() => {
     if (!governanceId) return;
@@ -76,15 +75,14 @@ export default function GovernanceEditorFooter({
 
       if (error) toast.error(error.message || "Unable to save address");
       else {
-        await details.refetch();
-        setResourcesVersion((value) => value + 1);
+        await refetchDetails();
       }
     }, 400);
 
     return () => {
       if (addressSaveTimerRef.current) clearTimeout(addressSaveTimerRef.current);
     };
-  }, [addressOpen, governanceId, address, lat, lng, details]);
+  }, [addressOpen, governanceId, address, lat, lng, refetchDetails]);
 
   const editor = useMemo(
     () => ({
@@ -98,10 +96,9 @@ export default function GovernanceEditorFooter({
     [address, lat, lng],
   );
 
-  const resources = details.data || { attachments: [], links: [] };
+  const resources = detailsData || { attachments: [], links: [] };
   const refreshResources = async () => {
-    await details.refetch();
-    setResourcesVersion((value) => value + 1);
+    await refetchDetails();
   };
   const canManageResources = Boolean(governanceId);
 
@@ -149,7 +146,6 @@ export default function GovernanceEditorFooter({
         <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader><DialogTitle className="flex items-center gap-2"><Link2 className="h-4 w-4" /> Files & links</DialogTitle></DialogHeader>
           <GovernanceResources
-            key={resourcesVersion}
             governanceId={governanceId}
             attachments={resources.attachments}
             links={resources.links}
