@@ -62,7 +62,7 @@ export default function GovernancePersonSheet({ open, onOpenChange, record = nul
   const draftId = useId().replace(/:/g, "");
 
   const isEditing = !!record?.id;
-  const imagePath = isEditing ? \`person/\${record.id}\` : \`person/draft-\${draftId}\`;
+  const imagePath = isEditing ? `person/${record.id}` : `person/draft-${draftId}`;
   const { createPerson, updatePerson } = useGovernanceCrud();
   const { importPersonImage } = useImportGovernancePersonImage();
 
@@ -140,7 +140,7 @@ export default function GovernancePersonSheet({ open, onOpenChange, record = nul
       ...profiles.map((item) => ({
         value: item.user_id,
         label: item.name || item.username || "Unnamed profile",
-        searchValue: \`\${item.name || ""} \${item.username || ""}\`,
+        searchValue: `${item.name || ""} ${item.username || ""}`,
       })),
     ],
     [profiles],
@@ -228,9 +228,9 @@ export default function GovernancePersonSheet({ open, onOpenChange, record = nul
         const markerIndex = imageUrl.indexOf(marker);
         const draftPath = markerIndex >= 0 ? decodeURIComponent(imageUrl.slice(markerIndex + marker.length)) : null;
 
-        if (draftPath?.startsWith(\`person/draft-\${draftId}\`)) {
+        if (draftPath?.startsWith(`person/draft-${draftId}`)) {
           const extension = draftPath.split(".").pop() || "jpg";
-          const finalPath = \`person/\${created.id}.\${extension}\`;
+          const finalPath = `person/${created.id}.${extension}`;
           const publicUrl = await moveGovernanceFile(draftPath, finalPath);
           await updatePerson({
             p_person_id: created.id,
