@@ -32,6 +32,8 @@ export function GovernanceActionMenuItems({
   onView,
   onViewTree,
   onEdit,
+  onPrimaryAction,
+  primaryActionLabel = "Add",
   onManageRelations,
   onAddParent,
   onAddChild,
@@ -71,6 +73,12 @@ export function GovernanceActionMenuItems({
         <MenuItem onSelect={(event) => run(onEdit, event)}>
           <Pencil className="mr-2 h-4 w-4" />
           {editLabel}
+        </MenuItem>
+      )}
+      {onPrimaryAction && (
+        <MenuItem onSelect={(event) => run(onPrimaryAction, event)}>
+          <Plus className="mr-2 h-4 w-4" />
+          {primaryActionLabel}
         </MenuItem>
       )}
       {onManageRelations && (
@@ -160,6 +168,8 @@ export function GovernanceActionDropdown({
   onView,
   onViewTree,
   onEdit,
+  onPrimaryAction,
+  primaryActionLabel = "Add",
   onManageRelations,
   onAddParent,
   onAddChild,
@@ -205,6 +215,8 @@ export function GovernanceActionDropdown({
             onViewTree={onViewTree}
             onEdit={onEdit}
             editLabel={editLabel}
+            onPrimaryAction={onPrimaryAction}
+            primaryActionLabel={primaryActionLabel}
             onManageRelations={onManageRelations}
             onAddParent={onAddParent}
             onAddChild={onAddChild}
@@ -244,6 +256,8 @@ export function GovernanceActionContextMenu({
   onView,
   onViewTree,
   onEdit,
+  onPrimaryAction,
+  primaryActionLabel = "Add",
   onManageRelations,
   onAddParent,
   onAddChild,
@@ -272,6 +286,8 @@ export function GovernanceActionContextMenu({
             onView={onView}
             onViewTree={onViewTree}
             onEdit={onEdit}
+            onPrimaryAction={onPrimaryAction}
+            primaryActionLabel={primaryActionLabel}
             onManageRelations={onManageRelations}
             onAddParent={onAddParent}
             onAddChild={onAddChild}
