@@ -238,7 +238,6 @@ export default function GovernanceOrganizationSheet({
         });
       }
 
-      await saveResources(saved.id);
 
       toast.success(
         isEditing ? "Organization updated" : "Organization created",
