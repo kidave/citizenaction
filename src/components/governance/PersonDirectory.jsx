@@ -68,7 +68,7 @@ export default function PersonDirectory({
 
           <Input
             className="h-9 pl-9"
-            placeholder="Search people..."
+            placeholder="Search people or organizations..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
