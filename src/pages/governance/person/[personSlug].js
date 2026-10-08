@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
+import { GovernanceActionDropdown } from "@/components/governance/GovernanceActionMenu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
@@ -98,10 +99,13 @@ export default function GovernancePersonPage() {
         backHref="/governance?tab=people"
         actions={
           canManage ? (
-            <div className="flex items-center gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => setEditOpen(true)}>Edit</Button>
-              <Button type="button" size="sm" onClick={() => setPositionSheetOpen(true)}>Add current position</Button>
-            </div>
+            <GovernanceActionDropdown
+              onEdit={() => setEditOpen(true)}
+              editLabel="Edit Person"
+              onPrimaryAction={() => setPositionSheetOpen(true)}
+              primaryActionLabel="Add Current Position"
+              className="h-8 w-8"
+            />
           ) : null
         }
       />

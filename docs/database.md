@@ -72,7 +72,7 @@ Governance is the canonical model for public authorities/entities. The normalize
 - `governance` — entity/organization records and hierarchy.
 - `person` — people.
 - `position` — roles/positions.
-- `position_appointment` — person-to-position appointments and reporting relationships.
+- `position_appointment` — person-to-position appointments; reporting is attached to positions.
 - `governance_contribution` and `governance_timeline` — contribution/history data.
 - `geographies` — canonical geographic entities/jurisdictions.
 

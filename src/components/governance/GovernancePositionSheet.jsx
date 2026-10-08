@@ -4,14 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { BriefcaseBusiness } from "lucide-react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import { supabase } from "@/lib/supabase/client";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
+import GovernanceEditorFooter from "@/components/governance/GovernanceEditorFooter";
 
 function emptyForm() {
   return {
@@ -222,12 +222,15 @@ export default function GovernancePositionSheet({
 
         </div>
 
-        <SheetFooter className="flex-row items-center justify-between gap-3 border-t px-5 py-4 sm:px-6">
-          <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={loading}>Cancel</Button>
-          <Button type="button" onClick={save} disabled={loading || loadingRecord}>
-            {loading ? "Saving..." : isEditing ? "Save changes" : "Create position"}
-          </Button>
-        </SheetFooter>
+        <GovernanceEditorFooter
+          governanceId={record?.id}
+          entityName={form.name}
+          busy={loading || loadingRecord}
+          isEditing={isEditing}
+          onCancel={() => onOpenChange?.(false)}
+          onSave={save}
+          createLabel="Create position"
+        />
       </SheetContent>
     </Sheet>
   );

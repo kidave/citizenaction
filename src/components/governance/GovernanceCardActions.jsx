@@ -21,6 +21,7 @@ export default function GovernanceCardActions({
   hasLinks = false,
   onDelete,
   editLabel = "Edit Organization",
+  deleteTitle = "Delete this organization?",
 }) {
   const hasActions = onView || onViewTree || onEdit || onManageRelations || onAddParent || onAddChild || onAddAddress || onRemoveAddress ||
     onAddGeography || onRemoveGeography || onManageLinks || onDelete;
@@ -46,6 +47,7 @@ export default function GovernanceCardActions({
       hasAddress={hasAddress}
       hasGeography={hasGeography}
       hasLinks={hasLinks}
+      deleteTitle={deleteTitle}
     >
       <div className="group relative h-full">
         {children}
@@ -67,6 +69,7 @@ export default function GovernanceCardActions({
           hasAddress={hasAddress}
           hasGeography={hasGeography}
           hasLinks={hasLinks}
+          deleteTitle={deleteTitle}
           className="absolute right-1 top-1 z-10 h-8 w-8 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
         />
       </div>
