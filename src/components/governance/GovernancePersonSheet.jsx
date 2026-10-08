@@ -5,7 +5,13 @@ import { Loader2, Link2, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import ImageUpload from "@/components/ui/ImageUpload";
 import { moveGovernanceFile } from "@/lib/supabase/storage";
 import { Input } from "@/components/ui/input";
@@ -15,7 +21,6 @@ import SearchableSelect from "@/components/ui/SearchableSelect";
 import { supabase } from "@/lib/supabase/client";
 import { useImportGovernancePersonImage } from "@/hooks/governance/useImportGovernancePersonImage";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
-import GovernanceEditorFooter from "@/components/governance/GovernanceEditorFooter";
 
 function emptyForm() {
   return {
@@ -23,8 +28,6 @@ function emptyForm() {
     biography: "",
     birthdate: "",
     hometown: "",
-    hometownStateId: "",
-    hometownDistrictId: "",
     education: "",
     imageUrl: "",
     profileUserId: "",
@@ -36,6 +39,7 @@ function isSupportedImageSource(value) {
   try {
     const url = new URL(value);
     const host = url.hostname.toLowerCase();
+
     return (
       url.protocol === "https:" &&
       (host === "instagram.com" ||
@@ -51,18 +55,24 @@ function isSupportedImageSource(value) {
   }
 }
 
-export default function GovernancePersonSheet({ open, onOpenChange, record = null, onSaved }) {
+export default function GovernancePersonSheet({
+  open,
+  onOpenChange,
+  record = null,
+  onSaved,
+}) {
   const [form, setForm] = useState(emptyForm);
   const [profiles, setProfiles] = useState([]);
-  const [states, setStates] = useState([]);
-  const [districts, setDistricts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingRecord, setLoadingRecord] = useState(false);
   const [importingImage, setImportingImage] = useState(false);
   const draftId = useId().replace(/:/g, "");
 
   const isEditing = !!record?.id;
-  const imagePath = isEditing ? \`person/\${record.id}\` : \`person/draft-\${draftId}\`;
+  const imagePath = isEditing
+    ? `person/${record.id}`
+    : `person/draft-${draftId}`;
+
   const { createPerson, updatePerson } = useGovernanceCrud();
   const { importPersonImage } = useImportGovernancePersonImage();
 
@@ -71,33 +81,37 @@ export default function GovernancePersonSheet({ open, onOpenChange, record = nul
 
   useEffect(() => {
     if (!open) return;
+
     let cancelled = false;
 
     const load = async () => {
       setLoadingRecord(isEditing);
-      const [profileResult, geographyResult, personResult] = await Promise.all([
-        supabase.from("profile").select("user_id,name,username").order("name").limit(1000),
-        supabase.from("geographies").select("id,name,geography_type,parent_id").in("geography_type", ["state", "district"]).eq("country_code", "IN").order("name"),
+
+      const [profileResult, personResult] = await Promise.all([
+        supabase
+          .from("profile")
+          .select("user_id,name,username")
+          .order("name")
+          .limit(1000),
         isEditing
           ? supabase
               .from("person")
-              .select("id,name,biography,website,image_url,profile_user_id,birthdate,hometown,education,hometown_state_geography_id,hometown_district_geography_id,metadata")
+              .select(
+                "id,name,biography,website,image_url,profile_user_id,birthdate,hometown,education,metadata",
+              )
               .eq("id", record.id)
               .single()
           : Promise.resolve({ data: null, error: null }),
       ]);
 
       if (cancelled) return;
-      if (geographyResult.error) {
-        toast.error(geographyResult.error.message);
-        setLoadingRecord(false);
-        return;
-      }
+
       if (profileResult.error) {
         toast.error(profileResult.error.message);
         setLoadingRecord(false);
         return;
       }
+
       if (personResult.error) {
         toast.error(personResult.error.message);
         setLoadingRecord(false);
@@ -105,9 +119,6 @@ export default function GovernancePersonSheet({ open, onOpenChange, record = nul
       }
 
       const person = personResult.data;
-      const geographyRows = geographyResult.data || [];
-      setStates(geographyRows.filter((item) => item.geography_type === "state"));
-      setDistricts(geographyRows.filter((item) => item.geography_type === "district"));
       setProfiles(profileResult.data || []);
       setForm(
         person
@@ -116,8 +127,6 @@ export default function GovernancePersonSheet({ open, onOpenChange, record = nul
               biography: person.biography || "",
               birthdate: person.birthdate ? String(person.birthdate).slice(0, 10) : "",
               hometown: person.hometown || "",
-              hometownStateId: person.hometown_state_geography_id || "",
-              hometownDistrictId: person.hometown_district_geography_id || "",
               education: person.education || "",
               imageUrl: person.image_url || "",
               profileUserId: person.profile_user_id || "",
@@ -129,6 +138,7 @@ export default function GovernancePersonSheet({ open, onOpenChange, record = nul
     };
 
     load();
+
     return () => {
       cancelled = true;
     };
@@ -136,51 +146,70 @@ export default function GovernancePersonSheet({ open, onOpenChange, record = nul
 
   const profileOptions = useMemo(
     () => [
-      { value: "none", label: "No linked profile", searchValue: "no linked profile" },
+      {
+        value: "none",
+        label: "No linked profile",
+        searchValue: "no linked profile",
+      },
       ...profiles.map((item) => ({
         value: item.user_id,
         label: item.name || item.username || "Unnamed profile",
-        searchValue: \`\${item.name || ""} \${item.username || ""}\`,
+        searchValue: `${item.name || ""} ${item.username || ""}`,
       })),
     ],
     [profiles],
   );
 
-  const setField = (field, value) => setForm((current) => ({ ...current, [field]: value }));
-
-  const districtOptions = useMemo(
-    () => districts.filter((item) => !form.hometownStateId || item.parent_id === form.hometownStateId),
-    [districts, form.hometownStateId],
-  );
-
-  const setHometownState = (value) => setForm((current) => ({ ...current, hometownStateId: value, hometownDistrictId: "" }));
+  const setField = (field, value) =>
+    setForm((current) => ({ ...current, [field]: value }));
 
   const importImage = async () => {
     const sourceUrl = form.imageSourceUrl.trim();
-    if (!sourceUrl) return toast.error("Image URL is required");
-    if (!isSupportedImageSource(sourceUrl)) return toast.error("Use an Instagram or Meta CDN image URL");
+
+    if (!sourceUrl) {
+      toast.error("Image URL is required");
+      return;
+    }
+
+    if (!isSupportedImageSource(sourceUrl)) {
+      toast.error("Use an Instagram or Meta CDN image URL");
+      return;
+    }
+
     if (!isEditing) {
-      toast.info("Save the person first, then the image will be imported automatically.");
+      toast.info(
+        "Save the person first, then the image will be imported automatically.",
+      );
       return;
     }
 
     try {
       setImportingImage(true);
-      const imported = await importPersonImage({ personId: record.id, sourceUrl });
+
+      const imported = await importPersonImage({
+        personId: record.id,
+        sourceUrl,
+      });
+
       const updated = await updatePerson({
         p_person_id: record.id,
         p_name: form.name.trim(),
         p_biography: form.biography.trim() || null,
-        p_birthdate: form.birthdate || null,
         p_image_url: imported.imageUrl,
+        p_birthdate: form.birthdate || null,
         p_hometown: form.hometown.trim() || null,
-        p_hometown_state_geography_id: form.hometownStateId || null,
-        p_hometown_district_geography_id: form.hometownDistrictId || null,
         p_education: form.education.trim() || null,
-        p_profile_user_id: form.profileUserId === "none" ? null : form.profileUserId || null,
+        p_profile_user_id:
+          form.profileUserId === "none" ? null : form.profileUserId || null,
         p_metadata: null,
       });
-      setForm((current) => ({ ...current, imageUrl: imported.imageUrl, imageSourceUrl: "" }));
+
+      setForm((current) => ({
+        ...current,
+        imageUrl: imported.imageUrl,
+        imageSourceUrl: "",
+      }));
+
       await onSaved?.(updated);
       toast.success("Image imported");
     } catch (error) {
@@ -198,21 +227,26 @@ export default function GovernancePersonSheet({ open, onOpenChange, record = nul
 
     try {
       setLoading(true);
+
       const baseParams = {
         p_name: form.name.trim(),
         p_biography: form.biography.trim() || null,
-        p_birthdate: form.birthdate || null,
         p_image_url: form.imageUrl.trim() || null,
+        p_birthdate: form.birthdate || null,
         p_hometown: form.hometown.trim() || null,
-        p_hometown_state_geography_id: form.hometownStateId || null,
-        p_hometown_district_geography_id: form.hometownDistrictId || null,
         p_education: form.education.trim() || null,
-        p_profile_user_id: form.profileUserId === "none" ? null : form.profileUserId || null,
+        p_profile_user_id:
+          form.profileUserId === "none" ? null : form.profileUserId || null,
         p_metadata: {},
       };
 
       if (isEditing) {
-        const updated = await updatePerson({ ...baseParams, p_person_id: record.id, p_metadata: null });
+        const updated = await updatePerson({
+          ...baseParams,
+          p_person_id: record.id,
+          p_metadata: null,
+        });
+
         toast.success("Person updated");
         await onSaved?.(updated);
         onOpenChange?.(false);
@@ -220,53 +254,73 @@ export default function GovernancePersonSheet({ open, onOpenChange, record = nul
       }
 
       const created = await createPerson(baseParams);
-      if (!created?.id) throw new Error("Person was created but no person ID was returned.");
+
+      if (!created?.id) {
+        throw new Error("Person was created but no person ID was returned.");
+      }
 
       if (form.imageUrl) {
         const marker = "/storage/v1/object/public/governance/";
         const imageUrl = form.imageUrl.split("?")[0];
         const markerIndex = imageUrl.indexOf(marker);
-        const draftPath = markerIndex >= 0 ? decodeURIComponent(imageUrl.slice(markerIndex + marker.length)) : null;
+        const draftPath =
+          markerIndex >= 0
+            ? decodeURIComponent(imageUrl.slice(markerIndex + marker.length))
+            : null;
 
-        if (draftPath?.startsWith(\`person/draft-\${draftId}\`)) {
+        if (draftPath?.startsWith(`person/draft-${draftId}`)) {
           const extension = draftPath.split(".").pop() || "jpg";
-          const finalPath = \`person/\${created.id}.\${extension}\`;
+          const finalPath = `person/${created.id}.${extension}`;
           const publicUrl = await moveGovernanceFile(draftPath, finalPath);
+
           await updatePerson({
             p_person_id: created.id,
             p_name: form.name.trim(),
             p_biography: form.biography.trim() || null,
-            p_birthdate: form.birthdate || null,
             p_image_url: publicUrl,
+            p_birthdate: form.birthdate || null,
             p_hometown: form.hometown.trim() || null,
-            p_hometown_state_geography_id: form.hometownStateId || null,
-            p_hometown_district_geography_id: form.hometownDistrictId || null,
             p_education: form.education.trim() || null,
-            p_profile_user_id: form.profileUserId === "none" ? null : form.profileUserId || null,
+            p_profile_user_id:
+              form.profileUserId === "none" ? null : form.profileUserId || null,
             p_metadata: null,
           });
+
           setForm((current) => ({ ...current, imageUrl: publicUrl }));
         }
       }
 
       if (form.imageSourceUrl.trim()) {
-        if (!isSupportedImageSource(form.imageSourceUrl.trim())) throw new Error("Use an Instagram or Meta CDN image URL");
+        if (!isSupportedImageSource(form.imageSourceUrl.trim())) {
+          throw new Error("Use an Instagram or Meta CDN image URL");
+        }
+
         setImportingImage(true);
-        const imported = await importPersonImage({ personId: created.id, sourceUrl: form.imageSourceUrl.trim() });
+
+        const imported = await importPersonImage({
+          personId: created.id,
+          sourceUrl: form.imageSourceUrl.trim(),
+        });
+
         const updated = await updatePerson({
           p_person_id: created.id,
           p_name: form.name.trim(),
           p_biography: form.biography.trim() || null,
-          p_birthdate: form.birthdate || null,
           p_image_url: imported.imageUrl,
+          p_birthdate: form.birthdate || null,
           p_hometown: form.hometown.trim() || null,
-          p_hometown_state_geography_id: form.hometownStateId || null,
-          p_hometown_district_geography_id: form.hometownDistrictId || null,
           p_education: form.education.trim() || null,
-          p_profile_user_id: form.profileUserId === "none" ? null : form.profileUserId || null,
+          p_profile_user_id:
+            form.profileUserId === "none" ? null : form.profileUserId || null,
           p_metadata: null,
         });
-        setForm((current) => ({ ...current, imageUrl: imported.imageUrl, imageSourceUrl: "" }));
+
+        setForm((current) => ({
+          ...current,
+          imageUrl: imported.imageUrl,
+          imageSourceUrl: "",
+        }));
+
         setImportingImage(false);
         toast.success("Person created with image");
         await onSaved?.(updated);
@@ -288,7 +342,10 @@ export default function GovernancePersonSheet({ open, onOpenChange, record = nul
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex w-full max-w-none flex-col gap-0 overflow-x-hidden p-0 sm:max-w-xl">
+      <SheetContent
+        side="right"
+        className="flex w-full max-w-none flex-col gap-0 overflow-x-hidden p-0 sm:max-w-xl"
+      >
         <SheetHeader className="border-b px-5 py-4 sm:px-6">
           <SheetTitle className="flex items-center gap-2">
             <UserRound className="h-4 w-4" />
@@ -305,16 +362,28 @@ export default function GovernancePersonSheet({ open, onOpenChange, record = nul
             </div>
           ) : (
             <div className="space-y-4 py-2">
-              <ImageUpload bucket="governance" path={imagePath} value={form.imageUrl || null} onChange={(value) => setField("imageUrl", value || "")} label="Person image" helperText="PNG, JPG or WebP · up to 5 MB" disabled={busy} />
+              <ImageUpload
+                bucket="governance"
+                path={imagePath}
+                value={form.imageUrl || null}
+                onChange={(value) => setField("imageUrl", value || "")}
+                label="Person image"
+                helperText="PNG, JPG or WebP · up to 5 MB"
+                disabled={busy}
+              />
 
               <div className="space-y-2">
-                <Label htmlFor="governance-person-image-url">Or import from URL</Label>
+                <Label htmlFor="governance-person-image-url">
+                  Or import from URL
+                </Label>
                 <div className="flex gap-2">
                   <Input
                     id="governance-person-image-url"
                     type="url"
                     value={form.imageSourceUrl}
-                    onChange={(event) => setField("imageSourceUrl", event.target.value)}
+                    onChange={(event) =>
+                      setField("imageSourceUrl", event.target.value)
+                    }
                     placeholder="Paste Instagram image URL"
                     disabled={busy}
                     onKeyDown={(event) => {
@@ -324,49 +393,93 @@ export default function GovernancePersonSheet({ open, onOpenChange, record = nul
                       }
                     }}
                   />
-                  <Button type="button" variant="outline" onClick={importImage} disabled={busy || !form.imageSourceUrl.trim() || !imageSourceIsValid || !isEditing}>
-                    {importingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
-                    <span className="hidden sm:inline">{importingImage ? "Importing..." : "Import"}</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={importImage}
+                    disabled={
+                      busy ||
+                      !form.imageSourceUrl.trim() ||
+                      !imageSourceIsValid ||
+                      !isEditing
+                    }
+                  >
+                    {importingImage ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Link2 className="h-4 w-4" />
+                    )}
+                    <span className="hidden sm:inline">
+                      {importingImage ? "Importing..." : "Import"}
+                    </span>
                   </Button>
                 </div>
-                {!isEditing && form.imageSourceUrl.trim() && <p className="text-xs text-muted-foreground">The person will be created first, then the image will be imported automatically.</p>}
-                {!imageSourceIsValid && <p className="text-xs text-destructive">Use an Instagram or Meta CDN image URL.</p>}
+
+                {!isEditing && form.imageSourceUrl.trim() && (
+                  <p className="text-xs text-muted-foreground">
+                    The person will be created first, then the image will be
+                    imported automatically.
+                  </p>
+                )}
+
+                {!imageSourceIsValid && (
+                  <p className="text-xs text-destructive">
+                    Use an Instagram or Meta CDN image URL.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="governance-person-name">Name</Label>
-                <Input id="governance-person-name" value={form.name} onChange={(event) => setField("name", event.target.value)} placeholder="e.g. Jane Doe" disabled={busy} autoFocus />
+                <Input
+                  id="governance-person-name"
+                  value={form.name}
+                  onChange={(event) => setField("name", event.target.value)}
+                  placeholder="e.g. Jane Doe"
+                  disabled={busy}
+                  autoFocus
+                />
               </div>
 
               <div className="space-y-2">
                 <Label>Linked profile</Label>
-                <SearchableSelect value={form.profileUserId || "none"} onValueChange={(value) => setField("profileUserId", value)} options={profileOptions} placeholder="No linked profile" searchPlaceholder="Search profiles..." emptyText="No profiles found." disabled={busy} />
-                <p className="text-xs text-muted-foreground">Link this governance person to an existing Citizen Action profile when they represent the same person.</p>
+                <SearchableSelect
+                  value={form.profileUserId || "none"}
+                  onValueChange={(value) => setField("profileUserId", value)}
+                  options={profileOptions}
+                  placeholder="No linked profile"
+                  searchPlaceholder="Search profiles..."
+                  emptyText="No profiles found."
+                  disabled={busy}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Link this governance person to an existing Citizen Action
+                  profile when they represent the same person.
+                </p>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="governance-person-biography">Biography</Label>
-                <Textarea id="governance-person-biography" value={form.biography} onChange={(event) => setField("biography", event.target.value)} placeholder="Short biography or background" rows={4} disabled={busy} />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="governance-person-birthdate">Birthdate</Label>
-                <Input id="governance-person-birthdate" type="date" value={form.birthdate} onChange={(event) => setField("birthdate", event.target.value)} disabled={busy} />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="governance-person-hometown">Hometown</Label>
-                <Input id="governance-person-hometown" value={form.hometown} onChange={(event) => setField("hometown", event.target.value)} placeholder="Town, city or place name" disabled={busy} />
+                <Textarea
+                  id="governance-person-biography"
+                  value={form.biography}
+                  onChange={(event) =>
+                    setField("biography", event.target.value)
+                  }
+                  placeholder="Short biography or background"
+                  rows={4}
+                  disabled={busy}
+                />
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>Hometown state</Label>
-                  <SearchableSelect value={form.hometownStateId || "none"} onValueChange={(value) => setHometownState(value === "none" ? "" : value)} options={[{ value: "none", label: "Unknown state" }, ...states.map((item) => ({ value: item.id, label: item.name, searchValue: item.name }))]} placeholder="Unknown state" searchPlaceholder="Search states..." emptyText="No states found." disabled={busy} />
+                  <Label htmlFor="governance-person-birthdate">Birthdate</Label>
+                  <Input id="governance-person-birthdate" type="date" value={form.birthdate} onChange={(event) => setField("birthdate", event.target.value)} disabled={busy} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Hometown district</Label>
-                  <SearchableSelect value={form.hometownDistrictId || "none"} onValueChange={(value) => setField("hometownDistrictId", value === "none" ? "" : value)} options={[{ value: "none", label: "Unknown district" }, ...districtOptions.map((item) => ({ value: item.id, label: item.name, searchValue: item.name }))]} placeholder={form.hometownStateId ? "Select district" : "Select state first"} searchPlaceholder="Search districts..." emptyText="No districts found." disabled={busy || !form.hometownStateId} />
+                  <Label htmlFor="governance-person-hometown">Hometown</Label>
+                  <Input id="governance-person-hometown" value={form.hometown} onChange={(event) => setField("hometown", event.target.value)} placeholder="Where they grew up" disabled={busy} />
                 </div>
               </div>
 
@@ -378,17 +491,25 @@ export default function GovernancePersonSheet({ open, onOpenChange, record = nul
           )}
         </div>
 
-        <GovernanceEditorFooter
-          governanceId={record?.id}
-          entityName={form.name}
-          busy={busy}
-          isEditing={isEditing}
-          onCancel={() => onOpenChange?.(false)}
-          onSave={save}
-          createLabel="Create person"
-          showAddress={false}
-          showGeography={false}
-        />
+        <SheetFooter className="flex-row items-center justify-between gap-3 border-t px-5 py-4 sm:px-6">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange?.(false)}
+            disabled={busy}
+          >
+            Cancel
+          </Button>
+          <Button type="button" onClick={save} disabled={busy || loadingRecord}>
+            {loading
+              ? importingImage
+                ? "Importing image..."
+                : "Saving..."
+              : isEditing
+                ? "Save changes"
+                : "Create person"}
+          </Button>
+        </SheetFooter>
       </SheetContent>
     </Sheet>
   );

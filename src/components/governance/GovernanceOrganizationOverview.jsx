@@ -81,7 +81,7 @@ function OrganizationUnit({ node, childrenByParent, canEdit, onSelect, expandedP
 
 function ReportingNode({ node, childrenByParent, depth = 0 }) {
   const [open, setOpen] = useState(depth < 2);
-  const children = childrenByParent.get(node.position_id) || [];
+  const children = childrenByParent.get(node.appointment_id) || [];
   const personLabel = node.is_vacant ? "Vacant" : node.person_name || "Unassigned";
   const positionHref = node.position_slug && node.organization_slug
     ? `/governance/${node.organization_slug}/${node.position_slug}`
@@ -150,21 +150,21 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
   const appointmentsByParent = useMemo(() => {
     const map = new Map();
     appointments.forEach((item) => {
-      if (!item.reports_to_position_id || item.reports_to_position_id === item.position_id) return;
-      const children = map.get(item.reports_to_position_id) || [];
+      if (!item.reports_to_appointment_id || item.reports_to_appointment_id === item.appointment_id) return;
+      const children = map.get(item.reports_to_appointment_id) || [];
       children.push(item);
-      map.set(item.reports_to_position_id, children);
+      map.set(item.reports_to_appointment_id, children);
     });
     return map;
   }, [appointments]);
 
   const reportingRoots = useMemo(() => {
-    const positionIds = new Set(appointments.map((item) => item.position_id));
-    return appointments.filter((item) => !item.reports_to_position_id || !positionIds.has(item.reports_to_position_id));
+    const appointmentIds = new Set(appointments.map((item) => item.appointment_id));
+    return appointments.filter((item) => !item.reports_to_appointment_id || !appointmentIds.has(item.reports_to_appointment_id));
   }, [appointments]);
 
   const unmapped = useMemo(
-    () => appointments.filter((item) => !item.reports_to_position_id),
+    () => appointments.filter((item) => !item.reports_to_appointment_id),
     [appointments],
   );
 

@@ -8,6 +8,7 @@ import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectory
 import GovernancePersonSheet from "@/components/governance/GovernancePersonSheet";
 import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
+import GovernanceOrganizationSelector from "@/components/governance/GovernanceOrganizationSelector";
 import LoadingState from "@/components/ui/loading-state";
 import EmptyState from "@/components/ui/empty-state";
 import ErrorState from "@/components/ui/error-state";
@@ -18,17 +19,24 @@ export default function PersonDirectory({
   selectedIds = [],
   selectedId = null,
   onSelect,
+  organizationId: controlledOrganizationId = null,
   canManage = false,
 }) {
   const [search, setSearch] = useState("");
+  const [organizationId, setOrganizationId] = useState(
+    controlledOrganizationId,
+  );
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const queryClient = useQueryClient();
   const { deletePerson: removePerson } = useGovernanceCrud();
+  const effectiveOrganizationId = controlledOrganizationId ?? organizationId;
+
 
   const query = useGovernanceDirectory({
     tab: "people",
     search,
+    organizationId: effectiveOrganizationId,
     geographyId,
   });
   const data = Array.isArray(query.data) ? query.data : [];
@@ -60,11 +68,18 @@ export default function PersonDirectory({
 
           <Input
             className="h-9 pl-9"
-            placeholder="Search people..."
+            placeholder="Search people or organizations..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
         </div>
+
+        {/* Organization filter */}
+        <GovernanceOrganizationSelector
+          value={effectiveOrganizationId}
+          onValueChange={setOrganizationId}
+          className="min-w-0"
+        />
 
         {/* Add */}
         {canManage && (

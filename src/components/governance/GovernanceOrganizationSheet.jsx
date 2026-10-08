@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
@@ -26,7 +27,6 @@ import { supabase } from "@/lib/supabase/client";
 import { moveGovernanceFile } from "@/lib/supabase/storage";
 import { useImportGovernanceOrganizationImage } from "@/hooks/governance/useImportGovernanceOrganizationImage";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
-import GovernanceEditorFooter from "@/components/governance/GovernanceEditorFooter";
 import {
   GOVERNANCE_STATUS_OPTIONS,
   GOVERNANCE_TYPES,
@@ -436,15 +436,14 @@ export default function GovernanceOrganizationSheet({
           </div>
         </div>
 
-        <GovernanceEditorFooter
-          governanceId={record?.id}
-          entityName={form.name}
-          busy={busy}
-          isEditing={isEditing}
-          onCancel={() => onOpenChange?.(false)}
-          onSave={save}
-          createLabel="Create organization"
-        />
+        <SheetFooter className="relative z-10 shrink-0 flex-col gap-3 border-t bg-background px-4 py-3 sm:flex-row sm:justify-end sm:px-6">
+          <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={busy}>
+            Cancel
+          </Button>
+          <Button type="button" onClick={save} disabled={busy}>
+            {busy ? (importingImage ? "Importing image..." : "Saving...") : isEditing ? "Save changes" : "Create organization"}
+          </Button>
+        </SheetFooter>
       </SheetContent>
     </Sheet>
   );

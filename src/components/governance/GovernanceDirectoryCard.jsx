@@ -14,7 +14,6 @@ export default function GovernanceDirectoryCard({
 }) {
   const name = getGovernanceName(entity);
   const editLabel = tab === "people" ? "Edit Person" : tab === "positions" ? "Edit Position" : "Edit Organization";
-  const deleteTitle = tab === "people" ? "Delete this person?" : tab === "positions" ? "Delete this position?" : "Delete this organization?";
   const href = getGovernanceHref({ ...entity, tab });
   const avatarUrl = entity.image_url || (tab === "organizations" ? entity.current_holder_image_url : null);
   const isSelectable = selectionMode === "radio" || selectionMode === "checkbox";
@@ -80,7 +79,6 @@ export default function GovernanceDirectoryCard({
       hasAddress={hasAddress}
       hasGeography={hasGeography}
       hasLinks={hasLinks}
-      deleteTitle={deleteTitle}
       onDelete={onDelete}
     >
       {linked}
