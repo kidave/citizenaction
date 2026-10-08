@@ -32,6 +32,8 @@ export function GovernanceActionMenuItems({
   onView,
   onViewTree,
   onEdit,
+  onPrimaryAction,
+  primaryActionLabel = "Add",
   onManageRelations,
   onAddParent,
   onAddChild,
@@ -71,6 +73,12 @@ export function GovernanceActionMenuItems({
         <MenuItem onSelect={(event) => run(onEdit, event)}>
           <Pencil className="mr-2 h-4 w-4" />
           {editLabel}
+        </MenuItem>
+      )}
+      {onPrimaryAction && (
+        <MenuItem onSelect={(event) => run(onPrimaryAction, event)}>
+          <Plus className="mr-2 h-4 w-4" />
+          {primaryActionLabel}
         </MenuItem>
       )}
       {onManageRelations && (
@@ -160,6 +168,8 @@ export function GovernanceActionDropdown({
   onView,
   onViewTree,
   onEdit,
+  onPrimaryAction,
+  primaryActionLabel = "Add",
   onManageRelations,
   onAddParent,
   onAddChild,
@@ -174,6 +184,7 @@ export function GovernanceActionDropdown({
   hasAddress = false,
   hasLinks = false,
   hasGeography = false,
+  deleteTitle = "Delete this organization?",
   className = "",
 }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -205,6 +216,8 @@ export function GovernanceActionDropdown({
             onViewTree={onViewTree}
             onEdit={onEdit}
             editLabel={editLabel}
+            onPrimaryAction={onPrimaryAction}
+            primaryActionLabel={primaryActionLabel}
             onManageRelations={onManageRelations}
             onAddParent={onAddParent}
             onAddChild={onAddChild}
@@ -226,7 +239,7 @@ export function GovernanceActionDropdown({
         <ConfirmDialog
           open={confirmOpen}
           onOpenChange={setConfirmOpen}
-          title="Delete this organization?"
+          title={deleteTitle}
           description="This action cannot be undone. Related governance history may need to be removed first."
           confirmText="Delete"
           onConfirm={async () => {
@@ -244,6 +257,8 @@ export function GovernanceActionContextMenu({
   onView,
   onViewTree,
   onEdit,
+  onPrimaryAction,
+  primaryActionLabel = "Add",
   onManageRelations,
   onAddParent,
   onAddChild,
@@ -258,6 +273,7 @@ export function GovernanceActionContextMenu({
   hasAddress = false,
   hasLinks = false,
   hasGeography = false,
+  deleteTitle = "Delete this organization?",
 }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -272,6 +288,8 @@ export function GovernanceActionContextMenu({
             onView={onView}
             onViewTree={onViewTree}
             onEdit={onEdit}
+            onPrimaryAction={onPrimaryAction}
+            primaryActionLabel={primaryActionLabel}
             onManageRelations={onManageRelations}
             onAddParent={onAddParent}
             onAddChild={onAddChild}
@@ -297,7 +315,7 @@ export function GovernanceActionContextMenu({
         <ConfirmDialog
           open={confirmOpen}
           onOpenChange={setConfirmOpen}
-          title="Delete this organization?"
+          title={deleteTitle}
           description="This action cannot be undone. Related governance history may need to be removed first."
           confirmText="Delete"
           onConfirm={async () => {
