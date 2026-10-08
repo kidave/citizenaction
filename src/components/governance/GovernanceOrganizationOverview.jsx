@@ -150,21 +150,21 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
   const appointmentsByParent = useMemo(() => {
     const map = new Map();
     appointments.forEach((item) => {
-      if (!item.reports_to_appointment_id || item.reports_to_appointment_id === item.appointment_id) return;
-      const children = map.get(item.reports_to_appointment_id) || [];
+      if (!item.reports_to_position_id || item.reports_to_position_id === item.position_id) return;
+      const children = map.get(item.reports_to_position_id) || [];
       children.push(item);
-      map.set(item.reports_to_appointment_id, children);
+      map.set(item.reports_to_position_id, children);
     });
     return map;
   }, [appointments]);
 
   const reportingRoots = useMemo(() => {
-    const appointmentIds = new Set(appointments.map((item) => item.appointment_id));
-    return appointments.filter((item) => !item.reports_to_appointment_id || !appointmentIds.has(item.reports_to_appointment_id));
+    const positionIds = new Set(appointments.map((item) => item.position_id));
+    return appointments.filter((item) => !item.reports_to_position_id || !positionIds.has(item.reports_to_position_id));
   }, [appointments]);
 
   const unmapped = useMemo(
-    () => appointments.filter((item) => !item.reports_to_appointment_id),
+    () => appointments.filter((item) => !item.reports_to_position_id),
     [appointments],
   );
 

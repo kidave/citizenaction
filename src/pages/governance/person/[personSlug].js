@@ -46,7 +46,30 @@ export default function GovernancePersonPage() {
       const careerResult = await supabase.rpc("get_person_career", { p_person_id: person.id });
       if (careerResult.error) throw careerResult.error;
 
-      return { person, career: careerResult.data || [] };
+      const career = careerResult.data || [];
+      const organizationIds = [...new Set(career.map((item) => item.organization_id).filter(Boolean))];
+      let organizationLogos = {};
+
+      if (organizationIds.length) {
+        const organizationResult = await supabase
+          .from("governance")
+          .select("id,image_url")
+          .in("id", organizationIds);
+
+        if (organizationResult.error) throw organizationResult.error;
+
+        organizationLogos = Object.fromEntries(
+          (organizationResult.data || []).map((organization) => [organization.id, organization.image_url]),
+        );
+      }
+
+      return {
+        person,
+        career: career.map((item) => ({
+          ...item,
+          organization_image_url: organizationLogos[item.organization_id] || null,
+        })),
+      };
     },
   });
 
@@ -134,7 +157,15 @@ export default function GovernancePersonPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="text-sm font-medium">{item.position_name}</div>
-                      <div className="text-sm text-muted-foreground">{item.organization_name}</div>
+                      <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                        <Avatar className="h-6 w-6 rounded-md">
+                          <AvatarImage src={item.organization_image_url || undefined} alt="" />
+                          <AvatarFallback className="rounded-md text-[10px]">
+                            {getGovernanceInitials(item.organization_name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="min-w-0 truncate">{item.organization_name}</span>
+                      </div>
                       <div className="mt-1 text-xs text-muted-foreground">{formatGovernanceDate(item.started_at)}{item.ended_at ? ` – ${formatGovernanceDate(item.ended_at)}` : " – Present"}</div>
                     </div>
                     {canManage && (
