@@ -8,7 +8,6 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar";
 
-import GovernanceResources from "@/components/governance/GovernanceResources";
 
 import {
   getGovernanceInitials,
@@ -81,8 +80,6 @@ export default function GovernanceEntityDetails({
   parent,
   leader,
   geography = null,
-  attachments = [],
-  links = [],
   isLoading = false,
   canEdit = false,
   onSelect,
@@ -166,12 +163,6 @@ export default function GovernanceEntityDetails({
         </div>
       )}
 
-      <GovernanceResources
-        governanceId={entity.id}
-        attachments={attachments}
-        links={links}
-        canEdit={canEdit}
-      />
     </div>
   );
 }
