@@ -56,7 +56,7 @@ export default function GovernancePositionSheet({
         isEditing
           ? supabase
               .from("position")
-              .select("id,name,description,image_url,appointing_organization_id,metadata")
+              .select("id,name,description,appointing_organization_id,metadata")
               .eq("id", record.id)
               .single()
           : Promise.resolve({ data: null, error: null }),
@@ -199,7 +199,12 @@ export default function GovernancePositionSheet({
               <Textarea value={form.responsibilities} onChange={(event) => setField("responsibilities", event.target.value)} placeholder="What are the main roles and responsibilities?" rows={4} disabled={loading} />
             </div>
 
+
+
             <div className="space-y-2">
+              <Label>Qualifications</Label>
+              <Textarea value={form.qualifications} onChange={(event) => setField("qualifications", event.target.value)} placeholder="Qualifications or eligibility requirements" rows={4} disabled={loading} />
+            </div>            <div className="space-y-2">
               <Label htmlFor="governance-position-description">Description</Label>
               <Textarea
                 id="governance-position-description"
