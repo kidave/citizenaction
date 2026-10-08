@@ -42,6 +42,7 @@ export function GovernanceActionMenuItems({
   onAddGeography,
   onRemoveGeography,
   onDelete,
+  editLabel = "Edit Organization",
   hasAddress = false,
   hasLinks = false,
   hasGeography = false,
@@ -69,7 +70,7 @@ export function GovernanceActionMenuItems({
       {onEdit && (
         <MenuItem onSelect={(event) => run(onEdit, event)}>
           <Pencil className="mr-2 h-4 w-4" />
-          Edit Organization
+          {editLabel}
         </MenuItem>
       )}
       {onManageRelations && (
@@ -169,6 +170,7 @@ export function GovernanceActionDropdown({
   onAddGeography,
   onRemoveGeography,
   onDelete,
+  editLabel = "Edit Organization",
   hasAddress = false,
   hasLinks = false,
   hasGeography = false,
@@ -202,6 +204,7 @@ export function GovernanceActionDropdown({
             onView={onView}
             onViewTree={onViewTree}
             onEdit={onEdit}
+            editLabel={editLabel}
             onManageRelations={onManageRelations}
             onAddParent={onAddParent}
             onAddChild={onAddChild}
@@ -251,6 +254,7 @@ export function GovernanceActionContextMenu({
   onAddGeography,
   onRemoveGeography,
   onDelete,
+  editLabel = "Edit Organization",
   hasAddress = false,
   hasLinks = false,
   hasGeography = false,

@@ -171,7 +171,11 @@ export default function GovernanceRecordPage() {
     if (route) await router.push(route);
   };
 
-  const selectEntity = (entity) => openEntity(entity);
+  const selectEntity = (entity) => {
+    if (!entity) return;
+    setModalEntity(entity);
+    setModalOpen(true);
+  };
   const editEntity = (entity) => {
     if (!entity?.id) return;
     setOrganizationSheetEntity(entity);

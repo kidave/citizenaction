@@ -24,14 +24,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase/client";
-import {
-  deleteGovernanceAttachments,
-  moveGovernanceFile,
-  uploadGovernanceAttachments,
-} from "@/lib/supabase/storage";
+import { moveGovernanceFile } from "@/lib/supabase/storage";
 import { useImportGovernanceOrganizationImage } from "@/hooks/governance/useImportGovernanceOrganizationImage";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
-import GovernanceEditorResources from "@/components/governance/GovernanceEditorResources";
 import {
   GOVERNANCE_STATUS_OPTIONS,
   GOVERNANCE_TYPES,
@@ -95,7 +90,6 @@ export default function GovernanceOrganizationSheet({
   const [form, setForm] = useState(() => emptyForm(record));
   const [saving, setSaving] = useState(false);
   const [importingImage, setImportingImage] = useState(false);
-  const [links, setLinks] = useState([]);
   const [pendingFiles, setPendingFiles] = useState([]);
 
   const draftId = useId().replace(/:/g, "");
@@ -116,8 +110,6 @@ export default function GovernanceOrganizationSheet({
     const load = async () => {
       setSaving(false);
       setImportingImage(false);
-      setPendingFiles([]);
-      setLinks([]);
 
       if (!record?.id) {
         setForm(emptyForm(null));
@@ -140,23 +132,7 @@ export default function GovernanceOrganizationSheet({
         return;
       }
 
-      const [{ data: linkRows }, { data: attachmentRows }] = await Promise.all([
-        supabase
-          .from("link")
-          .select("id,url,title,sort_order")
-          .eq("governance_id", record.id)
-          .order("sort_order", { ascending: true }),
-        supabase
-          .from("attachment")
-          .select("id,storage_path,thumbnail_path,file_name,public_url,preview_url,mime_type,file_size,width,height,duration,sort_order")
-          .eq("governance_id", record.id)
-          .order("sort_order", { ascending: true }),
-      ]);
-
-      if (cancelled) return;
       setForm(emptyForm(data));
-      setLinks(linkRows || []);
-      void attachmentRows;
     };
 
     load();
@@ -168,58 +144,6 @@ export default function GovernanceOrganizationSheet({
 
   const setField = (field, value) =>
     setForm((current) => ({ ...current, [field]: value }));
-
-  const saveResources = async (governanceId) => {
-    if (!governanceId) return;
-
-    if (pendingFiles.length) {
-      const attachmentIds = pendingFiles.map(() => crypto.randomUUID());
-      const uploaded = await uploadGovernanceAttachments(
-        governanceId,
-        pendingFiles.map((file, index) => ({
-          file: file.file ?? file,
-          attachmentId: attachmentIds[index],
-        })),
-      );
-
-      const rows = uploaded.map((item, index) => ({
-        id: item.attachmentId,
-        governance_id: governanceId,
-        storage_path: item.storage_path,
-        public_url: item.public_url,
-        preview_url: item.preview_url || null,
-        thumbnail_path: item.thumbnail_path || null,
-        thumbnail_url: item.thumbnail_url || null,
-        file_name: item.file_name,
-        mime_type: item.mime_type,
-        file_size: item.file_size,
-        width: item.width,
-        height: item.height,
-        duration: item.duration,
-        sort_order: index,
-      }));
-
-      const { error } = await supabase.from("attachment").insert(rows);
-      if (error) {
-        await deleteGovernanceAttachments(uploaded);
-        throw error;
-      }
-    }
-
-    await supabase.from("link").delete().eq("governance_id", governanceId);
-    if (links.length) {
-      const { error } = await supabase.from("link").insert(
-        links.map((link, index) => ({
-          id: link.id || crypto.randomUUID(),
-          governance_id: governanceId,
-          url: link.url,
-          title: link.title || link.url,
-          sort_order: index,
-        })),
-      );
-      if (error) throw error;
-    }
-  };
 
   const save = async () => {
     if (!form.name.trim()) return toast.error("Organization name is required");
@@ -333,7 +257,7 @@ export default function GovernanceOrganizationSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="flex w-full flex-col gap-0 p-0 sm:max-w-xl"
+        className="flex w-full max-w-full flex-col gap-0 overflow-x-hidden p-0 sm:max-w-xl"
       >
         <SheetHeader className="border-b px-5 py-4 sm:px-6">
           <SheetTitle className="flex items-center gap-2">
@@ -342,7 +266,7 @@ export default function GovernanceOrganizationSheet({
           </SheetTitle>
         </SheetHeader>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+        <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-5 py-5 sm:px-6">
           <div className="space-y-4">
             <ImageUpload
               bucket="governance"
@@ -513,31 +437,13 @@ export default function GovernanceOrganizationSheet({
           </div>
         </div>
 
-        <SheetFooter className="relative z-10 shrink-0 flex-col gap-3 border-t bg-background px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <GovernanceEditorResources
-            governanceId={record?.id || null}
-            entityName={form.name}
-            address={form.address}
-            lat={form.lat}
-            lng={form.lng}
-            onAddressChange={(value) => setField("address", value)}
-            onLocationChange={(value) => setForm((current) => ({ ...current, ...value }))}
-            links={links}
-            onLinksChange={setLinks}
-            onFiles={(files) => setPendingFiles((current) => [...current, ...(files || [])])}
-            geographyId={form.geographyId}
-            onGeographySaved={(geography) => setField("geographyId", geography?.id || "")}
-            onAddressAction={onAddressAction}
-            onGeographyAction={onGeographyAction}
-            onLinksAction={onLinksAction}
-            disabled={busy}
-          />
-          <div className="flex shrink-0 items-center gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={busy}>Cancel</Button>
-            <Button type="button" onClick={save} disabled={busy}>
-              {busy ? (importingImage ? "Importing image..." : "Saving...") : isEditing ? "Save changes" : "Create organization"}
-            </Button>
-          </div>
+        <SheetFooter className="relative z-10 shrink-0 flex-col gap-3 border-t bg-background px-4 py-3 sm:flex-row sm:justify-end sm:px-6">
+          <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={busy}>
+            Cancel
+          </Button>
+          <Button type="button" onClick={save} disabled={busy}>
+            {busy ? (importingImage ? "Importing image..." : "Saving...") : isEditing ? "Save changes" : "Create organization"}
+          </Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>
