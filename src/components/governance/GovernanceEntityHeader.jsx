@@ -7,7 +7,7 @@ import { getGovernanceInitials } from "@/utils/governance";
 
 export default function GovernanceEntityHeader({
   entity, draft, editing, canEdit = false, childEntities = [],
-  onEdit, onManageRelations, onAddAddress, onRemoveAddress, onManageLinks,
+  onView, onViewTree, onEdit, onPrimaryAction, primaryActionLabel = "Add", onManageRelations, onAddParent, onAddChild, onAddAddress, onRemoveAddress, onManageLinks,
   onAddGeography, onRemoveGeography, hasAddress = false, hasLinks = false,
   hasGeography = false, onDelete, onChange,
 }) {
@@ -33,8 +33,14 @@ export default function GovernanceEntityHeader({
       </div>
       {canEdit && !editing && (
         <GovernanceActionDropdown
+          onView={onView}
+          onViewTree={onViewTree}
           onEdit={onEdit}
+          onPrimaryAction={onPrimaryAction}
+          primaryActionLabel={primaryActionLabel}
           onManageRelations={onManageRelations}
+          onAddParent={onAddParent}
+          onAddChild={onAddChild}
           onAddAddress={onAddAddress}
           onRemoveAddress={onRemoveAddress}
           onManageLinks={onManageLinks}

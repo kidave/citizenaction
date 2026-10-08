@@ -67,7 +67,8 @@ function getBrowseLabel(category, path) {
   return "Boundaries";
 }
 
-export default function AddGeographyDialog({ open, onOpenChange, governanceId, entityName, onSaved }) {
+export default function AddGeographyDialog({ open, onOpenChange, governanceId = null, entityId = null, entityType = "governance", entityName, onSaved }) {
+  const targetId = entityId || governanceId;
   const [category, setCategory] = useState("administrative");
   const [type, setType] = useState("all");
   const [search, setSearch] = useState("");
@@ -78,7 +79,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
   const geometryRequestRef = useRef(0);
   const loadMoreRef = useRef(null);
 
-  const { data: relationships = [] } = useGovernanceGeography(governanceId, open);
+  const { data: relationships = [] } = useGovernanceGeography(targetId, open, entityType);
   const currentGeography = relationships[0]?.geographies || null;
   const currentGeographyId = relationships[0]?.geography_id || null;
   const { setGeography, isSetting } = useGovernanceGeographyMutation();
@@ -240,7 +241,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId, e
     if (!selected || selected.id === currentGeographyId) return;
 
     try {
-      await setGeography({ governanceId, geographyId: selected.id });
+      await setGeography({ entityId: targetId, entityType, geographyId: selected.id });
       onSaved?.(selected);
       toast.success(currentGeographyId ? "Geography changed" : "Geography added");
       onOpenChange?.(false);

@@ -23,7 +23,7 @@ function TreeConnector({ count }) {
 
 function TreeNode({
   node, expandedIds, onToggle, selectedId, onSelect, canEdit,
-  onViewOrganization, onEdit, onManageRelations, onAddParent, onAddChild, onAddAddress, onRemoveAddress,
+  onViewOrganization, onViewTree, onEdit, onPrimaryAction, primaryActionLabel = "Add", onManageRelations, onAddParent, onAddChild, onAddAddress, onRemoveAddress,
   onManageLinks, onAddGeography, onRemoveGeography, onDelete,
 }) {
   const hasChildren = node.children.length > 0;
@@ -50,7 +50,10 @@ function TreeNode({
       <div className="flex w-full min-w-0 items-center justify-center gap-1">
         <GovernanceActionContextMenu
           onView={onViewOrganization ? () => onViewOrganization(node) : undefined}
+          onViewTree={onViewTree ? () => onViewTree(node) : undefined}
           onEdit={canEdit ? () => onEdit?.(node) : undefined}
+          onPrimaryAction={canEdit ? () => onPrimaryAction?.(node) : undefined}
+          primaryActionLabel={primaryActionLabel}
           onManageRelations={canEdit ? () => onManageRelations?.(node) : undefined}
           onAddParent={canEdit ? () => onAddParent?.(node) : undefined}
           onAddChild={canEdit ? () => onAddChild?.(node) : undefined}
@@ -69,14 +72,14 @@ function TreeNode({
         </GovernanceActionContextMenu>
         {hasChildren && <button type="button" onClick={(event) => { event.stopPropagation(); onToggle(node.id); }} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border bg-background text-muted-foreground hover:bg-muted hover:text-foreground" aria-label={expanded ? "Collapse " + label : "Expand " + label}>{expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</button>}
       </div>
-      {hasChildren && expanded && <div className="relative mt-2 w-max pt-10"><TreeConnector count={node.children.length} /><ul className="flex items-start justify-center gap-6">{node.children.map((child) => <TreeNode key={child.id} node={child} expandedIds={expandedIds} onToggle={onToggle} selectedId={selectedId} onSelect={onSelect} canEdit={canEdit} onViewOrganization={onViewOrganization} onEdit={onEdit} onManageRelations={onManageRelations} onAddAddress={onAddAddress} onRemoveAddress={onRemoveAddress} onManageLinks={onManageLinks} onAddParent={onAddParent} onAddChild={onAddChild} onAddGeography={onAddGeography} onRemoveGeography={onRemoveGeography} onDelete={onDelete} />)}</ul></div>}
+      {hasChildren && expanded && <div className="relative mt-2 w-max pt-10"><TreeConnector count={node.children.length} /><ul className="flex items-start justify-center gap-6">{node.children.map((child) => <TreeNode key={child.id} node={child} expandedIds={expandedIds} onToggle={onToggle} selectedId={selectedId} onSelect={onSelect} canEdit={canEdit} onViewOrganization={onViewOrganization} onViewTree={onViewTree} onEdit={onEdit} onPrimaryAction={onPrimaryAction} primaryActionLabel={primaryActionLabel} onManageRelations={onManageRelations} onAddAddress={onAddAddress} onRemoveAddress={onRemoveAddress} onManageLinks={onManageLinks} onAddParent={onAddParent} onAddChild={onAddChild} onAddGeography={onAddGeography} onRemoveGeography={onRemoveGeography} onDelete={onDelete} />)}</ul></div>}
     </li>
   );
 }
 
 export default function GovernanceFamilyTree({
   records = [], selectedId = null, onSelect, className, initialExpandedIds = [], canEdit = false,
-  onViewOrganization, onEdit, onManageRelations, onAddParent, onAddChild, onAddAddress, onRemoveAddress, onManageLinks,
+  onViewOrganization, onViewTree, onEdit, onPrimaryAction, primaryActionLabel = "Add", onManageRelations, onAddParent, onAddChild, onAddAddress, onRemoveAddress, onManageLinks,
   onAddGeography, onRemoveGeography, onDelete,
 }) {
   const roots = useMemo(() => buildGovernanceTree(records), [records]);
@@ -139,7 +142,7 @@ export default function GovernanceFamilyTree({
       <div className="absolute left-1/2 top-1/2 w-max origin-center select-none transition-transform duration-100 ease-out" style={{ transform: "translate(calc(-50% + " + pan.x + "px), calc(-50% + " + pan.y + "px)) scale(" + zoom + ")" }}>
         <ul className="flex items-start justify-center gap-10 p-16 sm:p-24">
           {roots.map((root) => (
-            <TreeNode key={root.id} node={root} expandedIds={expandedIds} onToggle={toggle} selectedId={selectedId} onSelect={onSelect} canEdit={canEdit} onViewOrganization={onViewOrganization} onEdit={onEdit} onManageRelations={onManageRelations} onAddAddress={onAddAddress} onRemoveAddress={onRemoveAddress} onManageLinks={onManageLinks} onAddGeography={onAddGeography} onRemoveGeography={onRemoveGeography} onDelete={onDelete} />
+            <TreeNode key={root.id} node={root} expandedIds={expandedIds} onToggle={toggle} selectedId={selectedId} onSelect={onSelect} canEdit={canEdit} onViewOrganization={onViewOrganization} onEdit={onEdit} onPrimaryAction={onPrimaryAction} primaryActionLabel={primaryActionLabel} onManageRelations={onManageRelations} onAddAddress={onAddAddress} onRemoveAddress={onRemoveAddress} onManageLinks={onManageLinks} onAddGeography={onAddGeography} onRemoveGeography={onRemoveGeography} onDelete={onDelete} />
           ))}
         </ul>
       </div>

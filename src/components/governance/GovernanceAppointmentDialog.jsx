@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useState } from "react";
 import { BriefcaseBusiness, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -17,9 +18,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { supabase } from "@/lib/supabase/client";
-
-const CREATE_PERSON = "__create_person__";
+import { getGovernanceInitials } from "@/utils/governance";
 
 function today() {
   return new Date().toISOString().slice(0, 10);
@@ -42,13 +43,11 @@ export default function GovernanceAppointmentDialog({
   const [organizations, setOrganizations] = useState([]);
   const [positions, setPositions] = useState([]);
   const [people, setPeople] = useState([]);
-  const [selectedOrganizationId, setSelectedOrganizationId] = useState(
-    organizationId || "",
-  );
   const [selectedPositionId, setSelectedPositionId] = useState(
     positionId || "",
   );
   const [selectedPersonId, setSelectedPersonId] = useState(personId || "");
+  const [personChoice, setPersonChoice] = useState("existing");
   const [newPersonName, setNewPersonName] = useState("");
   const [newPersonImageUrl, setNewPersonImageUrl] = useState("");
   const [startedAt, setStartedAt] = useState(today());
@@ -57,16 +56,16 @@ export default function GovernanceAppointmentDialog({
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const creatingPerson = positionMode && selectedPersonId === CREATE_PERSON;
+  const creatingPerson = positionMode && personChoice === "create";
 
   useEffect(() => {
     if (!open) return;
 
     let cancelled = false;
     setLoading(true);
-    setSelectedOrganizationId(record?.organization_id || organizationId || "");
     setSelectedPositionId(record?.position_id || positionId || "");
     setSelectedPersonId(record?.person_id || personId || "");
+    setPersonChoice(record?.person_id || personId ? "existing" : "existing");
     setNewPersonName("");
     setNewPersonImageUrl("");
     setStartedAt(
@@ -80,7 +79,7 @@ export default function GovernanceAppointmentDialog({
         await Promise.all([
           supabase
             .from("governance")
-            .select("id,name,short_name,slug,type,status")
+            .select("id,name,short_name,slug,type,status,image_url")
             .neq("status", "deleted")
             .order("name")
             .limit(500),
@@ -116,67 +115,45 @@ export default function GovernanceAppointmentDialog({
     };
   }, [open, organizationId, positionId, personId, record?.id]);
 
-  useEffect(() => {
-    if (!personMode || !selectedOrganizationId || !selectedPositionId) return;
-    const selected = positions.find((item) => item.id === selectedPositionId);
-    if (
-      selected &&
-      selected.appointing_organization_id !== selectedOrganizationId
-    )
-      setSelectedPositionId("");
-  }, [personMode, selectedOrganizationId, selectedPositionId, positions]);
-
-  const organizationOptions = useMemo(
-    () =>
-      organizations.map((item) => ({
+  const positionOptions = useMemo(
+    () => positions.map((item) => {
+      const organization = organizations.find((org) => org.id === item.appointing_organization_id);
+      return {
         value: item.id,
         label: item.name,
-        searchValue: `${item.name || ""} ${item.short_name || ""}`,
-      })),
-    [organizations],
+        searchValue: (item.name || "") + " " + (organization?.name || "") + " " + (organization?.short_name || ""),
+        organizationName: organization?.name || "Organization",
+        organizationImageUrl: organization?.image_url || null,
+      };
+    }),
+    [positions, organizations],
   );
 
-  const positionOptions = useMemo(() => {
-    const filtered = positions.filter(
-      (item) =>
-        !selectedOrganizationId ||
-        item.appointing_organization_id === selectedOrganizationId,
-    );
-    return filtered.map((item) => ({
-      value: item.id,
-      label: item.name,
-      searchValue: item.name,
-    }));
-  }, [positions, selectedOrganizationId]);
-
   const peopleOptions = useMemo(
-    () => [
-      {
-        value: CREATE_PERSON,
-        label: "Create new person",
-        searchValue: "create new person",
-      },
-      ...people.map((item) => ({
+    () =>
+      people.map((item) => ({
         value: item.id,
         label: item.name,
         searchValue: item.name,
+        imageUrl: item.image_url || null,
       })),
-    ],
     [people],
   );
 
-  const selectedOrganization = organizations.find(
-    (item) => item.id === selectedOrganizationId,
-  );
   const selectedPosition = positions.find(
     (item) => item.id === selectedPositionId,
   );
+  const selectedOrganization = selectedPosition
+    ? organizations.find((item) => item.id === selectedPosition.appointing_organization_id)
+    : organizationId
+      ? organizations.find((item) => item.id === organizationId)
+      : null;
   const selectedPerson = people.find((item) => item.id === selectedPersonId);
 
   const save = async () => {
     const finalOrganizationId = positionMode
-      ? organizationId || selectedOrganizationId
-      : selectedOrganizationId;
+      ? organizationId
+      : selectedPosition?.appointing_organization_id;
     const finalPositionId = positionMode
       ? positionId || selectedPositionId
       : selectedPositionId;
@@ -185,7 +162,7 @@ export default function GovernanceAppointmentDialog({
     if (!finalPositionId) return toast.error("Position is required");
     if (personMode && !personId) return toast.error("Person is required");
     if (positionMode && !creatingPerson && !selectedPersonId)
-      return toast.error("Person is required");
+      return toast.error("Choose an existing person or create a new person");
     if (creatingPerson && !newPersonName.trim())
       return toast.error("Person name is required");
     if (!startedAt) return toast.error("Start date is required");
@@ -231,7 +208,7 @@ export default function GovernanceAppointmentDialog({
       if (result.error) throw result.error;
 
       toast.success(
-        positionMode ? "Person added to position" : "Position added to person",
+        positionMode ? "Person added to position" : "Experience added",
       );
       await onSaved?.(result.data);
       onOpenChange?.(false);
@@ -247,7 +224,7 @@ export default function GovernanceAppointmentDialog({
     ? "Edit appointment"
     : positionMode
       ? "Add person to position"
-      : "Add position to person";
+      : "Add experience";
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -276,13 +253,17 @@ export default function GovernanceAppointmentDialog({
           ) : (
             <div className="space-y-4 py-2">
               {positionMode ? (
-                <div className="rounded-lg border bg-muted/30 p-3">
-                  <div className="text-xs text-muted-foreground">Position</div>
-                  <div className="mt-1 text-sm font-medium">
-                    {selectedPosition?.name || "Position"}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {selectedOrganization?.name || "Organization"}
+                <div className="flex items-center gap-3 rounded-lg border bg-muted/30 p-3">
+                  <Avatar className="h-10 w-10 rounded-lg">
+                    <AvatarImage src={selectedOrganization?.image_url || undefined} alt="" />
+                    <AvatarFallback className="rounded-lg">
+                      {getGovernanceInitials(selectedOrganization?.name || "Organization")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <div className="text-xs text-muted-foreground">Position</div>
+                    <div className="truncate text-sm font-medium">{selectedPosition?.name || "Position"}</div>
+                    <div className="truncate text-xs text-muted-foreground">{selectedOrganization?.name || "Organization"}</div>
                   </div>
                 </div>
               ) : (
@@ -296,48 +277,77 @@ export default function GovernanceAppointmentDialog({
 
               {personMode && (
                 <div className="space-y-2">
-                  <Label>Organization</Label>
-                  <SearchableSelect
-                    value={selectedOrganizationId}
-                    onValueChange={setSelectedOrganizationId}
-                    options={organizationOptions}
-                    placeholder="Choose an organization"
-                    searchPlaceholder="Search organizations..."
-                    emptyText="No organizations found."
-                    disabled={saving}
-                  />
-                </div>
-              )}
-              {personMode && (
-                <div className="space-y-2">
                   <Label>Position</Label>
                   <SearchableSelect
                     value={selectedPositionId}
                     onValueChange={setSelectedPositionId}
                     options={positionOptions}
-                    placeholder={
-                      selectedOrganizationId
-                        ? "Choose a position"
-                        : "Choose an organization first"
-                    }
-                    searchPlaceholder="Search positions..."
-                    emptyText="No positions found for this organization."
-                    disabled={saving || !selectedOrganizationId}
+                    placeholder="Choose a position"
+                    searchPlaceholder="Search positions or organizations..."
+                    emptyText="No positions found."
+                    disabled={saving}
+                    renderOption={(option) => (
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Avatar className="h-7 w-7 shrink-0 rounded-md"><AvatarImage src={option.organizationImageUrl || undefined} alt="" /><AvatarFallback className="rounded-md text-[9px]">{getGovernanceInitials(option.organizationName)}</AvatarFallback></Avatar>
+                        <div className="min-w-0"><div className="truncate text-sm">{option.label}</div><div className="truncate text-[11px] text-muted-foreground">{option.organizationName}</div></div>
+                      </div>
+                    )}
+                    renderValue={(option) => (
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Avatar className="h-6 w-6 shrink-0 rounded-md"><AvatarImage src={option.organizationImageUrl || undefined} alt="" /><AvatarFallback className="rounded-md text-[8px]">{getGovernanceInitials(option.organizationName)}</AvatarFallback></Avatar>
+                        <div className="min-w-0"><div className="truncate text-sm">{option.label}</div><div className="truncate text-[10px] text-muted-foreground">{option.organizationName}</div></div>
+                      </div>
+                    )}
                   />
                 </div>
               )}
               {positionMode && (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <Label>Person</Label>
-                  <SearchableSelect
-                    value={selectedPersonId}
-                    onValueChange={setSelectedPersonId}
-                    options={peopleOptions}
-                    placeholder="Choose a person"
-                    searchPlaceholder="Search people..."
-                    emptyText="No people found."
+                  <RadioGroup
+                    value={personChoice}
+                    onValueChange={setPersonChoice}
+                    className="grid gap-2 sm:grid-cols-2"
                     disabled={saving}
-                  />
+                  >
+                    <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3">
+                      <RadioGroupItem value="existing" className="mt-0.5" />
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium">Add existing person</span>
+                        <span className="block text-xs text-muted-foreground">Choose someone already in Citizen Action.</span>
+                      </span>
+                    </label>
+                    <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3">
+                      <RadioGroupItem value="create" className="mt-0.5" />
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium">Create new person</span>
+                        <span className="block text-xs text-muted-foreground">Create the person and add them to this position.</span>
+                      </span>
+                    </label>
+                  </RadioGroup>
+                  {personChoice === "existing" && (
+                    <SearchableSelect
+                      value={selectedPersonId}
+                      onValueChange={setSelectedPersonId}
+                      options={peopleOptions}
+                      placeholder="Choose a person"
+                      searchPlaceholder="Search people..."
+                      emptyText="No people found."
+                      disabled={saving}
+                      renderOption={(option) => (
+                        <div className="flex min-w-0 items-center gap-2">
+                          <Avatar className="h-7 w-7 shrink-0 rounded-md"><AvatarImage src={option.imageUrl || undefined} alt="" /><AvatarFallback className="rounded-md text-[9px]">{getGovernanceInitials(option.label)}</AvatarFallback></Avatar>
+                          <span className="min-w-0 truncate">{option.label}</span>
+                        </div>
+                      )}
+                      renderValue={(option) => (
+                        <div className="flex min-w-0 items-center gap-2">
+                          <Avatar className="h-6 w-6 shrink-0 rounded-md"><AvatarImage src={option.imageUrl || undefined} alt="" /><AvatarFallback className="rounded-md text-[8px]">{getGovernanceInitials(option.label)}</AvatarFallback></Avatar>
+                          <span className="min-w-0 truncate">{option.label}</span>
+                        </div>
+                      )}
+                    />
+                  )}
                 </div>
               )}
 
@@ -422,7 +432,7 @@ export default function GovernanceAppointmentDialog({
                 ? "Save changes"
                 : positionMode
                   ? "Add person"
-                  : "Add position"}
+                  : "Add experience"}
           </Button>
         </SheetFooter>
       </SheetContent>

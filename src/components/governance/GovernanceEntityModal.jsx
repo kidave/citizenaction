@@ -22,8 +22,14 @@ export default function GovernanceEntityModal({
   onSaved,
   onDeleted,
   onEdit,
+  onView,
+  onViewTree,
+  onPrimaryAction,
+  primaryActionLabel = "Add",
   onAddRelation,
   onEditRelations,
+  onAddParent,
+  onAddChild,
   onManageRelations,
   onAddAddress,
   onRemoveAddress,
@@ -75,9 +81,15 @@ export default function GovernanceEntityModal({
               canEdit={canEdit}
               childEntities={childEntities}
               onEdit={onEdit}
+              onView={onView ? () => onView(entity) : undefined}
+              onViewTree={onViewTree ? () => onViewTree(entity) : undefined}
+              onPrimaryAction={onPrimaryAction ? () => onPrimaryAction(entity) : undefined}
+              primaryActionLabel={primaryActionLabel}
               onAddRelation={() => onAddRelation?.(entity)}
               onEditRelations={() => onEditRelations?.(entity)}
               onManageRelations={() => onManageRelations?.(entity) || onEditRelations?.(entity)}
+              onAddParent={onAddParent ? () => onAddParent(entity) : undefined}
+              onAddChild={onAddChild ? () => onAddChild(entity) : undefined}
               onAddAddress={onAddAddress ? () => onAddAddress(entity) : undefined}
               onRemoveAddress={onRemoveAddress ? () => onRemoveAddress(entity) : undefined}
               onManageLinks={onManageLinks ? () => onManageLinks(entity) : undefined}

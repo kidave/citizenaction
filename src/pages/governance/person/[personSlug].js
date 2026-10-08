@@ -2,18 +2,17 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { Button } from "@/components/ui/button";
 import { GovernanceActionDropdown } from "@/components/governance/GovernanceActionMenu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
 import GovernancePersonSheet from "@/components/governance/GovernancePersonSheet";
-import GovernancePositionSheet from "@/components/governance/GovernancePositionSheet";
 import LoadingState from "@/components/ui/loading-state";
 import ErrorState from "@/components/ui/error-state";
 import EmptyState from "@/components/ui/empty-state";
 import GovernanceAppointmentDialog from "@/components/governance/GovernanceAppointmentDialog";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
+import GovernanceResourceDialogs from "@/components/governance/GovernanceResourceDialogs";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { supabase } from "@/lib/supabase/client";
 import { formatGovernanceDate, getGovernanceInitials } from "@/utils/governance";
@@ -32,7 +31,7 @@ export default function GovernancePersonPage() {
   const [appointmentOpen, setAppointmentOpen] = useState(false);
   const [appointmentRecord, setAppointmentRecord] = useState(null);
   const [editOpen, setEditOpen] = useState(false);
-  const [positionSheetOpen, setPositionSheetOpen] = useState(false);
+  const [addressOpen, setAddressOpen] = useState(false);
 
   const query = useQuery({
     queryKey: ["governance", "person", personSlug],
@@ -90,31 +89,6 @@ export default function GovernancePersonPage() {
     ]);
   };
 
-  const addPositionToPerson = async (position) => {
-    if (!position?.id) throw new Error("Position was created but no position ID was returned.");
-    if (!position.appointing_organization_id) {
-      throw new Error("Select an appointing organization for the position.");
-    }
-
-    const result = await supabase.rpc("upsert_organization", {
-      p_id: null,
-      p_governance_id: position.appointing_organization_id,
-      p_person_name: person.name,
-      p_person_governance_id: person.id,
-      p_position_name: position.name,
-      p_position_governance_id: position.id,
-      p_started_at: `2026-09-19T00:00:00Z`,
-      p_ended_at: null,
-      p_is_vacant: false,
-      p_is_primary: true,
-      p_reports_to_id: null,
-      p_notes: null,
-    });
-
-    if (result.error) throw result.error;
-    await refresh();
-  };
-
   return (
     <div className="flex min-h-dvh w-full flex-col">
       <GovernancePageHeader
@@ -125,8 +99,11 @@ export default function GovernancePersonPage() {
             <GovernanceActionDropdown
               onEdit={() => setEditOpen(true)}
               editLabel="Edit Person"
-              onPrimaryAction={() => setPositionSheetOpen(true)}
-              primaryActionLabel="Add Current Position"
+              onPrimaryAction={() => { setAppointmentRecord(null); setAppointmentOpen(true); }}
+              primaryActionLabel="Add Experience"
+              onAddAddress={() => setAddressOpen(true)}
+              onRemoveAddress={person.address ? async () => { const { error } = await supabase.from("person").update({ address: null }).eq("id", person.id); if (error) { const { toast } = await import("sonner"); toast.error(error.message); return; } await refresh(); } : undefined}
+              hasAddress={Boolean(person.address)}
               className="h-8 w-8"
             />
           ) : null
@@ -139,7 +116,7 @@ export default function GovernancePersonPage() {
               <AvatarImage src={person.image_url || undefined} alt={person.name} />
               <AvatarFallback className="rounded-lg text-sm">{getGovernanceInitials(person.name)}</AvatarFallback>
             </Avatar>
-            <h1 className="text-xl font-semibold">{person.name}</h1>
+            <div className="min-w-0"><h1 className="text-xl font-semibold">{person.name}</h1>{person.address && <p className="mt-1 text-sm text-muted-foreground">{person.address}</p>}</div>
           </div>
 
           <section className="space-y-3">
@@ -148,11 +125,6 @@ export default function GovernancePersonPage() {
                 <h2 className="text-sm font-semibold">Career</h2>
                 <p className="mt-1 text-xs text-muted-foreground">Positions and organizations associated with this person.</p>
               </div>
-              {canManage && (
-                <Button type="button" variant="outline" size="sm" onClick={() => { setAppointmentRecord(null); setAppointmentOpen(true); }}>
-                  Add position
-                </Button>
-              )}
             </div>
 
             {career.length ? career.map((item) => (
@@ -172,7 +144,17 @@ export default function GovernancePersonPage() {
                       </div>
                       <div className="mt-1 text-xs text-muted-foreground">{formatGovernanceDate(item.started_at)}{item.ended_at ? ` – ${formatGovernanceDate(item.ended_at)}` : " – Present"}</div>
                     </div>
-                    {canManage && (
+                    {canManage && addressOpen && (
+        <GovernanceResourceDialogs
+          entity={person}
+          entityType="person"
+          addressOpen={addressOpen}
+          onAddressOpenChange={(value) => { if (!value) setAddressOpen(false); }}
+          onSaved={refresh}
+        />
+      )}
+
+      {canManage && (
                       <GovernanceAppointmentDeleteButton
                         appointmentId={item.appointment_id}
                         personName={person.name}
@@ -195,14 +177,6 @@ export default function GovernancePersonPage() {
           onOpenChange={setEditOpen}
           record={person}
           onSaved={refresh}
-        />
-      )}
-
-      {canManage && (
-        <GovernancePositionSheet
-          open={positionSheetOpen}
-          onOpenChange={setPositionSheetOpen}
-          onSaved={addPositionToPerson}
         />
       )}
 

@@ -185,6 +185,7 @@ export function GovernanceActionDropdown({
   hasLinks = false,
   hasGeography = false,
   className = "",
+  entityLabel = "organization",
 }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -238,7 +239,7 @@ export function GovernanceActionDropdown({
         <ConfirmDialog
           open={confirmOpen}
           onOpenChange={setConfirmOpen}
-          title="Delete this organization?"
+          title={"Delete this " + entityLabel + "?"}
           description="This action cannot be undone. Related governance history may need to be removed first."
           confirmText="Delete"
           onConfirm={async () => {
@@ -272,6 +273,7 @@ export function GovernanceActionContextMenu({
   hasAddress = false,
   hasLinks = false,
   hasGeography = false,
+  entityLabel = "organization",
 }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -313,7 +315,7 @@ export function GovernanceActionContextMenu({
         <ConfirmDialog
           open={confirmOpen}
           onOpenChange={setConfirmOpen}
-          title="Delete this organization?"
+          title={"Delete this " + entityLabel + "?"}
           description="This action cannot be undone. Related governance history may need to be removed first."
           confirmText="Delete"
           onConfirm={async () => {

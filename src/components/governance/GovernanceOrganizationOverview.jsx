@@ -131,7 +131,7 @@ function ReportingNode({ node, childrenByParent, depth = 0 }) {
   );
 }
 
-export default function GovernanceOrganizationOverview({ governance, asOf, canEdit = false, onAdd, onEdit, onViewTree }) {
+export default function GovernanceOrganizationOverview({ governance, asOf, canEdit = false, onEdit, onViewTree }) {
   const query = useGovernanceOrganizationContext({ governanceId: governance?.id, asOf });
   const organizations = query.data?.organizations || [];
   const appointments = query.data?.appointments || [];
@@ -220,7 +220,6 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                   {root.website && <Button asChild variant="outline" size="sm"><a href={root.website} target="_blank" rel="noreferrer"><ExternalLink className="mr-2 h-4 w-4" />Website</a></Button>}
                   {onViewTree && <Button type="button" variant="outline" size="sm" onClick={onViewTree}><GitBranch className="mr-2 h-4 w-4" />View tree</Button>}
                   {canEdit && <Button type="button" variant="outline" size="sm" onClick={onEdit}>Edit</Button>}
-                  {canEdit && <Button type="button" size="sm" onClick={onAdd}><GitBranch className="mr-2 h-4 w-4" />Add role</Button>}
                 </div>
               </div>
             </div>

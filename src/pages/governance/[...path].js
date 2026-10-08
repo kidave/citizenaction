@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import GovernanceEntityModal from "@/components/governance/GovernanceEntityModal";
 import GovernanceFamilyTree from "@/components/governance/GovernanceFamilyTree";
 import GovernanceOrganizationOverview from "@/components/governance/GovernanceOrganizationOverview";
-import GovernanceLeadershipDialog from "@/components/governance/GovernanceLeadershipDialog";
+import GovernancePositionSheet from "@/components/governance/GovernancePositionSheet";
 import GovernanceOrganizationSheet from "@/components/governance/GovernanceOrganizationSheet";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import GovernanceRelationDialog from "@/components/governance/GovernanceRelationDialog";
@@ -50,8 +50,8 @@ export default function GovernanceRecordPage() {
   const [relationSource, setRelationSource] = useState(null);
   const [geographyOpen, setGeographyOpen] = useState(false);
   const [geographyEntity, setGeographyEntity] = useState(null);
-  const [leadershipOpen, setLeadershipOpen] = useState(false);
-  const [leadershipRecord, setLeadershipRecord] = useState(null);
+  const [positionOpen, setPositionOpen] = useState(false);
+  const [positionOrganizationId, setPositionOrganizationId] = useState(null);
   const [resourceEntity, setResourceEntity] = useState(null);
   const [addressOpen, setAddressOpen] = useState(false);
   const [linksOpen, setLinksOpen] = useState(false);
@@ -189,6 +189,7 @@ export default function GovernanceRecordPage() {
     setRelationSource(entity);
     setRelationOpen(true);
   };
+  const openAddPosition = (entity) => { if (!entity?.id) return; setPositionOrganizationId(entity.id); setPositionOpen(true); };
   const openGeography = (entity) => {
     if (!entity?.id) return;
     setModalOpen(false);
@@ -281,7 +282,6 @@ export default function GovernanceRecordPage() {
             governance={governance}
             asOf={asOf}
             canEdit={canEdit}
-            onAdd={() => { setLeadershipRecord(null); setLeadershipOpen(true); }}
             onEdit={editEntity}
             onViewTree={() => openTreePage(governance)}
           />
@@ -293,7 +293,10 @@ export default function GovernanceRecordPage() {
             onSelect={selectEntity}
             canEdit={canEdit}
             onViewOrganization={(entity) => openOrganizationPage(entity)}
+            onViewTree={(entity) => openTreePage(entity)}
             onEdit={editEntity}
+            onPrimaryAction={openAddPosition}
+            primaryActionLabel="Add Position"
             onManageRelations={(entity) => openRelation("edit-relations", entity)}
             onAddParent={(entity) => openRelation("add-parent", entity)}
             onAddChild={(entity) => openRelation("add-child", entity)}
@@ -350,13 +353,10 @@ export default function GovernanceRecordPage() {
         onCompleted={handleChanged}
       />
 
-      <GovernanceLeadershipDialog
-        open={leadershipOpen}
-        onOpenChange={setLeadershipOpen}
-        governanceId={governance.id}
-        record={leadershipRecord}
-        candidates={family}
-        records={queryClient.getQueryData(queryKeys.governance.organization(governance.id)) || []}
+      <GovernancePositionSheet
+        open={positionOpen}
+        onOpenChange={(value) => { setPositionOpen(value); if (!value) setPositionOrganizationId(null); }}
+        defaultOrganizationId={positionOrganizationId}
         onSaved={handleChanged}
       />
 
