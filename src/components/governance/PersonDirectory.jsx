@@ -61,9 +61,9 @@ export default function PersonDirectory({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_16rem_auto]">
+      <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_16rem_auto]">
         {/* Search */}
-        <div className="relative col-span-2 min-w-0 sm:col-span-1">
+        <div className="relative min-w-0">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
           <Input
