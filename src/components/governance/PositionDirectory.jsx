@@ -85,7 +85,7 @@ export default function PositionDirectory({
 
           <Input
             className="h-9 pl-9"
-            placeholder="Search positions..."
+            placeholder="Search positions or organizations..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -138,6 +138,20 @@ export default function PositionDirectory({
         ) : (
           <EmptyState title="No positions found" description="Try another search or filter." />
         ))}
+
+      {canManage && geographyRecord && (
+        <AddGeographyDialog
+          open={Boolean(geographyRecord)}
+          onOpenChange={(value) => {
+            if (!value) setGeographyRecord(null);
+          }}
+          governanceId={geographyRecord.id}
+          entityName={geographyRecord.name}
+          onSaved={async () => {
+            await queryClient.invalidateQueries({ queryKey: ["governance-directory"] });
+          }}
+        />
+      )}
 
       {canManage && (
         <GovernancePositionSheet
