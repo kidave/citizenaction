@@ -13,7 +13,7 @@ import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { usePositionTimeline } from "@/hooks/governance/usePositionTimeline";
 import { getGovernanceLabel } from "@/utils/governance";
 import { supabase } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
+import { GovernanceActionDropdown } from "@/components/governance/GovernanceActionMenu";
 
 function getValue(value) {
   if (Array.isArray(value)) return value[0] || null;
@@ -107,10 +107,13 @@ export default function GovernancePositionPage() {
         backHref="/governance?tab=positions"
         actions={
           canManage ? (
-            <div className="flex items-center gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => setEditOpen(true)}>Edit</Button>
-              <Button type="button" size="sm" onClick={() => setPersonSheetOpen(true)}>Add person</Button>
-            </div>
+            <GovernanceActionDropdown
+              onEdit={() => setEditOpen(true)}
+              editLabel="Edit Position"
+              onPrimaryAction={() => setPersonSheetOpen(true)}
+              primaryActionLabel="Add Person"
+              className="h-8 w-8"
+            />
           ) : null
         }
       />
