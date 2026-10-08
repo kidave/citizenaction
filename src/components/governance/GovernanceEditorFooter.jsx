@@ -21,6 +21,8 @@ export default function GovernanceEditorFooter({
   saveLabel = "Save changes",
   createLabel = "Create",
   isEditing = false,
+  showAddress = true,
+  showGeography = true,
 }) {
   const [addressOpen, setAddressOpen] = useState(false);
   const [geographyOpen, setGeographyOpen] = useState(false);
@@ -106,12 +108,12 @@ export default function GovernanceEditorFooter({
     <>
       <div className="shrink-0 border-t bg-background px-5 py-3 sm:px-6">
         <div className="flex flex-wrap items-center gap-2">
-          <Button type="button" variant="ghost" size="sm" disabled={!canManageResources || busy} onClick={() => setAddressOpen(true)}>
+          {showAddress && <Button type="button" variant="ghost" size="sm" disabled={!canManageResources || busy} onClick={() => setAddressOpen(true)}>
             <MapPin className="mr-1.5 h-4 w-4" /> Address
-          </Button>
-          <Button type="button" variant="ghost" size="sm" disabled={!canManageResources || busy} onClick={() => setGeographyOpen(true)}>
+          </Button>}
+          {showGeography && <Button type="button" variant="ghost" size="sm" disabled={!canManageResources || busy} onClick={() => setGeographyOpen(true)}>
             <MapPin className="mr-1.5 h-4 w-4" /> Geography
-          </Button>
+          </Button>}
           <Button type="button" variant="ghost" size="sm" disabled={!canManageResources || busy} onClick={() => setResourcesOpen(true)}>
             <FileText className="mr-1.5 h-4 w-4" /> Files & links
           </Button>
