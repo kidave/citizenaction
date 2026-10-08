@@ -21,7 +21,10 @@ function emptyForm() {
   return {
     name: "",
     biography: "",
+    birthdate: "",
     hometown: "",
+    hometownStateId: "",
+    hometownDistrictId: "",
     education: "",
     imageUrl: "",
     profileUserId: "",
@@ -51,6 +54,8 @@ function isSupportedImageSource(value) {
 export default function GovernancePersonSheet({ open, onOpenChange, record = null, onSaved }) {
   const [form, setForm] = useState(emptyForm);
   const [profiles, setProfiles] = useState([]);
+  const [states, setStates] = useState([]);
+  const [districts, setDistricts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingRecord, setLoadingRecord] = useState(false);
   const [importingImage, setImportingImage] = useState(false);
@@ -70,18 +75,24 @@ export default function GovernancePersonSheet({ open, onOpenChange, record = nul
 
     const load = async () => {
       setLoadingRecord(isEditing);
-      const [profileResult, personResult] = await Promise.all([
+      const [profileResult, geographyResult, personResult] = await Promise.all([
         supabase.from("profile").select("user_id,name,username").order("name").limit(1000),
+        supabase.from("geographies").select("id,name,geography_type,parent_id").in("geography_type", ["state", "district"]).eq("country_code", "IN").order("name"),
         isEditing
           ? supabase
               .from("person")
-              .select("id,name,biography,website,image_url,profile_user_id,hometown,education,metadata")
+              .select("id,name,biography,website,image_url,profile_user_id,birthdate,hometown,education,hometown_state_geography_id,hometown_district_geography_id,metadata")
               .eq("id", record.id)
               .single()
           : Promise.resolve({ data: null, error: null }),
       ]);
 
       if (cancelled) return;
+      if (geographyResult.error) {
+        toast.error(geographyResult.error.message);
+        setLoadingRecord(false);
+        return;
+      }
       if (profileResult.error) {
         toast.error(profileResult.error.message);
         setLoadingRecord(false);
@@ -94,13 +105,19 @@ export default function GovernancePersonSheet({ open, onOpenChange, record = nul
       }
 
       const person = personResult.data;
+      const geographyRows = geographyResult.data || [];
+      setStates(geographyRows.filter((item) => item.geography_type === "state"));
+      setDistricts(geographyRows.filter((item) => item.geography_type === "district"));
       setProfiles(profileResult.data || []);
       setForm(
         person
           ? {
               name: person.name || "",
               biography: person.biography || "",
+              birthdate: person.birthdate ? String(person.birthdate).slice(0, 10) : "",
               hometown: person.hometown || "",
+              hometownStateId: person.hometown_state_geography_id || "",
+              hometownDistrictId: person.hometown_district_geography_id || "",
               education: person.education || "",
               imageUrl: person.image_url || "",
               profileUserId: person.profile_user_id || "",
@@ -131,6 +148,13 @@ export default function GovernancePersonSheet({ open, onOpenChange, record = nul
 
   const setField = (field, value) => setForm((current) => ({ ...current, [field]: value }));
 
+  const districtOptions = useMemo(
+    () => districts.filter((item) => !form.hometownStateId || item.parent_id === form.hometownStateId),
+    [districts, form.hometownStateId],
+  );
+
+  const setHometownState = (value) => setForm((current) => ({ ...current, hometownStateId: value, hometownDistrictId: "" }));
+
   const importImage = async () => {
     const sourceUrl = form.imageSourceUrl.trim();
     if (!sourceUrl) return toast.error("Image URL is required");
@@ -147,8 +171,11 @@ export default function GovernancePersonSheet({ open, onOpenChange, record = nul
         p_person_id: record.id,
         p_name: form.name.trim(),
         p_biography: form.biography.trim() || null,
+        p_birthdate: form.birthdate || null,
         p_image_url: imported.imageUrl,
         p_hometown: form.hometown.trim() || null,
+        p_hometown_state_geography_id: form.hometownStateId || null,
+        p_hometown_district_geography_id: form.hometownDistrictId || null,
         p_education: form.education.trim() || null,
         p_profile_user_id: form.profileUserId === "none" ? null : form.profileUserId || null,
         p_metadata: null,
@@ -206,8 +233,14 @@ export default function GovernancePersonSheet({ open, onOpenChange, record = nul
             p_person_id: created.id,
             p_name: form.name.trim(),
             p_biography: form.biography.trim() || null,
+            p_birthdate: form.birthdate || null,
+          p_birthdate: form.birthdate || null,
             p_image_url: publicUrl,
             p_hometown: form.hometown.trim() || null,
+            p_hometown_state_geography_id: form.hometownStateId || null,
+            p_hometown_district_geography_id: form.hometownDistrictId || null,
+          p_hometown_state_geography_id: form.hometownStateId || null,
+          p_hometown_district_geography_id: form.hometownDistrictId || null,
             p_education: form.education.trim() || null,
             p_profile_user_id: form.profileUserId === "none" ? null : form.profileUserId || null,
             p_metadata: null,
@@ -314,8 +347,24 @@ export default function GovernancePersonSheet({ open, onOpenChange, record = nul
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="governance-person-birthdate">Birthdate</Label>
+                <Input id="governance-person-birthdate" type="date" value={form.birthdate} onChange={(event) => setField("birthdate", event.target.value)} disabled={busy} />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="governance-person-hometown">Hometown</Label>
-                <Input id="governance-person-hometown" value={form.hometown} onChange={(event) => setField("hometown", event.target.value)} placeholder="Where they grew up" disabled={busy} />
+                <Input id="governance-person-hometown" value={form.hometown} onChange={(event) => setField("hometown", event.target.value)} placeholder="Town, city or place name" disabled={busy} />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Hometown state</Label>
+                  <SearchableSelect value={form.hometownStateId || "none"} onValueChange={(value) => setHometownState(value === "none" ? "" : value)} options={[{ value: "none", label: "Unknown state" }, ...states.map((item) => ({ value: item.id, label: item.name, searchValue: item.name }))]} placeholder="Unknown state" searchPlaceholder="Search states..." emptyText="No states found." disabled={busy} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Hometown district</Label>
+                  <SearchableSelect value={form.hometownDistrictId || "none"} onValueChange={(value) => setField("hometownDistrictId", value === "none" ? "" : value)} options={[{ value: "none", label: "Unknown district" }, ...districtOptions.map((item) => ({ value: item.id, label: item.name, searchValue: item.name }))]} placeholder={form.hometownStateId ? "Select district" : "Select state first"} searchPlaceholder="Search districts..." emptyText="No districts found." disabled={busy || !form.hometownStateId} />
+                </div>
               </div>
 
               <div className="space-y-2">
