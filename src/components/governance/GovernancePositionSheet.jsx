@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { BriefcaseBusiness } from "lucide-react";
 import { toast } from "sonner";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import { supabase } from "@/lib/supabase/client";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
+import { getGovernanceInitials } from "@/utils/governance";
 
 function emptyForm() {
   return {
@@ -20,6 +22,7 @@ function emptyForm() {
     responsibilities: "",
     qualifications: "",
     organizationId: "",
+    reportsToPositionId: "",
   };
 }
 
@@ -31,7 +34,8 @@ export default function GovernancePositionSheet({
   onSaved,
 }) {
   const [form, setForm] = useState(emptyForm);
-  const [organizations, setOrganizations] = useState([]);
+  const [organization, setOrganization] = useState(null);
+  const [reportingPositions, setReportingPositions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingRecord, setLoadingRecord] = useState(false);
 
@@ -45,38 +49,64 @@ export default function GovernancePositionSheet({
 
     const load = async () => {
       setLoadingRecord(isEditing);
+      setOrganization(null);
+      setReportingPositions([]);
 
-      const [organizationResult, positionResult] = await Promise.all([
-        supabase
-          .from("governance")
-          .select("id,name,short_name,slug,type,status")
-          .neq("status", "deleted")
-          .order("name")
-          .limit(500),
-        isEditing
-          ? supabase
-              .from("position")
-              .select("id,name,description,appointing_organization_id,metadata")
-              .eq("id", record.id)
-              .single()
-          : Promise.resolve({ data: null, error: null }),
-      ]);
+      const positionResult = isEditing
+        ? await supabase
+            .from("position")
+            .select("id,name,description,appointing_organization_id,reports_to_position_id,metadata")
+            .eq("id", record.id)
+            .single()
+        : { data: null, error: null };
 
       if (cancelled) return;
-
-      if (organizationResult.error) {
-        toast.error(organizationResult.error.message);
-        setLoadingRecord(false);
-        return;
-      }
       if (positionResult.error) {
         toast.error(positionResult.error.message);
         setLoadingRecord(false);
         return;
       }
 
+      const organizationId =
+        positionResult.data?.appointing_organization_id ||
+        defaultOrganizationId ||
+        "";
+
+      if (!organizationId) {
+        setForm(emptyForm());
+        setLoadingRecord(false);
+        return;
+      }
+
+      const [organizationResult, positionsResult] = await Promise.all([
+        supabase
+          .from("governance")
+          .select("id,name,short_name,slug,type,status,image_url")
+          .eq("id", organizationId)
+          .maybeSingle(),
+        supabase
+          .from("position")
+          .select("id,name,slug,appointing_organization_id,image_url")
+          .eq("appointing_organization_id", organizationId)
+          .neq("id", record?.id || "00000000-0000-0000-0000-000000000000")
+          .order("name"),
+      ]);
+
+      if (cancelled) return;
+      if (organizationResult.error) {
+        toast.error(organizationResult.error.message);
+        setLoadingRecord(false);
+        return;
+      }
+      if (positionsResult.error) {
+        toast.error(positionsResult.error.message);
+        setLoadingRecord(false);
+        return;
+      }
+
       const position = positionResult.data;
-      setOrganizations(organizationResult.data || []);
+      setOrganization(organizationResult.data || null);
+      setReportingPositions(positionsResult.data || []);
       setForm(
         position
           ? {
@@ -85,10 +115,11 @@ export default function GovernancePositionSheet({
               responsibilities: position.metadata?.responsibilities || "",
               qualifications: position.metadata?.qualifications || "",
               organizationId: position.appointing_organization_id || "",
+              reportsToPositionId: position.reports_to_position_id || "",
             }
           : {
               ...emptyForm(),
-              organizationId: defaultOrganizationId || "",
+              organizationId,
             },
       );
       setLoadingRecord(false);
@@ -99,16 +130,6 @@ export default function GovernancePositionSheet({
       cancelled = true;
     };
   }, [open, record?.id, defaultOrganizationId, isEditing]);
-
-  const organizationOptions = useMemo(
-    () =>
-      organizations.map((item) => ({
-        value: item.id,
-        label: item.name,
-        searchValue: `${item.name || ""} ${item.short_name || ""}`,
-      })),
-    [organizations],
-  );
 
   const setField = (field, value) => setForm((current) => ({ ...current, [field]: value }));
 
@@ -126,7 +147,7 @@ export default function GovernancePositionSheet({
             p_name: form.name.trim(),
             p_description: form.description.trim() || null,
             p_image_url: null,
-            p_appointing_organization_id: form.organizationId || null,
+            p_reports_to_position_id: form.reportsToPositionId || null,
             p_metadata: { responsibilities: form.responsibilities.trim() || null, qualifications: form.qualifications.trim() || null },
           }
         : {
@@ -135,7 +156,8 @@ export default function GovernancePositionSheet({
             p_image_url: null,
             p_category_id: null,
             p_metadata: { responsibilities: form.responsibilities.trim() || null, qualifications: form.qualifications.trim() || null },
-            p_appointing_organization_id: form.organizationId || null,
+            p_appointing_organization_id: form.organizationId,
+            p_reports_to_position_id: form.reportsToPositionId || null,
           };
 
       const result = isEditing ? await updatePosition(params) : await createPosition(params);
@@ -182,19 +204,32 @@ export default function GovernancePositionSheet({
               />
             </div>
 
+<div className="flex items-center gap-3 rounded-lg border bg-muted/20 p-3">
+              <Avatar className="h-10 w-10 rounded-lg">
+                <AvatarImage src={organization?.image_url || undefined} alt="" />
+                <AvatarFallback className="rounded-lg">{getGovernanceInitials(organization?.name || "Organization")}</AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <div className="text-xs text-muted-foreground">Organization</div>
+                <div className="truncate text-sm font-medium">{organization?.name || "Organization context required"}</div>
+                <div className="text-xs text-muted-foreground">This position belongs to this organization.</div>
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label>Appointing organization</Label>
+              <Label>Reports to</Label>
               <SearchableSelect
-                value={form.organizationId}
-                onValueChange={(value) => setField("organizationId", value)}
-                options={organizationOptions}
-                placeholder="No organization"
-                searchPlaceholder="Search organizations..."
-                emptyText="No organizations found."
+                value={form.reportsToPositionId}
+                onValueChange={(value) => setField("reportsToPositionId", value)}
+                options={reportingPositions.map((item) => ({ value: item.id, label: item.name, searchValue: item.name }))}
+                placeholder="No reporting position"
+                searchPlaceholder="Search positions..."
+                emptyText="No other positions in this organization."
                 disabled={loading}
               />
             </div>
-<div className="space-y-2">
+
+            <div className="space-y-2">
               <Label>Roles and responsibilities</Label>
               <Textarea value={form.responsibilities} onChange={(event) => setField("responsibilities", event.target.value)} placeholder="What are the main roles and responsibilities?" rows={4} disabled={loading} />
             </div>
@@ -224,7 +259,7 @@ export default function GovernancePositionSheet({
 
         <SheetFooter className="flex-row items-center justify-between gap-3 border-t px-5 py-4 sm:px-6">
           <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={loading}>Cancel</Button>
-          <Button type="button" onClick={save} disabled={loading || loadingRecord}>
+          <Button type="button" onClick={save} disabled={loading || loadingRecord || !organization}>
             {loading ? "Saving..." : isEditing ? "Save changes" : "Create position"}
           </Button>
         </SheetFooter>

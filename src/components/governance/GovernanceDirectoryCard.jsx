@@ -8,7 +8,7 @@ import { getGovernanceHref, getGovernanceInitials, getGovernanceName } from "@/u
 
 export default function GovernanceDirectoryCard({
   entity, tab = "organizations", selectionMode = null, selected = false, onSelect,
-  onOpen, onView, onViewTree, onEdit, onManageRelations, onAddParent, onAddChild, hasParent = false, onAddAddress, onRemoveAddress, onAddGeography,
+  onOpen, onView, onViewTree, onEdit, onPrimaryAction, primaryActionLabel = "Add", onManageRelations, onAddParent, onAddChild, hasParent = false, onAddAddress, onRemoveAddress, onAddGeography,
   onRemoveGeography, onManageLinks, hasAddress = false, hasGeography = false,
   hasLinks = false, onDelete,
 }) {
@@ -19,7 +19,7 @@ export default function GovernanceDirectoryCard({
   const isSelectable = selectionMode === "radio" || selectionMode === "checkbox";
   const canManage = !isSelectable && (
     onOpen || onView || onViewTree || onEdit || onManageRelations || onAddParent || onAddChild || onAddAddress || onRemoveAddress ||
-    onAddGeography || onRemoveGeography || onManageLinks || onDelete
+    onAddGeography || onRemoveGeography || onManageLinks || onDelete || onPrimaryAction
   );
 
   const content = (
@@ -67,6 +67,8 @@ export default function GovernanceDirectoryCard({
       onViewTree={tab === "organizations" ? () => onViewTree?.(entity) : undefined}
       onEdit={onEdit}
       editLabel={editLabel}
+      onPrimaryAction={onPrimaryAction}
+      primaryActionLabel={primaryActionLabel}
       onManageRelations={onManageRelations}
       onAddParent={onAddParent}
       onAddChild={onAddChild}
@@ -80,6 +82,7 @@ export default function GovernanceDirectoryCard({
       hasGeography={hasGeography}
       hasLinks={hasLinks}
       onDelete={onDelete}
+      entityLabel={tab === "positions" ? "position" : tab === "people" ? "person" : "organization"}
     >
       {linked}
     </GovernanceCardActions>

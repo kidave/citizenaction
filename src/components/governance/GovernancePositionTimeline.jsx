@@ -1,24 +1,54 @@
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, ExternalLink, MapPin } from "lucide-react";
 import EmptyState from "@/components/ui/empty-state";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
 import { formatGovernanceDate, getGovernanceInitials, getGovernanceLabel } from "@/utils/governance";
 
 export default function GovernancePositionTimeline({ position, organization, timeline = [], canManage = false, onEdit, onDeleted }) {
-  const organizationLabel = getGovernanceLabel(organization);
+  const organizationLabel = organization?.name || "";
+  const jurisdiction = position?.geographies;
+  const links = position?.links || [];
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
       <div className="mb-6">
         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Position</p>
-        <h1 className="mt-1 flex flex-wrap items-baseline gap-x-2 text-2xl font-semibold tracking-tight">
-          <span>{position?.name || "Position"}</span>
-          {organizationLabel && (
-            <span className="text-base font-normal text-muted-foreground">· {organizationLabel}</span>
-          )}
-        </h1>
+        <div className="mt-1 flex items-center gap-3">
+          <Avatar className="h-10 w-10 shrink-0 rounded-lg">
+            <AvatarImage src={organization?.image_url || undefined} alt="" />
+            <AvatarFallback className="rounded-lg text-xs">{getGovernanceInitials(organizationLabel)}</AvatarFallback>
+          </Avatar>
+          <h1 className="min-w-0 text-2xl font-semibold tracking-tight">
+            <span>{position?.name || "Position"}</span>
+            {organizationLabel && <span className="ml-2 text-base font-normal text-muted-foreground">· {organizationLabel}</span>}
+          </h1>
+        </div>
+        {(jurisdiction || position?.address || links.length) && (
+          <div className="mt-4 flex flex-wrap items-center gap-2 border-t pt-4">
+            {jurisdiction && (
+              <Badge variant="secondary" className="max-w-full gap-1.5 font-normal">
+                <MapPin className="h-3.5 w-3.5" />
+                <span className="truncate">Jurisdiction: {jurisdiction.official_name || jurisdiction.name}</span>
+              </Badge>
+            )}
+            {position?.address && (
+              <Badge variant="outline" className="max-w-full gap-1.5 font-normal">
+                <MapPin className="h-3.5 w-3.5" />
+                <span className="truncate">Office: {position.address}</span>
+              </Badge>
+            )}
+            {links.map((link) => (
+              <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs hover:bg-muted">
+                <ExternalLink className="h-3.5 w-3.5" />
+                <span className="max-w-[220px] truncate">{link.title || link.url}</span>
+              </a>
+            ))}
+          </div>
+        )}
+
         {(position?.metadata?.qualifications || position?.metadata?.responsibilities || position?.description) && (
           <div className="mt-4 space-y-4 border-t pt-4">
             {position.description && <div><p className="text-xs font-medium text-muted-foreground">Description</p><p className="mt-1 text-sm leading-6">{position.description}</p></div>}
@@ -45,7 +75,7 @@ export default function GovernancePositionTimeline({ position, organization, tim
                 <Card>
                   <CardContent className="p-4 sm:p-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
-                      <p className="min-w-0 text-sm font-semibold">{personName}</p>
+                      <div className="flex min-w-0 items-center gap-2"><p className="min-w-0 text-sm font-semibold">{personName}</p>{item.is_primary && <Badge variant="secondary" className="shrink-0 text-[10px]">Principal</Badge>}</div>
                       <div className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
                         <CalendarDays className="h-3.5 w-3.5" />
                         <span>

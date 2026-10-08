@@ -20,21 +20,33 @@ const geographySelect = `
   )
 `;
 
-export function useGovernanceGeography(governanceId, enabled = true) {
+const resourceConfig = {
+  governance: { table: "governance", key: "governanceId" },
+  position: { table: "position", key: "positionId" },
+};
+
+function getConfig(entityType = "governance") {
+  const config = resourceConfig[entityType];
+  if (!config) throw new Error(`Unsupported geography entity: ${entityType}`);
+  return config;
+}
+
+export function useGovernanceGeography(entityId, enabled = true, entityType = "governance") {
   return useQuery({
-    queryKey: ["governance-geography", governanceId],
-    enabled: Boolean(governanceId) && enabled,
+    queryKey: [`${entityType}-geography`, entityId],
+    enabled: Boolean(entityId) && enabled,
     queryFn: async () => {
+      const { table, key } = getConfig(entityType);
       const { data, error } = await supabase
-        .from("governance")
+        .from(table)
         .select(geographySelect)
-        .eq("id", governanceId)
+        .eq("id", entityId)
         .maybeSingle();
 
       if (error) throw error;
       return data?.geography_id
         ? [{
-            governance_id: governanceId,
+            [key]: entityId,
             geography_id: data.geography_id,
             geographies: data.geographies,
           }]
@@ -46,48 +58,45 @@ export function useGovernanceGeography(governanceId, enabled = true) {
 export function useGovernanceGeographyMutation() {
   const queryClient = useQueryClient();
 
-  const invalidate = (governanceId) => {
-    queryClient.invalidateQueries({
-      queryKey: ["governance-geography", governanceId],
-    });
-
-    queryClient.invalidateQueries({
-      queryKey: ["governance-entity", governanceId],
-    });
-
-    queryClient.invalidateQueries({
-      queryKey: ["governance-entity-details", governanceId],
-    });
+  const invalidate = (entityId, entityType = "governance") => {
+    queryClient.invalidateQueries({ queryKey: [`${entityType}-geography`, entityId] });
+    queryClient.invalidateQueries({ queryKey: ["governance-entity", entityId] });
+    queryClient.invalidateQueries({ queryKey: ["governance-entity-details", entityId] });
+    queryClient.invalidateQueries({ queryKey: ["governance-directory"] });
   };
 
   const set = useMutation({
-    mutationFn: async ({ governanceId, geographyId }) => {
+    mutationFn: async ({ entityId, geographyId, entityType = "governance", governanceId, positionId }) => {
+      const id = entityId || governanceId || positionId;
+      const { table } = getConfig(entityType);
       const { data, error } = await supabase
-        .from("governance")
+        .from(table)
         .update({ geography_id: geographyId })
-        .eq("id", governanceId)
+        .eq("id", id)
         .select("id,geography_id")
         .single();
 
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, variables) => invalidate(variables.governanceId),
+    onSuccess: (_, variables) => invalidate(variables.entityId || variables.governanceId || variables.positionId, variables.entityType),
   });
 
   const clear = useMutation({
-    mutationFn: async ({ governanceId }) => {
+    mutationFn: async ({ entityId, entityType = "governance", governanceId, positionId }) => {
+      const id = entityId || governanceId || positionId;
+      const { table } = getConfig(entityType);
       const { data, error } = await supabase
-        .from("governance")
+        .from(table)
         .update({ geography_id: null })
-        .eq("id", governanceId)
+        .eq("id", id)
         .select("id,geography_id")
         .single();
 
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, variables) => invalidate(variables.governanceId),
+    onSuccess: (_, variables) => invalidate(variables.entityId || variables.governanceId || variables.positionId, variables.entityType),
   });
 
   return {

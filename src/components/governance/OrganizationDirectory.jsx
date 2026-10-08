@@ -17,6 +17,7 @@ import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectory
 import GovernanceEntityModal from "@/components/governance/GovernanceEntityModal";
 import GovernanceRelationDialog from "@/components/governance/GovernanceRelationDialog";
 import GovernanceOrganizationSheet from "@/components/governance/GovernanceOrganizationSheet";
+import GovernancePositionSheet from "@/components/governance/GovernancePositionSheet";
 import GovernanceOrganizationResourceDialogs from "@/components/governance/GovernanceOrganizationResourceDialogs";
 import LoadingState from "@/components/ui/loading-state";
 import EmptyState from "@/components/ui/empty-state";
@@ -46,6 +47,8 @@ export default function OrganizationDirectory({
   const [type, setType] = useState("all");
   const [categoryId, setCategoryId] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [positionOpen, setPositionOpen] = useState(false);
+  const [positionOrganizationId, setPositionOrganizationId] = useState(null);
   const { categories = [], isLoading: categoriesLoading } =
     useGovernanceCatalog({ enabled: true });
   const queryClient = useQueryClient();
@@ -139,6 +142,7 @@ export default function OrganizationDirectory({
   };
 
   const openEdit = (entity) => { setEditingRecord(entity); setDialogOpen(true); };
+  const openAddPosition = (entity) => { if (!entity?.id) return; setPositionOrganizationId(entity.id); setPositionOpen(true); };
   const openResource = (entity, resource) => {
     setResourceRecord(entity);
     setAddressOpen(resource === "address");
@@ -295,6 +299,8 @@ export default function OrganizationDirectory({
                 onView={() => openView(entity)}
                 onViewTree={() => openTree(entity)}
                 onEdit={canManage ? () => openEdit(entity) : undefined}
+                onPrimaryAction={canManage ? () => openAddPosition(entity) : undefined}
+                primaryActionLabel="Add Position"
                 onManageRelations={canManage ? () => openRelations(entity, "edit-relations") : undefined}
                 onAddParent={canManage ? () => openRelations(entity, "add-parent") : undefined}
                 onAddChild={canManage ? () => openRelations(entity, "add-child") : undefined}
@@ -349,8 +355,14 @@ export default function OrganizationDirectory({
           onSelect={(entity) => setViewRecord(entity)}
           onSaved={refresh}
           onDeleted={refresh}
+          onView={canManage ? () => openView(viewRecord) : undefined}
+          onViewTree={canManage ? () => openTree(viewRecord) : undefined}
           onEdit={canManage ? () => { setViewRecord(null); openEdit(viewRecord); } : undefined}
+          onPrimaryAction={canManage ? () => openAddPosition(viewRecord) : undefined}
+          primaryActionLabel="Add Position"
           onAddRelation={canManage ? () => openRelations(viewRecord, "add-parent") : undefined}
+          onAddParent={canManage ? () => openRelations(viewRecord, "add-parent") : undefined}
+          onAddChild={canManage ? () => openRelations(viewRecord, "add-child") : undefined}
           onEditRelations={canManage ? () => openRelations(viewRecord) : undefined}
           onManageRelations={canManage ? () => openRelations(viewRecord, "edit-relations") : undefined}
           onAddAddress={canManage ? () => openResource(viewRecord, "address") : undefined}
@@ -371,6 +383,15 @@ export default function OrganizationDirectory({
           childEntities={data.filter((item) => item.parent_id === relationRecord.id)}
           categories={categories}
           onCompleted={refresh}
+        />
+      )}
+
+      {canManage && (
+        <GovernancePositionSheet
+          open={positionOpen}
+          onOpenChange={(value) => { setPositionOpen(value); if (!value) setPositionOrganizationId(null); }}
+          defaultOrganizationId={positionOrganizationId}
+          onSaved={refresh}
         />
       )}
 

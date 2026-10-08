@@ -3,15 +3,14 @@ import { useRouter } from "next/router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import GovernanceAppointmentDialog from "@/components/governance/GovernanceAppointmentDialog";
-import GovernancePersonSheet from "@/components/governance/GovernancePersonSheet";
 import GovernancePositionSheet from "@/components/governance/GovernancePositionSheet";
+import GovernanceResourceDialogs from "@/components/governance/GovernanceResourceDialogs";
 import LoadingState from "@/components/ui/loading-state";
 import ErrorState from "@/components/ui/error-state";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import GovernancePositionTimeline from "@/components/governance/GovernancePositionTimeline";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { usePositionTimeline } from "@/hooks/governance/usePositionTimeline";
-import { getGovernanceLabel } from "@/utils/governance";
 import { supabase } from "@/lib/supabase/client";
 import { GovernanceActionDropdown } from "@/components/governance/GovernanceActionMenu";
 
@@ -30,7 +29,7 @@ export default function GovernancePositionPage() {
   const [appointmentOpen, setAppointmentOpen] = useState(false);
   const [appointmentRecord, setAppointmentRecord] = useState(null);
   const [editOpen, setEditOpen] = useState(false);
-  const [personSheetOpen, setPersonSheetOpen] = useState(false);
+  const [resourceOpen, setResourceOpen] = useState(null);
 
   const positionQuery = useQuery({
     queryKey: ["governance", "position", organizationSlug, positionSlug],
@@ -38,7 +37,7 @@ export default function GovernancePositionPage() {
     queryFn: async () => {
       const organizationResult = await supabase
         .from("governance")
-        .select("id,name,short_name,slug,type")
+        .select("id,name,short_name,slug,type,image_url")
         .eq("slug", organizationSlug)
         .maybeSingle();
       if (organizationResult.error) throw organizationResult.error;
@@ -46,14 +45,16 @@ export default function GovernancePositionPage() {
 
       const positionResult = await supabase
         .from("position")
-        .select("id,name,slug,description,image_url,appointing_organization_id,category_id,metadata")
+        .select("id,name,slug,description,image_url,appointing_organization_id,category_id,metadata,address,geography_id,geographies:geography_id(id,name,official_name,geography_type)")
         .eq("slug", positionSlug)
         .eq("appointing_organization_id", organizationResult.data.id)
         .maybeSingle();
       if (positionResult.error) throw positionResult.error;
       if (!positionResult.data) return null;
 
-      return { organization: organizationResult.data, position: positionResult.data };
+      const { data: links, error: linksError } = await supabase.from("link").select("id,url,title,sort_order").eq("position_id", positionResult.data.id).order("sort_order", { ascending: true });
+      if (linksError) throw linksError;
+      return { organization: organizationResult.data, position: positionResult.data, links: links || [] };
     },
   });
 
@@ -67,8 +68,8 @@ export default function GovernancePositionPage() {
     return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance?tab=positions" }, { label: "Not found" }]} backHref="/governance?tab=positions" /><main className="flex flex-1"><ErrorState className="w-full" title="Governance position not found" /></main></div>;
   }
 
-  const { organization, position } = positionQuery.data;
-  const timelinePosition = timelineQuery.data?.position || position;
+  const { organization, position, links } = positionQuery.data;
+  const timelinePosition = { ...(timelineQuery.data?.position || {}), ...position, links };
 
   const refresh = async () => {
     await Promise.all([
@@ -78,40 +79,26 @@ export default function GovernancePositionPage() {
     ]);
   };
 
-  const addPersonToPosition = async (person) => {
-    if (!person?.id) throw new Error("Person was created but no person ID was returned.");
-
-    const result = await supabase.rpc("upsert_organization", {
-      p_id: null,
-      p_governance_id: organization.id,
-      p_person_name: person.name,
-      p_person_governance_id: person.id,
-      p_position_name: position.name,
-      p_position_governance_id: position.id,
-      p_started_at: `2026-09-19T00:00:00Z`,
-      p_ended_at: null,
-      p_is_vacant: false,
-      p_is_primary: true,
-      p_reports_to_id: null,
-      p_notes: null,
-    });
-
-    if (result.error) throw result.error;
-    await refresh();
-  };
-
   return (
     <div className="flex min-h-dvh w-full flex-col">
       <GovernancePageHeader
-        items={[{ label: "Governance", href: "/governance?tab=positions" }, { label: getGovernanceLabel(organization), href: `/governance/${organization.slug}` }, { label: getGovernanceLabel(position) }]}
+        items={[{ label: "Governance", href: "/governance?tab=positions" }, { label: organization.name, href: `/governance/${organization.slug}` }, { label: position.name }]}
         backHref="/governance?tab=positions"
         actions={
           canManage ? (
             <GovernanceActionDropdown
               onEdit={() => setEditOpen(true)}
               editLabel="Edit Position"
-              onPrimaryAction={() => setPersonSheetOpen(true)}
+              onPrimaryAction={() => { setAppointmentRecord(null); setAppointmentOpen(true); }}
               primaryActionLabel="Add Person"
+              onAddAddress={() => setResourceOpen("address")}
+              onRemoveAddress={position.address ? async () => { const { error } = await supabase.from("position").update({ address: null }).eq("id", position.id); if (error) { const { toast } = await import("sonner"); toast.error(error.message); return; } await refresh(); } : undefined}
+              onManageLinks={() => setResourceOpen("links")}
+              onAddGeography={() => setResourceOpen("geography")}
+              onRemoveGeography={position.geography_id ? async () => { const { error } = await supabase.from("position").update({ geography_id: null }).eq("id", position.id); if (error) { const { toast } = await import("sonner"); toast.error(error.message); return; } await refresh(); } : undefined}
+              hasAddress={Boolean(position.address)}
+              hasLinks={Boolean(links.length)}
+              hasGeography={Boolean(position.geography_id)}
               className="h-8 w-8"
             />
           ) : null
@@ -128,21 +115,26 @@ export default function GovernancePositionPage() {
         />
       </main>
 
-      {canManage && (
-        <GovernancePositionSheet
-          open={editOpen}
-          onOpenChange={setEditOpen}
-          record={position}
-          defaultOrganizationId={organization.id}
+      {canManage && resourceOpen && (
+        <GovernanceResourceDialogs
+          entity={position}
+          entityType="position"
+          addressOpen={resourceOpen === "address"}
+          onAddressOpenChange={(value) => { if (!value) setResourceOpen(null); }}
+          geographyOpen={resourceOpen === "geography"}
+          onGeographyOpenChange={(value) => { if (!value) setResourceOpen(null); }}
+          linksOpen={resourceOpen === "links"}
+          onLinksOpenChange={(value) => { if (!value) setResourceOpen(null); }}
           onSaved={refresh}
         />
       )}
 
       {canManage && (
-        <GovernancePersonSheet
-          open={personSheetOpen}
-          onOpenChange={setPersonSheetOpen}
-          onSaved={addPersonToPosition}
+        <GovernancePositionSheet
+          open={editOpen}
+          onOpenChange={setEditOpen}
+          record={position}
+          onSaved={refresh}
         />
       )}
 
