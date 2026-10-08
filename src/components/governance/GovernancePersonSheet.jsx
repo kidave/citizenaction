@@ -334,6 +334,8 @@ export default function GovernancePersonSheet({ open, onOpenChange, record = nul
           onCancel={() => onOpenChange?.(false)}
           onSave={save}
           createLabel="Create person"
+          showAddress={false}
+          showGeography={false}
         />
       </SheetContent>
     </Sheet>
