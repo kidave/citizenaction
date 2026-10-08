@@ -61,7 +61,7 @@ with base as (
     current_role.person_name as current_holder_name,
     current_role.person_id as current_holder_id,
     current_role.started_at as current_holder_started_at,
-    current_role.organization_id as current_organization_id,
+    case when g.entity_type::text = 'position' then position_org.organization_id else current_role.organization_id end as current_organization_id,
     current_role.organization_name as current_organization_name
   from public.governance g
   left join public.governance parent_g on parent_g.id = g.parent_entity_id
