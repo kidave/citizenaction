@@ -4,7 +4,9 @@ alter table public.person
   add column if not exists hometown text,
   add column if not exists education text;
 
-create or replace function public.update_person(
+drop function if exists public.update_person(uuid,text,text,text,text,uuid,jsonb);
+
+create function public.update_person(
   p_person_id uuid,
   p_name text,
   p_biography text default null,
