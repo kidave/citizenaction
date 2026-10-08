@@ -8,7 +8,6 @@ import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectory
 import GovernancePositionSheet from "@/components/governance/GovernancePositionSheet";
 import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
-import GovernanceOrganizationSelector from "@/components/governance/GovernanceOrganizationSelector";
 import AddGeographyDialog from "@/components/geography/AddGeographyDialog";
 import { useGovernanceGeographyMutation } from "@/hooks/geography/useGovernanceGeography";
 import LoadingState from "@/components/ui/loading-state";
@@ -21,26 +20,19 @@ export default function PositionDirectory({
   selectedIds = [],
   selectedId = null,
   onSelect,
-  organizationId: controlledOrganizationId = null,
   canManage = false,
 }) {
   const [search, setSearch] = useState("");
-  const [organizationId, setOrganizationId] = useState(
-    controlledOrganizationId,
-  );
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [geographyRecord, setGeographyRecord] = useState(null);
   const queryClient = useQueryClient();
   const { deletePosition: removePosition } = useGovernanceCrud();
   const { removeGeography } = useGovernanceGeographyMutation();
-  const effectiveOrganizationId = controlledOrganizationId ?? organizationId;
-
 
   const query = useGovernanceDirectory({
     tab: "positions",
     search,
-    organizationId: effectiveOrganizationId,
     geographyId,
   });
   const data = Array.isArray(query.data) ? query.data : [];
@@ -85,18 +77,11 @@ export default function PositionDirectory({
 
           <Input
             className="h-9 pl-9"
-            placeholder="Search positions or organizations..."
+            placeholder="Search positions..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
         </div>
-
-        {/* Organization filter */}
-        <GovernanceOrganizationSelector
-          value={effectiveOrganizationId}
-          onValueChange={setOrganizationId}
-          className="min-w-0"
-        />
 
         {/* Add */}
         {canManage && (
@@ -158,7 +143,7 @@ export default function PositionDirectory({
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           record={editingRecord}
-          defaultOrganizationId={effectiveOrganizationId}
+          defaultOrganizationId={null}
           onSaved={() =>
             queryClient.invalidateQueries({
               queryKey: ["governance-directory"],
