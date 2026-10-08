@@ -66,6 +66,7 @@ export default function GovernanceDirectoryCard({
       onView={tab === "organizations" ? () => onView?.(entity) : undefined}
       onViewTree={tab === "organizations" ? () => onViewTree?.(entity) : undefined}
       onEdit={onEdit}
+      editLabel={editLabel}
       onManageRelations={onManageRelations}
       onAddParent={onAddParent}
       onAddChild={onAddChild}

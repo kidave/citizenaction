@@ -26,6 +26,9 @@ function emptyForm() {
   return {
     name: "",
     biography: "",
+    birthdate: "",
+    hometown: "",
+    education: "",
     imageUrl: "",
     profileUserId: "",
     imageSourceUrl: "",
@@ -94,7 +97,7 @@ export default function GovernancePersonSheet({
           ? supabase
               .from("person")
               .select(
-                "id,name,biography,website,image_url,profile_user_id,metadata",
+                "id,name,biography,website,image_url,profile_user_id,birthdate,hometown,education,metadata",
               )
               .eq("id", record.id)
               .single()
@@ -122,6 +125,9 @@ export default function GovernancePersonSheet({
           ? {
               name: person.name || "",
               biography: person.biography || "",
+              birthdate: person.birthdate ? String(person.birthdate).slice(0, 10) : "",
+              hometown: person.hometown || "",
+              education: person.education || "",
               imageUrl: person.image_url || "",
               profileUserId: person.profile_user_id || "",
               imageSourceUrl: "",
@@ -190,6 +196,9 @@ export default function GovernancePersonSheet({
         p_name: form.name.trim(),
         p_biography: form.biography.trim() || null,
         p_image_url: imported.imageUrl,
+        p_birthdate: form.birthdate || null,
+        p_hometown: form.hometown.trim() || null,
+        p_education: form.education.trim() || null,
         p_profile_user_id:
           form.profileUserId === "none" ? null : form.profileUserId || null,
         p_metadata: null,
@@ -223,6 +232,9 @@ export default function GovernancePersonSheet({
         p_name: form.name.trim(),
         p_biography: form.biography.trim() || null,
         p_image_url: form.imageUrl.trim() || null,
+        p_birthdate: form.birthdate || null,
+        p_hometown: form.hometown.trim() || null,
+        p_education: form.education.trim() || null,
         p_profile_user_id:
           form.profileUserId === "none" ? null : form.profileUserId || null,
         p_metadata: {},
@@ -266,6 +278,9 @@ export default function GovernancePersonSheet({
             p_name: form.name.trim(),
             p_biography: form.biography.trim() || null,
             p_image_url: publicUrl,
+            p_birthdate: form.birthdate || null,
+            p_hometown: form.hometown.trim() || null,
+            p_education: form.education.trim() || null,
             p_profile_user_id:
               form.profileUserId === "none" ? null : form.profileUserId || null,
             p_metadata: null,
@@ -292,6 +307,9 @@ export default function GovernancePersonSheet({
           p_name: form.name.trim(),
           p_biography: form.biography.trim() || null,
           p_image_url: imported.imageUrl,
+          p_birthdate: form.birthdate || null,
+          p_hometown: form.hometown.trim() || null,
+          p_education: form.education.trim() || null,
           p_profile_user_id:
             form.profileUserId === "none" ? null : form.profileUserId || null,
           p_metadata: null,
@@ -452,6 +470,22 @@ export default function GovernancePersonSheet({
                   rows={4}
                   disabled={busy}
                 />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="governance-person-birthdate">Birthdate</Label>
+                  <Input id="governance-person-birthdate" type="date" value={form.birthdate} onChange={(event) => setField("birthdate", event.target.value)} disabled={busy} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="governance-person-hometown">Hometown</Label>
+                  <Input id="governance-person-hometown" value={form.hometown} onChange={(event) => setField("hometown", event.target.value)} placeholder="Where they grew up" disabled={busy} />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="governance-person-education">Education</Label>
+                <Textarea id="governance-person-education" value={form.education} onChange={(event) => setField("education", event.target.value)} placeholder="Schools, colleges, degrees or other relevant education" rows={3} disabled={busy} />
               </div>
             </div>
           )}

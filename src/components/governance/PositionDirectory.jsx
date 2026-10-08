@@ -9,6 +9,8 @@ import GovernancePositionSheet from "@/components/governance/GovernancePositionS
 import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 import GovernanceOrganizationSelector from "@/components/governance/GovernanceOrganizationSelector";
+import AddGeographyDialog from "@/components/geography/AddGeographyDialog";
+import { useGovernanceGeographyMutation } from "@/hooks/geography/useGovernanceGeography";
 import LoadingState from "@/components/ui/loading-state";
 import EmptyState from "@/components/ui/empty-state";
 import ErrorState from "@/components/ui/error-state";
@@ -28,8 +30,10 @@ export default function PositionDirectory({
   );
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
+  const [geographyRecord, setGeographyRecord] = useState(null);
   const queryClient = useQueryClient();
   const { deletePosition: removePosition } = useGovernanceCrud();
+  const { removeGeography } = useGovernanceGeographyMutation();
   const effectiveOrganizationId = controlledOrganizationId ?? organizationId;
 
 
@@ -58,17 +62,30 @@ export default function PositionDirectory({
     setDialogOpen(true);
   };
 
+  const openGeography = (entity) => setGeographyRecord(entity);
+
+  const removePositionGeography = async (entity) => {
+    if (!entity?.id) return;
+    try {
+      await removeGeography({ governanceId: entity.id });
+      await queryClient.invalidateQueries({ queryKey: ["governance-directory"] });
+    } catch (error) {
+      const { toast } = await import("sonner");
+      toast.error(error?.message || "Unable to remove geography");
+    }
+  };
+
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_16rem_auto]">
+      <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_16rem_auto]">
         {/* Search */}
-        <div className="relative col-span-2 min-w-0 sm:col-span-1">
+        <div className="relative min-w-0">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
           <Input
             className="h-9 pl-9"
-            placeholder="Search positions..."
+            placeholder="Search positions or organizations..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -111,6 +128,9 @@ export default function PositionDirectory({
                 selected={selectedSet.has(entity.id)}
                 onSelect={onSelect}
                 onEdit={canManage ? () => openEdit(entity) : undefined}
+                onAddGeography={canManage ? () => openGeography(entity) : undefined}
+                onRemoveGeography={canManage && entity.geography_id ? () => removePositionGeography(entity) : undefined}
+                hasGeography={Boolean(entity.geography_id)}
                 onDelete={canManage ? () => removePosition(entity) : undefined}
               />
             ))}
@@ -118,6 +138,20 @@ export default function PositionDirectory({
         ) : (
           <EmptyState title="No positions found" description="Try another search or filter." />
         ))}
+
+      {canManage && geographyRecord && (
+        <AddGeographyDialog
+          open={Boolean(geographyRecord)}
+          onOpenChange={(value) => {
+            if (!value) setGeographyRecord(null);
+          }}
+          governanceId={geographyRecord.id}
+          entityName={geographyRecord.name}
+          onSaved={async () => {
+            await queryClient.invalidateQueries({ queryKey: ["governance-directory"] });
+          }}
+        />
+      )}
 
       {canManage && (
         <GovernancePositionSheet

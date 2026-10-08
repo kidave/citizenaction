@@ -18,7 +18,7 @@ function emptyForm() {
     name: "",
     description: "",
     responsibilities: "",
-    imageUrl: "",
+    qualifications: "",
     organizationId: "",
   };
 }
@@ -56,7 +56,7 @@ export default function GovernancePositionSheet({
         isEditing
           ? supabase
               .from("position")
-              .select("id,name,description,image_url,appointing_organization_id,metadata")
+              .select("id,name,description,appointing_organization_id,metadata")
               .eq("id", record.id)
               .single()
           : Promise.resolve({ data: null, error: null }),
@@ -83,7 +83,7 @@ export default function GovernancePositionSheet({
               name: position.name || "",
               description: position.description || "",
               responsibilities: position.metadata?.responsibilities || "",
-              imageUrl: position.image_url || "",
+              qualifications: position.metadata?.qualifications || "",
               organizationId: position.appointing_organization_id || "",
             }
           : {
@@ -125,16 +125,16 @@ export default function GovernancePositionSheet({
             p_position_id: record.id,
             p_name: form.name.trim(),
             p_description: form.description.trim() || null,
-            p_image_url: form.imageUrl.trim() || null,
+            p_image_url: null,
             p_appointing_organization_id: form.organizationId || null,
-            p_metadata: { responsibilities: form.responsibilities.trim() || null },
+            p_metadata: { responsibilities: form.responsibilities.trim() || null, qualifications: form.qualifications.trim() || null },
           }
         : {
             p_name: form.name.trim(),
             p_description: form.description.trim() || null,
-            p_image_url: form.imageUrl.trim() || null,
+            p_image_url: null,
             p_category_id: null,
-            p_metadata: { responsibilities: form.responsibilities.trim() || null },
+            p_metadata: { responsibilities: form.responsibilities.trim() || null, qualifications: form.qualifications.trim() || null },
             p_appointing_organization_id: form.organizationId || null,
           };
 
@@ -199,7 +199,12 @@ export default function GovernancePositionSheet({
               <Textarea value={form.responsibilities} onChange={(event) => setField("responsibilities", event.target.value)} placeholder="What are the main roles and responsibilities?" rows={4} disabled={loading} />
             </div>
 
+
+
             <div className="space-y-2">
+              <Label>Qualifications</Label>
+              <Textarea value={form.qualifications} onChange={(event) => setField("qualifications", event.target.value)} placeholder="Qualifications or eligibility requirements" rows={4} disabled={loading} />
+            </div>            <div className="space-y-2">
               <Label htmlFor="governance-position-description">Description</Label>
               <Textarea
                 id="governance-position-description"
@@ -211,17 +216,7 @@ export default function GovernancePositionSheet({
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="governance-position-image">Image URL</Label>
-              <Input
-                id="governance-position-image"
-                type="url"
-                value={form.imageUrl}
-                onChange={(event) => setField("imageUrl", event.target.value)}
-                placeholder="https://..."
-                disabled={loading}
-              />
-            </div>
+
           </div>
         )}
 
