@@ -42,7 +42,7 @@ with check (
   exists (
     select 1 from public.profile p
     where p.user_id = auth.uid()
-      and p.role = 'admin'
+      and p.role in ('admin', 'super_admin')
   )
 );
 
@@ -55,14 +55,14 @@ using (
   exists (
     select 1 from public.profile p
     where p.user_id = auth.uid()
-      and p.role = 'admin'
+      and p.role in ('admin', 'super_admin')
   )
 )
 with check (
   exists (
     select 1 from public.profile p
     where p.user_id = auth.uid()
-      and p.role = 'admin'
+      and p.role in ('admin', 'super_admin')
   )
 );
 
@@ -75,7 +75,7 @@ using (
   exists (
     select 1 from public.profile p
     where p.user_id = auth.uid()
-      and p.role = 'admin'
+      and p.role in ('admin', 'super_admin')
   )
 );
 
@@ -96,7 +96,7 @@ with check (
   and exists (
     select 1 from public.profile p
     where p.user_id = auth.uid()
-      and p.role = 'admin'
+      and p.role in ('admin', 'super_admin')
   )
 );
 
@@ -110,7 +110,7 @@ using (
   and exists (
     select 1 from public.profile p
     where p.user_id = auth.uid()
-      and p.role = 'admin'
+      and p.role in ('admin', 'super_admin')
   )
 )
 with check (
@@ -118,7 +118,7 @@ with check (
   and exists (
     select 1 from public.profile p
     where p.user_id = auth.uid()
-      and p.role = 'admin'
+      and p.role in ('admin', 'super_admin')
   )
 );
 
@@ -132,7 +132,7 @@ using (
   and exists (
     select 1 from public.profile p
     where p.user_id = auth.uid()
-      and p.role = 'admin'
+      and p.role in ('admin', 'super_admin')
   )
 );
 -- Ensure API roles can reach the table; RLS above remains the authorization boundary.
