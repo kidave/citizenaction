@@ -51,20 +51,22 @@ const title2 = "made simple.";
 const features = [
   {
     title: "Space",
-    animation: "/lottie/city.lottie",
+    media: "image",
+    slot: "space",
+    imageAlt: "People organizing local action together",
     description:
       "Bring people, discussions, meetings and projects together around a topic or place.",
   },
   {
     title: "Geography",
-    media: "image",
-    imageAlt: "Local geography and civic boundaries",
+    animation: "/lottie/location.lottie",
     description:
       "Connect civic work to the places it affects, from neighbourhoods to larger geographic areas.",
   },
   {
     title: "Governance",
     media: "image",
+    slot: "governance",
     imageAlt: "Public institutions and local governance",
     description:
       "Explore organizations, public institutions and the people and positions that make up local governance.",
@@ -77,8 +79,7 @@ const features = [
   },
   {
     title: "Contribution",
-    media: "image",
-    imageAlt: "People contributing to community projects",
+    animation: "/lottie/people.lottie",
     description:
       "Turn ideas, issues, updates, documents and discussions into a shared record of civic work.",
   },
@@ -118,7 +119,7 @@ function FeatureImage({ feature, asset, canEdit, uploading, onUpload }) {
             className="hidden"
             onChange={(event) => {
               const file = event.target.files?.[0];
-              if (file) onUpload(feature.title, file);
+              if (file) onUpload(feature.slot, file);
               event.target.value = "";
             }}
           />
@@ -127,15 +128,15 @@ function FeatureImage({ feature, asset, canEdit, uploading, onUpload }) {
             size="sm"
             variant="secondary"
             onClick={() => inputRef.current?.click()}
-            disabled={uploading === feature.title}
+            disabled={uploading === feature.slot}
             className="absolute bottom-2 right-2 h-8 gap-2 rounded-full px-3 text-xs shadow-md"
           >
-            {uploading === feature.title ? (
+            {uploading === feature.slot ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
               <Upload className="h-3.5 w-3.5" />
             )}
-            {uploading === feature.title ? "Uploading…" : asset?.public_url ? "Replace image" : "Upload image"}
+            {uploading === feature.slot ? "Uploading…" : asset?.public_url ? "Replace image" : "Upload image"}
           </Button>
         </>
       )}
@@ -180,7 +181,7 @@ export default function AboutPage() {
 
     setUploading(slot);
     const extension = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
-    const storagePath = `features/${slot.toLowerCase()}/${crypto.randomUUID()}.${extension}`;
+    const storagePath = `features/${slot}/${crypto.randomUUID()}.${extension}`;
     const previousAsset = assets[slot];
 
     try {
@@ -323,7 +324,7 @@ export default function AboutPage() {
                     {feature.media === "image" ? (
                       <FeatureImage
                         feature={feature}
-                        asset={assets[feature.title]}
+                        asset={assets[feature.slot]}
                         canEdit={canEdit}
                         uploading={uploading}
                         onUpload={handleUpload}
@@ -344,6 +345,77 @@ export default function AboutPage() {
                 </Card>
               </motion.div>
             ))}
+          </div>
+
+          <div className="mt-24">
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="mx-auto max-w-3xl text-center"
+            >
+              <span className="text-sm font-medium uppercase tracking-[0.16em] text-primary">
+                From concern to collective progress
+              </span>
+              <h3 className="mt-4 text-3xl tracking-tight md:text-5xl">
+                Local change is a story we build together.
+              </h3>
+              <p className="mt-5 text-base leading-relaxed text-muted-foreground md:text-lg">
+                Every effort starts with people who care about a place. Bring their perspectives together,
+                understand the local context, and make the work visible so others can participate and progress can last.
+              </p>
+            </motion.div>
+
+            <div className="mt-12 grid gap-6 md:grid-cols-3">
+              {[
+                {
+                  slot: "story_people",
+                  eyebrow: "01 / PEOPLE",
+                  title: "Start with people",
+                  description: "Neighbours, volunteers and community groups turn individual concerns into a shared purpose.",
+                  imageAlt: "Neighbours and community members working together",
+                },
+                {
+                  slot: "story_places",
+                  eyebrow: "02 / PLACE",
+                  title: "Understand the place",
+                  description: "Ground ideas in the streets, neighbourhoods and public spaces where change is needed.",
+                  imageAlt: "A neighbourhood and its public spaces",
+                },
+                {
+                  slot: "story_progress",
+                  eyebrow: "03 / PROGRESS",
+                  title: "Keep progress visible",
+                  description: "Collect updates, documents and decisions in one place so the next step is easier to take.",
+                  imageAlt: "A community project documenting its progress",
+                },
+              ].map((story, index) => (
+                <motion.article
+                  key={story.slot}
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: index * 0.06 }}
+                  className="overflow-hidden rounded-3xl border bg-background/80"
+                >
+                  <div className="h-56 p-3">
+                    <FeatureImage
+                      feature={story}
+                      asset={assets[story.slot]}
+                      canEdit={canEdit}
+                      uploading={uploading}
+                      onUpload={handleUpload}
+                    />
+                  </div>
+                  <div className="px-5 pb-6 pt-2">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">{story.eyebrow}</p>
+                    <h4 className="mt-2 text-xl font-semibold tracking-tight">{story.title}</h4>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{story.description}</p>
+                  </div>
+                </motion.article>
+              ))}
+            </div>
           </div>
         </div>
       </section>
