@@ -310,41 +310,60 @@ export default function AboutPage() {
             </h2>
           </motion.div>
 
-          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature, index) => (
-              <motion.div
+          <div className="mt-16 space-y-8">
+            {features.filter((feature) => feature.media === "image").map((feature, index) => (
+              <motion.article
                 key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: index * 0.05 }}
+                transition={{ duration: 0.45 }}
+                className={`grid items-center gap-8 overflow-hidden rounded-3xl border bg-background/80 p-4 md:grid-cols-2 md:gap-12 md:p-8 ${index % 2 === 1 ? "md:[&>*:first-child]:order-2" : ""}`}
               >
-                <Card className="h-full overflow-hidden rounded-3xl border bg-background/80 shadow-none transition-colors hover:bg-background">
-                  <div className="flex h-48 items-center justify-center px-6 pt-6">
-                    {feature.media === "image" ? (
-                      <FeatureImage
-                        feature={feature}
-                        asset={assets[feature.slot]}
-                        canEdit={canEdit}
-                        uploading={uploading}
-                        onUpload={handleUpload}
-                      />
-                    ) : (
-                      <DotLottieAnimation
-                        src={feature.animation}
-                        className="h-full min-h-0 w-full"
-                      />
-                    )}
-                  </div>
-                  <CardHeader className="pb-2">
-                    <CardTitle>{feature.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-sm leading-relaxed text-muted-foreground">
-                    {feature.description}
-                  </CardContent>
-                </Card>
-              </motion.div>
+                <div className="h-64 min-w-0 sm:h-80">
+                  <FeatureImage
+                    feature={feature}
+                    asset={assets[feature.slot]}
+                    canEdit={canEdit}
+                    uploading={uploading}
+                    onUpload={handleUpload}
+                  />
+                </div>
+                <div className="px-2 py-4 md:px-4 md:py-8">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Citizen Action / {String(index + 1).padStart(2, "0")}</p>
+                  <h3 className="mt-4 text-3xl font-semibold tracking-tight md:text-4xl">{feature.title}</h3>
+                  <p className="mt-4 max-w-lg text-base leading-relaxed text-muted-foreground md:text-lg">{feature.description}</p>
+                </div>
+              </motion.article>
             ))}
+          </div>
+
+          <div className="mt-20">
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">The toolkit</p>
+              <h3 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">Everything connected, in one place.</h3>
+              <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+                A few focused tools help turn local concerns into organized, lasting work.
+              </p>
+            </div>
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {features.filter((feature) => feature.animation).map((feature, index) => (
+                <motion.article
+                  key={feature.title}
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: index * 0.05 }}
+                  className="overflow-hidden rounded-2xl border bg-background/80 p-5"
+                >
+                  <div className="flex h-36 items-center justify-center rounded-xl bg-muted/40 p-3">
+                    <DotLottieAnimation src={feature.animation} className="h-full min-h-0 w-full" />
+                  </div>
+                  <h4 className="mt-5 text-lg font-semibold tracking-tight">{feature.title}</h4>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
+                </motion.article>
+              ))}
+            </div>
           </div>
 
           <div className="mt-24">
@@ -367,7 +386,7 @@ export default function AboutPage() {
               </p>
             </motion.div>
 
-            <div className="mt-12 grid gap-6 md:grid-cols-3">
+            <div className="mt-12 space-y-6">
               {[
                 {
                   slot: "story_people",
@@ -397,9 +416,9 @@ export default function AboutPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: index * 0.06 }}
-                  className="overflow-hidden rounded-3xl border bg-background/80"
+                  className={`grid items-center gap-6 overflow-hidden rounded-3xl border bg-background/80 p-3 md:grid-cols-2 md:gap-10 md:p-5 ${index % 2 === 1 ? "md:[&>*:first-child]:order-2" : ""}`}
                 >
-                  <div className="h-56 p-3">
+                  <div className="h-56 min-w-0 sm:h-72">
                     <FeatureImage
                       feature={story}
                       asset={assets[story.slot]}
@@ -408,10 +427,10 @@ export default function AboutPage() {
                       onUpload={handleUpload}
                     />
                   </div>
-                  <div className="px-5 pb-6 pt-2">
+                  <div className="px-3 py-5 md:px-6 md:py-8">
                     <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">{story.eyebrow}</p>
-                    <h4 className="mt-2 text-xl font-semibold tracking-tight">{story.title}</h4>
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{story.description}</p>
+                    <h4 className="mt-3 text-2xl font-semibold tracking-tight md:text-3xl">{story.title}</h4>
+                    <p className="mt-3 max-w-lg text-base leading-relaxed text-muted-foreground">{story.description}</p>
                   </div>
                 </motion.article>
               ))}
