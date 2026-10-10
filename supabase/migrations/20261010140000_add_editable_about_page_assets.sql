@@ -16,7 +16,7 @@ set public = excluded.public,
 
 create table if not exists public.about_page_assets (
   slot text primary key check (
-    slot in ('hero', 'people', 'places', 'governance', 'contributions', 'timeline')
+    slot in ('hero', 'people', 'places', 'governance', 'contributions', 'timeline', 'space', 'story_people', 'story_places', 'story_progress')
   ),
   storage_path text not null,
   public_url text not null,
