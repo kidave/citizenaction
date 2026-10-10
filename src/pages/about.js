@@ -122,11 +122,13 @@ function FeatureImage({ feature, asset, canEdit, uploading, onUpload }) {
               event.target.value = "";
             }}
           />
-          <button
+          <Button
             type="button"
+            size="sm"
+            variant="secondary"
             onClick={() => inputRef.current?.click()}
             disabled={uploading === feature.title}
-            className="absolute bottom-2 right-2 inline-flex items-center gap-2 rounded-full bg-background/95 px-3 py-2 text-xs font-medium text-foreground shadow-md transition hover:bg-background disabled:opacity-60"
+            className="absolute bottom-2 right-2 h-8 gap-2 rounded-full px-3 text-xs shadow-md"
           >
             {uploading === feature.title ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -134,7 +136,7 @@ function FeatureImage({ feature, asset, canEdit, uploading, onUpload }) {
               <Upload className="h-3.5 w-3.5" />
             )}
             {uploading === feature.title ? "Uploading…" : asset?.public_url ? "Replace image" : "Upload image"}
-          </button>
+          </Button>
         </>
       )}
     </div>
