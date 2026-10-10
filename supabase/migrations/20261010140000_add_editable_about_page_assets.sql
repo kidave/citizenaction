@@ -135,3 +135,7 @@ using (
       and p.role = 'admin'
   )
 );
+-- Ensure API roles can reach the table; RLS above remains the authorization boundary.
+grant select on public.about_page_assets to anon, authenticated;
+grant insert, update, delete on public.about_page_assets to authenticated;
+
