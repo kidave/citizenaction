@@ -91,8 +91,6 @@ const features = [
 ];
 
 const ABOUT_BUCKET = "about";
-const IMAGE_SLOTS = new Set(["Geography", "Governance", "Contribution"]);
-
 function FeatureImage({ feature, asset, canEdit, uploading, onUpload }) {
   const inputRef = useRef(null);
 
