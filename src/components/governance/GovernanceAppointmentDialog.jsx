@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BriefcaseBusiness, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
@@ -12,14 +12,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import ImageUpload from "@/components/ui/ImageUpload";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/lib/supabase/client";
 
-const CREATE_PERSON = "__create_person__";
 
 function today() {
   return new Date().toISOString().slice(0, 10);
@@ -37,7 +35,6 @@ export default function GovernanceAppointmentDialog({
 }) {
   const positionMode = mode === "position";
   const personMode = mode === "person";
-  const draftId = useId().replace(/:/g, "");
 
   const [organizations, setOrganizations] = useState([]);
   const [positions, setPositions] = useState([]);
@@ -49,15 +46,12 @@ export default function GovernanceAppointmentDialog({
     positionId || "",
   );
   const [selectedPersonId, setSelectedPersonId] = useState(personId || "");
-  const [newPersonName, setNewPersonName] = useState("");
-  const [newPersonImageUrl, setNewPersonImageUrl] = useState("");
   const [startedAt, setStartedAt] = useState(today());
   const [endedAt, setEndedAt] = useState("");
   const [isPrimary, setIsPrimary] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const creatingPerson = positionMode && selectedPersonId === CREATE_PERSON;
 
   useEffect(() => {
     if (!open) return;
@@ -67,8 +61,6 @@ export default function GovernanceAppointmentDialog({
     setSelectedOrganizationId(record?.organization_id || organizationId || "");
     setSelectedPositionId(record?.position_id || positionId || "");
     setSelectedPersonId(record?.person_id || personId || "");
-    setNewPersonName("");
-    setNewPersonImageUrl("");
     setStartedAt(
       record?.started_at ? String(record.started_at).slice(0, 10) : today(),
     );
@@ -150,18 +142,12 @@ export default function GovernanceAppointmentDialog({
   }, [positions, selectedOrganizationId]);
 
   const peopleOptions = useMemo(
-    () => [
-      {
-        value: CREATE_PERSON,
-        label: "Create new person",
-        searchValue: "create new person",
-      },
-      ...people.map((item) => ({
+    () =>
+      people.map((item) => ({
         value: item.id,
         label: item.name,
         searchValue: item.name,
       })),
-    ],
     [people],
   );
 
@@ -184,10 +170,8 @@ export default function GovernanceAppointmentDialog({
     if (!finalOrganizationId) return toast.error("Organization is required");
     if (!finalPositionId) return toast.error("Position is required");
     if (personMode && !personId) return toast.error("Person is required");
-    if (positionMode && !creatingPerson && !selectedPersonId)
-      return toast.error("Person is required");
-    if (creatingPerson && !newPersonName.trim())
-      return toast.error("Person name is required");
+    if (positionMode && !isEditing && !selectedPersonId)
+      return toast.error("Choose an existing person");
     if (!startedAt) return toast.error("Start date is required");
     if (endedAt && endedAt < startedAt)
       return toast.error("End date cannot be earlier than start date");
@@ -196,43 +180,25 @@ export default function GovernanceAppointmentDialog({
       setSaving(true);
 
       let result;
-      if (creatingPerson) {
-        result = await supabase.rpc("create_person_appointment", {
-          p_organization_id: finalOrganizationId,
-          p_position_id: finalPositionId,
-          p_started_at: `${startedAt}T00:00:00Z`,
-          p_name: newPersonName.trim(),
-          p_biography: null,
-          p_website: null,
-          p_image_url: newPersonImageUrl || null,
-          p_profile_user_id: null,
-          p_ended_at: endedAt ? `${endedAt}T23:59:59.999Z` : null,
-          p_is_primary: isPrimary,
-          p_notes: null,
-        });
-      } else {
-        const finalPersonId = personMode ? personId : selectedPersonId;
-        result = await supabase.rpc("upsert_organization", {
-          p_id: record?.appointment_id || record?.id || null,
-          p_governance_id: finalOrganizationId,
-          p_person_name: selectedPerson?.name || "",
-          p_person_governance_id: finalPersonId,
-          p_position_name: selectedPosition?.name || "Position",
-          p_position_governance_id: finalPositionId,
-          p_started_at: `${startedAt}T00:00:00Z`,
-          p_ended_at: endedAt ? `${endedAt}T23:59:59.999Z` : null,
-          p_is_vacant: false,
-          p_is_primary: isPrimary,
-          p_reports_to_id: null,
-          p_notes: null,
-        });
-      }
+      const finalPersonId = personMode ? personId : selectedPersonId || record?.person_id;
+      result = await supabase.rpc("upsert_organization", {
+        p_id: record?.appointment_id || record?.id || null,
+        p_governance_id: finalOrganizationId,
+        p_person_name: selectedPerson?.name || record?.person_name || "",
+        p_person_governance_id: finalPersonId,
+        p_position_name: selectedPosition?.name || record?.position_name || "Position",
+        p_position_governance_id: finalPositionId,
+        p_started_at: `${startedAt}T00:00:00Z`,
+        p_ended_at: endedAt ? `${endedAt}T23:59:59.999Z` : null,
+        p_is_vacant: false,
+        p_is_primary: isPrimary,
+        p_reports_to_id: record?.reports_to_appointment_id || record?.reports_to_id || null,
+        p_notes: record?.notes || null,
+      });
 
       if (result.error) throw result.error;
 
-      toast.success(
-        positionMode ? "Person added to position" : "Position added to person",
-      );
+      toast.success(isEditing ? "Appointment updated" : positionMode ? "Person added to position" : "Position added to person");
       await onSaved?.(result.data);
       onOpenChange?.(false);
     } catch (error) {
@@ -278,23 +244,23 @@ export default function GovernanceAppointmentDialog({
               {positionMode ? (
                 <div className="rounded-lg border bg-muted/30 p-3">
                   <div className="text-xs text-muted-foreground">Position</div>
-                  <div className="mt-1 text-sm font-medium">
-                    {selectedPosition?.name || "Position"}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {selectedOrganization?.name || "Organization"}
-                  </div>
+                  <div className="mt-1 text-sm font-medium">{selectedPosition?.name || record?.position_name || "Position"}</div>
+                  <div className="text-xs text-muted-foreground">{selectedOrganization?.name || "Organization"}</div>
+                  {(isEditing || selectedPerson) && (
+                    <div className="mt-2 border-t pt-2 text-sm text-muted-foreground">
+                      Person: {selectedPerson?.name || record?.person_name || "Current person"}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="rounded-lg border bg-muted/30 p-3">
                   <div className="text-xs text-muted-foreground">Person</div>
-                  <div className="mt-1 text-sm font-medium">
-                    {selectedPerson?.name || "Person"}
-                  </div>
+                  <div className="mt-1 text-sm font-medium">{selectedPerson?.name || record?.person_name || "Person"}</div>
+                  {isEditing && <div className="mt-2 border-t pt-2 text-sm text-muted-foreground">Position: {record?.position_name || selectedPosition?.name || "Current position"}</div>}
                 </div>
               )}
 
-              {personMode && (
+              {personMode && !isEditing && (
                 <div className="space-y-2">
                   <Label>Organization</Label>
                   <SearchableSelect
@@ -326,7 +292,7 @@ export default function GovernanceAppointmentDialog({
                   />
                 </div>
               )}
-              {positionMode && (
+              {positionMode && !isEditing && (
                 <div className="space-y-2">
                   <Label>Person</Label>
                   <SearchableSelect
@@ -341,33 +307,6 @@ export default function GovernanceAppointmentDialog({
                 </div>
               )}
 
-              {creatingPerson && (
-                <div className="space-y-4 rounded-lg border p-4">
-                  <div className="text-sm font-medium">New person</div>
-                  <ImageUpload
-                    bucket="governance"
-                    path={`governance/person/draft-${draftId}`}
-                    value={newPersonImageUrl || null}
-                    onChange={(value) => setNewPersonImageUrl(value || "")}
-                    label="Person image"
-                    helperText="PNG, JPG or WebP · up to 5 MB"
-                    disabled={saving}
-                  />
-                  <div className="space-y-2">
-                    <Label htmlFor="governance-appointment-new-person">
-                      Name
-                    </Label>
-                    <Input
-                      id="governance-appointment-new-person"
-                      value={newPersonName}
-                      onChange={(event) => setNewPersonName(event.target.value)}
-                      placeholder="e.g. Jane Doe"
-                      disabled={saving}
-                      autoFocus
-                    />
-                  </div>
-                </div>
-              )}
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
@@ -393,7 +332,7 @@ export default function GovernanceAppointmentDialog({
                 <div>
                   <div className="text-sm font-medium">Primary appointment</div>
                   <div className="text-xs text-muted-foreground">
-                    Use this for the person’s current or principal appointment.
+                    Mark this as the person’s principal appointment.
                   </div>
                 </div>
                 <Checkbox

@@ -1,10 +1,10 @@
 import { CalendarDays } from "lucide-react";
 import EmptyState from "@/components/ui/empty-state";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
 import { formatGovernanceDate, getGovernanceInitials, getGovernanceLabel } from "@/utils/governance";
+import GovernanceEntityLink from "@/components/governance/GovernanceEntityLink";
 
 export default function GovernancePositionTimeline({ position, organization, timeline = [], canManage = false, onEdit, onDeleted }) {
   const organizationLabel = getGovernanceLabel(organization);
@@ -16,7 +16,18 @@ export default function GovernancePositionTimeline({ position, organization, tim
         <h1 className="mt-1 flex flex-wrap items-baseline gap-x-2 text-2xl font-semibold tracking-tight">
           <span>{position?.name || "Position"}</span>
           {organizationLabel && (
-            <span className="text-base font-normal text-muted-foreground">· {organizationLabel}</span>
+            <span className="inline-flex items-center gap-2 text-base font-normal text-muted-foreground">
+              <span aria-hidden="true">·</span>
+              <GovernanceEntityLink
+                href={organization?.slug ? `/governance/${organization.slug}?view=organization` : null}
+                name={organizationLabel}
+                imageUrl={organization?.image_url}
+                kind="organization"
+                avatarClassName="h-7 w-7"
+                nameClassName="max-w-[min(55vw,28rem)]"
+                className="text-sm text-muted-foreground"
+              />
+            </span>
           )}
         </h1>
         {(position?.metadata?.qualifications || position?.metadata?.responsibilities || position?.description) && (
@@ -37,15 +48,39 @@ export default function GovernancePositionTimeline({ position, organization, tim
             return (
               <div key={item.appointment_id} className="relative pl-10 sm:pl-14">
                 <div className="absolute left-0 top-3 flex h-10 w-10 items-center justify-center rounded-full border bg-background sm:h-12 sm:w-12">
-                  <Avatar className="h-8 w-8 rounded-full sm:h-9 sm:w-9">
-                    <AvatarImage src={item.person_image_url || undefined} alt={personName} />
-                    <AvatarFallback>{getGovernanceInitials(personName)}</AvatarFallback>
-                  </Avatar>
+                  {item.person_slug && !item.is_vacant ? (
+                    <GovernanceEntityLink
+                      href={`/governance/person/${item.person_slug}`}
+                      name={personName}
+                      imageUrl={item.person_image_url}
+                      kind="person"
+                      showAvatar
+                      avatarClassName="h-8 w-8 rounded-full sm:h-9 sm:w-9"
+                      nameClassName="sr-only"
+                      className="rounded-full"
+                    />
+                  ) : (
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium sm:h-9 sm:w-9">
+                      {getGovernanceInitials(personName)}
+                    </span>
+                  )}
                 </div>
                 <Card>
                   <CardContent className="p-4 sm:p-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
-                      <p className="min-w-0 text-sm font-semibold">{personName}</p>
+                      {item.person_slug && !item.is_vacant ? (
+                        <GovernanceEntityLink
+                          href={`/governance/person/${item.person_slug}`}
+                          name={personName}
+                          imageUrl={item.person_image_url}
+                          kind="person"
+                          showAvatar={false}
+                          nameClassName="text-sm font-semibold"
+                          className="min-w-0"
+                        />
+                      ) : (
+                        <p className="min-w-0 text-sm font-semibold">{personName}</p>
+                      )}
                       <div className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
                         <CalendarDays className="h-3.5 w-3.5" />
                         <span>

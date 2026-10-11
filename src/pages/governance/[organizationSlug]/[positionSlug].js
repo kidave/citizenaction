@@ -108,8 +108,9 @@ export default function GovernancePositionPage() {
         actions={
           canManage ? (
             <div className="flex items-center gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => setEditOpen(true)}>Edit</Button>
-              <Button type="button" size="sm" onClick={() => setPersonSheetOpen(true)}>Add person</Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => { setAppointmentRecord(null); setAppointmentOpen(true); }}>Add existing person</Button>
+              <Button type="button" size="sm" onClick={() => setPersonSheetOpen(true)}>Create person & assign</Button>
+              <Button type="button" variant="ghost" size="sm" onClick={() => setEditOpen(true)}>Edit position</Button>
             </div>
           ) : null
         }
