@@ -38,7 +38,7 @@ export default function GovernancePositionPage() {
     queryFn: async () => {
       const organizationResult = await supabase
         .from("governance")
-        .select("id,name,short_name,slug,type")
+        .select("id,name,short_name,slug,type,image_url")
         .eq("slug", organizationSlug)
         .maybeSingle();
       if (organizationResult.error) throw organizationResult.error;
@@ -88,7 +88,7 @@ export default function GovernancePositionPage() {
       p_person_governance_id: person.id,
       p_position_name: position.name,
       p_position_governance_id: position.id,
-      p_started_at: `2026-09-19T00:00:00Z`,
+      p_started_at: `${new Date().toISOString().slice(0, 10)}T00:00:00Z`,
       p_ended_at: null,
       p_is_vacant: false,
       p_is_primary: true,
