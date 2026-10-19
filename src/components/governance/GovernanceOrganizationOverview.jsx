@@ -1,19 +1,19 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Building2, ChevronDown, ChevronRight, ExternalLink, GitBranch } from "lucide-react";
+import { Building2, ChevronDown, ChevronRight, ExternalLink, GitBranch, MoreHorizontal, Plus } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import LoadingState from "@/components/ui/loading-state";
 import ErrorState from "@/components/ui/error-state";
 import EmptyState from "@/components/ui/empty-state";
 import { formatGovernanceDate, getGovernanceInitials } from "@/utils/governance";
 import { useGovernanceOrganizationContext } from "@/hooks/governance/useGovernanceOrganizationContext";
-import PositionDirectory from "@/components/governance/PositionDirectory";
+import GovernanceCardActions from "@/components/governance/GovernanceCardActions";
 
 
 function OrganizationUnit({ node, childrenByParent, canEdit, onSelect, expandedPath, onToggle }) {
@@ -132,7 +132,7 @@ function ReportingNode({ node, childrenByParent, depth = 0 }) {
   );
 }
 
-export default function GovernanceOrganizationOverview({ governance, asOf, canEdit = false, onEdit, onViewTree }) {
+export default function GovernanceOrganizationOverview({ governance, asOf, canEdit = false, onEdit, onViewTree, onAddPosition, onManageRelations, onAddParent, onAddChild, onAddAddress, onRemoveAddress, onAddGeography, onRemoveGeography, onManageLinks, onDelete }) {
   const query = useGovernanceOrganizationContext({ governanceId: governance?.id, asOf });
   const organizations = query.data?.organizations || [];
   const appointments = query.data?.appointments || [];
@@ -234,26 +234,96 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
           </CardContent>
         </Card>
 
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="w-max max-w-full">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="positions">Positions</TabsTrigger>
-          </TabsList>
+        <section className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <Card>
+            <CardContent className="space-y-3 p-4">
+              <h2 className="text-sm font-semibold">Office and jurisdiction</h2>
+              {root.address ? (
+                <div className="rounded-md border p-3">
+                  <div className="text-xs text-muted-foreground">Office address</div>
+                  <p className="mt-1 text-sm">{root.address}</p>
+                </div>
+              ) : (
+                <EmptyState title="No office address" description={canEdit ? "Use the organization actions to add the office address." : "An office address has not been recorded."} />
+              )}
+              {root.geography_id ? (
+                <div className="rounded-md border p-3">
+                  <div className="text-xs text-muted-foreground">Jurisdiction</div>
+                  <p className="mt-1 text-sm">A jurisdiction boundary is linked to this organization.</p>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No jurisdiction boundary is linked yet.</p>
+              )}
+              <p className="text-xs text-muted-foreground">A map will be shown when the saved boundary and address coordinates are available.</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-sm font-semibold">Organization details</h2>
+                  <p className="mt-1 text-xs text-muted-foreground">Recorded organization information and reporting coverage.</p>
+                </div>
+                {canEdit && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button type="button" variant="outline" size="icon" className="h-8 w-8" onClick={() => onEdit?.(governance)} aria-label="Edit organization">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Organization actions</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
+              <dl className="grid grid-cols-2 gap-3 text-sm">
+                <div><dt className="text-xs text-muted-foreground">Units</dt><dd className="mt-1 font-medium">{unitCount}</dd></div>
+                <div><dt className="text-xs text-muted-foreground">Current positions</dt><dd className="mt-1 font-medium">{totalPositions}</dd></div>
+                <div><dt className="text-xs text-muted-foreground">Filled positions</dt><dd className="mt-1 font-medium">{filledPositions}</dd></div>
+                <div><dt className="text-xs text-muted-foreground">Reporting roots</dt><dd className="mt-1 font-medium">{reportingRoots.length}</dd></div>
+              </dl>
+            </CardContent>
+          </Card>
+        </section>
 
-          <TabsContent value="overview" className="space-y-3">
-            <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-              Office address and jurisdiction map will appear here when location data is available. Use the organization actions to add or update the address and geography.
-            </div>
-          </TabsContent>
-
-          <TabsContent value="positions" className="space-y-3">
+        <section className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-sm font-semibold">Current positions</h2>
-              <p className="mt-1 text-xs text-muted-foreground">Positions currently recorded for this organization.</p>
+              <h2 className="text-lg font-semibold">Current positions</h2>
+              <p className="text-sm text-muted-foreground">Roles and their current holders in this organization.</p>
             </div>
-            <PositionDirectory organizationId={governance?.id} canManage={canEdit} />
-          </TabsContent>
-        </Tabs>
+            {canEdit && (
+              <Button type="button" size="sm" onClick={() => onAddPosition?.(governance)}>
+                <Plus className="mr-2 h-4 w-4" />Add position
+              </Button>
+            )}
+          </div>
+          {appointments.length ? (
+            <div className="divide-y rounded-lg border">
+              {appointments.map((item) => {
+                const positionHref = item.position_slug && item.organization_slug ? `/governance/${item.organization_slug}/${item.position_slug}` : null;
+                const personHref = item.person_slug ? `/governance/person/${item.person_slug}` : null;
+                const vacant = item.is_vacant || !item.person_id;
+                return (
+                  <div key={item.appointment_id || item.position_id} className="flex min-w-0 items-center gap-3 p-3 sm:p-4">
+                    <Avatar className="h-10 w-10 shrink-0 rounded-lg">
+                      <AvatarImage src={vacant ? (root.image_url || undefined) : (item.person_avatar_url || undefined)} alt="" />
+                      <AvatarFallback className="rounded-lg">{getGovernanceInitials(vacant ? root.name : item.person_name)}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      {positionHref ? <Link href={positionHref} className="block truncate text-sm font-medium hover:underline">{item.position_name || "Position"}</Link> : <div className="truncate text-sm font-medium">{item.position_name || "Position"}</div>}
+                      {personHref && !vacant ? <Link href={personHref} className="block truncate text-sm text-muted-foreground hover:underline">{item.person_name}</Link> : <div className={`text-sm ${vacant ? "font-medium text-muted-foreground" : "text-muted-foreground"}`}>{vacant ? "Vacant — no current person assigned" : item.person_name || "No current person assigned"}</div>}
+                    </div>
+                    {item.started_at && <span className="hidden shrink-0 text-xs text-muted-foreground sm:inline">{formatGovernanceDate(item.started_at)}</span>}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <EmptyState title="No current positions" description={canEdit ? "Add the first position for this organization." : "No current positions have been recorded."} />
+          )}
+        </section>
       </div>
     </div>
   );
