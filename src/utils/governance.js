@@ -18,8 +18,6 @@ export const GOVERNANCE_TYPES = [
   "zone",
 ];
 
-export const GOVERNANCE_ENTITY_TYPES = GOVERNANCE_TYPES;
-
 export const GOVERNANCE_STATUS_OPTIONS = [
   ["active", "Active"],
   ["inactive", "Inactive"],
@@ -82,9 +80,7 @@ export function getGovernanceTreeLabel(entity) {
 export function formatGovernanceType(value) {
   const type = typeof value === "string" ? value : value?.type;
   if (!type) return "Governance";
-  return type
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
+  return type.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 export function formatGovernanceFilterType(value) {
