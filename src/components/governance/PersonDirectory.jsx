@@ -30,11 +30,7 @@ export default function PersonDirectory({
 
 
 
-  useEffect(() => {
-    if (createRequest?.tab !== "people" || !createRequest.token) return;
-    setEditingRecord(null);
-    setDialogOpen(true);
-  }, [createRequest?.token, createRequest?.tab]);
+
 
   const query = useGovernanceDirectory({
     tab: "people",
@@ -45,6 +41,12 @@ export default function PersonDirectory({
 
 
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (createRequest?.tab !== "people" || !createRequest.token) return;
+    setEditingRecord(null);
+    setDialogOpen(true);
+  }, [createRequest?.token, createRequest?.tab]);
 
   const data = (Array.isArray(query.data) ? query.data : []).filter((person) => !currentOnly || Boolean(person.current_organization_id));
   const selectedSet = useMemo(
