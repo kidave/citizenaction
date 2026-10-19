@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 
-import { Input } from "@/components/ui/input";
 import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectoryCard";
 import GovernancePositionSheet from "@/components/governance/GovernancePositionSheet";
 import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
