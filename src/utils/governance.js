@@ -26,7 +26,6 @@ export const GOVERNANCE_STATUS_OPTIONS = [
 
 export const GOVERNANCE_DIRECTORY_TABS = [
   ["organizations", "Organizations"],
-  ["positions", "Positions"],
   ["people", "People"],
 ];
 
