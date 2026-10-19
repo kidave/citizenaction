@@ -46,10 +46,7 @@ export default function GeographyFocusSelector({ value, onValueChange, className
 
   const isIndia = effectiveValue === DEFAULT_GEOGRAPHY_FOCUS_ID;
   const selectedLabel = selected?.name || (isIndia ? "India" : "");
-  const selectedType = selected?.geography_type
-    ? getGeographyTypeLabel(selected.geography_type)
-    : null;
-
+  
   const loadMore = () => {
     if (hasNextPage && !isFetchingNextPage) fetchNextPage();
   };
@@ -65,7 +62,7 @@ export default function GeographyFocusSelector({ value, onValueChange, className
   return (
     <Combobox
       items={groupedOptions}
-      value={selected || undefined}
+      value={isIndia ? undefined : selected || undefined}
       open={open}
       onOpenChange={setOpen}
       inputValue={search}
@@ -97,11 +94,7 @@ export default function GeographyFocusSelector({ value, onValueChange, className
               placeholder={selectedLabel || "Select geography"}
               className="block min-w-0 max-w-full truncate whitespace-nowrap font-serif text-xs font-normal sm:text-sm"
             />
-            {!isIndia && selectedType && (
-              <span className="block truncate whitespace-nowrap text-[11px] leading-3 text-muted-foreground">
-                {selectedType}
-              </span>
-            )}
+
           </span>
         </ComboboxTrigger>
 
