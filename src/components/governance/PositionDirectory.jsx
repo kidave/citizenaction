@@ -182,7 +182,7 @@ export default function PositionDirectory({
         />
       )}
 
-      {canManage && editingRecord && (
+      {canManage && (
         <GovernancePositionSheet
           open={dialogOpen}
           onOpenChange={setDialogOpen}
