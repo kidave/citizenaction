@@ -48,7 +48,7 @@ export default function PersonDirectory({
     setDialogOpen(true);
   }, [createRequest?.token, createRequest?.tab]);
 
-  const data = (Array.isArray(query.data) ? query.data : []).filter((person) => !currentOnly || Boolean(person.current_organization_id));
+  const data = (Array.isArray(query.data) ? query.data : []).filter((person) => !currentOnly || (organizationId ? person.current_organization_id === organizationId : Boolean(person.current_organization_id)));
   const selectedSet = useMemo(
     () =>
       new Set(
