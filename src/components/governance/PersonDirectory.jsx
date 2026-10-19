@@ -1,9 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Search } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectoryCard";
 import GovernancePersonSheet from "@/components/governance/GovernancePersonSheet";
 import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
