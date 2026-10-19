@@ -107,23 +107,6 @@ export default function PositionDirectory({
 
   return (
     <div className="space-y-4">
-      {externalSearch === undefined && (
-        <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-          {/* Search */}
-          <div className="relative min-w-0">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-  
-            <Input
-              className="h-9 pl-9"
-              placeholder="Search positions..."
-              value={search}
-              onChange={(event) => setInternalSearch(event.target.value)
-            />
-          </div>
-  
-        </div>
-      )}
-
       {query.isLoading && (
         <div className="flex min-h-[30vh] items-center justify-center">
           <LoadingState />
