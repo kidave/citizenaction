@@ -188,5 +188,6 @@ export default function GeographyFocusSelector({ value, onValueChange, className
           setSearch("");
         }}
       />
+    </Combobox>
   );
 }
