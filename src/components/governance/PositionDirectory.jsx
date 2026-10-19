@@ -189,6 +189,7 @@ export default function PositionDirectory({
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           record={editingRecord}
+          defaultOrganizationId={organizationId}
           onSaved={() =>
             queryClient.invalidateQueries({
               queryKey: ["governance-directory"],
