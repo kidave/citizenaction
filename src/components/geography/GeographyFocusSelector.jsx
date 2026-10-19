@@ -175,7 +175,6 @@ export default function GeographyFocusSelector({ value, onValueChange, className
           </div>
         )}
       </ComboboxContent>
-    </Combobox>
       <AddGeographyDialog
         open={mapOpen}
         onOpenChange={setMapOpen}
