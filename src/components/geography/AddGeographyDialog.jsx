@@ -10,7 +10,7 @@ import {
   MapPin,
   Search,
 } from "lucide-react";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -67,7 +67,7 @@ function getBrowseLabel(category, path) {
   return "Boundaries";
 }
 
-export default function AddGeographyDialog({ open, onOpenChange, governanceId = null, entityId = null, entityType = "governance", entityName, onSaved }) {
+export default function AddGeographyDialog({ open, onOpenChange, governanceId = null, entityId = null, entityType = "governance", entityName, onSaved, selectionOnly = false, value = null, onSelectBoundary, title: titleOverride }) {
   const targetId = entityId || governanceId;
   const [category, setCategory] = useState("administrative");
   const [type, setType] = useState("all");
@@ -79,9 +79,19 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
   const geometryRequestRef = useRef(0);
   const loadMoreRef = useRef(null);
 
-  const { data: relationships = [] } = useGovernanceGeography(targetId, open, entityType);
-  const currentGeography = relationships[0]?.geographies || null;
-  const currentGeographyId = relationships[0]?.geography_id || null;
+  const { data: relationships = [] } = useGovernanceGeography(targetId, open && !selectionOnly, entityType);
+  const { data: focusGeography = null } = useQuery({
+    queryKey: ["geography-focus-dialog-selection", value],
+    enabled: selectionOnly && Boolean(value),
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("geographies").select(FIELDS).eq("id", value).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const currentGeography = selectionOnly ? focusGeography : relationships[0]?.geographies || null;
+  const currentGeographyId = selectionOnly ? value : relationships[0]?.geography_id || null;
   const { setGeography, isSetting } = useGovernanceGeographyMutation();
 
   useEffect(() => {
@@ -240,6 +250,12 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
   const handleSave = async () => {
     if (!selected || selected.id === currentGeographyId) return;
 
+    if (selectionOnly) {
+      onSelectBoundary?.(selected);
+      onOpenChange?.(false);
+      return;
+    }
+
     try {
       await setGeography({ entityId: targetId, entityType, geographyId: selected.id });
       onSaved?.(selected);
@@ -307,8 +323,8 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="grid h-[90vh] w-[96vw] max-w-[1400px] grid-cols-1 grid-rows-[auto_minmax(0,1fr)_auto] gap-0 overflow-hidden p-0 md:grid-cols-[400px_minmax(0,1fr)]">
-        <aside className="row-span-3 flex min-h-0 flex-col border-b md:border-b-0 md:border-r">
+      <DialogContent className="grid h-[100dvh] w-screen max-w-none grid-cols-1 grid-rows-[minmax(0,1fr)_auto_minmax(8rem,0.55fr)_auto] gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:w-[96vw] sm:max-w-[1400px] sm:rounded-lg sm:grid-rows-[auto_minmax(0,1fr)_auto] md:grid-cols-[400px_minmax(0,1fr)]">
+        <aside className="row-span-1 flex min-h-0 flex-col border-b md:row-span-3 md:border-b-0 md:border-r">
           <div className="space-y-3 border-b p-4">
             <div className="grid grid-cols-3 rounded-md border bg-muted/30 p-0.5">
               {GEOGRAPHY_BOUNDARY_CATEGORIES.map((item) => (
@@ -463,10 +479,10 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
         <DialogHeader className="min-w-0 border-b px-5 py-4 pr-14 text-left">
           <DialogTitle className="text-lg">
-            {currentGeographyId ? "Change geography" : "Add geography"}
+            {titleOverride || (selectionOnly ? "Choose geographic focus" : currentGeographyId ? "Change geography" : "Add geography")}
           </DialogTitle>
           <DialogDescription className="truncate">
-            Choose the boundary associated with {entityName || "this entity"}.
+            {selectionOnly ? "Search or browse a boundary, preview it on the map, then apply it to the governance directory." : "Choose the boundary associated with " + (entityName || "this entity") + "."}
           </DialogDescription>
         </DialogHeader>
 
@@ -526,25 +542,16 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
               type="button"
               variant="outline"
               onClick={() => onOpenChange?.(false)}
-              disabled={isSetting}
+              disabled={!selectionOnly && isSetting}
             >
               Cancel
             </Button>
             <Button
               type="button"
               onClick={handleSave}
-              disabled={
-                isSetting ||
-                !selected ||
-                selected.id === currentGeographyId ||
-                loadingGeometry
-              }
+              disabled={(!selectionOnly && isSetting) || !selected || selected.id === currentGeographyId || loadingGeometry}
             >
-              {isSetting
-                ? "Saving..."
-                : currentGeographyId
-                  ? "Change geography"
-                  : "Add geography"}
+              {selectionOnly ? "Apply focus" : isSetting ? "Saving..." : currentGeographyId ? "Change geography" : "Add geography"}
             </Button>
           </div>
         </div>
