@@ -45,6 +45,7 @@ export function GovernanceActionMenuItems({
   onRemoveGeography,
   onDelete,
   editLabel = "Edit Organization",
+  entityLabel = "organization",
   hasAddress = false,
   hasLinks = false,
   hasGeography = false,
@@ -60,13 +61,13 @@ export function GovernanceActionMenuItems({
       {onView && (
         <MenuItem onSelect={(event) => run(onView, event)}>
           <ExternalLink className="mr-2 h-4 w-4" />
-          View Organization
+          {"View " + (entityLabel === "organization" ? "Organization" : entityLabel[0].toUpperCase() + entityLabel.slice(1))}
         </MenuItem>
       )}
       {onViewTree && (
         <MenuItem onSelect={(event) => run(onViewTree, event)}>
           <ExternalLink className="mr-2 h-4 w-4" />
-          View Organization Tree
+          {"View " + (entityLabel === "organization" ? "Organization" : entityLabel[0].toUpperCase() + entityLabel.slice(1)) + " Tree"}
         </MenuItem>
       )}
       {onEdit && (
@@ -288,6 +289,8 @@ export function GovernanceActionContextMenu({
             onView={onView}
             onViewTree={onViewTree}
             onEdit={onEdit}
+            editLabel={editLabel}
+            entityLabel={entityLabel}
             onPrimaryAction={onPrimaryAction}
             primaryActionLabel={primaryActionLabel}
             onManageRelations={onManageRelations}
