@@ -27,11 +27,7 @@ export default function PositionDirectory({
 }) {
   const [internalSearch, setInternalSearch] = useState("");
   const search = externalSearch ?? internalSearch;
-  useEffect(() => {
-    if (createRequest?.tab !== "positions" || !createRequest.token) return;
-    setEditingRecord(null);
-    setDialogOpen(true);
-  }, [createRequest?.token, createRequest?.tab]);
+
   const [editingRecord, setEditingRecord] = useState(null);
   const [geographyRecord, setGeographyRecord] = useState(null);
   const [resourceRecord, setResourceRecord] = useState(null);
@@ -42,6 +38,12 @@ export default function PositionDirectory({
   const { removeGeography } = useGovernanceGeographyMutation();
 
 
+
+  useEffect(() => {
+    if (createRequest?.tab !== "positions" || !createRequest.token) return;
+    setEditingRecord(null);
+    setDialogOpen(true);
+  }, [createRequest?.token, createRequest?.tab]);
 
   const query = useGovernanceDirectory({
     tab: "positions",
