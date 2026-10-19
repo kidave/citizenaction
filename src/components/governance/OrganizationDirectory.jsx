@@ -40,8 +40,6 @@ export default function OrganizationDirectory({
   const search = externalSearch ?? internalSearch;
   const type = externalType ?? internalType;
   const categoryId = externalCategoryId ?? internalCategoryId;
-
-  const [dialogOpen, setDialogOpen] = useState(false);
   useEffect(() => {
     if (createRequest?.tab !== "organizations" || !createRequest.token) return;
     setEditingRecord(null);
@@ -72,6 +70,10 @@ export default function OrganizationDirectory({
     categoryId,
     geographyId,
   });
+
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+
   const excluded = useMemo(() => new Set(excludeIds), [excludeIds]);
   const data = useMemo(
     () =>
