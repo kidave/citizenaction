@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, Search } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -19,20 +19,32 @@ export default function PersonDirectory({
   selectedId = null,
   onSelect,
   canManage = false,
+  search: externalSearch,
+  organizationId = null,
+  currentOnly = false,
+  createRequest = null,
 }) {
-  const [search, setSearch] = useState("");
+  const [internalSearch, setInternalSearch] = useState("");
+  const search = externalSearch ?? internalSearch;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const queryClient = useQueryClient();
   const { deletePerson: removePerson } = useGovernanceCrud();
+
+  useEffect(() => {
+    if (createRequest?.tab !== "people" || !createRequest.token) return;
+    setEditingRecord(null);
+    setDialogOpen(true);
+  }, [createRequest?.tab, createRequest?.token]);
 
 
   const query = useGovernanceDirectory({
     tab: "people",
     search,
     geographyId,
+    organizationId,
   });
-  const data = Array.isArray(query.data) ? query.data : [];
+  const data = (Array.isArray(query.data) ? query.data : []).filter((person) => !currentOnly || Boolean(person.current_organization_id));
   const selectedSet = useMemo(
     () =>
       new Set(
@@ -54,27 +66,29 @@ export default function PersonDirectory({
 
   return (
     <div className="space-y-4">
-      <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-        {/* Search */}
-        <div className="relative min-w-0">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-
-          <Input
-            className="h-9 pl-9"
-            placeholder="Search people..."
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
+      {externalSearch === undefined && (
+        <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+          {/* Search */}
+          <div className="relative min-w-0">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+  
+            <Input
+              className="h-9 pl-9"
+              placeholder="Search people..."
+              value={search}
+              onChange={(event) => setInternalSearch(event.target.value)
+            />
+          </div>
+  
+          {/* Add */}
+          {canManage && (
+            <Button type="button" className="h-9 shrink-0" onClick={openCreate}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add person
+            </Button>
+          )}
         </div>
-
-        {/* Add */}
-        {canManage && (
-          <Button type="button" className="h-9 shrink-0" onClick={openCreate}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add person
-          </Button>
-        )}
-      </div>
+      )}
 
       {query.isLoading && (
         <div className="flex min-h-[30vh] items-center justify-center">
