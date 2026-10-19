@@ -38,7 +38,13 @@ returns table(
 language sql stable
 set search_path = public
 as $$
-with base as (
+with recursive geography_scope(id) as (
+  select p_geography_id where p_geography_id is not null
+  union all
+  select child.id
+  from public.geographies child
+  join geography_scope parent_scope on child.parent_id = parent_scope.id
+), base as (
   select
     g.id,
     g.name,
@@ -108,7 +114,29 @@ with base as (
     )
     and (p_type is null or p_type = '' or p_type = 'all' or g.entity_type::text = p_type)
     and (p_category_id is null or g.category_id = p_category_id)
-    and (p_geography_id is null or g.geography_id = p_geography_id)
+    and (
+      p_geography_id is null
+      or g.geography_id in (select id from geography_scope)
+      or exists (
+        select 1
+        from public.position_appointment scoped_pa
+        join public.position scoped_pos on scoped_pos.id = scoped_pa.position_id
+        join public.governance scoped_org on scoped_org.id = scoped_pa.organization_governance_id
+        left join public.governance scoped_pos_g on scoped_pos_g.id = scoped_pos.governance_id
+        where (
+          (g.entity_type::text = 'person' and scoped_pa.person_id = g.id)
+          or (g.entity_type::text = 'position' and scoped_pos.governance_id = g.id)
+        )
+          and scoped_pa.is_vacant = false
+          and scoped_pa.started_at <= now()
+          and (scoped_pa.ended_at is null or scoped_pa.ended_at >= now())
+          and (
+            scoped_pos.geography_id in (select id from geography_scope)
+            or scoped_pos_g.geography_id in (select id from geography_scope)
+            or scoped_org.geography_id in (select id from geography_scope)
+          )
+      )
+    )
     and (
       p_organization_id is null
       or current_role.organization_id = p_organization_id
