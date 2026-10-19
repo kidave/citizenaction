@@ -59,11 +59,7 @@ export default function OrganizationDirectory({
   const [relationMode, setRelationMode] = useState("edit-relations");
 
 
-  useEffect(() => {
-    if (createRequest?.tab !== "organizations" || !createRequest.token) return;
-    setEditingRecord(null);
-    setDialogOpen(true);
-  }, [createRequest?.token, createRequest?.tab]);
+
 
   const query = useGovernanceDirectory({
     tab: "organizations",
@@ -75,6 +71,12 @@ export default function OrganizationDirectory({
 
 
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (createRequest?.tab !== "organizations" || !createRequest.token) return;
+    setEditingRecord(null);
+    setDialogOpen(true);
+  }, [createRequest?.token, createRequest?.tab]);
 
   const excluded = useMemo(() => new Set(excludeIds), [excludeIds]);
   const data = useMemo(
