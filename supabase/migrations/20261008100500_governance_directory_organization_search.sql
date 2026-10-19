@@ -139,7 +139,14 @@ with recursive geography_scope(id) as (
     )
     and (
       p_organization_id is null
-      or current_role.organization_id = p_organization_id
+      or (
+        g.entity_type::text = 'position'
+        and position_org.organization_id = p_organization_id
+      )
+      or (
+        g.entity_type::text <> 'position'
+        and current_role.organization_id = p_organization_id
+      )
     )
     and (
       nullif(trim(p_search), '') is null
