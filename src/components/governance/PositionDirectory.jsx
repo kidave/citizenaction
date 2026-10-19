@@ -27,8 +27,6 @@ export default function PositionDirectory({
 }) {
   const [internalSearch, setInternalSearch] = useState("");
   const search = externalSearch ?? internalSearch;
-
-  const [dialogOpen, setDialogOpen] = useState(false);
   useEffect(() => {
     if (createRequest?.tab !== "positions" || !createRequest.token) return;
     setEditingRecord(null);
@@ -51,6 +49,10 @@ export default function PositionDirectory({
     geographyId,
     organizationId,
   });
+
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+
   const data = Array.isArray(query.data) ? query.data : [];
   const resourceIds = useMemo(() => data.map((item) => item.id), [data]);
   const resourceQuery = useQuery({
