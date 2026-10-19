@@ -1,18 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
-import { Plus, Search } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase/client";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectoryCard";
 import GovernanceEntityModal from "@/components/governance/GovernanceEntityModal";
 import GovernanceRelationDialog from "@/components/governance/GovernanceRelationDialog";
@@ -26,11 +16,7 @@ import { useGovernanceCatalog } from "@/hooks/governance/useGovernanceCatalog";
 import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 import { useGovernanceGeographyMutation } from "@/hooks/geography/useGovernanceGeography";
-import {
-  GOVERNANCE_TYPES,
-  formatGovernanceFilterType,
-  getGovernanceRoute,
-} from "@/utils/governance";
+
 
 export default function OrganizationDirectory({
   geographyId = null,
