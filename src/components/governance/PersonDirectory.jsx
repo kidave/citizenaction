@@ -23,16 +23,17 @@ export default function PersonDirectory({
 }) {
   const [internalSearch, setInternalSearch] = useState("");
   const search = externalSearch ?? internalSearch;
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState(null);
-  const queryClient = useQueryClient();
-  const { deletePerson: removePerson } = useGovernanceCrud();
 
+  const [dialogOpen, setDialogOpen] = useState(false);
   useEffect(() => {
     if (createRequest?.tab !== "people" || !createRequest.token) return;
     setEditingRecord(null);
     setDialogOpen(true);
-  }, [createRequest?.tab, createRequest?.token]);
+  }, [createRequest?.token, createRequest?.tab]);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const queryClient = useQueryClient();
+  const { deletePerson: removePerson } = useGovernanceCrud();
+
 
 
   const query = useGovernanceDirectory({
