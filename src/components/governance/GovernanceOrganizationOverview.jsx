@@ -13,6 +13,7 @@ import ErrorState from "@/components/ui/error-state";
 import EmptyState from "@/components/ui/empty-state";
 import { formatGovernanceDate, getGovernanceInitials } from "@/utils/governance";
 import { useGovernanceOrganizationContext } from "@/hooks/governance/useGovernanceOrganizationContext";
+import PositionDirectory from "@/components/governance/PositionDirectory";
 
 
 function OrganizationUnit({ node, childrenByParent, canEdit, onSelect, expandedPath, onToggle }) {
@@ -219,7 +220,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                 <div className="mt-4 flex flex-wrap gap-2">
                   {root.website && <Button asChild variant="outline" size="sm"><a href={root.website} target="_blank" rel="noreferrer"><ExternalLink className="mr-2 h-4 w-4" />Website</a></Button>}
                   {onViewTree && <Button type="button" variant="outline" size="sm" onClick={onViewTree}><GitBranch className="mr-2 h-4 w-4" />View tree</Button>}
-                  {canEdit && <Button type="button" variant="outline" size="sm" onClick={onEdit}>Edit</Button>}
+                  
                 </div>
               </div>
             </div>
@@ -233,62 +234,16 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
           </CardContent>
         </Card>
 
-        <Tabs defaultValue="structure" className="space-y-4">
+        <Tabs defaultValue="overview" className="space-y-4">
           <TabsList className="w-max max-w-full">
-            <TabsTrigger value="structure">Structure</TabsTrigger>
-            <TabsTrigger value="reporting">Reporting</TabsTrigger>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="positions">Positions</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="structure" className="space-y-3">
-            <div>
-              <h2 className="text-sm font-semibold">Organization structure</h2>
-              <p className="mt-1 text-xs text-muted-foreground">Units and hierarchy within this organization.</p>
+          <TabsContent value="overview" className="space-y-3">
+            <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+              Office address and jurisdiction map will appear here when location data is available. Use the organization actions to add or update the address and geography.
             </div>
-            <OrganizationUnit
-              node={root}
-              childrenByParent={childrenByParent}
-              canEdit={canEdit}
-              onSelect={onEdit}
-              expandedPath={expandedPath}
-              onToggle={toggleOrganizationUnit}
-            />
-          </TabsContent>
-
-          <TabsContent value="reporting" className="space-y-3">
-            <div>
-              <h2 className="text-sm font-semibold">Reporting structure</h2>
-              <p className="mt-1 text-xs text-muted-foreground">Who reports to whom across the organization.</p>
-            </div>
-            {reportingRoots.length ? (
-              <div className="space-y-3">
-                {reportingRoots.map((item) => (
-                  <ReportingNode key={item.appointment_id} node={item} childrenByParent={appointmentsByParent} />
-                ))}
-              </div>
-            ) : (
-              <EmptyState className="min-h-0 rounded-lg border border-dashed p-8" title="No reporting relationships mapped" />
-            )}
-
-            {unmapped.length > 0 && (
-              <div className="pt-2">
-                <h3 className="mb-2 text-xs font-medium text-muted-foreground">Without a reporting link</h3>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {unmapped.map((item) => (
-                    <div key={item.appointment_id} className="flex items-center gap-3 rounded-lg border p-3">
-                      <Avatar className="h-9 w-9 rounded-lg">
-                        <AvatarImage src={item.person_avatar_url || item.position_avatar_url || undefined} alt="" />
-                        <AvatarFallback className="rounded-lg">{getGovernanceInitials(item.person_name || item.position_name)}</AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-medium">{item.position_name}</div>
-                        <div className="truncate text-xs text-muted-foreground">{item.organization_name}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </TabsContent>
 
           <TabsContent value="positions" className="space-y-3">
@@ -296,29 +251,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
               <h2 className="text-sm font-semibold">Current positions</h2>
               <p className="mt-1 text-xs text-muted-foreground">Positions currently recorded for this organization.</p>
             </div>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {appointments.map((item) => {
-                const href = item.position_slug && item.organization_slug ? `/governance/${item.organization_slug}/${item.position_slug}` : null;
-                return (
-                  <Card key={item.appointment_id} className="shadow-none">
-                    <CardContent className="p-3">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9 rounded-lg">
-                          <AvatarImage src={item.person_avatar_url || item.position_avatar_url || undefined} alt="" />
-                          <AvatarFallback className="rounded-lg">{getGovernanceInitials(item.person_name || item.position_name)}</AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0 flex-1">
-                          {href ? <Link href={href} className="block truncate text-sm font-medium hover:underline">{item.position_name}</Link> : <div className="truncate text-sm font-medium">{item.position_name}</div>}
-                          <div className="truncate text-xs text-muted-foreground">{item.person_name || (item.is_vacant ? "Vacant" : "Unassigned")}</div>
-                          <div className="truncate text-[11px] text-muted-foreground">{item.organization_name}</div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-              {!appointments.length && <EmptyState className="col-span-full min-h-0 rounded-lg border border-dashed p-8" title="No current positions mapped" />}
-            </div>
+            <PositionDirectory organizationId={governance?.id} canManage={canEdit} />
           </TabsContent>
         </Tabs>
       </div>
