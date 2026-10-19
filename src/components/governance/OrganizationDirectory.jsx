@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { Plus, Search } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -41,11 +41,18 @@ export default function OrganizationDirectory({
   excludeIds = [],
   onlyWithoutParent = false,
   canManage = false,
+  search: externalSearch,
+  type: externalType,
+  categoryId: externalCategoryId,
+  createRequest = null,
 }) {
   const router = useRouter();
-  const [search, setSearch] = useState("");
-  const [type, setType] = useState("all");
-  const [categoryId, setCategoryId] = useState("all");
+  const [internalSearch, setInternalSearch] = useState("");
+  const [internalType, setInternalType] = useState("all");
+  const [internalCategoryId, setInternalCategoryId] = useState("all");
+  const search = externalSearch ?? internalSearch;
+  const type = externalType ?? internalType;
+  const categoryId = externalCategoryId ?? internalCategoryId;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [positionOpen, setPositionOpen] = useState(false);
   const [positionOrganizationId, setPositionOrganizationId] = useState(null);
@@ -63,6 +70,12 @@ export default function OrganizationDirectory({
   const [relationRecord, setRelationRecord] = useState(null);
   const [relationOpen, setRelationOpen] = useState(false);
   const [relationMode, setRelationMode] = useState("edit-relations");
+
+  useEffect(() => {
+    if (createRequest?.tab !== "organizations" || !createRequest.token) return;
+    setEditingRecord(null);
+    setDialogOpen(true);
+  }, [createRequest?.tab, createRequest?.token]);
 
   const query = useGovernanceDirectory({
     tab: "organizations",
@@ -211,69 +224,71 @@ export default function OrganizationDirectory({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_10rem_12rem_auto]">
-        {/* Search */}
-        <div className="relative col-span-2 min-w-0 sm:col-span-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-
-          <Input
-            className="h-9 pl-9"
-            placeholder="Search organizations..."
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </div>
-
-        {/* Type */}
-        <Select value={type} onValueChange={setType}>
-          <SelectTrigger className="h-9 min-w-0">
-            <SelectValue placeholder="Type" />
-          </SelectTrigger>
-
-          <SelectContent>
-            <SelectItem value="all">All types</SelectItem>
-
-            {GOVERNANCE_TYPES.map((item) => (
-              <SelectItem key={item} value={item}>
-                {formatGovernanceFilterType(item)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* Category */}
-        <Select
-          value={categoryId}
-          onValueChange={setCategoryId}
-          disabled={categoriesLoading}
-        >
-          <SelectTrigger className="h-9 min-w-0">
-            <SelectValue placeholder="Category" />
-          </SelectTrigger>
-
-          <SelectContent>
-            <SelectItem value="all">All categories</SelectItem>
-
-            {categories.map((category) => (
-              <SelectItem key={category.id} value={category.id}>
-                {category.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* Add */}
-        {canManage && (
-          <Button
-            type="button"
-            className="h-9 shrink-0"
-            onClick={() => { setEditingRecord(null); setDialogOpen(true); }}
+      {externalSearch === undefined && (
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_10rem_12rem_auto]">
+          {/* Search */}
+          <div className="relative col-span-2 min-w-0 sm:col-span-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+  
+            <Input
+              className="h-9 pl-9"
+              placeholder="Search organizations..."
+              value={search}
+              onChange={(event) => setInternalSearch(event.target.value)
+            />
+          </div>
+  
+          {/* Type */}
+          <Select value={type} onValueChange={setInternalType}>
+            <SelectTrigger className="h-9 min-w-0">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+  
+            <SelectContent>
+              <SelectItem value="all">All types</SelectItem>
+  
+              {GOVERNANCE_TYPES.map((item) => (
+                <SelectItem key={item} value={item}>
+                  {formatGovernanceFilterType(item)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+  
+          {/* Category */}
+          <Select
+            value={categoryId}
+            onValueChange={setInternalCategoryId}
+            disabled={categoriesLoading}
           >
-            <Plus className="mr-2 h-4 w-4" />
-            Add organization
-          </Button>
-        )}
-      </div>
+            <SelectTrigger className="h-9 min-w-0">
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+  
+            <SelectContent>
+              <SelectItem value="all">All categories</SelectItem>
+  
+              {categories.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+  
+          {/* Add */}
+          {canManage && (
+            <Button
+              type="button"
+              className="h-9 shrink-0"
+              onClick={() => { setEditingRecord(null); setDialogOpen(true); }}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add organization
+            </Button>
+          )}
+        </div>
+      )}
 
       {query.isLoading && (
         <div className="flex min-h-[30vh] items-center justify-center">
