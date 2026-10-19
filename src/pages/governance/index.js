@@ -5,7 +5,6 @@ import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import GeographyFocusSelector from "@/components/geography/GeographyFocusSelector";
 import GovernanceDirectoryToolbar from "@/components/governance/GovernanceDirectoryToolbar";
 import OrganizationDirectory from "@/components/governance/OrganizationDirectory";
-import PositionDirectory from "@/components/governance/PositionDirectory";
 import PersonDirectory from "@/components/governance/PersonDirectory";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { GOVERNANCE_DIRECTORY_TABS } from "@/utils/governance";
@@ -99,7 +98,6 @@ export default function GovernancePage() {
           {tab === "organizations" && (
             <OrganizationDirectory {...directoryProps} search={search} type={organizationType} categoryId={categoryId} createRequest={createRequest} />
           )}
-          {tab === "positions" && <PositionDirectory {...directoryProps} search={search} organizationId={organizationId === "all" ? null : organizationId} createRequest={createRequest} />}
           {tab === "people" && <PersonDirectory {...directoryProps} search={search} organizationId={organizationId === "all" ? null : organizationId} currentOnly={currentOnly} createRequest={createRequest} />}
         </div>
       </main>
