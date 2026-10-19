@@ -284,6 +284,16 @@ export default function GovernanceRecordPage() {
             canEdit={canEdit}
             onEdit={editEntity}
             onViewTree={() => openTreePage(governance)}
+            onAddPosition={openAddPosition}
+            onManageRelations={(entity) => openRelation("edit-relations", entity)}
+            onAddParent={(entity) => openRelation("add-parent", entity)}
+            onAddChild={(entity) => openRelation("add-child", entity)}
+            onAddAddress={(entity) => openResource(entity, "address")}
+            onRemoveAddress={removeAddress}
+            onAddGeography={openGeography}
+            onRemoveGeography={removeEntityGeography}
+            onManageLinks={(entity) => openResource(entity, "links")}
+            onDelete={deleteEntity}
           />
         ) : (
           <GovernanceFamilyTree
