@@ -40,7 +40,13 @@ export default function OrganizationDirectory({
   const search = externalSearch ?? internalSearch;
   const type = externalType ?? internalType;
   const categoryId = externalCategoryId ?? internalCategoryId;
+
   const [dialogOpen, setDialogOpen] = useState(false);
+  useEffect(() => {
+    if (createRequest?.tab !== "organizations" || !createRequest.token) return;
+    setEditingRecord(null);
+    setDialogOpen(true);
+  }, [createRequest?.token, createRequest?.tab]);
   const [positionOpen, setPositionOpen] = useState(false);
   const [positionOrganizationId, setPositionOrganizationId] = useState(null);
   const { categories = [], isLoading: categoriesLoading } =
@@ -58,11 +64,6 @@ export default function OrganizationDirectory({
   const [relationOpen, setRelationOpen] = useState(false);
   const [relationMode, setRelationMode] = useState("edit-relations");
 
-  useEffect(() => {
-    if (createRequest?.tab !== "organizations" || !createRequest.token) return;
-    setEditingRecord(null);
-    setDialogOpen(true);
-  }, [createRequest?.tab, createRequest?.token]);
 
   const query = useGovernanceDirectory({
     tab: "organizations",
