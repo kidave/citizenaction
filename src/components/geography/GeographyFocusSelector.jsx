@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AddGeographyDialog from "@/components/geography/AddGeographyDialog";
 import { MapPinned, X } from "lucide-react";
 import { getGeographyCategoryLabel } from "@/config/geography/boundaryCategories";
 
@@ -26,6 +27,7 @@ import {
 export default function GeographyFocusSelector({ value, onValueChange, className }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [mapOpen, setMapOpen] = useState(false);
 
   const {
     effectiveValue,
@@ -82,6 +84,7 @@ export default function GeographyFocusSelector({ value, onValueChange, className
     >
       <div className="relative w-[min(16rem,calc(100vw-6rem))] min-w-0 sm:min-w-[12rem]">
         <ComboboxTrigger
+          onDoubleClick={() => setMapOpen(true)}
           className="inline-flex h-10 w-full min-w-0 items-center gap-1.5 rounded-md border border-input bg-background px-2 shadow-xs hover:bg-accent hover:text-accent-foreground sm:gap-2 sm:px-2.5"
           aria-label="Select geography"
         >
@@ -125,6 +128,9 @@ export default function GeographyFocusSelector({ value, onValueChange, className
           aria-label="Search geography boundary"
           className="h-9 rounded-md"
         />
+        <div className="px-3 py-2 text-xs text-muted-foreground">
+          <button type="button" className="underline underline-offset-4 hover:text-foreground" onClick={() => setMapOpen(true)}>Open map and hierarchy</button>
+        </div>
         <ComboboxEmpty>
           {error
             ? "Unable to search boundaries."
@@ -170,5 +176,18 @@ export default function GeographyFocusSelector({ value, onValueChange, className
         )}
       </ComboboxContent>
     </Combobox>
+      <AddGeographyDialog
+        open={mapOpen}
+        onOpenChange={setMapOpen}
+        selectionOnly
+        value={effectiveValue}
+        title="Choose geographic focus"
+        onSelectBoundary={(boundary) => {
+          const nextId = boundary?.id || null;
+          onValueChange?.(nextId === DEFAULT_GEOGRAPHY_FOCUS_ID ? null : nextId);
+          setMapOpen(false);
+          setSearch("");
+        }}
+      />
   );
 }
