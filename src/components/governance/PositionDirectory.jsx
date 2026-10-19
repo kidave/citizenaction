@@ -39,11 +39,7 @@ export default function PositionDirectory({
 
 
 
-  useEffect(() => {
-    if (createRequest?.tab !== "positions" || !createRequest.token) return;
-    setEditingRecord(null);
-    setDialogOpen(true);
-  }, [createRequest?.token, createRequest?.tab]);
+
 
   const query = useGovernanceDirectory({
     tab: "positions",
@@ -54,6 +50,12 @@ export default function PositionDirectory({
 
 
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (createRequest?.tab !== "positions" || !createRequest.token) return;
+    setEditingRecord(null);
+    setDialogOpen(true);
+  }, [createRequest?.token, createRequest?.tab]);
 
   const data = Array.isArray(query.data) ? query.data : [];
   const resourceIds = useMemo(() => data.map((item) => item.id), [data]);
