@@ -80,9 +80,9 @@ export default function GeographyFocusSelector({ value, onValueChange, className
       autoHighlight
       className={className}
     >
-      <div className="relative w-[min(16rem,calc(100vw-7rem))] min-w-[12rem]">
+      <div className="relative w-[min(16rem,calc(100vw-6rem))] min-w-0 sm:min-w-[12rem]">
         <ComboboxTrigger
-          className="inline-flex h-10 w-full items-center gap-2 rounded-md border border-input bg-background px-2.5 shadow-xs hover:bg-accent hover:text-accent-foreground"
+          className="inline-flex h-10 w-full min-w-0 items-center gap-1.5 rounded-md border border-input bg-background px-2 shadow-xs hover:bg-accent hover:text-accent-foreground sm:gap-2 sm:px-2.5"
           aria-label="Select geography"
         >
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground">
@@ -92,7 +92,7 @@ export default function GeographyFocusSelector({ value, onValueChange, className
           <span className="min-w-0 flex-1 overflow-hidden text-left">
             <ComboboxValue
               placeholder={selectedLabel || "Select geography"}
-              className="block min-w-0 max-w-full truncate whitespace-nowrap font-serif text-sm font-normal"
+              className="block min-w-0 max-w-full truncate whitespace-nowrap font-serif text-xs font-normal sm:text-sm"
             />
             {!isIndia && selectedType && (
               <span className="block truncate whitespace-nowrap text-[11px] leading-3 text-muted-foreground">
