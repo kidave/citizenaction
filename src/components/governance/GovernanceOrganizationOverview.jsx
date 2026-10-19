@@ -6,7 +6,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import LoadingState from "@/components/ui/loading-state";
 import ErrorState from "@/components/ui/error-state";
@@ -265,16 +264,29 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                   <p className="mt-1 text-xs text-muted-foreground">Recorded organization information and reporting coverage.</p>
                 </div>
                 {canEdit && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button type="button" variant="outline" size="icon" className="h-8 w-8" onClick={() => onEdit?.(governance)} aria-label="Edit organization">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Organization actions</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <GovernanceCardActions
+                    onView={() => onEdit?.(governance)}
+                    onViewTree={() => onViewTree?.()}
+                    onEdit={() => onEdit?.(governance)}
+                    onPrimaryAction={() => onAddPosition?.(governance)}
+                    primaryActionLabel="Add Position"
+                    onManageRelations={() => onManageRelations?.(governance)}
+                    onAddParent={() => onAddParent?.(governance)}
+                    onAddChild={() => onAddChild?.(governance)}
+                    onAddAddress={() => onAddAddress?.(governance)}
+                    onRemoveAddress={() => onRemoveAddress?.(governance)}
+                    onAddGeography={() => onAddGeography?.(governance)}
+                    onRemoveGeography={() => onRemoveGeography?.(governance)}
+                    onManageLinks={() => onManageLinks?.(governance)}
+                    onDelete={() => onDelete?.(governance)}
+                    hasAddress={Boolean(root.address)}
+                    hasGeography={Boolean(root.geography_id)}
+                    hasLinks={Boolean(root.hasLinks)}
+                  >
+                    <Button type="button" variant="outline" size="icon" className="h-8 w-8" aria-label="Organization actions">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </GovernanceCardActions>
                 )}
               </div>
               <dl className="grid grid-cols-2 gap-3 text-sm">
