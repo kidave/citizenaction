@@ -141,7 +141,7 @@ function ReportingNode({ node, childrenByParent, depth = 0 }) {
   );
 }
 
-export default function GovernanceOrganizationOverview({ governance, asOf, canEdit = false, onEdit, onViewTree, onAddPosition, onManageRelations, onAddParent, onAddChild, onAddAddress, onRemoveAddress, onAddGeography, onRemoveGeography, onManageLinks, onDelete }) {
+export default function GovernanceOrganizationOverview({ governance, asOf, canEdit = false, onEdit, onEditPosition, onViewTree, onAddPosition, onManageRelations, onAddParent, onAddChild, onAddAddress, onRemoveAddress, onAddGeography, onRemoveGeography, onManageLinks, onDelete }) {
   const query = useGovernanceOrganizationContext({ governanceId: governance?.id, asOf });
   const organizations = query.data?.organizations || [];
   const appointments = query.data?.appointments || [];
@@ -398,7 +398,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                           </TableCell>
                           <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">{vacant || !item.started_at ? "—" : formatGovernanceDate(item.started_at)}</TableCell>
                           <TableCell>
-                            {canEdit && item.appointment_id ? <GovernanceAppointmentDeleteButton appointmentId={item.appointment_id} personName={item.person_name} positionName={item.position_name} onEdit={() => { setAppointmentRecord(item); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} onDeleted={async () => { await query.refetch(); await positionsQuery.refetch(); }} /> : canEdit ? <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label={"Assign person to " + item.position_name} onClick={() => { setAppointmentRecord(null); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }}><Plus className="h-4 w-4" /></Button> : null}
+                            {canEdit && item.appointment_id ? <GovernanceAppointmentDeleteButton appointmentId={item.appointment_id} personName={item.person_name} positionName={item.position_name} onEditPosition={() => onEditPosition?.(item)} onEdit={() => { setAppointmentRecord(item); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} onDeleted={async () => { await query.refetch(); await positionsQuery.refetch(); }} /> : canEdit ? <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label={"Assign person to " + item.position_name} onClick={() => { setAppointmentRecord(null); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }}><Plus className="h-4 w-4" /></Button> : null}
                           </TableCell>
                         </TableRow>
                       );
