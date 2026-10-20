@@ -62,7 +62,7 @@ export default function GovernanceResourceDialogs({
     setLat(entityType === "appointment" ? (entity?.lat == null ? null : Number(entity.lat)) : (metadata.office_lat == null ? null : Number(metadata.office_lat)));
     setLng(entityType === "appointment" ? (entity?.lng == null ? null : Number(entity.lng)) : (metadata.office_lng == null ? null : Number(metadata.office_lng)));
     initialAddressRef.current = true;
-  }, [entity, entityType]);
+  }, [entity?.id, entity?.address, entity?.lat, entity?.lng, entity?.metadata?.office_lat, entity?.metadata?.office_lng, entityType]);
 
   useEffect(() => {
     if (!entity?.id || (!addressOpen && !geographyOpen && !linksOpen)) return undefined;
