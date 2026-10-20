@@ -51,7 +51,7 @@ function OrganizationUnit({ node, childrenByParent, canEdit, onSelect, expandedP
                 >
                   {node.name}
                 </Link>
-                {node.type && <Badge variant="secondary" className="text-[10px]">{node.type}</Badge>}
+                {node.type && }
               </div>
               <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                 <span>{node.position_count || 0} positions</span>
@@ -403,14 +403,6 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
         />
 
         <section className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { label: "Units", value: Math.max(0, unitCount - 1), Icon: Building2 },
-              { label: "Positions", value: totalPositions, Icon: BriefcaseBusiness },
-              { label: "Filled", value: filledPositions, Icon: UserCheck },
-              { label: "Vacant", value: vacantPositions, Icon: UserRoundX },
-            ].map(({ label, value, Icon }) => <Card key={label}><CardContent className="flex items-start justify-between gap-3 p-4"><div><p className="text-sm text-muted-foreground">{label}</p><p className="mt-2 text-2xl font-semibold tracking-tight">{value}</p></div><span className="rounded-lg bg-muted p-2 text-muted-foreground"><Icon className="h-4 w-4" /></span></CardContent></Card>)}
-          </div>
           <Card id="organization-map" className="overflow-hidden scroll-mt-24">
             <CardContent className="p-0">
               <div className="h-[320px] w-full sm:h-[360px]">
