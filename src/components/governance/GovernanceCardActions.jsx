@@ -76,7 +76,7 @@ export default function GovernanceCardActions({
           hasGeography={hasGeography}
           hasLinks={hasLinks}
           entityLabel={entityLabel}
-          className="absolute right-1 top-1 z-10 h-8 w-8 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+          className="absolute right-1 top-1 z-10 h-8 w-8 opacity-100 transition-opacity"
         />
       </div>
     </GovernanceActionContextMenu>
