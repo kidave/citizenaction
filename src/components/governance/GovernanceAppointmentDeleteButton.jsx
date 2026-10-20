@@ -43,11 +43,11 @@ export default function GovernanceAppointmentDeleteButton({ appointmentId, perso
           {onEditPosition && <DropdownMenuItem onSelect={() => onEditPosition()}><Pencil className="h-4 w-4" />Edit position</DropdownMenuItem>}
           <DropdownMenuItem onSelect={() => onEdit?.()}>
             <Pencil className="h-4 w-4" />
-            Edit
+            Edit appointment
           </DropdownMenuItem>
           <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={() => setConfirmOpen(true)}>
             <Trash2 className="h-4 w-4" />
-            Delete
+            Delete appointment
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
