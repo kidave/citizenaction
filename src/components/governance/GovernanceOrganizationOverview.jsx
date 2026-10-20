@@ -383,10 +383,12 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                           <TableCell className="max-w-[280px]">
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                {positionHref ? <Link href={positionHref} className="block truncate font-medium hover:underline">{item.position_name || "Position"}</Link> : <span className="block truncate font-medium">{item.position_name || "Position"}</span>}
-                                {item.address && <div className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground"><MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{item.address}</span></div>}
-                                {item.metadata?.official_phone && <div className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground"><Phone className="h-3 w-3 shrink-0" /><a href={"tel:" + item.metadata.official_phone} className="truncate hover:underline">{item.metadata.official_phone}</a></div>}
-                                {item.metadata?.official_email && <div className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground"><Mail className="h-3 w-3 shrink-0" /><a href={"mailto:" + item.metadata.official_email} className="truncate hover:underline">{item.metadata.official_email}</a></div>}
+                                <div className="min-w-0">
+                                  {positionHref ? <Link href={positionHref} className="block truncate font-medium hover:underline">{item.position_name || "Position"}</Link> : <span className="block truncate font-medium">{item.position_name || "Position"}</span>}
+                                  {item.address && <div className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground"><MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{item.address}</span></div>}
+                                  {item.metadata?.official_phone && <div className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground"><Phone className="h-3 w-3 shrink-0" /><a href={"tel:" + item.metadata.official_phone} className="truncate hover:underline">{item.metadata.official_phone}</a></div>}
+                                  {item.metadata?.official_email && <div className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground"><Mail className="h-3 w-3 shrink-0" /><a href={"mailto:" + item.metadata.official_email} className="truncate hover:underline">{item.metadata.official_email}</a></div>}
+                                </div>
                               </TooltipTrigger>
                               <TooltipContent>{item.position_name || "Position"}</TooltipContent>
                             </Tooltip>
