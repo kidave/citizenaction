@@ -21,6 +21,8 @@ function emptyForm() {
     description: "",
     responsibilities: "",
     qualifications: "",
+    officialPhone: "",
+    officialEmail: "",
     organizationId: "",
     reportsToPositionId: "",
   };
@@ -114,6 +116,8 @@ export default function GovernancePositionSheet({
               description: position.description || "",
               responsibilities: position.metadata?.responsibilities || "",
               qualifications: position.metadata?.qualifications || "",
+              officialPhone: position.metadata?.official_phone || "",
+              officialEmail: position.metadata?.official_email || "",
               organizationId: position.appointing_organization_id || "",
               reportsToPositionId: position.reports_to_position_id || "",
             }
@@ -148,7 +152,7 @@ export default function GovernancePositionSheet({
             p_description: form.description.trim() || null,
             p_image_url: null,
             p_reports_to_position_id: form.reportsToPositionId || null,
-            p_metadata: { responsibilities: form.responsibilities.trim() || null, qualifications: form.qualifications.trim() || null },
+            p_metadata: { responsibilities: form.responsibilities.trim() || null, qualifications: form.qualifications.trim() || null, official_phone: form.officialPhone.trim() || null, official_email: form.officialEmail.trim() || null },
           }
         : {
             p_name: form.name.trim(),
@@ -227,6 +231,15 @@ export default function GovernancePositionSheet({
                 emptyText="No other positions in this organization."
                 disabled={loading}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="governance-position-official-phone">Official office phone</Label>
+              <Input id="governance-position-official-phone" type="tel" value={form.officialPhone} onChange={(event) => setField("officialPhone", event.target.value)} placeholder="Office contact number" disabled={loading} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="governance-position-official-email">Official office email</Label>
+              <Input id="governance-position-official-email" type="email" value={form.officialEmail} onChange={(event) => setField("officialEmail", event.target.value)} placeholder="office@example.gov" disabled={loading} />
             </div>
 
             <div className="space-y-2">
