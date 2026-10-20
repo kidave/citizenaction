@@ -59,8 +59,8 @@ export default function GovernanceResourceDialogs({
   useEffect(() => {
     const metadata = entity?.metadata || {};
     setAddress(entity?.address || "");
-    setLat(entityType === "appointment" ? (entity?.lat == null ? null : Number(entity.lat)) : (metadata.office_lat == null ? null : Number(metadata.office_lat)));
-    setLng(entityType === "appointment" ? (entity?.lng == null ? null : Number(entity.lng)) : (metadata.office_lng == null ? null : Number(metadata.office_lng)));
+    setLat(entity?.lat != null ? Number(entity.lat) : (metadata.office_lat == null ? null : Number(metadata.office_lat)));
+    setLng(entity?.lng != null ? Number(entity.lng) : (metadata.office_lng == null ? null : Number(metadata.office_lng)));
     initialAddressRef.current = true;
   }, [entity?.id, entity?.address, entity?.lat, entity?.lng, entity?.metadata?.office_lat, entity?.metadata?.office_lng, entityType]);
 
@@ -70,15 +70,15 @@ export default function GovernanceResourceDialogs({
     let cancelled = false;
     supabase
       .from(config.table)
-      .select(config.supportsGeography ? (entityType === "appointment" ? "id,address,metadata,geography_id,lat,lng" : "id,address,metadata,geography_id") : "id,address,metadata")
+      .select(config.supportsGeography ? "id,address,metadata,geography_id,lat,lng" : "id,address,metadata")
       .eq("id", entity.id)
       .maybeSingle()
       .then(({ data, error }) => {
         if (cancelled || error || !data) return;
         const metadata = data.metadata || {};
         setAddress(data.address || "");
-        setLat(entityType === "appointment" ? (data.lat == null ? null : Number(data.lat)) : (metadata.office_lat == null ? null : Number(metadata.office_lat)));
-        setLng(entityType === "appointment" ? (data.lng == null ? null : Number(data.lng)) : (metadata.office_lng == null ? null : Number(metadata.office_lng)));
+        setLat(data.lat != null ? Number(data.lat) : (metadata.office_lat == null ? null : Number(metadata.office_lat)));
+        setLng(data.lng != null ? Number(data.lng) : (metadata.office_lng == null ? null : Number(metadata.office_lng)));
       });
 
     return () => {
@@ -103,6 +103,11 @@ export default function GovernanceResourceDialogs({
           ? { p_appointment_id: entity.id, p_address: address || null, p_lat: lat ?? null, p_lng: lng ?? null }
           : { p_governance_id: entity.id, p_address: address || null, p_lat: lat ?? null, p_lng: lng ?? null };
         ({ error } = await supabase.rpc(config.addressRpc, rpcArgs));
+      } else if (entityType === "position") {
+        ({ error } = await supabase
+          .from("position")
+          .update({ address: address || null, lat: lat ?? null, lng: lng ?? null })
+          .eq("id", entity.id));
       } else {
         const { data: current, error: readError } = await supabase
           .from(config.table)
@@ -113,18 +118,11 @@ export default function GovernanceResourceDialogs({
         if (readError) {
           error = readError;
         } else {
-          if (entityType === "appointment") {
-            ({ error } = await supabase
-              .from(config.table)
-              .update({ address: address || null, lat: lat ?? null, lng: lng ?? null })
-              .eq("id", entity.id));
-          } else {
-            const metadata = { ...(current?.metadata || {}), office_lat: lat ?? null, office_lng: lng ?? null };
-            ({ error } = await supabase
-              .from(config.table)
-              .update({ address: address || null, metadata })
-              .eq("id", entity.id));
-          }
+          const metadata = { ...(current?.metadata || {}), office_lat: lat ?? null, office_lng: lng ?? null };
+          ({ error } = await supabase
+            .from(config.table)
+            .update({ address: address || null, metadata })
+            .eq("id", entity.id));
         }
       }
 
