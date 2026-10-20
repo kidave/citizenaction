@@ -460,8 +460,6 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                               <TooltipTrigger asChild>
                                 <div className="min-w-0">
                                   {positionHref ? <Link href={positionHref} className="block truncate font-medium hover:underline">{item.position_name || "Position"}</Link> : <span className="block truncate font-medium">{item.position_name || "Position"}</span>}
-                                  {item.metadata?.official_phone && <div className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground"><Phone className="h-3 w-3 shrink-0" /><a href={"tel:" + item.metadata.official_phone} className="truncate hover:underline">{item.metadata.official_phone}</a></div>}
-                                  {item.metadata?.official_email && <div className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground"><Mail className="h-3 w-3 shrink-0" /><a href={"mailto:" + item.metadata.official_email} className="truncate hover:underline">{item.metadata.official_email}</a></div>}
                                 </div>
                               </TooltipTrigger>
                               <TooltipContent>{item.position_name || "Position"}</TooltipContent>
@@ -487,11 +485,11 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                           <TableCell className="hidden max-w-[190px] lg:table-cell">
                             {(item.official_email || item.metadata?.official_email || item.position_metadata?.official_email || item.position_official_email) ? <a className="flex items-center gap-2 truncate text-sm text-muted-foreground hover:underline" href={`mailto:${item.official_email || item.metadata?.official_email || item.position_metadata?.official_email || item.position_official_email}`}><Mail className="h-4 w-4 shrink-0" /><span className="truncate">{item.official_email || item.metadata?.official_email || item.position_metadata?.official_email || item.position_official_email}</span></a> : <span className="text-sm text-muted-foreground">—</span>}
                           </TableCell>
-                          <TableCell className="hidden max-w-[220px] md:table-cell">
-                            {item.address ? <div title={item.address} className="flex items-center gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4 shrink-0" /><span className="truncate">{item.address}</span></div> : <span className="text-sm text-muted-foreground">—</span>}
+                          <TableCell className="hidden md:table-cell">
+                            {item.address ? <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.address)}`} target="_blank" rel="noreferrer" aria-label={`Open address for ${item.position_name || "position"} in Google Maps`} title="Open address in Google Maps" className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"><MapPin className="h-4 w-4" /></a> : <span className="text-sm text-muted-foreground">—</span>}
                           </TableCell>
                           <TableCell className="hidden max-w-[190px] xl:table-cell">
-                            {(item.geographies?.official_name || item.geographies?.name) ? <div title={item.geographies.official_name || item.geographies.name} className="flex items-center gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4 shrink-0" /><span className="truncate">{item.geographies.official_name || item.geographies.name}</span></div> : <span className="text-sm text-muted-foreground">—</span>}
+                            {(item.geographies?.official_name || item.geographies?.name) ? <button type="button" title="View or edit geography boundary" onClick={() => { setAppointmentLocationRecord(item); setAppointmentGeographyOpen(true); }} className="max-w-full truncate text-left text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">{item.geographies.official_name || item.geographies.name}</button> : <span className="text-sm text-muted-foreground">—</span>}
                           </TableCell>
                           <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">{vacant || !item.started_at ? "—" : formatGovernanceDate(item.started_at)}</TableCell>
                           <TableCell>
