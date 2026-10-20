@@ -191,7 +191,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
     queryKey: ["governance-organization-map", governance?.id],
     enabled: Boolean(governance?.id),
     queryFn: async () => {
-      const { data, error } = await supabase.from("governance").select("id,address,lat,lng,geom,geography_id,metadata,geographies(name,official_name)").eq("id", governance.id).maybeSingle();
+      const { data, error } = await supabase.from("governance").select("id,address,lat,lng,geom,geography_id,metadata,email,phone,geographies(name,official_name)").eq("id", governance.id).maybeSingle();
       if (error) throw error;
       return data || {};
     },
