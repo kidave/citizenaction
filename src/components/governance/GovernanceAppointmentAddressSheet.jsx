@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { MapPin } from "lucide-react";
 
@@ -23,12 +24,21 @@ export default function GovernanceAppointmentAddressSheet({
   const [lat, setLat] = useState(null);
   const [lng, setLng] = useState(null);
   const [saving, setSaving] = useState(false);
+  const { data: boundary = null } = useQuery({
+    queryKey: ["appointment-address-map-boundary", appointment?.geography_id],
+    enabled: open && Boolean(appointment?.geography_id),
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_geography_geometry", { p_geography_id: appointment.geography_id });
+      if (error) throw error;
+      return data?.type === "Feature" ? data.geometry : data?.geometry || data || null;
+    },
+  });
 
   useEffect(() => {
     if (!open) return;
     setAddress(appointment?.address || "");
-    setLat(Number.isFinite(Number(appointment?.lat)) ? Number(appointment.lat) : null);
-    setLng(Number.isFinite(Number(appointment?.lng)) ? Number(appointment.lng) : null);
+    setLat(appointment?.lat != null && Number.isFinite(Number(appointment.lat)) ? Number(appointment.lat) : null);
+    setLng(appointment?.lng != null && Number.isFinite(Number(appointment.lng)) ? Number(appointment.lng) : null);
   }, [open, appointment?.appointment_id, appointment?.id]);
 
   const save = async () => {
@@ -82,6 +92,7 @@ export default function GovernanceAppointmentAddressSheet({
                 zoom={Number.isFinite(lat) && Number.isFinite(lng) ? 16 : 11}
                 showMarker={Number.isFinite(lat) && Number.isFinite(lng)}
                 markers={[]}
+                boundary={boundary}
                 onChange={(nextLat, nextLng) => { setLat(nextLat); setLng(nextLng); }}
               />
             </div>
