@@ -282,38 +282,67 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
         <section className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold">Current positions</h2>
-              <p className="text-sm text-muted-foreground">Roles and their current holders in this organization.</p>
+              <h2 className="text-lg font-semibold">Positions</h2>
+              <p className="text-sm text-muted-foreground">Only positions belonging directly to this organization.</p>
             </div>
-            {canEdit && (
-              <Button type="button" size="sm" onClick={() => onAddPosition?.(governance)}>
-                <Plus className="mr-2 h-4 w-4" />Add position
-              </Button>
-            )}
+            {canEdit && <Button type="button" size="sm" onClick={() => onAddPosition?.(governance)}><Plus className="mr-2 h-4 w-4" />Add position</Button>}
           </div>
-          {appointments.length ? (
-            <div className="divide-y rounded-lg border">
-              {appointments.map((item) => {
-                const positionHref = item.position_slug && item.organization_slug ? `/governance/${item.organization_slug}/${item.position_slug}` : null;
-                const personHref = item.person_slug ? `/governance/person/${item.person_slug}` : null;
-                const vacant = item.is_vacant || !item.person_id;
-                return (
-                  <div key={item.appointment_id || item.position_id} className="flex min-w-0 items-center gap-3 p-3 sm:p-4">
-                    <Avatar className="h-10 w-10 shrink-0 rounded-lg">
-                      <AvatarImage src={vacant ? (root.image_url || undefined) : (item.person_avatar_url || undefined)} alt="" />
-                      <AvatarFallback className="rounded-lg">{getGovernanceInitials(vacant ? root.name : item.person_name)}</AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0 flex-1">
-                      {positionHref ? <Link href={positionHref} className="block truncate text-sm font-medium hover:underline">{item.position_name || "Position"}</Link> : <div className="truncate text-sm font-medium">{item.position_name || "Position"}</div>}
-                      {personHref && !vacant ? <Link href={personHref} className="block truncate text-sm text-muted-foreground hover:underline">{item.person_name}</Link> : <div className={`text-sm ${vacant ? "font-medium text-muted-foreground" : "text-muted-foreground"}`}>{vacant ? "Vacant — no current person assigned" : item.person_name || "No current person assigned"}</div>}
-                    </div>
-                    {item.started_at && <span className="hidden shrink-0 text-xs text-muted-foreground sm:inline">{formatGovernanceDate(item.started_at)}</span>}
-                  </div>
-                );
-              })}
+          {organizationAppointments.length ? (
+            <div className="overflow-hidden rounded-lg border">
+              <TooltipProvider>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Position</TableHead>
+                      <TableHead>Current person</TableHead>
+                      <TableHead className="hidden sm:table-cell">Status</TableHead>
+                      <TableHead className="w-12"><span className="sr-only">Actions</span></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {organizationAppointments.map((item) => {
+                      const positionHref = item.position_slug && item.organization_slug ? `/governance/${item.organization_slug}/${item.position_slug}` : null;
+                      const personHref = item.person_slug ? `/governance/person/${item.person_slug}` : null;
+                      const vacant = item.is_vacant || !item.person_id;
+                      return (
+                        <TableRow key={item.appointment_id || item.position_id}>
+                          <TableCell className="max-w-[280px]">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                {positionHref ? <Link href={positionHref} className="block truncate font-medium hover:underline">{item.position_name || "Position"}</Link> : <span className="block truncate font-medium">{item.position_name || "Position"}</span>}
+                              </TooltipTrigger>
+                              <TooltipContent>{item.position_name || "Position"}</TooltipContent>
+                            </Tooltip>
+                          </TableCell>
+                          <TableCell className="max-w-[260px]">
+                            <div className="flex min-w-0 items-center gap-2">
+                              <Avatar className="h-8 w-8 shrink-0 rounded-md">
+                                <AvatarImage src={vacant ? (root.image_url || undefined) : (item.person_avatar_url || undefined)} alt="" />
+                                <AvatarFallback className="rounded-md text-xs">{getGovernanceInitials(vacant ? root.name : item.person_name)}</AvatarFallback>
+                              </Avatar>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  {personHref && !vacant ? <Link href={personHref} className="block truncate text-sm hover:underline">{item.person_name}</Link> : <span className={`block truncate text-sm ${vacant ? "text-muted-foreground" : ""}`}>{vacant ? "Vacant" : item.person_name || "Unassigned"}</span>}
+                                </TooltipTrigger>
+                                <TooltipContent>{vacant ? "Vacant — no current person assigned" : item.person_name || "No current person assigned"}</TooltipContent>
+                              </Tooltip>
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            <Badge variant={vacant ? "outline" : "secondary"}>{vacant ? "Vacant" : "Filled"}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            {positionHref && <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label={`View ${item.position_name || "position"}`}><Link href={positionHref}><ExternalLink className="h-4 w-4" /></Link></Button>}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TooltipProvider>
             </div>
           ) : (
-            <EmptyState title="No current positions" description={canEdit ? "Add the first position for this organization." : "No current positions have been recorded."} />
+            <EmptyState title="No positions found" description={canEdit ? "Add the first position for this organization." : "No current positions have been recorded."} />
           )}
         </section>
       </div>
