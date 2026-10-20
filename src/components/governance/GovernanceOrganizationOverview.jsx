@@ -21,6 +21,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import GovernanceAppointmentDialog from "@/components/governance/GovernanceAppointmentDialog";
 import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
+import GovernanceAppointmentAddressSheet from "@/components/governance/GovernanceAppointmentAddressSheet";
+import AddGeographyDialog from "@/components/geography/AddGeographyDialog";
 
 const LeafletMap = dynamic(() => import("@/components/geography/LeafletMap"), { ssr: false, loading: () => <div className="flex h-full min-h-[320px] items-center justify-center text-sm text-muted-foreground">Loading map…</div> });
 import { useGovernanceOrganizationContext } from "@/hooks/governance/useGovernanceOrganizationContext";
@@ -153,6 +155,9 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
   const [appointmentDialogOpen, setAppointmentDialogOpen] = useState(false);
   const [appointmentRecord, setAppointmentRecord] = useState(null);
   const [appointmentPositionId, setAppointmentPositionId] = useState(null);
+  const [appointmentLocationRecord, setAppointmentLocationRecord] = useState(null);
+  const [appointmentAddressOpen, setAppointmentAddressOpen] = useState(false);
+  const [appointmentGeographyOpen, setAppointmentGeographyOpen] = useState(false);
   const positionsQuery = useQuery({
     queryKey: ["governance-organization-positions", governance?.id],
     enabled: Boolean(governance?.id),
@@ -171,6 +176,18 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
       return positions.map((item) => ({ ...item, appointment_history_count: counts.get(item.id) || 0 }));
     },
   });
+  const appointmentIds = appointments.map((item) => item.appointment_id || item.id).filter(Boolean);
+  const appointmentLocationsQuery = useQuery({
+    queryKey: ["governance-appointment-locations", governance?.id, appointmentIds.join(",")],
+    enabled: appointmentIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("position_appointment").select("id,geography_id,address,lat,lng").in("id", appointmentIds);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+  const appointmentLocations = new Map((appointmentLocationsQuery.data || []).map((item) => [item.id, item]));
+
   const { data: locationData } = useQuery({
     queryKey: ["governance-organization-map", governance?.id],
     enabled: Boolean(governance?.id),
@@ -276,17 +293,21 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
         is_vacant: true,
       }];
     }
-    return currentAppointments.map((appointment) => ({
-      ...sharedPosition,
-      ...appointment,
-      position_id: position.id,
-      position_name: position.name,
-      position_slug: position.slug,
-      position_avatar_url: position.image_url,
-      organization_slug: governance?.slug,
-      appointment_id: appointment.appointment_id || appointment.id || null,
-      is_vacant: false,
-    }));
+    return currentAppointments.map((appointment) => {
+      const appointmentId = appointment.appointment_id || appointment.id || null;
+      return {
+        ...sharedPosition,
+        ...appointment,
+        ...(appointmentLocations.get(appointmentId) || {}),
+        position_id: position.id,
+        position_name: position.name,
+        position_slug: position.slug,
+        position_avatar_url: position.image_url,
+        organization_slug: governance?.slug,
+        appointment_id: appointmentId,
+        is_vacant: false,
+      };
+    });
   });
   const filteredPositions = currentPositions.filter((item) => {
     const needle = positionSearch.trim().toLowerCase();
@@ -459,7 +480,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                           </TableCell>
                           <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">{vacant || !item.started_at ? "—" : formatGovernanceDate(item.started_at)}</TableCell>
                           <TableCell>
-                            {canEdit && item.appointment_id ? <GovernanceAppointmentDeleteButton appointmentId={item.appointment_id} personName={item.person_name} positionName={item.position_name} onEditPosition={() => onEditPosition?.(item)} onAssignPerson={() => { setAppointmentRecord(null); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} onEdit={() => { setAppointmentRecord(item); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} onDeleted={async () => { await query.refetch(); await positionsQuery.refetch(); }} /> : canEdit ? <GovernanceCardActions onEdit={() => onEditPosition?.(item)} editLabel="Edit Position" onPrimaryAction={() => { setAppointmentRecord(null); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} primaryActionLabel="Assign person" onDelete={item.appointment_history_count ? undefined : () => onDeletePosition?.(item)} entityLabel="position"><span className="block h-8 w-8" aria-hidden="true" /></GovernanceCardActions> : null}
+                            {canEdit && item.appointment_id ? <GovernanceAppointmentDeleteButton appointmentId={item.appointment_id} personName={item.person_name} positionName={item.position_name} onEditPosition={() => onEditPosition?.(item)} onAssignPerson={() => { setAppointmentRecord(null); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} onEdit={() => { setAppointmentRecord(item); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} onManageAddress={() => { setAppointmentLocationRecord(item); setAppointmentAddressOpen(true); }} onManageGeography={() => { setAppointmentLocationRecord(item); setAppointmentGeographyOpen(true); }} onDeleted={async () => { await query.refetch(); await positionsQuery.refetch(); await appointmentLocationsQuery.refetch(); }} /> : canEdit ? <GovernanceCardActions onEdit={() => onEditPosition?.(item)} editLabel="Edit Position" onPrimaryAction={() => { setAppointmentRecord(null); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} primaryActionLabel="Assign person" onDelete={item.appointment_history_count ? undefined : () => onDeletePosition?.(item)} entityLabel="position"><span className="block h-8 w-8" aria-hidden="true" /></GovernanceCardActions> : null}
                           </TableCell>
                         </TableRow>
                       );
@@ -472,6 +493,8 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
             <EmptyState title={currentPositions.length ? "No matching positions" : "No positions found"} description={currentPositions.length ? "Try changing your search or date range." : canEdit ? "Add the first position for this organization." : "No positions have been recorded."} />
           )}
         </section>
+        <GovernanceAppointmentAddressSheet open={appointmentAddressOpen} onOpenChange={setAppointmentAddressOpen} appointment={appointmentLocationRecord} onSaved={async () => { await query.refetch(); await positionsQuery.refetch(); await appointmentLocationsQuery.refetch(); }} />
+        <AddGeographyDialog open={appointmentGeographyOpen} onOpenChange={setAppointmentGeographyOpen} entityId={appointmentLocationRecord?.appointment_id || appointmentLocationRecord?.id || null} entityType="appointment" entityName={appointmentLocationRecord?.person_name ? appointmentLocationRecord.person_name + "'s appointment" : "Appointment"} onSaved={async () => { await query.refetch(); await appointmentLocationsQuery.refetch(); }} title="Appointment geography" />
         {canEdit && <GovernanceAppointmentDialog open={appointmentDialogOpen} onOpenChange={setAppointmentDialogOpen} mode="position" organizationId={governance?.id} positionId={appointmentPositionId} record={appointmentRecord} onSaved={async () => { await query.refetch(); await positionsQuery.refetch(); }} />}
       </div>
     </div>
