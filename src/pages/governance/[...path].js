@@ -52,6 +52,7 @@ export default function GovernanceRecordPage() {
   const [geographyEntity, setGeographyEntity] = useState(null);
   const [positionOpen, setPositionOpen] = useState(false);
   const [positionOrganizationId, setPositionOrganizationId] = useState(null);
+  const [positionEditRecord, setPositionEditRecord] = useState(null);
   const [resourceEntity, setResourceEntity] = useState(null);
   const [addressOpen, setAddressOpen] = useState(false);
   const [linksOpen, setLinksOpen] = useState(false);
@@ -189,7 +190,8 @@ export default function GovernanceRecordPage() {
     setRelationSource(entity);
     setRelationOpen(true);
   };
-  const openAddPosition = (entity) => { if (!entity?.id) return; setPositionOrganizationId(entity.id); setPositionOpen(true); };
+  const openAddPosition = (entity) => { if (!entity?.id) return; setPositionEditRecord(null); setPositionOrganizationId(entity.id); setPositionOpen(true); };
+  const openEditPosition = (position) => { if (!position?.id) return; setPositionEditRecord(position); setPositionOrganizationId(governance?.id || position.appointing_organization_id); setPositionOpen(true); };
   const openGeography = (entity) => {
     if (!entity?.id) return;
     setModalOpen(false);
@@ -365,7 +367,8 @@ export default function GovernanceRecordPage() {
 
       <GovernancePositionSheet
         open={positionOpen}
-        onOpenChange={(value) => { setPositionOpen(value); if (!value) setPositionOrganizationId(null); }}
+        record={positionEditRecord}
+        onOpenChange={(value) => { setPositionOpen(value); if (!value) { setPositionOrganizationId(null); setPositionEditRecord(null); } }}
         defaultOrganizationId={positionOrganizationId}
         onSaved={handleChanged}
       />
