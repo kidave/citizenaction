@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Building2, ChevronDown, ChevronRight, ExternalLink, GitBranch, MoreHorizontal, Plus } from "lucide-react";
 
@@ -11,6 +13,11 @@ import LoadingState from "@/components/ui/loading-state";
 import ErrorState from "@/components/ui/error-state";
 import EmptyState from "@/components/ui/empty-state";
 import { formatGovernanceDate, getGovernanceInitials } from "@/utils/governance";
+import { supabase } from "@/lib/supabase/client";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+const LeafletMap = dynamic(() => import("@/components/geography/LeafletMap"), { ssr: false, loading: () => <div className="flex h-full min-h-[320px] items-center justify-center text-sm text-muted-foreground">Loading map…</div> });
 import { useGovernanceOrganizationContext } from "@/hooks/governance/useGovernanceOrganizationContext";
 import GovernanceCardActions from "@/components/governance/GovernanceCardActions";
 
@@ -135,6 +142,24 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
   const query = useGovernanceOrganizationContext({ governanceId: governance?.id, asOf });
   const organizations = query.data?.organizations || [];
   const appointments = query.data?.appointments || [];
+  const { data: locationData } = useQuery({
+    queryKey: ["governance-organization-map", governance?.id],
+    enabled: Boolean(governance?.id),
+    queryFn: async () => {
+      const { data, error } = await supabase.from("governance").select("id,address,lat,lng,geom,geography_id,metadata").eq("id", governance.id).maybeSingle();
+      if (error) throw error;
+      return data || {};
+    },
+  });
+  const { data: boundary } = useQuery({
+    queryKey: ["governance-jurisdiction-geometry", locationData?.geography_id],
+    enabled: Boolean(locationData?.geography_id),
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_geography_geometry", { p_geography_id: locationData.geography_id });
+      if (error) throw error;
+      return data?.type === "Feature" ? data.geometry : data?.geometry || data || null;
+    },
+  });
 
   const childrenByParent = useMemo(() => {
     const map = new Map();
@@ -195,8 +220,10 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
     return <ErrorState className="min-h-[50vh]" title="Unable to load organization structure" />;
   }
 
-  const totalPositions = appointments.length;
-  const filledPositions = appointments.filter((item) => !item.is_vacant && item.person_id).length;
+  const organizationAppointments = appointments.filter((item) => item.organization_id === governance?.id);
+  const totalPositions = organizationAppointments.length;
+  const filledPositions = organizationAppointments.filter((item) => !item.is_vacant && item.person_id).length;
+  const vacantPositions = totalPositions - filledPositions;
   const unitCount = organizations.length;
 
   return (
@@ -224,77 +251,30 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <div className="rounded-lg border bg-muted/30 p-3"><div className="text-xs text-muted-foreground">Units</div><div className="mt-1 text-lg font-semibold">{unitCount}</div></div>
-              <div className="rounded-lg border bg-muted/30 p-3"><div className="text-xs text-muted-foreground">Current positions</div><div className="mt-1 text-lg font-semibold">{totalPositions}</div></div>
-              <div className="rounded-lg border bg-muted/30 p-3"><div className="text-xs text-muted-foreground">Filled</div><div className="mt-1 text-lg font-semibold">{filledPositions}</div></div>
-              <div className="rounded-lg border bg-muted/30 p-3"><div className="text-xs text-muted-foreground">Reporting roots</div><div className="mt-1 text-lg font-semibold">{reportingRoots.length}</div></div>
-            </div>
+
           </CardContent>
         </Card>
 
         <section className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-          <Card>
-            <CardContent className="space-y-3 p-4">
-              <h2 className="text-sm font-semibold">Office and jurisdiction</h2>
-              {root.address ? (
-                <div className="rounded-md border p-3">
-                  <div className="text-xs text-muted-foreground">Office address</div>
-                  <p className="mt-1 text-sm">{root.address}</p>
-                </div>
-              ) : (
-                <EmptyState title="No office address" description={canEdit ? "Use the organization actions to add the office address." : "An office address has not been recorded."} />
-              )}
-              {root.geography_id ? (
-                <div className="rounded-md border p-3">
-                  <div className="text-xs text-muted-foreground">Jurisdiction</div>
-                  <p className="mt-1 text-sm">A jurisdiction boundary is linked to this organization.</p>
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">No jurisdiction boundary is linked yet.</p>
-              )}
-              <p className="text-xs text-muted-foreground">A map will be shown when the saved boundary and address coordinates are available.</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-sm font-semibold">Organization details</h2>
-                  <p className="mt-1 text-xs text-muted-foreground">Recorded organization information and reporting coverage.</p>
-                </div>
-                {canEdit && (
-                  <GovernanceCardActions
-                    onView={() => onEdit?.(governance)}
-                    onViewTree={() => onViewTree?.()}
-                    onEdit={() => onEdit?.(governance)}
-                    onPrimaryAction={() => onAddPosition?.(governance)}
-                    primaryActionLabel="Add Position"
-                    onManageRelations={() => onManageRelations?.(governance)}
-                    onAddParent={() => onAddParent?.(governance)}
-                    onAddChild={() => onAddChild?.(governance)}
-                    onAddAddress={() => onAddAddress?.(governance)}
-                    onRemoveAddress={() => onRemoveAddress?.(governance)}
-                    onAddGeography={() => onAddGeography?.(governance)}
-                    onRemoveGeography={() => onRemoveGeography?.(governance)}
-                    onManageLinks={() => onManageLinks?.(governance)}
-                    onDelete={() => onDelete?.(governance)}
-                    hasAddress={Boolean(root.address)}
-                    hasGeography={Boolean(root.geography_id)}
-                    hasLinks={Boolean(root.hasLinks)}
-                  >
-                    <Button type="button" variant="outline" size="icon" className="h-8 w-8" aria-label="Organization actions">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </GovernanceCardActions>
-                )}
+          <div className="grid grid-cols-2 gap-2">
+            <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground">Units</div><div className="mt-1 text-2xl font-semibold">{Math.max(0, unitCount - 1)}</div></CardContent></Card>
+            <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground">Positions</div><div className="mt-1 text-2xl font-semibold">{totalPositions}</div></CardContent></Card>
+            <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground">Filled</div><div className="mt-1 text-2xl font-semibold">{filledPositions}</div><p className="mt-1 text-xs text-muted-foreground">Person currently assigned</p></CardContent></Card>
+            <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground">Vacant roles</div><div className="mt-1 text-2xl font-semibold">{vacantPositions}</div><p className="mt-1 text-xs text-muted-foreground">No current person assigned</p></CardContent></Card>
+          </div>
+          <Card className="overflow-hidden">
+            <CardContent className="p-0">
+              <div className="h-[320px] w-full sm:h-[360px]">
+                <LeafletMap
+                  lat={Number(locationData?.lat ?? locationData?.metadata?.lat) || 19.076}
+                  lng={Number(locationData?.lng ?? locationData?.metadata?.lng) || 72.8777}
+                  showMarker={Number.isFinite(Number(locationData?.lat ?? locationData?.metadata?.lat)) && Number.isFinite(Number(locationData?.lng ?? locationData?.metadata?.lng))}
+                  zoom={12}
+                  boundary={boundary || locationData?.geom || null}
+                  markers={[]}
+                />
               </div>
-              <dl className="grid grid-cols-2 gap-3 text-sm">
-                <div><dt className="text-xs text-muted-foreground">Units</dt><dd className="mt-1 font-medium">{unitCount}</dd></div>
-                <div><dt className="text-xs text-muted-foreground">Current positions</dt><dd className="mt-1 font-medium">{totalPositions}</dd></div>
-                <div><dt className="text-xs text-muted-foreground">Filled positions</dt><dd className="mt-1 font-medium">{filledPositions}</dd></div>
-                <div><dt className="text-xs text-muted-foreground">Reporting roots</dt><dd className="mt-1 font-medium">{reportingRoots.length}</dd></div>
-              </dl>
+              {!locationData?.geography_id && !locationData?.geom && <div className="border-t px-3 py-2 text-xs text-muted-foreground">No jurisdiction boundary is linked yet. Add geography from organization actions to display the boundary.</div>}
             </CardContent>
           </Card>
         </section>
