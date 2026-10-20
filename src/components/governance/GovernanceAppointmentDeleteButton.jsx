@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/lib/supabase/client";
 
-export default function GovernanceAppointmentDeleteButton({ appointmentId, personName, positionName, onEdit, onEditPosition, onAssignPerson, onManageAddress, onManageGeography, onDeleted }) {
+export default function GovernanceAppointmentDeleteButton({ appointmentId, personName, positionName, onEdit, onAssignPerson, onManageAddress, onManageGeography, onDeleted }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -40,7 +40,6 @@ export default function GovernanceAppointmentDeleteButton({ appointmentId, perso
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {onEditPosition && <DropdownMenuItem onSelect={() => onEditPosition()}><Pencil className="h-4 w-4" />Edit position</DropdownMenuItem>}
           {onAssignPerson && <DropdownMenuItem onSelect={() => onAssignPerson()}><UserRoundPlus className="h-4 w-4" />Assign person</DropdownMenuItem>}
           {onManageAddress && <DropdownMenuItem onSelect={() => onManageAddress()}><MapPin className="h-4 w-4" />Add/Edit address</DropdownMenuItem>}
           {onManageGeography && <DropdownMenuItem onSelect={() => onManageGeography()}><MapPinned className="h-4 w-4" />Add/Edit geography</DropdownMenuItem>}
