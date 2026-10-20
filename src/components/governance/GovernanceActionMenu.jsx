@@ -209,7 +209,7 @@ export function GovernanceActionDropdown({
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="max-h-[calc(100dvh-2rem)] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <GovernanceActionMenuItems
             MenuItem={DropdownMenuItem}
             MenuSeparator={DropdownMenuSeparator}
