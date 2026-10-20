@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, Search } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -19,25 +19,39 @@ export default function PersonDirectory({
   selectedId = null,
   onSelect,
   canManage = false,
+  search: externalSearch,
+  organizationId = null,
+  currentOnly = false,
+  createRequest = null,
 }) {
-  const [search, setSearch] = useState("");
+  const [internalSearch, setInternalSearch] = useState("");
+  const search = externalSearch ?? internalSearch;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const queryClient = useQueryClient();
   const { deletePerson: removePerson } = useGovernanceCrud();
 
-
   const query = useGovernanceDirectory({
     tab: "people",
     search,
     geographyId,
+    organizationId,
   });
-  const data = Array.isArray(query.data) ? query.data : [];
+
+  useEffect(() => {
+    if (createRequest?.tab !== "people" || !createRequest.token) return;
+    setEditingRecord(null);
+    setDialogOpen(true);
+  }, [createRequest?.token, createRequest?.tab]);
+
+  const data = (Array.isArray(query.data) ? query.data : []).filter((person) =>
+    !currentOnly ||
+    (organizationId
+      ? person.current_organization_id === organizationId
+      : Boolean(person.current_organization_id)),
+  );
   const selectedSet = useMemo(
-    () =>
-      new Set(
-        selectedIds.length ? selectedIds : selectedId ? [selectedId] : [],
-      ),
+    () => new Set(selectedIds.length ? selectedIds : selectedId ? [selectedId] : []),
     [selectedIds, selectedId],
   );
 
@@ -45,76 +59,61 @@ export default function PersonDirectory({
     setEditingRecord(null);
     setDialogOpen(true);
   };
-
   const openEdit = (entity) => {
     setEditingRecord(entity);
     setDialogOpen(true);
   };
 
-
   return (
     <div className="space-y-4">
-      <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-        {/* Search */}
+      {externalSearch === undefined && <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
         <div className="relative min-w-0">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-
           <Input
             className="h-9 pl-9"
             placeholder="Search people..."
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => setInternalSearch(event.target.value)}
+            disabled={externalSearch !== undefined}
           />
         </div>
-
-        {/* Add */}
         {canManage && (
           <Button type="button" className="h-9 shrink-0" onClick={openCreate}>
             <Plus className="mr-2 h-4 w-4" />
             Add person
           </Button>
         )}
-      </div>
+      </div>}
 
       {query.isLoading && (
-        <div className="flex min-h-[30vh] items-center justify-center">
-          <LoadingState />
+        <div className="flex min-h-[30vh] items-center justify-center"><LoadingState /></div>
+      )}
+      {query.error && <ErrorState title="Unable to load people" />}
+      {!query.isLoading && !query.error && (data.length ? (
+        <div className="grid grid-cols-2 overflow-hidden rounded-md border-x border-t sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 [&>*]:min-w-0 [&>*]:border-t [&>*]:border-r [&>*]:border-border sm:[&>*:nth-child(3n)]:border-r-0 lg:[&>*:nth-child(3n)]:border-r lg:[&>*:nth-child(4n)]:border-r-0 xl:[&>*:nth-child(4n)]:border-r xl:[&>*:nth-child(5n)]:border-r-0 2xl:[&>*:nth-child(5n)]:border-r 2xl:[&>*:nth-child(6n)]:border-r-0">
+          {data.map((entity) => (
+            <GovernanceDirectoryCard
+              key={entity.id}
+              entity={entity}
+              tab="people"
+              selectionMode={selectionMode}
+              selected={selectedSet.has(entity.id)}
+              onSelect={onSelect}
+              onEdit={canManage ? () => openEdit(entity) : undefined}
+              onDelete={canManage ? () => removePerson(entity) : undefined}
+            />
+          ))}
         </div>
-      )}
-      {query.error && (
-        <ErrorState title="Unable to load people" />
-      )}
-      {!query.isLoading &&
-        !query.error &&
-        (data.length ? (
-          <div className="grid grid-cols-2 overflow-hidden rounded-md border-x border-t sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 [&>*]:min-w-0 [&>*]:border-t [&>*]:border-r [&>*]:border-border sm:[&>*:nth-child(3n)]:border-r-0 lg:[&>*:nth-child(3n)]:border-r lg:[&>*:nth-child(4n)]:border-r-0 xl:[&>*:nth-child(4n)]:border-r xl:[&>*:nth-child(5n)]:border-r-0 2xl:[&>*:nth-child(5n)]:border-r 2xl:[&>*:nth-child(6n)]:border-r-0">
-            {data.map((entity) => (
-              <GovernanceDirectoryCard
-                key={entity.id}
-                entity={entity}
-                tab="people"
-                selectionMode={selectionMode}
-                selected={selectedSet.has(entity.id)}
-                onSelect={onSelect}
-                onEdit={canManage ? () => openEdit(entity) : undefined}
-                onDelete={canManage ? () => removePerson(entity) : undefined}
-              />
-            ))}
-          </div>
-        ) : (
-          <EmptyState title="No people found" description="Try another search." />
-        ))}
+      ) : (
+        <EmptyState title="No people found" description="Try another search." />
+      ))}
 
       {canManage && (
         <GovernancePersonSheet
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           record={editingRecord}
-          onSaved={() =>
-            queryClient.invalidateQueries({
-              queryKey: ["governance-directory"],
-            })
-          }
+          onSaved={() => queryClient.invalidateQueries({ queryKey: ["governance-directory"] })}
         />
       )}
     </div>
