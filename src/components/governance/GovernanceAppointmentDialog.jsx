@@ -272,80 +272,29 @@ export default function GovernanceAppointmentDialog({
                 </div>
               )}
               {positionMode && (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <Label>Person</Label>
-                  <RadioGroup
-                    value={personChoice}
-                    onValueChange={setPersonChoice}
-                    className="grid gap-2 sm:grid-cols-2"
-                    disabled={saving}
-                  >
-                    <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3">
-                      <RadioGroupItem value="existing" className="mt-0.5" />
-                      <span className="min-w-0">
-                        <span className="block text-sm font-medium">Add existing person</span>
-                        <span className="block text-xs text-muted-foreground">Choose someone already in Citizen Action.</span>
-                      </span>
-                    </label>
-                    <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3">
-                      <RadioGroupItem value="create" className="mt-0.5" />
-                      <span className="min-w-0">
-                        <span className="block text-sm font-medium">Create new person</span>
-                        <span className="block text-xs text-muted-foreground">Create the person and add them to this position.</span>
-                      </span>
-                    </label>
-                  </RadioGroup>
-                  {personChoice === "existing" && (
-                    <SearchableSelect
-                      value={selectedPersonId}
-                      onValueChange={setSelectedPersonId}
-                      options={peopleOptions}
-                      placeholder="Choose a person"
-                      searchPlaceholder="Search people..."
-                      emptyText="No people found."
-                      disabled={saving}
-                      renderOption={(option) => (
-                        <div className="flex min-w-0 items-center gap-2">
-                          <Avatar className="h-7 w-7 shrink-0 rounded-md"><AvatarImage src={option.imageUrl || undefined} alt="" /><AvatarFallback className="rounded-md text-[9px]">{getGovernanceInitials(option.label)}</AvatarFallback></Avatar>
-                          <span className="min-w-0 truncate">{option.label}</span>
-                        </div>
-                      )}
-                      renderValue={(option) => (
-                        <div className="flex min-w-0 items-center gap-2">
-                          <Avatar className="h-6 w-6 shrink-0 rounded-md"><AvatarImage src={option.imageUrl || undefined} alt="" /><AvatarFallback className="rounded-md text-[8px]">{getGovernanceInitials(option.label)}</AvatarFallback></Avatar>
-                          <span className="min-w-0 truncate">{option.label}</span>
-                        </div>
-                      )}
-                    />
-                  )}
-                </div>
-              )}
-
-              {creatingPerson && (
-                <div className="space-y-4 rounded-lg border p-4">
-                  <div className="text-sm font-medium">New person</div>
-                  <ImageUpload
-                    bucket="governance"
-                    path={`governance/person/draft-${draftId}`}
-                    value={newPersonImageUrl || null}
-                    onChange={(value) => setNewPersonImageUrl(value || "")}
-                    label="Person image"
-                    helperText="PNG, JPG or WebP · up to 5 MB"
-                    disabled={saving}
+                  <SearchableSelect
+                    value={selectedPersonId}
+                    onValueChange={setSelectedPersonId}
+                    options={peopleOptions}
+                    placeholder="Select a person"
+                    searchPlaceholder="Search people..."
+                    emptyText="No people found."
+                    disabled={saving || loading}
+                    renderOption={(option) => (
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Avatar className="h-7 w-7 shrink-0 rounded-md"><AvatarImage src={option.imageUrl || undefined} alt="" /><AvatarFallback className="rounded-md text-[9px]">{getGovernanceInitials(option.label)}</AvatarFallback></Avatar>
+                        <span className="min-w-0 truncate">{option.label}</span>
+                      </div>
+                    )}
+                    renderValue={(option) => (
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Avatar className="h-6 w-6 shrink-0 rounded-md"><AvatarImage src={option.imageUrl || undefined} alt="" /><AvatarFallback className="rounded-md text-[8px]">{getGovernanceInitials(option.label)}</AvatarFallback></Avatar>
+                        <span className="min-w-0 truncate">{option.label}</span>
+                      </div>
+                    )}
                   />
-                  <div className="space-y-2">
-                    <Label htmlFor="governance-appointment-new-person">
-                      Name
-                    </Label>
-                    <Input
-                      id="governance-appointment-new-person"
-                      value={newPersonName}
-                      onChange={(event) => setNewPersonName(event.target.value)}
-                      placeholder="e.g. Jane Doe"
-                      disabled={saving}
-                      autoFocus
-                    />
-                  </div>
                 </div>
               )}
 
