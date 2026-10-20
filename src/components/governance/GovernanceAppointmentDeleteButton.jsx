@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/lib/supabase/client";
 
-export default function GovernanceAppointmentDeleteButton({ appointmentId, personName, positionName, onEdit, onDeleted }) {
+export default function GovernanceAppointmentDeleteButton({ appointmentId, personName, positionName, onEdit, onEditPosition, onDeleted }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -40,7 +40,8 @@ export default function GovernanceAppointmentDeleteButton({ appointmentId, perso
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={() => onEdit?.()}>
+          {onEditPosition && <DropdownMenuItem onSelect={() => onEditPosition()}><Pencil className="h-4 w-4" />Edit position</DropdownMenuItem>}
+          <DropdownMenuItem onSelect={() => onEdit?.()>
             <Pencil className="h-4 w-4" />
             Edit
           </DropdownMenuItem>
