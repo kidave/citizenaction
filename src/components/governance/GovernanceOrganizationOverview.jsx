@@ -353,7 +353,10 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
               <h2 className="text-lg font-semibold">Positions</h2>
               <p className="text-sm text-muted-foreground">Only positions belonging directly to this organization.</p>
             </div>
-            {canEdit && <Button type="button" size="sm" onClick={() => onAddPosition?.(governance)}><Plus className="mr-2 h-4 w-4" />Add position</Button>}
+            {canEdit && <div className="flex flex-wrap items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => { setAppointmentRecord(null); setAppointmentPositionId(null); setAppointmentDialogOpen(true); }}><Plus className="mr-2 h-4 w-4" />Add appointment</Button>
+              <Button type="button" size="sm" onClick={() => onAddPosition?.(governance)}><Plus className="mr-2 h-4 w-4" />Add position</Button>
+            </div>}
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
             <div className="relative min-w-0 flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={positionSearch} onChange={(event) => setPositionSearch(event.target.value)} placeholder="Search positions or people…" className="pl-9" aria-label="Search positions or people" /></div>
