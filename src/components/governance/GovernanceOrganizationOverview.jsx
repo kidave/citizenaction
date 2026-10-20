@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Building2, BriefcaseBusiness, CalendarDays, ChevronDown, ChevronRight, ExternalLink, GitBranch, Mail, MapPin, Phone, Search, UserCheck, UserRoundX, MoreHorizontal, Plus } from "lucide-react";
+import { Building2, CalendarDays, ChevronDown, ChevronRight, ExternalLink, GitBranch, Mail, MapPin, Phone, Search, MoreHorizontal, Plus } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -278,6 +278,11 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
       position_slug: position.slug,
       position_avatar_url: position.image_url,
       organization_slug: governance?.slug,
+      address: position.address || locationData?.address || null,
+      lat: position.metadata?.office_lat ?? locationData?.lat ?? locationData?.metadata?.office_lat ?? null,
+      lng: position.metadata?.office_lng ?? locationData?.lng ?? locationData?.metadata?.office_lng ?? null,
+      geography_id: position.geography_id || locationData?.geography_id || null,
+      geographies: position.geographies || locationData?.geographies || null,
     };
     if (!currentAppointments.length) {
       return [{
