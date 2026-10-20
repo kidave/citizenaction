@@ -21,8 +21,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import GovernanceAppointmentDialog from "@/components/governance/GovernanceAppointmentDialog";
 import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
-import GovernanceAppointmentAddressSheet from "@/components/governance/GovernanceAppointmentAddressSheet";
-import AddGeographyDialog from "@/components/geography/AddGeographyDialog";
+import GovernanceResourceDialogs from "@/components/governance/GovernanceResourceDialogs";
 
 const LeafletMap = dynamic(() => import("@/components/geography/LeafletMap"), { ssr: false, loading: () => <div className="flex h-full min-h-[320px] items-center justify-center text-sm text-muted-foreground">Loading map…</div> });
 import { useGovernanceOrganizationContext } from "@/hooks/governance/useGovernanceOrganizationContext";
@@ -506,8 +505,22 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
             <EmptyState title={currentPositions.length ? "No matching positions" : "No positions found"} description={currentPositions.length ? "Try changing your search or date range." : canEdit ? "Add the first position for this organization." : "No positions have been recorded."} />
           )}
         </section>
-        <GovernanceAppointmentAddressSheet open={appointmentAddressOpen} onOpenChange={setAppointmentAddressOpen} appointment={appointmentLocationRecord} onSaved={async () => { await query.refetch(); await positionsQuery.refetch(); await appointmentLocationsQuery.refetch(); }} />
-        <AddGeographyDialog open={appointmentGeographyOpen} onOpenChange={setAppointmentGeographyOpen} entityId={appointmentLocationRecord?.appointment_id || appointmentLocationRecord?.id || null} entityType="appointment" entityName={appointmentLocationRecord?.person_name ? appointmentLocationRecord.person_name + "'s appointment" : "Appointment"} onSaved={async () => { await query.refetch(); await appointmentLocationsQuery.refetch(); }} title="Appointment geography" />
+        <GovernanceResourceDialogs
+          entity={appointmentLocationRecord ? {
+            id: appointmentLocationRecord.appointment_id || appointmentLocationRecord.id,
+            name: appointmentLocationRecord.person_name ? appointmentLocationRecord.person_name + "'s appointment" : appointmentLocationRecord.position_name || "Appointment",
+            address: appointmentLocationRecord.address || "",
+            lat: appointmentLocationRecord.lat,
+            lng: appointmentLocationRecord.lng,
+            geography_id: appointmentLocationRecord.geography_id || null,
+          } : null}
+          entityType="appointment"
+          addressOpen={appointmentAddressOpen}
+          onAddressOpenChange={setAppointmentAddressOpen}
+          geographyOpen={appointmentGeographyOpen}
+          onGeographyOpenChange={setAppointmentGeographyOpen}
+          onSaved={async () => { await query.refetch(); await positionsQuery.refetch(); await appointmentLocationsQuery.refetch(); }}
+        />
         {canEdit && <GovernanceAppointmentDialog open={appointmentDialogOpen} onOpenChange={setAppointmentDialogOpen} mode="position" organizationId={governance?.id} positionId={appointmentPositionId} record={appointmentRecord} onSaved={async () => { await query.refetch(); await positionsQuery.refetch(); }} />}
       </div>
     </div>
