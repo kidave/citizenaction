@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { MoreVertical, Pencil, Trash2, UserRoundPlus } from "lucide-react";
 import { toast } from "sonner";
 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/lib/supabase/client";
 
-export default function GovernanceAppointmentDeleteButton({ appointmentId, personName, positionName, onEdit, onEditPosition, onDeleted }) {
+export default function GovernanceAppointmentDeleteButton({ appointmentId, personName, positionName, onEdit, onEditPosition, onAssignPerson, onDeleted }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -41,6 +41,7 @@ export default function GovernanceAppointmentDeleteButton({ appointmentId, perso
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           {onEditPosition && <DropdownMenuItem onSelect={() => onEditPosition()}><Pencil className="h-4 w-4" />Edit position</DropdownMenuItem>}
+          {onAssignPerson && <DropdownMenuItem onSelect={() => onAssignPerson()}><UserRoundPlus className="h-4 w-4" />Assign person</DropdownMenuItem>}
           <DropdownMenuItem onSelect={() => onEdit?.()}>
             <Pencil className="h-4 w-4" />
             Edit appointment
