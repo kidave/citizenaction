@@ -113,6 +113,7 @@ export default function GovernanceAppointmentDialog({
         value: item.id,
         label: item.name,
         searchValue: (item.name || "") + " " + (organization?.name || "") + " " + (organization?.short_name || ""),
+        organizationId: item.appointing_organization_id,
         organizationName: organization?.name || "Organization",
         organizationImageUrl: organization?.image_url || null,
       };
@@ -245,6 +246,20 @@ export default function GovernanceAppointmentDialog({
                 </div>
               )}
 
+              {positionMode && !positionId && (
+                <div className="space-y-2">
+                  <Label>Position</Label>
+                  <SearchableSelect
+                    value={selectedPositionId}
+                    onValueChange={setSelectedPositionId}
+                    options={positionOptions.filter((option) => option.organizationId === organizationId)}
+                    placeholder="Choose a position"
+                    searchPlaceholder="Search positions..."
+                    emptyText="No positions found for this organization."
+                    disabled={saving || loading}
+                  />
+                </div>
+              )}
               {personMode && (
                 <div className="space-y-2">
                   <Label>Position</Label>
