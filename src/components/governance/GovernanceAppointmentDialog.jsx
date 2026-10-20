@@ -106,6 +106,18 @@ export default function GovernanceAppointmentDialog({
     };
   }, [open, organizationId, positionId, personId, record?.id]);
 
+  useEffect(() => {
+    if (!open || record || !positionId) return;
+    let cancelled = false;
+    const choosePrimaryDefault = async () => {
+      const { data, error } = await supabase.from("position_appointment").select("id").eq("position_id", positionId).eq("is_primary", true).is("ended_at", null).limit(1);
+      if (cancelled) return;
+      if (error) { toast.error(error.message); return; }
+      setIsPrimary(!(data || []).length);
+    };
+    choosePrimaryDefault();
+    return () => { cancelled = true; };
+  }, [open, positionId, record]);
   const positionOptions = useMemo(
     () => positions.map((item) => {
       const organization = organizations.find((org) => org.id === item.appointing_organization_id);
