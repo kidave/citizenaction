@@ -292,6 +292,8 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                 {root.short_name && <p className="mt-1 text-sm text-muted-foreground">{root.short_name}</p>}
                 {root.description && <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">{root.description}</p>}
                 <div className="mt-4 flex flex-wrap items-center gap-2">
+                  {root.website && <Button asChild variant="outline" size="sm"><a href={root.website} target="_blank" rel="noreferrer"><ExternalLink className="mr-2 h-4 w-4" />Website</a></Button>}
+                  {onViewTree && <Button type="button" variant="outline" size="sm" onClick={onViewTree}><GitBranch className="mr-2 h-4 w-4" />View tree</Button>}
                   {canEdit && <GovernanceCardActions
                     onViewTree={() => onViewTree?.()}
                     onEdit={() => onEdit?.(governance)}
