@@ -21,6 +21,7 @@ import SearchableSelect from "@/components/ui/SearchableSelect";
 import { supabase } from "@/lib/supabase/client";
 import { useImportGovernancePersonImage } from "@/hooks/governance/useImportGovernancePersonImage";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
+import { isSupportedGovernanceImageSource as isSupportedImageSource } from "@/utils/governance/socialImageUrl";
 
 function emptyForm() {
   return {
@@ -32,25 +33,6 @@ function emptyForm() {
   };
 }
 
-function isSupportedImageSource(value) {
-  try {
-    const url = new URL(value);
-    const host = url.hostname.toLowerCase();
-
-    return (
-      url.protocol === "https:" &&
-      (host === "instagram.com" ||
-        host === "www.instagram.com" ||
-        host.endsWith(".instagram.com") ||
-        host === "cdninstagram.com" ||
-        host.endsWith(".cdninstagram.com") ||
-        host === "fbcdn.net" ||
-        host.endsWith(".fbcdn.net"))
-    );
-  } catch {
-    return false;
-  }
-}
 
 export default function GovernancePersonSheet({
   open,
@@ -166,7 +148,7 @@ export default function GovernancePersonSheet({
     }
 
     if (!isSupportedImageSource(sourceUrl)) {
-      toast.error("Use an Instagram or Meta CDN image URL");
+      toast.error("Use a supported Instagram, LinkedIn, X, or Facebook URL");
       return;
     }
 
@@ -277,7 +259,7 @@ export default function GovernancePersonSheet({
 
       if (form.imageSourceUrl.trim()) {
         if (!isSupportedImageSource(form.imageSourceUrl.trim())) {
-          throw new Error("Use an Instagram or Meta CDN image URL");
+          throw new Error("Use a supported Instagram, LinkedIn, X, or Facebook URL");
         }
 
         setImportingImage(true);
@@ -366,7 +348,7 @@ export default function GovernancePersonSheet({
                     onChange={(event) =>
                       setField("imageSourceUrl", event.target.value)
                     }
-                    placeholder="Paste Instagram image URL"
+                    placeholder="Paste a public Instagram, LinkedIn, X, or Facebook URL"
                     disabled={busy}
                     onKeyDown={(event) => {
                       if (event.key === "Enter") {
@@ -406,7 +388,7 @@ export default function GovernancePersonSheet({
 
                 {!imageSourceIsValid && (
                   <p className="text-xs text-destructive">
-                    Use an Instagram or Meta CDN image URL.
+                    Use a supported Instagram, LinkedIn, X, or Facebook URL.
                   </p>
                 )}
               </div>

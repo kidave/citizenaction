@@ -27,6 +27,7 @@ import { supabase } from "@/lib/supabase/client";
 import { moveGovernanceFile } from "@/lib/supabase/storage";
 import { useImportGovernanceOrganizationImage } from "@/hooks/governance/useImportGovernanceOrganizationImage";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
+import { isSupportedGovernanceImageSource as isSupportedImageSource } from "@/utils/governance/socialImageUrl";
 import {
   GOVERNANCE_STATUS_OPTIONS,
   GOVERNANCE_TYPES,
@@ -59,23 +60,6 @@ function emptyForm(record) {
   };
 }
 
-function isSupportedImageSource(value) {
-  try {
-    const url = new URL(value);
-    const host = url.hostname.toLowerCase();
-    return (
-      url.protocol === "https:" &&
-      (host === "instagram.com" ||
-        host.endsWith(".instagram.com") ||
-        host === "cdninstagram.com" ||
-        host.endsWith(".cdninstagram.com") ||
-        host === "fbcdn.net" ||
-        host.endsWith(".fbcdn.net"))
-    );
-  } catch {
-    return false;
-  }
-}
 
 export default function GovernanceOrganizationSheet({
   open,
@@ -219,7 +203,7 @@ export default function GovernanceOrganizationSheet({
 
       if (form.imageSourceUrl.trim()) {
         if (!imageSourceIsValid)
-          throw new Error("Use an Instagram or Meta CDN image URL");
+          throw new Error("Use a supported Instagram, LinkedIn, X, or Facebook URL");
         if (!saved?.id)
           throw new Error(
             "Organization was saved but no organization ID was returned.",
@@ -290,7 +274,7 @@ export default function GovernanceOrganizationSheet({
                   onChange={(event) =>
                     setField("imageSourceUrl", event.target.value)
                   }
-                  placeholder="Paste Instagram image URL"
+                  placeholder="Paste a public Instagram, LinkedIn, X, or Facebook URL"
                   disabled={busy}
                 />
                 {isEditing && (
@@ -300,7 +284,7 @@ export default function GovernanceOrganizationSheet({
                     onClick={async () => {
                       if (!imageSourceIsValid)
                         return toast.error(
-                          "Use an Instagram or Meta CDN image URL",
+                          "Use a supported Instagram, LinkedIn, X, or Facebook URL",
                         );
                       try {
                         setImportingImage(true);
@@ -357,7 +341,7 @@ export default function GovernanceOrganizationSheet({
               </div>
               {!imageSourceIsValid && (
                 <p className="text-xs text-destructive">
-                  Use an Instagram or Meta CDN image URL.
+                  Use a supported Instagram, LinkedIn, X, or Facebook URL.
                 </p>
               )}
             </div>

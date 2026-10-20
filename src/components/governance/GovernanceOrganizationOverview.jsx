@@ -26,6 +26,7 @@ import GovernanceResourceDialogs from "@/components/governance/GovernanceResourc
 const LeafletMap = dynamic(() => import("@/components/geography/LeafletMap"), { ssr: false, loading: () => <div className="flex h-full min-h-[320px] items-center justify-center text-sm text-muted-foreground">Loading map…</div> });
 import { useGovernanceOrganizationContext } from "@/hooks/governance/useGovernanceOrganizationContext";
 import GovernanceCardActions from "@/components/governance/GovernanceCardActions";
+import GovernanceResources from "@/components/governance/GovernanceResources";
 
 
 function OrganizationUnit({ node, childrenByParent, canEdit, onSelect, expandedPath, onToggle }) {
@@ -187,6 +188,20 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
   });
   const appointmentLocations = new Map((appointmentLocationsQuery.data || []).map((item) => [item.id, item]));
 
+  const resourcesQuery = useQuery({
+    queryKey: ["governance-resources", governance?.id],
+    enabled: Boolean(governance?.id),
+    queryFn: async () => {
+      const [attachmentResult, linkResult] = await Promise.all([
+        supabase.from("attachment").select("*").eq("governance_id", governance.id).order("sort_order", { ascending: true }),
+        supabase.from("link").select("id,url,title,sort_order").eq("governance_id", governance.id).order("sort_order", { ascending: true }),
+      ]);
+      if (attachmentResult.error) throw attachmentResult.error;
+      if (linkResult.error) throw linkResult.error;
+      return { attachments: attachmentResult.data || [], links: linkResult.data || [] };
+    },
+  });
+
   const { data: locationData } = useQuery({
     queryKey: ["governance-organization-map", governance?.id],
     enabled: Boolean(governance?.id),
@@ -332,12 +347,13 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{root.name}</h1>
-                  {root.type && <Badge variant="secondary">{root.type}</Badge>}
                 </div>
                 {root.short_name && <p className="mt-1 text-sm text-muted-foreground">{root.short_name}</p>}
                 {root.description && <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">{root.description}</p>}
                 <div className="mt-4 flex flex-wrap items-center gap-2">
                   {root.website && <Button asChild variant="outline" size="sm"><a href={root.website} target="_blank" rel="noreferrer"><ExternalLink className="mr-2 h-4 w-4" />Website</a></Button>}
+                  {(governance?.phone || root.phone) && <Button asChild variant="ghost" size="sm" className="justify-start"><a href={`tel:${governance?.phone || root.phone}`}><Phone className="mr-2 h-4 w-4" />{governance?.phone || root.phone}</a></Button>}
+                  {(governance?.email || root.email) && <Button asChild variant="ghost" size="sm" className="justify-start"><a href={`mailto:${governance?.email || root.email}`}><Mail className="mr-2 h-4 w-4" />{governance?.email || root.email}</a></Button>}
                   {onViewTree && <Button type="button" variant="outline" size="sm" onClick={onViewTree}><GitBranch className="mr-2 h-4 w-4" />View tree</Button>}
                   {canEdit && <GovernanceCardActions
                     onViewTree={() => onViewTree?.()}
@@ -365,6 +381,15 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
 
 
         </section>
+
+        <GovernanceResources
+          governanceId={governance?.id}
+          attachments={resourcesQuery.data?.attachments || []}
+          links={resourcesQuery.data?.links || []}
+          canEdit={canEdit}
+          onManageLinks={() => onManageLinks?.(governance)}
+          onChanged={() => resourcesQuery.refetch()}
+        />
 
         <section className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
           <div className="grid grid-cols-2 gap-3">

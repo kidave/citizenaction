@@ -231,6 +231,7 @@ export default function GovernanceRecordPage() {
       queryClient.invalidateQueries({ queryKey: ["governance-directory"] }),
       queryClient.invalidateQueries({ queryKey: queryKeys.governance.organization(governance?.id) }),
       queryClient.invalidateQueries({ queryKey: ["governance-organization-context", governance?.id] }),
+      queryClient.invalidateQueries({ queryKey: ["governance-resources", governance?.id] }),
       slug ? queryClient.invalidateQueries({ queryKey: queryKeys.governance.record(slug) }) : Promise.resolve(),
     ]);
     setModalEntity(null);
