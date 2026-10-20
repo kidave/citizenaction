@@ -70,14 +70,23 @@ export function useGovernanceGeographyMutation() {
     mutationFn: async ({ entityId, geographyId, entityType = "governance", governanceId, positionId }) => {
       const id = entityId || governanceId || positionId;
       const { table } = getConfig(entityType);
+      if (entityType === "appointment") {
+        const { data, error } = await supabase.rpc("set_position_appointment_geography", {
+          p_appointment_id: id,
+          p_geography_id: geographyId,
+        });
+        if (error) throw error;
+        return data;
+      }
       const { data, error } = await supabase
         .from(table)
         .update({ geography_id: geographyId })
         .eq("id", id)
         .select("id,geography_id")
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("No matching record was updated. Check your permissions and try again.");
       return data;
     },
     onSuccess: (_, variables) => invalidate(variables.entityId || variables.governanceId || variables.positionId, variables.entityType),
@@ -87,14 +96,23 @@ export function useGovernanceGeographyMutation() {
     mutationFn: async ({ entityId, entityType = "governance", governanceId, positionId }) => {
       const id = entityId || governanceId || positionId;
       const { table } = getConfig(entityType);
+      if (entityType === "appointment") {
+        const { data, error } = await supabase.rpc("set_position_appointment_geography", {
+          p_appointment_id: id,
+          p_geography_id: null,
+        });
+        if (error) throw error;
+        return data;
+      }
       const { data, error } = await supabase
         .from(table)
         .update({ geography_id: null })
         .eq("id", id)
         .select("id,geography_id")
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("No matching record was updated. Check your permissions and try again.");
       return data;
     },
     onSuccess: (_, variables) => invalidate(variables.entityId || variables.governanceId || variables.positionId, variables.entityType),
