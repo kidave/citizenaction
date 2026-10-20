@@ -48,6 +48,8 @@ export default function GovernanceAppointmentDialog({
   const [startedAt, setStartedAt] = useState(today());
   const [endedAt, setEndedAt] = useState("");
   const [isPrimary, setIsPrimary] = useState(true);
+  const [officialPhone, setOfficialPhone] = useState("");
+  const [officialEmail, setOfficialEmail] = useState("");
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -64,6 +66,8 @@ export default function GovernanceAppointmentDialog({
     );
     setEndedAt(record?.ended_at ? String(record.ended_at).slice(0, 10) : "");
     setIsPrimary(record?.is_primary ?? true);
+    setOfficialPhone(record?.official_phone || record?.metadata?.official_phone || "");
+    setOfficialEmail(record?.official_email || record?.metadata?.official_email || "");
 
     const load = async () => {
       const [organizationResult, positionResult, peopleResult] =
@@ -86,8 +90,19 @@ export default function GovernanceAppointmentDialog({
             .limit(1000),
         ]);
 
+      const appointmentId = record?.appointment_id || record?.id;
+      const contactResult = appointmentId
+        ? await supabase.from("position_appointment").select("official_phone,official_email,metadata").eq("id", appointmentId).maybeSingle()
+        : { data: null, error: null };
+
       if (cancelled) return;
       setLoading(false);
+
+      if (contactResult.error) toast.error(contactResult.error.message);
+      if (contactResult.data) {
+        setOfficialPhone(contactResult.data.official_phone || contactResult.data.metadata?.official_phone || "");
+        setOfficialEmail(contactResult.data.official_email || contactResult.data.metadata?.official_email || "");
+      }
 
       if (organizationResult.error)
         return toast.error(organizationResult.error.message);
@@ -191,6 +206,17 @@ export default function GovernanceAppointmentDialog({
       });
 
       if (result.error) throw result.error;
+      const savedAppointmentId = result.data?.id || result.data?.appointment_id || record?.appointment_id || record?.id;
+      if (savedAppointmentId) {
+        const { error: contactError } = await supabase
+          .from("position_appointment")
+          .update({
+            official_phone: officialPhone.trim() || null,
+            official_email: officialEmail.trim() || null,
+          })
+          .eq("id", savedAppointmentId);
+        if (contactError) throw contactError;
+      }
 
       toast.success(positionMode ? (isEditing ? "Appointment updated" : "Person added to position") : "Experience added");
       await onSaved?.(result.data);
@@ -324,6 +350,17 @@ export default function GovernanceAppointmentDialog({
                   />
                 </div>
               )}
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Official phone (optional)</Label>
+                  <Input value={officialPhone} onChange={(event) => setOfficialPhone(event.target.value)} placeholder="Appointment contact phone" disabled={saving} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Official email (optional)</Label>
+                  <Input type="email" value={officialEmail} onChange={(event) => setOfficialEmail(event.target.value)} placeholder="Appointment contact email" disabled={saving} />
+                </div>
+              </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-2">

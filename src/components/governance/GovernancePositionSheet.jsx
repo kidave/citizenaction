@@ -57,7 +57,7 @@ export default function GovernancePositionSheet({
       const positionResult = isEditing
         ? await supabase
             .from("position")
-            .select("id,name,description,appointing_organization_id,reports_to_position_id,metadata")
+            .select("id,name,description,appointing_organization_id,reports_to_position_id,metadata,official_phone,official_email,lat,lng,address")
             .eq("id", record.id)
             .single()
         : { data: null, error: null };
@@ -116,8 +116,8 @@ export default function GovernancePositionSheet({
               description: position.description || "",
               responsibilities: position.metadata?.responsibilities || "",
               qualifications: position.metadata?.qualifications || "",
-              officialPhone: position.metadata?.official_phone || "",
-              officialEmail: position.metadata?.official_email || "",
+              officialPhone: position.official_phone || position.metadata?.official_phone || "",
+              officialEmail: position.official_email || position.metadata?.official_email || "",
               organizationId: position.appointing_organization_id || "",
               reportsToPositionId: position.reports_to_position_id || "",
             }
@@ -152,19 +152,30 @@ export default function GovernancePositionSheet({
             p_description: form.description.trim() || null,
             p_image_url: null,
             p_reports_to_position_id: form.reportsToPositionId || null,
-            p_metadata: { responsibilities: form.responsibilities.trim() || null, qualifications: form.qualifications.trim() || null, official_phone: form.officialPhone.trim() || null, official_email: form.officialEmail.trim() || null },
+            p_metadata: { responsibilities: form.responsibilities.trim() || null, qualifications: form.qualifications.trim() || null },
           }
         : {
             p_name: form.name.trim(),
             p_description: form.description.trim() || null,
             p_image_url: null,
             p_category_id: null,
-            p_metadata: { responsibilities: form.responsibilities.trim() || null, qualifications: form.qualifications.trim() || null, official_phone: form.officialPhone.trim() || null, official_email: form.officialEmail.trim() || null },
+            p_metadata: { responsibilities: form.responsibilities.trim() || null, qualifications: form.qualifications.trim() || null },
             p_appointing_organization_id: form.organizationId,
             p_reports_to_position_id: form.reportsToPositionId || null,
           };
 
       const result = isEditing ? await updatePosition(params) : await createPosition(params);
+      const savedPositionId = record?.id || result?.id || result?.data?.id;
+      if (savedPositionId) {
+        const { error: contactError } = await supabase
+          .from("position")
+          .update({
+            official_phone: form.officialPhone.trim() || null,
+            official_email: form.officialEmail.trim() || null,
+          })
+          .eq("id", savedPositionId);
+        if (contactError) throw contactError;
+      }
 
       toast.success(isEditing ? "Position updated" : "Position created");
       await onSaved?.(result);
