@@ -1,18 +1,31 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Building2, ChevronDown, ChevronRight, ExternalLink, GitBranch } from "lucide-react";
+import { Building2, BriefcaseBusiness, CalendarDays, ChevronDown, ChevronRight, ExternalLink, GitBranch, Mail, MapPin, Phone, Search, UserCheck, UserRoundX, MoreHorizontal, Plus } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import LoadingState from "@/components/ui/loading-state";
 import ErrorState from "@/components/ui/error-state";
 import EmptyState from "@/components/ui/empty-state";
 import { formatGovernanceDate, getGovernanceInitials } from "@/utils/governance";
+import { supabase } from "@/lib/supabase/client";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import GovernanceAppointmentDialog from "@/components/governance/GovernanceAppointmentDialog";
+import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
+import GovernanceResourceDialogs from "@/components/governance/GovernanceResourceDialogs";
+
+const LeafletMap = dynamic(() => import("@/components/geography/LeafletMap"), { ssr: false, loading: () => <div className="flex h-full min-h-[320px] items-center justify-center text-sm text-muted-foreground">Loading map…</div> });
 import { useGovernanceOrganizationContext } from "@/hooks/governance/useGovernanceOrganizationContext";
+import GovernanceCardActions from "@/components/governance/GovernanceCardActions";
 
 
 function OrganizationUnit({ node, childrenByParent, canEdit, onSelect, expandedPath, onToggle }) {
@@ -131,10 +144,67 @@ function ReportingNode({ node, childrenByParent, depth = 0 }) {
   );
 }
 
-export default function GovernanceOrganizationOverview({ governance, asOf, canEdit = false, onEdit, onViewTree }) {
+export default function GovernanceOrganizationOverview({ governance, asOf, canEdit = false, onEdit, onEditPosition, onDeletePosition, onViewTree, onAddPosition, onManageRelations, onAddParent, onAddChild, onAddAddress, onRemoveAddress, onAddGeography, onRemoveGeography, onManageLinks, onDelete }) {
   const query = useGovernanceOrganizationContext({ governanceId: governance?.id, asOf });
   const organizations = query.data?.organizations || [];
   const appointments = query.data?.appointments || [];
+  const [positionSearch, setPositionSearch] = useState("");
+  const [joinedFrom, setJoinedFrom] = useState("");
+  const [joinedTo, setJoinedTo] = useState("");
+  const [appointmentDialogOpen, setAppointmentDialogOpen] = useState(false);
+  const [appointmentRecord, setAppointmentRecord] = useState(null);
+  const [appointmentPositionId, setAppointmentPositionId] = useState(null);
+  const [appointmentLocationRecord, setAppointmentLocationRecord] = useState(null);
+  const [appointmentAddressOpen, setAppointmentAddressOpen] = useState(false);
+  const [appointmentGeographyOpen, setAppointmentGeographyOpen] = useState(false);
+  const positionsQuery = useQuery({
+    queryKey: ["governance-organization-positions", governance?.id],
+    enabled: Boolean(governance?.id),
+    queryFn: async () => {
+      const { data, error } = await supabase.from("position")
+        .select("id,name,slug,image_url,appointing_organization_id,address,metadata")
+        .eq("appointing_organization_id", governance.id)
+        .order("name");
+      if (error) throw error;
+      const positions = data || [];
+      if (!positions.length) return [];
+      const { data: history, error: historyError } = await supabase.from("position_appointment").select("position_id").in("position_id", positions.map((item) => item.id));
+      if (historyError) throw historyError;
+      const counts = new Map();
+      (history || []).forEach((item) => counts.set(item.position_id, (counts.get(item.position_id) || 0) + 1));
+      return positions.map((item) => ({ ...item, appointment_history_count: counts.get(item.id) || 0 }));
+    },
+  });
+  const appointmentIds = appointments.map((item) => item.appointment_id || item.id).filter(Boolean);
+  const appointmentLocationsQuery = useQuery({
+    queryKey: ["governance-appointment-locations", governance?.id, appointmentIds.join(",")],
+    enabled: appointmentIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("position_appointment").select("id,geography_id,address,lat,lng,geographies(name,official_name)").in("id", appointmentIds);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+  const appointmentLocations = new Map((appointmentLocationsQuery.data || []).map((item) => [item.id, item]));
+
+  const { data: locationData } = useQuery({
+    queryKey: ["governance-organization-map", governance?.id],
+    enabled: Boolean(governance?.id),
+    queryFn: async () => {
+      const { data, error } = await supabase.from("governance").select("id,address,lat,lng,geom,geography_id,metadata").eq("id", governance.id).maybeSingle();
+      if (error) throw error;
+      return data || {};
+    },
+  });
+  const { data: boundary } = useQuery({
+    queryKey: ["governance-jurisdiction-geometry", locationData?.geography_id],
+    enabled: Boolean(locationData?.geography_id),
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_geography_geometry", { p_geography_id: locationData.geography_id });
+      if (error) throw error;
+      return data?.type === "Feature" ? data.geometry : data?.geometry || data || null;
+    },
+  });
 
   const childrenByParent = useMemo(() => {
     const map = new Map();
@@ -195,15 +265,65 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
     return <ErrorState className="min-h-[50vh]" title="Unable to load organization structure" />;
   }
 
-  const totalPositions = appointments.length;
-  const filledPositions = appointments.filter((item) => !item.is_vacant && item.person_id).length;
+  const organizationAppointments = appointments.filter((item) => item.organization_id === governance?.id);
+  // Render one row per current appointment. A position may legitimately have
+  // multiple simultaneous appointments, so never collapse them to the latest row.
+  const currentPositions = (positionsQuery.data || []).flatMap((position) => {
+    const currentAppointments = organizationAppointments
+      .filter((item) => item.position_id === position.id && !item.is_vacant && item.person_id);
+    const sharedPosition = {
+      ...position,
+      position_id: position.id,
+      position_name: position.name,
+      position_slug: position.slug,
+      position_avatar_url: position.image_url,
+      organization_slug: governance?.slug,
+    };
+    if (!currentAppointments.length) {
+      return [{
+        ...sharedPosition,
+        appointment_id: null,
+        person_id: null,
+        person_name: null,
+        person_slug: null,
+        person_avatar_url: null,
+        started_at: null,
+        ended_at: null,
+        is_vacant: true,
+      }];
+    }
+    return currentAppointments.map((appointment) => {
+      const appointmentId = appointment.appointment_id || appointment.id || null;
+      return {
+        ...sharedPosition,
+        ...appointment,
+        ...(appointmentLocations.get(appointmentId) || {}),
+        position_id: position.id,
+        position_name: position.name,
+        position_slug: position.slug,
+        position_avatar_url: position.image_url,
+        organization_slug: governance?.slug,
+        appointment_id: appointmentId,
+        is_vacant: false,
+      };
+    });
+  });
+  const filteredPositions = currentPositions.filter((item) => {
+    const needle = positionSearch.trim().toLowerCase();
+    const matchesSearch = !needle || [item.position_name, item.person_name].some((value) => String(value || "").toLowerCase().includes(needle));
+    const joined = item.started_at ? String(item.started_at).slice(0, 10) : "";
+    return matchesSearch && (!joinedFrom || (joined && joined >= joinedFrom)) && (!joinedTo || (joined && joined <= joinedTo));
+  });
+  const totalPositions = (positionsQuery.data || []).length;
+  const filledPositionIds = new Set(currentPositions.filter((item) => !item.is_vacant).map((item) => item.position_id));
+  const filledPositions = filledPositionIds.size;
+  const vacantPositions = Math.max(0, totalPositions - filledPositions);
   const unitCount = organizations.length;
 
   return (
     <div className="min-h-[calc(100vh-5.5rem)] bg-background">
       <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-5 sm:px-6 lg:px-8">
-        <Card>
-          <CardContent className="p-5 sm:p-6">
+        <section className="py-1">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
               <Avatar className="h-16 w-16 rounded-xl sm:h-20 sm:w-20">
                 <AvatarImage src={root.image_url || undefined} alt="" />
@@ -216,111 +336,192 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                 </div>
                 {root.short_name && <p className="mt-1 text-sm text-muted-foreground">{root.short_name}</p>}
                 {root.description && <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">{root.description}</p>}
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-4 flex flex-wrap items-center gap-2">
                   {root.website && <Button asChild variant="outline" size="sm"><a href={root.website} target="_blank" rel="noreferrer"><ExternalLink className="mr-2 h-4 w-4" />Website</a></Button>}
                   {onViewTree && <Button type="button" variant="outline" size="sm" onClick={onViewTree}><GitBranch className="mr-2 h-4 w-4" />View tree</Button>}
-                  {canEdit && <Button type="button" variant="outline" size="sm" onClick={onEdit}>Edit</Button>}
+                  {canEdit && <GovernanceCardActions
+                    onViewTree={() => onViewTree?.()}
+                    onEdit={() => onEdit?.(governance)}
+                    onPrimaryAction={() => onAddPosition?.(governance)}
+                    primaryActionLabel="Add Position"
+                    onManageRelations={() => onManageRelations?.(governance)}
+                    onAddParent={() => onAddParent?.(governance)}
+                    onAddChild={() => onAddChild?.(governance)}
+                    onAddAddress={() => onAddAddress?.(governance)}
+                    onRemoveAddress={() => onRemoveAddress?.(governance)}
+                    onAddGeography={() => onAddGeography?.(governance)}
+                    onRemoveGeography={() => onRemoveGeography?.(governance)}
+                    onManageLinks={() => onManageLinks?.(governance)}
+                    onDelete={() => onDelete?.(governance)}
+                    hasAddress={Boolean(locationData?.address || root.address)}
+                    hasGeography={Boolean(locationData?.geography_id || root.geography_id)}
+                    hasLinks={Boolean(root.hasLinks)}
+                  >
+                    <Button type="button" variant="outline" size="icon" className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border-border bg-background p-0" aria-label="Organization actions"><MoreHorizontal className="h-5 w-5 shrink-0" /></Button>
+                  </GovernanceCardActions>}
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <div className="rounded-lg border bg-muted/30 p-3"><div className="text-xs text-muted-foreground">Units</div><div className="mt-1 text-lg font-semibold">{unitCount}</div></div>
-              <div className="rounded-lg border bg-muted/30 p-3"><div className="text-xs text-muted-foreground">Current positions</div><div className="mt-1 text-lg font-semibold">{totalPositions}</div></div>
-              <div className="rounded-lg border bg-muted/30 p-3"><div className="text-xs text-muted-foreground">Filled</div><div className="mt-1 text-lg font-semibold">{filledPositions}</div></div>
-              <div className="rounded-lg border bg-muted/30 p-3"><div className="text-xs text-muted-foreground">Reporting roots</div><div className="mt-1 text-lg font-semibold">{reportingRoots.length}</div></div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Tabs defaultValue="structure" className="space-y-4">
-          <TabsList className="w-max max-w-full">
-            <TabsTrigger value="structure">Structure</TabsTrigger>
-            <TabsTrigger value="reporting">Reporting</TabsTrigger>
-            <TabsTrigger value="positions">Positions</TabsTrigger>
-          </TabsList>
+        </section>
 
-          <TabsContent value="structure" className="space-y-3">
-            <div>
-              <h2 className="text-sm font-semibold">Organization structure</h2>
-              <p className="mt-1 text-xs text-muted-foreground">Units and hierarchy within this organization.</p>
-            </div>
-            <OrganizationUnit
-              node={root}
-              childrenByParent={childrenByParent}
-              canEdit={canEdit}
-              onSelect={onEdit}
-              expandedPath={expandedPath}
-              onToggle={toggleOrganizationUnit}
-            />
-          </TabsContent>
-
-          <TabsContent value="reporting" className="space-y-3">
-            <div>
-              <h2 className="text-sm font-semibold">Reporting structure</h2>
-              <p className="mt-1 text-xs text-muted-foreground">Who reports to whom across the organization.</p>
-            </div>
-            {reportingRoots.length ? (
-              <div className="space-y-3">
-                {reportingRoots.map((item) => (
-                  <ReportingNode key={item.appointment_id} node={item} childrenByParent={appointmentsByParent} />
-                ))}
+        <section className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: "Units", value: Math.max(0, unitCount - 1), Icon: Building2 },
+              { label: "Positions", value: totalPositions, Icon: BriefcaseBusiness },
+              { label: "Filled", value: filledPositions, Icon: UserCheck },
+              { label: "Vacant", value: vacantPositions, Icon: UserRoundX },
+            ].map(({ label, value, Icon }) => <Card key={label}><CardContent className="flex items-start justify-between gap-3 p-4"><div><p className="text-sm text-muted-foreground">{label}</p><p className="mt-2 text-2xl font-semibold tracking-tight">{value}</p></div><span className="rounded-lg bg-muted p-2 text-muted-foreground"><Icon className="h-4 w-4" /></span></CardContent></Card>)}
+          </div>
+          <Card className="overflow-hidden">
+            <CardContent className="p-0">
+              <div className="h-[320px] w-full sm:h-[360px]">
+                <LeafletMap
+                  lat={Number(locationData?.lat ?? locationData?.metadata?.lat) || 19.076}
+                  lng={Number(locationData?.lng ?? locationData?.metadata?.lng) || 72.8777}
+                  showMarker={Number.isFinite(Number(locationData?.lat ?? locationData?.metadata?.lat)) && Number.isFinite(Number(locationData?.lng ?? locationData?.metadata?.lng))}
+                  zoom={12}
+                  boundary={boundary || locationData?.geom || null}
+                  markers={[]}
+                />
               </div>
-            ) : (
-              <EmptyState className="min-h-0 rounded-lg border border-dashed p-8" title="No reporting relationships mapped" />
-            )}
+              {!locationData?.geography_id && !locationData?.geom && <div className="border-t px-3 py-2 text-xs text-muted-foreground">No jurisdiction boundary is linked yet. Add geography from organization actions to display the boundary.</div>}
+            </CardContent>
+          </Card>
+        </section>
 
-            {unmapped.length > 0 && (
-              <div className="pt-2">
-                <h3 className="mb-2 text-xs font-medium text-muted-foreground">Without a reporting link</h3>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {unmapped.map((item) => (
-                    <div key={item.appointment_id} className="flex items-center gap-3 rounded-lg border p-3">
-                      <Avatar className="h-9 w-9 rounded-lg">
-                        <AvatarImage src={item.person_avatar_url || item.position_avatar_url || undefined} alt="" />
-                        <AvatarFallback className="rounded-lg">{getGovernanceInitials(item.person_name || item.position_name)}</AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-medium">{item.position_name}</div>
-                        <div className="truncate text-xs text-muted-foreground">{item.organization_name}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="positions" className="space-y-3">
+        <section className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-sm font-semibold">Current positions</h2>
-              <p className="mt-1 text-xs text-muted-foreground">Positions currently recorded for this organization.</p>
+              <h2 className="text-lg font-semibold">Positions</h2>
+              <p className="text-sm text-muted-foreground">Only positions belonging directly to this organization.</p>
             </div>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {appointments.map((item) => {
-                const href = item.position_slug && item.organization_slug ? `/governance/${item.organization_slug}/${item.position_slug}` : null;
-                return (
-                  <Card key={item.appointment_id} className="shadow-none">
-                    <CardContent className="p-3">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9 rounded-lg">
-                          <AvatarImage src={item.person_avatar_url || item.position_avatar_url || undefined} alt="" />
-                          <AvatarFallback className="rounded-lg">{getGovernanceInitials(item.person_name || item.position_name)}</AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0 flex-1">
-                          {href ? <Link href={href} className="block truncate text-sm font-medium hover:underline">{item.position_name}</Link> : <div className="truncate text-sm font-medium">{item.position_name}</div>}
-                          <div className="truncate text-xs text-muted-foreground">{item.person_name || (item.is_vacant ? "Vacant" : "Unassigned")}</div>
-                          <div className="truncate text-[11px] text-muted-foreground">{item.organization_name}</div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-              {!appointments.length && <EmptyState className="col-span-full min-h-0 rounded-lg border border-dashed p-8" title="No current positions mapped" />}
+            {canEdit && <div className="flex flex-wrap items-center gap-2">
+              <Button type="button" size="sm" onClick={() => onAddPosition?.(governance)}><Plus className="mr-2 h-4 w-4" />Add position</Button>
+            </div>}
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="relative min-w-0 flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={positionSearch} onChange={(event) => setPositionSearch(event.target.value)} placeholder="Search positions or people…" className="pl-9" aria-label="Search positions or people" /></div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button type="button" variant="outline" className="justify-start gap-2 font-normal sm:w-[320px]">
+                  <CalendarDays className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  {joinedFrom || joinedTo
+                    ? `${joinedFrom ? new Date(joinedFrom + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }) : "Start date"} – ${joinedTo ? new Date(joinedTo + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }) : "End date"}`
+                    : "Filter joined date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-auto p-0">
+                <Calendar
+                  mode="range"
+                  numberOfMonths={2}
+                  selected={{
+                    from: joinedFrom ? new Date(joinedFrom + "T12:00:00") : undefined,
+                    to: joinedTo ? new Date(joinedTo + "T12:00:00") : undefined,
+                  }}
+                  onSelect={(range) => {
+                    setJoinedFrom(range?.from ? `${range.from.getFullYear()}-${String(range.from.getMonth() + 1).padStart(2, "0")}-${String(range.from.getDate()).padStart(2, "0")}` : "");
+                    setJoinedTo(range?.to ? `${range.to.getFullYear()}-${String(range.to.getMonth() + 1).padStart(2, "0")}-${String(range.to.getDate()).padStart(2, "0")}` : "");
+                  }}
+                  initialFocus
+                />
+                {(joinedFrom || joinedTo) && <div className="border-t p-2"><Button type="button" variant="ghost" size="sm" onClick={() => { setJoinedFrom(""); setJoinedTo(""); }}>Clear dates</Button></div>}
+              </PopoverContent>
+            </Popover>
+          </div>
+          {positionsQuery.isLoading ? <LoadingState label="Loading positions" /> : positionsQuery.error ? <ErrorState title="Unable to load positions" /> : filteredPositions.length ? (
+            <div className="overflow-hidden rounded-lg border">
+              <TooltipProvider>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Position</TableHead>
+                      <TableHead>Current person</TableHead>
+                      <TableHead className="hidden lg:table-cell">Phone</TableHead>
+                      <TableHead className="hidden lg:table-cell">Email</TableHead>
+                      <TableHead className="hidden md:table-cell">Address</TableHead>
+                      <TableHead className="hidden xl:table-cell">Geography boundary</TableHead>
+                      <TableHead className="hidden sm:table-cell">Joined</TableHead>
+                      <TableHead className="w-12"><span className="sr-only">Actions</span></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredPositions.map((item) => {
+                      const positionHref = item.position_slug && item.organization_slug ? `/governance/${item.organization_slug}/${item.position_slug}` : null;
+                      const personHref = item.person_slug ? `/governance/person/${item.person_slug}` : null;
+                      const vacant = item.is_vacant || !item.person_id;
+                      return (
+                        <TableRow key={item.appointment_id || item.position_id}>
+                          <TableCell className="max-w-[280px]">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="min-w-0">
+                                  {positionHref ? <Link href={positionHref} className="block truncate font-medium hover:underline">{item.position_name || "Position"}</Link> : <span className="block truncate font-medium">{item.position_name || "Position"}</span>}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>{item.position_name || "Position"}</TooltipContent>
+                            </Tooltip>
+                          </TableCell>
+                          <TableCell className="max-w-[220px]">
+                            <div className="flex min-w-0 items-center gap-2">
+                              <Avatar className="h-8 w-8 shrink-0 rounded-md">
+                                <AvatarImage src={vacant ? (root.image_url || undefined) : (item.person_avatar_url || undefined)} alt="" />
+                                <AvatarFallback className="rounded-md text-xs">{getGovernanceInitials(vacant ? root.name : item.person_name)}</AvatarFallback>
+                              </Avatar>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  {personHref && !vacant ? <Link href={personHref} className="block truncate text-sm hover:underline">{item.person_name}</Link> : <span className={`block truncate text-sm ${vacant ? "text-muted-foreground" : ""}`}>{vacant ? "Vacant" : item.person_name || "Unassigned"}</span>}
+                                </TooltipTrigger>
+                                <TooltipContent>{vacant ? "Vacant — no current person assigned" : item.person_name || "No current person assigned"}</TooltipContent>
+                              </Tooltip>
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden max-w-[150px] lg:table-cell">
+                            {(item.official_phone || item.metadata?.official_phone || item.position_metadata?.official_phone || item.position_official_phone) ? <a className="flex items-center gap-2 truncate text-sm text-muted-foreground hover:underline" href={`tel:${item.official_phone || item.metadata?.official_phone || item.position_metadata?.official_phone || item.position_official_phone}`}><Phone className="h-4 w-4 shrink-0" /><span className="truncate">{item.official_phone || item.metadata?.official_phone || item.position_metadata?.official_phone || item.position_official_phone}</span></a> : <span className="text-sm text-muted-foreground">—</span>}
+                          </TableCell>
+                          <TableCell className="hidden max-w-[190px] lg:table-cell">
+                            {(item.official_email || item.metadata?.official_email || item.position_metadata?.official_email || item.position_official_email) ? <a className="flex items-center gap-2 truncate text-sm text-muted-foreground hover:underline" href={`mailto:${item.official_email || item.metadata?.official_email || item.position_metadata?.official_email || item.position_official_email}`}><Mail className="h-4 w-4 shrink-0" /><span className="truncate">{item.official_email || item.metadata?.official_email || item.position_metadata?.official_email || item.position_official_email}</span></a> : <span className="text-sm text-muted-foreground">—</span>}
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            {item.address ? <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.address)}`} target="_blank" rel="noreferrer" aria-label={`Open address for ${item.position_name || "position"} in Google Maps`} title="Open address in Google Maps" className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"><MapPin className="h-4 w-4" /></a> : <span className="text-sm text-muted-foreground">—</span>}
+                          </TableCell>
+                          <TableCell className="hidden max-w-[190px] xl:table-cell">
+                            {(item.geographies?.official_name || item.geographies?.name) ? <button type="button" title="View or edit geography boundary" onClick={() => { setAppointmentLocationRecord(item); setAppointmentGeographyOpen(true); }} className="max-w-full truncate text-left text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">{item.geographies.official_name || item.geographies.name}</button> : <span className="text-sm text-muted-foreground">—</span>}
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">{vacant || !item.started_at ? "—" : formatGovernanceDate(item.started_at)}</TableCell>
+                          <TableCell>
+                            {canEdit && item.appointment_id ? <GovernanceAppointmentDeleteButton appointmentId={item.appointment_id} personName={item.person_name} positionName={item.position_name} onEditPosition={() => onEditPosition?.(item)} onAssignPerson={() => { setAppointmentRecord(null); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} onEdit={() => { setAppointmentRecord(item); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} onManageAddress={() => { setAppointmentLocationRecord(item); setAppointmentAddressOpen(true); }} onManageGeography={() => { setAppointmentLocationRecord(item); setAppointmentGeographyOpen(true); }} onDeleted={async () => { await query.refetch(); await positionsQuery.refetch(); await appointmentLocationsQuery.refetch(); }} /> : canEdit ? <GovernanceCardActions onEdit={() => onEditPosition?.(item)} editLabel="Edit Position" onPrimaryAction={() => { setAppointmentRecord(null); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} primaryActionLabel="Assign person" onDelete={item.appointment_history_count ? undefined : () => onDeletePosition?.(item)} entityLabel="position"><span className="block h-8 w-8" aria-hidden="true" /></GovernanceCardActions> : null}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TooltipProvider>
             </div>
-          </TabsContent>
-        </Tabs>
+          ) : (
+            <EmptyState title={currentPositions.length ? "No matching positions" : "No positions found"} description={currentPositions.length ? "Try changing your search or date range." : canEdit ? "Add the first position for this organization." : "No positions have been recorded."} />
+          )}
+        </section>
+        <GovernanceResourceDialogs
+          entity={appointmentLocationRecord ? {
+            id: appointmentLocationRecord.appointment_id || appointmentLocationRecord.id,
+            name: appointmentLocationRecord.person_name ? appointmentLocationRecord.person_name + "'s appointment" : appointmentLocationRecord.position_name || "Appointment",
+            address: appointmentLocationRecord.address || "",
+            lat: appointmentLocationRecord.lat,
+            lng: appointmentLocationRecord.lng,
+            geography_id: appointmentLocationRecord.geography_id || null,
+          } : null}
+          entityType="appointment"
+          addressOpen={appointmentAddressOpen}
+          onAddressOpenChange={setAppointmentAddressOpen}
+          geographyOpen={appointmentGeographyOpen}
+          onGeographyOpenChange={setAppointmentGeographyOpen}
+          onSaved={async () => { await query.refetch(); await positionsQuery.refetch(); await appointmentLocationsQuery.refetch(); }}
+        />
+        {canEdit && <GovernanceAppointmentDialog open={appointmentDialogOpen} onOpenChange={setAppointmentDialogOpen} mode="position" organizationId={governance?.id} positionId={appointmentPositionId} record={appointmentRecord} onSaved={async () => { await query.refetch(); await positionsQuery.refetch(); }} />}
       </div>
     </div>
   );

@@ -26,7 +26,6 @@ export const GOVERNANCE_STATUS_OPTIONS = [
 
 export const GOVERNANCE_DIRECTORY_TABS = [
   ["organizations", "Organizations"],
-  ["positions", "Positions"],
   ["people", "People"],
 ];
 
@@ -60,7 +59,7 @@ export function getGovernanceRoute(entity, view = null) {
     pathname: "/governance/[...path]",
     query: {
       path,
-      ...(view ? { view } : {}),
+      ...(view === "tree" ? { view: "tree" } : {}),
     },
   };
 }

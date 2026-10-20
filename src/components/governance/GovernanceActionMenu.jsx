@@ -45,13 +45,20 @@ export function GovernanceActionMenuItems({
   onRemoveGeography,
   onDelete,
   editLabel = "Edit Organization",
+  entityLabel = "organization",
   hasAddress = false,
   hasLinks = false,
   hasGeography = false,
   stopPropagation = true,
+  deferActions = false,
 }) {
   const run = (callback, event) => {
     if (stopPropagation) event?.stopPropagation();
+    if (deferActions && typeof window !== "undefined") {
+      // Let Radix fully dismiss the context menu before opening another modal layer.
+      window.setTimeout(() => callback?.(), 0);
+      return;
+    }
     callback?.();
   };
 
@@ -60,13 +67,13 @@ export function GovernanceActionMenuItems({
       {onView && (
         <MenuItem onSelect={(event) => run(onView, event)}>
           <ExternalLink className="mr-2 h-4 w-4" />
-          View Organization
+          {"View " + (entityLabel === "organization" ? "Organization" : entityLabel[0].toUpperCase() + entityLabel.slice(1))}
         </MenuItem>
       )}
       {onViewTree && (
         <MenuItem onSelect={(event) => run(onViewTree, event)}>
           <ExternalLink className="mr-2 h-4 w-4" />
-          View Organization Tree
+          {"View " + (entityLabel === "organization" ? "Organization" : entityLabel[0].toUpperCase() + entityLabel.slice(1)) + " Tree"}
         </MenuItem>
       )}
       {onEdit && (
@@ -208,7 +215,7 @@ export function GovernanceActionDropdown({
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" side="bottom" sideOffset={6} collisionPadding={12} className="max-h-[var(--radix-dropdown-menu-content-available-height)] overflow-y-auto overscroll-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <GovernanceActionMenuItems
             MenuItem={DropdownMenuItem}
             MenuSeparator={DropdownMenuSeparator}
@@ -285,9 +292,12 @@ export function GovernanceActionContextMenu({
           <GovernanceActionMenuItems
             MenuItem={ContextMenuItem}
             MenuSeparator={ContextMenuSeparator}
+            deferActions
             onView={onView}
             onViewTree={onViewTree}
             onEdit={onEdit}
+            editLabel={editLabel}
+            entityLabel={entityLabel}
             onPrimaryAction={onPrimaryAction}
             primaryActionLabel={primaryActionLabel}
             onManageRelations={onManageRelations}

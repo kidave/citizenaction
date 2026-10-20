@@ -52,6 +52,7 @@ export default function GovernanceRecordPage() {
   const [geographyEntity, setGeographyEntity] = useState(null);
   const [positionOpen, setPositionOpen] = useState(false);
   const [positionOrganizationId, setPositionOrganizationId] = useState(null);
+  const [positionEditRecord, setPositionEditRecord] = useState(null);
   const [resourceEntity, setResourceEntity] = useState(null);
   const [addressOpen, setAddressOpen] = useState(false);
   const [linksOpen, setLinksOpen] = useState(false);
@@ -60,7 +61,7 @@ export default function GovernanceRecordPage() {
   const canEdit = profile?.role === "admin";
   const { categories = [] } = useGovernanceCatalog({ enabled: canEdit });
   const { removeGeography } = useGovernanceGeographyMutation();
-  const { deleteOrganization } = useGovernanceCrud();
+  const { deleteOrganization, deletePosition } = useGovernanceCrud();
 
   const governanceQuery = useQuery({
     queryKey: queryKeys.governance.record(slug),
@@ -189,7 +190,8 @@ export default function GovernanceRecordPage() {
     setRelationSource(entity);
     setRelationOpen(true);
   };
-  const openAddPosition = (entity) => { if (!entity?.id) return; setPositionOrganizationId(entity.id); setPositionOpen(true); };
+  const openAddPosition = (entity) => { if (!entity?.id) return; setPositionEditRecord(null); setPositionOrganizationId(entity.id); setPositionOpen(true); };
+  const openEditPosition = (position) => { if (!position?.id) return; setPositionEditRecord(position); setPositionOrganizationId(governance?.id || position.appointing_organization_id); setPositionOpen(true); };
   const openGeography = (entity) => {
     if (!entity?.id) return;
     setModalOpen(false);
@@ -235,6 +237,19 @@ export default function GovernanceRecordPage() {
     setOrganizationSheetEntity(null);
     setOrganizationSheetOpen(false);
   };
+  const deletePositionEntity = async (entity) => {
+    if (!entity?.id) return;
+    try {
+      await deletePosition(entity.id);
+      await handleChanged();
+      const { toast } = await import("sonner");
+      toast.success("Position deleted");
+    } catch (error) {
+      const { toast } = await import("sonner");
+      toast.error(error?.message || "Unable to delete position. Remove its appointments first.");
+    }
+  };
+
   const deleteEntity = async (entity) => {
     if (!entity?.id) return;
     try {
@@ -284,6 +299,18 @@ export default function GovernanceRecordPage() {
             canEdit={canEdit}
             onEdit={editEntity}
             onViewTree={() => openTreePage(governance)}
+            onAddPosition={openAddPosition}
+            onEditPosition={openEditPosition}
+            onDeletePosition={deletePositionEntity}
+            onManageRelations={(entity) => openRelation("edit-relations", entity)}
+            onAddParent={(entity) => openRelation("add-parent", entity)}
+            onAddChild={(entity) => openRelation("add-child", entity)}
+            onAddAddress={(entity) => openResource(entity, "address")}
+            onRemoveAddress={removeAddress}
+            onAddGeography={openGeography}
+            onRemoveGeography={removeEntityGeography}
+            onManageLinks={(entity) => openResource(entity, "links")}
+            onDelete={deleteEntity}
           />
         ) : (
           <GovernanceFamilyTree
@@ -355,7 +382,8 @@ export default function GovernanceRecordPage() {
 
       <GovernancePositionSheet
         open={positionOpen}
-        onOpenChange={(value) => { setPositionOpen(value); if (!value) setPositionOrganizationId(null); }}
+        record={positionEditRecord}
+        onOpenChange={(value) => { setPositionOpen(value); if (!value) { setPositionOrganizationId(null); setPositionEditRecord(null); } }}
         defaultOrganizationId={positionOrganizationId}
         onSaved={handleChanged}
       />

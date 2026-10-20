@@ -3,8 +3,8 @@ import { useRouter } from "next/router";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import GeographyFocusSelector from "@/components/geography/GeographyFocusSelector";
+import GovernanceDirectoryToolbar from "@/components/governance/GovernanceDirectoryToolbar";
 import OrganizationDirectory from "@/components/governance/OrganizationDirectory";
-import PositionDirectory from "@/components/governance/PositionDirectory";
 import PersonDirectory from "@/components/governance/PersonDirectory";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
 import { GOVERNANCE_DIRECTORY_TABS } from "@/utils/governance";
@@ -20,6 +20,12 @@ export default function GovernancePage() {
   const router = useRouter();
   const [tab, setTab] = useState("organizations");
   const [focusGeographyId, setFocusGeographyId] = useState(null);
+  const [search, setSearch] = useState("");
+  const [organizationType, setOrganizationType] = useState("all");
+  const [categoryId, setCategoryId] = useState("all");
+  const [organizationId, setOrganizationId] = useState("all");
+  const [currentOnly, setCurrentOnly] = useState(false);
+  const [createRequest, setCreateRequest] = useState(null);
   const { data: profile } = useMyProfile();
   const canManage = profile?.role === "admin";
 
@@ -41,6 +47,7 @@ export default function GovernancePage() {
   const handleTabChange = (nextTab) => {
     if (!VALID_TABS.has(nextTab) || nextTab === tab) return;
     setTab(nextTab);
+    setCreateRequest(null);
     router.push(
       { pathname: "/governance", query: { ...router.query, tab: nextTab } },
       undefined,
@@ -66,21 +73,32 @@ export default function GovernancePage() {
       />
       <main className="min-w-0 flex-1 overflow-x-hidden px-4 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-6xl">
-          <Tabs value={tab} onValueChange={handleTabChange} className="mb-4">
-            <TabsList className="w-max max-w-full">
-              {GOVERNANCE_DIRECTORY_TABS.map(([value, label]) => (
-                <TabsTrigger key={value} value={value} className="px-3 sm:px-4">
-                  {label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+          <GovernanceDirectoryToolbar
+            tab={tab}
+            tabs={
+              <Tabs value={tab} onValueChange={handleTabChange}>
+                <TabsList className="w-max max-w-full">
+                  {GOVERNANCE_DIRECTORY_TABS.map(([value, label]) => (
+                    <TabsTrigger key={value} value={value} className="px-3 sm:px-4">
+                      {label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+            }
+            search={search} onSearchChange={setSearch}
+            organizationType={organizationType} onOrganizationTypeChange={setOrganizationType}
+            categoryId={categoryId} onCategoryIdChange={setCategoryId}
+            organizationId={organizationId} onOrganizationIdChange={setOrganizationId}
+            currentOnly={currentOnly} onCurrentOnlyChange={setCurrentOnly}
+            canManage={canManage}
+            onCreate={() => setCreateRequest({ tab, token: Date.now() })}
+          />
 
           {tab === "organizations" && (
-            <OrganizationDirectory {...directoryProps} />
+            <OrganizationDirectory {...directoryProps} search={search} type={organizationType} categoryId={categoryId} createRequest={createRequest} />
           )}
-          {tab === "positions" && <PositionDirectory {...directoryProps} />}
-          {tab === "people" && <PersonDirectory {...directoryProps} />}
+          {tab === "people" && <PersonDirectory {...directoryProps} search={search} organizationId={organizationId === "all" ? null : organizationId} currentOnly={currentOnly} createRequest={createRequest} />}
         </div>
       </main>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AddGeographyDialog from "@/components/geography/AddGeographyDialog";
 import { MapPinned, X } from "lucide-react";
 import { getGeographyCategoryLabel } from "@/config/geography/boundaryCategories";
 
@@ -26,6 +27,7 @@ import {
 export default function GeographyFocusSelector({ value, onValueChange, className }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [mapOpen, setMapOpen] = useState(false);
 
   const {
     effectiveValue,
@@ -44,10 +46,7 @@ export default function GeographyFocusSelector({ value, onValueChange, className
 
   const isIndia = effectiveValue === DEFAULT_GEOGRAPHY_FOCUS_ID;
   const selectedLabel = selected?.name || (isIndia ? "India" : "");
-  const selectedType = selected?.geography_type
-    ? getGeographyTypeLabel(selected.geography_type)
-    : null;
-
+  
   const loadMore = () => {
     if (hasNextPage && !isFetchingNextPage) fetchNextPage();
   };
@@ -63,7 +62,7 @@ export default function GeographyFocusSelector({ value, onValueChange, className
   return (
     <Combobox
       items={groupedOptions}
-      value={selected || undefined}
+      value={isIndia ? undefined : selected || undefined}
       open={open}
       onOpenChange={setOpen}
       inputValue={search}
@@ -80,9 +79,10 @@ export default function GeographyFocusSelector({ value, onValueChange, className
       autoHighlight
       className={className}
     >
-      <div className="relative w-[min(16rem,calc(100vw-7rem))] min-w-[12rem]">
+      <div className="relative w-[min(16rem,calc(100vw-6rem))] min-w-0 sm:min-w-[12rem]">
         <ComboboxTrigger
-          className="inline-flex h-10 w-full items-center gap-2 rounded-md border border-input bg-background px-2.5 shadow-xs hover:bg-accent hover:text-accent-foreground"
+          onDoubleClick={() => setMapOpen(true)}
+          className="inline-flex h-10 w-full min-w-0 items-center gap-1.5 rounded-md border border-input bg-background px-2 shadow-xs hover:bg-accent hover:text-accent-foreground sm:gap-2 sm:px-2.5"
           aria-label="Select geography"
         >
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground">
@@ -92,13 +92,9 @@ export default function GeographyFocusSelector({ value, onValueChange, className
           <span className="min-w-0 flex-1 overflow-hidden text-left">
             <ComboboxValue
               placeholder={selectedLabel || "Select geography"}
-              className="block min-w-0 max-w-full truncate whitespace-nowrap font-serif text-sm font-normal"
+              className="block min-w-0 max-w-full truncate whitespace-nowrap font-serif text-xs font-normal sm:text-sm"
             />
-            {!isIndia && selectedType && (
-              <span className="block truncate whitespace-nowrap text-[11px] leading-3 text-muted-foreground">
-                {selectedType}
-              </span>
-            )}
+
           </span>
         </ComboboxTrigger>
 
@@ -125,6 +121,9 @@ export default function GeographyFocusSelector({ value, onValueChange, className
           aria-label="Search geography boundary"
           className="h-9 rounded-md"
         />
+        <div className="px-3 py-2 text-xs text-muted-foreground">
+          <button type="button" className="underline underline-offset-4 hover:text-foreground" onClick={() => setMapOpen(true)}>Open map and hierarchy</button>
+        </div>
         <ComboboxEmpty>
           {error
             ? "Unable to search boundaries."
@@ -169,6 +168,19 @@ export default function GeographyFocusSelector({ value, onValueChange, className
           </div>
         )}
       </ComboboxContent>
+      <AddGeographyDialog
+        open={mapOpen}
+        onOpenChange={setMapOpen}
+        selectionOnly
+        value={effectiveValue}
+        title="Choose geographic focus"
+        onSelectBoundary={(boundary) => {
+          const nextId = boundary?.id || null;
+          onValueChange?.(nextId === DEFAULT_GEOGRAPHY_FOCUS_ID ? null : nextId);
+          setMapOpen(false);
+          setSearch("");
+        }}
+      />
     </Combobox>
   );
 }

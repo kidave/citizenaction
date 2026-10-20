@@ -1,18 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
-import { Plus, Search } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase/client";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectoryCard";
 import GovernanceEntityModal from "@/components/governance/GovernanceEntityModal";
 import GovernanceRelationDialog from "@/components/governance/GovernanceRelationDialog";
@@ -26,11 +16,8 @@ import { useGovernanceCatalog } from "@/hooks/governance/useGovernanceCatalog";
 import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 import { useGovernanceGeographyMutation } from "@/hooks/geography/useGovernanceGeography";
-import {
-  GOVERNANCE_TYPES,
-  formatGovernanceFilterType,
-  getGovernanceRoute,
-} from "@/utils/governance";
+import { getGovernanceRoute, GOVERNANCE_TYPES, formatGovernanceFilterType } from "@/utils/governance";
+
 
 export default function OrganizationDirectory({
   geographyId = null,
@@ -41,12 +28,19 @@ export default function OrganizationDirectory({
   excludeIds = [],
   onlyWithoutParent = false,
   canManage = false,
+  search: externalSearch,
+  type: externalType,
+  categoryId: externalCategoryId,
+  createRequest = null,
 }) {
   const router = useRouter();
-  const [search, setSearch] = useState("");
-  const [type, setType] = useState("all");
-  const [categoryId, setCategoryId] = useState("all");
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [internalSearch, setInternalSearch] = useState("");
+  const [internalType, setInternalType] = useState("all");
+  const [internalCategoryId, setInternalCategoryId] = useState("all");
+  const search = externalSearch ?? internalSearch;
+  const type = externalType ?? internalType;
+  const categoryId = externalCategoryId ?? internalCategoryId;
+
   const [positionOpen, setPositionOpen] = useState(false);
   const [positionOrganizationId, setPositionOrganizationId] = useState(null);
   const { categories = [], isLoading: categoriesLoading } =
@@ -64,6 +58,9 @@ export default function OrganizationDirectory({
   const [relationOpen, setRelationOpen] = useState(false);
   const [relationMode, setRelationMode] = useState("edit-relations");
 
+
+
+
   const query = useGovernanceDirectory({
     tab: "organizations",
     search,
@@ -71,6 +68,16 @@ export default function OrganizationDirectory({
     categoryId,
     geographyId,
   });
+
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (createRequest?.tab !== "organizations" || !createRequest.token) return;
+    setEditingRecord(null);
+    setDialogOpen(true);
+  }, [createRequest?.token, createRequest?.tab]);
+
   const excluded = useMemo(() => new Set(excludeIds), [excludeIds]);
   const data = useMemo(
     () =>
@@ -211,70 +218,6 @@ export default function OrganizationDirectory({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_10rem_12rem_auto]">
-        {/* Search */}
-        <div className="relative col-span-2 min-w-0 sm:col-span-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-
-          <Input
-            className="h-9 pl-9"
-            placeholder="Search organizations..."
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </div>
-
-        {/* Type */}
-        <Select value={type} onValueChange={setType}>
-          <SelectTrigger className="h-9 min-w-0">
-            <SelectValue placeholder="Type" />
-          </SelectTrigger>
-
-          <SelectContent>
-            <SelectItem value="all">All types</SelectItem>
-
-            {GOVERNANCE_TYPES.map((item) => (
-              <SelectItem key={item} value={item}>
-                {formatGovernanceFilterType(item)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* Category */}
-        <Select
-          value={categoryId}
-          onValueChange={setCategoryId}
-          disabled={categoriesLoading}
-        >
-          <SelectTrigger className="h-9 min-w-0">
-            <SelectValue placeholder="Category" />
-          </SelectTrigger>
-
-          <SelectContent>
-            <SelectItem value="all">All categories</SelectItem>
-
-            {categories.map((category) => (
-              <SelectItem key={category.id} value={category.id}>
-                {category.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* Add */}
-        {canManage && (
-          <Button
-            type="button"
-            className="h-9 shrink-0"
-            onClick={() => { setEditingRecord(null); setDialogOpen(true); }}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add organization
-          </Button>
-        )}
-      </div>
-
       {query.isLoading && (
         <div className="flex min-h-[30vh] items-center justify-center">
           <LoadingState />

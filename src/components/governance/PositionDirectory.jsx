@@ -1,11 +1,14 @@
-import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 
-import { Input } from "@/components/ui/input";
-import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectoryCard";
+import GovernanceCardActions from "@/components/governance/GovernanceCardActions";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { getGovernanceHref, getGovernanceInitials, getGovernanceName } from "@/utils/governance";
 import GovernancePositionSheet from "@/components/governance/GovernancePositionSheet";
 import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
@@ -23,9 +26,13 @@ export default function PositionDirectory({
   selectedId = null,
   onSelect,
   canManage = false,
+  search: externalSearch,
+  organizationId = null,
+  createRequest = null,
 }) {
-  const [search, setSearch] = useState("");
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [internalSearch, setInternalSearch] = useState("");
+  const search = externalSearch ?? internalSearch;
+
   const [editingRecord, setEditingRecord] = useState(null);
   const [geographyRecord, setGeographyRecord] = useState(null);
   const [resourceRecord, setResourceRecord] = useState(null);
@@ -36,11 +43,25 @@ export default function PositionDirectory({
   const { removeGeography } = useGovernanceGeographyMutation();
 
 
+
+
+
   const query = useGovernanceDirectory({
     tab: "positions",
     search,
     geographyId,
+    organizationId,
   });
+
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (createRequest?.tab !== "positions" || !createRequest.token) return;
+    setEditingRecord(null);
+    setDialogOpen(true);
+  }, [createRequest?.token, createRequest?.tab]);
+
   const data = Array.isArray(query.data) ? query.data : [];
   const resourceIds = useMemo(() => data.map((item) => item.id), [data]);
   const resourceQuery = useQuery({
@@ -98,21 +119,6 @@ export default function PositionDirectory({
 
   return (
     <div className="space-y-4">
-      <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-        {/* Search */}
-        <div className="relative min-w-0">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-
-          <Input
-            className="h-9 pl-9"
-            placeholder="Search positions..."
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </div>
-
-      </div>
-
       {query.isLoading && (
         <div className="flex min-h-[30vh] items-center justify-center">
           <LoadingState />
@@ -124,29 +130,55 @@ export default function PositionDirectory({
       {!query.isLoading &&
         !query.error &&
         (data.length ? (
-          <div className="grid grid-cols-2 overflow-hidden rounded-md border-x border-t sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 [&>*]:min-w-0 [&>*]:border-t [&>*]:border-r [&>*]:border-border sm:[&>*:nth-child(3n)]:border-r-0 lg:[&>*:nth-child(3n)]:border-r lg:[&>*:nth-child(4n)]:border-r-0 xl:[&>*:nth-child(4n)]:border-r xl:[&>*:nth-child(5n)]:border-r-0 2xl:[&>*:nth-child(5n)]:border-r 2xl:[&>*:nth-child(6n)]:border-r-0">
-            {dataWithResources.map((entity) => (
-              <GovernanceDirectoryCard
-                key={entity.id}
-                entity={entity}
-                tab="positions"
-                selectionMode={selectionMode}
-                selected={selectedSet.has(entity.id)}
-                onSelect={onSelect}
-                onEdit={canManage ? () => openEdit(entity) : undefined}
-                onAddGeography={canManage ? () => openGeography(entity) : undefined}
-                onRemoveGeography={canManage && entity.geography_id ? () => removePositionGeography(entity) : undefined}
-                onAddAddress={canManage ? () => openResource(entity, "address") : undefined}
-                onRemoveAddress={canManage && entity.address ? async () => { const { error } = await supabase.from("position").update({ address: null }).eq("id", entity.id); if (error) { toast.error(error.message); return; } await refresh(); } : undefined}
-                onManageLinks={canManage ? () => openResource(entity, "links") : undefined}
-                hasAddress={Boolean(entity.address)}
-                hasLinks={Boolean(entity.hasLinks)}
-                hasGeography={Boolean(entity.geography_id)}
-                onDelete={canManage ? () => removePosition(entity) : undefined}
-              />
-            ))}
-          </div>
-        ) : (
+          <div className="overflow-hidden rounded-md border">
+            <Table>
+              <TableHeader><TableRow><TableHead>Position</TableHead><TableHead>Current person</TableHead><TableHead className="w-12"><span className="sr-only">Actions</span></TableHead></TableRow></TableHeader>
+              <TableBody>
+                {dataWithResources.map((entity) => {
+                  const name = getGovernanceName(entity);
+                  const href = getGovernanceHref({ ...entity, tab: "positions" });
+                  const holder = entity.current_holder_name || entity.person_name || entity.current_person_name || null;
+                  const holderImage = entity.current_holder_image_url || entity.person_avatar_url || null;
+                  const vacant = !holder;
+                  return (
+                    <TableRow key={entity.id} className={selectedSet.has(entity.id) ? "bg-primary/5" : ""}>
+                      <TableCell>
+                        <div className="flex min-w-0 items-center gap-3">
+                          <Avatar className="h-9 w-9 shrink-0 rounded-md"><AvatarImage src={entity.image_url || undefined} alt={name}/><AvatarFallback className="rounded-md">{getGovernanceInitials(name)}</AvatarFallback></Avatar>
+                          <div className="min-w-0">
+                            {href ? <Link href={href} className="block truncate font-medium hover:underline">{name}</Link> : <span className="font-medium">{name}</span>}
+                            {entity.code && <div className="truncate text-xs text-muted-foreground">{entity.code}</div>}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex min-w-0 items-center gap-2">
+                          <Avatar className="h-8 w-8 shrink-0 rounded-md"><AvatarImage src={vacant ? (entity.organization_image_url || entity.organization_logo_url || undefined) : holderImage || undefined} alt=""/><AvatarFallback className="rounded-md text-xs">{getGovernanceInitials(vacant ? entity.organization_name || name : holder)}</AvatarFallback></Avatar>
+                          <span className={`truncate text-sm ${vacant ? "text-muted-foreground" : ""}`}>{vacant ? "Vacant — no current person assigned" : holder}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {selectionMode ? <button type="button" className="text-xs underline" onClick={() => onSelect?.(entity)}>{selectedSet.has(entity.id) ? "Selected" : "Select"}</button> : canManage && <GovernanceCardActions
+                          onEdit={() => openEdit(entity)}
+                          editLabel="Edit Position"
+                          onAddGeography={() => openGeography(entity)}
+                          onRemoveGeography={entity.geography_id ? () => removePositionGeography(entity) : undefined}
+                          onAddAddress={() => openResource(entity, "address")}
+                          onRemoveAddress={entity.address ? async () => { const { error } = await supabase.from("position").update({ address: null }).eq("id", entity.id); if (error) { toast.error(error.message); return; } await queryClient.invalidateQueries({ queryKey: ["governance-directory"] }); } : undefined}
+                          onManageLinks={() => openResource(entity, "links")}
+                          onDelete={() => removePosition(entity)}
+                          hasAddress={Boolean(entity.address)}
+                          hasGeography={Boolean(entity.geography_id)}
+                          hasLinks={Boolean(entity.hasLinks)}
+                          entityLabel="position"
+                        ><span className="block h-8 w-8" aria-hidden="true" /></GovernanceCardActions>}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>        ) : (
           <EmptyState title="No positions found" description="Try another search." />
         ))}
 
@@ -183,11 +215,12 @@ export default function PositionDirectory({
         />
       )}
 
-      {canManage && editingRecord && (
+      {canManage && (
         <GovernancePositionSheet
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           record={editingRecord}
+          defaultOrganizationId={organizationId}
           onSaved={() =>
             queryClient.invalidateQueries({
               queryKey: ["governance-directory"],

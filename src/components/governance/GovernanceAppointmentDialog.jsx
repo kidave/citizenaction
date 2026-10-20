@@ -13,12 +13,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import ImageUpload from "@/components/ui/ImageUpload";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { supabase } from "@/lib/supabase/client";
 import { getGovernanceInitials } from "@/utils/governance";
 
@@ -47,16 +45,12 @@ export default function GovernanceAppointmentDialog({
     positionId || "",
   );
   const [selectedPersonId, setSelectedPersonId] = useState(personId || "");
-  const [personChoice, setPersonChoice] = useState("existing");
-  const [newPersonName, setNewPersonName] = useState("");
-  const [newPersonImageUrl, setNewPersonImageUrl] = useState("");
   const [startedAt, setStartedAt] = useState(today());
   const [endedAt, setEndedAt] = useState("");
   const [isPrimary, setIsPrimary] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const creatingPerson = positionMode && personChoice === "create";
 
   useEffect(() => {
     if (!open) return;
@@ -65,9 +59,6 @@ export default function GovernanceAppointmentDialog({
     setLoading(true);
     setSelectedPositionId(record?.position_id || positionId || "");
     setSelectedPersonId(record?.person_id || personId || "");
-    setPersonChoice(record?.person_id || personId ? "existing" : "existing");
-    setNewPersonName("");
-    setNewPersonImageUrl("");
     setStartedAt(
       record?.started_at ? String(record.started_at).slice(0, 10) : today(),
     );
@@ -115,6 +106,18 @@ export default function GovernanceAppointmentDialog({
     };
   }, [open, organizationId, positionId, personId, record?.id]);
 
+  useEffect(() => {
+    if (!open || record || !positionId) return;
+    let cancelled = false;
+    const choosePrimaryDefault = async () => {
+      const { data, error } = await supabase.from("position_appointment").select("id").eq("position_id", positionId).eq("is_primary", true).is("ended_at", null).limit(1);
+      if (cancelled) return;
+      if (error) { toast.error(error.message); return; }
+      setIsPrimary(!(data || []).length);
+    };
+    choosePrimaryDefault();
+    return () => { cancelled = true; };
+  }, [open, positionId, record]);
   const positionOptions = useMemo(
     () => positions.map((item) => {
       const organization = organizations.find((org) => org.id === item.appointing_organization_id);
@@ -122,6 +125,7 @@ export default function GovernanceAppointmentDialog({
         value: item.id,
         label: item.name,
         searchValue: (item.name || "") + " " + (organization?.name || "") + " " + (organization?.short_name || ""),
+        organizationId: item.appointing_organization_id,
         organizationName: organization?.name || "Organization",
         organizationImageUrl: organization?.image_url || null,
       };
@@ -161,10 +165,8 @@ export default function GovernanceAppointmentDialog({
     if (!finalOrganizationId) return toast.error("Organization is required");
     if (!finalPositionId) return toast.error("Position is required");
     if (personMode && !personId) return toast.error("Person is required");
-    if (positionMode && !creatingPerson && !selectedPersonId)
-      return toast.error("Choose an existing person or create a new person");
-    if (creatingPerson && !newPersonName.trim())
-      return toast.error("Person name is required");
+    if (positionMode && !selectedPersonId)
+      return toast.error("Choose a person");
     if (!startedAt) return toast.error("Start date is required");
     if (endedAt && endedAt < startedAt)
       return toast.error("End date cannot be earlier than start date");
@@ -172,44 +174,25 @@ export default function GovernanceAppointmentDialog({
     try {
       setSaving(true);
 
-      let result;
-      if (creatingPerson) {
-        result = await supabase.rpc("create_person_appointment", {
-          p_organization_id: finalOrganizationId,
-          p_position_id: finalPositionId,
-          p_started_at: `${startedAt}T00:00:00Z`,
-          p_name: newPersonName.trim(),
-          p_biography: null,
-          p_website: null,
-          p_image_url: newPersonImageUrl || null,
-          p_profile_user_id: null,
-          p_ended_at: endedAt ? `${endedAt}T23:59:59.999Z` : null,
-          p_is_primary: isPrimary,
-          p_notes: null,
-        });
-      } else {
-        const finalPersonId = personMode ? personId : selectedPersonId;
-        result = await supabase.rpc("upsert_organization", {
+      const finalPersonId = personMode ? personId : selectedPersonId;
+      const result = await supabase.rpc("upsert_organization", {
           p_id: record?.appointment_id || record?.id || null,
           p_governance_id: finalOrganizationId,
-          p_person_name: selectedPerson?.name || "",
-          p_person_governance_id: finalPersonId,
-          p_position_name: selectedPosition?.name || "Position",
-          p_position_governance_id: finalPositionId,
-          p_started_at: `${startedAt}T00:00:00Z`,
-          p_ended_at: endedAt ? `${endedAt}T23:59:59.999Z` : null,
-          p_is_vacant: false,
-          p_is_primary: isPrimary,
-          p_reports_to_id: null,
-          p_notes: null,
-        });
-      }
+        p_person_name: selectedPerson?.name || "",
+        p_person_governance_id: finalPersonId,
+        p_position_name: selectedPosition?.name || "Position",
+        p_position_governance_id: finalPositionId,
+        p_started_at: `${startedAt}T00:00:00Z`,
+        p_ended_at: endedAt ? `${endedAt}T23:59:59.999Z` : null,
+        p_is_vacant: false,
+        p_is_primary: isPrimary,
+        p_reports_to_id: null,
+        p_notes: null,
+      });
 
       if (result.error) throw result.error;
 
-      toast.success(
-        positionMode ? "Person added to position" : "Experience added",
-      );
+      toast.success(positionMode ? (isEditing ? "Appointment updated" : "Person added to position") : "Experience added");
       await onSaved?.(result.data);
       onOpenChange?.(false);
     } catch (error) {
@@ -275,6 +258,20 @@ export default function GovernanceAppointmentDialog({
                 </div>
               )}
 
+              {positionMode && !positionId && (
+                <div className="space-y-2">
+                  <Label>Position</Label>
+                  <SearchableSelect
+                    value={selectedPositionId}
+                    onValueChange={setSelectedPositionId}
+                    options={positionOptions.filter((option) => option.organizationId === organizationId)}
+                    placeholder="Choose a position"
+                    searchPlaceholder="Search positions..."
+                    emptyText="No positions found for this organization."
+                    disabled={saving || loading}
+                  />
+                </div>
+              )}
               {personMode && (
                 <div className="space-y-2">
                   <Label>Position</Label>
@@ -302,80 +299,29 @@ export default function GovernanceAppointmentDialog({
                 </div>
               )}
               {positionMode && (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <Label>Person</Label>
-                  <RadioGroup
-                    value={personChoice}
-                    onValueChange={setPersonChoice}
-                    className="grid gap-2 sm:grid-cols-2"
-                    disabled={saving}
-                  >
-                    <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3">
-                      <RadioGroupItem value="existing" className="mt-0.5" />
-                      <span className="min-w-0">
-                        <span className="block text-sm font-medium">Add existing person</span>
-                        <span className="block text-xs text-muted-foreground">Choose someone already in Citizen Action.</span>
-                      </span>
-                    </label>
-                    <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3">
-                      <RadioGroupItem value="create" className="mt-0.5" />
-                      <span className="min-w-0">
-                        <span className="block text-sm font-medium">Create new person</span>
-                        <span className="block text-xs text-muted-foreground">Create the person and add them to this position.</span>
-                      </span>
-                    </label>
-                  </RadioGroup>
-                  {personChoice === "existing" && (
-                    <SearchableSelect
-                      value={selectedPersonId}
-                      onValueChange={setSelectedPersonId}
-                      options={peopleOptions}
-                      placeholder="Choose a person"
-                      searchPlaceholder="Search people..."
-                      emptyText="No people found."
-                      disabled={saving}
-                      renderOption={(option) => (
-                        <div className="flex min-w-0 items-center gap-2">
-                          <Avatar className="h-7 w-7 shrink-0 rounded-md"><AvatarImage src={option.imageUrl || undefined} alt="" /><AvatarFallback className="rounded-md text-[9px]">{getGovernanceInitials(option.label)}</AvatarFallback></Avatar>
-                          <span className="min-w-0 truncate">{option.label}</span>
-                        </div>
-                      )}
-                      renderValue={(option) => (
-                        <div className="flex min-w-0 items-center gap-2">
-                          <Avatar className="h-6 w-6 shrink-0 rounded-md"><AvatarImage src={option.imageUrl || undefined} alt="" /><AvatarFallback className="rounded-md text-[8px]">{getGovernanceInitials(option.label)}</AvatarFallback></Avatar>
-                          <span className="min-w-0 truncate">{option.label}</span>
-                        </div>
-                      )}
-                    />
-                  )}
-                </div>
-              )}
-
-              {creatingPerson && (
-                <div className="space-y-4 rounded-lg border p-4">
-                  <div className="text-sm font-medium">New person</div>
-                  <ImageUpload
-                    bucket="governance"
-                    path={`governance/person/draft-${draftId}`}
-                    value={newPersonImageUrl || null}
-                    onChange={(value) => setNewPersonImageUrl(value || "")}
-                    label="Person image"
-                    helperText="PNG, JPG or WebP · up to 5 MB"
-                    disabled={saving}
+                  <SearchableSelect
+                    value={selectedPersonId}
+                    onValueChange={setSelectedPersonId}
+                    options={peopleOptions}
+                    placeholder="Select a person"
+                    searchPlaceholder="Search people..."
+                    emptyText="No people found."
+                    disabled={saving || loading}
+                    renderOption={(option) => (
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Avatar className="h-7 w-7 shrink-0 rounded-md"><AvatarImage src={option.imageUrl || undefined} alt="" /><AvatarFallback className="rounded-md text-[9px]">{getGovernanceInitials(option.label)}</AvatarFallback></Avatar>
+                        <span className="min-w-0 truncate">{option.label}</span>
+                      </div>
+                    )}
+                    renderValue={(option) => (
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Avatar className="h-6 w-6 shrink-0 rounded-md"><AvatarImage src={option.imageUrl || undefined} alt="" /><AvatarFallback className="rounded-md text-[8px]">{getGovernanceInitials(option.label)}</AvatarFallback></Avatar>
+                        <span className="min-w-0 truncate">{option.label}</span>
+                      </div>
+                    )}
                   />
-                  <div className="space-y-2">
-                    <Label htmlFor="governance-appointment-new-person">
-                      Name
-                    </Label>
-                    <Input
-                      id="governance-appointment-new-person"
-                      value={newPersonName}
-                      onChange={(event) => setNewPersonName(event.target.value)}
-                      placeholder="e.g. Jane Doe"
-                      disabled={saving}
-                      autoFocus
-                    />
-                  </div>
                 </div>
               )}
 
@@ -390,13 +336,14 @@ export default function GovernanceAppointmentDialog({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>End date</Label>
+                  <Label>End date (optional)</Label>
                   <Input
                     type="date"
                     value={endedAt}
                     onChange={(event) => setEndedAt(event.target.value)}
                     disabled={saving}
                   />
+                  <p className="text-xs text-muted-foreground">Leave blank while the appointment is ongoing. Enter an end date explicitly when it ends; today is not assumed.</p>
                 </div>
               </div>
               <div className="flex items-center justify-between rounded-lg border p-3">

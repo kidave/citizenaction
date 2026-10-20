@@ -32,7 +32,7 @@ export function useGovernanceDirectory({
         p_type: tab === "organizations" && organizationType !== "all" ? organizationType : null,
         p_category_id: tab === "organizations" && effectiveCategoryId !== "all" ? effectiveCategoryId : null,
         p_geography_id: geographyId || null,
-        p_organization_id: tab === "positions" ? organizationId || null : null,
+        p_organization_id: tab === "positions" || tab === "people" ? organizationId || null : null,
         p_limit: 500,
       });
       if (!result || result.error) throw result?.error || new Error("Unable to load governance directory");

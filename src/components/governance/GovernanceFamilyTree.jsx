@@ -50,7 +50,6 @@ function TreeNode({
       <div className="flex w-full min-w-0 items-center justify-center gap-1">
         <GovernanceActionContextMenu
           onView={onViewOrganization ? () => onViewOrganization(node) : undefined}
-          onViewTree={onViewTree ? () => onViewTree(node) : undefined}
           onEdit={canEdit ? () => onEdit?.(node) : undefined}
           onPrimaryAction={canEdit ? () => onPrimaryAction?.(node) : undefined}
           primaryActionLabel={primaryActionLabel}
@@ -72,7 +71,7 @@ function TreeNode({
         </GovernanceActionContextMenu>
         {hasChildren && <button type="button" onClick={(event) => { event.stopPropagation(); onToggle(node.id); }} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border bg-background text-muted-foreground hover:bg-muted hover:text-foreground" aria-label={expanded ? "Collapse " + label : "Expand " + label}>{expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</button>}
       </div>
-      {hasChildren && expanded && <div className="relative mt-2 w-max pt-10"><TreeConnector count={node.children.length} /><ul className="flex items-start justify-center gap-6">{node.children.map((child) => <TreeNode key={child.id} node={child} expandedIds={expandedIds} onToggle={onToggle} selectedId={selectedId} onSelect={onSelect} canEdit={canEdit} onViewOrganization={onViewOrganization} onViewTree={onViewTree} onEdit={onEdit} onPrimaryAction={onPrimaryAction} primaryActionLabel={primaryActionLabel} onManageRelations={onManageRelations} onAddAddress={onAddAddress} onRemoveAddress={onRemoveAddress} onManageLinks={onManageLinks} onAddParent={onAddParent} onAddChild={onAddChild} onAddGeography={onAddGeography} onRemoveGeography={onRemoveGeography} onDelete={onDelete} />)}</ul></div>}
+      {hasChildren && expanded && <div className="relative mt-2 w-max pt-10"><TreeConnector count={node.children.length} /><ul className="flex items-start justify-center gap-6">{node.children.map((child) => <TreeNode key={child.id} node={child} expandedIds={expandedIds} onToggle={onToggle} selectedId={selectedId} onSelect={onSelect} canEdit={canEdit} onViewOrganization={onViewOrganization} onEdit={onEdit} onPrimaryAction={onPrimaryAction} primaryActionLabel={primaryActionLabel} onManageRelations={onManageRelations} onAddAddress={onAddAddress} onRemoveAddress={onRemoveAddress} onManageLinks={onManageLinks} onAddParent={onAddParent} onAddChild={onAddChild} onAddGeography={onAddGeography} onRemoveGeography={onRemoveGeography} onDelete={onDelete} />)}</ul></div>}
     </li>
   );
 }
