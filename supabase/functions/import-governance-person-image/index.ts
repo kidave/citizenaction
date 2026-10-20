@@ -1,12 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const MAX_BYTES = 5 * 1024 * 1024;
-const ALLOWED_TYPES = new Map([
-  ["image/jpeg", "jpg"],
-  ["image/png", "png"],
-  ["image/webp", "webp"],
-]);
+import { fetchSocialImage } from "../_shared/social-image-import.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,20 +13,6 @@ function json(body: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, "content-type": "application/json" },
   });
-}
-
-function allowedSource(url: URL) {
-  if (url.protocol !== "https:") return false;
-  const host = url.hostname.toLowerCase();
-  return (
-    host === "instagram.com" ||
-    host === "www.instagram.com" ||
-    host.endsWith(".instagram.com") ||
-    host === "cdninstagram.com" ||
-    host.endsWith(".cdninstagram.com") ||
-    host === "fbcdn.net" ||
-    host.endsWith(".fbcdn.net")
-  );
 }
 
 Deno.serve(async (req) => {
@@ -84,18 +64,7 @@ Deno.serve(async (req) => {
     return json({ error: "personId and sourceUrl are required" }, 400);
   }
 
-  let parsed: URL;
-  try {
-    parsed = new URL(sourceUrl);
-  } catch {
-    return json({ error: "Invalid image URL" }, 400);
-  }
-
-  if (!allowedSource(parsed)) {
-    return json({ error: "Only Instagram and Meta CDN image URLs are supported" }, 400);
-  }
-
-  const { data: person, error: personError } = await adminClient
+const { data: person, error: personError } = await adminClient
     .from("person")
     .select("id")
     .eq("id", personId)
@@ -104,53 +73,14 @@ Deno.serve(async (req) => {
   if (personError) return json({ error: personError.message }, 500);
   if (!person) return json({ error: "Person not found" }, 404);
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
-
-  let response: Response;
-  try {
-    response = await fetch(sourceUrl, {
-      method: "GET",
-      redirect: "follow",
-      signal: controller.signal,
-      headers: {
-        Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
-        "User-Agent": "CitizenAction/1.0",
-      },
-    });
-  } catch (error) {
-    return json(
-      { error: error instanceof Error ? error.message : "Unable to fetch image" },
-      502,
-    );
-  } finally {
-    clearTimeout(timeout);
-  }
-
-  if (!response.ok) {
-    return json({ error: `Remote image returned HTTP ${response.status}` }, 502);
-  }
-
-  const contentType = (response.headers.get("content-type") || "")
-    .split(";")[0]
-    .toLowerCase();
-  const extension = ALLOWED_TYPES.get(contentType);
-  if (!extension) {
-    return json({ error: "Remote URL did not return a supported image type" }, 415);
-  }
-
-  const contentLength = Number(response.headers.get("content-length") || 0);
-  if (contentLength > MAX_BYTES) {
-    return json({ error: "Image must be 5 MB or smaller" }, 413);
-  }
-
-  const bytes = new Uint8Array(await response.arrayBuffer());
-  if (bytes.byteLength === 0) return json({ error: "Remote image was empty" }, 502);
-  if (bytes.byteLength > MAX_BYTES) {
-    return json({ error: "Image must be 5 MB or smaller" }, 413);
-  }
-
-  const storagePath = `governance/person/${personId}.${extension}`;
+  let image: { bytes: Uint8Array; contentType: string; extension: string };
+ try {
+   image = await fetchSocialImage(sourceUrl);
+ } catch (error) {
+   return json({ error: error instanceof Error ? error.message : "Unable to import image" }, 502);
+ }
+ const { bytes, contentType, extension } = image;
+ const storagePath = `governance/person/${personId}.${extension}`;
 
   const { error: uploadError } = await adminClient.storage
     .from("governance")
