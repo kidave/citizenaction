@@ -159,7 +159,7 @@ export default function GovernancePositionSheet({
             p_description: form.description.trim() || null,
             p_image_url: null,
             p_category_id: null,
-            p_metadata: { responsibilities: form.responsibilities.trim() || null, qualifications: form.qualifications.trim() || null },
+            p_metadata: { responsibilities: form.responsibilities.trim() || null, qualifications: form.qualifications.trim() || null, official_phone: form.officialPhone.trim() || null, official_email: form.officialEmail.trim() || null },
             p_appointing_organization_id: form.organizationId,
             p_reports_to_position_id: form.reportsToPositionId || null,
           };
