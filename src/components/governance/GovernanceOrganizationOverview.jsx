@@ -440,6 +440,10 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                     <TableRow>
                       <TableHead>Position</TableHead>
                       <TableHead>Current person</TableHead>
+                      <TableHead className="hidden lg:table-cell">Phone</TableHead>
+                      <TableHead className="hidden lg:table-cell">Email</TableHead>
+                      <TableHead className="hidden md:table-cell">Address</TableHead>
+                      <TableHead className="hidden xl:table-cell">Geography boundary</TableHead>
                       <TableHead className="hidden sm:table-cell">Joined</TableHead>
                       <TableHead className="w-12"><span className="sr-only">Actions</span></TableHead>
                     </TableRow>
@@ -463,7 +467,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                               <TooltipContent>{item.position_name || "Position"}</TooltipContent>
                             </Tooltip>
                           </TableCell>
-                          <TableCell className="max-w-[260px]">
+                          <TableCell className="max-w-[220px]">
                             <div className="flex min-w-0 items-center gap-2">
                               <Avatar className="h-8 w-8 shrink-0 rounded-md">
                                 <AvatarImage src={vacant ? (root.image_url || undefined) : (item.person_avatar_url || undefined)} alt="" />
@@ -475,9 +479,19 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                                 </TooltipTrigger>
                                 <TooltipContent>{vacant ? "Vacant — no current person assigned" : item.person_name || "No current person assigned"}</TooltipContent>
                               </Tooltip>
-                              {!vacant && item.address && <div className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground"><MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{item.address}</span></div>}
-                              {!vacant && (item.geographies?.official_name || item.geographies?.name) && <div className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground"><MapPin className="h-3 w-3 shrink-0" /><span className="truncate">Jurisdiction: {item.geographies.official_name || item.geographies.name}</span></div>}
                             </div>
+                          </TableCell>
+                          <TableCell className="hidden max-w-[150px] lg:table-cell">
+                            {(item.official_phone || item.metadata?.official_phone || item.position_metadata?.official_phone || item.position_official_phone) ? <a className="flex items-center gap-2 truncate text-sm text-muted-foreground hover:underline" href={`tel:${item.official_phone || item.metadata?.official_phone || item.position_metadata?.official_phone || item.position_official_phone}`}><Phone className="h-4 w-4 shrink-0" /><span className="truncate">{item.official_phone || item.metadata?.official_phone || item.position_metadata?.official_phone || item.position_official_phone}</span></a> : <span className="text-sm text-muted-foreground">—</span>}
+                          </TableCell>
+                          <TableCell className="hidden max-w-[190px] lg:table-cell">
+                            {(item.official_email || item.metadata?.official_email || item.position_metadata?.official_email || item.position_official_email) ? <a className="flex items-center gap-2 truncate text-sm text-muted-foreground hover:underline" href={`mailto:${item.official_email || item.metadata?.official_email || item.position_metadata?.official_email || item.position_official_email}`}><Mail className="h-4 w-4 shrink-0" /><span className="truncate">{item.official_email || item.metadata?.official_email || item.position_metadata?.official_email || item.position_official_email}</span></a> : <span className="text-sm text-muted-foreground">—</span>}
+                          </TableCell>
+                          <TableCell className="hidden max-w-[220px] md:table-cell">
+                            {item.address ? <div title={item.address} className="flex items-center gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4 shrink-0" /><span className="truncate">{item.address}</span></div> : <span className="text-sm text-muted-foreground">—</span>}
+                          </TableCell>
+                          <TableCell className="hidden max-w-[190px] xl:table-cell">
+                            {(item.geographies?.official_name || item.geographies?.name) ? <div title={item.geographies.official_name || item.geographies.name} className="flex items-center gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4 shrink-0" /><span className="truncate">{item.geographies.official_name || item.geographies.name}</span></div> : <span className="text-sm text-muted-foreground">—</span>}
                           </TableCell>
                           <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">{vacant || !item.started_at ? "—" : formatGovernanceDate(item.started_at)}</TableCell>
                           <TableCell>
