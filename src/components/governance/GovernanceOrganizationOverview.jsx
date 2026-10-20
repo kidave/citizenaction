@@ -354,7 +354,6 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
               <p className="text-sm text-muted-foreground">Only positions belonging directly to this organization.</p>
             </div>
             {canEdit && <div className="flex flex-wrap items-center gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => { setAppointmentRecord(null); setAppointmentPositionId(null); setAppointmentDialogOpen(true); }}><Plus className="mr-2 h-4 w-4" />Add appointment</Button>
               <Button type="button" size="sm" onClick={() => onAddPosition?.(governance)}><Plus className="mr-2 h-4 w-4" />Add position</Button>
             </div>}
           </div>
@@ -435,7 +434,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                           </TableCell>
                           <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">{vacant || !item.started_at ? "—" : formatGovernanceDate(item.started_at)}</TableCell>
                           <TableCell>
-                            {canEdit && item.appointment_id ? <GovernanceAppointmentDeleteButton appointmentId={item.appointment_id} personName={item.person_name} positionName={item.position_name} onEditPosition={() => onEditPosition?.(item)} onEdit={() => { setAppointmentRecord(item); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} onDeleted={async () => { await query.refetch(); await positionsQuery.refetch(); }} /> : canEdit ? <GovernanceCardActions onEdit={() => onEditPosition?.(item)} editLabel="Edit Position" onPrimaryAction={() => { setAppointmentRecord(null); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} primaryActionLabel="Assign person" onDelete={item.appointment_history_count ? undefined : () => onDeletePosition?.(item)} entityLabel="position"><span className="block h-8 w-8" aria-hidden="true" /></GovernanceCardActions> : null}
+                            {canEdit && item.appointment_id ? <GovernanceAppointmentDeleteButton appointmentId={item.appointment_id} personName={item.person_name} positionName={item.position_name} onEditPosition={() => onEditPosition?.(item)} onAssignPerson={() => { setAppointmentRecord(null); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} onEdit={() => { setAppointmentRecord(item); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} onDeleted={async () => { await query.refetch(); await positionsQuery.refetch(); }} /> : canEdit ? <GovernanceCardActions onEdit={() => onEditPosition?.(item)} editLabel="Edit Position" onPrimaryAction={() => { setAppointmentRecord(null); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} primaryActionLabel="Assign person" onDelete={item.appointment_history_count ? undefined : () => onDeletePosition?.(item)} entityLabel="position"><span className="block h-8 w-8" aria-hidden="true" /></GovernanceCardActions> : null}
                           </TableCell>
                         </TableRow>
                       );
