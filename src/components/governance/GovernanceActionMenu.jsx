@@ -50,9 +50,15 @@ export function GovernanceActionMenuItems({
   hasLinks = false,
   hasGeography = false,
   stopPropagation = true,
+  deferActions = false,
 }) {
   const run = (callback, event) => {
     if (stopPropagation) event?.stopPropagation();
+    if (deferActions && typeof window !== "undefined") {
+      // Let Radix fully dismiss the context menu before opening another modal layer.
+      window.setTimeout(() => callback?.(), 0);
+      return;
+    }
     callback?.();
   };
 
@@ -286,6 +292,7 @@ export function GovernanceActionContextMenu({
           <GovernanceActionMenuItems
             MenuItem={ContextMenuItem}
             MenuSeparator={ContextMenuSeparator}
+            deferActions
             onView={onView}
             onViewTree={onViewTree}
             onEdit={onEdit}
