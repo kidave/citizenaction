@@ -181,7 +181,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
     queryKey: ["governance-appointment-locations", governance?.id, appointmentIds.join(",")],
     enabled: appointmentIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase.from("position_appointment").select("id,geography_id,address,lat,lng").in("id", appointmentIds);
+      const { data, error } = await supabase.from("position_appointment").select("id,geography_id,address,lat,lng,geographies(name,official_name)").in("id", appointmentIds);
       if (error) throw error;
       return data || [];
     },
@@ -456,7 +456,6 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                               <TooltipTrigger asChild>
                                 <div className="min-w-0">
                                   {positionHref ? <Link href={positionHref} className="block truncate font-medium hover:underline">{item.position_name || "Position"}</Link> : <span className="block truncate font-medium">{item.position_name || "Position"}</span>}
-                                  {item.address && <div className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground"><MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{item.address}</span></div>}
                                   {item.metadata?.official_phone && <div className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground"><Phone className="h-3 w-3 shrink-0" /><a href={"tel:" + item.metadata.official_phone} className="truncate hover:underline">{item.metadata.official_phone}</a></div>}
                                   {item.metadata?.official_email && <div className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground"><Mail className="h-3 w-3 shrink-0" /><a href={"mailto:" + item.metadata.official_email} className="truncate hover:underline">{item.metadata.official_email}</a></div>}
                                 </div>
@@ -476,6 +475,8 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                                 </TooltipTrigger>
                                 <TooltipContent>{vacant ? "Vacant — no current person assigned" : item.person_name || "No current person assigned"}</TooltipContent>
                               </Tooltip>
+                              {!vacant && item.address && <div className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground"><MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{item.address}</span></div>}
+                              {!vacant && (item.geographies?.official_name || item.geographies?.name) && <div className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground"><MapPin className="h-3 w-3 shrink-0" /><span className="truncate">Jurisdiction: {item.geographies.official_name || item.geographies.name}</span></div>}
                             </div>
                           </TableCell>
                           <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">{vacant || !item.started_at ? "—" : formatGovernanceDate(item.started_at)}</TableCell>
