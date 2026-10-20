@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import GovernanceCardActions from "@/components/governance/GovernanceCardActions";
@@ -107,7 +106,7 @@ export default function PersonDirectory({
                       </TableCell>
                       <TableCell className="max-w-[260px] truncate text-muted-foreground">{org}</TableCell>
                       <TableCell>
-                        {canManage && <GovernanceCardActions onEdit={() => openEdit(entity)} editLabel="Edit Person" onDelete={() => removePerson(entity)} entityLabel="person"><button type="button" className="sr-only">Person actions</button></GovernanceCardActions>}
+                        {canManage && <GovernanceCardActions onEdit={() => openEdit(entity)} editLabel="Edit Person" onDelete={() => removePerson(entity)} entityLabel="person"><span className="block h-8 w-8" aria-hidden="true" /></GovernanceCardActions>}
                         {selectionMode && <button type="button" className="text-xs underline" onClick={() => onSelect?.(entity)}>{selectedSet.has(entity.id) ? "Selected" : "Select"}</button>}
                       </TableCell>
                     </TableRow>
