@@ -142,6 +142,21 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
   const query = useGovernanceOrganizationContext({ governanceId: governance?.id, asOf });
   const organizations = query.data?.organizations || [];
   const appointments = query.data?.appointments || [];
+  const [positionSearch, setPositionSearch] = useState("");
+  const [joinedFrom, setJoinedFrom] = useState("");
+  const [joinedTo, setJoinedTo] = useState("");
+  const positionsQuery = useQuery({
+    queryKey: ["governance-organization-positions", governance?.id],
+    enabled: Boolean(governance?.id),
+    queryFn: async () => {
+      const { data, error } = await supabase.from("position")
+        .select("id,name,slug,image_url,appointing_organization_id,address,metadata")
+        .eq("appointing_organization_id", governance.id)
+        .order("name");
+      if (error) throw error;
+      return data || [];
+    },
+  });
   const { data: locationData } = useQuery({
     queryKey: ["governance-organization-map", governance?.id],
     enabled: Boolean(governance?.id),
@@ -221,8 +236,28 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
   }
 
   const organizationAppointments = appointments.filter((item) => item.organization_id === governance?.id);
-  const totalPositions = organizationAppointments.length;
-  const filledPositions = organizationAppointments.filter((item) => !item.is_vacant && item.person_id).length;
+  const currentPositions = (positionsQuery.data || []).map((position) => {
+    const appointment = organizationAppointments
+      .filter((item) => item.position_id === position.id && !item.is_vacant && item.person_id)
+      .sort((a, b) => String(b.started_at || "").localeCompare(String(a.started_at || "")))[0] || null;
+    return {
+      ...position, ...(appointment || {}),
+      position_id: position.id, position_name: position.name, position_slug: position.slug,
+      position_avatar_url: position.image_url, organization_slug: governance?.slug,
+      appointment_id: appointment?.appointment_id || null, person_id: appointment?.person_id || null,
+      person_name: appointment?.person_name || null, person_slug: appointment?.person_slug || null,
+      person_avatar_url: appointment?.person_avatar_url || null, started_at: appointment?.started_at || null,
+      is_vacant: !appointment,
+    };
+  });
+  const filteredPositions = currentPositions.filter((item) => {
+    const needle = positionSearch.trim().toLowerCase();
+    const matchesSearch = !needle || [item.position_name, item.person_name].some((value) => String(value || "").toLowerCase().includes(needle));
+    const joined = item.started_at ? String(item.started_at).slice(0, 10) : "";
+    return matchesSearch && (!joinedFrom || (joined && joined >= joinedFrom)) && (!joinedTo || (joined && joined <= joinedTo));
+  });
+  const totalPositions = currentPositions.length;
+  const filledPositions = currentPositions.filter((item) => !item.is_vacant).length;
   const vacantPositions = totalPositions - filledPositions;
   const unitCount = organizations.length;
 
