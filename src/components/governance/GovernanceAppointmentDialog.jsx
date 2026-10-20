@@ -309,13 +309,14 @@ export default function GovernanceAppointmentDialog({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>End date</Label>
+                  <Label>End date (optional)</Label>
                   <Input
                     type="date"
                     value={endedAt}
                     onChange={(event) => setEndedAt(event.target.value)}
                     disabled={saving}
                   />
+                  <p className="text-xs text-muted-foreground">Leave blank while the appointment is ongoing. Enter an end date explicitly when it ends; today is not assumed.</p>
                 </div>
               </div>
               <div className="flex items-center justify-between rounded-lg border p-3">
