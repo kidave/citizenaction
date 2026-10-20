@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Building2, BriefcaseBusiness, CalendarDays, ChevronDown, ChevronRight, ExternalLink, GitBranch, MapPin, Search, UserCheck, UserRoundX, MoreHorizontal, Plus } from "lucide-react";
+import { Building2, BriefcaseBusiness, CalendarDays, ChevronDown, ChevronRight, ExternalLink, GitBranch, Mail, MapPin, Phone, Search, UserCheck, UserRoundX, MoreHorizontal, Plus } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -379,6 +379,8 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                               <TooltipTrigger asChild>
                                 {positionHref ? <Link href={positionHref} className="block truncate font-medium hover:underline">{item.position_name || "Position"}</Link> : <span className="block truncate font-medium">{item.position_name || "Position"}</span>}
                                 {item.address && <div className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground"><MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{item.address}</span></div>}
+                                {item.metadata?.official_phone && <div className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground"><Phone className="h-3 w-3 shrink-0" /><a href={"tel:" + item.metadata.official_phone} className="truncate hover:underline">{item.metadata.official_phone}</a></div>}
+                                {item.metadata?.official_email && <div className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground"><Mail className="h-3 w-3 shrink-0" /><a href={"mailto:" + item.metadata.official_email} className="truncate hover:underline">{item.metadata.official_email}</a></div>}
                               </TooltipTrigger>
                               <TooltipContent>{item.position_name || "Position"}</TooltipContent>
                             </Tooltip>
