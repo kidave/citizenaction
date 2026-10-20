@@ -61,7 +61,7 @@ export default function GovernanceRecordPage() {
   const canEdit = profile?.role === "admin";
   const { categories = [] } = useGovernanceCatalog({ enabled: canEdit });
   const { removeGeography } = useGovernanceGeographyMutation();
-  const { deleteOrganization } = useGovernanceCrud();
+  const { deleteOrganization, deletePosition } = useGovernanceCrud();
 
   const governanceQuery = useQuery({
     queryKey: queryKeys.governance.record(slug),
@@ -237,6 +237,19 @@ export default function GovernanceRecordPage() {
     setOrganizationSheetEntity(null);
     setOrganizationSheetOpen(false);
   };
+  const deletePositionEntity = async (entity) => {
+    if (!entity?.id) return;
+    try {
+      await deletePosition(entity.id);
+      await handleChanged();
+      const { toast } = await import("sonner");
+      toast.success("Position deleted");
+    } catch (error) {
+      const { toast } = await import("sonner");
+      toast.error(error?.message || "Unable to delete position. Remove its appointments first.");
+    }
+  };
+
   const deleteEntity = async (entity) => {
     if (!entity?.id) return;
     try {
