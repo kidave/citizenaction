@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Building2, ChevronDown, ChevronRight, ExternalLink, GitBranch, MoreHorizontal, Plus } from "lucide-react";
+import { Building2, BriefcaseBusiness, ChevronDown, ChevronRight, ExternalLink, GitBranch, UserCheck, UserRoundX, MoreHorizontal, Plus } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -229,8 +229,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
   return (
     <div className="min-h-[calc(100vh-5.5rem)] bg-background">
       <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-5 sm:px-6 lg:px-8">
-        <Card>
-          <CardContent className="p-5 sm:p-6">
+        <section className="py-1">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
               <Avatar className="h-16 w-16 rounded-xl sm:h-20 sm:w-20">
                 <AvatarImage src={root.image_url || undefined} alt="" />
@@ -272,15 +271,16 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
             </div>
 
 
-          </CardContent>
-        </Card>
+        </section>
 
         <section className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-          <div className="grid grid-cols-2 gap-2">
-            <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground">Units</div><div className="mt-1 text-2xl font-semibold">{Math.max(0, unitCount - 1)}</div></CardContent></Card>
-            <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground">Positions</div><div className="mt-1 text-2xl font-semibold">{totalPositions}</div></CardContent></Card>
-            <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground">Filled</div><div className="mt-1 text-2xl font-semibold">{filledPositions}</div><p className="mt-1 text-xs text-muted-foreground">Person currently assigned</p></CardContent></Card>
-            <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground">Vacant roles</div><div className="mt-1 text-2xl font-semibold">{vacantPositions}</div><p className="mt-1 text-xs text-muted-foreground">No current person assigned</p></CardContent></Card>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: "Units", value: Math.max(0, unitCount - 1), Icon: Building2 },
+              { label: "Positions", value: totalPositions, Icon: BriefcaseBusiness },
+              { label: "Filled", value: filledPositions, Icon: UserCheck },
+              { label: "Vacant", value: vacantPositions, Icon: UserRoundX },
+            ].map(({ label, value, Icon }) => <Card key={label}><CardContent className="flex items-start justify-between gap-3 p-4"><div><p className="text-sm text-muted-foreground">{label}</p><p className="mt-2 text-2xl font-semibold tracking-tight">{value}</p></div><span className="rounded-lg bg-muted p-2 text-muted-foreground"><Icon className="h-4 w-4" /></span></CardContent></Card>)}
           </div>
           <Card className="overflow-hidden">
             <CardContent className="p-0">
@@ -315,7 +315,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                     <TableRow>
                       <TableHead>Position</TableHead>
                       <TableHead>Current person</TableHead>
-                      <TableHead className="hidden sm:table-cell">Status</TableHead>
+                      <TableHead className="hidden sm:table-cell">Joined</TableHead>
                       <TableHead className="w-12"><span className="sr-only">Actions</span></TableHead>
                     </TableRow>
                   </TableHeader>
