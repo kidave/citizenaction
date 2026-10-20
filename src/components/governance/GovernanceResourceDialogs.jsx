@@ -21,6 +21,12 @@ const RESOURCE_CONFIG = {
     supportsGeography: true,
     supportsLinks: true,
   },
+  appointment: {
+    table: "position_appointment",
+    key: "appointment_id",
+    supportsGeography: true,
+    supportsLinks: false,
+  },
   person: {
     table: "person",
     key: "person_id",
@@ -108,11 +114,18 @@ export default function GovernanceResourceDialogs({
         if (readError) {
           error = readError;
         } else {
-          const metadata = { ...(current?.metadata || {}), office_lat: lat ?? null, office_lng: lng ?? null };
-          ({ error } = await supabase
-            .from(config.table)
-            .update({ address: address || null, metadata })
-            .eq("id", entity.id));
+          if (entityType === "appointment") {
+            ({ error } = await supabase
+              .from(config.table)
+              .update({ address: address || null, lat: lat ?? null, lng: lng ?? null })
+              .eq("id", entity.id));
+          } else {
+            const metadata = { ...(current?.metadata || {}), office_lat: lat ?? null, office_lng: lng ?? null };
+            ({ error } = await supabase
+              .from(config.table)
+              .update({ address: address || null, metadata })
+              .eq("id", entity.id));
+          }
         }
       }
 
