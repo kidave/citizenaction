@@ -348,9 +348,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                               </Tooltip>
                             </div>
                           </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            <Badge variant={vacant ? "outline" : "secondary"}>{vacant ? "Vacant" : "Filled"}</Badge>
-                          </TableCell>
+                          <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">{vacant || !item.started_at ? "—" : formatGovernanceDate(item.started_at)}</TableCell>
                           <TableCell>
                             {positionHref && <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label={`View ${item.position_name || "position"}`}><Link href={positionHref}><ExternalLink className="h-4 w-4" /></Link></Button>}
                           </TableCell>
