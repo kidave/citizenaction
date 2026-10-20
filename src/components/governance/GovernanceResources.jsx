@@ -27,7 +27,7 @@ export default function GovernanceResources({ governanceId, attachments = [], li
       const rows = uploaded.map((item, index) => ({
         id: item.attachmentId, governance_id: governanceId,
         storage_path: item.storage_path, public_url: item.public_url,
-        preview_url: item.preview_url || null, thumbnail_path: item.thumbnail_path || null,
+        thumbnail_path: item.thumbnail_path || null,
         thumbnail_url: item.thumbnail_url || null, file_name: item.file_name,
         mime_type: item.mime_type, file_size: item.file_size, width: item.width,
         height: item.height, duration: item.duration, sort_order: attachments.length + index,
@@ -66,7 +66,7 @@ export default function GovernanceResources({ governanceId, attachments = [], li
   if (!hasAttachments && !links.length && !canEdit) return null;
 
   return (
-    <section className="space-y-4" aria-label="Organization media and links">
+    <section id="organization-resources" className="space-y-4 scroll-mt-24" aria-label="Organization media and links">
       <div className="flex min-w-0 items-center justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-sm font-semibold">Media and documents</h2>

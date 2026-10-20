@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Building2, BriefcaseBusiness, CalendarDays, ChevronDown, ChevronRight, ExternalLink, GitBranch, Mail, MapPin, Phone, Search, UserCheck, UserRoundX, MoreHorizontal, Plus } from "lucide-react";
+import { Building2, BriefcaseBusiness, CalendarDays, ChevronDown, ChevronRight, ExternalLink, GitBranch, Mail, MapPin, Phone, Search, UserCheck, UserRoundX, MoreHorizontal, Plus, Paperclip, FileText, Link2, LocateFixed } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -192,13 +192,15 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
     queryKey: ["governance-resources", governance?.id],
     enabled: Boolean(governance?.id),
     queryFn: async () => {
-      const [attachmentResult, linkResult] = await Promise.all([
+      const [attachmentResult, linkResult, organizationResult] = await Promise.all([
         supabase.from("attachment").select("*").eq("governance_id", governance.id).order("sort_order", { ascending: true }),
         supabase.from("link").select("id,url,title,sort_order").eq("governance_id", governance.id).order("sort_order", { ascending: true }),
+        supabase.from("governance").select("phone,email,website,address,metadata").eq("id", governance.id).maybeSingle(),
       ]);
       if (attachmentResult.error) throw attachmentResult.error;
       if (linkResult.error) throw linkResult.error;
-      return { attachments: attachmentResult.data || [], links: linkResult.data || [] };
+      if (organizationResult.error) throw organizationResult.error;
+      return { attachments: attachmentResult.data || [], links: linkResult.data || [], organization: organizationResult.data || {} };
     },
   });
 
@@ -352,8 +354,17 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                 {root.description && <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">{root.description}</p>}
                 <div className="mt-4 flex flex-wrap items-center gap-2">
                   {root.website && <Button asChild variant="outline" size="sm"><a href={root.website} target="_blank" rel="noreferrer"><ExternalLink className="mr-2 h-4 w-4" />Website</a></Button>}
-                  {(governance?.phone || root.phone) && <Button asChild variant="ghost" size="sm" className="justify-start"><a href={`tel:${governance?.phone || root.phone}`}><Phone className="mr-2 h-4 w-4" />{governance?.phone || root.phone}</a></Button>}
-                  {(governance?.email || root.email) && <Button asChild variant="ghost" size="sm" className="justify-start"><a href={`mailto:${governance?.email || root.email}`}><Mail className="mr-2 h-4 w-4" />{governance?.email || root.email}</a></Button>}
+                  {(resourcesQuery.data?.organization?.phone || governance?.phone || root.phone || governance?.metadata?.phone || governance?.metadata?.official_phone) && <Button asChild variant="ghost" size="sm" className="justify-start"><a href={`tel:${resourcesQuery.data?.organization?.phone || governance?.phone || root.phone || governance?.metadata?.phone || governance?.metadata?.official_phone}`}><Phone className="mr-2 h-4 w-4" />{resourcesQuery.data?.organization?.phone || governance?.phone || root.phone || governance?.metadata?.phone || governance?.metadata?.official_phone}</a></Button>}
+                  {(resourcesQuery.data?.organization?.email || governance?.email || root.email || governance?.metadata?.email || governance?.metadata?.official_email) && <Button asChild variant="ghost" size="sm" className="justify-start"><a href={`mailto:${resourcesQuery.data?.organization?.email || governance?.email || root.email || governance?.metadata?.email || governance?.metadata?.official_email}`}><Mail className="mr-2 h-4 w-4" />{resourcesQuery.data?.organization?.email || governance?.email || root.email || governance?.metadata?.email || governance?.metadata?.official_email}</a></Button>}
+                  <TooltipProvider>
+                    <div className="flex items-center gap-0.5">
+                      <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" aria-label="View attachments and documents" onClick={() => document.getElementById("organization-resources")?.scrollIntoView({ behavior: "smooth", block: "start" })}><Paperclip className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Attachments</TooltipContent></Tooltip>
+                      <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" aria-label="View documents and add files" onClick={() => document.getElementById("organization-resources")?.scrollIntoView({ behavior: "smooth", block: "start" })}><FileText className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Documents</TooltipContent></Tooltip>
+                      <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" aria-label="Manage organization links" onClick={() => canEdit ? onManageLinks?.(governance) : document.getElementById("organization-resources")?.scrollIntoView({ behavior: "smooth", block: "start" })}><Link2 className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Links</TooltipContent></Tooltip>
+                      <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" aria-label="Organization address" onClick={() => canEdit ? onAddAddress?.(governance) : (root.address || resourcesQuery.data?.organization?.address) && window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(root.address || resourcesQuery.data?.organization?.address)}`, "_blank", "noopener,noreferrer")}><MapPin className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Address</TooltipContent></Tooltip>
+                      <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" aria-label="Manage organization geography" onClick={() => canEdit ? onAddGeography?.(governance) : document.getElementById("organization-map")?.scrollIntoView({ behavior: "smooth", block: "start" })}><LocateFixed className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Geography</TooltipContent></Tooltip>
+                    </div>
+                  </TooltipProvider>
                   {onViewTree && <Button type="button" variant="outline" size="sm" onClick={onViewTree}><GitBranch className="mr-2 h-4 w-4" />View tree</Button>}
                   {canEdit && <GovernanceCardActions
                     onViewTree={() => onViewTree?.()}
@@ -400,7 +411,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
               { label: "Vacant", value: vacantPositions, Icon: UserRoundX },
             ].map(({ label, value, Icon }) => <Card key={label}><CardContent className="flex items-start justify-between gap-3 p-4"><div><p className="text-sm text-muted-foreground">{label}</p><p className="mt-2 text-2xl font-semibold tracking-tight">{value}</p></div><span className="rounded-lg bg-muted p-2 text-muted-foreground"><Icon className="h-4 w-4" /></span></CardContent></Card>)}
           </div>
-          <Card className="overflow-hidden">
+          <Card id="organization-map" className="overflow-hidden scroll-mt-24">
             <CardContent className="p-0">
               <div className="h-[320px] w-full sm:h-[360px]">
                 <LeafletMap
