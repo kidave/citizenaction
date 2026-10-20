@@ -300,6 +300,8 @@ export default function GovernanceRecordPage() {
             onEdit={editEntity}
             onViewTree={() => openTreePage(governance)}
             onAddPosition={openAddPosition}
+            onEditPosition={openEditPosition}
+            onDeletePosition={deletePositionEntity}
             onManageRelations={(entity) => openRelation("edit-relations", entity)}
             onAddParent={(entity) => openRelation("add-parent", entity)}
             onAddChild={(entity) => openRelation("add-child", entity)}
