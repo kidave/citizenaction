@@ -243,10 +243,30 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                 </div>
                 {root.short_name && <p className="mt-1 text-sm text-muted-foreground">{root.short_name}</p>}
                 {root.description && <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">{root.description}</p>}
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-4 flex flex-wrap items-center gap-2">
                   {root.website && <Button asChild variant="outline" size="sm"><a href={root.website} target="_blank" rel="noreferrer"><ExternalLink className="mr-2 h-4 w-4" />Website</a></Button>}
                   {onViewTree && <Button type="button" variant="outline" size="sm" onClick={onViewTree}><GitBranch className="mr-2 h-4 w-4" />View tree</Button>}
-                  
+                  {canEdit && <GovernanceCardActions
+                    onView={() => onEdit?.(governance)}
+                    onViewTree={() => onViewTree?.()}
+                    onEdit={() => onEdit?.(governance)}
+                    onPrimaryAction={() => onAddPosition?.(governance)}
+                    primaryActionLabel="Add Position"
+                    onManageRelations={() => onManageRelations?.(governance)}
+                    onAddParent={() => onAddParent?.(governance)}
+                    onAddChild={() => onAddChild?.(governance)}
+                    onAddAddress={() => onAddAddress?.(governance)}
+                    onRemoveAddress={() => onRemoveAddress?.(governance)}
+                    onAddGeography={() => onAddGeography?.(governance)}
+                    onRemoveGeography={() => onRemoveGeography?.(governance)}
+                    onManageLinks={() => onManageLinks?.(governance)}
+                    onDelete={() => onDelete?.(governance)}
+                    hasAddress={Boolean(locationData?.address || root.address)}
+                    hasGeography={Boolean(locationData?.geography_id || root.geography_id)}
+                    hasLinks={Boolean(root.hasLinks)}
+                  >
+                    <Button type="button" variant="outline" size="sm"><MoreHorizontal className="mr-2 h-4 w-4" />Organization actions</Button>
+                  </GovernanceCardActions>}
                 </div>
               </div>
             </div>
