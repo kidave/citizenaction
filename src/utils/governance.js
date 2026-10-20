@@ -59,7 +59,7 @@ export function getGovernanceRoute(entity, view = null) {
     pathname: "/governance/[...path]",
     query: {
       path,
-      ...(view ? { view } : {}),
+      ...(view === "tree" ? { view: "tree" } : {}),
     },
   };
 }
