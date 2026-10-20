@@ -297,8 +297,8 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                   {canEdit && <GovernanceCardActions
                     onViewTree={() => onViewTree?.()}
                     onEdit={() => onEdit?.(governance)}
-                    onPrimaryAction={() => { setAppointmentRecord(null); setAppointmentPositionId(null); setAppointmentDialogOpen(true); }}
-                    primaryActionLabel="Add Appointment"
+                    onPrimaryAction={() => onAddPosition?.(governance)}
+                    primaryActionLabel="Add Position"
                     onManageRelations={() => onManageRelations?.(governance)}
                     onAddParent={() => onAddParent?.(governance)}
                     onAddChild={() => onAddChild?.(governance)}
