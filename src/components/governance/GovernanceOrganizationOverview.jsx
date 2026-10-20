@@ -17,6 +17,8 @@ import { supabase } from "@/lib/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
+import GovernanceAppointmentDialog from "@/components/governance/GovernanceAppointmentDialog";
+import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
 
 const LeafletMap = dynamic(() => import("@/components/geography/LeafletMap"), { ssr: false, loading: () => <div className="flex h-full min-h-[320px] items-center justify-center text-sm text-muted-foreground">Loading map…</div> });
 import { useGovernanceOrganizationContext } from "@/hooks/governance/useGovernanceOrganizationContext";
@@ -146,6 +148,9 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
   const [positionSearch, setPositionSearch] = useState("");
   const [joinedFrom, setJoinedFrom] = useState("");
   const [joinedTo, setJoinedTo] = useState("");
+  const [appointmentDialogOpen, setAppointmentDialogOpen] = useState(false);
+  const [appointmentRecord, setAppointmentRecord] = useState(null);
+  const [appointmentPositionId, setAppointmentPositionId] = useState(null);
   const positionsQuery = useQuery({
     queryKey: ["governance-organization-positions", governance?.id],
     enabled: Boolean(governance?.id),
@@ -393,7 +398,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                           </TableCell>
                           <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">{vacant || !item.started_at ? "—" : formatGovernanceDate(item.started_at)}</TableCell>
                           <TableCell>
-                            {positionHref && <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label={`View ${item.position_name || "position"}`}><Link href={positionHref}><ExternalLink className="h-4 w-4" /></Link></Button>}
+                            {canEdit && item.appointment_id ? <GovernanceAppointmentDeleteButton appointmentId={item.appointment_id} personName={item.person_name} positionName={item.position_name} onEdit={() => { setAppointmentRecord(item); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} onDeleted={async () => { await query.refetch(); await positionsQuery.refetch(); }} /> : canEdit ? <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label={"Assign person to " + item.position_name} onClick={() => { setAppointmentRecord(null); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }}><Plus className="h-4 w-4" /></Button> : null}
                           </TableCell>
                         </TableRow>
                       );
@@ -406,6 +411,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
             <EmptyState title={currentPositions.length ? "No matching positions" : "No positions found"} description={currentPositions.length ? "Try changing your search or date range." : canEdit ? "Add the first position for this organization." : "No positions have been recorded."} />
           )}
         </section>
+        {canEdit && <GovernanceAppointmentDialog open={appointmentDialogOpen} onOpenChange={setAppointmentDialogOpen} mode="position" organizationId={governance?.id} positionId={appointmentPositionId} record={appointmentRecord} onSaved={async () => { await query.refetch(); await positionsQuery.refetch(); }} />}
       </div>
     </div>
   );
