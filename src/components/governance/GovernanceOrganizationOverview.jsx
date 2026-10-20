@@ -162,7 +162,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
     enabled: Boolean(governance?.id),
     queryFn: async () => {
       const { data, error } = await supabase.from("position")
-        .select("id,name,slug,image_url,appointing_organization_id,address,metadata")
+        .select("id,name,slug,image_url,appointing_organization_id,address,metadata,geography_id,geographies(name,official_name)")
         .eq("appointing_organization_id", governance.id)
         .order("name");
       if (error) throw error;
@@ -191,7 +191,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
     queryKey: ["governance-organization-map", governance?.id],
     enabled: Boolean(governance?.id),
     queryFn: async () => {
-      const { data, error } = await supabase.from("governance").select("id,address,lat,lng,geom,geography_id,metadata").eq("id", governance.id).maybeSingle();
+      const { data, error } = await supabase.from("governance").select("id,address,lat,lng,geom,geography_id,metadata,geographies(name,official_name)").eq("id", governance.id).maybeSingle();
       if (error) throw error;
       return data || {};
     },
@@ -294,16 +294,24 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
     }
     return currentAppointments.map((appointment) => {
       const appointmentId = appointment.appointment_id || appointment.id || null;
+      const appointmentLocation = appointmentLocations.get(appointmentId) || {};
       return {
         ...sharedPosition,
         ...appointment,
-        ...(appointmentLocations.get(appointmentId) || {}),
+        ...appointmentLocation,
         position_id: position.id,
         position_name: position.name,
         position_slug: position.slug,
         position_avatar_url: position.image_url,
         organization_slug: governance?.slug,
         appointment_id: appointmentId,
+        address: appointmentLocation.address || appointment.address || position.address || locationData?.address || null,
+        lat: appointmentLocation.lat ?? appointment.lat ?? position.metadata?.office_lat ?? locationData?.lat ?? locationData?.metadata?.office_lat ?? null,
+        lng: appointmentLocation.lng ?? appointment.lng ?? position.metadata?.office_lng ?? locationData?.lng ?? locationData?.metadata?.office_lng ?? null,
+        geography_id: appointmentLocation.geography_id || appointment.geography_id || position.geography_id || locationData?.geography_id || null,
+        geographies: appointmentLocation.geographies || appointment.geographies || position.geographies || locationData?.geographies || null,
+        official_phone: appointment.official_phone || appointment.metadata?.official_phone || position.metadata?.official_phone || locationData?.metadata?.official_phone || null,
+        official_email: appointment.official_email || appointment.metadata?.official_email || position.metadata?.official_email || locationData?.metadata?.official_email || null,
         is_vacant: false,
       };
     });
@@ -314,12 +322,6 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
     const joined = item.started_at ? String(item.started_at).slice(0, 10) : "";
     return matchesSearch && (!joinedFrom || (joined && joined >= joinedFrom)) && (!joinedTo || (joined && joined <= joinedTo));
   });
-  const totalPositions = (positionsQuery.data || []).length;
-  const filledPositionIds = new Set(currentPositions.filter((item) => !item.is_vacant).map((item) => item.position_id));
-  const filledPositions = filledPositionIds.size;
-  const vacantPositions = Math.max(0, totalPositions - filledPositions);
-  const unitCount = organizations.length;
-
   return (
     <div className="min-h-[calc(100vh-5.5rem)] bg-background">
       <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-5 sm:px-6 lg:px-8">
@@ -336,6 +338,10 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                 </div>
                 {root.short_name && <p className="mt-1 text-sm text-muted-foreground">{root.short_name}</p>}
                 {root.description && <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">{root.description}</p>}
+                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                  {(root.metadata?.official_email || root.email || root.official_email) && <a className="inline-flex min-w-0 items-center gap-2 hover:text-foreground hover:underline" href={`mailto:${root.metadata?.official_email || root.email || root.official_email}`}><Mail className="h-4 w-4 shrink-0" /><span className="truncate">{root.metadata?.official_email || root.email || root.official_email}</span></a>}
+                  {(root.metadata?.official_phone || root.phone || root.official_phone) && <a className="inline-flex items-center gap-2 hover:text-foreground hover:underline" href={`tel:${root.metadata?.official_phone || root.phone || root.official_phone}`}><Phone className="h-4 w-4 shrink-0" /><span>{root.metadata?.official_phone || root.phone || root.official_phone}</span></a>}
+                </div>
                 <div className="mt-4 flex flex-wrap items-center gap-2">
                   {root.website && <Button asChild variant="outline" size="sm"><a href={root.website} target="_blank" rel="noreferrer"><ExternalLink className="mr-2 h-4 w-4" />Website</a></Button>}
                   {onViewTree && <Button type="button" variant="outline" size="sm" onClick={onViewTree}><GitBranch className="mr-2 h-4 w-4" />View tree</Button>}
@@ -366,15 +372,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
 
         </section>
 
-        <section className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { label: "Units", value: Math.max(0, unitCount - 1), Icon: Building2 },
-              { label: "Positions", value: totalPositions, Icon: BriefcaseBusiness },
-              { label: "Filled", value: filledPositions, Icon: UserCheck },
-              { label: "Vacant", value: vacantPositions, Icon: UserRoundX },
-            ].map(({ label, value, Icon }) => <Card key={label}><CardContent className="flex items-start justify-between gap-3 p-4"><div><p className="text-sm text-muted-foreground">{label}</p><p className="mt-2 text-2xl font-semibold tracking-tight">{value}</p></div><span className="rounded-lg bg-muted p-2 text-muted-foreground"><Icon className="h-4 w-4" /></span></CardContent></Card>)}
-          </div>
+        <section>
           <Card className="overflow-hidden">
             <CardContent className="p-0">
               <div className="h-[320px] w-full sm:h-[360px]">
