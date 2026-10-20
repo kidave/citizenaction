@@ -250,19 +250,43 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
   }
 
   const organizationAppointments = appointments.filter((item) => item.organization_id === governance?.id);
-  const currentPositions = (positionsQuery.data || []).map((position) => {
-    const appointment = organizationAppointments
-      .filter((item) => item.position_id === position.id && !item.is_vacant && item.person_id)
-      .sort((a, b) => String(b.started_at || "").localeCompare(String(a.started_at || "")))[0] || null;
-    return {
-      ...position, ...(appointment || {}),
-      position_id: position.id, position_name: position.name, position_slug: position.slug,
-      position_avatar_url: position.image_url, organization_slug: governance?.slug,
-      appointment_id: appointment?.appointment_id || null, person_id: appointment?.person_id || null,
-      person_name: appointment?.person_name || null, person_slug: appointment?.person_slug || null,
-      person_avatar_url: appointment?.person_avatar_url || null, started_at: appointment?.started_at || null,
-      is_vacant: !appointment,
+  // Render one row per current appointment. A position may legitimately have
+  // multiple simultaneous appointments, so never collapse them to the latest row.
+  const currentPositions = (positionsQuery.data || []).flatMap((position) => {
+    const currentAppointments = organizationAppointments
+      .filter((item) => item.position_id === position.id && !item.is_vacant && item.person_id);
+    const sharedPosition = {
+      ...position,
+      position_id: position.id,
+      position_name: position.name,
+      position_slug: position.slug,
+      position_avatar_url: position.image_url,
+      organization_slug: governance?.slug,
     };
+    if (!currentAppointments.length) {
+      return [{
+        ...sharedPosition,
+        appointment_id: null,
+        person_id: null,
+        person_name: null,
+        person_slug: null,
+        person_avatar_url: null,
+        started_at: null,
+        ended_at: null,
+        is_vacant: true,
+      }];
+    }
+    return currentAppointments.map((appointment) => ({
+      ...sharedPosition,
+      ...appointment,
+      position_id: position.id,
+      position_name: position.name,
+      position_slug: position.slug,
+      position_avatar_url: position.image_url,
+      organization_slug: governance?.slug,
+      appointment_id: appointment.appointment_id || appointment.id || null,
+      is_vacant: false,
+    }));
   });
   const filteredPositions = currentPositions.filter((item) => {
     const needle = positionSearch.trim().toLowerCase();
@@ -270,9 +294,10 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
     const joined = item.started_at ? String(item.started_at).slice(0, 10) : "";
     return matchesSearch && (!joinedFrom || (joined && joined >= joinedFrom)) && (!joinedTo || (joined && joined <= joinedTo));
   });
-  const totalPositions = currentPositions.length;
-  const filledPositions = currentPositions.filter((item) => !item.is_vacant).length;
-  const vacantPositions = totalPositions - filledPositions;
+  const totalPositions = (positionsQuery.data || []).length;
+  const filledPositionIds = new Set(currentPositions.filter((item) => !item.is_vacant).map((item) => item.position_id));
+  const filledPositions = filledPositionIds.size;
+  const vacantPositions = Math.max(0, totalPositions - filledPositions);
   const unitCount = organizations.length;
 
   return (
