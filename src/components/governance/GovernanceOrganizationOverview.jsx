@@ -51,7 +51,6 @@ function OrganizationUnit({ node, childrenByParent, canEdit, onSelect, expandedP
                 >
                   {node.name}
                 </Link>
-                {node.type && }
               </div>
               <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                 <span>{node.position_count || 0} positions</span>
