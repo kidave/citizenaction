@@ -1,9 +1,14 @@
+import dynamic from "next/dynamic";
+import Link from "next/link";
 import { CalendarDays, ExternalLink, MapPin } from "lucide-react";
 import EmptyState from "@/components/ui/empty-state";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+const LeafletMap = dynamic(() => import("@/components/geography/LeafletMap"), { ssr: false, loading: () => <div className="flex h-56 items-center justify-center text-sm text-muted-foreground">Loading map…</div> });
 import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
 import { formatGovernanceDate, getGovernanceInitials, getGovernanceLabel } from "@/utils/governance";
 
@@ -15,39 +20,43 @@ export default function GovernancePositionTimeline({ position, organization, tim
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
       <div className="mb-6">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Position</p>
-        <div className="mt-1 flex items-center gap-3">
-          <Avatar className="h-10 w-10 shrink-0 rounded-lg">
-            <AvatarImage src={organization?.image_url || undefined} alt="" />
-            <AvatarFallback className="rounded-lg text-xs">{getGovernanceInitials(organizationLabel)}</AvatarFallback>
-          </Avatar>
-          <h1 className="min-w-0 text-2xl font-semibold tracking-tight">
-            <span>{position?.name || "Position"}</span>
-            {organizationLabel && <span className="ml-2 text-base font-normal text-muted-foreground">· {organizationLabel}</span>}
-          </h1>
+        <div className="flex items-center gap-3">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link href={organization?.slug ? `/governance/${organization.slug}` : "/governance"} aria-label={organizationLabel || "Organization"} className="shrink-0 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                  <Avatar className="h-10 w-10 rounded-lg">
+                    <AvatarImage src={organization?.image_url || undefined} alt={organizationLabel} />
+                    <AvatarFallback className="rounded-lg text-xs">{getGovernanceInitials(organizationLabel)}</AvatarFallback>
+                  </Avatar>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>{organizationLabel || "Organization"}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <h1 className="min-w-0 text-2xl font-semibold tracking-tight">{position?.name || "Position"}</h1>
         </div>
-        {(jurisdiction || position?.address || links.length) && (
-          <div className="mt-4 flex flex-wrap items-center gap-2 border-t pt-4">
-            {jurisdiction && (
-              <Badge variant="secondary" className="max-w-full gap-1.5 font-normal">
-                <MapPin className="h-3.5 w-3.5" />
-                <span className="truncate">Jurisdiction: {jurisdiction.official_name || jurisdiction.name}</span>
-              </Badge>
+        {(jurisdiction?.geom || position?.address || position?.lat != null || position?.metadata?.office_lat != null || position?.metadata?.lat != null) && (
+          <div className="mt-4 overflow-hidden rounded-xl border">
+            <div className="h-56 w-full sm:h-64">
+              <LeafletMap
+                lat={Number(position?.lat ?? position?.metadata?.office_lat ?? position?.metadata?.lat) || 19.076}
+                lng={Number(position?.lng ?? position?.metadata?.office_lng ?? position?.metadata?.lng) || 72.8777}
+                showMarker={position?.lat != null || position?.metadata?.office_lat != null || position?.metadata?.lat != null}
+                zoom={jurisdiction?.geom ? 10 : 14}
+                boundary={jurisdiction?.geom || null}
+                markers={[]}
+              />
+            </div>
+            {(jurisdiction || position?.address) && (
+              <div className="flex flex-wrap gap-x-4 gap-y-2 border-t px-3 py-2 text-xs text-muted-foreground">
+                {jurisdiction && <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 shrink-0" /><span>Boundary: {jurisdiction.official_name || jurisdiction.name}</span></span>}
+                {position?.address && <span className="inline-flex items-center gap-1.5" title={position.address}><MapPin className="h-3.5 w-3.5 shrink-0" /><span className="line-clamp-2">{position.address}</span></span>}
+              </div>
             )}
-            {position?.address && (
-              <Badge variant="outline" className="max-w-full gap-1.5 font-normal">
-                <MapPin className="h-3.5 w-3.5" />
-                <span className="truncate">Office: {position.address}</span>
-              </Badge>
-            )}
-            {links.map((link) => (
-              <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs hover:bg-muted">
-                <ExternalLink className="h-3.5 w-3.5" />
-                <span className="max-w-[220px] truncate">{link.title || link.url}</span>
-              </a>
-            ))}
           </div>
         )}
+        {links.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{links.map((link) => <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs hover:bg-muted"><ExternalLink className="h-3.5 w-3.5" /><span className="max-w-[220px] truncate">{link.title || link.url}</span></a>)}</div>}
 
         {(position?.metadata?.qualifications || position?.metadata?.responsibilities || position?.description) && (
           <div className="mt-4 space-y-4 border-t pt-4">

@@ -166,9 +166,9 @@ export default function AttachmentCarousel({
             {items.map((item, index) => (
               <CarouselItem
                 key={item.type + "-" + (item.data.id ?? index)}
-                className="basis-[260px] lg:basis-[280px]"
+                className="flex basis-[260px] lg:basis-[280px]"
               >
-                {renderItem(item, item.type + "-" + (item.data.id ?? index))}
+                <div className="h-full w-full">{renderItem(item, item.type + "-" + (item.data.id ?? index))}</div>
               </CarouselItem>
             ))}
           </CarouselContent>
