@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Building2, BriefcaseBusiness, ChevronDown, ChevronRight, ExternalLink, GitBranch, UserCheck, UserRoundX, MoreHorizontal, Plus } from "lucide-react";
+import { Building2, BriefcaseBusiness, CalendarDays, ChevronDown, ChevronRight, ExternalLink, GitBranch, Search, UserCheck, UserRoundX, MoreHorizontal, Plus } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ import { formatGovernanceDate, getGovernanceInitials } from "@/utils/governance"
 import { supabase } from "@/lib/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Input } from "@/components/ui/input";
 
 const LeafletMap = dynamic(() => import("@/components/geography/LeafletMap"), { ssr: false, loading: () => <div className="flex h-full min-h-[320px] items-center justify-center text-sm text-muted-foreground">Loading map…</div> });
 import { useGovernanceOrganizationContext } from "@/hooks/governance/useGovernanceOrganizationContext";
@@ -342,7 +343,14 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
             </div>
             {canEdit && <Button type="button" size="sm" onClick={() => onAddPosition?.(governance)}><Plus className="mr-2 h-4 w-4" />Add position</Button>}
           </div>
-          {organizationAppointments.length ? (
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="relative min-w-0 flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={positionSearch} onChange={(event) => setPositionSearch(event.target.value)} placeholder="Search positions or people…" className="pl-9" aria-label="Search positions or people" /></div>
+            <div className="grid grid-cols-2 gap-2 sm:w-auto">
+              <label className="flex items-center gap-2 rounded-md border px-3"><CalendarDays className="h-4 w-4 text-muted-foreground" /><Input type="date" value={joinedFrom} onChange={(event) => setJoinedFrom(event.target.value)} className="w-full border-0 p-0 shadow-none focus-visible:ring-0" aria-label="Joined from date" /></label>
+              <label className="flex items-center gap-2 rounded-md border px-3"><CalendarDays className="h-4 w-4 text-muted-foreground" /><Input type="date" value={joinedTo} onChange={(event) => setJoinedTo(event.target.value)} className="w-full border-0 p-0 shadow-none focus-visible:ring-0" aria-label="Joined to date" /></label>
+            </div>
+          </div>
+          {positionsQuery.isLoading ? <LoadingState label="Loading positions" /> : positionsQuery.error ? <ErrorState title="Unable to load positions" /> : filteredPositions.length ? (
             <div className="overflow-hidden rounded-lg border">
               <TooltipProvider>
                 <Table>
@@ -355,7 +363,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {organizationAppointments.map((item) => {
+                    {filteredPositions.map((item) => {
                       const positionHref = item.position_slug && item.organization_slug ? `/governance/${item.organization_slug}/${item.position_slug}` : null;
                       const personHref = item.person_slug ? `/governance/person/${item.person_slug}` : null;
                       const vacant = item.is_vacant || !item.person_id;
@@ -395,7 +403,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
               </TooltipProvider>
             </div>
           ) : (
-            <EmptyState title="No positions found" description={canEdit ? "Add the first position for this organization." : "No current positions have been recorded."} />
+            <EmptyState title={currentPositions.length ? "No matching positions" : "No positions found"} description={currentPositions.length ? "Try changing your search or date range." : canEdit ? "Add the first position for this organization." : "No positions have been recorded."} />
           )}
         </section>
       </div>
