@@ -312,7 +312,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                     hasGeography={Boolean(locationData?.geography_id || root.geography_id)}
                     hasLinks={Boolean(root.hasLinks)}
                   >
-                    <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" aria-label="Organization actions"><MoreHorizontal className="h-5 w-5" /></Button>
+                    <Button type="button" variant="outline" size="icon" className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border-border bg-background p-0" aria-label="Organization actions"><MoreHorizontal className="h-5 w-5 shrink-0" /></Button>
                   </GovernanceCardActions>}
                 </div>
               </div>
