@@ -2,8 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { toast } from "sonner";
-import { Building2, CalendarDays, ChevronDown, ChevronRight, ExternalLink, GitBranch, Mail, MapPin, Phone, Search, MoreHorizontal, Plus } from "lucide-react";
+import { Building2, BriefcaseBusiness, CalendarDays, ChevronDown, ChevronRight, ExternalLink, GitBranch, Mail, MapPin, Phone, Search, UserCheck, UserRoundX, MoreHorizontal, Plus, Paperclip, FileText, Link2, LocateFixed } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +26,7 @@ import GovernanceResourceDialogs from "@/components/governance/GovernanceResourc
 const LeafletMap = dynamic(() => import("@/components/geography/LeafletMap"), { ssr: false, loading: () => <div className="flex h-full min-h-[320px] items-center justify-center text-sm text-muted-foreground">Loading map…</div> });
 import { useGovernanceOrganizationContext } from "@/hooks/governance/useGovernanceOrganizationContext";
 import GovernanceCardActions from "@/components/governance/GovernanceCardActions";
+import GovernanceResources from "@/components/governance/GovernanceResources";
 
 
 function OrganizationUnit({ node, childrenByParent, canEdit, onSelect, expandedPath, onToggle }) {
@@ -163,7 +163,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
     enabled: Boolean(governance?.id),
     queryFn: async () => {
       const { data, error } = await supabase.from("position")
-        .select("id,name,slug,image_url,appointing_organization_id,address,metadata,geography_id,lat,lng,official_phone,official_email,geographies(name,official_name)")
+        .select("id,name,slug,image_url,appointing_organization_id,address,metadata")
         .eq("appointing_organization_id", governance.id)
         .order("name");
       if (error) throw error;
@@ -181,18 +181,34 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
     queryKey: ["governance-appointment-locations", governance?.id, appointmentIds.join(",")],
     enabled: appointmentIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase.from("position_appointment").select("id,geography_id,address,lat,lng,official_phone,official_email,geographies(name,official_name)").in("id", appointmentIds);
+      const { data, error } = await supabase.from("position_appointment").select("id,geography_id,address,lat,lng,geographies(name,official_name)").in("id", appointmentIds);
       if (error) throw error;
       return data || [];
     },
   });
   const appointmentLocations = new Map((appointmentLocationsQuery.data || []).map((item) => [item.id, item]));
 
+  const resourcesQuery = useQuery({
+    queryKey: ["governance-resources", governance?.id],
+    enabled: Boolean(governance?.id),
+    queryFn: async () => {
+      const [attachmentResult, linkResult, organizationResult] = await Promise.all([
+        supabase.from("attachment").select("*").eq("governance_id", governance.id).order("sort_order", { ascending: true }),
+        supabase.from("link").select("id,url,title,sort_order").eq("governance_id", governance.id).order("sort_order", { ascending: true }),
+        supabase.from("governance").select("phone,email,website,address,metadata").eq("id", governance.id).maybeSingle(),
+      ]);
+      if (attachmentResult.error) throw attachmentResult.error;
+      if (linkResult.error) throw linkResult.error;
+      if (organizationResult.error) throw organizationResult.error;
+      return { attachments: attachmentResult.data || [], links: linkResult.data || [], organization: organizationResult.data || {} };
+    },
+  });
+
   const { data: locationData } = useQuery({
     queryKey: ["governance-organization-map", governance?.id],
     enabled: Boolean(governance?.id),
     queryFn: async () => {
-      const { data, error } = await supabase.from("governance").select("id,address,lat,lng,geom,geography_id,metadata,email,phone,geographies(name,official_name)").eq("id", governance.id).maybeSingle();
+      const { data, error } = await supabase.from("governance").select("id,address,lat,lng,geom,geography_id,metadata").eq("id", governance.id).maybeSingle();
       if (error) throw error;
       return data || {};
     },
@@ -279,13 +295,6 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
       position_slug: position.slug,
       position_avatar_url: position.image_url,
       organization_slug: governance?.slug,
-      address: position.address || locationData?.address || null,
-      lat: position.lat ?? position.metadata?.office_lat ?? locationData?.lat ?? locationData?.metadata?.office_lat ?? null,
-      lng: position.lng ?? position.metadata?.office_lng ?? locationData?.lng ?? locationData?.metadata?.office_lng ?? null,
-      geography_id: position.geography_id || locationData?.geography_id || null,
-      geographies: position.geographies || locationData?.geographies || null,
-      official_phone: position.official_phone || position.metadata?.official_phone || locationData?.phone || null,
-      official_email: position.official_email || position.metadata?.official_email || locationData?.email || null,
     };
     if (!currentAppointments.length) {
       return [{
@@ -302,26 +311,16 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
     }
     return currentAppointments.map((appointment) => {
       const appointmentId = appointment.appointment_id || appointment.id || null;
-      const appointmentLocation = appointmentLocations.get(appointmentId) || {};
       return {
         ...sharedPosition,
         ...appointment,
-        ...appointmentLocation,
-        appointment_address: appointmentLocation.address || appointment.address || null,
-        appointment_geography_id: appointmentLocation.geography_id || appointment.geography_id || null,
+        ...(appointmentLocations.get(appointmentId) || {}),
         position_id: position.id,
         position_name: position.name,
         position_slug: position.slug,
         position_avatar_url: position.image_url,
         organization_slug: governance?.slug,
         appointment_id: appointmentId,
-        address: appointmentLocation.address || appointment.address || position.address || locationData?.address || null,
-        lat: appointmentLocation.lat ?? appointment.lat ?? position.lat ?? position.metadata?.office_lat ?? locationData?.lat ?? locationData?.metadata?.office_lat ?? null,
-        lng: appointmentLocation.lng ?? appointment.lng ?? position.lng ?? position.metadata?.office_lng ?? locationData?.lng ?? locationData?.metadata?.office_lng ?? null,
-        geography_id: appointmentLocation.geography_id || appointment.geography_id || position.geography_id || locationData?.geography_id || null,
-        geographies: appointmentLocation.geographies || appointment.geographies || position.geographies || locationData?.geographies || null,
-        official_phone: appointmentLocation.official_phone || appointment.official_phone || appointment.metadata?.official_phone || position.official_phone || position.metadata?.official_phone || locationData?.phone || null,
-        official_email: appointmentLocation.official_email || appointment.official_email || appointment.metadata?.official_email || position.official_email || position.metadata?.official_email || locationData?.email || null,
         is_vacant: false,
       };
     });
@@ -332,6 +331,12 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
     const joined = item.started_at ? String(item.started_at).slice(0, 10) : "";
     return matchesSearch && (!joinedFrom || (joined && joined >= joinedFrom)) && (!joinedTo || (joined && joined <= joinedTo));
   });
+  const totalPositions = (positionsQuery.data || []).length;
+  const filledPositionIds = new Set(currentPositions.filter((item) => !item.is_vacant).map((item) => item.position_id));
+  const filledPositions = filledPositionIds.size;
+  const vacantPositions = Math.max(0, totalPositions - filledPositions);
+  const unitCount = organizations.length;
+
   return (
     <div className="min-h-[calc(100vh-5.5rem)] bg-background">
       <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-5 sm:px-6 lg:px-8">
@@ -344,16 +349,22 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{root.name}</h1>
-                  {root.type && <Badge variant="secondary">{root.type}</Badge>}
                 </div>
                 {root.short_name && <p className="mt-1 text-sm text-muted-foreground">{root.short_name}</p>}
                 {root.description && <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">{root.description}</p>}
-                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-                  {(root.metadata?.official_email || root.email || root.official_email) && <a className="inline-flex min-w-0 items-center gap-2 hover:text-foreground hover:underline" href={`mailto:${root.metadata?.official_email || root.email || root.official_email}`}><Mail className="h-4 w-4 shrink-0" /><span className="truncate">{root.metadata?.official_email || root.email || root.official_email}</span></a>}
-                  {(root.metadata?.official_phone || root.phone || root.official_phone) && <a className="inline-flex items-center gap-2 hover:text-foreground hover:underline" href={`tel:${root.metadata?.official_phone || root.phone || root.official_phone}`}><Phone className="h-4 w-4 shrink-0" /><span>{root.metadata?.official_phone || root.phone || root.official_phone}</span></a>}
-                </div>
                 <div className="mt-4 flex flex-wrap items-center gap-2">
                   {root.website && <Button asChild variant="outline" size="sm"><a href={root.website} target="_blank" rel="noreferrer"><ExternalLink className="mr-2 h-4 w-4" />Website</a></Button>}
+                  {(resourcesQuery.data?.organization?.phone || governance?.phone || root.phone || governance?.metadata?.phone || governance?.metadata?.official_phone) && <Button asChild variant="ghost" size="sm" className="justify-start"><a href={`tel:${resourcesQuery.data?.organization?.phone || governance?.phone || root.phone || governance?.metadata?.phone || governance?.metadata?.official_phone}`}><Phone className="mr-2 h-4 w-4" />{resourcesQuery.data?.organization?.phone || governance?.phone || root.phone || governance?.metadata?.phone || governance?.metadata?.official_phone}</a></Button>}
+                  {(resourcesQuery.data?.organization?.email || governance?.email || root.email || governance?.metadata?.email || governance?.metadata?.official_email) && <Button asChild variant="ghost" size="sm" className="justify-start"><a href={`mailto:${resourcesQuery.data?.organization?.email || governance?.email || root.email || governance?.metadata?.email || governance?.metadata?.official_email}`}><Mail className="mr-2 h-4 w-4" />{resourcesQuery.data?.organization?.email || governance?.email || root.email || governance?.metadata?.email || governance?.metadata?.official_email}</a></Button>}
+                  <TooltipProvider>
+                    <div className="flex items-center gap-0.5">
+                      <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" aria-label="View attachments and documents" onClick={() => document.getElementById("organization-resources")?.scrollIntoView({ behavior: "smooth", block: "start" })}><Paperclip className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Attachments</TooltipContent></Tooltip>
+                      <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" aria-label="View documents and add files" onClick={() => document.getElementById("organization-resources")?.scrollIntoView({ behavior: "smooth", block: "start" })}><FileText className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Documents</TooltipContent></Tooltip>
+                      <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" aria-label="Manage organization links" onClick={() => canEdit ? onManageLinks?.(governance) : document.getElementById("organization-resources")?.scrollIntoView({ behavior: "smooth", block: "start" })}><Link2 className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Links</TooltipContent></Tooltip>
+                      <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" aria-label="Organization address" onClick={() => canEdit ? onAddAddress?.(governance) : (root.address || resourcesQuery.data?.organization?.address) && window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(root.address || resourcesQuery.data?.organization?.address)}`, "_blank", "noopener,noreferrer")}><MapPin className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Address</TooltipContent></Tooltip>
+                      <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" aria-label="Manage organization geography" onClick={() => canEdit ? onAddGeography?.(governance) : document.getElementById("organization-map")?.scrollIntoView({ behavior: "smooth", block: "start" })}><LocateFixed className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Geography</TooltipContent></Tooltip>
+                    </div>
+                  </TooltipProvider>
                   {onViewTree && <Button type="button" variant="outline" size="sm" onClick={onViewTree}><GitBranch className="mr-2 h-4 w-4" />View tree</Button>}
                   {canEdit && <GovernanceCardActions
                     onViewTree={() => onViewTree?.()}
@@ -382,8 +393,25 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
 
         </section>
 
-        <section>
-          <Card className="overflow-hidden">
+        <GovernanceResources
+          governanceId={governance?.id}
+          attachments={resourcesQuery.data?.attachments || []}
+          links={resourcesQuery.data?.links || []}
+          canEdit={canEdit}
+          onManageLinks={() => onManageLinks?.(governance)}
+          onChanged={() => resourcesQuery.refetch()}
+        />
+
+        <section className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: "Units", value: Math.max(0, unitCount - 1), Icon: Building2 },
+              { label: "Positions", value: totalPositions, Icon: BriefcaseBusiness },
+              { label: "Filled", value: filledPositions, Icon: UserCheck },
+              { label: "Vacant", value: vacantPositions, Icon: UserRoundX },
+            ].map(({ label, value, Icon }) => <Card key={label}><CardContent className="flex items-start justify-between gap-3 p-4"><div><p className="text-sm text-muted-foreground">{label}</p><p className="mt-2 text-2xl font-semibold tracking-tight">{value}</p></div><span className="rounded-lg bg-muted p-2 text-muted-foreground"><Icon className="h-4 w-4" /></span></CardContent></Card>)}
+          </div>
+          <Card id="organization-map" className="overflow-hidden scroll-mt-24">
             <CardContent className="p-0">
               <div className="h-[320px] w-full sm:h-[360px]">
                 <LeafletMap
@@ -450,7 +478,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                       <TableHead className="hidden lg:table-cell">Phone</TableHead>
                       <TableHead className="hidden lg:table-cell">Email</TableHead>
                       <TableHead className="hidden md:table-cell">Address</TableHead>
-                      <TableHead className="hidden xl:table-cell">Boundary</TableHead>
+                      <TableHead className="hidden xl:table-cell">Geography boundary</TableHead>
                       <TableHead className="hidden sm:table-cell">Joined</TableHead>
                       <TableHead className="w-12"><span className="sr-only">Actions</span></TableHead>
                     </TableRow>
@@ -487,20 +515,20 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                             </div>
                           </TableCell>
                           <TableCell className="hidden max-w-[150px] lg:table-cell">
-                            {(item.official_phone || item.metadata?.official_phone || item.position_metadata?.official_phone || item.position_official_phone || locationData?.metadata?.official_phone || locationData?.phone) ? <a className="flex items-center gap-2 truncate text-sm text-muted-foreground hover:underline" href={`tel:${item.official_phone || item.metadata?.official_phone || item.position_metadata?.official_phone || item.position_official_phone || locationData?.metadata?.official_phone || locationData?.phone}`}><Phone className="h-4 w-4 shrink-0" /><span className="truncate">{item.official_phone || item.metadata?.official_phone || item.position_metadata?.official_phone || item.position_official_phone || locationData?.metadata?.official_phone || locationData?.phone}</span></a> : <span className="text-sm text-muted-foreground">—</span>}
+                            {(item.official_phone || item.metadata?.official_phone || item.position_metadata?.official_phone || item.position_official_phone) ? <a className="flex items-center gap-2 truncate text-sm text-muted-foreground hover:underline" href={`tel:${item.official_phone || item.metadata?.official_phone || item.position_metadata?.official_phone || item.position_official_phone}`}><Phone className="h-4 w-4 shrink-0" /><span className="truncate">{item.official_phone || item.metadata?.official_phone || item.position_metadata?.official_phone || item.position_official_phone}</span></a> : <span className="text-sm text-muted-foreground">—</span>}
                           </TableCell>
                           <TableCell className="hidden max-w-[190px] lg:table-cell">
-                            {(item.official_email || item.metadata?.official_email || item.position_metadata?.official_email || item.position_official_email || locationData?.metadata?.official_email || locationData?.email) ? <a className="flex items-center gap-2 truncate text-sm text-muted-foreground hover:underline" href={`mailto:${item.official_email || item.metadata?.official_email || item.position_metadata?.official_email || item.position_official_email || locationData?.metadata?.official_email || locationData?.email}`}><Mail className="h-4 w-4 shrink-0" /><span className="truncate">{item.official_email || item.metadata?.official_email || item.position_metadata?.official_email || item.position_official_email || locationData?.metadata?.official_email || locationData?.email}</span></a> : <span className="text-sm text-muted-foreground">—</span>}
+                            {(item.official_email || item.metadata?.official_email || item.position_metadata?.official_email || item.position_official_email) ? <a className="flex items-center gap-2 truncate text-sm text-muted-foreground hover:underline" href={`mailto:${item.official_email || item.metadata?.official_email || item.position_metadata?.official_email || item.position_official_email}`}><Mail className="h-4 w-4 shrink-0" /><span className="truncate">{item.official_email || item.metadata?.official_email || item.position_metadata?.official_email || item.position_official_email}</span></a> : <span className="text-sm text-muted-foreground">—</span>}
                           </TableCell>
                           <TableCell className="hidden md:table-cell">
-                            {item.address ? <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.address)}`} target="_blank" rel="noreferrer" aria-label={`Open address for ${item.position_name || "position"} in Google Maps`} title={item.address} className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"><MapPin className="h-4 w-4" /></a> : <span className="text-sm text-muted-foreground">—</span>}
+                            {item.address ? <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.address)}`} target="_blank" rel="noreferrer" aria-label={`Open address for ${item.position_name || "position"} in Google Maps`} title="Open address in Google Maps" className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"><MapPin className="h-4 w-4" /></a> : <span className="text-sm text-muted-foreground">—</span>}
                           </TableCell>
                           <TableCell className="hidden max-w-[190px] xl:table-cell">
-                            {(item.geographies?.official_name || item.geographies?.name) ? <button type="button" title="View or edit boundary" onClick={() => { setAppointmentLocationRecord(item); setAppointmentGeographyOpen(true); }} className="max-w-full truncate text-left text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">{item.geographies.official_name || item.geographies.name}</button> : <span className="text-sm text-muted-foreground">—</span>}
+                            {(item.geographies?.official_name || item.geographies?.name) ? <button type="button" title="View or edit geography boundary" onClick={() => { setAppointmentLocationRecord(item); setAppointmentGeographyOpen(true); }} className="max-w-full truncate text-left text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">{item.geographies.official_name || item.geographies.name}</button> : <span className="text-sm text-muted-foreground">—</span>}
                           </TableCell>
                           <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">{vacant || !item.started_at ? "—" : formatGovernanceDate(item.started_at)}</TableCell>
                           <TableCell>
-                            {canEdit && item.appointment_id ? <GovernanceAppointmentDeleteButton appointmentId={item.appointment_id} personName={item.person_name} positionName={item.position_name} onAssignPerson={() => { setAppointmentRecord(null); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} onEdit={() => { setAppointmentRecord(item); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} onManageAddress={() => { setAppointmentLocationRecord(item); setAppointmentAddressOpen(true); }} hasAddress={Boolean(item.appointment_address)} onRemoveAddress={async () => { const { error } = await supabase.rpc("update_position_appointment_location", { p_appointment_id: item.appointment_id, p_address: null, p_lat: null, p_lng: null }); if (error) { toast.error(error.message || "Unable to remove appointment address"); return; } toast.success("Appointment address removed"); await query.refetch(); await positionsQuery.refetch(); await appointmentLocationsQuery.refetch(); }} onManageGeography={() => { setAppointmentLocationRecord(item); setAppointmentGeographyOpen(true); }} hasGeography={Boolean(item.appointment_geography_id)} onRemoveGeography={async () => { const { error } = await supabase.rpc("set_position_appointment_geography", { p_appointment_id: item.appointment_id, p_geography_id: null }); if (error) { toast.error(error.message || "Unable to remove appointment boundary"); return; } toast.success("Appointment boundary removed"); await query.refetch(); await positionsQuery.refetch(); await appointmentLocationsQuery.refetch(); }} onDeleted={async () => { await query.refetch(); await positionsQuery.refetch(); await appointmentLocationsQuery.refetch(); }} /> : canEdit ? <GovernanceCardActions onPrimaryAction={() => { setAppointmentRecord(null); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} primaryActionLabel="Assign person" onDelete={item.appointment_history_count ? undefined : () => onDeletePosition?.(item)} entityLabel="position"><span className="block h-8 w-8" aria-hidden="true" /></GovernanceCardActions> : null}
+                            {canEdit && item.appointment_id ? <GovernanceAppointmentDeleteButton appointmentId={item.appointment_id} personName={item.person_name} positionName={item.position_name} onEditPosition={() => onEditPosition?.(item)} onAssignPerson={() => { setAppointmentRecord(null); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} onEdit={() => { setAppointmentRecord(item); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} onManageAddress={() => { setAppointmentLocationRecord(item); setAppointmentAddressOpen(true); }} onManageGeography={() => { setAppointmentLocationRecord(item); setAppointmentGeographyOpen(true); }} onDeleted={async () => { await query.refetch(); await positionsQuery.refetch(); await appointmentLocationsQuery.refetch(); }} /> : canEdit ? <GovernanceCardActions onEdit={() => onEditPosition?.(item)} editLabel="Edit Position" onPrimaryAction={() => { setAppointmentRecord(null); setAppointmentPositionId(item.position_id); setAppointmentDialogOpen(true); }} primaryActionLabel="Assign person" onDelete={item.appointment_history_count ? undefined : () => onDeletePosition?.(item)} entityLabel="position"><span className="block h-8 w-8" aria-hidden="true" /></GovernanceCardActions> : null}
                           </TableCell>
                         </TableRow>
                       );
