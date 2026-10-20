@@ -162,7 +162,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
     enabled: Boolean(governance?.id),
     queryFn: async () => {
       const { data, error } = await supabase.from("position")
-        .select("id,name,slug,image_url,appointing_organization_id,address,metadata,geography_id,geographies(name,official_name)")
+        .select("id,name,slug,image_url,appointing_organization_id,address,metadata,geography_id,lat,lng,official_phone,official_email,geographies(name,official_name)")
         .eq("appointing_organization_id", governance.id)
         .order("name");
       if (error) throw error;
@@ -180,7 +180,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
     queryKey: ["governance-appointment-locations", governance?.id, appointmentIds.join(",")],
     enabled: appointmentIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase.from("position_appointment").select("id,geography_id,address,lat,lng,geographies(name,official_name)").in("id", appointmentIds);
+      const { data, error } = await supabase.from("position_appointment").select("id,geography_id,address,lat,lng,official_phone,official_email,geographies(name,official_name)").in("id", appointmentIds);
       if (error) throw error;
       return data || [];
     },
@@ -279,10 +279,12 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
       position_avatar_url: position.image_url,
       organization_slug: governance?.slug,
       address: position.address || locationData?.address || null,
-      lat: position.metadata?.office_lat ?? locationData?.lat ?? locationData?.metadata?.office_lat ?? null,
-      lng: position.metadata?.office_lng ?? locationData?.lng ?? locationData?.metadata?.office_lng ?? null,
+      lat: position.lat ?? position.metadata?.office_lat ?? locationData?.lat ?? locationData?.metadata?.office_lat ?? null,
+      lng: position.lng ?? position.metadata?.office_lng ?? locationData?.lng ?? locationData?.metadata?.office_lng ?? null,
       geography_id: position.geography_id || locationData?.geography_id || null,
       geographies: position.geographies || locationData?.geographies || null,
+      official_phone: position.official_phone || position.metadata?.official_phone || locationData?.phone || null,
+      official_email: position.official_email || position.metadata?.official_email || locationData?.email || null,
     };
     if (!currentAppointments.length) {
       return [{
@@ -311,12 +313,12 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
         organization_slug: governance?.slug,
         appointment_id: appointmentId,
         address: appointmentLocation.address || appointment.address || position.address || locationData?.address || null,
-        lat: appointmentLocation.lat ?? appointment.lat ?? position.metadata?.office_lat ?? locationData?.lat ?? locationData?.metadata?.office_lat ?? null,
-        lng: appointmentLocation.lng ?? appointment.lng ?? position.metadata?.office_lng ?? locationData?.lng ?? locationData?.metadata?.office_lng ?? null,
+        lat: appointmentLocation.lat ?? appointment.lat ?? position.lat ?? position.metadata?.office_lat ?? locationData?.lat ?? locationData?.metadata?.office_lat ?? null,
+        lng: appointmentLocation.lng ?? appointment.lng ?? position.lng ?? position.metadata?.office_lng ?? locationData?.lng ?? locationData?.metadata?.office_lng ?? null,
         geography_id: appointmentLocation.geography_id || appointment.geography_id || position.geography_id || locationData?.geography_id || null,
         geographies: appointmentLocation.geographies || appointment.geographies || position.geographies || locationData?.geographies || null,
-        official_phone: appointment.official_phone || appointment.metadata?.official_phone || position.metadata?.official_phone || locationData?.metadata?.official_phone || null,
-        official_email: appointment.official_email || appointment.metadata?.official_email || position.metadata?.official_email || locationData?.metadata?.official_email || null,
+        official_phone: appointmentLocation.official_phone || appointment.official_phone || appointment.metadata?.official_phone || position.official_phone || position.metadata?.official_phone || locationData?.phone || null,
+        official_email: appointmentLocation.official_email || appointment.official_email || appointment.metadata?.official_email || position.official_email || position.metadata?.official_email || locationData?.email || null,
         is_vacant: false,
       };
     });
