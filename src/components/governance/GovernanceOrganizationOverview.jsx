@@ -17,6 +17,8 @@ import { supabase } from "@/lib/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import GovernanceAppointmentDialog from "@/components/governance/GovernanceAppointmentDialog";
 import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
 
@@ -311,7 +313,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                     hasGeography={Boolean(locationData?.geography_id || root.geography_id)}
                     hasLinks={Boolean(root.hasLinks)}
                   >
-                    <Button type="button" variant="outline" size="sm"><MoreHorizontal className="mr-2 h-4 w-4" />Organization actions</Button>
+                    <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" aria-label="Organization actions"><MoreHorizontal className="h-5 w-5" /></Button>
                   </GovernanceCardActions>}
                 </div>
               </div>
@@ -356,10 +358,32 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
             <div className="relative min-w-0 flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={positionSearch} onChange={(event) => setPositionSearch(event.target.value)} placeholder="Search positions or people…" className="pl-9" aria-label="Search positions or people" /></div>
-            <div className="grid grid-cols-2 gap-2 sm:w-auto">
-              <label className="flex items-center gap-2 rounded-md border px-3"><CalendarDays className="h-4 w-4 text-muted-foreground" /><Input type="date" value={joinedFrom} onChange={(event) => setJoinedFrom(event.target.value)} className="w-full border-0 p-0 shadow-none focus-visible:ring-0" aria-label="Joined from date" /></label>
-              <label className="flex items-center gap-2 rounded-md border px-3"><CalendarDays className="h-4 w-4 text-muted-foreground" /><Input type="date" value={joinedTo} onChange={(event) => setJoinedTo(event.target.value)} className="w-full border-0 p-0 shadow-none focus-visible:ring-0" aria-label="Joined to date" /></label>
-            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button type="button" variant="outline" className="justify-start gap-2 font-normal sm:w-[320px]">
+                  <CalendarDays className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  {joinedFrom || joinedTo
+                    ? `${joinedFrom ? new Date(joinedFrom + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }) : "Start date"} – ${joinedTo ? new Date(joinedTo + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }) : "End date"}`
+                    : "Filter joined date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-auto p-0">
+                <Calendar
+                  mode="range"
+                  numberOfMonths={2}
+                  selected={{
+                    from: joinedFrom ? new Date(joinedFrom + "T12:00:00") : undefined,
+                    to: joinedTo ? new Date(joinedTo + "T12:00:00") : undefined,
+                  }}
+                  onSelect={(range) => {
+                    setJoinedFrom(range?.from ? `${range.from.getFullYear()}-${String(range.from.getMonth() + 1).padStart(2, "0")}-${String(range.from.getDate()).padStart(2, "0")}` : "");
+                    setJoinedTo(range?.to ? `${range.to.getFullYear()}-${String(range.to.getMonth() + 1).padStart(2, "0")}-${String(range.to.getDate()).padStart(2, "0")}` : "");
+                  }}
+                  initialFocus
+                />
+                {(joinedFrom || joinedTo) && <div className="border-t p-2"><Button type="button" variant="ghost" size="sm" onClick={() => { setJoinedFrom(""); setJoinedTo(""); }}>Clear dates</Button></div>}
+              </PopoverContent>
+            </Popover>
           </div>
           {positionsQuery.isLoading ? <LoadingState label="Loading positions" /> : positionsQuery.error ? <ErrorState title="Unable to load positions" /> : filteredPositions.length ? (
             <div className="overflow-hidden rounded-lg border">
