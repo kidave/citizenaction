@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { FilePlus2, Link2, Loader2, Upload } from "lucide-react";
+import { FilePlus2, Link2, Loader2, Upload, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -48,7 +48,6 @@ export default function GovernanceResources({
         governance_id: governanceId,
         storage_path: item.storage_path,
         public_url: item.public_url,
-        preview_url: item.preview_url || null,
         thumbnail_path: item.thumbnail_path || null,
         thumbnail_url: item.thumbnail_url || null,
         file_name: item.file_name,
@@ -74,6 +73,36 @@ export default function GovernanceResources({
       toast.error(error?.message || "Unable to add resource");
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleRemoveAttachment = async (index) => {
+    const attachment = attachments[index];
+    if (!attachment?.id) return;
+    try {
+      const { error } = await supabase.from("attachment").delete().eq("id", attachment.id).eq("governance_id", governanceId);
+      if (error) throw error;
+      try {
+        await deleteGovernanceAttachments([attachment]);
+      } catch {
+        toast.error("Resource record removed, but its stored file could not be deleted.");
+      }
+      toast.success("Resource removed");
+      refresh();
+    } catch (error) {
+      toast.error(error?.message || "Unable to remove resource");
+    }
+  };
+
+  const handleRemoveLink = async (link) => {
+    if (!link?.id || !governanceId) return;
+    try {
+      const { error } = await supabase.from("link").delete().eq("id", link.id).eq("governance_id", governanceId);
+      if (error) throw error;
+      toast.success("Link removed");
+      refresh();
+    } catch (error) {
+      toast.error(error?.message || "Unable to remove link");
     }
   };
 
@@ -152,7 +181,22 @@ export default function GovernanceResources({
       </div>
 
       {hasResources && (
-        <PostAttachments attachments={attachments} links={links} />
+        <PostAttachments attachments={attachments} links={links} removable={canEdit} onRemove={handleRemoveAttachment} />
+      )}
+
+      {canEdit && links.length > 0 && (
+        <ul className="space-y-1">
+          {links.map((link) => (
+            <li key={link.id || link.url} className="flex min-w-0 items-center gap-2 text-sm">
+              <a href={link.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-primary hover:underline">
+                {link.title || link.url}
+              </a>
+              <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => handleRemoveLink(link)} aria-label={"Remove link " + (link.title || link.url)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </li>
+          ))}
+        </ul>
       )}
 
       {canEdit && (
