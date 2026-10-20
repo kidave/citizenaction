@@ -23,6 +23,7 @@ const geographySelect = `
 const resourceConfig = {
   governance: { table: "governance", key: "governanceId" },
   position: { table: "position", key: "positionId" },
+  appointment: { table: "position_appointment", key: "appointmentId" },
 };
 
 function getConfig(entityType = "governance") {
