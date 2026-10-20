@@ -164,14 +164,14 @@ export default function PositionDirectory({
                           onAddGeography={() => openGeography(entity)}
                           onRemoveGeography={entity.geography_id ? () => removePositionGeography(entity) : undefined}
                           onAddAddress={() => openResource(entity, "address")}
-                          onRemoveAddress={entity.address ? async () => { const { error } = await supabase.from("position").update({ address: null }).eq("id", entity.id); if (error) { toast.error(error.message); return; } await refresh(); } : undefined}
+                          onRemoveAddress={entity.address ? async () => { const { error } = await supabase.from("position").update({ address: null }).eq("id", entity.id); if (error) { toast.error(error.message); return; } await queryClient.invalidateQueries({ queryKey: ["governance-directory"] }); } : undefined}
                           onManageLinks={() => openResource(entity, "links")}
                           onDelete={() => removePosition(entity)}
                           hasAddress={Boolean(entity.address)}
                           hasGeography={Boolean(entity.geography_id)}
                           hasLinks={Boolean(entity.hasLinks)}
                           entityLabel="position"
-                        ><button type="button" className="sr-only">Position actions</button></GovernanceCardActions>}
+                        ><span className="block h-8 w-8" aria-hidden="true" /></GovernanceCardActions>}
                       </TableCell>
                     </TableRow>
                   );
