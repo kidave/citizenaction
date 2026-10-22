@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { Building2, CalendarDays, ChevronDown, ChevronRight, ExternalLink, GitBranch, Mail, MapPin, Phone, Search, MoreHorizontal, Plus } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -23,6 +22,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import GovernanceAppointmentDialog from "@/components/governance/GovernanceAppointmentDialog";
 import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
 import GovernanceResourceDialogs from "@/components/governance/GovernanceResourceDialogs";
+import GovernanceResources from "@/components/governance/GovernanceResources";
 
 const LeafletMap = dynamic(() => import("@/components/geography/LeafletMap"), { ssr: false, loading: () => <div className="flex h-full min-h-[320px] items-center justify-center text-sm text-muted-foreground">Loading map…</div> });
 import { useGovernanceOrganizationContext } from "@/hooks/governance/useGovernanceOrganizationContext";
@@ -51,11 +51,6 @@ function OrganizationUnit({ node, childrenByParent, canEdit, onSelect, expandedP
                 >
                   {node.name}
                 </Link>
-                {node.type && <Badge variant="secondary" className="text-[10px]">{node.type}</Badge>}
-              </div>
-              <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                <span>{node.position_count || 0} positions</span>
-                <span>{node.filled_position_count || 0} filled</span>
               </div>
             </div>
             {hasChildren && (
@@ -195,6 +190,19 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
       const { data, error } = await supabase.from("governance").select("id,address,lat,lng,geom,geography_id,metadata,email,phone,geographies(name,official_name)").eq("id", governance.id).maybeSingle();
       if (error) throw error;
       return data || {};
+    },
+  });
+  const resourcesQuery = useQuery({
+    queryKey: ["governance-organization-resources", governance?.id],
+    enabled: Boolean(governance?.id),
+    queryFn: async () => {
+      const [attachmentsResult, linksResult] = await Promise.all([
+        supabase.from("attachment").select("*").eq("governance_id", governance.id).order("sort_order", { ascending: true }).order("created_at", { ascending: true }),
+        supabase.from("link").select("*").eq("governance_id", governance.id).order("sort_order", { ascending: true }).order("created_at", { ascending: true }),
+      ]);
+      if (attachmentsResult.error) throw attachmentsResult.error;
+      if (linksResult.error) throw linksResult.error;
+      return { attachments: attachmentsResult.data || [], links: linksResult.data || [] };
     },
   });
   const { data: boundary } = useQuery({
@@ -344,7 +352,6 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{root.name}</h1>
-                  {root.type && <Badge variant="secondary">{root.type}</Badge>}
                 </div>
                 {root.short_name && <p className="mt-1 text-sm text-muted-foreground">{root.short_name}</p>}
                 {root.description && <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">{root.description}</p>}
@@ -399,6 +406,14 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
             </CardContent>
           </Card>
         </section>
+
+        <GovernanceResources
+          governanceId={governance?.id}
+          attachments={resourcesQuery.data?.attachments || []}
+          links={resourcesQuery.data?.links || []}
+          canEdit={canEdit}
+          onChanged={() => resourcesQuery.refetch()}
+        />
 
         <section className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
