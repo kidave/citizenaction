@@ -1,0 +1,50 @@
+name: Component Architecture Map
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+      - "feat/**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: component-map-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze component and backend references
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Generate ReactGraph dependency graph
+        run: npx --yes --package=@reactgraph-ui/core@0.1.9 reactgraph analyze .
+      - name: Scan Supabase and API references
+        run: node scripts/component-map/scan-supabase-usage.mjs
+      - name: Validate generated outputs
+        run: |
+          test -s reactgraph.json
+          test -s artifacts/component-map/supabase-usage.json
+          test -s artifacts/component-map/supabase-usage.csv
+      - name: Upload architecture map
+        uses: actions/upload-artifact@v4
+        with:
+          name: component-architecture-map-${{ github.sha }}
+          path: |
+            reactgraph.json
+            artifacts/component-map/
+          if-no-files-found: error
+          retention-days: 30
