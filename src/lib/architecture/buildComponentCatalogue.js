@@ -74,7 +74,6 @@ function componentName(file, source) {
 }
 
 function collectUsages(files, components) {
-  const byName = new Map(components.map((item) => [item.name, item]));
   for (const file of files) {
     if (file.includes(".stories.") || file.includes(".story.")) continue;
     const source = fs.readFileSync(file, "utf8");
