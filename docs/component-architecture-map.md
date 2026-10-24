@@ -2,7 +2,7 @@
 
 ## Online explorer
 
-The Next.js page at `/engineering/architecture` generates a searchable architecture explorer at build time. It shows each source module, its static local imports, reverse consumers, literal backend references, and likely Storybook matches. Selecting a module lets you navigate both directions through its dependency relationships.
+The Next.js page at `/engineering/architecture` generates a searchable architecture explorer at build time. The companion `/engineering/components` page is a component catalogue with origin classification, detected props and CVA variants/defaults, local component dependencies, and JSX usage locations. It shows each source module, its static local imports, reverse consumers, literal backend references, and likely Storybook matches. Selecting a module lets you navigate both directions through its dependency relationships.
 
 The page is a static source-analysis snapshot generated during the Next.js build. It is not a live runtime trace. It has `noindex` metadata because it is an engineering tool; it does not require production Supabase credentials and does not read or write the database.
 
@@ -25,9 +25,9 @@ GitHub Actions uploads these as a `component-architecture-map-*` artifact for 30
 - **Imports / depends on:** module A imports module B.
 - **Used by / consumers:** modules that statically import the selected module.
 - **Backend references:** literal names found in source, with line numbers.
-- **Storybook matches:** probable story files matched by component/file base name.
+- **Storybook matches:** probable story files matched by component/file base name.\n- **Component catalogue:** heuristic shadcn-based/custom classification, variants/defaults from class-variance-authority maps, prop names detected from source, and JSX usages found through recognized static imports.
 
-Static analysis cannot prove that a component renders at runtime. Dynamic imports, re-export barrels, registries, and dynamically assembled backend names may be missed. Backend references do not prove that an object exists in the live Supabase schema. Storybook is still the visual reference for component states.
+Static analysis cannot prove that a component renders at runtime. Dynamic imports, re-export barrels, registries, and dynamically assembled backend names may be missed. Backend references do not prove that an object exists in the live Supabase schema. Storybook is still the visual reference for component states. The catalogue does not claim that a locally copied shadcn component is byte-for-byte upstream; its origin classification is heuristic. Prop and JSX usage extraction can miss complex types, spreads, aliases, dynamic imports, and registry-driven rendering.
 
 ## Local workflow
 
