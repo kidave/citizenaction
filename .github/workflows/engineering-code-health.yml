@@ -4,17 +4,25 @@ on:
   push:
     branches:
       - main
-      - "feature/**"
-      - "feat/**"
-    paths-ignore:
-      - "artifacts/engineering/**"
-      - "docs/engineering-code-health.md"
+    paths:
+      - "src/**"
+      - "scripts/engineering/**"
+      - "package.json"
+      - "package-lock.json"
+      - "knip.json"
+      - "knip.config.*"
+      - ".github/workflows/engineering-code-health.yml"
   pull_request:
     branches:
       - main
-    paths-ignore:
-      - "artifacts/engineering/**"
-      - "docs/engineering-code-health.md"
+    paths:
+      - "src/**"
+      - "scripts/engineering/**"
+      - "package.json"
+      - "package-lock.json"
+      - "knip.json"
+      - "knip.config.*"
+      - ".github/workflows/engineering-code-health.yml"
   schedule:
     # Weekly on Sunday at 06:00 UTC (11:30 IST).
     - cron: "0 6 * * 0"
@@ -24,7 +32,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: code-health-${{ github.workflow }}-${{ github.ref }}
+  group: code-health-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -56,6 +64,7 @@ jobs:
           set +e
           npx --yes knip@5 --reporter json > artifacts/engineering/knip.json 2> artifacts/engineering/knip-stderr.log
           code=$?
+          echo "$code" > artifacts/engineering/knip-exit-code.txt
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           if ! node -e "JSON.parse(require('fs').readFileSync('artifacts/engineering/knip.json','utf8'))" 2>/dev/null; then
             printf '{"note":"Knip did not produce valid JSON; inspect knip-stderr.log and workflow logs."}\n' > artifacts/engineering/knip.json
@@ -70,19 +79,8 @@ jobs:
           set +e
           npx --yes jscpd@4.0.5 src --reporters json --output artifacts/engineering/jscpd --ignore "**/*.stories.*,**/*.test.*,**/*.spec.*"
           code=$?
+          echo "$code" > artifacts/engineering/jscpd-exit-code.txt
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
-          exit 0
-
-      - name: Generate dependency-cruiser graph and rule report
-        id: dependency_cruiser
-        continue-on-error: true
-        shell: bash
-        run: |
-          set +e
-          npx --yes dependency-cruiser@18.7.0 --output-type json --output-to artifacts/engineering/dependency-cruiser.json src
-          code=$?
-          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
-          npx --yes dependency-cruiser@18.7.0 --output-type err --output-to artifacts/engineering/dependency-cruiser.txt src
           exit 0
 
       - name: Build report index and GitHub Actions summary

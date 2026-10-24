@@ -4,18 +4,28 @@ on:
   push:
     branches:
       - main
-      - "feature/**"
-      - "feat/**"
+    paths:
+      - "src/**"
+      - "scripts/component-map/**"
+      - ".github/workflows/component-architecture-map.yml"
+      - "package.json"
+      - "package-lock.json"
   pull_request:
     branches:
       - main
+    paths:
+      - "src/**"
+      - "scripts/component-map/**"
+      - ".github/workflows/component-architecture-map.yml"
+      - "package.json"
+      - "package-lock.json"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: component-map-${{ github.ref }}
+  group: component-map-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:

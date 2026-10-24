@@ -11,19 +11,30 @@ const readJson = (file) => {
     return null;
   }
 };
-const exists = (file) => fs.existsSync(path.join(reportDir, file));
-const knip = readJson("knip.json");
-const jscpd = readJson("jscpd/jscpd-report.json") || readJson("jscpd/jscpd-report.json");
-const depCruiser = readJson("dependency-cruiser.json");
 
+const readExitCode = (file) => {
+  try {
+    const value = Number.parseInt(fs.readFileSync(path.join(reportDir, file), "utf8").trim(), 10);
+    return Number.isInteger(value) ? value : null;
+  } catch {
+    return null;
+  }
+};
+
+const knip = readJson("knip.json");
+const jscpd = readJson("jscpd/jscpd-report.json");
 const countKnip = (key) => Array.isArray(knip?.[key]) ? knip[key].length : null;
 const cloneCount = jscpd?.statistics?.total?.clones ?? jscpd?.statistics?.clones ?? null;
 const clonePercentage = jscpd?.statistics?.total?.percentage ?? jscpd?.statistics?.percentage ?? null;
-const violations = Array.isArray(depCruiser?.summary?.violations)
-  ? depCruiser.summary.violations.length
-  : Array.isArray(depCruiser?.modules)
-    ? depCruiser.modules.reduce((total, module) => total + (module.dependencies || []).filter((dependency) => dependency.rule?.severity === "error" || dependency.rule?.severity === "warn").length, 0)
-    : null;
+const knipExitCode = readExitCode("knip-exit-code.txt");
+const jscpdExitCode = readExitCode("jscpd-exit-code.txt");
+
+const statusLabel = (code, report) => {
+  if (!report) return "Report unavailable";
+  if (code === null) return "Report generated; exit status unavailable";
+  if (code === 0) return "Completed (exit 0)";
+  return `Findings or tool issue (exit ${code}); review report/log`;
+};
 
 const lines = [
   "# Engineering code health report",
@@ -36,22 +47,26 @@ const lines = [
   "",
   "| Check | Result |",
   "|---|---|",
-  `| Knip — unused files | ${countKnip("files") ?? (knip ? "See JSON report" : "No valid report")} |`,
-  `| Knip — unused exports | ${countKnip("exports") ?? (knip ? "See JSON report" : "No valid report")} |`,
-  `| Knip — unused dependencies | ${countKnip("dependencies") ?? (knip ? "See JSON report" : "No valid report")} |`,
-  `| jscpd — duplicate clones | ${cloneCount ?? (jscpd ? "See JSON report" : "No valid report")} |`,
-  `| jscpd — duplicated lines (%) | ${clonePercentage ?? (jscpd ? "See JSON report" : "No valid report")} |`,
-  `| dependency-cruiser — reported dependency findings | ${violations ?? (depCruiser ? "See JSON report" : "No valid report")} |`,
+  `| Knip status | ${statusLabel(knipExitCode, knip)} |`,
+  `| Knip — unused files | ${countKnip("files") ?? (knip ? "See JSON report (format may differ)" : "No valid report")} |`,
+  `| Knip — unused exports | ${countKnip("exports") ?? (knip ? "See JSON report (format may differ)" : "No valid report")} |`,
+  `| Knip — unused dependencies | ${countKnip("dependencies") ?? (knip ? "See JSON report (format may differ)" : "No valid report")} |`,
+  `| jscpd status | ${statusLabel(jscpdExitCode, jscpd)} |`,
+  `| jscpd — duplicate clones | ${cloneCount ?? (jscpd ? "See JSON report (format may differ)" : "No valid report")} |`,
+  `| jscpd — duplicated lines (%) | ${clonePercentage ?? (jscpd ? "See JSON report (format may differ)" : "No valid report")} |`,
   "",
   "## Reports",
   "",
-  "- `knip.json` and `knip-stderr.log`: unused files, exports, dependencies, and configuration findings.",
-  "- `jscpd/`: duplicated-code report.",
-  "- `dependency-cruiser.json` and `dependency-cruiser.txt`: module graph and dependency-rule output.",
+  "- `knip.json`, `knip-stderr.log`, and `knip-exit-code.txt`: unused files, exports, dependencies, and tool diagnostics.",
+  "- `jscpd/jscpd-report.json` and `jscpd-exit-code.txt`: duplicated-code report and command status.",
   "",
   "## Interpretation",
   "",
+  "Non-zero tool exit codes can indicate findings; they are not automatically treated as a build failure. Review the detailed report and stderr before deciding what to change.",
+  "",
   "These are automated candidates for review, not automatic deletion instructions. Review false positives, dynamic imports, framework conventions, and behavior before refactoring.",
+  "",
+  "Package dependency and vulnerability insights are handled by GitHub's native Dependency Graph and Dependabot, not duplicated here.",
   "",
   "The report is attached to this GitHub Actions run as an artifact. It does not contain environment variable values or secrets.",
   "",
