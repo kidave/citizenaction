@@ -121,9 +121,10 @@ export default function ArchitecturePage({ architecture }) {
                 This is a build-time static analysis—not a live runtime trace.
               </p>
             </div>
-            <Link className="text-sm font-medium underline underline-offset-4" href="/engineering/components">
-              Explore component catalogue →
-            </Link>
+            <div className="flex flex-wrap gap-4">
+              <Link className="text-sm font-medium underline underline-offset-4" href="/engineering/components">Explore component catalogue →</Link>
+              <Link className="text-sm font-medium underline underline-offset-4" href="/engineering/code">Functions & configuration →</Link>
+            </div>
             <a className="text-sm font-medium underline underline-offset-4" href="https://github.com/kidave/citizenaction/pull/111" target="_blank" rel="noreferrer">
               View analysis workflow on GitHub
             </a>
