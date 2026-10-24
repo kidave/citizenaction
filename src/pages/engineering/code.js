@@ -74,7 +74,7 @@ function buildCatalogue() {
     } catch { return false; }
     return /(?:config|constants?)[^/]*\.(?:js|jsx|mjs|cjs|json|ts|yml|yaml)$|^(?:next\.config|tailwind\.config|postcss\.config|eslint\.config|vitest\.config|next-sitemap\.config)\./i.test(name);
   }).map((name) => ({ file: name, category: /tailwind|next\.config|postcss|eslint|vitest|storybook|sitemap/i.test(name) ? "tooling" : "configuration candidate" }));
-  const configs = [...files.map(relative).filter((file) => file.startsWith("src/config/") || /(?:config|constants?)[^/]*\.(?:js|jsx|mjs|cjs|json|ts|yml|yaml)$/i.test(path.basename(file))).map((file) => ({ file, category: file.startsWith("src/config/") ? "application config" : "constants/config candidate" }), ...rootFiles]
+  const configs = [...files.map(relative).filter((file) => file.startsWith("src/config/") || /(?:config|constants?)[^/]*\.(?:js|jsx|mjs|cjs|json|ts|yml|yaml)$/i.test(path.basename(file))).map((file) => ({ file, category: file.startsWith("src/config/") ? "application config" : "constants/config candidate" })), ...rootFiles]
     .filter((item, index, list) => list.findIndex((other) => other.file === item.file) === index)
     .sort((a, b) => a.file.localeCompare(b.file));
   return {
