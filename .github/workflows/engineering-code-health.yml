@@ -1,0 +1,101 @@
+name: Engineering Code Health
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+      - "feat/**"
+    paths-ignore:
+      - "artifacts/engineering/**"
+      - "docs/engineering-code-health.md"
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - "artifacts/engineering/**"
+      - "docs/engineering-code-health.md"
+  schedule:
+    # Weekly on Sunday at 06:00 UTC (11:30 IST).
+    - cron: "0 6 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: code-health-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze code health
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prepare report directory
+        run: mkdir -p artifacts/engineering
+
+      - name: Run Knip (unused files, exports, and dependencies)
+        id: knip
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          npx --no-install knip --reporter json > artifacts/engineering/knip.json 2> artifacts/engineering/knip-stderr.log
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          if ! node -e "JSON.parse(require('fs').readFileSync('artifacts/engineering/knip.json','utf8'))" 2>/dev/null; then
+            printf '{"note":"Knip did not produce valid JSON; inspect knip-stderr.log and workflow logs."}\n' > artifacts/engineering/knip.json
+          fi
+          exit 0
+
+      - name: Run jscpd (duplicate code)
+        id: jscpd
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          npx --yes jscpd@4.0.5 src --reporters json --output artifacts/engineering/jscpd --ignore "**/*.stories.*,**/*.test.*,**/*.spec.*"
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Generate dependency-cruiser graph and rule report
+        id: dependency_cruiser
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          npx --yes dependency-cruiser@18.7.0 --output-type json --output-to artifacts/engineering/dependency-cruiser.json src
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          npx --yes dependency-cruiser@18.7.0 --output-type err --output-to artifacts/engineering/dependency-cruiser.txt src
+          exit 0
+
+      - name: Build report index and GitHub Actions summary
+        if: always()
+        run: |
+          node scripts/engineering/summarize-code-analysis.mjs
+          cat artifacts/engineering/SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload code health reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: engineering-code-health-${{ github.sha }}
+          path: artifacts/engineering/
+          if-no-files-found: warn
+          retention-days: 90
