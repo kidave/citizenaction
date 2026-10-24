@@ -54,7 +54,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          npx --no-install knip --reporter json > artifacts/engineering/knip.json 2> artifacts/engineering/knip-stderr.log
+          npx --yes knip@5 --reporter json > artifacts/engineering/knip.json 2> artifacts/engineering/knip-stderr.log
           code=$?
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           if ! node -e "JSON.parse(require('fs').readFileSync('artifacts/engineering/knip.json','utf8'))" 2>/dev/null; then
