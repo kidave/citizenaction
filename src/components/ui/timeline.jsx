@@ -220,9 +220,6 @@ export default function Timeline({
         isVertical ? "flex-col" : "flex-row",
         className,
       )}
-      role="list"
-      aria-orientation={orientation}
-      aria-label="Timeline"
       {...props}
     >
       <ul
@@ -252,6 +249,7 @@ export default function Timeline({
               }
         }
         ref={listRef}
+        aria-label="Timeline"
       >
         <TlCtxt.Provider value={contextVal}>
           {Children.map(children, (child, index) =>

@@ -24,6 +24,7 @@ export default function BackButton({ label, fallbackHref = "/" }) {
       variant="ghost"
       onClick={handleBack}
       className="inline-flex items-center gap-2"
+      aria-label={label || "Go back"}
     >
       <ArrowLeft className="h-4 w-4" />
 

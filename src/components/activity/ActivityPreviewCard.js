@@ -156,14 +156,14 @@ export default function ActivityPreviewCard({
         <CardContent className="flex items-center justify-between">
           <div className="flex min-w-0 items-center gap-2">
             <Avatar className="h-7 w-7"><AvatarImage src={post.author_avatar} alt={post.author_name || ""} /><AvatarFallback>{authorInitial}</AvatarFallback></Avatar>
-            {post.author_name ? <span className="max-w-[120px] truncate text-xs font-medium">{post.author_name}</span> : null}
+            {post.author_name ? <span className="max-w-[120px] truncate text-xs font-medium text-foreground">{post.author_name}</span> : null}
           </div>
           {governance.length > 0 ? <GovernanceAvatarGroup authorities={governance} /> : null}
         </CardContent>
 
         <motion.div initial={false} animate={{ opacity: isHovered ? 1 : 0 }} transition={{ duration: 0.22 }} className="pointer-events-none absolute inset-0 flex flex-col bg-muted">
           <div className="flex-1 overflow-hidden p-4"><div className="line-clamp-2 text-lg font-semibold">{post.title || "Untitled"}</div><div className="mt-2 text-sm leading-relaxed"><div className="line-clamp-[12]">{post.content || "No additional content."}</div></div></div>
-          <CardContent className="flex items-center justify-between"><div className="flex min-w-0 items-center gap-2"><Avatar className="h-7 w-7"><AvatarImage src={post.author_avatar} alt={post.author_name || ""} /><AvatarFallback>{authorInitial}</AvatarFallback></Avatar>{post.author_name ? <span className="max-w-[120px] truncate text-xs font-medium">{post.author_name}</span> : null}</div>{governance.length > 0 ? <GovernanceAvatarGroup authorities={governance} /> : null}</CardContent>
+          <CardContent className="flex items-center justify-between"><div className="flex min-w-0 items-center gap-2"><Avatar className="h-7 w-7"><AvatarImage src={post.author_avatar} alt={post.author_name || ""} /><AvatarFallback>{authorInitial}</AvatarFallback></Avatar>{post.author_name ? <span className="max-w-[120px] truncate text-xs font-medium text-foreground">{post.author_name}</span> : null}</div>{governance.length > 0 ? <GovernanceAvatarGroup authorities={governance} /> : null}</CardContent>
         </motion.div>
       </Card>
       <PostModal post={post} open={isModalOpen} onOpenChange={setIsModalOpen} />

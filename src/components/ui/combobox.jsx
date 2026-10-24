@@ -24,13 +24,16 @@ function ComboboxValue({
 function ComboboxTrigger({
   className,
   children,
+  "aria-label": ariaLabel = "Show options",
   ...props
 }) {
   return (
     <ComboboxPrimitive.Trigger
       data-slot="combobox-trigger"
       className={cn("inline-flex items-center gap-2 [&_svg:not([class*='size-'])]:size-4", className)}
-      {...props}>
+      {...props}
+      aria-label={ariaLabel}
+    >
       {children}
       <ChevronDownIcon className="pointer-events-none size-4 text-muted-foreground" />
     </ComboboxPrimitive.Trigger>
@@ -65,12 +68,8 @@ function ComboboxInput({
       <ComboboxPrimitive.Input render={<InputGroupInput disabled={disabled} />} {...props} />
       <InputGroupAddon align="inline-end">
         {showTrigger && (
-          <InputGroupButton
-            size="icon-xs"
-            variant="ghost"
-            render={<ComboboxTrigger />}
-            data-slot="input-group-button"
-            className="group-has-data-[slot=combobox-clear]/input-group:hidden data-pressed:bg-transparent"
+          <ComboboxTrigger
+            className="size-6 justify-center rounded-[calc(var(--radius)-3px)] group-has-data-[slot=combobox-clear]/input-group:hidden data-pressed:bg-transparent"
             disabled={disabled} />
         )}
         {showClear && <ComboboxClear disabled={disabled} />}

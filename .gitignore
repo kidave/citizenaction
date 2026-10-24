@@ -21,3 +21,6 @@ out/
 
 # Optional build output
 dist/
+
+*storybook.log
+storybook-static

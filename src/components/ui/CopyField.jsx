@@ -32,7 +32,12 @@ export default function CopyField({ label, value }) {
       </div>
 
       {value && (
-        <Button variant="ghost" size="icon" onClick={handleCopy}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleCopy}
+          aria-label={`Copy ${label}`}
+        >
           {copied ? (
             <Check className="h-4 w-4 text-green-600" />
           ) : (

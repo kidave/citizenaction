@@ -258,6 +258,7 @@ export default function ImageUpload({
               ref={inputRef}
               type="file"
               accept={accept}
+              aria-label={label}
               className="hidden"
               disabled={disabled || uploading}
               onChange={(event) => handleFile(event.target.files?.[0])}

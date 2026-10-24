@@ -13,6 +13,7 @@ export default function SearchableSelect({
   emptyText = "No results found.",
   searchPlaceholder = "Search...",
   disabled = false,
+  ariaLabel,
   className,
   contentClassName = "w-[var(--radix-popover-trigger-width)] p-0",
   renderOption,
@@ -29,6 +30,7 @@ export default function SearchableSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          aria-label={ariaLabel || placeholder}
           disabled={disabled}
           className={cn("h-9 w-full justify-between font-normal", !selected && "text-muted-foreground", className)}
         >

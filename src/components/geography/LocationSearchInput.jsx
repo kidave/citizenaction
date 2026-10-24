@@ -65,6 +65,7 @@ export default function LocationSearchInput({
         <div className="relative min-w-0 flex-1">
           <Input
             autoFocus
+            aria-label="Search location"
             placeholder="Search location"
             value={query}
             onChange={(e) => handleChange(e.target.value)}

@@ -4,8 +4,10 @@ module.exports = {
   content: [
     "./src/pages/**/*.{js,jsx,ts,tsx}",
     "./src/components/**/*.{js,jsx,ts,tsx}",
+    "./src/stories/**/*.{js,jsx,ts,tsx}",
     "./src/context/**/*.{js,jsx,ts,tsx}",
     "./src/hooks/**/*.{js,jsx,ts,tsx}",
+    "./.storybook/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
     extend: {

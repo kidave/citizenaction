@@ -77,10 +77,10 @@
   --secondary: 210 40% 96.1%;
   --secondary-foreground: 222.2 47.4% 11.2%;
   --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
+  --muted-foreground: 215.4 20% 42%;
   --accent: 210 40% 96.1%;
   --accent-foreground: 222.2 47.4% 11.2%;
-  --destructive: 0 84.2% 70.2%;
+  --destructive: 0 72% 40%;
   --destructive-foreground: 210 40% 98%;
   --border: 214.3 31.8% 91.4%;
   --input: 214.3 31.8% 91.4%;
@@ -94,7 +94,7 @@
   --header-height: 64px; /* matches h-16 header */
   --footer-height: 72px; /* adjust if footer changes */
   --sidebar-background: 0 0% 98%;
-  --sidebar-foreground: 240 5.3% 26.1%;
+  --sidebar-foreground: 240 5.3% 23%;
   --sidebar-primary: 240 5.9% 10%;
   --sidebar-primary-foreground: 0 0% 98%;
   --sidebar-accent: 240 4.8% 95.9%;
@@ -104,7 +104,7 @@
 
   /* Success - Emerald */
   --success: 145 63% 80%;
-  --success-foreground: 0 0% 100%;
+  --success-foreground: 145 63% 22%;
 
   /* Warning - Amber */
   --warning: 42 96% 50%;

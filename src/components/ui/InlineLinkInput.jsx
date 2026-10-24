@@ -60,6 +60,7 @@ export default function InlineLinkInput({
           size="icon"
           className="shrink-0"
           onClick={() => setOpen(false)}
+          aria-label="Close link editor"
         >
           <Link2 className="h-5 w-5" />
         </Button>
@@ -81,11 +82,12 @@ export default function InlineLinkInput({
             onChange("");
             setOpen(false);
           }}
+          aria-label="Clear link"
         >
           <X className="h-4 w-4" />
         </Button>
 
-        <Button size="icon" onClick={handleSave}>
+        <Button size="icon" onClick={handleSave} aria-label="Save link">
           <Check className="h-4 w-4" />
         </Button>
       </div>
@@ -100,7 +102,12 @@ export default function InlineLinkInput({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setOpen(true)}
+            aria-label={value ? "Edit link" : "Add link"}
+          >
             <Link2 className="h-5 w-5" />
           </Button>
         </TooltipTrigger>

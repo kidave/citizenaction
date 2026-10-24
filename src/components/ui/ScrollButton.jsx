@@ -56,6 +56,7 @@ export default function ScrollButton({ showAfter = 300 }) {
           variant="outline"
           className="rounded-full bg-background/80 shadow-lg backdrop-blur transition-all hover:scale-105"
           onClick={scrollToBottom}
+          aria-label="Scroll to bottom"
         >
           <ArrowDown className="h-5 w-5" />
         </Button>
@@ -65,6 +66,7 @@ export default function ScrollButton({ showAfter = 300 }) {
           variant="outline"
           className="rounded-full bg-background/80 shadow-lg backdrop-blur transition-all hover:scale-105"
           onClick={scrollToTop}
+          aria-label="Scroll to top"
         >
           <ArrowUp className="h-5 w-5" />
         </Button>

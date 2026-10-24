@@ -13,7 +13,12 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-export function DateTimePicker({ value, onDateChange, mode = "datetime" }) {
+export function DateTimePicker({
+  value,
+  onDateChange,
+  mode = "datetime",
+  label = "Date and time",
+}) {
   const [open, setOpen] = React.useState(false);
 
   const date = value ? new Date(value) : undefined;
@@ -89,6 +94,7 @@ export function DateTimePicker({ value, onDateChange, mode = "datetime" }) {
             type="button"
             variant="outline"
             className="w-full justify-between font-normal"
+            aria-label={label}
           >
             {getDateLabel()}
 
@@ -119,6 +125,7 @@ export function DateTimePicker({ value, onDateChange, mode = "datetime" }) {
         type="time"
         value={getTimeValue()}
         onChange={handleTimeChange}
+        aria-label={`${label} time`}
         className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
       />
     );
@@ -138,6 +145,7 @@ export function DateTimePicker({ value, onDateChange, mode = "datetime" }) {
             type="button"
             variant="outline"
             className="w-full justify-between font-normal"
+            aria-label={label}
           >
             {getDateLabel()}
 
@@ -162,6 +170,7 @@ export function DateTimePicker({ value, onDateChange, mode = "datetime" }) {
         type="time"
         value={getTimeValue()}
         onChange={handleTimeChange}
+        aria-label={`${label} time`}
         className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
       />
     </div>

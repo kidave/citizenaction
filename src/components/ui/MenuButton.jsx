@@ -14,7 +14,7 @@ export default function MenuButton({ onEdit, onDelete, onAddRelation, editRelati
   return (
     <>
       <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-        <DropdownMenuTrigger asChild><Button size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+        <DropdownMenuTrigger asChild><Button size="icon" variant="ghost" aria-label="More actions"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           {onEdit && <DropdownMenuItem onClick={(event) => { event.stopPropagation(); run(onEdit); }}>{editLabel}</DropdownMenuItem>}
           {onAddRelation && <DropdownMenuItem onClick={(event) => { event.stopPropagation(); run(onAddRelation); }}>Add relation</DropdownMenuItem>}
