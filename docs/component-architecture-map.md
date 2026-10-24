@@ -1,24 +1,35 @@
 # Component Architecture Map
 
+## Online explorer
+
+The Next.js page at `/engineering/architecture` generates a searchable architecture explorer at build time. It shows each source module, its static local imports, reverse consumers, literal backend references, and likely Storybook matches. Selecting a module lets you navigate both directions through its dependency relationships.
+
+The page is a static source-analysis snapshot generated during the Next.js build. It is not a live runtime trace. It has `noindex` metadata because it is an engineering tool; it does not require production Supabase credentials and does not read or write the database.
+
 ## Why this uses dependency-cruiser instead of ReactGraph
 
-ReactGraph was evaluated against the current `main` source. Its first CI run completed but emitted zero pages, one component and zero edges. Reviewing its current analyzer source shows it scans `.ts` and `.tsx` files, while Citizen Action uses JavaScript/JSX under `src/pages` and `src/components`. The output was therefore not a reliable map for this repository. It is not used as the authoritative analyzer in this workflow.
+ReactGraph was evaluated against Citizen Action. Its first CI run completed but emitted zero pages, one component and zero edges. Reviewing its current analyzer source showed it scans `.ts` and `.tsx` files, while Citizen Action uses JavaScript/JSX under `src/pages` and `src/components`. Its output was therefore not a reliable map for this repository.
 
-The workflow uses dependency-cruiser, which supports JavaScript modules and reads the existing `.dependency-cruiser.js` configuration. This captures static module imports, not every runtime render relationship.
+The CI workflow uses dependency-cruiser for the richer module graph. The online page also has a small build-time source scanner so the relationship explorer can be rendered as part of the app rather than requiring users to download a workflow artifact. These two views complement each other: the page is navigable and feature-oriented; the workflow artifact contains dependency-cruiser's complete JSON/DOT/SVG output.
 
-## Generated outputs
+## Generated workflow outputs
 
 - `dependency-graph.json`: module relationships and analysis summary from dependency-cruiser.
-- `module-architecture.dot`: grouped Graphviz graph of module architecture.
-- `module-architecture.svg`: openable visual architecture graph.
-- `supabase-usage.json`: literal source references to Supabase tables/views, storage buckets, RPC names, Edge Functions and `/api/*` fetch paths.
-- `supabase-usage.csv`: spreadsheet-friendly backend-reference report with source path and line number.
+- `module-architecture.dot` and `module-architecture.svg`: Graphviz module graph.
+- `supabase-usage.json` and `supabase-usage.csv`: literal source references to backend objects and API routes.
 
-GitHub Actions uploads these outputs as a `component-architecture-map-*` workflow artifact for 30 days. This workflow does not deploy the app or write to Supabase.
+GitHub Actions uploads these as a `component-architecture-map-*` artifact for 30 days. The workflow does not deploy the app or write to Supabase.
 
-## Local usage
+## How to read the relationships
 
-From the repository root:
+- **Imports / depends on:** module A imports module B.
+- **Used by / consumers:** modules that statically import the selected module.
+- **Backend references:** literal names found in source, with line numbers.
+- **Storybook matches:** probable story files matched by component/file base name.
+
+Static analysis cannot prove that a component renders at runtime. Dynamic imports, re-export barrels, registries, and dynamically assembled backend names may be missed. Backend references do not prove that an object exists in the live Supabase schema. Storybook is still the visual reference for component states.
+
+## Local workflow
 
 ```bash
 mkdir -p artifacts/component-map
@@ -28,12 +39,6 @@ dot -Tsvg artifacts/component-map/module-architecture.dot -o artifacts/component
 node scripts/component-map/scan-supabase-usage.mjs
 ```
 
-Open `module-architecture.svg` in a browser or image viewer. Use the JSON report for detailed module edges and the CSV to see exactly which source files contain backend references.
+## Security
 
-## Limitations and scope
-
-- Static module imports approximate component relationships but do not prove a component renders at runtime; dynamic imports and indirect registries may be missed.
-- `supabase-usage.json` captures literal names only. Dynamic names, wrapped clients, SQL assembled indirectly and runtime-only relationships can be missed.
-- Backend references are currently provided as a source-file-to-object list rather than one merged UI graph. A table/RPC reference does not prove that the object exists in live Supabase.
-- Validating backend object names against live Supabase requires a separate read-only schema snapshot with credentials in GitHub Actions Secrets, or comparison against committed migrations. Never expose service-role credentials to the browser or commit secrets.
-- Storybook remains the source of visual examples and component states. Dependency analysis does not replace Storybook tests or visual review.
+The explorer is source-derived and marks itself `noindex`, but anyone who can reach the route may inspect file paths and static backend object names. It never exposes environment variables or credentials. Keep secrets out of source and never put a Supabase service-role key in client code.
