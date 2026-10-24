@@ -1,11 +1,10 @@
-"import Head from "next/head";
+import Head from "next/head";
 import { useMemo, useState } from "react";
 import {
   Activity,
   ArrowDownLeft,
   ArrowUpRight,
   Boxes,
-  Braces,
   Database,
   GitBranch,
   Search,
