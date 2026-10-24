@@ -121,7 +121,7 @@ export default function ArchitecturePage({ architecture }) {
               </p>
             </div>
             <a className="text-sm font-medium underline underline-offset-4" href="https://github.com/kidave/citizenaction/pull/111" target="_blank" rel="noreferrer">
-              View analysis workflow on GitHub
+              Explore component catalogue →\n            </a>\n            <a className="text-sm font-medium underline underline-offset-4" href="https://github.com/kidave/citizenaction/pull/111" target="_blank" rel="noreferrer">\n              View analysis workflow on GitHub
             </a>
           </div>
         </header>
