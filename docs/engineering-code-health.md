@@ -9,20 +9,24 @@ Citizen Action separates internal source analysis from package dependency/securi
 - Weekly on Sunday at 06:00 UTC (11:30 India Standard Time).
 - Manually through **GitHub → Actions → Engineering Code Health → Run workflow**.
 
-Feature-branch pushes do not trigger an additional standalone run. An open pull request runs the checks once for its PR event, avoiding duplicate push/PR runs. The weekly schedule is an additional baseline scan, not a daily job. GitHub scheduled workflows run from the default branch, so this schedule becomes active after the workflow is present on `main`.
+Feature-branch pushes do not trigger an additional standalone run. An open pull request runs checks once for its PR event, avoiding duplicate push/PR runs. The weekly schedule is an additional baseline scan, not a daily job. GitHub scheduled workflows run from the default branch, so the schedule becomes active after the workflow is present on `main`.
 
 ## Checks and ownership
 
-- **GitHub Dependency Graph + Dependabot:** third-party package dependency insights and vulnerability alerts. Citizen Action is public, so GitHub makes the dependency graph available. Open [the repository dependency graph](https://github.com/kidave/citizenaction/network/dependencies).
-- **Knip:** unused source files, exports, and dependencies.
-- **jscpd:** repeated code blocks.
+- **GitHub Dependency Graph:** third-party package dependency insights. [Open Citizen Action's dependency graph](https://github.com/kidave/citizenaction/network/dependencies).
+- **Knip:** potentially unused source files, exports, and dependencies.
+- **jscpd:** repeated code blocks, with the largest clone locations summarized in the run report.
 - **dependency-cruiser:** internal module dependencies and architecture output. It runs in the separate [Component Architecture Map workflow](https://github.com/kidave/citizenaction/actions/workflows/component-architecture-map.yml), rather than running a second time in code health.
+
+## Reading findings safely
+
+Knip and jscpd findings are candidates for human review, not automatic deletion instructions. Next.js routes, dynamic imports, scripts, generated assets, framework entry points, and intentionally similar UI flows can create false positives or valid duplication. Review call sites, runtime behavior, access-control checks, and side effects before consolidating anything.
+
+The code-health report summarizes Knip's actual `issues` structure and shows the largest duplicate locations. It records tool exit codes separately so a report with findings is not confused with a successful zero-finding scan.
 
 ## Viewing results
 
-Open the [Engineering Code Health workflow runs](https://github.com/kidave/citizenaction/actions/workflows/engineering-code-health.yml). Open a run to see the summary, then download its `engineering-code-health-<commit>` artifact for the detailed JSON reports.
-
-The in-app engineering pages link to these runs. Detailed reports remain in GitHub Actions artifacts rather than being copied into Supabase.
+Open the [Engineering Code Health workflow runs](https://github.com/kidave/citizenaction/actions/workflows/engineering-code-health.yml). Open a run to see the summary, then download its `engineering-code-health-<commit>` artifact for detailed JSON reports.
 
 ## Local commands
 
@@ -33,4 +37,4 @@ npx dependency-cruiser src
 npm run build
 ```
 
-Do not automatically delete or merge code based only on scanner output. Confirm framework conventions, dynamic usage, side effects, and behavior first. Knip and jscpd currently report findings without blocking the build while the baseline is reviewed.
+Findings remain report-only while we establish a trustworthy baseline. Package security scanning and AI tools are deliberately out of scope for this engineering phase.
