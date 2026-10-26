@@ -42,8 +42,9 @@ Pages may define `Component.getLayout` when they require a specific shell. This 
 ```text
 /auth/login
 /auth/callback
-/auth/privacy
 ```
+
+The canonical public privacy policy is `/privacy`. The legacy `/auth/privacy` route permanently redirects to `/privacy`.
 
 ### Space pages
 

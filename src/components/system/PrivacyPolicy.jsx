@@ -41,7 +41,7 @@ export default function PrivacyPolicy() {
           </li>
           <li>
             <strong>Information you submit:</strong> This may include profile
-            details, posts, comments or contributions, uploaded documents and
+            details, posts and contributions, uploaded documents and
             images, and information you add while participating in a Space or
             civic activity.
           </li>
