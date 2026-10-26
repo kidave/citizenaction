@@ -115,7 +115,7 @@ export default function Auth() {
 
           <p className="text-center text-xs text-muted-foreground">
             By continuing, you agree to our{" "}
-            <Link href="/auth/privacy" className="underline">
+            <Link href="/privacy" className="underline">
               Privacy Policy
             </Link>
             .
