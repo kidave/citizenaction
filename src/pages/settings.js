@@ -6,6 +6,7 @@ import Notifications from "@/components/system/Notification";
 import Support from "@/components/system/Support";
 import About from "@/components/about/About";
 import PrivacyPolicy from "@/components/system/PrivacyPolicy";
+import TermsOfUse from "@/components/system/TermsOfUse";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export default function SettingsPage() {
@@ -15,6 +16,7 @@ export default function SettingsPage() {
     { value: "appearance", label: "Appearance" },
     { value: "notifications", label: "Notifications" },
     { value: "privacy", label: "Privacy" },
+    { value: "terms", label: "Terms" },
     { value: "support", label: "Support" },
     { value: "about", label: "About" },
   ];
@@ -44,6 +46,7 @@ export default function SettingsPage() {
             <TabsContent value="appearance"><Appearance /></TabsContent>
             <TabsContent value="notifications"><Notifications /></TabsContent>
             <TabsContent value="privacy"><PrivacyPolicy /></TabsContent>
+            <TabsContent value="terms"><TermsOfUse /></TabsContent>
             <TabsContent value="support"><Support /></TabsContent>
             <TabsContent value="about"><About /></TabsContent>
           </main>
