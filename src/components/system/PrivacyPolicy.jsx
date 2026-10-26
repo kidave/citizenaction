@@ -17,8 +17,8 @@ export default function PrivacyPolicy() {
       <section className="mb-8">
         <h2>1. About Citizen Action</h2>
         <p>
-          Citizen Action is a civic documentation and participation platform
-          an independent civic participation and documentation platform. It helps people
+          Citizen Action is an independent civic documentation and participation
+          platform. It helps people
           document civic initiatives, share information and resources, and
           explore public organizations, governance and geographic context.
         </p>
