@@ -115,7 +115,7 @@ export default function Auth() {
 
           <p className="text-center text-xs text-muted-foreground">
             By continuing, you agree to our{" "}
-            <Link href="/auth/privacy" className="underline">
+            <Link href="/privacy" className="underline">
               Privacy Policy
             </Link>
             .
@@ -124,7 +124,7 @@ export default function Auth() {
 
         <CardFooter className="flex justify-center">
           <p className="text-xs text-muted-foreground">
-            Mumbai Sustainability Centre © 2024
+            Citizen Action © {new Date().getFullYear()}
           </p>
         </CardFooter>
       </Card>
