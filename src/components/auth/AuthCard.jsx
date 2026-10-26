@@ -184,7 +184,7 @@ export default function AuthCard({
           <p className="text-center text-xs leading-5 text-muted-foreground">
             By continuing, you agree to our{" "}
             <Link
-              href="/auth/privacy"
+              href="/privacy"
               className="underline underline-offset-4 hover:text-primary"
             >
               Privacy Policy
@@ -274,7 +274,7 @@ export default function AuthCard({
         <p className="text-center text-xs text-muted-foreground">
           By continuing, you agree to our{" "}
           <Link
-            href="/auth/privacy"
+            href="/privacy"
             className="underline underline-offset-4 hover:text-primary"
           >
             Privacy Policy
@@ -285,7 +285,7 @@ export default function AuthCard({
 
       <CardFooter className="flex justify-center">
         <p className="text-xs text-muted-foreground">
-          Mumbai Sustainability Centre © 2024
+          Citizen Action © {new Date().getFullYear()}
         </p>
       </CardFooter>
     </Card>

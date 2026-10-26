@@ -134,7 +134,7 @@ export default function PrivacyPolicy({}) {
         <h2>8. Contact Us</h2>
         <p>
           If you have questions about this Privacy Policy, you can contact us at{" "}
-          <a href="mailto:info@walkingproject.org">info@walkingproject.org</a>.
+          <a href="mailto:contact@citizenaction.in">contact@citizenaction.in</a>.
         </p>
       </section>
 

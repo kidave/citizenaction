@@ -32,16 +32,10 @@ export default function RightSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>About</SidebarGroupLabel>
-
+          <SidebarGroupLabel>About Citizen Action</SidebarGroupLabel>
           <SidebarGroupContent className="px-4 pb-2 text-sm leading-relaxed text-muted-foreground">
-            A civic participation platform by the{" "}
-            <span className="font-medium text-foreground">Walking Project</span>{" "}
-            under{" "}
-            <span className="font-medium text-foreground">
-              Mumbai Sustainability Center
-            </span>{" "}
-            focused on walkability.
+            Citizen Action is an independent civic documentation and participation platform. Discover civic initiatives, share information and resources, and explore public organizations, governance and geographic information.
+            <div className="mt-3"><Link href="/about" className="text-foreground underline underline-offset-4 hover:no-underline">Learn more</Link></div>
           </SidebarGroupContent>
         </SidebarGroup>
 
@@ -106,14 +100,14 @@ export default function RightSidebar() {
             </Link>
 
             <Link
-              href="/settings?tab=support"
+              href="mailto:contact@citizenaction.in"
               className="hover:text-foreground"
             >
               Contact
             </Link>
           </div>
 
-          <p>© {new Date().getFullYear()} Mumbai Sustainability Center</p>
+          <p>© {new Date().getFullYear()} Citizen Action</p>
         </div>
       </SidebarFooter>
 
