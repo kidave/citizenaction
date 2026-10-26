@@ -19,7 +19,7 @@ async function hashNonce(nonce) {
 
 export default function GoogleOneTap() {
   const router = useRouter();
-  const shouldSkip = router.pathname === "/auth/login" || router.pathname === "/auth/callback" || router.pathname === "/auth/privacy";
+  const shouldSkip = router.pathname === "/auth/login" || router.pathname === "/auth/callback" || router.pathname === "/privacy" || router.pathname === "/auth/privacy";
 
   const initializeOneTap = useCallback(async () => {
     if (shouldSkip) return;

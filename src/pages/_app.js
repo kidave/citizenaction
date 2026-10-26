@@ -38,7 +38,11 @@ function MyApp({ Component, pageProps }) {
   return (
     <>
       <Head>
-        <title key="title">Citizen Action - Mumbai Sustainability Center</title>
+        <title key="title">Citizen Action | Civic Documentation &amp; Participation</title>
+        <meta
+          name="description"
+          content="A civic documentation and participation platform for sharing local initiatives, public information, governance and geographic context."
+        />
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1, viewport-fit=cover"

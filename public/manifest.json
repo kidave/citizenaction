@@ -1,7 +1,7 @@
 {
-  "short_name": "Citizen",
+  "short_name": "Citizen Action",
   "name": "Citizen Action",
-  "description": "Documentation platform under Mumbai Sustainability Center",
+  "description": "A civic documentation and participation platform for sharing local initiatives, public information, governance and geographic context.",
   "icons": [
     {
       "src": "/favicon.ico",
