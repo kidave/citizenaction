@@ -88,7 +88,7 @@ export default function PrivacyPolicy() {
         </p>
         <p>
           Please do not submit passwords, financial account details, sensitive
-          personal information or another person's private information unless
+          personal information or another person&apos;s private information unless
           there is a clear and appropriate reason and you have the right to
           share it. Check the visibility of a feature before submitting
           information.
