@@ -95,7 +95,7 @@ export default function RightSidebar() {
               Privacy
             </Link>
 
-            <Link href="/privacy" className="hover:text-foreground">
+            <Link href="/terms" className="hover:text-foreground">
               Terms
             </Link>
 
