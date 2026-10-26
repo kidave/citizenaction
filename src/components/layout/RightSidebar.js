@@ -35,13 +35,7 @@ export default function RightSidebar() {
           <SidebarGroupLabel>About</SidebarGroupLabel>
 
           <SidebarGroupContent className="px-4 pb-2 text-sm leading-relaxed text-muted-foreground">
-            A civic participation platform by the{" "}
-            <span className="font-medium text-foreground">Walking Project</span>{" "}
-            under{" "}
-            <span className="font-medium text-foreground">
-              Mumbai Sustainability Center
-            </span>{" "}
-            focused on walkability.
+            An independent civic platform helping people organize local action, document public information, and explore governance.
           </SidebarGroupContent>
         </SidebarGroup>
 
@@ -101,7 +95,7 @@ export default function RightSidebar() {
               Privacy
             </Link>
 
-            <Link href="/privacy" className="hover:text-foreground">
+            <Link href="/terms" className="hover:text-foreground">
               Terms
             </Link>
 
@@ -113,7 +107,7 @@ export default function RightSidebar() {
             </Link>
           </div>
 
-          <p>© {new Date().getFullYear()} Mumbai Sustainability Center</p>
+          <p>© {new Date().getFullYear()} Citizen Action</p>
         </div>
       </SidebarFooter>
 

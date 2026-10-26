@@ -17,14 +17,14 @@ export default function PrivacyPolicy() {
       <section className="mb-8">
         <h2>1. About Citizen Action</h2>
         <p>
-          Citizen Action is a civic documentation and participation platform
-          developed under the Mumbai Sustainability Center. It helps people
+          Citizen Action is an independent civic documentation and participation
+          platform. It helps people
           document civic initiatives, share information and resources, and
           explore public organizations, governance and geographic context.
         </p>
         <p>
           For privacy questions or requests, contact us at{" "}
-          <a href="mailto:info@walkingproject.org">info@walkingproject.org</a>.
+          <a href="mailto:contact@citizenaction.in">contact@citizenaction.in</a>.
         </p>
       </section>
 
@@ -172,7 +172,7 @@ export default function PrivacyPolicy() {
         </p>
         <p>
           Send requests to{" "}
-          <a href="mailto:info@walkingproject.org">info@walkingproject.org</a>.
+          <a href="mailto:contact@citizenaction.in">contact@citizenaction.in</a>.
           We may need to verify your identity before acting on a request.
           Some information may need to be retained where required by law or
           where it is necessary to protect the platform and its users.
@@ -216,7 +216,7 @@ export default function PrivacyPolicy() {
 
       <footer className="border-t pt-8">
         <p className="text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Mumbai Sustainability Center
+          © {new Date().getFullYear()} Citizen Action
         </p>
         <p className="mt-2">
           <Link href="/" className="no-underline">
