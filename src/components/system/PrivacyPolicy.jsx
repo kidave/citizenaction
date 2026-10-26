@@ -50,7 +50,7 @@ export default function PrivacyPolicy() {
             with a place, neighbourhood, jurisdiction or other geographic area.
             This information can be stored and displayed with that content.
             Choosing a place in the platform is not, by itself, a request for
-            us to access your device's precise location.
+            us to access your device&apos;s precise location.
           </li>
           <li>
             <strong>Technical and performance information:</strong> The
@@ -111,7 +111,7 @@ export default function PrivacyPolicy() {
             that authentication method.
           </li>
           <li>
-            <strong>Vercel:</strong> provides hosting and the platform's
+            <strong>Vercel:</strong> provides hosting and the platform&apos;s
             analytics and performance services.
           </li>
           <li>
@@ -137,7 +137,7 @@ export default function PrivacyPolicy() {
           We do not sell Google user data or use it to serve advertising.
         </p>
         <p>
-          You can review Google's practices in the{" "}
+          You can review Google&apos;s practices in the{" "}
           <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">
             Google Privacy Policy
           </a>.
