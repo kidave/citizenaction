@@ -203,7 +203,7 @@ export default function GovernanceOrganizationSheet({
 
       if (form.imageSourceUrl.trim()) {
         if (!imageSourceIsValid)
-          throw new Error("Use a direct HTTPS image URL from a public website");
+          throw new Error(GOVERNANCE_IMAGE_URL_HELPER_TEXT);
         if (!saved?.id)
           throw new Error(
             "Organization was saved but no organization ID was returned.",
