@@ -383,7 +383,6 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                   hasAddress={Boolean(locationData?.address || root.address)}
                   hasGeography={Boolean(locationData?.geography_id || root.geography_id)}
                   hasLinks={organizationResources.links.length > 0}
-                >
                 />}
               </div>
             </div>
