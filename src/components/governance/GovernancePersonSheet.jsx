@@ -148,7 +148,7 @@ export default function GovernancePersonSheet({
     }
 
     if (!isValidGovernanceImageUrl(sourceUrl)) {
-      toast.error("Use a direct HTTPS image URL from a public website");
+      toast.error(GOVERNANCE_IMAGE_URL_HELPER_TEXT);
       return;
     }
 
@@ -259,7 +259,7 @@ export default function GovernancePersonSheet({
 
       if (form.imageSourceUrl.trim()) {
         if (!isValidGovernanceImageUrl(form.imageSourceUrl.trim())) {
-          throw new Error("Use a direct HTTPS image URL from a public website");
+          throw new Error(GOVERNANCE_IMAGE_URL_HELPER_TEXT);
         }
 
         setImportingImage(true);
