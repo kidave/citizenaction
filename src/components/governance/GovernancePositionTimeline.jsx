@@ -32,8 +32,13 @@ export default function GovernancePositionTimeline({ position, organization, tim
     }
     return null;
   };
-  const latitude = asCoordinate(-90, 90, currentAppointment?.lat, position?.lat, position?.metadata?.office_lat, position?.metadata?.lat, organization?.lat, organization?.metadata?.office_lat, organization?.metadata?.lat);
-  const longitude = asCoordinate(-180, 180, currentAppointment?.lng, position?.lng, position?.metadata?.office_lng, position?.metadata?.lng, organization?.lng, organization?.metadata?.office_lng, organization?.metadata?.lng);
+  const positionAddress = position?.address && typeof position.address === "object" ? position.address : {};
+  const positionLatitude = asCoordinate(-90, 90, position?.lat, position?.metadata?.office_lat, position?.metadata?.lat, positionAddress?.lat, positionAddress?.latitude);
+  const positionLongitude = asCoordinate(-180, 180, position?.lng, position?.metadata?.office_lng, position?.metadata?.lng, positionAddress?.lng, positionAddress?.longitude);
+  const organizationLatitude = asCoordinate(-90, 90, organization?.lat, organization?.metadata?.office_lat, organization?.metadata?.lat);
+  const organizationLongitude = asCoordinate(-180, 180, organization?.lng, organization?.metadata?.office_lng, organization?.metadata?.lng);
+  const latitude = positionLatitude ?? organizationLatitude;
+  const longitude = positionLongitude ?? organizationLongitude;
   const hasCoordinates = latitude !== null && longitude !== null;
   const markerLabel = currentAppointment?.person_name && !currentAppointment?.is_vacant
     ? `${currentAppointment.person_name} — ${position?.name || "Current officeholder"}`
