@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Search } from "lucide-react";
+import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
@@ -64,6 +65,29 @@ export default function PersonDirectory({
     setDialogOpen(true);
   };
 
+  const deletePerson = async (entity) => {
+    if (!entity?.id) {
+      toast.error("Unable to delete person: missing person ID.");
+      return;
+    }
+
+    try {
+      // The CRUD hook accepts the UUID, not the directory record object.
+      await removePerson(entity.id);
+      toast.success("Person deleted");
+      await queryClient.invalidateQueries({ queryKey: ["governance-directory"] });
+      await queryClient.invalidateQueries({ queryKey: ["governance"] });
+    } catch (error) {
+      const message = error?.message || "Unable to delete person.";
+      toast.error(
+        message.toLowerCase().includes("appointment")
+          ? "This person has appointment history. Remove the listed appointments first, then delete the person."
+          : message,
+      );
+      throw error;
+    }
+  };
+
   return (
     <div className="space-y-4">
       {externalSearch === undefined && <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
@@ -100,7 +124,7 @@ export default function PersonDirectory({
               selected={selectedSet.has(entity.id)}
               onSelect={onSelect}
               onEdit={canManage ? () => openEdit(entity) : undefined}
-              onDelete={canManage ? () => removePerson(entity) : undefined}
+              onDelete={canManage ? () => deletePerson(entity) : undefined}
             />
           ))}
         </div>
