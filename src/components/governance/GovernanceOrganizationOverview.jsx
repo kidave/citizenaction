@@ -384,7 +384,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                   hasAddress={Boolean(locationData?.address || root.address)}
                   hasGeography={Boolean(locationData?.geography_id || root.geography_id)}
                   hasLinks={organizationResources.links.length > 0}
-                />}
+                ><Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" aria-label="Organization actions"><MoreHorizontal className="h-5 w-5" /></Button></GovernanceActionDropdown>}
               </div>
             </div>
             {root.description && <p className="text-sm leading-6 text-muted-foreground">{root.description}</p>}
