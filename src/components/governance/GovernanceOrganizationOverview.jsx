@@ -419,8 +419,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
 
         <section className="grid gap-6 border-t pt-5 lg:grid-cols-2">
           <div className="min-w-0 space-y-3">
-            <div className="flex items-center justify-between gap-3"><h2 className="text-base font-semibold">Media and documents</h2></div>
-            <GovernanceResources governanceId={governance?.id} attachments={organizationResources.attachments} links={[]} canEdit={canEdit} onChanged={() => organizationResourcesQuery.refetch()} />
+            <GovernanceResources title="Media and documents" governanceId={governance?.id} attachments={organizationResources.attachments} links={[]} canEdit={canEdit} onChanged={() => organizationResourcesQuery.refetch()} />
           </div>
           <div className="min-w-0 space-y-3">
             <div className="flex items-center justify-between gap-3">
