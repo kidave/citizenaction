@@ -43,7 +43,9 @@ export async function fetchGovernanceImage(sourceUrl: string) {
         signal: controller.signal,
         headers: {
           Accept: "image/jpeg,image/png,image/webp",
-          "User-Agent": "CitizenAction/1.0",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+          "Referer": url.hostname.toLowerCase().includes("licdn.com") || url.hostname.toLowerCase().includes("linkedin.com") ? "https://www.linkedin.com/" : url.hostname.toLowerCase().includes("twimg.com") || url.hostname.toLowerCase().includes("twitter.com") || url.hostname.toLowerCase().includes("x.com") ? "https://x.com/" : url.origin + "/",
+          "Accept-Language": "en-US,en;q=0.9",
         },
       });
     } finally {
@@ -61,6 +63,7 @@ export async function fetchGovernanceImage(sourceUrl: string) {
   }
 
   if (!response || !response.ok) {
+    if (response?.status === 401 || response?.status === 403) throw new Error("The image host blocked the download. Try downloading the image and uploading the file directly.");
     throw new Error(`Remote image returned HTTP ${response?.status || 502}.`);
   }
 
