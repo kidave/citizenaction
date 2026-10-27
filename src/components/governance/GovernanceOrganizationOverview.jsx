@@ -425,7 +425,9 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
           <div className="min-w-0 space-y-3">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-base font-semibold">Links</h2>
-              {canEdit && <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="relative h-9 w-9" onClick={() => setOrganizationLinksOpen(true)} aria-label={`Manage links (${organizationResources.links.length})`}><Link2 className="h-4 w-4" />{organizationResources.links.length > 0 && <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-secondary px-1 text-[10px]">{organizationResources.links.length}</span>}</Button></TooltipTrigger><TooltipContent>Manage links</TooltipContent></Tooltip>}
+              <span className="inline-flex items-center gap-2">
+                {canEdit ? <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="relative h-9 w-9" onClick={() => setOrganizationLinksOpen(true)} aria-label={`Manage links (${organizationResources.links.length})`}><Link2 className="h-4 w-4" />{organizationResources.links.length > 0 && <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-secondary px-1 text-[10px]">{organizationResources.links.length}</span>}</Button></TooltipTrigger><TooltipContent>Manage links</TooltipContent></Tooltip> : <><Link2 className="h-4 w-4 text-muted-foreground" />{organizationResources.links.length > 0 && <span className="rounded-full bg-secondary px-1.5 py-0.5 text-xs">{organizationResources.links.length}</span>}</>}
+              </span>
             </div>
             {organizationResources.links.length ? <PostLinks links={organizationResources.links} /> : <p className="text-sm text-muted-foreground">No links added yet.</p>}
           </div>
