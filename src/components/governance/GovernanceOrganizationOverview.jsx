@@ -364,11 +364,6 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                   </GovernanceCardActions>}
                 </div>
                 {root.short_name && <p className="mt-1 text-sm text-muted-foreground">{root.short_name}</p>}
-                {root.description && <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">{root.description}</p>}
-                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-                  {(root.metadata?.official_email || root.email || root.official_email) && <a className="inline-flex min-w-0 items-center gap-2 hover:text-foreground hover:underline" href={`mailto:${root.metadata?.official_email || root.email || root.official_email}`}><Mail className="h-4 w-4 shrink-0" /><span className="truncate">{root.metadata?.official_email || root.email || root.official_email}</span></a>}
-                  {(root.metadata?.official_phone || root.phone || root.official_phone) && <a className="inline-flex items-center gap-2 hover:text-foreground hover:underline" href={`tel:${root.metadata?.official_phone || root.phone || root.official_phone}`}><Phone className="h-4 w-4 shrink-0" /><span>{root.metadata?.official_phone || root.phone || root.official_phone}</span></a>}
-                </div>
                 <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
                   {root.website && <a className="inline-flex items-center gap-1.5 underline underline-offset-4 hover:text-foreground" href={root.website} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4" />Website</a>}
                   {onViewTree && <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={onViewTree} aria-label="View organization tree"><Network className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>View organization tree</TooltipContent></Tooltip>}
