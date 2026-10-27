@@ -19,17 +19,17 @@ export default function GovernancePositionTimeline({ position, organization, tim
     .filter((item) => !item.ended_at)
     .sort((a, b) => String(b.started_at || "").localeCompare(String(a.started_at || "")))[0] || null;
 
-  const asCoordinate = (...values) => {
+  const asCoordinate = (min, max, ...values) => {
     for (const value of values) {
       if (value === null || value === undefined || value === "") continue;
       const number = Number(value);
-      if (Number.isFinite(number) && number >= -180 && number <= 180) return number;
+      if (Number.isFinite(number) && number >= min && number <= max) return number;
     }
     return null;
   };
-  const latitude = asCoordinate(position?.lat, position?.metadata?.office_lat, position?.metadata?.lat, organization?.lat, organization?.metadata?.office_lat, organization?.metadata?.lat);
-  const longitude = asCoordinate(position?.lng, position?.metadata?.office_lng, position?.metadata?.lng, organization?.lng, organization?.metadata?.office_lng, organization?.metadata?.lng);
-  const hasCoordinates = latitude !== null && longitude !== null && latitude >= -90 && latitude <= 90;
+  const latitude = asCoordinate(-90, 90, position?.lat, position?.metadata?.office_lat, position?.metadata?.lat, organization?.lat, organization?.metadata?.office_lat, organization?.metadata?.lat);
+  const longitude = asCoordinate(-180, 180, position?.lng, position?.metadata?.office_lng, position?.metadata?.lng, organization?.lng, organization?.metadata?.office_lng, organization?.metadata?.lng);
+  const hasCoordinates = latitude !== null && longitude !== null;
   const markerLabel = currentAppointment?.person_name && !currentAppointment?.is_vacant
     ? `${currentAppointment.person_name} — ${position?.name || "Current officeholder"}`
     : currentAppointment?.is_vacant
