@@ -420,7 +420,7 @@ export default function GovernanceOrganizationSheet({
           </div>
         </div>
 
-        <SheetFooter className="relative z-10 shrink-0 flex-col gap-3 border-t bg-background px-4 py-3 sm:flex-row sm:justify-end sm:px-6">
+        <SheetFooter className="relative z-10 flex-row shrink-0 items-center justify-between gap-3 border-t bg-background px-5 py-4 sm:px-6">
           <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={busy}>
             Cancel
           </Button>
