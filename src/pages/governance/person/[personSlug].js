@@ -122,7 +122,23 @@ export default function GovernancePersonPage() {
               <AvatarImage src={person.image_url || undefined} alt={person.name} />
               <AvatarFallback className="rounded-xl text-2xl">{getGovernanceInitials(person.name)}</AvatarFallback>
             </Avatar>
-            <div className="min-w-0 pt-1"><h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{person.name}</h1>{person.address && <p className="mt-1 text-sm text-muted-foreground">{person.address}</p>}</div>
+            <div className="min-w-0 flex-1 pt-1">
+              <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{person.name}</h1>
+              {person.address && <p className="mt-1 text-sm text-muted-foreground">{person.address}</p>}
+              {(person.official_phone || person.official_email || person.metadata?.official_phone || person.metadata?.official_email) && (
+                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                  {(person.official_phone || person.metadata?.official_phone) && <a className="hover:underline" href={"tel:" + (person.official_phone || person.metadata.official_phone)}>{person.official_phone || person.metadata.official_phone}</a>}
+                  {(person.official_email || person.metadata?.official_email) && <a className="hover:underline" href={"mailto:" + (person.official_email || person.metadata.official_email)}>{person.official_email || person.metadata.official_email}</a>}
+                </div>
+              )}
+              {(person.metadata?.hometown || person.metadata?.education) && (
+                <dl className="mt-3 grid gap-x-5 gap-y-2 text-sm sm:grid-cols-2">
+                  {person.metadata?.hometown && <div><dt className="text-xs text-muted-foreground">Hometown</dt><dd className="mt-0.5">{person.metadata.hometown}</dd></div>}
+                  {person.metadata?.education && <div><dt className="text-xs text-muted-foreground">Education</dt><dd className="mt-0.5">{person.metadata.education}</dd></div>}
+                </dl>
+              )}
+              {person.biography && <p className="mt-3 max-w-2xl whitespace-pre-line text-sm leading-6 text-muted-foreground">{person.biography}</p>}
+            </div>
           </div>
 
           <section className="space-y-3">
