@@ -99,7 +99,6 @@ export default function GovernanceResources({
   };
 
 
-  if (!hasResources && !canEdit) return null;
 
   return (
     <section className="space-y-3">
