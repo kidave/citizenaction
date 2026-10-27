@@ -1,11 +1,11 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { FilePlus2, Link2, Loader2, Upload } from "lucide-react";
+import { FileText, ImagePlus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import PostAttachments from "@/components/post/PostAttachments";
 import { supabase } from "@/lib/supabase/client";
 import {
@@ -20,10 +20,9 @@ export default function GovernanceResources({
   canEdit = false,
   onChanged,
 }) {
-  const fileInputRef = useRef(null);
+  const imageInputRef = useRef(null);
+  const documentInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
-  const [linkUrl, setLinkUrl] = useState("");
-  const [addingLink, setAddingLink] = useState(false);
 
   const hasResources = attachments.length > 0 || links.length > 0;
   const refresh = () => onChanged?.();
@@ -77,36 +76,6 @@ export default function GovernanceResources({
     }
   };
 
-  const handleAddLink = async () => {
-    const url = linkUrl.trim();
-    if (!url) return;
-
-    try {
-      new URL(url);
-    } catch {
-      toast.error("Enter a valid URL");
-      return;
-    }
-
-    setAddingLink(true);
-    try {
-      const { error } = await supabase.from("link").insert({
-        governance_id: governanceId,
-        url,
-        title: url,
-        sort_order: links.length,
-      });
-      if (error) throw error;
-
-      setLinkUrl("");
-      toast.success("Link added");
-      refresh();
-    } catch (error) {
-      toast.error(error?.message || "Unable to add link");
-    } finally {
-      setAddingLink(false);
-    }
-  };
 
   if (!hasResources && !canEdit) return null;
 
@@ -124,30 +93,14 @@ export default function GovernanceResources({
           )}
         </div>
         {canEdit && (
-          <div className="flex items-center gap-1">
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
-              className="hidden"
-              onChange={handleFiles}
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-            >
-              {uploading ? (
-                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-              ) : (
-                <Upload className="mr-1.5 h-4 w-4" />
-              )}
-              Add files
-            </Button>
-          </div>
+          <TooltipProvider>
+            <div className="flex items-center gap-1">
+              <input ref={imageInputRef} type="file" multiple accept="image/*" className="hidden" onChange={handleFiles} />
+              <input ref={documentInputRef} type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" className="hidden" onChange={handleFiles} />
+              <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={() => imageInputRef.current?.click()} disabled={uploading} aria-label="Add images">{uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}</Button></TooltipTrigger><TooltipContent>Add images</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={() => documentInputRef.current?.click()} disabled={uploading} aria-label="Add documents"><FileText className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Add documents</TooltipContent></Tooltip>
+            </div>
+          </TooltipProvider>
         )}
       </div>
 
@@ -155,35 +108,7 @@ export default function GovernanceResources({
         <PostAttachments attachments={attachments} links={links} />
       )}
 
-      {canEdit && (
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Link2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={linkUrl}
-              onChange={(event) => setLinkUrl(event.target.value)}
-              placeholder="Add a website or document link"
-              className="pl-9"
-              onKeyDown={(event) => {
-                if (event.key === "Enter") handleAddLink();
-              }}
-            />
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleAddLink}
-            disabled={addingLink || !linkUrl.trim()}
-          >
-            {addingLink ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <FilePlus2 className="mr-1.5 h-4 w-4" />
-            )}
-            Add link
-          </Button>
-        </div>
-      )}
+}
     </section>
   );
 }
