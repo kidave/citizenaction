@@ -80,7 +80,7 @@ export default function GovernancePositionTimeline({ position, organization, tim
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Link href={`/people/${item.person_slug}`} aria-label={personName} className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                          <Link href={`/governance/person/${item.person_slug}`} aria-label={personName} className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
                             <Avatar className="h-8 w-8 rounded-full sm:h-9 sm:w-9">
                               <AvatarImage src={item.person_image_url || undefined} alt={personName} />
                               <AvatarFallback>{getGovernanceInitials(personName)}</AvatarFallback>
