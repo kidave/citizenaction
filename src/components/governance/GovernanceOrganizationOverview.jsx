@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Building2, CalendarDays, ChevronDown, ChevronRight, ExternalLink, Network, Mail, MapPin, Phone, Search, MoreHorizontal, Plus, Link2 } from "lucide-react";
+import { Building2, CalendarDays, ChevronDown, ChevronRight, ExternalLink, Network, Mail, MapPin, Phone, Search, MoreHorizontal, Plus, Link2, Globe } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -353,88 +353,81 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
   return (
     <div className="min-h-[calc(100vh-5.5rem)] bg-background">
       <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-5 sm:px-6 lg:px-8">
-        <section className="py-1">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-              <Avatar className="h-16 w-16 rounded-xl sm:h-20 sm:w-20">
+        <section className="grid items-stretch gap-4 lg:grid-cols-2">
+          <div className="flex min-w-0 flex-col gap-4 rounded-xl border p-4 sm:p-5">
+            <div className="flex items-start gap-3">
+              <Avatar className="h-14 w-14 shrink-0 rounded-xl sm:h-16 sm:w-16">
                 <AvatarImage src={root.image_url || undefined} alt="" />
                 <AvatarFallback className="rounded-xl text-lg">{getGovernanceInitials(root.name)}</AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <div className="flex items-start gap-3">
-                  <h1 className="min-w-0 flex-1 text-xl font-semibold tracking-tight sm:text-2xl">{root.name}</h1>
-                  {canEdit && <GovernanceCardActions
-                    onViewTree={() => onViewTree?.()}
-                    onEdit={() => onEdit?.(governance)}
-                    onPrimaryAction={() => onAddPosition?.(governance)}
-                    primaryActionLabel="Add Position"
-                    onManageRelations={() => onManageRelations?.(governance)}
-                    onAddParent={() => onAddParent?.(governance)}
-                    onAddChild={() => onAddChild?.(governance)}
-                    onAddAddress={() => onAddAddress?.(governance)}
-                    onRemoveAddress={() => onRemoveAddress?.(governance)}
-                    onAddGeography={() => onAddGeography?.(governance)}
-                    onRemoveGeography={() => onRemoveGeography?.(governance)}
-                    onManageLinks={() => onManageLinks?.(governance)}
-                    onDelete={() => onDelete?.(governance)}
-                    hasAddress={Boolean(locationData?.address || root.address)}
-                    hasGeography={Boolean(locationData?.geography_id || root.geography_id)}
-                    hasLinks={Boolean(root.hasLinks)}
-                  >
-                    <Button type="button" variant="outline" size="icon" className="h-9 w-9 shrink-0" aria-label="Organization actions"><MoreHorizontal className="h-5 w-5" /></Button>
-                  </GovernanceCardActions>}
-                </div>
+                <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{root.name}</h1>
                 {root.short_name && <p className="mt-1 text-sm text-muted-foreground">{root.short_name}</p>}
-                <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-                  {onViewTree && <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={onViewTree} aria-label="View organization tree"><Network className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>View organization tree</TooltipContent></Tooltip>}
-                </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-1">
+                {onViewTree && <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={onViewTree} aria-label="View organization tree"><Network className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>View organization tree</TooltipContent></Tooltip>}
+                {canEdit && <GovernanceCardActions
+                  onViewTree={() => onViewTree?.()}
+                  onEdit={() => onEdit?.(governance)}
+                  onPrimaryAction={() => onAddPosition?.(governance)}
+                  primaryActionLabel="Add Position"
+                  onManageRelations={() => onManageRelations?.(governance)}
+                  onAddParent={() => onAddParent?.(governance)}
+                  onAddChild={() => onAddChild?.(governance)}
+                  onAddAddress={() => setOrganizationAddressOpen(true)}
+                  onRemoveAddress={() => onRemoveAddress?.(governance)}
+                  onAddGeography={() => setOrganizationGeographyOpen(true)}
+                  onRemoveGeography={() => onRemoveGeography?.(governance)}
+                  onManageLinks={() => setOrganizationLinksOpen(true)}
+                  onDelete={() => onDelete?.(governance)}
+                  hasAddress={Boolean(locationData?.address || root.address)}
+                  hasGeography={Boolean(locationData?.geography_id || root.geography_id)}
+                  hasLinks={organizationResources.links.length > 0}
+                >
+                  <Button type="button" variant="outline" size="icon" className="h-9 w-9 shrink-0" aria-label="Organization actions"><MoreHorizontal className="h-5 w-5" /></Button>
+                </GovernanceCardActions>}
               </div>
             </div>
-
-
-        </section>
-
-        <section className="grid gap-4 lg:grid-cols-2">
-          <div className="min-w-0 space-y-3">
             {root.description && <p className="text-sm leading-6 text-muted-foreground">{root.description}</p>}
-            <div className="space-y-2 text-sm">
-              {(root.metadata?.official_email || root.official_email || root.email || locationData?.metadata?.official_email || locationData?.official_email || locationData?.email) && <a className="flex items-center gap-2 hover:underline" href={`mailto:${root.metadata?.official_email || root.official_email || root.email || locationData?.metadata?.official_email || locationData?.official_email || locationData?.email}`}><Mail className="h-4 w-4 shrink-0 text-muted-foreground" /><span className="break-all">{root.metadata?.official_email || root.official_email || root.email || locationData?.metadata?.official_email || locationData?.official_email || locationData?.email}</span></a>}
+            <div className="space-y-3 text-sm">
+              {(root.metadata?.official_email || root.official_email || root.email || locationData?.metadata?.official_email || locationData?.official_email || locationData?.email) && <a className="flex min-w-0 items-center gap-2 hover:underline" href={`mailto:${root.metadata?.official_email || root.official_email || root.email || locationData?.metadata?.official_email || locationData?.official_email || locationData?.email}`}><Mail className="h-4 w-4 shrink-0 text-muted-foreground" /><span className="break-all">{root.metadata?.official_email || root.official_email || root.email || locationData?.metadata?.official_email || locationData?.official_email || locationData?.email}</span></a>}
               {(root.metadata?.official_phone || root.official_phone || root.phone || locationData?.metadata?.official_phone || locationData?.official_phone || locationData?.phone) && <a className="flex items-center gap-2 hover:underline" href={`tel:${root.metadata?.official_phone || root.official_phone || root.phone || locationData?.metadata?.official_phone || locationData?.official_phone || locationData?.phone}`}><Phone className="h-4 w-4 shrink-0 text-muted-foreground" /><span>{root.metadata?.official_phone || root.official_phone || root.phone || locationData?.metadata?.official_phone || locationData?.official_phone || locationData?.phone}</span></a>}
-              {root.website && <a className="flex items-center gap-2 underline underline-offset-4 hover:text-foreground" href={root.website} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground" /><span className="break-all">{root.website}</span></a>}
-              {(locationData?.address || root.address) && <a className="flex items-start gap-2 hover:underline" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationData?.address || root.address)}`} target="_blank" rel="noreferrer"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" /><span>{locationData?.address || root.address}</span></a>}
+              {root.website && <a className="flex min-w-0 items-center gap-2 underline underline-offset-4 hover:text-foreground" href={root.website} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground" /><span className="break-all">{root.website}</span></a>}
             </div>
-            {canEdit && <div className="flex flex-wrap items-center gap-1 border-t pt-3">
-              <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={() => setOrganizationLinksOpen(true)} aria-label="Add or manage links"><Link2 className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Add or manage links</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={() => setOrganizationAddressOpen(true)} aria-label="Add or edit address"><MapPin className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Add or edit address</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={() => setOrganizationGeographyOpen(true)} aria-label="Add or edit geography"><Network className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Add or edit geography</TooltipContent></Tooltip>
-            </div>}
+            <div className="mt-auto flex flex-wrap items-center gap-2 border-t pt-3">
+              <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={() => setOrganizationAddressOpen(true)} aria-label="View or edit organization address"><MapPin className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>{locationData?.address || root.address || "Add organization address"}</TooltipContent></Tooltip>
+              <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={() => setOrganizationGeographyOpen(true)} aria-label="View or edit organization boundary"><Globe className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>{locationData?.geographies?.official_name || locationData?.geographies?.name || root.geographies?.official_name || root.geographies?.name || (locationData?.geography_id || root.geography_id ? "View or edit boundary" : "Add organization boundary")}</TooltipContent></Tooltip>
+            </div>
           </div>
           <Card className="min-w-0 overflow-hidden">
-            <CardContent className="p-0">
-              <div className="h-[280px] w-full sm:h-[360px]">
+            <CardContent className="h-full min-h-[360px] p-0 sm:min-h-[420px]">
+              <div className="h-full min-h-[360px] w-full sm:min-h-[420px]">
                 <LeafletMap
-                  lat={Number(locationData?.lat ?? locationData?.metadata?.lat) || 19.076}
-                  lng={Number(locationData?.lng ?? locationData?.metadata?.lng) || 72.8777}
-                  showMarker={Number.isFinite(Number(locationData?.lat ?? locationData?.metadata?.lat)) && Number.isFinite(Number(locationData?.lng ?? locationData?.metadata?.lng))}
+                  lat={Number(locationData?.lat ?? locationData?.metadata?.office_lat ?? locationData?.metadata?.lat) || 19.076}
+                  lng={Number(locationData?.lng ?? locationData?.metadata?.office_lng ?? locationData?.metadata?.lng) || 72.8777}
+                  showMarker={locationData?.lat != null || locationData?.metadata?.office_lat != null || locationData?.metadata?.lat != null}
                   zoom={12}
                   boundary={boundary || locationData?.geom || null}
                   markers={[]}
                   citizenMarker={{ image_url: governance?.image_url || null, label: governance?.name || "Organization" }}
                 />
               </div>
-              {!locationData?.geography_id && !locationData?.geom && <div className="border-t px-3 py-2 text-xs text-muted-foreground">No jurisdiction boundary is linked yet. Add geography from organization actions to display the boundary.</div>}
+              {!locationData?.geography_id && !locationData?.geom && <div className="border-t px-3 py-2 text-xs text-muted-foreground">No boundary linked yet.</div>}
             </CardContent>
           </Card>
         </section>
 
         <section className="grid gap-6 border-t pt-5 lg:grid-cols-2">
           <div className="min-w-0 space-y-3">
-            <h2 className="text-base font-semibold">Media and documents</h2>
+            <div className="flex items-center justify-between gap-3"><h2 className="text-base font-semibold">Media and documents</h2></div>
             <GovernanceResources governanceId={governance?.id} attachments={organizationResources.attachments} links={[]} canEdit={canEdit} onChanged={() => organizationResourcesQuery.refetch()} />
           </div>
           <div className="min-w-0 space-y-3">
-            <h2 className="text-base font-semibold">Links</h2>
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-base font-semibold">Links</h2>
+              {canEdit && <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="relative h-9 w-9" onClick={() => setOrganizationLinksOpen(true)} aria-label={`Manage links (${organizationResources.links.length})`}><Link2 className="h-4 w-4" />{organizationResources.links.length > 0 && <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-secondary px-1 text-[10px]">{organizationResources.links.length}</span>}</Button></TooltipTrigger><TooltipContent>Manage links</TooltipContent></Tooltip>}
+            </div>
             {organizationResources.links.length ? <PostLinks links={organizationResources.links} /> : <p className="text-sm text-muted-foreground">No links added yet.</p>}
-            {canEdit && <Button type="button" variant="outline" size="sm" onClick={() => setOrganizationLinksOpen(true)}><Link2 className="mr-2 h-4 w-4" />Add link</Button>}
           </div>
         </section>
         <section className="space-y-3">
