@@ -1,6 +1,6 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { CalendarDays, ExternalLink, MapPin } from "lucide-react";
+import { CalendarDays, ExternalLink, MapPin, Scan } from "lucide-react";
 import EmptyState from "@/components/ui/empty-state";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,6 +15,7 @@ export default function GovernancePositionTimeline({ position, organization, tim
   const organizationLabel = organization?.name || "";
   const boundary = position?.geographies;
   const links = position?.links || [];
+  const currentAppointment = timeline.find((item) => !item.ended_at && !item.is_vacant) || null;
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
@@ -45,11 +46,12 @@ export default function GovernancePositionTimeline({ position, organization, tim
                 zoom={boundary?.geom ? 10 : 14}
                 boundary={boundary?.geom || null}
                 markers={[]}
+                citizenMarker={{ image_url: currentAppointment?.person_image_url || null, label: currentAppointment?.person_name ? `${currentAppointment.person_name} — ${position?.name || "Current officeholder"}` : position?.name || "Position address" }}
               />
             </div>
             {(boundary || position?.address) && (
               <div className="flex flex-wrap gap-x-4 gap-y-2 border-t px-3 py-2 text-xs text-muted-foreground">
-                {boundary && <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 shrink-0" /><span>Boundary: {boundary.official_name || boundary.name}</span></span>}
+                {boundary && <span className="inline-flex items-center gap-1.5"><Scan className="h-3.5 w-3.5 shrink-0" /><span>Boundary: {boundary.official_name || boundary.name}</span></span>}
                 {position?.address && <span className="inline-flex items-center gap-1.5" title={position.address}><MapPin className="h-3.5 w-3.5 shrink-0" /><span className="line-clamp-2">{position.address}</span></span>}
               </div>
             )}
