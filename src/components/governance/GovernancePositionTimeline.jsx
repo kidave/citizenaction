@@ -10,11 +10,11 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 const LeafletMap = dynamic(() => import("@/components/geography/LeafletMap"), { ssr: false, loading: () => <div className="flex h-56 items-center justify-center text-sm text-muted-foreground">Loading map…</div> });
 import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
-import { formatGovernanceDate, getGovernanceInitials, getGovernanceLabel } from "@/utils/governance";
+import { formatGovernanceDate, getGovernanceInitials } from "@/utils/governance";
 
 export default function GovernancePositionTimeline({ position, organization, timeline = [], canManage = false, onEdit, onDeleted }) {
   const organizationLabel = organization?.name || "";
-  const jurisdiction = position?.geographies;
+  const boundary = position?.geographies;
   const links = position?.links || [];
 
   return (
@@ -36,21 +36,21 @@ export default function GovernancePositionTimeline({ position, organization, tim
           </TooltipProvider>
           <h1 className="min-w-0 text-2xl font-semibold tracking-tight">{position?.name || "Position"}</h1>
         </div>
-        {(jurisdiction?.geom || position?.address || position?.lat != null || position?.metadata?.office_lat != null || position?.metadata?.lat != null) && (
+        {(boundary?.geom || position?.address || position?.metadata?.office_lat != null || position?.metadata?.lat != null) && (
           <div className="mt-4 overflow-hidden rounded-xl border">
             <div className="h-56 w-full sm:h-64">
               <LeafletMap
-                lat={Number(position?.lat ?? position?.metadata?.office_lat ?? position?.metadata?.lat) || 19.076}
-                lng={Number(position?.lng ?? position?.metadata?.office_lng ?? position?.metadata?.lng) || 72.8777}
-                showMarker={position?.lat != null || position?.metadata?.office_lat != null || position?.metadata?.lat != null}
-                zoom={jurisdiction?.geom ? 10 : 14}
-                boundary={jurisdiction?.geom || null}
+                lat={Number(position?.metadata?.office_lat ?? position?.metadata?.lat) || 19.076}
+                lng={Number(position?.metadata?.office_lng ?? position?.metadata?.lng) || 72.8777}
+                showMarker={position?.metadata?.office_lat != null || position?.metadata?.lat != null}
+                zoom={boundary?.geom ? 10 : 14}
+                boundary={boundary?.geom || null}
                 markers={[]}
               />
             </div>
-            {(jurisdiction || position?.address) && (
+            {(boundary || position?.address) && (
               <div className="flex flex-wrap gap-x-4 gap-y-2 border-t px-3 py-2 text-xs text-muted-foreground">
-                {jurisdiction && <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 shrink-0" /><span>Boundary: {jurisdiction.official_name || jurisdiction.name}</span></span>}
+                {boundary && <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 shrink-0" /><span>Boundary: {boundary.official_name || boundary.name}</span></span>}
                 {position?.address && <span className="inline-flex items-center gap-1.5" title={position.address}><MapPin className="h-3.5 w-3.5 shrink-0" /><span className="line-clamp-2">{position.address}</span></span>}
               </div>
             )}
@@ -76,10 +76,26 @@ export default function GovernancePositionTimeline({ position, organization, tim
             return (
               <div key={item.appointment_id} className="relative pl-10 sm:pl-14">
                 <div className="absolute left-0 top-3 flex h-10 w-10 items-center justify-center rounded-full border bg-background sm:h-12 sm:w-12">
-                  <Avatar className="h-8 w-8 rounded-full sm:h-9 sm:w-9">
-                    <AvatarImage src={item.person_image_url || undefined} alt={personName} />
-                    <AvatarFallback>{getGovernanceInitials(personName)}</AvatarFallback>
-                  </Avatar>
+                  {item.person_slug && !item.is_vacant ? (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Link href={`/people/${item.person_slug}`} aria-label={personName} className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                            <Avatar className="h-8 w-8 rounded-full sm:h-9 sm:w-9">
+                              <AvatarImage src={item.person_image_url || undefined} alt={personName} />
+                              <AvatarFallback>{getGovernanceInitials(personName)}</AvatarFallback>
+                            </Avatar>
+                          </Link>
+                        </TooltipTrigger>
+                        <TooltipContent>{personName}</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    <Avatar className="h-8 w-8 rounded-full sm:h-9 sm:w-9">
+                      <AvatarImage src={item.person_image_url || undefined} alt={personName} />
+                      <AvatarFallback>{getGovernanceInitials(personName)}</AvatarFallback>
+                    </Avatar>
+                  )}
                 </div>
                 <Card>
                   <CardContent className="p-4 sm:p-5">
