@@ -152,31 +152,27 @@ export default function GovernancePersonPage() {
             {career.length ? career.map((item) => (
               <Card key={item.appointment_id}>
                 <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-sm font-medium">{item.position_slug && item.position_organization_slug ? <Link href={`/governance/${item.position_organization_slug}/${item.position_slug}`} className="hover:underline">{item.position_name}</Link> : item.position_name}</div>
-                      <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                        <Avatar className="h-6 w-6 rounded-md">
-                          <AvatarImage src={item.organization_image_url || undefined} alt="" />
-                          <AvatarFallback className="rounded-md text-[10px]">
-                            {getGovernanceInitials(item.organization_name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        {item.organization_slug ? <Link href={`/governance/${item.organization_slug}`} className="min-w-0 truncate hover:underline">{item.organization_name}</Link> : <span className="min-w-0 truncate">{item.organization_name}</span>}
+                  <div className="flex items-stretch gap-4 sm:gap-5">
+                    <div className="flex w-16 shrink-0 items-center sm:w-20">
+                      {item.organization_image_url ? (
+                        <Link href={item.organization_slug ? `/governance/${item.organization_slug}` : "/governance"} aria-label={item.organization_name || "Organization"} className="flex min-h-20 w-full items-center justify-center rounded-md">
+                          <Avatar className="h-20 w-16 rounded-md sm:h-24 sm:w-20">
+                            <AvatarImage src={item.organization_image_url} alt={item.organization_name || ""} className="object-contain" />
+                            <AvatarFallback className="rounded-md text-xs">{getGovernanceInitials(item.organization_name)}</AvatarFallback>
+                          </Avatar>
+                        </Link>
+                      ) : (
+                        <div className="flex min-h-20 w-full items-center justify-center rounded-md bg-muted text-sm font-semibold text-muted-foreground">{getGovernanceInitials(item.organization_name)}</div>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1 py-0.5">
+                      <div className="text-sm font-semibold">{item.position_slug && item.position_organization_slug ? <Link href={`/governance/${item.position_organization_slug}/${item.position_slug}`} className="hover:underline">{item.position_name}</Link> : item.position_name}</div>
+                      <div className="mt-1 text-sm text-muted-foreground">
+                        {item.organization_slug ? <Link href={`/governance/${item.organization_slug}`} className="hover:underline">{item.organization_name}</Link> : item.organization_name}
                       </div>
                       <div className="mt-1 text-xs text-muted-foreground">{formatGovernanceDate(item.started_at)}{item.ended_at ? ` – ${formatGovernanceDate(item.ended_at)}` : " – Present"}</div>
                     </div>
-                    {canManage && addressOpen && (
-        <GovernanceResourceDialogs
-          entity={person}
-          entityType="person"
-          addressOpen={addressOpen}
-          onAddressOpenChange={(value) => { if (!value) setAddressOpen(false); }}
-          onSaved={refresh}
-        />
-      )}
-
-      {canManage && (
+                    {canManage && (
                       <GovernanceAppointmentDeleteButton
                         appointmentId={item.appointment_id}
                         personName={person.name}
