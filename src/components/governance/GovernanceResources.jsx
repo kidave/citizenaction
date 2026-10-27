@@ -108,7 +108,6 @@ export default function GovernanceResources({
         <PostAttachments attachments={attachments} links={links} />
       )}
 
-}
     </section>
   );
 }
