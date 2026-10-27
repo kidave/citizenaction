@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import PostAttachments from "@/components/post/PostAttachments";
+import EmptyState from "@/components/ui/empty-state";
 import { supabase } from "@/lib/supabase/client";
 import {
   deleteGovernanceAttachments,
@@ -116,10 +117,15 @@ export default function GovernanceResources({
         )}
       </div>
 
-      {hasResources && (
+      {hasResources ? (
         <PostAttachments attachments={attachments} links={links} removable={canEdit} onRemove={handleRemove} />
+      ) : (
+        <EmptyState
+          title="No media or documents yet"
+          description={canEdit ? "Add images or documents using the buttons above." : "No media or documents have been added."}
+          className="min-h-32 rounded-md border border-dashed"
+        />
       )}
-
     </section>
   );
 }
