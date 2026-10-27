@@ -3,6 +3,7 @@
 import { useEffect, useId, useState } from "react";
 import { Building2, Link2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { isValidGovernanceImageUrl, GOVERNANCE_IMAGE_URL_HELPER_TEXT } from "@/utils/governanceImageUrl";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -59,23 +60,6 @@ function emptyForm(record) {
   };
 }
 
-function isSupportedImageSource(value) {
-  try {
-    const url = new URL(value);
-    const host = url.hostname.toLowerCase();
-    return (
-      url.protocol === "https:" &&
-      (host === "instagram.com" ||
-        host.endsWith(".instagram.com") ||
-        host === "cdninstagram.com" ||
-        host.endsWith(".cdninstagram.com") ||
-        host === "fbcdn.net" ||
-        host.endsWith(".fbcdn.net"))
-    );
-  } catch {
-    return false;
-  }
-}
 
 export default function GovernanceOrganizationSheet({
   open,
@@ -100,7 +84,7 @@ export default function GovernanceOrganizationSheet({
   const busy = saving || importingImage;
   const requiresValidTo = governanceRequiresValidTo(form.status);
   const imageSourceIsValid =
-    !form.imageSourceUrl || isSupportedImageSource(form.imageSourceUrl.trim());
+    !form.imageSourceUrl || isValidGovernanceImageUrl(form.imageSourceUrl.trim());
 
   useEffect(() => {
     if (!open) return;
@@ -219,7 +203,7 @@ export default function GovernanceOrganizationSheet({
 
       if (form.imageSourceUrl.trim()) {
         if (!imageSourceIsValid)
-          throw new Error("Use an Instagram or Meta CDN image URL");
+          throw new Error("Use a direct HTTPS image URL from a public website");
         if (!saved?.id)
           throw new Error(
             "Organization was saved but no organization ID was returned.",
@@ -290,7 +274,7 @@ export default function GovernanceOrganizationSheet({
                   onChange={(event) =>
                     setField("imageSourceUrl", event.target.value)
                   }
-                  placeholder="Paste Instagram image URL"
+                  placeholder="Paste direct image URL (HTTPS)"
                   disabled={busy}
                 />
                 {isEditing && (
@@ -300,7 +284,7 @@ export default function GovernanceOrganizationSheet({
                     onClick={async () => {
                       if (!imageSourceIsValid)
                         return toast.error(
-                          "Use an Instagram or Meta CDN image URL",
+                          "Use a direct HTTPS image URL from a public website",
                         );
                       try {
                         setImportingImage(true);
@@ -357,7 +341,7 @@ export default function GovernanceOrganizationSheet({
               </div>
               {!imageSourceIsValid && (
                 <p className="text-xs text-destructive">
-                  Use an Instagram or Meta CDN image URL.
+                  {GOVERNANCE_IMAGE_URL_HELPER_TEXT}
                 </p>
               )}
             </div>
