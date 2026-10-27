@@ -8,7 +8,7 @@ export function usePositionTimeline(positionId, enabled = true) {
     queryFn: async () => {
       const positionResult = await supabase
         .from("position")
-        .select("id,name,slug,description,image_url,appointing_organization_id,category_id")
+        .select("id,name,slug,description,appointing_organization_id,category_id")
         .eq("id", positionId)
         .maybeSingle();
 
