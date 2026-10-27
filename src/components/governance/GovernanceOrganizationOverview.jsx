@@ -24,7 +24,6 @@ import GovernanceCardActions from "@/components/governance/GovernanceCardActions
 import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
 import GovernanceResourceDialogs from "@/components/governance/GovernanceResourceDialogs";
 import GovernanceResources from "@/components/governance/GovernanceResources";
-import PostLinks from "@/components/post/PostLinks";
 
 const LeafletMap = dynamic(() => import("@/components/geography/LeafletMap"), { ssr: false, loading: () => <div className="flex h-full min-h-[320px] items-center justify-center text-sm text-muted-foreground">Loading map…</div> });
 import { useGovernanceOrganizationContext } from "@/hooks/governance/useGovernanceOrganizationContext";
@@ -416,19 +415,8 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
           </Card>
         </section>
 
-        <section className="grid gap-6 pt-5 lg:grid-cols-2">
-          <div className="min-w-0 space-y-3">
-            <GovernanceResources title="Media and documents" governanceId={governance?.id} attachments={organizationResources.attachments} links={[]} canEdit={canEdit} onChanged={() => organizationResourcesQuery.refetch()} />
-          </div>
-          <div className="min-w-0 space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-base font-semibold">Links</h2>
-              <span className="inline-flex items-center gap-2">
-                {canEdit ? <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="relative h-9 w-9" onClick={() => setOrganizationLinksOpen(true)} aria-label={`Manage links (${organizationResources.links.length})`}><Link2 className="h-4 w-4" />{organizationResources.links.length > 0 && <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-secondary px-1 text-[10px]">{organizationResources.links.length}</span>}</Button></TooltipTrigger><TooltipContent>Manage links</TooltipContent></Tooltip> : <><Link2 className="h-4 w-4 text-muted-foreground" />{organizationResources.links.length > 0 && <span className="rounded-full bg-secondary px-1.5 py-0.5 text-xs">{organizationResources.links.length}</span>}</>}
-              </span>
-            </div>
-            {organizationResources.links.length ? <PostLinks links={organizationResources.links} /> : <p className="text-sm text-muted-foreground">No links added yet.</p>}
-          </div>
+        <section className="pt-5">
+          <GovernanceResources title="Media and documents" governanceId={governance?.id} attachments={organizationResources.attachments} links={[]} canEdit={canEdit} onChanged={() => organizationResourcesQuery.refetch()} />
         </section>
         <section className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -541,6 +529,38 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
             </div>
           ) : (
             <EmptyState title={currentPositions.length ? "No matching positions" : "No positions found"} description={currentPositions.length ? "Try changing your search or date range." : canEdit ? "Add the first position for this organization." : "No positions have been recorded."} />
+          )}
+        </section>
+        <section className="space-y-3 border-t pt-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold">Links and References</h2>
+              <p className="text-sm text-muted-foreground">Official websites, source material, and other useful information.</p>
+            </div>
+            <span className="inline-flex items-center gap-2">
+              {canEdit ? <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="relative h-9 w-9" onClick={() => setOrganizationLinksOpen(true)} aria-label={`Manage links and references (${organizationResources.links.length})`}><Link2 className="h-4 w-4" />{organizationResources.links.length > 0 && <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-secondary px-1 text-[10px]">{organizationResources.links.length}</span>}</Button></TooltipTrigger><TooltipContent>Manage links and references</TooltipContent></Tooltip> : <><Link2 className="h-4 w-4 text-muted-foreground" />{organizationResources.links.length > 0 && <span className="rounded-full bg-secondary px-1.5 py-0.5 text-xs">{organizationResources.links.length}</span>}</>}
+            </span>
+          </div>
+          {organizationResources.links.length ? (
+            <ol className="space-y-4">
+              {organizationResources.links.map((link, index) => {
+                const title = link.title || link.provider_name || link.hostname || link.url;
+                return (
+                  <li key={link.id ?? `${link.url}-${link.sort_order ?? index}`} className="flex min-w-0 gap-3">
+                    <span className="w-5 shrink-0 pt-0.5 text-sm text-muted-foreground">{index + 1}.</span>
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <a href={link.url} target="_blank" rel="noopener noreferrer" className="break-words text-sm font-medium text-blue-600 underline-offset-4 hover:underline dark:text-blue-400">
+                        {title}
+                      </a>
+                      {link.url && <p className="break-all text-xs text-muted-foreground">{link.url}</p>}
+                      {link.description && <p className="whitespace-pre-wrap break-words text-sm text-muted-foreground">{link.description}</p>}
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          ) : (
+            <EmptyState title="No links or references yet" description={canEdit ? "Add official websites, source material, and other useful links using Manage links." : "No links or references have been added."} className="min-h-32 rounded-md border border-dashed" />
           )}
         </section>
         <GovernanceResourceDialogs
