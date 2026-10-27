@@ -416,7 +416,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
         </section>
 
         <section className="pt-5">
-          <GovernanceResources title="Media and documents" governanceId={governance?.id} attachments={organizationResources.attachments} links={[]} canEdit={canEdit} onChanged={() => organizationResourcesQuery.refetch()} />
+          <GovernanceResources title="Media and documents" governanceId={governance?.id} attachments={organizationResources.attachments} links={[]} canEdit={canEdit} showEmptyStateWhenEmpty onChanged={() => organizationResourcesQuery.refetch()} />
         </section>
         <section className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
