@@ -27,6 +27,26 @@ export default function GovernanceResources({
   const hasResources = attachments.length > 0 || links.length > 0;
   const refresh = () => onChanged?.();
 
+  const handleRemove = async (index) => {
+    const attachment = attachments[index];
+    if (!attachment?.id || !window.confirm(`Delete ${attachment.file_name || "this file"}? This cannot be undone.`)) return;
+    try {
+      const { error } = await supabase.from("attachment").delete().eq("id", attachment.id).eq("governance_id", governanceId);
+      if (error) throw error;
+      try {
+        await deleteGovernanceAttachments([attachment]);
+      } catch (storageError) {
+        toast.error(`Record deleted, but the stored file could not be removed: ${storageError.message || "storage error"}`);
+        refresh();
+        return;
+      }
+      toast.success("Attachment deleted");
+      refresh();
+    } catch (error) {
+      toast.error(error?.message || "Unable to delete attachment");
+    }
+  };
+
   const handleFiles = async (event) => {
     const files = Array.from(event.target.files || []);
     event.target.value = "";
@@ -81,31 +101,19 @@ export default function GovernanceResources({
 
   return (
     <section className="space-y-3">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Resources
-          </p>
-          {hasResources && (
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Documents, images and links
-            </p>
-          )}
-        </div>
-        {canEdit && (
-          <TooltipProvider>
-            <div className="flex items-center gap-1">
-              <input ref={imageInputRef} type="file" multiple accept="image/*" className="hidden" onChange={handleFiles} />
-              <input ref={documentInputRef} type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" className="hidden" onChange={handleFiles} />
-              <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={() => imageInputRef.current?.click()} disabled={uploading} aria-label="Add images">{uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}</Button></TooltipTrigger><TooltipContent>Add images</TooltipContent></Tooltip>
-              <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={() => documentInputRef.current?.click()} disabled={uploading} aria-label="Add documents"><FileText className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Add documents</TooltipContent></Tooltip>
-            </div>
-          </TooltipProvider>
-        )}
-      </div>
+      {canEdit && (
+        <TooltipProvider>
+          <div className="flex items-center justify-end gap-1">
+            <input ref={imageInputRef} type="file" multiple accept="image/*" className="hidden" onChange={handleFiles} />
+            <input ref={documentInputRef} type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" className="hidden" onChange={handleFiles} />
+            <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={() => imageInputRef.current?.click()} disabled={uploading} aria-label="Add images">{uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}</Button></TooltipTrigger><TooltipContent>Add images</TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={() => documentInputRef.current?.click()} disabled={uploading} aria-label="Add documents"><FileText className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Add documents</TooltipContent></Tooltip>
+          </div>
+        </TooltipProvider>
+      )}
 
       {hasResources && (
-        <PostAttachments attachments={attachments} links={links} />
+        <PostAttachments attachments={attachments} links={links} removable={canEdit} onRemove={handleRemove} />
       )}
 
     </section>
