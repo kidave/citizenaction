@@ -16,7 +16,7 @@ import { useLinkManager } from "@/hooks/editor/useLinkManager";
 
 import LinkManagerDialog from "@/components/link/LinkManagerDialog";
 
-export default function LinkManager({ value = [], onChange, openOverride, onOpenChange }) {
+export default function LinkManager({ value = [], onChange, openOverride, onOpenChange, hideTrigger = false }) {
   const [open, setOpen] = useState(false);
   const isControlled = typeof openOverride === "boolean";
   const dialogOpen = isControlled ? openOverride : open;
@@ -35,7 +35,7 @@ export default function LinkManager({ value = [], onChange, openOverride, onOpen
 
   return (
     <>
-      <TooltipProvider>
+      {!hideTrigger && <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -57,7 +57,7 @@ export default function LinkManager({ value = [], onChange, openOverride, onOpen
 
           <TooltipContent side="bottom">Manage links</TooltipContent>
         </Tooltip>
-      </TooltipProvider>
+      </TooltipProvider>}
 
       <LinkManagerDialog
         open={dialogOpen}
