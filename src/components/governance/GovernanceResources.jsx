@@ -1,11 +1,11 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { FilePlus2, Link2, Loader2, Upload } from "lucide-react";
+import { FileText, ImagePlus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import PostAttachments from "@/components/post/PostAttachments";
 import { supabase } from "@/lib/supabase/client";
 import {
@@ -15,18 +15,38 @@ import {
 
 export default function GovernanceResources({
   governanceId,
+  title = "Media and documents",
   attachments = [],
   links = [],
   canEdit = false,
   onChanged,
 }) {
-  const fileInputRef = useRef(null);
+  const imageInputRef = useRef(null);
+  const documentInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
-  const [linkUrl, setLinkUrl] = useState("");
-  const [addingLink, setAddingLink] = useState(false);
 
   const hasResources = attachments.length > 0 || links.length > 0;
   const refresh = () => onChanged?.();
+
+  const handleRemove = async (index) => {
+    const attachment = attachments[index];
+    if (!attachment?.id || !window.confirm(`Delete ${attachment.file_name || "this file"}? This cannot be undone.`)) return;
+    try {
+      const { error } = await supabase.from("attachment").delete().eq("id", attachment.id).eq("governance_id", governanceId);
+      if (error) throw error;
+      try {
+        await deleteGovernanceAttachments([attachment]);
+      } catch (storageError) {
+        toast.error(`Record deleted, but the stored file could not be removed: ${storageError.message || "storage error"}`);
+        refresh();
+        return;
+      }
+      toast.success("Attachment deleted");
+      refresh();
+    } catch (error) {
+      toast.error(error?.message || "Unable to delete attachment");
+    }
+  };
 
   const handleFiles = async (event) => {
     const files = Array.from(event.target.files || []);
@@ -77,113 +97,29 @@ export default function GovernanceResources({
     }
   };
 
-  const handleAddLink = async () => {
-    const url = linkUrl.trim();
-    if (!url) return;
-
-    try {
-      new URL(url);
-    } catch {
-      toast.error("Enter a valid URL");
-      return;
-    }
-
-    setAddingLink(true);
-    try {
-      const { error } = await supabase.from("link").insert({
-        governance_id: governanceId,
-        url,
-        title: url,
-        sort_order: links.length,
-      });
-      if (error) throw error;
-
-      setLinkUrl("");
-      toast.success("Link added");
-      refresh();
-    } catch (error) {
-      toast.error(error?.message || "Unable to add link");
-    } finally {
-      setAddingLink(false);
-    }
-  };
 
   if (!hasResources && !canEdit) return null;
 
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Resources
-          </p>
-          {hasResources && (
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Documents, images and links
-            </p>
-          )}
-        </div>
+        <h2 className="text-base font-semibold">{title}</h2>
         {canEdit && (
-          <div className="flex items-center gap-1">
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
-              className="hidden"
-              onChange={handleFiles}
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-            >
-              {uploading ? (
-                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-              ) : (
-                <Upload className="mr-1.5 h-4 w-4" />
-              )}
-              Add files
-            </Button>
+        <TooltipProvider>
+          <div className="flex items-center justify-end gap-1">
+            <input ref={imageInputRef} type="file" multiple accept="image/*" className="hidden" onChange={handleFiles} />
+            <input ref={documentInputRef} type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" className="hidden" onChange={handleFiles} />
+            <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={() => imageInputRef.current?.click()} disabled={uploading} aria-label="Add images">{uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}</Button></TooltipTrigger><TooltipContent>Add images</TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={() => documentInputRef.current?.click()} disabled={uploading} aria-label="Add documents"><FileText className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Add documents</TooltipContent></Tooltip>
           </div>
+        </TooltipProvider>
         )}
       </div>
 
       {hasResources && (
-        <PostAttachments attachments={attachments} links={links} />
+        <PostAttachments attachments={attachments} links={links} removable={canEdit} onRemove={handleRemove} />
       )}
 
-      {canEdit && (
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Link2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={linkUrl}
-              onChange={(event) => setLinkUrl(event.target.value)}
-              placeholder="Add a website or document link"
-              className="pl-9"
-              onKeyDown={(event) => {
-                if (event.key === "Enter") handleAddLink();
-              }}
-            />
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleAddLink}
-            disabled={addingLink || !linkUrl.trim()}
-          >
-            {addingLink ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <FilePlus2 className="mr-1.5 h-4 w-4" />
-            )}
-            Add link
-          </Button>
-        </div>
-      )}
     </section>
   );
 }

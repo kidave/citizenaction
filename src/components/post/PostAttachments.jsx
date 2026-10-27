@@ -28,7 +28,7 @@ function normalizeAttachment(attachment) {
   };
 }
 
-export default function PostAttachments({ attachments = [], links = [] }) {
+export default function PostAttachments({ attachments = [], links = [], removable = false, onRemove }) {
   const [openImages, setOpenImages] = useState(false);
   const [startIndex, setStartIndex] = useState(0);
 
@@ -95,6 +95,8 @@ export default function PostAttachments({ attachments = [], links = [] }) {
         attachments={normalizedAttachments}
         links={links}
         showMetadata={false}
+        removable={removable}
+        onRemove={onRemove}
         onAttachmentClick={handleAttachmentClick}
       />
 
