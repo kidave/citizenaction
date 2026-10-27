@@ -15,8 +15,26 @@ export default function GovernancePositionTimeline({ position, organization, tim
   const organizationLabel = organization?.name || "";
   const boundary = position?.geographies;
   const links = position?.links || [];
-  const currentAppointment = timeline.find((item) => !item.ended_at && !item.is_vacant) || null;
+  const currentAppointment = [...timeline]
+    .filter((item) => !item.ended_at)
+    .sort((a, b) => String(b.started_at || "").localeCompare(String(a.started_at || "")))[0] || null;
 
+  const asCoordinate = (...values) => {
+    for (const value of values) {
+      if (value === null || value === undefined || value === "") continue;
+      const number = Number(value);
+      if (Number.isFinite(number) && number >= -180 && number <= 180) return number;
+    }
+    return null;
+  };
+  const latitude = asCoordinate(position?.lat, position?.metadata?.office_lat, position?.metadata?.lat, organization?.lat, organization?.metadata?.office_lat, organization?.metadata?.lat);
+  const longitude = asCoordinate(position?.lng, position?.metadata?.office_lng, position?.metadata?.lng, organization?.lng, organization?.metadata?.office_lng, organization?.metadata?.lng);
+  const hasCoordinates = latitude !== null && longitude !== null && latitude >= -90 && latitude <= 90;
+  const markerLabel = currentAppointment?.person_name && !currentAppointment?.is_vacant
+    ? `${currentAppointment.person_name} — ${position?.name || "Current officeholder"}`
+    : currentAppointment?.is_vacant
+      ? `${position?.name || "Position"} — Vacant`
+      : position?.name || "Position";
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
       <div className="mb-6">
@@ -36,17 +54,17 @@ export default function GovernancePositionTimeline({ position, organization, tim
           </TooltipProvider>
           <h1 className="min-w-0 text-2xl font-semibold tracking-tight">{position?.name || "Position"}</h1>
         </div>
-        {(boundary?.geom || position?.address || position?.metadata?.office_lat != null || position?.metadata?.lat != null) && (
+        {(boundary?.geom || position?.address || hasCoordinates) && (
           <div className="mt-4 overflow-hidden rounded-xl border">
             <div className="h-56 w-full sm:h-64">
               <LeafletMap
-                lat={Number(position?.metadata?.office_lat ?? position?.metadata?.lat) || 19.076}
-                lng={Number(position?.metadata?.office_lng ?? position?.metadata?.lng) || 72.8777}
-                showMarker={position?.metadata?.office_lat != null || position?.metadata?.lat != null}
+                lat={latitude ?? 19.076}
+                lng={longitude ?? 72.8777}
+                showMarker={hasCoordinates}
                 zoom={boundary?.geom ? 10 : 14}
                 boundary={boundary?.geom || null}
                 markers={[]}
-                citizenMarker={{ image_url: currentAppointment?.person_image_url || null, label: currentAppointment?.person_name ? `${currentAppointment.person_name} — ${position?.name || "Current officeholder"}` : position?.name || "Position address" }}
+                citizenMarker={{ image_url: position?.image_url || null, label: markerLabel }}
               />
             </div>
             {(boundary || position?.address) && (
