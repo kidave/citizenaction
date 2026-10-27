@@ -393,7 +393,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
               {(root.metadata?.official_phone || root.official_phone || root.phone || locationData?.metadata?.official_phone || locationData?.official_phone || locationData?.phone) && <a className="flex items-center gap-2 hover:underline" href={`tel:${root.metadata?.official_phone || root.official_phone || root.phone || locationData?.metadata?.official_phone || locationData?.official_phone || locationData?.phone}`}><Phone className="h-4 w-4 shrink-0 text-muted-foreground" /><span>{root.metadata?.official_phone || root.official_phone || root.phone || locationData?.metadata?.official_phone || locationData?.official_phone || locationData?.phone}</span></a>}
               {root.website && <a className="flex min-w-0 items-center gap-2 underline underline-offset-4 hover:text-foreground" href={root.website} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground" /><span className="break-all">{root.website}</span></a>}
             </div>
-            <div className="mt-auto flex flex-wrap items-center gap-2 border-t pt-3">
+            <div className="mt-auto flex flex-wrap items-center gap-2 pt-3">
               <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={() => setOrganizationAddressOpen(true)} aria-label="View or edit organization address"><MapPin className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>{locationData?.address || root.address || "Add organization address"}</TooltipContent></Tooltip>
               <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={() => setOrganizationGeographyOpen(true)} aria-label="View or edit organization boundary"><Globe className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>{locationData?.geographies?.official_name || locationData?.geographies?.name || root.geographies?.official_name || root.geographies?.name || (locationData?.geography_id || root.geography_id ? "View or edit boundary" : "Add organization boundary")}</TooltipContent></Tooltip>
             </div>
@@ -416,7 +416,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
           </Card>
         </section>
 
-        <section className="grid gap-6 border-t pt-5 lg:grid-cols-2">
+        <section className="grid gap-6 pt-5 lg:grid-cols-2">
           <div className="min-w-0 space-y-3">
             <GovernanceResources title="Media and documents" governanceId={governance?.id} attachments={organizationResources.attachments} links={[]} canEdit={canEdit} onChanged={() => organizationResourcesQuery.refetch()} />
           </div>
