@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Building2, CalendarDays, ChevronDown, ChevronRight, ExternalLink, Network, Mail, MapPin, Phone, Search, MoreHorizontal, Plus } from "lucide-react";
+import { Building2, CalendarDays, ChevronDown, ChevronRight, ExternalLink, Network, Mail, MapPin, Phone, Search, MoreHorizontal, Plus, Link2 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import GovernanceAppointmentDialog from "@/components/governance/GovernanceAppointmentDialog";
 import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
 import GovernanceResourceDialogs from "@/components/governance/GovernanceResourceDialogs";
+import GovernanceResources from "@/components/governance/GovernanceResources";
+import PostLinks from "@/components/post/PostLinks";
 
 const LeafletMap = dynamic(() => import("@/components/geography/LeafletMap"), { ssr: false, loading: () => <div className="flex h-full min-h-[320px] items-center justify-center text-sm text-muted-foreground">Loading map…</div> });
 import { useGovernanceOrganizationContext } from "@/hooks/governance/useGovernanceOrganizationContext";
@@ -156,6 +158,9 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
   const [appointmentLocationRecord, setAppointmentLocationRecord] = useState(null);
   const [appointmentAddressOpen, setAppointmentAddressOpen] = useState(false);
   const [appointmentGeographyOpen, setAppointmentGeographyOpen] = useState(false);
+  const [organizationAddressOpen, setOrganizationAddressOpen] = useState(false);
+  const [organizationGeographyOpen, setOrganizationGeographyOpen] = useState(false);
+  const [organizationLinksOpen, setOrganizationLinksOpen] = useState(false);
   const positionsQuery = useQuery({
     queryKey: ["governance-organization-positions", governance?.id],
     enabled: Boolean(governance?.id),
@@ -185,6 +190,21 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
     },
   });
   const appointmentLocations = new Map((appointmentLocationsQuery.data || []).map((item) => [item.id, item]));
+
+  const organizationResourcesQuery = useQuery({
+    queryKey: ["governance-organization-resources", governance?.id],
+    enabled: Boolean(governance?.id),
+    queryFn: async () => {
+      const [attachmentsResult, linksResult] = await Promise.all([
+        supabase.from("attachment").select("*").eq("governance_id", governance.id).order("sort_order", { ascending: true }).order("created_at", { ascending: true }),
+        supabase.from("link").select("*").eq("governance_id", governance.id).order("sort_order", { ascending: true }).order("created_at", { ascending: true }),
+      ]);
+      if (attachmentsResult.error) throw attachmentsResult.error;
+      if (linksResult.error) throw linksResult.error;
+      return { attachments: attachmentsResult.data || [], links: linksResult.data || [] };
+    },
+  });
+  const organizationResources = organizationResourcesQuery.data || { attachments: [], links: [] };
 
   const { data: locationData } = useQuery({
     queryKey: ["governance-organization-map", governance?.id],
@@ -365,7 +385,6 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                 </div>
                 {root.short_name && <p className="mt-1 text-sm text-muted-foreground">{root.short_name}</p>}
                 <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-                  {root.website && <a className="inline-flex items-center gap-1.5 underline underline-offset-4 hover:text-foreground" href={root.website} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4" />Website</a>}
                   {onViewTree && <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={onViewTree} aria-label="View organization tree"><Network className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>View organization tree</TooltipContent></Tooltip>}
                 </div>
               </div>
@@ -376,11 +395,10 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
 
         <section className="grid gap-4 lg:grid-cols-2">
           <div className="min-w-0 space-y-3">
-            <h2 className="text-lg font-semibold">Organization details</h2>
             {root.description && <p className="text-sm leading-6 text-muted-foreground">{root.description}</p>}
             <div className="space-y-2 text-sm">
-              {(root.metadata?.official_email || root.email || root.official_email) && <a className="flex items-center gap-2 hover:underline" href={`mailto:${root.metadata?.official_email || root.email || root.official_email}`}><Mail className="h-4 w-4 shrink-0 text-muted-foreground" /><span className="break-all">{root.metadata?.official_email || root.email || root.official_email}</span></a>}
-              {(root.metadata?.official_phone || root.phone || root.official_phone) && <a className="flex items-center gap-2 hover:underline" href={`tel:${root.metadata?.official_phone || root.phone || root.official_phone}`}><Phone className="h-4 w-4 shrink-0 text-muted-foreground" /><span>{root.metadata?.official_phone || root.phone || root.official_phone}</span></a>}
+              {(root.metadata?.official_email || root.official_email || root.email || locationData?.metadata?.official_email || locationData?.official_email || locationData?.email) && <a className="flex items-center gap-2 hover:underline" href={`mailto:${root.metadata?.official_email || root.email || root.official_email}`}><Mail className="h-4 w-4 shrink-0 text-muted-foreground" /><span className="break-all">{root.metadata?.official_email || root.email || root.official_email}</span></a>}
+              {(root.metadata?.official_phone || root.official_phone || root.phone || locationData?.metadata?.official_phone || locationData?.official_phone || locationData?.phone) && <a className="flex items-center gap-2 hover:underline" href={`tel:${root.metadata?.official_phone || root.phone || root.official_phone}`}><Phone className="h-4 w-4 shrink-0 text-muted-foreground" /><span>{root.metadata?.official_phone || root.phone || root.official_phone}</span></a>}
               {root.website && <a className="flex items-center gap-2 underline underline-offset-4 hover:text-foreground" href={root.website} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground" /><span className="break-all">{root.website}</span></a>}
               {(locationData?.address || root.address) && <a className="flex items-start gap-2 hover:underline" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationData?.address || root.address)}`} target="_blank" rel="noreferrer"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" /><span>{locationData?.address || root.address}</span></a>}
             </div>
@@ -403,6 +421,17 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
           </Card>
         </section>
 
+        <section className="grid gap-6 border-t pt-5 lg:grid-cols-2">
+          <div className="min-w-0 space-y-3">
+            <h2 className="text-base font-semibold">Media and documents</h2>
+            <GovernanceResources governanceId={governance?.id} attachments={organizationResources.attachments} links={[]} canEdit={canEdit} onChanged={() => organizationResourcesQuery.refetch()} />
+          </div>
+          <div className="min-w-0 space-y-3">
+            <h2 className="text-base font-semibold">Links</h2>
+            {organizationResources.links.length ? <PostLinks links={organizationResources.links} /> : <p className="text-sm text-muted-foreground">No links added yet.</p>}
+            {canEdit && <Button type="button" variant="outline" size="sm" onClick={() => setOrganizationLinksOpen(true)}><Link2 className="mr-2 h-4 w-4" />Add link</Button>}
+          </div>
+        </section>
         <section className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -516,6 +545,17 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
             <EmptyState title={currentPositions.length ? "No matching positions" : "No positions found"} description={currentPositions.length ? "Try changing your search or date range." : canEdit ? "Add the first position for this organization." : "No positions have been recorded."} />
           )}
         </section>
+        <GovernanceResourceDialogs
+          entity={governance ? { ...governance, address: locationData?.address || governance.address, lat: locationData?.lat, lng: locationData?.lng, geography_id: locationData?.geography_id } : null}
+          entityType="governance"
+          addressOpen={organizationAddressOpen}
+          onAddressOpenChange={setOrganizationAddressOpen}
+          geographyOpen={organizationGeographyOpen}
+          onGeographyOpenChange={setOrganizationGeographyOpen}
+          linksOpen={organizationLinksOpen}
+          onLinksOpenChange={setOrganizationLinksOpen}
+          onSaved={async () => { await query.refetch(); await positionsQuery.refetch(); await appointmentLocationsQuery.refetch(); await organizationResourcesQuery.refetch(); }}
+        />
         <GovernanceResourceDialogs
           entity={appointmentLocationRecord ? {
             id: appointmentLocationRecord.appointment_id || appointmentLocationRecord.id,
