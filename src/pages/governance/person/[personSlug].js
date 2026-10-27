@@ -131,10 +131,10 @@ export default function GovernancePersonPage() {
                   {(person.official_email || person.metadata?.official_email) && <a className="hover:underline" href={"mailto:" + (person.official_email || person.metadata.official_email)}>{person.official_email || person.metadata.official_email}</a>}
                 </div>
               )}
-              {(person.metadata?.hometown || person.metadata?.education) && (
+              {(person.hometown || person.education || person.metadata?.hometown || person.metadata?.education) && (
                 <dl className="mt-3 grid gap-x-5 gap-y-2 text-sm sm:grid-cols-2">
-                  {person.metadata?.hometown && <div><dt className="text-xs text-muted-foreground">Hometown</dt><dd className="mt-0.5">{person.metadata.hometown}</dd></div>}
-                  {person.metadata?.education && <div><dt className="text-xs text-muted-foreground">Education</dt><dd className="mt-0.5">{person.metadata.education}</dd></div>}
+                  {(person.hometown || person.metadata?.hometown) && <div><dt className="text-xs text-muted-foreground">Hometown</dt><dd className="mt-0.5">{person.hometown || person.metadata.hometown}</dd></div>}
+                  {(person.education || person.metadata?.education) && <div><dt className="text-xs text-muted-foreground">Education</dt><dd className="mt-0.5">{person.education || person.metadata.education}</dd></div>}
                 </dl>
               )}
               {person.biography && <p className="mt-3 max-w-2xl whitespace-pre-line text-sm leading-6 text-muted-foreground">{person.biography}</p>}
