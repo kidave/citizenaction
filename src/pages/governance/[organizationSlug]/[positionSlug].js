@@ -45,7 +45,7 @@ export default function GovernancePositionPage() {
 
       const positionResult = await supabase
         .from("position")
-        .select("id,name,slug,description,image_url,appointing_organization_id,category_id,metadata,address,geography_id,geographies:geography_id(id,name,official_name,geography_type)")
+        .select("id,name,slug,description,image_url,appointing_organization_id,category_id,metadata,address,geography_id,geographies:geography_id(id,name,official_name,geography_type,geom)")
         .eq("slug", positionSlug)
         .eq("appointing_organization_id", organizationResult.data.id)
         .maybeSingle();
@@ -59,6 +59,18 @@ export default function GovernancePositionPage() {
   });
 
   const timelineQuery = usePositionTimeline(positionQuery.data?.position?.id, !!positionQuery.data?.position?.id);
+
+  const timelinePeopleQuery = useQuery({
+    queryKey: ["position-timeline-people", positionQuery.data?.position?.id, timelineQuery.data?.timeline?.map((item) => item.person_id).filter(Boolean).join(",")],
+    enabled: !!positionQuery.data?.position?.id && !!timelineQuery.data?.timeline?.some((item) => item.person_id && !item.is_vacant),
+    queryFn: async () => {
+      const personIds = [...new Set((timelineQuery.data?.timeline || []).filter((item) => item.person_id && !item.is_vacant).map((item) => item.person_id))];
+      if (!personIds.length) return {};
+      const { data, error } = await supabase.from("person").select("id,slug").in("id", personIds);
+      if (error) throw error;
+      return Object.fromEntries((data || []).filter((person) => person.slug).map((person) => [person.id, person.slug]));
+    },
+  });
 
   if (positionQuery.isLoading || timelineQuery.isLoading) {
     return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: "/governance?tab=positions" }, { label: "Loading..." }]} backHref="/governance?tab=positions" /><main className="flex flex-1"><LoadingState className="w-full" label="Loading position" /></main></div>;
@@ -108,7 +120,7 @@ export default function GovernancePositionPage() {
         <GovernancePositionTimeline
           position={timelinePosition}
           organization={organization}
-          timeline={timelineQuery.data?.timeline || []}
+          timeline={(timelineQuery.data?.timeline || []).map((item) => ({ ...item, person_slug: item.person_slug || timelinePeopleQuery.data?.[item.person_id] || null }))}
           canManage={canManage}
           onEdit={(record) => { setAppointmentRecord(record); setAppointmentOpen(true); }}
           onDeleted={refresh}
