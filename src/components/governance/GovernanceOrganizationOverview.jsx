@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import GovernanceAppointmentDialog from "@/components/governance/GovernanceAppointmentDialog";
+import GovernanceCardActions from "@/components/governance/GovernanceCardActions";
 import GovernanceAppointmentDeleteButton from "@/components/governance/GovernanceAppointmentDeleteButton";
 import GovernanceResourceDialogs from "@/components/governance/GovernanceResourceDialogs";
 import GovernanceResources from "@/components/governance/GovernanceResources";
