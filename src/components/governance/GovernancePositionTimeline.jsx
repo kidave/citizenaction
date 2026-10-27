@@ -27,8 +27,8 @@ export default function GovernancePositionTimeline({ position, organization, tim
     }
     return null;
   };
-  const latitude = asCoordinate(-90, 90, position?.lat, position?.metadata?.office_lat, position?.metadata?.lat, organization?.lat, organization?.metadata?.office_lat, organization?.metadata?.lat);
-  const longitude = asCoordinate(-180, 180, position?.lng, position?.metadata?.office_lng, position?.metadata?.lng, organization?.lng, organization?.metadata?.office_lng, organization?.metadata?.lng);
+  const latitude = asCoordinate(-90, 90, currentAppointment?.lat, position?.lat, position?.metadata?.office_lat, position?.metadata?.lat, organization?.lat, organization?.metadata?.office_lat, organization?.metadata?.lat);
+  const longitude = asCoordinate(-180, 180, currentAppointment?.lng, position?.lng, position?.metadata?.office_lng, position?.metadata?.lng, organization?.lng, organization?.metadata?.office_lng, organization?.metadata?.lng);
   const hasCoordinates = latitude !== null && longitude !== null;
   const markerLabel = currentAppointment?.person_name && !currentAppointment?.is_vacant
     ? `${currentAppointment.person_name} — ${position?.name || "Current officeholder"}`
