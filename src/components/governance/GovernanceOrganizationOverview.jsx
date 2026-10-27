@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { Building2, CalendarDays, ChevronDown, ChevronRight, ExternalLink, GitBranch, Mail, MapPin, Phone, Search, MoreHorizontal, Plus } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -51,7 +50,6 @@ function OrganizationUnit({ node, childrenByParent, canEdit, onSelect, expandedP
                 >
                   {node.name}
                 </Link>
-                {node.type && <Badge variant="secondary" className="text-[10px]">{node.type}</Badge>}
               </div>
               <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                 <span>{node.position_count || 0} positions</span>
@@ -344,7 +342,6 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{root.name}</h1>
-                  {root.type && <Badge variant="secondary">{root.type}</Badge>}
                 </div>
                 {root.short_name && <p className="mt-1 text-sm text-muted-foreground">{root.short_name}</p>}
                 {root.description && <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">{root.description}</p>}

@@ -1,6 +1,8 @@
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import { GovernanceActionDropdown } from "@/components/governance/GovernanceActionMenu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,6 +16,7 @@ import GovernanceAppointmentDialog from "@/components/governance/GovernanceAppoi
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import GovernanceResourceDialogs from "@/components/governance/GovernanceResourceDialogs";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
+import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 import { supabase } from "@/lib/supabase/client";
 import { formatGovernanceDate, getGovernanceInitials } from "@/utils/governance";
 
@@ -28,6 +31,7 @@ export default function GovernancePersonPage() {
   const personSlug = getValue(router.query.personSlug);
   const { data: profile } = useMyProfile();
   const canManage = profile?.role === "admin";
+  const { deletePerson } = useGovernanceCrud();
   const [appointmentOpen, setAppointmentOpen] = useState(false);
   const [appointmentRecord, setAppointmentRecord] = useState(null);
   const [editOpen, setEditOpen] = useState(false);
@@ -48,27 +52,32 @@ export default function GovernancePersonPage() {
 
       const career = careerResult.data || [];
       const organizationIds = [...new Set(career.map((item) => item.organization_id).filter(Boolean))];
-      let organizationLogos = {};
-
-      if (organizationIds.length) {
-        const organizationResult = await supabase
-          .from("governance")
-          .select("id,image_url")
-          .in("id", organizationIds);
-
-        if (organizationResult.error) throw organizationResult.error;
-
-        organizationLogos = Object.fromEntries(
-          (organizationResult.data || []).map((organization) => [organization.id, organization.image_url]),
-        );
-      }
-
+      const positionIds = [...new Set(career.map((item) => item.position_id).filter(Boolean))];
+      const [organizationResult, positionResult] = await Promise.all([
+        organizationIds.length
+          ? supabase.from("governance").select("id,image_url,slug").in("id", organizationIds)
+          : Promise.resolve({ data: [], error: null }),
+        positionIds.length
+          ? supabase.from("position").select("id,slug,appointing_organization_id").in("id", positionIds)
+          : Promise.resolve({ data: [], error: null }),
+      ]);
+      if (organizationResult.error) throw organizationResult.error;
+      if (positionResult.error) throw positionResult.error;
+      const organizationsById = new Map((organizationResult.data || []).map((organization) => [organization.id, organization]));
+      const positionsById = new Map((positionResult.data || []).map((position) => [position.id, position]));
       return {
         person,
-        career: career.map((item) => ({
-          ...item,
-          organization_image_url: organizationLogos[item.organization_id] || null,
-        })),
+        career: career.map((item) => {
+          const organization = organizationsById.get(item.organization_id);
+          const position = positionsById.get(item.position_id);
+          return {
+            ...item,
+            organization_image_url: organization?.image_url || null,
+            organization_slug: organization?.slug || null,
+            position_slug: position?.slug || null,
+            position_organization_slug: organizationsById.get(position?.appointing_organization_id)?.slug || organization?.slug || null,
+          };
+        }),
       };
     },
   });
@@ -99,6 +108,21 @@ export default function GovernancePersonPage() {
             <GovernanceActionDropdown
               onEdit={() => setEditOpen(true)}
               editLabel="Edit Person"
+              entityLabel="person"
+              onDelete={async () => {
+                try {
+                  await deletePerson(person.id);
+                  toast.success("Person deleted");
+                  await router.push("/governance?tab=people");
+                } catch (error) {
+                  const message = error?.message || "Unable to delete person";
+                  toast.error(
+                    message.includes("appointment history")
+                      ? "This person has appointment history. Remove their appointments first, then delete the person."
+                      : message,
+                  );
+                }
+              }}
               onPrimaryAction={() => { setAppointmentRecord(null); setAppointmentOpen(true); }}
               primaryActionLabel="Add Experience"
               onAddAddress={() => setAddressOpen(true)}
@@ -111,12 +135,28 @@ export default function GovernancePersonPage() {
       />
       <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl space-y-6">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12 rounded-lg">
+          <div className="flex items-start gap-4">
+            <Avatar className="h-24 w-24 shrink-0 rounded-xl sm:h-28 sm:w-28">
               <AvatarImage src={person.image_url || undefined} alt={person.name} />
-              <AvatarFallback className="rounded-lg text-sm">{getGovernanceInitials(person.name)}</AvatarFallback>
+              <AvatarFallback className="rounded-xl text-2xl">{getGovernanceInitials(person.name)}</AvatarFallback>
             </Avatar>
-            <div className="min-w-0"><h1 className="text-xl font-semibold">{person.name}</h1>{person.address && <p className="mt-1 text-sm text-muted-foreground">{person.address}</p>}</div>
+            <div className="min-w-0 flex-1 pt-1">
+              <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{person.name}</h1>
+              {person.address && <p className="mt-1 text-sm text-muted-foreground">{person.address}</p>}
+              {(person.official_phone || person.official_email || person.metadata?.official_phone || person.metadata?.official_email) && (
+                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                  {(person.official_phone || person.metadata?.official_phone) && <a className="hover:underline" href={"tel:" + (person.official_phone || person.metadata.official_phone)}>{person.official_phone || person.metadata.official_phone}</a>}
+                  {(person.official_email || person.metadata?.official_email) && <a className="hover:underline" href={"mailto:" + (person.official_email || person.metadata.official_email)}>{person.official_email || person.metadata.official_email}</a>}
+                </div>
+              )}
+              {(person.hometown || person.education || person.metadata?.hometown || person.metadata?.education) && (
+                <dl className="mt-3 grid gap-x-5 gap-y-2 text-sm sm:grid-cols-2">
+                  {(person.hometown || person.metadata?.hometown) && <div><dt className="text-xs text-muted-foreground">Hometown</dt><dd className="mt-0.5">{person.hometown || person.metadata.hometown}</dd></div>}
+                  {(person.education || person.metadata?.education) && <div><dt className="text-xs text-muted-foreground">Education</dt><dd className="mt-0.5">{person.education || person.metadata.education}</dd></div>}
+                </dl>
+              )}
+              {person.biography && <p className="mt-3 max-w-2xl whitespace-pre-line text-sm leading-6 text-muted-foreground">{person.biography}</p>}
+            </div>
           </div>
 
           <section className="space-y-3">
@@ -130,31 +170,27 @@ export default function GovernancePersonPage() {
             {career.length ? career.map((item) => (
               <Card key={item.appointment_id}>
                 <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-sm font-medium">{item.position_name}</div>
-                      <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                        <Avatar className="h-6 w-6 rounded-md">
-                          <AvatarImage src={item.organization_image_url || undefined} alt="" />
-                          <AvatarFallback className="rounded-md text-[10px]">
-                            {getGovernanceInitials(item.organization_name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="min-w-0 truncate">{item.organization_name}</span>
+                  <div className="flex items-stretch gap-4 sm:gap-5">
+                    <div className="flex w-16 shrink-0 items-center sm:w-20">
+                      {item.organization_image_url ? (
+                        <Link href={item.organization_slug ? `/governance/${item.organization_slug}` : "/governance"} aria-label={item.organization_name || "Organization"} className="flex min-h-20 w-full items-center justify-center rounded-md">
+                          <Avatar className="h-20 w-16 rounded-md sm:h-24 sm:w-20">
+                            <AvatarImage src={item.organization_image_url} alt={item.organization_name || ""} className="object-contain" />
+                            <AvatarFallback className="rounded-md text-xs">{getGovernanceInitials(item.organization_name)}</AvatarFallback>
+                          </Avatar>
+                        </Link>
+                      ) : (
+                        <div className="flex min-h-20 w-full items-center justify-center rounded-md bg-muted text-sm font-semibold text-muted-foreground">{getGovernanceInitials(item.organization_name)}</div>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1 py-0.5">
+                      <div className="text-sm font-semibold">{item.position_slug && item.position_organization_slug ? <Link href={`/governance/${item.position_organization_slug}/${item.position_slug}`} className="hover:underline">{item.position_name}</Link> : item.position_name}</div>
+                      <div className="mt-1 text-sm text-muted-foreground">
+                        {item.organization_slug ? <Link href={`/governance/${item.organization_slug}`} className="hover:underline">{item.organization_name}</Link> : item.organization_name}
                       </div>
                       <div className="mt-1 text-xs text-muted-foreground">{formatGovernanceDate(item.started_at)}{item.ended_at ? ` – ${formatGovernanceDate(item.ended_at)}` : " – Present"}</div>
                     </div>
-                    {canManage && addressOpen && (
-        <GovernanceResourceDialogs
-          entity={person}
-          entityType="person"
-          addressOpen={addressOpen}
-          onAddressOpenChange={(value) => { if (!value) setAddressOpen(false); }}
-          onSaved={refresh}
-        />
-      )}
-
-      {canManage && (
+                    {canManage && (
                       <GovernanceAppointmentDeleteButton
                         appointmentId={item.appointment_id}
                         personName={person.name}

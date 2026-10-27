@@ -3,6 +3,7 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import { Loader2, Link2, UserRound } from "lucide-react";
 import { toast } from "sonner";
+import { isValidGovernanceImageUrl, GOVERNANCE_IMAGE_URL_HELPER_TEXT } from "@/utils/governanceImageUrl";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -32,25 +33,6 @@ function emptyForm() {
   };
 }
 
-function isSupportedImageSource(value) {
-  try {
-    const url = new URL(value);
-    const host = url.hostname.toLowerCase();
-
-    return (
-      url.protocol === "https:" &&
-      (host === "instagram.com" ||
-        host === "www.instagram.com" ||
-        host.endsWith(".instagram.com") ||
-        host === "cdninstagram.com" ||
-        host.endsWith(".cdninstagram.com") ||
-        host === "fbcdn.net" ||
-        host.endsWith(".fbcdn.net"))
-    );
-  } catch {
-    return false;
-  }
-}
 
 export default function GovernancePersonSheet({
   open,
@@ -74,7 +56,7 @@ export default function GovernancePersonSheet({
   const { importPersonImage } = useImportGovernancePersonImage();
 
   const imageSourceIsValid =
-    !form.imageSourceUrl || isSupportedImageSource(form.imageSourceUrl.trim());
+    !form.imageSourceUrl || isValidGovernanceImageUrl(form.imageSourceUrl.trim());
 
   useEffect(() => {
     if (!open) return;
@@ -165,8 +147,8 @@ export default function GovernancePersonSheet({
       return;
     }
 
-    if (!isSupportedImageSource(sourceUrl)) {
-      toast.error("Use an Instagram or Meta CDN image URL");
+    if (!isValidGovernanceImageUrl(sourceUrl)) {
+      toast.error(GOVERNANCE_IMAGE_URL_HELPER_TEXT);
       return;
     }
 
@@ -276,8 +258,8 @@ export default function GovernancePersonSheet({
       }
 
       if (form.imageSourceUrl.trim()) {
-        if (!isSupportedImageSource(form.imageSourceUrl.trim())) {
-          throw new Error("Use an Instagram or Meta CDN image URL");
+        if (!isValidGovernanceImageUrl(form.imageSourceUrl.trim())) {
+          throw new Error(GOVERNANCE_IMAGE_URL_HELPER_TEXT);
         }
 
         setImportingImage(true);
@@ -366,7 +348,7 @@ export default function GovernancePersonSheet({
                     onChange={(event) =>
                       setField("imageSourceUrl", event.target.value)
                     }
-                    placeholder="Paste Instagram image URL"
+                    placeholder="Paste direct image URL (HTTPS)"
                     disabled={busy}
                     onKeyDown={(event) => {
                       if (event.key === "Enter") {
@@ -406,7 +388,7 @@ export default function GovernancePersonSheet({
 
                 {!imageSourceIsValid && (
                   <p className="text-xs text-destructive">
-                    Use an Instagram or Meta CDN image URL.
+                    {GOVERNANCE_IMAGE_URL_HELPER_TEXT}
                   </p>
                 )}
               </div>
