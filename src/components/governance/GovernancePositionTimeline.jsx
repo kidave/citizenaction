@@ -100,7 +100,7 @@ export default function GovernancePositionTimeline({ position, organization, tim
                 <Card>
                   <CardContent className="p-4 sm:p-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div className="flex min-w-0 items-center gap-2"><p className="min-w-0 text-sm font-semibold">{personName}</p>{item.is_primary && <Badge variant="secondary" className="shrink-0 text-[10px]">Principal</Badge>}</div>
+                      <div className="flex min-w-0 items-center gap-2"><p className="min-w-0 text-sm font-semibold">{personName}</p></div>
                       <div className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
                         <CalendarDays className="h-3.5 w-3.5" />
                         <span>
