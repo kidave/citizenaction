@@ -10,7 +10,7 @@ export function useImportGovernancePersonImage() {
       if (!url) throw new Error("Image URL is required.");
 
       const { data, error } = await supabase.functions.invoke(
-        "import-governance-person-image-v2",
+        "import-governance-person-image",
         {
           body: {
             personId,

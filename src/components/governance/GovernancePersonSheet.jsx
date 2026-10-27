@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Loader2, Link2, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { isValidGovernanceImageUrl, GOVERNANCE_IMAGE_URL_HELPER_TEXT } from "@/utils/governanceImageUrl";
@@ -18,7 +18,6 @@ import { moveGovernanceFile } from "@/lib/supabase/storage";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import SearchableSelect from "@/components/ui/SearchableSelect";
 import { supabase } from "@/lib/supabase/client";
 import { useImportGovernancePersonImage } from "@/hooks/governance/useImportGovernancePersonImage";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
@@ -28,7 +27,6 @@ function emptyForm() {
     name: "",
     biography: "",
     imageUrl: "",
-    profileUserId: "",
     imageSourceUrl: "",
   };
 }
@@ -41,7 +39,6 @@ export default function GovernancePersonSheet({
   onSaved,
 }) {
   const [form, setForm] = useState(emptyForm);
-  const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingRecord, setLoadingRecord] = useState(false);
   const [importingImage, setImportingImage] = useState(false);
@@ -66,30 +63,15 @@ export default function GovernancePersonSheet({
     const load = async () => {
       setLoadingRecord(isEditing);
 
-      const [profileResult, personResult] = await Promise.all([
-        supabase
-          .from("profile")
-          .select("user_id,name,username")
-          .order("name")
-          .limit(1000),
-        isEditing
-          ? supabase
-              .from("person")
-              .select(
-                "id,name,biography,website,image_url,profile_user_id,metadata",
-              )
-              .eq("id", record.id)
-              .single()
-          : Promise.resolve({ data: null, error: null }),
-      ]);
+      const personResult = isEditing
+        ? await supabase
+            .from("person")
+            .select("id,name,biography,website,image_url,metadata")
+            .eq("id", record.id)
+            .single()
+        : { data: null, error: null };
 
       if (cancelled) return;
-
-      if (profileResult.error) {
-        toast.error(profileResult.error.message);
-        setLoadingRecord(false);
-        return;
-      }
 
       if (personResult.error) {
         toast.error(personResult.error.message);
@@ -98,14 +80,12 @@ export default function GovernancePersonSheet({
       }
 
       const person = personResult.data;
-      setProfiles(profileResult.data || []);
       setForm(
         person
           ? {
               name: person.name || "",
               biography: person.biography || "",
               imageUrl: person.image_url || "",
-              profileUserId: person.profile_user_id || "",
               imageSourceUrl: "",
             }
           : emptyForm(),
@@ -119,22 +99,6 @@ export default function GovernancePersonSheet({
       cancelled = true;
     };
   }, [open, record?.id, isEditing]);
-
-  const profileOptions = useMemo(
-    () => [
-      {
-        value: "none",
-        label: "No linked profile",
-        searchValue: "no linked profile",
-      },
-      ...profiles.map((item) => ({
-        value: item.user_id,
-        label: item.name || item.username || "Unnamed profile",
-        searchValue: `${item.name || ""} ${item.username || ""}`,
-      })),
-    ],
-    [profiles],
-  );
 
   const setField = (field, value) =>
     setForm((current) => ({ ...current, [field]: value }));
@@ -172,8 +136,6 @@ export default function GovernancePersonSheet({
         p_name: form.name.trim(),
         p_biography: form.biography.trim() || null,
         p_image_url: imported.imageUrl,
-        p_profile_user_id:
-          form.profileUserId === "none" ? null : form.profileUserId || null,
         p_metadata: null,
       });
 
@@ -205,8 +167,6 @@ export default function GovernancePersonSheet({
         p_name: form.name.trim(),
         p_biography: form.biography.trim() || null,
         p_image_url: form.imageUrl.trim() || null,
-        p_profile_user_id:
-          form.profileUserId === "none" ? null : form.profileUserId || null,
         p_metadata: {},
       };
 
@@ -248,8 +208,6 @@ export default function GovernancePersonSheet({
             p_name: form.name.trim(),
             p_biography: form.biography.trim() || null,
             p_image_url: publicUrl,
-                        p_profile_user_id:
-              form.profileUserId === "none" ? null : form.profileUserId || null,
             p_metadata: null,
           });
 
@@ -274,8 +232,6 @@ export default function GovernancePersonSheet({
           p_name: form.name.trim(),
           p_biography: form.biography.trim() || null,
           p_image_url: imported.imageUrl,
-          p_profile_user_id:
-            form.profileUserId === "none" ? null : form.profileUserId || null,
           p_metadata: null,
         });
 
@@ -403,23 +359,6 @@ export default function GovernancePersonSheet({
                   disabled={busy}
                   autoFocus
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Linked profile</Label>
-                <SearchableSelect
-                  value={form.profileUserId || "none"}
-                  onValueChange={(value) => setField("profileUserId", value)}
-                  options={profileOptions}
-                  placeholder="No linked profile"
-                  searchPlaceholder="Search profiles..."
-                  emptyText="No profiles found."
-                  disabled={busy}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Link this governance person to an existing Citizen Action
-                  profile when they represent the same person.
-                </p>
               </div>
 
               <div className="space-y-2">

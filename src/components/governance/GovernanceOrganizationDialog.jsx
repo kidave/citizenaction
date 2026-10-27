@@ -145,10 +145,11 @@ export default function GovernanceOrganizationDialog({ open, onOpenChange, gover
             placeholder="Choose a position"
             searchPlaceholder="Search positions in this organization..."
             emptyText="No positions found in this organization."
-            disabled={saving}
+            disabled={saving || Boolean(record?.id)}
           />
         </Field>
-        {!positionId && <Field label="New position name"><Input value={positionName} onChange={(event) => setPositionName(event.target.value)} placeholder="e.g. Commissioner" disabled={saving} /></Field>}
+        {record?.id && <p className="text-xs text-muted-foreground">The position is fixed for an existing appointment to preserve its history.</p>}
+        {!record?.id && !positionId && <Field label="New position name"><Input value={positionName} onChange={(event) => setPositionName(event.target.value)} placeholder="e.g. Commissioner" disabled={saving} /></Field>}
 
         <Field label="Person">
           <SearchableSelect
@@ -163,10 +164,11 @@ export default function GovernanceOrganizationDialog({ open, onOpenChange, gover
             placeholder="Choose a person"
             searchPlaceholder="Search people by name..."
             emptyText="No people found."
-            disabled={saving || isVacant}
+            disabled={saving || isVacant || Boolean(record?.id)}
           />
         </Field>
-        {!personId && !isVacant && <Field label="New person name"><Input value={personName} onChange={(event) => setPersonName(event.target.value)} placeholder="e.g. Jane Doe" disabled={saving} /></Field>}
+        {record?.id && !isVacant && <p className="text-xs text-muted-foreground">The assigned person is fixed for an existing appointment to preserve its history. To correct an assignment, create the replacement appointment separately.</p>}
+        {!record?.id && !personId && !isVacant && <Field label="New person name"><Input value={personName} onChange={(event) => setPersonName(event.target.value)} placeholder="e.g. Jane Doe" disabled={saving} /></Field>}
 
         <div className="grid gap-3 sm:grid-cols-2"><Field label="Start date"><Input type="date" value={startedAt} onChange={(event) => setStartedAt(event.target.value)} disabled={saving} /></Field><Field label="End date"><Input type="date" value={endedAt} onChange={(event) => setEndedAt(event.target.value)} disabled={saving} /></Field></div>
         <Field label="Reports to"><SearchableSelect value={reportsToId} onValueChange={setReportsToId} options={reportsToOptions} placeholder="No reporting position" searchPlaceholder="Search reporting positions..." emptyText="No reporting positions found." disabled={saving} /></Field>
