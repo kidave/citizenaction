@@ -2,6 +2,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import { GovernanceActionDropdown } from "@/components/governance/GovernanceActionMenu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,6 +16,7 @@ import GovernanceAppointmentDialog from "@/components/governance/GovernanceAppoi
 import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import GovernanceResourceDialogs from "@/components/governance/GovernanceResourceDialogs";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
+import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 import { supabase } from "@/lib/supabase/client";
 import { formatGovernanceDate, getGovernanceInitials } from "@/utils/governance";
 
@@ -29,6 +31,7 @@ export default function GovernancePersonPage() {
   const personSlug = getValue(router.query.personSlug);
   const { data: profile } = useMyProfile();
   const canManage = profile?.role === "admin";
+  const { deletePerson } = useGovernanceCrud();
   const [appointmentOpen, setAppointmentOpen] = useState(false);
   const [appointmentRecord, setAppointmentRecord] = useState(null);
   const [editOpen, setEditOpen] = useState(false);
@@ -105,6 +108,21 @@ export default function GovernancePersonPage() {
             <GovernanceActionDropdown
               onEdit={() => setEditOpen(true)}
               editLabel="Edit Person"
+              entityLabel="person"
+              onDelete={async () => {
+                try {
+                  await deletePerson(person.id);
+                  toast.success("Person deleted");
+                  await router.push("/governance?tab=people");
+                } catch (error) {
+                  const message = error?.message || "Unable to delete person";
+                  toast.error(
+                    message.includes("appointment history")
+                      ? "This person has appointment history. Remove their appointments first, then delete the person."
+                      : message,
+                  );
+                }
+              }}
               onPrimaryAction={() => { setAppointmentRecord(null); setAppointmentOpen(true); }}
               primaryActionLabel="Add Experience"
               onAddAddress={() => setAddressOpen(true)}
