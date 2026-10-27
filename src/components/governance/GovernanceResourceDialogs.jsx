@@ -229,6 +229,7 @@ export default function GovernanceResourceDialogs({
         onChange={saveLinks}
         openOverride={linksOpen}
         onOpenChange={onLinksOpenChange}
+        hideTrigger
       />
 
       {loadingLinks ? null : null}
