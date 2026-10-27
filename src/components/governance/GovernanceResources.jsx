@@ -15,6 +15,7 @@ import {
 
 export default function GovernanceResources({
   governanceId,
+  title = "Media and documents",
   attachments = [],
   links = [],
   canEdit = false,
@@ -101,7 +102,9 @@ export default function GovernanceResources({
 
   return (
     <section className="space-y-3">
-      {canEdit && (
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-base font-semibold">{title}</h2>
+        {canEdit && (
         <TooltipProvider>
           <div className="flex items-center justify-end gap-1">
             <input ref={imageInputRef} type="file" multiple accept="image/*" className="hidden" onChange={handleFiles} />
@@ -110,7 +113,8 @@ export default function GovernanceResources({
             <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={() => documentInputRef.current?.click()} disabled={uploading} aria-label="Add documents"><FileText className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Add documents</TooltipContent></Tooltip>
           </div>
         </TooltipProvider>
-      )}
+        )}
+      </div>
 
       {hasResources && (
         <PostAttachments attachments={attachments} links={links} removable={canEdit} onRemove={handleRemove} />
