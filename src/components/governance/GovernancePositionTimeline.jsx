@@ -15,8 +15,13 @@ export default function GovernancePositionTimeline({ position, organization, tim
   const organizationLabel = organization?.name || "";
   const boundary = position?.geographies;
   const links = position?.links || [];
+  const today = new Date().toISOString().slice(0, 10);
   const currentAppointment = [...timeline]
-    .filter((item) => !item.ended_at)
+    .filter((item) => {
+      const starts = !item.started_at || String(item.started_at).slice(0, 10) <= today;
+      const hasNotEnded = !item.ended_at || String(item.ended_at).slice(0, 10) >= today;
+      return starts && hasNotEnded;
+    })
     .sort((a, b) => String(b.started_at || "").localeCompare(String(a.started_at || "")))[0] || null;
 
   const asCoordinate = (min, max, ...values) => {
@@ -64,7 +69,7 @@ export default function GovernancePositionTimeline({ position, organization, tim
                 zoom={boundary?.geom ? 10 : 14}
                 boundary={boundary?.geom || null}
                 markers={[]}
-                citizenMarker={{ image_url: position?.image_url || null, label: markerLabel }}
+                citizenMarker={{ image_url: currentAppointment && !currentAppointment.is_vacant ? currentAppointment.person_image_url || organization?.image_url || null : organization?.image_url || null, label: markerLabel }}
               />
             </div>
             {(boundary || position?.address) && (
