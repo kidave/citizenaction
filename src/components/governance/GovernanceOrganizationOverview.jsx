@@ -390,6 +390,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                   zoom={12}
                   boundary={boundary || locationData?.geom || null}
                   markers={[]}
+                  citizenMarker={{ image_url: governance?.image_url || null, label: governance?.name || "Organization" }}
                 />
               </div>
               {!locationData?.geography_id && !locationData?.geom && <div className="border-t px-3 py-2 text-xs text-muted-foreground">No jurisdiction boundary is linked yet. Add geography from organization actions to display the boundary.</div>}
