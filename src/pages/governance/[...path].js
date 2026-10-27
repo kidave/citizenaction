@@ -290,7 +290,7 @@ export default function GovernanceRecordPage() {
 
   return (
     <div className="flex min-h-dvh w-full flex-col">
-      <GovernancePageHeader items={[{ label: "Governance", href: directoryTabHref }, ...lineage.slice(0, -1).map((item) => ({ label: getGovernanceLabel(item), href: getGovernanceHref(item) })), { label: getGovernanceLabel(governance) }]} backHref={directoryTabHref} />
+      <GovernancePageHeader items={[{ label: "Governance", href: directoryTabHref }, ...lineage.slice(0, -1).map((item) => ({ label: getGovernanceLabel(item), href: getGovernanceHref(item) })), { label: governance.name || getGovernanceLabel(governance) }]} backHref={directoryTabHref} />
       <main className="min-h-0 max-w-full flex-1 overflow-x-hidden p-0">
         {view === "organization" ? (
           <GovernanceOrganizationOverview
