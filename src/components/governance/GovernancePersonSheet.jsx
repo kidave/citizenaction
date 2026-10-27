@@ -136,8 +136,6 @@ export default function GovernancePersonSheet({
         p_name: form.name.trim(),
         p_biography: form.biography.trim() || null,
         p_image_url: imported.imageUrl,
-        p_profile_user_id:
-          form.profileUserId === "none" ? null : form.profileUserId || null,
         p_metadata: null,
       });
 
@@ -169,8 +167,6 @@ export default function GovernancePersonSheet({
         p_name: form.name.trim(),
         p_biography: form.biography.trim() || null,
         p_image_url: form.imageUrl.trim() || null,
-        p_profile_user_id:
-          form.profileUserId === "none" ? null : form.profileUserId || null,
         p_metadata: {},
       };
 
@@ -212,8 +208,6 @@ export default function GovernancePersonSheet({
             p_name: form.name.trim(),
             p_biography: form.biography.trim() || null,
             p_image_url: publicUrl,
-                        p_profile_user_id:
-              form.profileUserId === "none" ? null : form.profileUserId || null,
             p_metadata: null,
           });
 
@@ -238,8 +232,6 @@ export default function GovernancePersonSheet({
           p_name: form.name.trim(),
           p_biography: form.biography.trim() || null,
           p_image_url: imported.imageUrl,
-          p_profile_user_id:
-            form.profileUserId === "none" ? null : form.profileUserId || null,
           p_metadata: null,
         });
 
@@ -367,23 +359,6 @@ export default function GovernancePersonSheet({
                   disabled={busy}
                   autoFocus
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Linked profile</Label>
-                <SearchableSelect
-                  value={form.profileUserId || "none"}
-                  onValueChange={(value) => setField("profileUserId", value)}
-                  options={profileOptions}
-                  placeholder="No linked profile"
-                  searchPlaceholder="Search profiles..."
-                  emptyText="No profiles found."
-                  disabled={busy}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Link this governance person to an existing Citizen Action
-                  profile when they represent the same person.
-                </p>
               </div>
 
               <div className="space-y-2">
