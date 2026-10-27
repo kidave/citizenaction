@@ -22,7 +22,10 @@ export default function GovernancePositionTimeline({ position, organization, tim
       const hasNotEnded = !item.ended_at || String(item.ended_at).slice(0, 10) >= today;
       return starts && hasNotEnded;
     })
-    .sort((a, b) => String(b.started_at || "").localeCompare(String(a.started_at || "")))[0] || null;
+    .sort((a, b) =>
+      Number(Boolean(b.is_primary)) - Number(Boolean(a.is_primary)) ||
+      String(b.started_at || "").localeCompare(String(a.started_at || ""))
+    )[0] || null;
 
   const asCoordinate = (min, max, ...values) => {
     for (const value of values) {
@@ -37,9 +40,11 @@ export default function GovernancePositionTimeline({ position, organization, tim
   const positionLongitude = asCoordinate(-180, 180, position?.lng, position?.metadata?.office_lng, position?.metadata?.lng, positionAddress?.lng, positionAddress?.longitude);
   const organizationLatitude = asCoordinate(-90, 90, organization?.lat, organization?.metadata?.office_lat, organization?.metadata?.lat);
   const organizationLongitude = asCoordinate(-180, 180, organization?.lng, organization?.metadata?.office_lng, organization?.metadata?.lng);
-  const latitude = positionLatitude ?? organizationLatitude;
-  const longitude = positionLongitude ?? organizationLongitude;
-  const hasCoordinates = latitude !== null && longitude !== null;
+  const hasPositionCoordinates = positionLatitude !== null && positionLongitude !== null;
+  const hasOrganizationCoordinates = organizationLatitude !== null && organizationLongitude !== null;
+  const latitude = hasPositionCoordinates ? positionLatitude : organizationLatitude;
+  const longitude = hasPositionCoordinates ? positionLongitude : organizationLongitude;
+  const hasCoordinates = hasPositionCoordinates || hasOrganizationCoordinates;
   const markerLabel = currentAppointment?.person_name && !currentAppointment?.is_vacant
     ? `${currentAppointment.person_name} — ${position?.name || "Current officeholder"}`
     : currentAppointment?.is_vacant
