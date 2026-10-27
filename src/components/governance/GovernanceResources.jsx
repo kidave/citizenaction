@@ -21,6 +21,7 @@ export default function GovernanceResources({
   links = [],
   canEdit = false,
   onChanged,
+  showEmptyStateWhenEmpty = false,
 }) {
   const imageInputRef = useRef(null);
   const documentInputRef = useRef(null);
@@ -99,6 +100,8 @@ export default function GovernanceResources({
   };
 
 
+
+  if (!hasResources && !canEdit && !showEmptyStateWhenEmpty) return null;
 
   return (
     <section className="space-y-3">
