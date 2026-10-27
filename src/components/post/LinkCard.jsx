@@ -47,10 +47,10 @@ export default function LinkCard({ link, size = "default" }) {
       target="_blank"
       rel="noopener noreferrer"
       onClick={(event) => event.stopPropagation()}
-      className="group flex h-[144px] min-h-0 w-full flex-col overflow-hidden rounded-xl border bg-card transition-all duration-300 ease-out hover:border-primary/30 hover:shadow-md md:rounded-2xl"
+      className="group flex h-[260px] min-h-[260px] w-full flex-col overflow-hidden rounded-xl border bg-card transition-all duration-300 ease-out hover:border-primary/30 hover:shadow-md md:rounded-2xl"
     >
       {link.image_url ? (
-        <div className="relative h-[84px] w-full shrink-0 overflow-hidden bg-muted">
+        <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden bg-muted">
           <Image
             src={link.image_url}
             alt={link.title || provider}
