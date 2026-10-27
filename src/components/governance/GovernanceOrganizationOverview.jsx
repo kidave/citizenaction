@@ -27,7 +27,7 @@ import PostLinks from "@/components/post/PostLinks";
 
 const LeafletMap = dynamic(() => import("@/components/geography/LeafletMap"), { ssr: false, loading: () => <div className="flex h-full min-h-[320px] items-center justify-center text-sm text-muted-foreground">Loading map…</div> });
 import { useGovernanceOrganizationContext } from "@/hooks/governance/useGovernanceOrganizationContext";
-import GovernanceCardActions from "@/components/governance/GovernanceCardActions";
+import { GovernanceActionDropdown } from "@/components/governance/GovernanceActionMenu";
 
 
 function OrganizationUnit({ node, childrenByParent, canEdit, onSelect, expandedPath, onToggle }) {
@@ -354,7 +354,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
     <div className="min-h-[calc(100vh-5.5rem)] bg-background">
       <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-5 sm:px-6 lg:px-8">
         <section className="grid items-stretch gap-4 lg:grid-cols-2">
-          <div className="flex min-w-0 flex-col gap-4 rounded-xl border p-4 sm:p-5">
+          <div className="flex min-w-0 flex-col gap-4">
             <div className="flex items-start gap-3">
               <Avatar className="h-14 w-14 shrink-0 rounded-xl sm:h-16 sm:w-16">
                 <AvatarImage src={root.image_url || undefined} alt="" />
@@ -366,7 +366,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
               </div>
               <div className="flex shrink-0 items-center gap-1">
                 {onViewTree && <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={onViewTree} aria-label="View organization tree"><Network className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>View organization tree</TooltipContent></Tooltip>}
-                {canEdit && <GovernanceCardActions
+                {canEdit && <GovernanceActionDropdown
                   onViewTree={() => onViewTree?.()}
                   onEdit={() => onEdit?.(governance)}
                   onPrimaryAction={() => onAddPosition?.(governance)}
@@ -384,8 +384,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                   hasGeography={Boolean(locationData?.geography_id || root.geography_id)}
                   hasLinks={organizationResources.links.length > 0}
                 >
-                  <Button type="button" variant="outline" size="icon" className="h-9 w-9 shrink-0" aria-label="Organization actions"><MoreHorizontal className="h-5 w-5" /></Button>
-                </GovernanceCardActions>}
+                />}
               </div>
             </div>
             {root.description && <p className="text-sm leading-6 text-muted-foreground">{root.description}</p>}
