@@ -386,6 +386,8 @@ def main() -> int:
     parser.add_argument("--max-pages", type=int, default=1000)
     parser.add_argument("--limit-records", type=int, default=None,
                         help="Fetch only this many source rows for a small test.")
+    parser.add_argument("--member-id", default=None,
+                        help="Process exactly one Digital Sansad mpsno (fetches the source listing, then selects that member). Cannot be combined with --limit-records.")
     parser.add_argument("--min-source-records", type=int, default=1000,
                         help="Fail closed if fewer source rows are returned (protects against partial/API errors).")
     parser.add_argument("--timeout", type=int, default=30)
@@ -401,12 +403,23 @@ def main() -> int:
     try:
         if args.limit_records is not None and args.limit_records < 1:
             raise ValueError("--limit-records must be at least 1.")
+        if args.member_id and args.limit_records is not None:
+            raise ValueError("--member-id cannot be combined with --limit-records.")
         source_rows, advertised_total = fetch_all_members(args.page_size, args.max_pages, args.timeout, args.limit_records)
+        if args.member_id:
+            requested_id = clean(args.member_id)
+            matches = [row for row in source_rows if source_identity(row) == requested_id]
+            if len(matches) != 1:
+                raise ValueError(
+                    f"--member-id {requested_id!r} matched {len(matches)} source rows; "
+                    "refusing to continue unless exactly one member is found."
+                )
+            source_rows = matches
     except Exception as exc:
         print(f"ERROR fetching Digital Sansad: {exc}", file=sys.stderr)
         return 1
 
-    if args.limit_records is None and len(source_rows) < args.min_source_records:
+    if args.limit_records is None and not args.member_id and len(source_rows) < args.min_source_records:
         print(
             f"ERROR: only {len(source_rows)} source records fetched (minimum {args.min_source_records}); "
             "refusing to proceed because this may be a partial response.",
@@ -531,6 +544,7 @@ def main() -> int:
         "planned_party_entities": len(party_to_create),
         "mode": "apply" if args.apply else "dry-run",
         "sample_limit_records": args.limit_records,
+        "selected_member_id": clean(args.member_id),
         "results": {"inserted": 0, "updated": 0, "errors": []},
     }
 
@@ -616,7 +630,6 @@ def main() -> int:
                     else:
                         patch.pop("image_url", None)
 
-        # Batch inserts, then update matches individually to avoid overwriting concurrent edits.
         # Batch inserts, then update matches individually to avoid overwriting concurrent edits.
         for start in range(0, len(inserts), 100):
             batch = inserts[start:start + 100]
