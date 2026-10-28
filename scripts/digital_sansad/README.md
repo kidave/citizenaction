@@ -37,11 +37,19 @@ $env:SUPABASE_URL = "https://YOUR_PROJECT.supabase.co"
 $env:SUPABASE_SERVICE_ROLE_KEY = "YOUR_SERVICE_ROLE_KEY"
 ```
 
-Preview only:
+Preview the first source row only (not a specific member):
 
 ```powershell
-python scripts\digital_sansad\import_members.py --report digital-sansad-import-report.json
+python scripts\digital_sansad\import_members.py --limit-records 1 --report digital-sansad-test.json
 ```
+
+Preview one specific member by Digital Sansad `mpsno` (recommended for a targeted test):
+
+```powershell
+python scripts\digital_sansad\import_members.py --member-id 344 --report digital-sansad-member-344.json
+```
+
+`--member-id` fetches the source listing and proceeds only if exactly one record has that stable ID. It cannot be combined with `--limit-records`. This is still a dry-run; no Supabase writes occur without `--apply`.
 
 Write after reviewing the preview:
 
