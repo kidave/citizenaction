@@ -389,6 +389,14 @@ def resolve_party(
         normalize_name(str(p.get("short_name") or "")),
         normalize_name(str(p.get("slug") or "").replace("-", " ")),
     }]
+    if source_id and any(
+        p.get("source_system") == "digital_sansad"
+        and clean(p.get("source_id"))
+        and clean(p.get("source_id")) != source_id
+        for p in matches
+    ):
+        # A conflicting source identifier is not safe to override with a name match.
+        return None, True
     return (matches[0], False) if len(matches) == 1 else (None, len(matches) > 1)
 
 
