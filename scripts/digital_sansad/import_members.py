@@ -231,7 +231,7 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
         if value is not None:
             metadata[target] = value
 
-    person: dict[str, Any] = {"name": name, "metadata": metadata}
+    person: dict[str, Any] = {"name": name, "slug": f"{slugify(name)}-{mpsno}", "metadata": metadata}
     if image_url and image_url.startswith(("https://", "http://")):
         person["image_url"] = image_url
     qualification = clean(first(record, "qualification", "educationalQualification", "education"))
@@ -349,7 +349,7 @@ def resolve_party(name: str | None, parties: list[dict[str, Any]]) -> tuple[dict
     if not name:
         return None, False
     key = normalize_name(name)
-    matches = [p for p in parties if key in {
+    matches = [p for p in parties if str(p.get("type") or "") == "political_party" and key in {
         normalize_name(str(p.get("name") or "")),
         normalize_name(str(p.get("short_name") or "")),
         normalize_name(str(p.get("slug") or "").replace("-", " ")),
