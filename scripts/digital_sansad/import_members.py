@@ -280,8 +280,6 @@ def fetch_existing_people(base_url: str, key: str) -> list[dict[str, Any]]:
     return people
 
 
-def merge_missing(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
-
 def slugify(value: str) -> str:
     value = normalize_name(value).replace(" ", "-")
     return re.sub(r"-+", "-", value).strip("-") or "unknown"
@@ -360,6 +358,7 @@ def resolve_party(name: str | None, parties: list[dict[str, Any]]) -> tuple[dict
 
 
 
+def merge_missing(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
     """Only enrich blanks and merge the importer-owned metadata keys."""
     patch: dict[str, Any] = {}
     for field in ("image_url", "qualification", "profession", "birth_date"):
