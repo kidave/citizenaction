@@ -79,8 +79,12 @@ The service-role key bypasses RLS. Keep it private and use it only in a trusted 
 
 ## GitHub Actions
 
-The scheduled workflow runs a **dry-run only** and can be triggered manually. A manual run writes changes only when the `apply` input is explicitly set to `true`. It requires repository secrets:
+The workflow runs every Sunday at 12:30 IST. **Scheduled runs automatically apply** the importer's safe additive/enrichment changes so newly listed members are inserted and previously imported members are refreshed with missing public fields. It never deletes records. The importer checks source completeness before a full import and uses the stable Digital Sansad member ID to avoid duplicate imports.
+
+Manual runs remain **dry-run by default**. Set the `apply` input to `true` only when you explicitly want a manual run to write to Supabase. Every run uploads its JSON report as an artifact for 90 days.
+
+Repository secrets required:
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 
-The workflow uploads its JSON report as an artifact. A scheduled run applies additive/enrichment-only changes; it never deletes records. Before enabling the schedule, run a manual dry-run and inspect the source totals and mapping against the current Digital Sansad API response.
+Before merging/enabling automatic sync, run a manual dry-run and inspect the source totals and mapping against the current Digital Sansad API response. The scheduled workflow only runs from the repository's default branch, so these changes take effect after this PR is merged.
