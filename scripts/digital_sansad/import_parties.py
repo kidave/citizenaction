@@ -157,13 +157,20 @@ def main() -> int:
                     or normalize(clean(row.get("short_name"))) in labels
                     or normalize(clean(row.get("slug")).replace("-", " ")) in labels
                 ]
-                if len(matches) == 1:
+                conflicting_source_match = any(
+                    row.get("source_system") == SOURCE_SYSTEM
+                    and clean(row.get("source_id"))
+                    and clean(row.get("source_id")) != source_id
+                    for row in matches
+                )
+                if len(matches) == 1 and not conflicting_source_match:
                     current = matches[0]
-                elif len(matches) > 1:
+                elif matches:
                     ambiguous.append({
                         "source_id": source_id,
                         "name": incoming["name"],
                         "matching_governance_ids": [row.get("id") for row in matches],
+                        "reason": "Conflicting source identity" if conflicting_source_match else "Multiple name matches",
                     })
                     continue
 
