@@ -111,18 +111,19 @@ def unwrap_page(payload: Any) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     )
 
 
-def fetch_all_members(page_size: int, max_pages: int, timeout: int) -> tuple[list[dict[str, Any]], int | None]:
+def fetch_all_members(page_size: int, max_pages: int, timeout: int, limit_records: int | None = None) -> tuple[list[dict[str, Any]], int | None]:
     session = requests.Session()
     session.headers.update(HEADERS)
     members: list[dict[str, Any]] = []
     total_elements: int | None = None
     total_pages: int | None = None
 
+    effective_page_size = min(page_size, limit_records) if limit_records else page_size
     for page in range(1, max_pages + 1):
         params = {
             "state": "", "party": "", "constituency": "", "gender": "",
             "ageFrom": "", "ageTo": "", "noOfTerms": "", "page": page,
-            "size": page_size, "searchText": "", "locale": "en",
+            "size": effective_page_size, "searchText": "", "locale": "en",
             "loksabha": "", "month": "", "profession": "",
             "otherProfession": "", "constituencyCategory": "", "positionCode": "",
             "qualification": "", "noOfChildren": "", "isFreedomFighter": "",
@@ -151,13 +152,21 @@ def fetch_all_members(page_size: int, max_pages: int, timeout: int) -> tuple[lis
                 except (TypeError, ValueError):
                     pass
 
+        if limit_records:
+            page_records = page_records[: max(0, limit_records - len(members))]
         members.extend(page_records)
         print(f"Fetched page {page}: {len(page_records)} records (total fetched: {len(members)})")
+        if limit_records and len(members) >= limit_records:
+            break
         if total_pages is not None and page >= total_pages:
             break
         if len(page_records) < page_size:
             break
         time.sleep(PAGE_PAUSE_SECONDS)
+
+    # A deliberately limited sample is for testing only; do not compare it to global totals.
+    if limit_records:
+        return members, total_elements
 
     # If the API advertises pagination totals, refuse incomplete retrieval.
     if total_pages is not None and len(members) < total_pages * page_size and len(members) < (total_elements or 0):
@@ -290,6 +299,8 @@ def main() -> int:
     parser.add_argument("--apply", action="store_true", help="Write changes to Supabase. Without this flag, only preview.")
     parser.add_argument("--page-size", type=int, default=DEFAULT_PAGE_SIZE)
     parser.add_argument("--max-pages", type=int, default=1000)
+    parser.add_argument("--limit-records", type=int, default=None,
+                        help="Fetch only this many source rows for a small test.")
     parser.add_argument("--min-source-records", type=int, default=1000,
                         help="Fail closed if fewer source rows are returned (protects against partial/API errors).")
     parser.add_argument("--timeout", type=int, default=30)
@@ -303,12 +314,14 @@ def main() -> int:
         return 2
 
     try:
-        source_rows, advertised_total = fetch_all_members(args.page_size, args.max_pages, args.timeout)
+        if args.limit_records is not None and args.limit_records < 1:
+            raise ValueError("--limit-records must be at least 1.")
+        source_rows, advertised_total = fetch_all_members(args.page_size, args.max_pages, args.timeout, args.limit_records)
     except Exception as exc:
         print(f"ERROR fetching Digital Sansad: {exc}", file=sys.stderr)
         return 1
 
-    if len(source_rows) < args.min_source_records:
+    if args.limit_records is None and len(source_rows) < args.min_source_records:
         print(
             f"ERROR: only {len(source_rows)} source records fetched (minimum {args.min_source_records}); "
             "refusing to proceed because this may be a partial response.",
@@ -395,6 +408,7 @@ def main() -> int:
         "planned_updates": len(updates),
         "ambiguous_name_matches_skipped": ambiguous,
         "mode": "apply" if args.apply else "dry-run",
+        "sample_limit_records": args.limit_records,
         "results": {"inserted": 0, "updated": 0, "errors": []},
     }
 
