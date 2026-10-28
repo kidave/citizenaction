@@ -540,6 +540,18 @@ def main() -> int:
         print(f"Ambiguous name matches skipped: {len(ambiguous)} (see report file).")
 
     if args.apply:
+        # Fail before any writes if the migration that provides normalized relationships is missing.
+        try:
+            for table in ("person_geography_relationship", "person_governance_relationship"):
+                supabase_request("GET", supabase_url.rstrip("/") + "/rest/v1/" + table, supabase_key,
+                    params={"select": "id", "limit": 1})
+        except Exception as exc:
+            report["results"]["errors"].append({"operation": "preflight", "error": str(exc), "hint": "Apply the Digital Sansad importer migration before running with --apply."})
+            with open(args.report, "w", encoding="utf-8") as handle:
+                json.dump(report, handle, ensure_ascii=False, indent=2)
+            print(f"ERROR: importer schema preflight failed; no member writes attempted. See {args.report}.", file=sys.stderr)
+            return 1
+
         rest_url = supabase_url.rstrip("/") + "/rest/v1/person"
         governance_url = supabase_url.rstrip("/") + "/rest/v1/governance"
         # Create unresolved party entities only after the operator explicitly selects --apply.
@@ -567,6 +579,12 @@ def main() -> int:
                     report["results"]["errors"].append({"operation": "create_party", "name": party["name"], "error": "Created party but could not resolve its ID."})
             except Exception as exc:
                 report["results"]["errors"].append({"operation": "create_party", "name": party["name"], "error": str(exc)})
+
+        if report["results"]["errors"]:
+            with open(args.report, "w", encoding="utf-8") as handle:
+                json.dump(report, handle, ensure_ascii=False, indent=2)
+            print(f"ERROR: party setup failed; refusing to import members. See {args.report}.", file=sys.stderr)
+            return 1
 
         # Attach resolved party/geography IDs to incoming metadata, including IDs of parties created above.
         party_ids: dict[str, str] = {}
