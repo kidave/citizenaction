@@ -540,18 +540,6 @@ def main() -> int:
         print(f"Ambiguous name matches skipped: {len(ambiguous)} (see report file).")
 
     if args.apply:
-        # Fail before any writes if the migration that provides normalized relationships is missing.
-        try:
-            for table in ("person_geography_relationship", "person_governance_relationship"):
-                supabase_request("GET", supabase_url.rstrip("/") + "/rest/v1/" + table, supabase_key,
-                    params={"select": "id", "limit": 1})
-        except Exception as exc:
-            report["results"]["errors"].append({"operation": "preflight", "error": str(exc), "hint": "Apply the Digital Sansad importer migration before running with --apply."})
-            with open(args.report, "w", encoding="utf-8") as handle:
-                json.dump(report, handle, ensure_ascii=False, indent=2)
-            print(f"ERROR: importer schema preflight failed; no member writes attempted. See {args.report}.", file=sys.stderr)
-            return 1
-
         rest_url = supabase_url.rstrip("/") + "/rest/v1/person"
         governance_url = supabase_url.rstrip("/") + "/rest/v1/governance"
         # Create unresolved party entities only after the operator explicitly selects --apply.
@@ -653,65 +641,6 @@ def main() -> int:
                 except Exception as exc:
                     report["results"]["errors"].append({"operation": "update", "id": existing.get("id"), "error": str(exc)})
 
-        # Sync normalized person↔geography and person↔party relationships after people writes.
-        # The join tables are created by the accompanying Supabase migration.
-        if not report["results"]["errors"]:
-            try:
-                refreshed_people = fetch_existing_people(supabase_url, supabase_key)
-                source_person_by_id: dict[str, dict[str, Any]] = {}
-                for row in refreshed_people:
-                    meta = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
-                    if meta.get("official_source") == "Digital Sansad" and clean(meta.get("mpsno")):
-                        source_person_by_id[clean(meta.get("mpsno"))] = row
-
-                geography_links: list[dict[str, Any]] = []
-                party_links: list[dict[str, Any]] = []
-                for source_id, incoming in source_people.items():
-                    metadata = incoming.get("metadata") if isinstance(incoming.get("metadata"), dict) else {}
-                    person_row = source_person_by_id.get(source_id)
-                    if not person_row:
-                        # Exact-name fallback only when unique.
-                        matches = [row for row in refreshed_people if normalize_name(str(row.get("name") or "")) == normalize_name(incoming["name"])]
-                        if len(matches) == 1:
-                            person_row = matches[0]
-                    if not person_row:
-                        report["results"]["errors"].append({"operation": "resolve_person_for_relationship", "mpsno": source_id, "name": incoming["name"], "error": "Could not resolve imported person ID."})
-                        continue
-                    geography_id = metadata.get("constituency_geography_id")
-                    if geography_id:
-                        geography_links.append({
-                            "person_id": person_row["id"], "geography_id": geography_id,
-                            "relationship_type": "represents", "source": "Digital Sansad",
-                            "source_id": source_id, "metadata": {"constituency_name": metadata.get("constituency"), "official_source_url": SOURCE_URL}
-                        })
-                    party_name = clean(metadata.get("party_source_name")) or clean(metadata.get("party_short_name"))
-                    party_id = party_ids.get(normalize_name(party_name)) if party_name else None
-                    if party_id:
-                        party_links.append({
-                            "person_id": person_row["id"], "governance_id": party_id,
-                            "relationship_type": "party_affiliation", "source": "Digital Sansad",
-                            "source_id": source_id, "metadata": {"party_name": party_name, "party_short_name": metadata.get("party_short_name"), "official_source_url": SOURCE_URL}
-                        })
-
-                for table, links, conflict in (
-                    ("person_geography_relationship", geography_links, "person_id,geography_id,relationship_type"),
-                    ("person_governance_relationship", party_links, "person_id,governance_id,relationship_type"),
-                ):
-                    endpoint = supabase_url.rstrip("/") + "/rest/v1/" + table
-                    for start in range(0, len(links), 100):
-                        batch = links[start:start + 100]
-                        if not batch:
-                            continue
-                        try:
-                            supabase_request("POST", endpoint, supabase_key,
-                                params={"on_conflict": conflict}, json=batch,
-                                headers={"Prefer": "resolution=merge-duplicates,return=minimal"})
-                            report["results"][table + "_upserted"] = report["results"].get(table + "_upserted", 0) + len(batch)
-                        except Exception as exc:
-                            report["results"]["errors"].append({"operation": "upsert_relationships", "table": table, "start": start, "count": len(batch), "error": str(exc)})
-                            break
-            except Exception as exc:
-                report["results"]["errors"].append({"operation": "sync_relationships", "error": str(exc)})
 
     try:
         with open(args.report, "w", encoding="utf-8") as handle:
