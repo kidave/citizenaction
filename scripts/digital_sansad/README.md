@@ -13,8 +13,11 @@ Source:
 - Uses Digital Sansad's stable `mpsno` identifier when available.
 - Exact normalized-name matching is used only when it identifies exactly one existing person. Ambiguous matches are skipped and reported.
 - Existing user-entered values are preserved; only missing public profile fields are enriched.
-- Never imports personal phone numbers or addresses.
-- Does not create appointments or delete records.
+- Profile photos are copied from Digital Sansad into the existing public `governance` Storage bucket at `person/<slug>-<mpsno>/profile.<ext>`; `person.image_url` stores the resulting public Storage URL. Unsupported or failed photos are reported and do not block the member import.
+- Member names remain in the existing single `person.name` column. The importer uses the best source display-name field and does not invent expansions for initials. It generates a unique slug using the source member ID.
+- Constituencies are resolved only against existing `geographies` rows where `boundary_category = political` and `geography_type = parliamentary_constituency`. The resolved geography ID is recorded in person metadata; unresolved and ambiguous names are reported rather than creating duplicate boundaries.
+- Political parties are resolved against governance entities of type `political_party`. Missing parties are created with the full source name and the source short name (e.g. DMK) when available. The resolved governance ID is recorded in person metadata. Apply the included migration before running with `--apply`.
+- Does not create parliamentary positions or appointments, and never deletes records.
 - The report records source totals, matches, planned writes, and errors.
 
 ## Local setup (PowerShell)
@@ -50,7 +53,7 @@ The service-role key bypasses RLS. Keep it private and use it only in a trusted 
 
 ## GitHub Actions
 
-The scheduled workflow runs weekly and can be triggered manually. It requires repository secrets:
+The scheduled workflow runs a **dry-run only** and can be triggered manually. A manual run writes changes only when the `apply` input is explicitly set to `true`. It requires repository secrets:
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 
