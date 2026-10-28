@@ -15,9 +15,9 @@ Source:
 - Existing user-entered values are preserved; only missing public profile fields are enriched.
 - Profile photos are copied from Digital Sansad into the existing public `governance` Storage bucket at `person/<slug>-<mpsno>/profile.<ext>`; `person.image_url` stores the resulting public Storage URL. Unsupported or failed photos are reported and do not block the member import.
 - Member names remain in the existing single `person.name` column. The importer uses the best source display-name field and does not invent expansions for initials. It generates a unique slug using the source member ID.
-- Constituencies are resolved only against existing `geographies` rows where `boundary_category = political` and `geography_type = parliamentary_constituency`. The importer records the resolved geography ID in metadata and upserts a normalized `person_geography_relationship` row with relationship type `represents`. Unresolved and ambiguous names are reported rather than creating duplicate boundaries.
-- Political parties are resolved against governance entities of type `political_party`. Missing parties are created with the full source name and source short name (e.g. DMK) when available. The importer records the governance ID in metadata and upserts a normalized `person_governance_relationship` row with relationship type `party_affiliation`. Apply the included migration before running with `--apply`.
-- Does not create parliamentary positions or appointments, and never deletes records.
+- Constituencies are resolved only against existing `geographies` rows where `boundary_category = political` and `geography_type = parliamentary_constituency`. The resolved geography ID is retained in source metadata for later use by the existing position/appointment model; unresolved and ambiguous names are reported rather than creating duplicate boundaries.
+- Political parties are resolved against governance entities of type `political_party`. Missing parties are created with the full source name and source short name (e.g. DMK) when available. The governance ID is retained in source metadata; this member-list importer does not create a parallel person-to-party or person-to-geography relationship table.
+- This listing importer does not create career appointments. Career history must use the existing `governance` → `position` → `position_appointment` model. It never deletes records.
 - The report records source totals, matches, planned writes, and errors.
 
 ## Local setup (PowerShell)
