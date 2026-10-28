@@ -116,7 +116,13 @@ def unwrap_page(payload: Any) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     )
 
 
-def fetch_all_members(page_size: int, max_pages: int, timeout: int, limit_records: int | None = None) -> tuple[list[dict[str, Any]], int | None]:
+def fetch_all_members(
+    page_size: int,
+    max_pages: int,
+    timeout: int,
+    limit_records: int | None = None,
+    member_id: str | None = None,
+) -> tuple[list[dict[str, Any]], int | None]:
     session = requests.Session()
     session.headers.update(HEADERS)
     members: list[dict[str, Any]] = []
@@ -157,6 +163,13 @@ def fetch_all_members(page_size: int, max_pages: int, timeout: int, limit_record
                 except (TypeError, ValueError):
                     pass
 
+        if member_id:
+            matches = [row for row in page_records if source_identity(row) == member_id]
+            if matches:
+                members.extend(matches)
+                print(f"Found Digital Sansad mpsno {member_id} on page {page}.")
+                break
+
         if limit_records:
             page_records = page_records[: max(0, limit_records - len(members))]
         members.extend(page_records)
@@ -168,6 +181,11 @@ def fetch_all_members(page_size: int, max_pages: int, timeout: int, limit_record
         if len(page_records) < page_size:
             break
         time.sleep(PAGE_PAUSE_SECONDS)
+
+    # Targeted lookups intentionally stop after the page containing the requested ID.
+    # The full-list completeness check below does not apply to a one-member lookup.
+    if member_id:
+        return members, total_elements
 
     # A deliberately limited sample is for testing only; do not compare it to global totals.
     if limit_records:
@@ -221,6 +239,7 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
         "party_source_name": ("partyFname", "partyName", "party"),
         "party": ("party", "partyName", "partyFname"),
         "party_short_name": ("partySname",),
+        "party_source_id": ("partyCode", "party_code", "partyId", "party_id"),
         "gender": ("gender",),
         "constituencyCategory": ("constituencyCategory", "constituency_category"),
         "state": ("state", "stateName"),
@@ -345,11 +364,27 @@ def resolve_geography(name: str | None, geographies: list[dict[str, Any]]) -> tu
     return (str(matches[0]["id"]), False) if len(matches) == 1 else (None, len(matches) > 1)
 
 
-def resolve_party(name: str | None, parties: list[dict[str, Any]]) -> tuple[dict[str, Any] | None, bool]:
+def resolve_party(
+    name: str | None,
+    parties: list[dict[str, Any]],
+    source_id: str | None = None,
+) -> tuple[dict[str, Any] | None, bool]:
+    """Prefer the external source identity; use exact normalized labels as a fallback."""
+    candidates = [p for p in parties if str(p.get("type") or "") == "political_party"]
+    if source_id:
+        source_matches = [
+            p for p in candidates
+            if p.get("source_system") == "digital_sansad"
+            and clean(p.get("source_id")) == source_id
+        ]
+        if len(source_matches) == 1:
+            return source_matches[0], False
+        if len(source_matches) > 1:
+            return None, True
     if not name:
         return None, False
     key = normalize_name(name)
-    matches = [p for p in parties if str(p.get("type") or "") == "political_party" and key in {
+    matches = [p for p in candidates if key in {
         normalize_name(str(p.get("name") or "")),
         normalize_name(str(p.get("short_name") or "")),
         normalize_name(str(p.get("slug") or "").replace("-", " ")),
@@ -371,7 +406,7 @@ def merge_missing(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[st
     # Preserve unrelated/user-created metadata. Update only fields this importer owns.
     for key, value in new_metadata.items():
         if key in {"official_source", "official_source_url", "mpsno", "lsExpr", "noOfTerms", "status",
-                   "constituency", "party", "party_short_name", "party_source_name", "gender", "constituencyCategory", "state", "profession2", "constituency_geography_id", "party_governance_id"}:
+                   "constituency", "party", "party_short_name", "party_source_name", "gender", "constituencyCategory", "state", "profession2", "constituency_geography_id", "party_governance_id", "party_source_id"}:
             if value is not None:
                 merged[key] = value
     if merged != old_metadata:
@@ -405,9 +440,11 @@ def main() -> int:
             raise ValueError("--limit-records must be at least 1.")
         if args.member_id and args.limit_records is not None:
             raise ValueError("--member-id cannot be combined with --limit-records.")
-        source_rows, advertised_total = fetch_all_members(args.page_size, args.max_pages, args.timeout, args.limit_records)
-        if args.member_id:
-            requested_id = clean(args.member_id)
+        requested_id = clean(args.member_id)
+        source_rows, advertised_total = fetch_all_members(
+            args.page_size, args.max_pages, args.timeout, args.limit_records, requested_id
+        )
+        if requested_id:
             matches = [row for row in source_rows if source_identity(row) == requested_id]
             if len(matches) != 1:
                 raise ValueError(
@@ -451,7 +488,7 @@ def main() -> int:
         try:
             existing_people = fetch_existing_people(supabase_url, supabase_key)
             existing_geographies = fetch_rest_rows(supabase_url, supabase_key, "geographies", "id,name,official_name,slug,geography_type,boundary_category", {"geography_type": "eq.parliamentary_constituency", "boundary_category": "eq.political"})
-            existing_governance = fetch_rest_rows(supabase_url, supabase_key, "governance", "id,name,short_name,slug,type,metadata")
+            existing_governance = fetch_rest_rows(supabase_url, supabase_key, "governance", "id,name,short_name,slug,type,metadata,source_system,source_id")
         except Exception as exc:
             print(f"ERROR reading existing people from Supabase: {exc}", file=sys.stderr)
             return 1
@@ -478,6 +515,7 @@ def main() -> int:
     ambiguous_constituencies: list[dict[str, Any]] = []
     ambiguous_parties: list[dict[str, Any]] = []
     party_to_create: dict[str, dict[str, Any]] = {}
+    party_identity_updates: dict[str, dict[str, Any]] = {}
     updates: list[tuple[dict[str, Any], dict[str, Any]]] = []
     ambiguous: list[dict[str, Any]] = []
     matched_existing = 0
@@ -493,16 +531,27 @@ def main() -> int:
             (ambiguous_constituencies if geography_ambiguous else unresolved_constituencies).append(item)
 
         party_name = clean(source_meta.get("party_source_name")) or clean(source_meta.get("party_short_name"))
-        party, party_ambiguous = resolve_party(party_name, existing_governance)
+        party_source_id = clean(source_meta.get("party_source_id"))
+        party, party_ambiguous = resolve_party(party_name, existing_governance, party_source_id)
         if party:
             source_meta["party_governance_id"] = party["id"]
+            if party_source_id and not party.get("source_id") and not party.get("source_system"):
+                party_identity_updates[str(party["id"])] = {
+                    "id": party["id"], "source_system": "digital_sansad", "source_id": party_source_id,
+                }
         elif party_name and not party_ambiguous:
             party_key = normalize_name(party_name)
             if party_key:
-                party_to_create.setdefault(party_key, {"name": party_name, "slug": slugify(party_name), "type": "political_party",
-                    "short_name": clean(source_meta.get("party_short_name")), "metadata": {
+                party_to_create.setdefault(party_key, {
+                    "name": party_name, "slug": slugify(party_name), "type": "political_party",
+                    "short_name": clean(source_meta.get("party_short_name")),
+                    "source_system": "digital_sansad" if party_source_id else None,
+                    "source_id": party_source_id,
+                    "metadata": {
                         "official_source": "Digital Sansad", "party_name": party_name,
-                        "party_short_name": clean(source_meta.get("party_short_name"))}})
+                        "party_short_name": clean(source_meta.get("party_short_name")),
+                    },
+                })
         elif party_name and party_ambiguous:
             ambiguous_parties.append({"mpsno": source_id, "name": incoming["name"], "party": party_name})
 
@@ -556,14 +605,40 @@ def main() -> int:
     if args.apply:
         rest_url = supabase_url.rstrip("/") + "/rest/v1/person"
         governance_url = supabase_url.rstrip("/") + "/rest/v1/governance"
+        # Attach source identity to unambiguous existing party matches before creating missing parties.
+        for identity_patch in party_identity_updates.values():
+            try:
+                supabase_request(
+                    "PATCH", governance_url, supabase_key,
+                    params={"id": f"eq.{identity_patch['id']}"},
+                    json={"source_system": identity_patch["source_system"], "source_id": identity_patch["source_id"]},
+                    headers={"Prefer": "return=minimal"},
+                )
+            except Exception as exc:
+                report["results"]["errors"].append({
+                    "operation": "update_party_source_identity", "id": identity_patch["id"], "error": str(exc),
+                })
+
         # Create unresolved party entities only after the operator explicitly selects --apply.
         # Requires the database enum migration adding governance_type='political_party'.
         for party_key, party in list(party_to_create.items()):
             try:
                 slug = party["slug"]
-                existing_slug = [p for p in existing_governance if normalize_name(str(p.get("slug") or "").replace("-", " ")) == party_key]
-                if existing_slug:
-                    party["id"] = existing_slug[0]["id"]
+                # Recheck immediately before creation so reruns reuse an existing party.
+                current_governance = fetch_rest_rows(
+                    supabase_url, supabase_key, "governance",
+                    "id,name,short_name,slug,type,metadata,source_system,source_id",
+                    {"type": "eq.political_party"},
+                )
+                existing_match, existing_ambiguous = resolve_party(
+                    party.get("name"), current_governance, clean(party.get("source_id"))
+                )
+                if existing_match:
+                    party["id"] = existing_match["id"]
+                    party["source_system"] = existing_match.get("source_system")
+                    party["source_id"] = existing_match.get("source_id")
+                elif existing_ambiguous:
+                    raise RuntimeError("Party identity matched multiple existing governance records.")
                 else:
                     created = supabase_request("POST", governance_url, supabase_key, json={**party, "status": "active"},
                         headers={"Prefer": "return=representation"})
@@ -572,7 +647,7 @@ def main() -> int:
                         party["id"] = payload[0].get("id")
                     if not party.get("id"):
                         # Re-read by slug if PostgREST did not return a representation.
-                        found = fetch_rest_rows(supabase_url, supabase_key, "governance", "id,name,short_name,slug,type,metadata", {"slug": f"eq.{slug}"})
+                        found = fetch_rest_rows(supabase_url, supabase_key, "governance", "id,name,short_name,slug,type,metadata,source_system,source_id", {"slug": f"eq.{slug}"})
                         if found:
                             party["id"] = found[0]["id"]
                 if party.get("id"):
