@@ -45,7 +45,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.apply }}" == "true" ]]; then
+          # The recurring schedule performs the approved automatic sync.
+          # Manual runs stay dry-run by default and require an explicit apply=true.
+          if [[ "${{ github.event_name }}" == "schedule" || ("${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.apply }}" == "true") ]]; then
             python scripts/digital_sansad/import_members.py --apply --report digital-sansad-import-report.json
           else
             python scripts/digital_sansad/import_members.py --report digital-sansad-import-report.json
