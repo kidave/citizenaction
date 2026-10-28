@@ -91,6 +91,11 @@ def unwrap_page(payload: Any) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     if not isinstance(payload, dict):
         raise ValueError(f"Unexpected API payload type: {type(payload).__name__}")
 
+    # Current Digital Sansad response envelope.
+    if isinstance(payload.get("membersDtoList"), list):
+        meta = payload.get("metaDatasDto") if isinstance(payload.get("metaDatasDto"), dict) else payload
+        return [x for x in payload["membersDtoList"] if isinstance(x, dict)], meta
+
     meta = payload
     for key in ("data", "result", "response", "payload"):
         candidate = payload.get(key)
@@ -212,8 +217,9 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
         "lsExpr": ("lsExpr", "ls_expr", "lokSabhaExperience"),
         "noOfTerms": ("noOfTerms", "no_of_terms", "termsServed"),
         "status": ("status", "memberStatus"),
-        "constituency": ("constituency", "constituencyName"),
-        "party": ("party", "partyName"),
+        "constituency": ("constituency", "constituencyName", "constName"),
+        "party": ("party", "partyName", "partyFname"),
+        "party_short_name": ("partySname",),
         "gender": ("gender",),
         "constituencyCategory": ("constituencyCategory", "constituency_category"),
         "state": ("state", "stateName"),
@@ -286,7 +292,7 @@ def merge_missing(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[st
     # Preserve unrelated/user-created metadata. Update only fields this importer owns.
     for key, value in new_metadata.items():
         if key in {"official_source", "official_source_url", "mpsno", "lsExpr", "noOfTerms", "status",
-                   "constituency", "party", "gender", "constituencyCategory", "state", "profession2"}:
+                   "constituency", "party", "party_short_name", "gender", "constituencyCategory", "state", "profession2"}:
             if value is not None:
                 merged[key] = value
     if merged != old_metadata:
