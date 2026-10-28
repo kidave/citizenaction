@@ -569,7 +569,13 @@ def main() -> int:
                 report["results"]["errors"].append({"operation": "create_party", "name": party["name"], "error": str(exc)})
 
         # Attach resolved party/geography IDs to incoming metadata, including IDs of parties created above.
-        party_ids = {normalize_name(str(p.get("name") or "")): p.get("id") for p in existing_governance if p.get("id")}
+        party_ids: dict[str, str] = {}
+        for party_row in existing_governance:
+            if not party_row.get("id"):
+                continue
+            for party_label in (party_row.get("name"), party_row.get("short_name"), str(party_row.get("slug") or "").replace("-", " ")):
+                if clean(party_label):
+                    party_ids[normalize_name(str(party_label))] = str(party_row["id"])
         for person in inserts:
             metadata = person.get("metadata") or {}
             party_name = clean(metadata.get("party_source_name")) or clean(metadata.get("party_short_name"))
