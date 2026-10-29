@@ -72,8 +72,11 @@ export default function GeographyEditor({ open, onOpenChange, geography, onSaved
     });
     if (error) { setSaving(false); return toast.error(error.message || "Unable to save geography"); }
     const saved = Array.isArray(data) ? data[0] : data;
-    if (!saved?.id) return toast.error("Geography was saved but its ID was not returned; verify the record before retrying.");
-    const otherNames = [...new Set(String(form.other_names_input ?? (Array.isArray(form.other_names) ? form.other_names.join(", ") : ""))
+    if (!saved?.id) {
+      setSaving(false);
+      return toast.error("Geography was saved but its ID was not returned; verify the record before retrying.");
+    }
+    const otherNames = [...new Set(String(Array.isArray(form.other_names) ? form.other_names.join(", ") : form.other_names || "")
       .split(",").map((value) => value.trim()).filter(Boolean))];
     const { error: detailsError } = await supabase.from("geographies")
       .update({ other_names: otherNames, status: form.status || "active" })
