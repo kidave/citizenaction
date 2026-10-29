@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { supabase } from "@/lib/supabase/client";
 import { GEOGRAPHY_BOUNDARY_CATEGORIES, getGeographyTypeLabel } from "@/config/geography/boundaryCategories";
 
-const blank = { id: null, name: "", official_name: "", boundary_category: "administrative", geography_type: "state", parent_id: "none", country_code: "IN", osm_type: "", osm_id: "", admin_level: "", source: "manual", source_url: "", metadata: "{}", geojson: "" };
+const blank = { id: null, name: "", official_name: "", other_names: [], status: "active", boundary_category: "administrative", geography_type: "state", parent_id: "none", country_code: "IN", osm_type: "", osm_id: "", admin_level: "", source: "manual", source_url: "", metadata: "{}", geojson: "" };
 
 export default function GeographyEditor({ open, onOpenChange, geography, onSaved }) {
   const [form, setForm] = useState(blank);
@@ -20,7 +20,7 @@ export default function GeographyEditor({ open, onOpenChange, geography, onSaved
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    setForm(geography ? { ...blank, ...geography, boundary_category: geography.boundary_category || "administrative", parent_id: geography.parent_id || "none", osm_id: geography.osm_id ? String(geography.osm_id) : "", admin_level: geography.admin_level != null ? String(geography.admin_level) : "" } : blank);
+    setForm(geography ? { ...blank, ...geography, other_names: Array.isArray(geography.other_names) ? geography.other_names : [], status: geography.status || "active", boundary_category: geography.boundary_category || "administrative", parent_id: geography.parent_id || "none", osm_id: geography.osm_id ? String(geography.osm_id) : "", admin_level: geography.admin_level != null ? String(geography.admin_level) : "" } : blank);
   }, [geography, open]);
 
   const category = GEOGRAPHY_BOUNDARY_CATEGORIES.find((item) => item.value === form.boundary_category) || GEOGRAPHY_BOUNDARY_CATEGORIES[0];
@@ -70,10 +70,21 @@ export default function GeographyEditor({ open, onOpenChange, geography, onSaved
       p_center: null,
       p_boundary_category: form.boundary_category,
     });
+    if (error) { setSaving(false); return toast.error(error.message || "Unable to save geography"); }
+    const saved = Array.isArray(data) ? data[0] : data;
+    if (!saved?.id) return toast.error("Geography was saved but its ID was not returned; verify the record before retrying.");
+    const otherNames = [...new Set(String(form.other_names_input ?? (Array.isArray(form.other_names) ? form.other_names.join(", ") : ""))
+      .split(",").map((value) => value.trim()).filter(Boolean))];
+    const { error: detailsError } = await supabase.from("geographies")
+      .update({ other_names: otherNames, status: form.status || "active" })
+      .eq("id", saved.id);
+    if (detailsError) {
+      setSaving(false);
+      return toast.error(`Geography boundary saved, but aliases/status could not be saved: ${detailsError.message}`);
+    }
     setSaving(false);
-    if (error) return toast.error(error.message || "Unable to save geography");
     toast.success(form.id ? "Geography updated" : "Geography created");
-    onSaved?.(data);
+    onSaved?.(saved);
     onOpenChange?.(false);
   };
 
@@ -87,6 +98,10 @@ export default function GeographyEditor({ open, onOpenChange, geography, onSaved
       <div className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Parent geography</span><div className="flex gap-2"><Button type="button" variant="outline" className="min-w-0 flex-1 justify-start font-normal" onClick={() => setParentPickerOpen(true)}>{form.parent_id === "none" ? "No parent geography" : "Select parent geography"}</Button>{form.parent_id !== "none" && <Button type="button" variant="ghost" onClick={() => set("parent_id", "none")}>Clear</Button>}</div></div>
     </div>
     <div className="grid gap-4 sm:grid-cols-2"><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Official name</span><Input value={form.official_name} onChange={(e) => set("official_name", e.target.value)} /></label><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Country code</span><Input value={form.country_code} onChange={(e) => set("country_code", e.target.value)} /></label></div>
+    <div className="grid gap-4 sm:grid-cols-2">
+      <label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Other names</span><Input value={Array.isArray(form.other_names) ? form.other_names.join(", ") : String(form.other_names || "")} onChange={(e) => set("other_names", e.target.value)} placeholder="Comma-separated aliases, e.g. Belgaum" /><span className="text-xs text-muted-foreground">Names for the same geography only; do not enter successor constituency names.</span></label>
+      <label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Status</span><Select value={form.status || "active"} onValueChange={(value) => set("status", value)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="active">Active</SelectItem><SelectItem value="defunct">Defunct</SelectItem></SelectContent></Select></label>
+    </div>
     <div className="grid gap-4 sm:grid-cols-3"><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">OSM type</span><Input value={form.osm_type} onChange={(e) => set("osm_type", e.target.value)} /></label><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">OSM ID</span><Input value={form.osm_id} onChange={(e) => set("osm_id", e.target.value)} /></label><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Admin level</span><Input value={form.admin_level} onChange={(e) => set("admin_level", e.target.value)} /></label></div>
     <div className="grid gap-4 sm:grid-cols-2"><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Source</span><Input value={form.source} onChange={(e) => set("source", e.target.value)} /></label><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Source URL</span><Input value={form.source_url} onChange={(e) => set("source_url", e.target.value)} /></label></div>
     <div className="space-y-2"><div className="flex items-center justify-between gap-3"><div><p className="text-sm font-medium">Boundary geometry</p><p className="text-xs text-muted-foreground">Upload or paste GeoJSON for this reusable boundary.</p></div><label className="cursor-pointer"><input type="file" accept=".geojson,.json,application/geo+json,application/json" className="hidden" onChange={importGeoJson} /><span className="inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-muted"><Upload className="mr-2 h-4 w-4" />Import</span></label></div><Textarea value={form.geojson} onChange={(e) => set("geojson", e.target.value)} rows={9} className="font-mono text-xs" placeholder='{"type":"MultiPolygon","coordinates":[...]}' /></div>

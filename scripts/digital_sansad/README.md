@@ -15,10 +15,16 @@ Source:
 - Existing user-entered values are preserved; only missing public profile fields are enriched.
 - Profile photos are copied from Digital Sansad into the existing public `governance` Storage bucket at `person/<slug>-<mpsno>/profile.<ext>`; `person.image_url` stores the resulting public Storage URL. Unsupported or failed photos are reported and do not block the member import.
 - Member names remain in the existing single `person.name` column. The importer uses the best source display-name field and does not invent expansions for initials. It generates a unique slug using the source member ID.
-- Constituencies are resolved only against existing `geographies` rows where `boundary_category = political` and `geography_type = parliamentary_constituency`. The resolved geography ID is retained in source metadata for later use by the existing position/appointment model; unresolved and ambiguous names are reported rather than creating duplicate boundaries.
+- Constituencies are resolved only against existing `geographies` rows where `boundary_category = political` and `geography_type = parliamentary_constituency`. Matching checks canonical/official names and slugs first, then the `other_names` array. A defunct geography is still a valid match; its ID is retained exactly like an active geography, and the report separately lists members matched to defunct constituencies. The importer never substitutes a successor constituency or creates geography/boundary records. Unresolved and ambiguous names are reported for review.
 - Political parties are resolved against governance entities of type `political_party`, preferring `governance.source_system + source_id` when the member API exposes a party code and falling back to an unambiguous exact normalized name/abbreviation. Missing parties are created with the full source name and short name when available. The internal governance UUID remains the relationship key; no parallel party table is created. External identifiers live in the governance columns added by migration `20261028010000_governance_external_source_identity.sql`.
 - This listing importer does not create career appointments. Career history must use the existing `governance` → `position` → `position_appointment` model. It never deletes records.
 - The report records source totals, matches, planned writes, and errors.
+
+## Historical and alternate constituency names
+
+The geography admin editor supports a comma-separated list of alternate names and a status of `active` or `defunct`. To import historical members correctly, add a defunct parliamentary constituency as its own geography and preserve its former boundary when available. Add source spellings such as `Belgaum` to the existing geography's alternate names when they refer to the same geography. Do not add a former constituency as an alternate name of its successor: for example, Periyakulam must remain its own defunct geography rather than being aliased to Theni.
+
+The importer matches canonical names before alternate names. If an alias matches more than one geography, it reports the constituency as ambiguous rather than guessing. If a source constituency is not present in geographies, it remains unresolved; the importer does not create a boundary or map it to a current constituency automatically.
 
 ## Political-party directory import
 

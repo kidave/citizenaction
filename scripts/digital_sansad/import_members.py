@@ -352,16 +352,36 @@ def upload_member_photo(base_url: str, key: str, source_url: str, source_id: str
         return None
 
 
-def resolve_geography(name: str | None, geographies: list[dict[str, Any]]) -> tuple[str | None, bool]:
+def resolve_geography(
+    name: str | None,
+    geographies: list[dict[str, Any]],
+) -> tuple[str | None, bool, str | None]:
+    """Match canonical names first, then alternate names; never infer successors."""
     if not name:
-        return None, False
+        return None, False, None
     key = normalize_name(name)
-    matches = [g for g in geographies if key in {
-        normalize_name(str(g.get("name") or "")),
-        normalize_name(str(g.get("official_name") or "")),
-        normalize_name(str(g.get("slug") or "").replace("-", " ")),
-    }]
-    return (str(matches[0]["id"]), False) if len(matches) == 1 else (None, len(matches) > 1)
+    canonical_matches = [
+        g for g in geographies
+        if key in {
+            normalize_name(str(g.get("name") or "")),
+            normalize_name(str(g.get("official_name") or "")),
+            normalize_name(str(g.get("slug") or "").replace("-", " ")),
+        }
+    ]
+    matches = canonical_matches
+    if not matches:
+        matches = [
+            g for g in geographies
+            if any(
+                key == normalize_name(str(alias))
+                for alias in (g.get("other_names") or [])
+                if clean(alias)
+            )
+        ]
+    if len(matches) != 1:
+        return None, len(matches) > 1, None
+    geography = matches[0]
+    return str(geography["id"]), False, clean(geography.get("status")) or "active"
 
 
 def resolve_party(
@@ -495,7 +515,7 @@ def main() -> int:
     if supabase_url and supabase_key:
         try:
             existing_people = fetch_existing_people(supabase_url, supabase_key)
-            existing_geographies = fetch_rest_rows(supabase_url, supabase_key, "geographies", "id,name,official_name,slug,geography_type,boundary_category", {"geography_type": "eq.parliamentary_constituency", "boundary_category": "eq.political"})
+            existing_geographies = fetch_rest_rows(supabase_url, supabase_key, "geographies", "id,name,official_name,slug,other_names,status,geography_type,boundary_category", {"geography_type": "eq.parliamentary_constituency", "boundary_category": "eq.political"})
             existing_governance = fetch_rest_rows(supabase_url, supabase_key, "governance", "id,name,short_name,slug,type,metadata,source_system,source_id")
         except Exception as exc:
             print(f"ERROR reading existing people from Supabase: {exc}", file=sys.stderr)
@@ -521,6 +541,7 @@ def main() -> int:
     unresolved_constituencies: list[dict[str, Any]] = []
     unresolved_parties: list[dict[str, Any]] = []
     ambiguous_constituencies: list[dict[str, Any]] = []
+    matched_defunct_constituencies: list[dict[str, Any]] = []
     ambiguous_parties: list[dict[str, Any]] = []
     party_to_create: dict[str, dict[str, Any]] = {}
     party_identity_updates: dict[str, dict[str, Any]] = {}
@@ -531,9 +552,14 @@ def main() -> int:
     for source_id, incoming in source_people.items():
         source_meta = incoming.get("metadata") or {}
         constituency_name = clean(source_meta.get("constituency"))
-        geography_id, geography_ambiguous = resolve_geography(constituency_name, existing_geographies)
+        geography_id, geography_ambiguous, geography_status = resolve_geography(constituency_name, existing_geographies)
         if geography_id:
             source_meta["constituency_geography_id"] = geography_id
+            if geography_status == "defunct":
+                matched_defunct_constituencies.append({
+                    "mpsno": source_id, "name": incoming["name"],
+                    "constituency": constituency_name, "geography_id": geography_id,
+                })
         elif constituency_name:
             item = {"mpsno": source_id, "name": incoming["name"], "constituency": constituency_name}
             (ambiguous_constituencies if geography_ambiguous else unresolved_constituencies).append(item)
@@ -596,6 +622,7 @@ def main() -> int:
         "ambiguous_name_matches_skipped": ambiguous,
         "unresolved_constituencies": unresolved_constituencies,
         "ambiguous_constituencies": ambiguous_constituencies,
+        "matched_defunct_constituencies": matched_defunct_constituencies,
         "unresolved_parties": unresolved_parties,
         "ambiguous_parties": ambiguous_parties,
         "planned_party_entities": len(party_to_create),
