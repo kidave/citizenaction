@@ -13,6 +13,7 @@ from scripts.digital_sansad.import_members import (
     appointment_dates_from_source,
     normalize_education,
     person_photo_storage_path,
+    group_rows_by_insert_shape,
     resolve_geography,
     to_person,
 )
