@@ -61,6 +61,21 @@ def first(record: dict[str, Any], *keys: str) -> Any:
     return None
 
 
+def clean_profile_text(value: Any) -> str | None:
+    """Flatten public education/qualification values into readable text without guessing."""
+    if isinstance(value, list):
+        parts = [clean_profile_text(item) for item in value]
+        return "; ".join(part for part in parts if part) or None
+    if isinstance(value, dict):
+        parts = []
+        for key in ("degree", "qualification", "course", "institution", "university", "school", "field", "name", "title", "description"):
+            part = clean(value.get(key))
+            if part and part not in parts:
+                parts.append(part)
+        return ", ".join(parts) or None
+    return clean(value)
+
+
 def normalize_name(value: str) -> str:
     value = unicodedata.normalize("NFKD", value)
     value = "".join(ch for ch in value if not unicodedata.combining(ch))
@@ -272,8 +287,8 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
     person: dict[str, Any] = {"name": name, "slug": f"{slugify(name)}-{mpsno}", "metadata": metadata}
     if image_url and image_url.startswith(("https://", "http://")):
         person["image_url"] = image_url
-    qualification = clean(first(record, "qualification", "educationalQualification", "highestQualification"))
-    education = clean(first(record, "education", "educationDetails", "educationalBackground", "educationalHistory"))
+    qualification = clean_profile_text(first(record, "qualification", "educationalQualification", "highestQualification"))
+    education = clean_profile_text(first(record, "education", "educationDetails", "educationalBackground", "educationalHistory"))
     profession = clean(first(record, "profession", "occupation"))
     birth_date = parse_date(first(record, "birthdate", "birthDate", "dateOfBirth", "dob"))
     date_of_death = parse_date(first(record, "dateOfDeath", "deathDate", "date_of_death"))
