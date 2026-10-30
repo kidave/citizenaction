@@ -939,7 +939,11 @@ def main() -> int:
                     report["results"]["errors"].append({"operation": "update", "id": existing.get("id"), "error": str(exc)})
 
 
-        if not report["results"]["errors"] and planned_appointments:
+        party_appointment_candidates = [
+            candidate for candidate in appointment_candidates
+            if candidate.get("current_term_eligible") and candidate.get("party_name")
+        ]
+        if not report["results"]["errors"] and (planned_appointments or party_appointment_candidates):
             try:
                 refreshed_people = fetch_existing_people(supabase_url, supabase_key)
                 source_to_person_id = {}
@@ -947,7 +951,8 @@ def main() -> int:
                     metadata = person.get("metadata") if isinstance(person.get("metadata"), dict) else {}
                     if metadata.get("official_source") == "Digital Sansad" and clean(metadata.get("mpsno")):
                         source_to_person_id[clean(metadata.get("mpsno"))] = person.get("id")
-                if not mp_position:
+                appointment_url = supabase_url.rstrip("/") + "/rest/v1/position_appointment"
+                if planned_appointments and not mp_position:
                     created = supabase_request("POST", supabase_url.rstrip("/") + "/rest/v1/position", supabase_key,
                         json={"name": "Member of Parliament", "slug": "member-of-parliament", "governance_id": lok_sabha_orgs[0]["id"], "metadata": {"official_source": "Digital Sansad", "position_scope": "Lok Sabha member"}},
                         headers={"Prefer": "return=representation"})
@@ -959,7 +964,6 @@ def main() -> int:
                         if len(found) != 1:
                             raise RuntimeError("Could not safely resolve Member of Parliament position after creation.")
                         mp_position = found[0]
-                appointment_url = supabase_url.rstrip("/") + "/rest/v1/position_appointment"
                 for candidate in planned_appointments:
                     person_id = candidate.get("person_id") or source_to_person_id.get(candidate["mpsno"])
                     if not person_id:
@@ -968,7 +972,7 @@ def main() -> int:
                     key = (str(mp_position["id"]), str(person_id), CURRENT_LOK_SABHA_TERM)
                     if key in existing_appointment_keys:
                         continue
-                    payload = {"position_id": mp_position["id"], "person_id": person_id, "geography_id": candidate["geography_id"], "term": CURRENT_LOK_SABHA_TERM, "status": clean(candidate.get("appointment_status")) or "sitting", "started_at": CURRENT_TERM_START, "ended_at": None, "is_vacant": False, "is_primary": True, "official_phone": clean(candidate.get("official_phone")), "official_email": clean(candidate.get("official_email")), "metadata": {"official_source": "Digital Sansad", "mpsno": candidate["mpsno"], "source_url": SOURCE_URL}}
+                    payload = {"position_id": mp_position["id"], "person_id": person_id, "organization_id": lok_sabha_orgs[0]["id"], "geography_id": candidate["geography_id"], "term": CURRENT_LOK_SABHA_TERM, "status": clean(candidate.get("appointment_status")) or "sitting", "started_at": CURRENT_TERM_START, "ended_at": None, "is_vacant": False, "is_primary": True, "official_phone": clean(candidate.get("official_phone")), "official_email": clean(candidate.get("official_email")), "metadata": {"official_source": "Digital Sansad", "mpsno": candidate["mpsno"], "source_url": SOURCE_URL}}
                     try:
                         supabase_request("POST", appointment_url, supabase_key, json=payload, headers={"Prefer": "return=minimal"})
                         existing_appointment_keys.add(key)
@@ -976,6 +980,98 @@ def main() -> int:
                         report["results"]["appointments_created"] += 1
                     except Exception as exc:
                         report["results"]["errors"].append({"operation": "create_appointment", "mpsno": candidate["mpsno"], "name": candidate["name"], "error": str(exc)})
+
+                # Party membership is represented as a position owned by each party.
+                # The source only identifies current affiliation, not the actual join date;
+                # started_at is therefore a term-start proxy, documented in appointment metadata.
+                current_positions = fetch_rest_rows(
+                    supabase_url, supabase_key, "position",
+                    "id,name,slug,governance_id,appointing_organization_id,geography_id,metadata",
+                )
+                party_position_by_governance = {}
+                for candidate in party_appointment_candidates:
+                    party_name = clean(candidate.get("party_name"))
+                    party_id = party_ids.get(normalize_name(party_name or ""))
+                    if not party_id:
+                        report["results"]["errors"].append({
+                            "operation": "resolve_party_appointment_governance",
+                            "mpsno": candidate["mpsno"], "party": party_name,
+                            "error": "Could not resolve a unique political-party governance ID.",
+                        })
+                        continue
+                    party_position = party_position_by_governance.get(party_id)
+                    if not party_position:
+                        matches = [
+                            position for position in current_positions
+                            if (position.get("governance_id") or position.get("appointing_organization_id")) == party_id
+                            and normalize_name(str(position.get("name") or "")) == "party member"
+                        ]
+                        if len(matches) > 1:
+                            report["results"]["errors"].append({
+                                "operation": "resolve_party_member_position",
+                                "party": party_name,
+                                "error": "Multiple Party Member positions exist under this party.",
+                            })
+                            continue
+                        if matches:
+                            party_position = matches[0]
+                        else:
+                            created = supabase_request(
+                                "POST", supabase_url.rstrip("/") + "/rest/v1/position", supabase_key,
+                                json={
+                                    "name": "Party Member", "slug": "party-member",
+                                    "governance_id": party_id,
+                                    "metadata": {"official_source": "Digital Sansad", "position_scope": "political party membership"},
+                                },
+                                headers={"Prefer": "return=representation"},
+                            )
+                            payload = created.json()
+                            party_position = payload[0] if isinstance(payload, list) and payload else None
+                            if not party_position or not party_position.get("id"):
+                                found = fetch_rest_rows(
+                                    supabase_url, supabase_key, "position",
+                                    "id,name,slug,governance_id,appointing_organization_id,geography_id,metadata",
+                                    {"slug": "eq.party-member"},
+                                )
+                                found = [p for p in found if (p.get("governance_id") or p.get("appointing_organization_id")) == party_id]
+                                if len(found) != 1:
+                                    raise RuntimeError(f"Could not safely resolve Party Member position for {party_name}.")
+                                party_position = found[0]
+                            current_positions.append(party_position)
+                        party_position_by_governance[party_id] = party_position
+
+                    person_id = candidate.get("person_id") or source_to_person_id.get(candidate["mpsno"])
+                    if not person_id:
+                        report["results"]["errors"].append({
+                            "operation": "resolve_party_appointment_person",
+                            "mpsno": candidate["mpsno"],
+                            "error": "Could not resolve person ID after import.",
+                        })
+                        continue
+                    key = (str(party_position["id"]), str(person_id), CURRENT_LOK_SABHA_TERM)
+                    if key in existing_appointment_keys:
+                        continue
+                    payload = {
+                        "position_id": party_position["id"], "person_id": person_id,
+                        "organization_id": party_id, "term": CURRENT_LOK_SABHA_TERM,
+                        "status": "active", "started_at": CURRENT_TERM_START, "ended_at": None,
+                        "geography_id": None, "is_vacant": False, "is_primary": False,
+                        "metadata": {
+                            "official_source": "Digital Sansad", "mpsno": candidate["mpsno"],
+                            "source_url": SOURCE_URL, "relationship": "party affiliation during 18th Lok Sabha",
+                            "started_at_semantics": "term_start_proxy_not_party_join_date",
+                        },
+                    }
+                    try:
+                        supabase_request("POST", appointment_url, supabase_key, json=payload, headers={"Prefer": "return=minimal"})
+                        existing_appointment_keys.add(key)
+                        report["results"].setdefault("party_appointments_created", 0)
+                        report["results"]["party_appointments_created"] += 1
+                    except Exception as exc:
+                        report["results"]["errors"].append({
+                            "operation": "create_party_appointment", "mpsno": candidate["mpsno"],
+                            "name": candidate["name"], "party": party_name, "error": str(exc),
+                        })
             except Exception as exc:
                 report["results"]["errors"].append({"operation": "prepare_appointments", "error": str(exc)})
 
