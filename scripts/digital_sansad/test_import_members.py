@@ -3,6 +3,7 @@ import unittest
 
 from scripts.digital_sansad.import_members import (
     find_lok_sabha_governance,
+    appointment_fields_from_source,
     appointment_status_from_source,
     is_current_lok_sabha_term,
     resolve_geography,
@@ -27,8 +28,16 @@ class DigitalSansadImporterTests(unittest.TestCase):
         self.assertEqual(appointment_status_from_source(sitting, True), "sitting")
         self.assertEqual(appointment_status_from_source({}, True), "sitting")
         self.assertEqual(appointment_status_from_source({}, False), "unknown")
-        self.assertEqual(suspended["officialPhone"], "011-5555")
-        self.assertEqual(suspended["officialEmail"], "office@example.in")
+        fields = appointment_fields_from_source(suspended, True)
+        self.assertEqual(fields, {
+            "appointment_status": "suspended",
+            "official_phone": "011-5555",
+            "official_email": "office@example.in",
+        })
+        # A following row must not leak its status or contact fields into this one.
+        other = appointment_fields_from_source(sitting, True)
+        self.assertEqual(other["official_phone"], "011-6666")
+        self.assertIsNone(other["official_email"])
 
     def test_lok_sabha_must_be_child_of_parliament(self):
         rows = [
