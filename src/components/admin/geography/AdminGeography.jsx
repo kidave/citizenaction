@@ -14,8 +14,6 @@ import { supabase } from "@/lib/supabase/client";
 import { queryKeys } from "@/lib/queryKeys";
 import { GEOGRAPHY_BOUNDARY_CATEGORIES, getGeographyTypeLabel } from "@/config/geography/boundaryCategories";
 
-const GEOGRAPHY_QUERY_KEY = ["admin-geographies"];
-
 export default function AdminGeography({ embedded = false }) {
   const queryClient = useQueryClient();
   const [query, setQuery] = useState("");

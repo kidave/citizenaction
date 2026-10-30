@@ -359,8 +359,12 @@ def resolve_geography(
     if not name:
         return None, False, None
     keys = {normalize_name(name)}
-    for suffix in (" district", " distt", " dist", " zila"):
-        keys.update({key[:-len(suffix)].strip() for key in tuple(keys) if key.endswith(suffix)})
+    # Treat common abbreviations as equivalent to the full word, but never
+    # drop "district" entirely: it can distinguish a constituency name.
+    keys.update({
+        re.sub(r"\\b(?:distt|dist|zila)\\b", "district", key)
+        for key in tuple(keys)
+    })
     keys.update({key.replace(" and ", " & ") for key in tuple(keys)})
     keys.update({key.replace(" & ", " and ") for key in tuple(keys)})
     keys = {key for key in keys if key}
