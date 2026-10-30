@@ -34,7 +34,8 @@ end;
 $$;
 
 drop trigger if exists position_sync_governance_columns on public.position;
-create trigger position_sync_governance_columns
+drop trigger if exists position_a_sync_governance_columns on public.position;
+create trigger position_a_sync_governance_columns
 before insert or update of governance_id, appointing_organization_id
 on public.position
 for each row execute function public.sync_position_governance_columns();
@@ -44,13 +45,6 @@ drop index if exists public.position_slug_uidx;
 create unique index if not exists position_governance_slug_uidx
   on public.position (governance_id, slug)
   where governance_id is not null and slug is not null;
-
--- Normalize existing owned-position slugs from the position name.
--- A duplicate name under a different governance entity is now allowed.
-update public.position
-set slug = trim(both '-' from regexp_replace(lower(name), '[^a-z0-9]+', '-', 'g'))
-where governance_id is not null
-  and slug is distinct from trim(both '-' from regexp_replace(lower(name), '[^a-z0-9]+', '-', 'g'));
 
 create or replace function public.set_position_slug_from_name()
 returns trigger
@@ -87,7 +81,8 @@ end;
 $$;
 
 drop trigger if exists position_auto_slug_from_name on public.position;
-create trigger position_auto_slug_from_name
+drop trigger if exists position_z_auto_slug_from_name on public.position;
+create trigger position_z_auto_slug_from_name
 before insert or update of name, governance_id
 on public.position
 for each row execute function public.set_position_slug_from_name();
