@@ -622,8 +622,8 @@ def main() -> int:
                         help="Fetch only this many source rows for a small test.")
     parser.add_argument("--member-id", default=None,
                         help="Process exactly one Digital Sansad mpsno (fetches the source listing, then selects that member). Cannot be combined with --limit-records.")
-    parser.add_argument("--min-source-records", type=int, default=1000,
-                        help="Fail closed if fewer source rows are returned (protects against partial/API errors).")
+    parser.add_argument("--min-source-records", type=int, default=400,
+                        help="Fail closed if fewer source rows are returned (current Lok Sabha has roughly 543 seats; API totals are also checked).")
     parser.add_argument("--timeout", type=int, default=60,
                         help="Per-request timeout in seconds for the public source API (default: 60).")
     parser.add_argument("--report", default="digital-sansad-import-report.json")

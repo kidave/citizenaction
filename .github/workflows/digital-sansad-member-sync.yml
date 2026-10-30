@@ -48,8 +48,8 @@ jobs:
       - name: Run importer unit tests
         run: python -m unittest scripts.digital_sansad.test_import_members -v
 
-      - name: Run importer
-        if: github.event_name != 'pull_request'
+      - name: Run importer (read-only dry-run on same-repository PRs)
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -59,6 +59,8 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.apply }}" == "true" ]]; then
             python scripts/digital_sansad/import_members.py --apply --report digital-sansad-import-report.json
           else
+            # Pull requests and scheduled runs are read-only previews unless an operator
+            # explicitly opts into apply on a manual workflow dispatch.
             python scripts/digital_sansad/import_members.py --report digital-sansad-import-report.json
           fi
 
@@ -73,7 +75,7 @@ jobs:
         run: python scripts/digital_sansad/publish_report.py digital-sansad-import-report.json
 
       - name: Upload import report artifact
-        if: always() && github.event_name != 'pull_request'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: digital-sansad-import-report-${{ github.run_id }}

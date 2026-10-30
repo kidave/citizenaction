@@ -9,7 +9,7 @@ Source:
 ## Safety model
 
 - Dry-run is the default. Use `--apply` only after reviewing the report.
-- Refuses to run if the source returns fewer than 1,000 records by default.
+- Refuses to run if fewer than 400 source rows are returned by default (the Lok Sabha has 543 seats); when the API advertises totals, pagination completeness is checked against those totals as well.
 - Uses Digital Sansad's stable `mpsno` identifier when available.
 - Exact normalized-name matching is used only when it identifies exactly one existing person. Ambiguous matches are skipped and reported.
 - Existing user-entered values are preserved; only missing public profile fields are enriched.
@@ -89,7 +89,7 @@ The service-role key bypasses RLS. Keep it private and use it only in a trusted 
 
 ## GitHub Actions
 
-The workflow runs every Sunday at 12:30 IST and performs a **dry-run only**. Manual runs also default to dry-run. A manual run writes to Supabase only when the `apply` input is explicitly set to `true`.
+The workflow runs every Sunday at 12:30 IST and performs a **dry-run only**. Pull requests from branches in this same repository also run a read-only dry-run against the live source and Supabase, then upload the JSON report as an artifact (the report is not published into Supabase from a PR). Pull requests from forks skip the importer so secrets are not exposed. Manual runs default to dry-run; a manual run writes to Supabase only when the `apply` input is explicitly set to `true`.
 
 Repository secrets required:
 - `SUPABASE_URL`
