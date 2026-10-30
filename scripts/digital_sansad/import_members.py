@@ -358,17 +358,18 @@ def resolve_geography(
     """Resolve a label only when all canonical/alias matches identify one geography."""
     if not name:
         return None, False, None
-    keys = {normalize_name(name)}
-    # Treat common abbreviations as equivalent to the full word, but never
-    # drop "district" entirely: it can distinguish a constituency name.
+
+    def geography_key(value: Any) -> str:
+        # Treat ampersand and the word "and" as equivalent without dropping
+        # meaningful words from a constituency name.
+        return normalize_name(str(value).replace("&", " and "))
+
+    keys = {geography_key(name)}
+    # Abbreviations are expanded to "district"; the word is never discarded.
     keys.update({
-        re.sub(r"\b(?:distt|dist|zila)\b", "district", key)
+        re.sub(r"\\b(?:distt|dist|zila)\\b", "district", key)
         for key in tuple(keys)
     })
-    keys.update({key.replace(" and ", " & ") for key in tuple(keys)})
-    keys.update({key.replace(" & ", " and ") for key in tuple(keys)})
-    keys.update({re.sub(r"\band\b", "", key).strip() for key in tuple(keys)})
-    keys = {re.sub(r"\s+", " ", key) for key in keys if key}
     matches = []
     for geography in geographies:
         labels = [
@@ -377,13 +378,7 @@ def resolve_geography(
             str(geography.get("slug") or "").replace("-", " "),
             *(geography.get("other_names") or []),
         ]
-        label_keys = set()
-        for label in labels:
-            if clean(label):
-                label_key = normalize_name(str(label))
-                label_keys.add(label_key)
-                label_keys.add(re.sub(r"\s+", " ", re.sub(r"\band\b", "", label_key)).strip())
-        if label_keys & keys:
+        if any(clean(label) and geography_key(label) in keys for label in labels):
             matches.append(geography)
     # A canonical-name/alias collision is just as ambiguous as alias/alias collision.
     # Do not silently prefer the canonical label: require admins to fix the conflict.
