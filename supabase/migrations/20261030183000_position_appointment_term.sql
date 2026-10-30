@@ -1,6 +1,7 @@
--- Digital Sansad appointments store term and constituency relationally.
+-- Digital Sansad appointments store term, status, and constituency relationally.
 alter table public.position_appointment
-  add column if not exists term text;
+  add column if not exists term text,
+  add column if not exists status text;
 
 create index if not exists position_appointment_position_term_idx
   on public.position_appointment (position_id, term);
