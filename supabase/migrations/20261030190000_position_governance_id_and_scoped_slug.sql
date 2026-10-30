@@ -10,6 +10,9 @@ where governance_id is null and appointing_organization_id is not null;
 create index if not exists position_governance_id_idx
   on public.position (governance_id);
 
+comment on column public.position.appointing_organization_id is
+  'Deprecated compatibility alias for governance_id; kept synchronized during frontend/RPC migration.';
+
 create or replace function public.sync_position_governance_columns()
 returns trigger
 language plpgsql
@@ -86,7 +89,7 @@ $$;
 drop trigger if exists position_auto_slug_from_name on public.position;
 drop trigger if exists position_z_auto_slug_from_name on public.position;
 create trigger position_z_auto_slug_from_name
-before insert or update of name, governance_id
+before insert or update of name, governance_id, appointing_organization_id
 on public.position
 for each row execute function public.set_position_slug_from_name();
 
