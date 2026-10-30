@@ -254,9 +254,7 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
         "mpsno": mpsno,
     }
     source_fields = {
-        "lsExpr": ("lsExpr", "ls_expr", "lokSabhaExperience"),
         "noOfTerms": ("noOfTerms", "no_of_terms", "termsServed"),
-        "status": ("status", "memberStatus"),
         "party_source_name": ("partyFname", "partyName", "party"),
         "party": ("party", "partyName", "partyFname"),
         "party_short_name": ("partySname",),
@@ -500,7 +498,7 @@ def merge_missing(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[st
     merged = dict(old_metadata)
     # Preserve unrelated/user-created metadata. Update only fields this importer owns.
     for key, value in new_metadata.items():
-        if key in {"official_source", "official_source_url", "mpsno", "lsExpr", "noOfTerms", "status",
+        if key in {"official_source", "official_source_url", "mpsno", "noOfTerms",
                    "party", "party_short_name", "party_source_name", "gender", "constituencyCategory", "state", "profession2", "party_governance_id", "party_source_id"}:
             if value is not None:
                 merged[key] = value
@@ -600,7 +598,12 @@ def main() -> int:
             existing_positions = fetch_rest_rows(supabase_url, supabase_key, "position", "id,name,slug,appointing_organization_id,geography_id,metadata")
             existing_appointments = fetch_rest_rows(supabase_url, supabase_key, "position_appointment", "id,position_id,person_id,term,status,started_at,ended_at,geography_id,official_phone,official_email,metadata")
         except Exception as exc:
-            print(f"ERROR reading existing people from Supabase: {exc}", file=sys.stderr)
+            print(
+                "ERROR reading Supabase prerequisites: verify the schema and apply "
+                "20261030183000_position_appointment_term.sql before running the importer "
+                "(including dry-run). Details: " + str(exc),
+                file=sys.stderr,
+            )
             return 1
     elif args.apply:
         print("ERROR: Supabase credentials are required to apply.", file=sys.stderr)
