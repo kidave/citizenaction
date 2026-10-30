@@ -81,14 +81,43 @@ class DigitalSansadImporterTests(unittest.TestCase):
         })
         self.assertEqual(person["email"], "member@example.in")
         self.assertEqual(person["phone"], "011-12345678")
-        self.assertEqual(person["qualification"], "Graduate")
-        self.assertEqual(person["metadata"]["education"], [{"qualification": "Bachelor of Arts"}])
-        self.assertEqual(person["profession"], "Lawyer")
+        self.assertEqual(person["metadata"]["education"], [
+            {"qualification": "Graduate"},
+            {"qualification": "Bachelor of Arts"},
+        ])
+        self.assertEqual(person["metadata"]["professions"], [{"title": "Lawyer"}])
+        self.assertNotIn("qualification", person)
+        self.assertNotIn("profession", person)
         self.assertEqual(person["birth_date"], "1970-01-01")
         self.assertNotIn("constituency", person["metadata"])
         self.assertNotIn("lsExpr", person["metadata"])
         self.assertNotIn("status", person["metadata"])
         self.assertEqual(person["metadata"]["mpsno"], "344")
+
+
+    def test_multiple_qualifications_and_professions_are_canonical_metadata(self):
+        person = to_person({
+            "mpsno": 346,
+            "fullName": "Multi Profile Example",
+            "qualification": ["Graduate", "Post Graduate"],
+            "education": [
+                {"degree": "B.A.", "institution": "Example University"},
+                {"degree": "LL.B."},
+            ],
+            "profession": "Advocate; Social Worker",
+            "profession2": "Farmer",
+        })
+        metadata = person["metadata"]
+        self.assertEqual(metadata["education"], [
+            {"qualification": "Graduate; Post Graduate"},
+            {"qualification": "B.A.", "institution": "Example University"},
+            {"qualification": "LL.B."},
+        ])
+        self.assertEqual(metadata["professions"], [
+            {"title": "Advocate"}, {"title": "Social Worker"}, {"title": "Farmer"},
+        ])
+        self.assertNotIn("qualification", person)
+        self.assertNotIn("profession", person)
 
     def test_party_resolution_prefers_stable_digital_sansad_source_identity(self):
         parties = [
