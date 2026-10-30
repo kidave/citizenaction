@@ -14,6 +14,7 @@ from scripts.digital_sansad.import_members import (
     normalize_education,
     person_photo_storage_path,
     group_rows_by_insert_shape,
+    should_upload_source_photo,
     resolve_geography,
     to_person,
 )
@@ -38,6 +39,19 @@ class DigitalSansadImporterTests(unittest.TestCase):
         self.assertNotIn("birth_date", groups[0][0])
         self.assertNotIn("email", groups[0][0])
         self.assertEqual(rows[1]["birth_date"], "1970-01-01")
+
+    def test_photo_recovery_retries_missing_or_official_remote_images(self):
+        self.assertTrue(should_upload_source_photo(None, "https://sansad.in/photo.jpg"))
+        self.assertTrue(should_upload_source_photo({"image_url": None}, "https://sansad.in/photo.jpg"))
+        self.assertTrue(should_upload_source_photo({"image_url": "https://sansad.in/old.jpg"}, "https://sansad.in/photo.jpg"))
+        self.assertFalse(should_upload_source_photo(
+            {"image_url": "https://example.com/manual.jpg"}, "https://sansad.in/photo.jpg"
+        ))
+        self.assertFalse(should_upload_source_photo(
+            {"image_url": "https://project.supabase.co/storage/v1/object/public/governance/person/abc.jpg"},
+            "https://sansad.in/photo.jpg",
+        ))
+        self.assertFalse(should_upload_source_photo({"image_url": None}, None))
 
     def test_current_term_requires_explicit_18th_lok_sabha_evidence(self):
         self.assertTrue(is_current_lok_sabha_term({"lsExpr": "18th Lok Sabha"}))

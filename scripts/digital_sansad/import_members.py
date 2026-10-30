@@ -378,6 +378,24 @@ def group_rows_by_insert_shape(rows: list[dict[str, Any]]) -> list[list[dict[str
     return list(groups.values())
 
 
+def should_upload_source_photo(existing_person: dict[str, Any] | None, source_url: str | None) -> bool:
+    """Upload official photos when absent or still pointing at Digital Sansad.
+
+    Never replace a non-empty, non-Digital-Sansad URL: it may be a manually
+    curated image. Governance Storage URLs are left untouched on reruns.
+    """
+    if not source_url:
+        return False
+    if not existing_person:
+        return True
+    current_url = clean(existing_person.get("image_url"))
+    if not current_url:
+        return True
+    if "/storage/v1/object/public/governance/person/" in current_url:
+        return False
+    return current_url.startswith(("https://sansad.in/", "http://sansad.in/"))
+
+
 def supabase_request(method: str, url: str, key: str, **kwargs: Any) -> requests.Response:
     headers = kwargs.pop("headers", {})
     headers.update({
@@ -1007,7 +1025,16 @@ def main() -> int:
         }
 
     source_photo_available = sum(1 for person in source_people.values() if person.get("image_url"))
-    planned_photo_uploads = sum(1 for person in inserts if person.get("image_url")) + sum(1 for _, patch in updates if patch.get("image_url"))
+    planned_photo_uploads = sum(
+        1 for source_id, source_record in source_record_by_id.items()
+        if (
+            (incoming_photo_person := to_person(source_record))
+            and should_upload_source_photo(
+                by_source_id.get(source_id),
+                incoming_photo_person.get("image_url"),
+            )
+        )
+    )
     report = {
         "source": SOURCE_URL,
         "api_url": API_URL,
@@ -1144,32 +1171,38 @@ def main() -> int:
                         party_ids.get(f"source:{party_source_id}") if party_source_id else None
                     ) or party_ids.get(f"name:{normalize_name(party_name)}")
 
-        # New people need a database UUID before a photo can be stored at person/<person_id>.<ext>.
-        # Keep source URLs in memory, but never persist a remote URL if copying to Storage fails.
-        pending_insert_photos: dict[str, str] = {}
-        for person in inserts:
-            source_url = person.pop("image_url", None)
-            source_id = str((person.get("metadata") or {}).get("mpsno") or "")
-            if source_url and source_id:
-                pending_insert_photos[source_id] = source_url
-
-        # Existing people already have a database UUID. Never replace a manually supplied photo.
+        # Keep remote photo URLs out of person inserts/updates. Photos are a slow,
+        # resumable enrichment step and must not block parliamentary/party appointments.
+        pending_photos: dict[str, str] = {}
         for existing, patch in updates:
             if patch.get("image_url"):
-                source_url = patch["image_url"]
-                source_id = str(((patch.get("metadata") or {}).get("mpsno")) or "")
-                person_id = str(existing.get("id") or "")
-                if source_url and source_id and person_id:
-                    uploaded_url = upload_member_photo(
-                        supabase_url, supabase_key, source_url, person_id, source_id,
-                        existing.get("name") or "member",
-                    )
-                    if uploaded_url:
-                        patch["image_url"] = uploaded_url
-                        report["photo_import"]["uploaded"] += 1
-                    else:
-                        patch.pop("image_url", None)
-                        report["photo_import"]["failed"] += 1
+                source_id = clean((patch.get("metadata") or {}).get("mpsno"))
+                source_url = patch.get("image_url")
+                if source_id and source_url:
+                    pending_photos[source_id] = source_url
+                # Never persist a remote URL if Storage upload is interrupted.
+                patch.pop("image_url", None)
+
+        # Resolve existing records by source identity, including name-matched records
+        # that will receive their Digital Sansad identity in this run.
+        for existing, patch in updates:
+            source_id = clean((patch.get("metadata") or {}).get("mpsno"))
+            if source_id and source_id not in by_source_id:
+                by_source_id[source_id] = existing
+
+        # Rebuild photo work from the source on every run. This recovers photos for
+        # people inserted by a previous cancelled run while preserving manual photos.
+        for source_id, source_record in source_record_by_id.items():
+            incoming = to_person(source_record)
+            source_url = incoming.get("image_url") if incoming else None
+            existing = by_source_id.get(source_id)
+            if should_upload_source_photo(existing, source_url):
+                pending_photos[source_id] = source_url
+
+        # Do not send remote URLs in insert payloads. A failed upload leaves image_url
+        # empty and a later run will retry it from the public source.
+        for person in inserts:
+            person.pop("image_url", None)
 
         # Backfill only missing parliamentary geography after a future mapping fix.
         # Existing non-null geography is deliberately never overwritten.
@@ -1233,48 +1266,6 @@ def main() -> int:
                     report["results"]["updated"] += 1
                 except Exception as exc:
                     report["results"]["errors"].append({"operation": "update", "id": existing.get("id"), "error": str(exc)})
-
-        # Upload new-person photos only after inserts return successfully and UUIDs can be resolved.
-        if not report["results"]["errors"] and pending_insert_photos:
-            try:
-                refreshed_people_for_photos = fetch_existing_people(supabase_url, supabase_key)
-                people_by_source_id = {
-                    clean((person.get("metadata") or {}).get("mpsno")): person
-                    for person in refreshed_people_for_photos
-                    if isinstance(person.get("metadata"), dict)
-                    and person["metadata"].get("official_source") == "Digital Sansad"
-                    and clean(person["metadata"].get("mpsno"))
-                }
-                for source_id, source_url in pending_insert_photos.items():
-                    person = people_by_source_id.get(source_id)
-                    person_id = str(person.get("id") or "") if person else ""
-                    if not person_id:
-                        report["photo_import"]["failed"] += 1
-                        report["photo_import"]["failures"].append({"mpsno": source_id, "reason": "Inserted person UUID could not be resolved."})
-                        continue
-                    uploaded_url = upload_member_photo(
-                        supabase_url, supabase_key, source_url, person_id, source_id,
-                        person.get("name") or "member",
-                    )
-                    if not uploaded_url:
-                        report["photo_import"]["failed"] += 1
-                        report["photo_import"]["failures"].append({"mpsno": source_id, "reason": "Photo download or Storage upload failed."})
-                        continue
-                    try:
-                        supabase_request(
-                            "PATCH", rest_url, supabase_key,
-                            params={"id": f"eq.{person_id}"},
-                            json={"image_url": uploaded_url},
-                            headers={"Prefer": "return=minimal"},
-                        )
-                        report["photo_import"]["uploaded"] += 1
-                    except Exception as exc:
-                        report["photo_import"]["failed"] += 1
-                        report["photo_import"]["failures"].append({"mpsno": source_id, "reason": str(exc)})
-            except Exception as exc:
-                report["photo_import"]["failed"] += len(pending_insert_photos)
-                report["photo_import"]["failures"].append({"reason": f"Could not resolve inserted people for photo upload: {exc}"})
-
 
         party_appointment_candidates = [
             candidate for candidate in appointment_candidates
@@ -1416,6 +1407,60 @@ def main() -> int:
             except Exception as exc:
                 report["results"]["errors"].append({"operation": "prepare_appointments", "error": str(exc)})
 
+
+        # Photos are deliberately last: slow source downloads must not prevent
+        # core person/appointment/party relationships from being completed. This
+        # phase is resumable because candidates are rebuilt from source every run.
+        if not report["results"]["errors"] and pending_photos:
+            try:
+                refreshed_people_for_photos = fetch_existing_people(supabase_url, supabase_key)
+                people_by_source_id = {
+                    clean((person.get("metadata") or {}).get("mpsno")): person
+                    for person in refreshed_people_for_photos
+                    if isinstance(person.get("metadata"), dict)
+                    and person["metadata"].get("official_source") == "Digital Sansad"
+                    and clean(person["metadata"].get("mpsno"))
+                }
+                total_photos = len(pending_photos)
+                for photo_index, (source_id, source_url) in enumerate(pending_photos.items(), start=1):
+                    person = people_by_source_id.get(source_id)
+                    person_id = str(person.get("id") or "") if person else ""
+                    if not person_id:
+                        report["photo_import"]["failed"] += 1
+                        report["photo_import"]["failures"].append({"mpsno": source_id, "reason": "Person UUID could not be resolved for photo upload."})
+                        continue
+                    if not should_upload_source_photo(person, source_url):
+                        report["photo_import"].setdefault("skipped_existing", 0)
+                        report["photo_import"]["skipped_existing"] += 1
+                        continue
+                    uploaded_url = upload_member_photo(
+                        supabase_url, supabase_key, source_url, person_id, source_id,
+                        person.get("name") or "member",
+                    )
+                    if not uploaded_url:
+                        report["photo_import"]["failed"] += 1
+                        report["photo_import"]["failures"].append({"mpsno": source_id, "reason": "Photo download or Storage upload failed."})
+                    else:
+                        try:
+                            supabase_request(
+                                "PATCH", rest_url, supabase_key,
+                                params={"id": f"eq.{person_id}"},
+                                json={"image_url": uploaded_url},
+                                headers={"Prefer": "return=minimal"},
+                            )
+                            report["photo_import"]["uploaded"] += 1
+                        except Exception as exc:
+                            report["photo_import"]["failed"] += 1
+                            report["photo_import"]["failures"].append({"mpsno": source_id, "reason": str(exc)})
+                    if photo_index == 1 or photo_index % 25 == 0 or photo_index == total_photos:
+                        print(
+                            f"Photo recovery progress: {photo_index}/{total_photos} "
+                            f"(uploaded={report['photo_import']['uploaded']}, "
+                            f"failed={report['photo_import']['failed']})"
+                        )
+            except Exception as exc:
+                report["photo_import"]["failed"] += len(pending_photos)
+                report["photo_import"]["failures"].append({"reason": f"Could not resolve people for photo upload: {exc}"})
 
     if args.apply and report.get("photo_import", {}).get("mode") == "pending":
         photo_report = report["photo_import"]
