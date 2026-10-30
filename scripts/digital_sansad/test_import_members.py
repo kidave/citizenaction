@@ -13,12 +13,32 @@ from scripts.digital_sansad.import_members import (
     appointment_dates_from_source,
     normalize_education,
     person_photo_storage_path,
+    group_rows_by_insert_shape,
     resolve_geography,
     to_person,
 )
 
 
 class DigitalSansadImporterTests(unittest.TestCase):
+    def test_bulk_insert_rows_are_grouped_by_populated_column_shape(self):
+        rows = [
+            {"name": "A", "slug": "a", "metadata": {}},
+            {"name": "B", "slug": "b", "metadata": {}, "birth_date": "1970-01-01"},
+            {"name": "C", "slug": "c", "metadata": {}},
+            {"name": "D", "slug": "d", "metadata": {}, "email": "d@example.in"},
+            {"name": "E", "slug": "e", "metadata": {}, "birth_date": "1980-01-01"},
+        ]
+        groups = group_rows_by_insert_shape(rows)
+        self.assertEqual(len(groups), 3)
+        self.assertEqual([len(group) for group in groups], [2, 2, 1])
+        for group in groups:
+            expected_keys = set(group[0])
+            self.assertTrue(all(set(row) == expected_keys for row in group))
+        # Grouping must not add explicit nulls or mutate source rows.
+        self.assertNotIn("birth_date", groups[0][0])
+        self.assertNotIn("email", groups[0][0])
+        self.assertEqual(rows[1]["birth_date"], "1970-01-01")
+
     def test_current_term_requires_explicit_18th_lok_sabha_evidence(self):
         self.assertTrue(is_current_lok_sabha_term({"lsExpr": "18th Lok Sabha"}))
         self.assertTrue(is_current_lok_sabha_term({"lsExpr": "18"}))

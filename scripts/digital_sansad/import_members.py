@@ -365,6 +365,19 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
     return person
 
 
+def group_rows_by_insert_shape(rows: list[dict[str, Any]]) -> list[list[dict[str, Any]]]:
+    """Group rows by their populated columns for PostgREST bulk inserts.
+
+    PostgREST requires every object in a bulk insert payload to have the same
+    keys. Keep omitted optional columns omitted so database defaults still apply.
+    """
+    groups: dict[tuple[str, ...], list[dict[str, Any]]] = {}
+    for row in rows:
+        shape = tuple(sorted(row))
+        groups.setdefault(shape, []).append(row)
+    return list(groups.values())
+
+
 def supabase_request(method: str, url: str, key: str, **kwargs: Any) -> requests.Response:
     headers = kwargs.pop("headers", {})
     headers.update({
@@ -1183,16 +1196,30 @@ def main() -> int:
                     "error": str(exc),
                 })
 
-        # Batch inserts, then update matches individually to avoid overwriting concurrent edits.
-        for start in range(0, len(inserts), 100):
-            batch = inserts[start:start + 100]
-            try:
-                supabase_request("POST", rest_url, supabase_key, json=batch, headers={"Prefer": "return=minimal"})
-                report["results"]["inserted"] += len(batch)
-            except Exception as exc:
-                report["results"]["errors"].append({"operation": "insert_batch", "start": start, "count": len(batch), "error": str(exc)})
-                # Do not retry blind: an uncertain response could mean the server committed.
+        # PostgREST requires identical JSON keys for every row in a bulk insert.
+        # Group by populated columns first, then batch each shape independently.
+        # This preserves DB defaults for fields absent from a particular source row.
+        insert_offset = 0
+        for shape_index, shape_rows in enumerate(group_rows_by_insert_shape(inserts)):
+            for batch_offset in range(0, len(shape_rows), 100):
+                batch = shape_rows[batch_offset:batch_offset + 100]
+                try:
+                    supabase_request("POST", rest_url, supabase_key, json=batch, headers={"Prefer": "return=minimal"})
+                    report["results"]["inserted"] += len(batch)
+                except Exception as exc:
+                    report["results"]["errors"].append({
+                        "operation": "insert_batch",
+                        "shape_group": shape_index,
+                        "start": insert_offset + batch_offset,
+                        "count": len(batch),
+                        "columns": sorted(batch[0]) if batch else [],
+                        "error": str(exc),
+                    })
+                    # Do not retry blind: an uncertain response could mean the server committed.
+                    break
+            if report["results"]["errors"]:
                 break
+            insert_offset += len(shape_rows)
 
         if not report["results"]["errors"]:
             for existing, patch in updates:
