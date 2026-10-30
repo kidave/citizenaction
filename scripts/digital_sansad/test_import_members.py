@@ -42,9 +42,9 @@ class DigitalSansadImporterTests(unittest.TestCase):
     def test_lok_sabha_must_be_child_of_parliament(self):
         rows = [
             {"id": "p1", "name": "Parliament of India", "type": "legislature"},
-            {"id": "ls1", "name": "Lok Sabha", "type": "legislative_house", "parent_entity_id": "p1"},
-            {"id": "ls2", "name": "Lok Sabha", "type": "legislative_house", "parent_entity_id": "other"},
-            {"id": "rs1", "name": "Rajya Sabha", "type": "legislative_house", "parent_entity_id": "p1"},
+            {"id": "ls1", "name": "Lok Sabha", "type": "legislature", "parent_entity_id": "p1"},
+            {"id": "ls2", "name": "Lok Sabha", "type": "legislature", "parent_entity_id": "other"},
+            {"id": "rs1", "name": "Rajya Sabha", "type": "legislature", "parent_entity_id": "p1"},
         ]
         parliaments, houses = find_lok_sabha_governance(rows)
         self.assertEqual([r["id"] for r in parliaments], ["p1"])
@@ -54,7 +54,7 @@ class DigitalSansadImporterTests(unittest.TestCase):
         rows = [
             {"id": "p1", "name": "Parliament of India"},
             {"id": "p2", "name": "Parliament of India"},
-            {"id": "ls1", "name": "Lok Sabha", "type": "legislative_house", "parent_entity_id": "p1"},
+            {"id": "ls1", "name": "Lok Sabha", "type": "legislature", "parent_entity_id": "p1"},
         ]
         parliaments, houses = find_lok_sabha_governance(rows)
         self.assertEqual(len(parliaments), 2)
@@ -68,9 +68,16 @@ class DigitalSansadImporterTests(unittest.TestCase):
             "email": "member@example.in",
             "phone": "011-12345678",
             "birthDate": "01/01/1970",
+            "qualification": "Graduate",
+            "education": "Bachelor of Arts",
+            "profession": "Lawyer",
         })
         self.assertEqual(person["email"], "member@example.in")
         self.assertEqual(person["phone"], "011-12345678")
+        self.assertEqual(person["qualification"], "Graduate")
+        self.assertEqual(person["education"], "Bachelor of Arts")
+        self.assertEqual(person["profession"], "Lawyer")
+        self.assertEqual(person["birth_date"], "1970-01-01")
         self.assertNotIn("constituency", person["metadata"])
         self.assertNotIn("lsExpr", person["metadata"])
         self.assertNotIn("status", person["metadata"])
