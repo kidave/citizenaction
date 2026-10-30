@@ -56,6 +56,9 @@ declare
   candidate_slug text;
   suffix integer := 2;
 begin
+  if tg_op = 'INSERT' and nullif(btrim(new.slug), '') is not null then
+    return new;
+  end if;
   if tg_op = 'UPDATE' and new.name is not distinct from old.name
      and new.governance_id is not distinct from old.governance_id then
     return new;
