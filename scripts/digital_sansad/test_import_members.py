@@ -12,6 +12,7 @@ from scripts.digital_sansad.import_members import (
     is_constituency_applicable,
     appointment_dates_from_source,
     normalize_education,
+    person_photo_storage_path,
     resolve_geography,
     to_person,
 )
@@ -66,6 +67,9 @@ class DigitalSansadImporterTests(unittest.TestCase):
         parliaments, houses = find_lok_sabha_governance(rows)
         self.assertEqual(len(parliaments), 2)
         self.assertEqual(houses, [])
+
+    def test_person_photo_storage_path_uses_database_person_id(self):
+        self.assertEqual(person_photo_storage_path("person-uuid-123", "jpg"), "person/person-uuid-123.jpg")
 
     def test_person_maps_public_contact_fields_without_constituency_metadata(self):
         person = to_person({
