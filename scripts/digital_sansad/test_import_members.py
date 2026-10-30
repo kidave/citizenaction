@@ -15,6 +15,8 @@ class DigitalSansadImporterTests(unittest.TestCase):
         self.assertTrue(is_current_lok_sabha_term({"lsExpr": "18"}))
         self.assertFalse(is_current_lok_sabha_term({"status": "active"}))
         self.assertFalse(is_current_lok_sabha_term({"lsExpr": "17th Lok Sabha", "status": "active"}))
+        self.assertFalse(is_current_lok_sabha_term({"lsExpr": "18th Lok Sabha", "status": "former"}))
+        self.assertFalse(is_current_lok_sabha_term({"lsExpr": "18th Lok Sabha", "status": "resigned"}))
         self.assertFalse(is_current_lok_sabha_term({}))
 
     def test_lok_sabha_must_be_child_of_parliament(self):
