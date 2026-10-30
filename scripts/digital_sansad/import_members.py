@@ -367,7 +367,8 @@ def resolve_geography(
     })
     keys.update({key.replace(" and ", " & ") for key in tuple(keys)})
     keys.update({key.replace(" & ", " and ") for key in tuple(keys)})
-    keys = {key for key in keys if key}
+    keys.update({re.sub(r"\\band\\b", "", key).strip() for key in tuple(keys)})
+    keys = {re.sub(r"\\s+", " ", key) for key in keys if key}
     matches = []
     for geography in geographies:
         labels = [
