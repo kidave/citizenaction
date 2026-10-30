@@ -25,6 +25,28 @@ function getValue(value) {
   return typeof value === "string" ? value : null;
 }
 
+function getEducationItems(person) {
+  const value = person.metadata?.education ?? person.education;
+  const items = Array.isArray(value) ? value : value ? [value] : [];
+  return items.map((item) => {
+    if (typeof item === "string") return item.trim();
+    if (!item || typeof item !== "object") return "";
+    const qualification = item.qualification || item.degree || item.course || item.title || item.name;
+    const details = [item.field, item.institution, item.year].filter(Boolean).join(" · ");
+    return [qualification, details].filter(Boolean).join(" — ");
+  }).filter(Boolean);
+}
+
+function getProfessionItems(person) {
+  const value = person.metadata?.professions ?? person.profession;
+  const items = Array.isArray(value) ? value : value ? [value] : [];
+  return items.map((item) => {
+    if (typeof item === "string") return item.trim();
+    if (!item || typeof item !== "object") return "";
+    return String(item.title || item.profession || item.occupation || item.name || "").trim();
+  }).filter(Boolean);
+}
+
 export default function GovernancePersonPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -149,10 +171,29 @@ export default function GovernancePersonPage() {
                   {(person.official_email || person.metadata?.official_email) && <a className="hover:underline" href={"mailto:" + (person.official_email || person.metadata.official_email)}>{person.official_email || person.metadata.official_email}</a>}
                 </div>
               )}
-              {(person.hometown || person.education || person.metadata?.hometown || person.metadata?.education) && (
-                <dl className="mt-3 grid gap-x-5 gap-y-2 text-sm sm:grid-cols-2">
+              {(person.hometown || person.metadata?.hometown || getEducationItems(person).length > 0 || getProfessionItems(person).length > 0) && (
+                <dl className="mt-3 grid gap-x-5 gap-y-3 text-sm sm:grid-cols-2">
                   {(person.hometown || person.metadata?.hometown) && <div><dt className="text-xs text-muted-foreground">Hometown</dt><dd className="mt-0.5">{person.hometown || person.metadata.hometown}</dd></div>}
-                  {(person.education || person.metadata?.education) && <div><dt className="text-xs text-muted-foreground">Education</dt><dd className="mt-0.5">{person.education || person.metadata.education}</dd></div>}
+                  {getEducationItems(person).length > 0 && (
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Education & qualifications</dt>
+                      <dd className="mt-1">
+                        <ul className="space-y-1">
+                          {getEducationItems(person).map((item, index) => <li key={`education-${index}`}>{item}</li>)}
+                        </ul>
+                      </dd>
+                    </div>
+                  )}
+                  {getProfessionItems(person).length > 0 && (
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Professions</dt>
+                      <dd className="mt-1">
+                        <ul className="space-y-1">
+                          {getProfessionItems(person).map((item, index) => <li key={`profession-${index}`}>{item}</li>)}
+                        </ul>
+                      </dd>
+                    </div>
+                  )}
                 </dl>
               )}
               {person.biography && <p className="mt-3 max-w-2xl whitespace-pre-line text-sm leading-6 text-muted-foreground">{person.biography}</p>}

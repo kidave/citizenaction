@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Import unique Lok Sabha members from the Digital Sansad public directory.
+"""Import Lok Sabha members and current-term appointments from Digital Sansad.
 
-Safe by default: run without --apply to preview. The script never deletes rows
-and never creates parliamentary appointments. It only inserts missing people
-or enriches source-linked/exact-name matches with missing public fields.
+Safe by default: run without --apply to preview. Constituency and term are
+stored relationally on position_appointment, not duplicated in person metadata.
 """
 from __future__ import annotations
 
@@ -25,6 +24,8 @@ from urllib3.util.retry import Retry
 API_URL = "https://sansad.in/api_ls/member"
 SOURCE_URL = "https://sansad.in/ls/members"
 DEFAULT_PAGE_SIZE = 100
+CURRENT_LOK_SABHA_TERM = "18th Lok Sabha"
+CURRENT_TERM_START = "2024-06-24"
 PAGE_PAUSE_SECONDS = 0.35
 SOURCE_RETRY_TOTAL = 5
 SOURCE_BACKOFF_FACTOR = 1.5
@@ -36,7 +37,8 @@ HEADERS = {
 }
 # Keep this list intentionally limited to public biographical/professional fields.
 PERSONAL_FIELDS = {
-    "name", "image_url", "qualification", "profession", "birth_date", "metadata"
+    "name", "image_url", "birth_date", "date_of_death",
+    "phone", "email", "metadata"
 }
 
 
@@ -57,6 +59,69 @@ def first(record: dict[str, Any], *keys: str) -> Any:
         if value not in (None, ""):
             return value
     return None
+
+
+def clean_profile_text(value: Any) -> str | None:
+    """Flatten a single public qualification statement without guessing."""
+    if isinstance(value, list):
+        parts = [clean_profile_text(item) for item in value]
+        return "; ".join(part for part in parts if part) or None
+    if isinstance(value, dict):
+        parts = []
+        for key in ("degree", "qualification", "course", "institution", "university", "school", "field", "name", "title", "description"):
+            part = clean(value.get(key))
+            if part and part not in parts:
+                parts.append(part)
+        return ", ".join(parts) or None
+    return clean(value)
+
+
+def normalize_professions(*values: Any) -> list[dict[str, str]]:
+    """Normalize one or more source professions into canonical metadata records."""
+    result: list[dict[str, str]] = []
+    for value in values:
+        items = value if isinstance(value, list) else [value]
+        for item in items:
+            if isinstance(item, dict):
+                title = clean(first(item, "title", "profession", "occupation", "name", "description"))
+            else:
+                title = clean(item)
+            if title:
+                for part in re.split(r"\s*[;|]\s*", title):
+                    normalized = part.strip()
+                    entry = {"title": normalized}
+                    if normalized and entry not in result:
+                        result.append(entry)
+    return result
+
+
+def normalize_education(value: Any) -> list[dict[str, Any]]:
+    """Preserve multiple qualifications as structured metadata without inventing details."""
+    if value is None or value == "":
+        return []
+    items = value if isinstance(value, list) else [value]
+    result: list[dict[str, Any]] = []
+    aliases = {
+        "qualification": ("qualification", "degree", "course", "title", "name"),
+        "field": ("field", "subject", "specialization", "stream"),
+        "institution": ("institution", "university", "school", "college"),
+        "year": ("year", "graduationYear", "passingYear", "completionYear"),
+    }
+    for item in items:
+        if isinstance(item, dict):
+            entry = {}
+            for target, keys in aliases.items():
+                val = clean(first(item, *keys))
+                if val:
+                    entry[target] = val
+            if entry and entry not in result:
+                result.append(entry)
+        else:
+            val = clean(item)
+            entry = {"qualification": val} if val else None
+            if entry and entry not in result:
+                result.append(entry)
+    return result
 
 
 def normalize_name(value: str) -> str:
@@ -252,10 +317,7 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
         "mpsno": mpsno,
     }
     source_fields = {
-        "lsExpr": ("lsExpr", "ls_expr", "lokSabhaExperience"),
         "noOfTerms": ("noOfTerms", "no_of_terms", "termsServed"),
-        "status": ("status", "memberStatus"),
-        "constituency": ("constituency", "constituencyName", "constName"),
         "party_source_name": ("partyFname", "partyName", "party"),
         "party": ("party", "partyName", "partyFname"),
         "party_short_name": ("partySname",),
@@ -263,7 +325,6 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
         "gender": ("gender",),
         "constituencyCategory": ("constituencyCategory", "constituency_category"),
         "state": ("state", "stateName"),
-        "profession2": ("profession2", "otherProfession"),
     }
     for target, keys in source_fields.items():
         value = clean(first(record, *keys))
@@ -273,15 +334,34 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
     person: dict[str, Any] = {"name": name, "slug": f"{slugify(name)}-{mpsno}", "metadata": metadata}
     if image_url and image_url.startswith(("https://", "http://")):
         person["image_url"] = image_url
-    qualification = clean(first(record, "qualification", "educationalQualification", "education"))
-    profession = clean(first(record, "profession", "occupation"))
+    qualification_value = first(record, "qualification", "educationalQualification", "highestQualification")
+    qualification_entries = normalize_education(qualification_value)
+    education = normalize_education(first(record, "education", "educationDetails", "educationalBackground", "educationalHistory"))
+    for entry in reversed(qualification_entries):
+        if entry not in education:
+            education.insert(0, entry)
+    professions = normalize_professions(
+        first(record, "profession", "occupation"),
+        first(record, "profession2", "otherProfession"),
+    )
     birth_date = parse_date(first(record, "birthdate", "birthDate", "dateOfBirth", "dob"))
-    if qualification:
-        person["qualification"] = qualification
-    if profession:
-        person["profession"] = profession
+    date_of_death = parse_date(first(record, "dateOfDeath", "deathDate", "date_of_death"))
+    # Person-level contacts must not be inferred from official office contacts.
+    phone = clean(first(record, "personalPhone", "phone", "mobile", "mobileNumber"))
+    email = clean(first(record, "personalEmail", "email", "emailAddress"))
+    if education:
+        metadata["education"] = education
+    if professions:
+        metadata["professions"] = professions
+    person["metadata"] = metadata
     if birth_date:
         person["birth_date"] = birth_date
+    if date_of_death:
+        person["date_of_death"] = date_of_death
+    if phone:
+        person["phone"] = phone
+    if email:
+        person["email"] = email
     return person
 
 
@@ -306,7 +386,7 @@ def fetch_existing_people(base_url: str, key: str) -> list[dict[str, Any]]:
     while True:
         response = supabase_request(
             "GET", url, key,
-            params={"select": "id,name,metadata,image_url,qualification,profession,birth_date", "limit": page_size, "offset": offset},
+            params={"select": "id,name,metadata,image_url,qualification,education,profession,birth_date,date_of_death,phone,email", "limit": page_size, "offset": offset},
             headers={"Range-Unit": "items", "Range": f"{offset}-{offset + page_size - 1}"},
         )
         batch = response.json()
@@ -343,7 +423,12 @@ def fetch_rest_rows(base_url: str, key: str, table: str, select: str, filters: d
     return rows
 
 
-def upload_member_photo(base_url: str, key: str, source_url: str, source_id: str, name: str) -> str | None:
+def person_photo_storage_path(person_id: str, extension: str) -> str:
+    """Return the canonical object path used by governance person image uploads."""
+    return f"person/{person_id}.{extension}"
+
+
+def upload_member_photo(base_url: str, key: str, source_url: str, person_id: str, source_id: str, name: str) -> str | None:
     """Copy official photo into the existing public governance bucket; return its public URL."""
     try:
         response = requests.get(source_url, headers=HEADERS, timeout=30)
@@ -354,7 +439,8 @@ def upload_member_photo(base_url: str, key: str, source_url: str, source_id: str
         if not extension or not response.content or len(response.content) > 5 * 1024 * 1024:
             print(f"WARNING: skipped unsupported/empty/oversized photo for {name} ({source_id}); content-type={content_type!r}")
             return None
-        path = f"person/{slugify(name)}-{source_id}/profile.{extension}"
+        # Match GovernancePersonSheet: bucket=governance, object=person/<database-person-uuid>.<ext>.
+        path = person_photo_storage_path(person_id, extension)
         object_url = base_url.rstrip("/") + "/storage/v1/object/governance/" + requests.utils.quote(path, safe="/")
         headers = {
             "apikey": key, "Authorization": f"Bearer {key}",
@@ -369,6 +455,19 @@ def upload_member_photo(base_url: str, key: str, source_url: str, source_id: str
     except Exception as exc:
         print(f"WARNING: photo copy failed for {name} ({source_id}): {exc}")
         return None
+
+
+def is_constituency_applicable(record: dict[str, Any], label: str | None) -> bool:
+    """Return false for genuinely absent/nominated-member constituency values."""
+    nominated = normalize_name(str(first(record, "isNominated", "is_nominated", "nominated") or ""))
+    if nominated in {"true", "yes", "1", "y"}:
+        return False
+    if not label:
+        return False
+    return normalize_name(label) not in {
+        "", "nominated", "nominated member", "not applicable", "not available",
+        "none", "nil", "na", "n a", "no constituency", "independent nominated", "dash",
+    }
 
 
 def resolve_geography(
@@ -406,6 +505,106 @@ def resolve_geography(
         return None, len(matches) > 1, None
     geography = matches[0]
     return str(geography["id"]), False, clean(geography.get("status")) or "active"
+
+
+def extract_lok_sabha_terms(record: dict[str, Any]) -> list[str]:
+    """Parse every explicit Lok Sabha term in a source field such as '7,10,11'."""
+    value = clean(first(record, "term", "lokSabhaTerm", "loksabhaTerm", "loksabha", "lsExpr", "ls_expr", "lokSabhaExperience"))
+    if not value:
+        return []
+    matches = re.findall(r"\b(\d{1,2})(?:st|nd|rd|th)?\s*(?:lok\s*sabha)?\b", value, flags=re.IGNORECASE)
+    numbers = list(dict.fromkeys(int(item) for item in matches if 1 <= int(item) <= 20))
+    terms = []
+    for number in numbers:
+        suffix = "th" if 11 <= number % 100 <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(number % 10, "th")
+        terms.append(f"{number}{suffix} Lok Sabha")
+    return terms
+
+
+def extract_lok_sabha_term(record: dict[str, Any]) -> str | None:
+    """Backward-compatible single-term helper; returns None when multiple terms are listed."""
+    terms = extract_lok_sabha_terms(record)
+    return terms[0] if len(terms) == 1 else None
+
+
+def is_current_lok_sabha_term(record: dict[str, Any]) -> bool:
+    """Classify current membership from explicit 18th-term evidence and source status."""
+    source_status = normalize_name(str(first(record, "status", "memberStatus", "appointmentStatus") or ""))
+    if source_status in {"former", "former member", "resigned", "ceased", "expired", "term completed", "retired"}:
+        return False
+    return CURRENT_LOK_SABHA_TERM in extract_lok_sabha_terms(record)
+
+
+def appointment_dates_from_source(record: dict[str, Any], term: str | None) -> tuple[str | None, str | None]:
+    started_at = parse_date(first(record, "startedAt", "startDate", "termStartDate", "dateOfElection", "electionDate", "appointmentDate"))
+    ended_at = parse_date(first(record, "endedAt", "endDate", "termEndDate", "dateOfLeaving", "cessationDate", "resignationDate"))
+    if not started_at and term == CURRENT_LOK_SABHA_TERM:
+        started_at = CURRENT_TERM_START
+    return started_at, ended_at
+
+
+def appointment_status_from_source(record: dict[str, Any], current_term_eligible: bool) -> str:
+    """Normalize known statuses while preserving other source-provided statuses."""
+    raw_status = clean(first(record, "status", "memberStatus", "appointmentStatus"))
+    status_key = normalize_name(raw_status or "")
+    known_statuses = {
+        "active": "sitting",
+        "current": "sitting",
+        "currently serving": "sitting",
+        "sitting member": "sitting",
+        "member": "sitting",
+        "sitting": "sitting",
+        "suspended": "suspended",
+        "resigned": "resigned",
+        "former": "former",
+        "former member": "former",
+        "vacant": "vacant",
+    }
+    if status_key in known_statuses:
+        return known_statuses[status_key]
+    return raw_status or ("sitting" if current_term_eligible else "unknown")
+
+
+def appointment_fields_from_source(
+    record: dict[str, Any],
+    current_term_eligible: bool,
+    term_override: str | None = None,
+) -> dict[str, Any]:
+    """Extract appointment fields for one explicitly parsed term."""
+    term = term_override if term_override is not None else extract_lok_sabha_term(record)
+    started_at, ended_at = appointment_dates_from_source(record, term)
+    status = appointment_status_from_source(record, current_term_eligible)
+    if ended_at and status == "sitting":
+        status = "former"
+    if term != CURRENT_LOK_SABHA_TERM and status == "sitting":
+        status = "former"
+    return {
+        "term": term,
+        "started_at": started_at,
+        "ended_at": ended_at,
+        "appointment_status": status,
+        "official_phone": clean(first(record, "officialPhone", "officePhone", "phone", "telephone", "contactNumber")),
+        "official_email": clean(first(record, "officialEmail", "officeEmail", "email", "emailAddress")),
+    }
+
+
+def find_lok_sabha_governance(
+    governance: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Return Parliament of India and only the Lok Sabha records parented to it."""
+    parliaments = [
+        row for row in governance
+        if normalize_name(str(row.get("name") or "")) == "parliament of india"
+    ]
+    parliament = parliaments[0] if len(parliaments) == 1 else None
+    houses = [
+        row for row in governance
+        if row.get("type") == "legislature"
+        and normalize_name(str(row.get("name") or "")) == "lok sabha"
+        and parliament is not None
+        and str(row.get("parent_entity_id") or "") == str(parliament.get("id") or "")
+    ]
+    return parliaments, houses
 
 
 def resolve_party(
@@ -448,19 +647,54 @@ def resolve_party(
 def merge_missing(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
     """Only enrich blanks and merge the importer-owned metadata keys."""
     patch: dict[str, Any] = {}
-    for field in ("image_url", "qualification", "profession", "birth_date"):
+    for field in ("image_url", "birth_date", "date_of_death", "phone", "email"):
         if not existing.get(field) and incoming.get(field):
             patch[field] = incoming[field]
 
     old_metadata = existing.get("metadata") if isinstance(existing.get("metadata"), dict) else {}
     new_metadata = incoming.get("metadata") or {}
     merged = dict(old_metadata)
+
+    # Fold legacy scalar columns into metadata so metadata becomes canonical.
+    legacy_qualification = clean_profile_text(existing.get("qualification"))
+    legacy_education = normalize_education(existing.get("education"))
+    if legacy_qualification:
+        entry = {"qualification": legacy_qualification}
+        if entry not in legacy_education:
+            legacy_education.insert(0, entry)
+    current_education = normalize_education(merged.get("education"))
+    for entry in legacy_education:
+        if entry not in current_education:
+            current_education.append(entry)
+    if current_education:
+        merged["education"] = current_education
+
+    legacy_professions = normalize_professions(existing.get("profession"))
+    current_professions = normalize_professions(merged.get("professions"))
+    for entry in legacy_professions:
+        if entry not in current_professions:
+            current_professions.append(entry)
+    if current_professions:
+        merged["professions"] = current_professions
+
     # Preserve unrelated/user-created metadata. Update only fields this importer owns.
     for key, value in new_metadata.items():
-        if key in {"official_source", "official_source_url", "mpsno", "lsExpr", "noOfTerms", "status",
-                   "constituency", "party", "party_short_name", "party_source_name", "gender", "constituencyCategory", "state", "profession2", "constituency_geography_id", "party_governance_id", "party_source_id"}:
+        if key in {"official_source", "official_source_url", "mpsno", "noOfTerms",
+                   "party", "party_short_name", "party_source_name", "gender", "constituencyCategory", "state", "party_governance_id", "party_source_id"}:
             if value is not None:
                 merged[key] = value
+        elif key == "education" and value is not None:
+            combined = normalize_education(merged.get("education"))
+            for entry in normalize_education(value):
+                if entry not in combined:
+                    combined.append(entry)
+            merged[key] = combined
+        elif key == "professions" and value is not None:
+            combined = normalize_professions(merged.get("professions"))
+            for entry in normalize_professions(value):
+                if entry not in combined:
+                    combined.append(entry)
+            merged[key] = combined
     if merged != old_metadata:
         patch["metadata"] = merged
     return patch
@@ -475,8 +709,8 @@ def main() -> int:
                         help="Fetch only this many source rows for a small test.")
     parser.add_argument("--member-id", default=None,
                         help="Process exactly one Digital Sansad mpsno (fetches the source listing, then selects that member). Cannot be combined with --limit-records.")
-    parser.add_argument("--min-source-records", type=int, default=1000,
-                        help="Fail closed if fewer source rows are returned (protects against partial/API errors).")
+    parser.add_argument("--min-source-records", type=int, default=400,
+                        help="Fail closed if fewer source rows are returned (current Lok Sabha has roughly 543 seats; API totals are also checked).")
     parser.add_argument("--timeout", type=int, default=60,
                         help="Per-request timeout in seconds for the public source API (default: 60).")
     parser.add_argument("--report", default="digital-sansad-import-report.json")
@@ -534,16 +768,43 @@ def main() -> int:
         print("ERROR: no usable member records with stable source IDs were found.", file=sys.stderr)
         return 1
 
+    source_constituencies: dict[str, str] = {}
+    current_term_eligible: dict[str, bool] = {}
+    source_record_by_id: dict[str, dict[str, Any]] = {}
+    for row in source_rows:
+        source_id = source_identity(row)
+        constituency = clean(first(row, "constituency", "constituencyName", "constName"))
+        if not is_constituency_applicable(row, constituency):
+            constituency = None
+        # Generic statuses such as "active" are not enough to infer a current term.
+        current_term_eligible[source_id] = is_current_lok_sabha_term(row)
+        if source_id:
+            # Keep the record associated with the current source ID for appointment fields.
+            # The processing loop below must not accidentally reuse the previous loop's row.
+            source_record_by_id[source_id] = row
+        if source_id and constituency:
+            source_constituencies[source_id] = constituency
+
     existing_people: list[dict[str, Any]] = []
     existing_geographies: list[dict[str, Any]] = []
     existing_governance: list[dict[str, Any]] = []
+    existing_positions: list[dict[str, Any]] = []
+    existing_appointments: list[dict[str, Any]] = []
     if supabase_url and supabase_key:
         try:
             existing_people = fetch_existing_people(supabase_url, supabase_key)
             existing_geographies = fetch_rest_rows(supabase_url, supabase_key, "geographies", "id,name,official_name,slug,other_names,status,geography_type,boundary_category", {"geography_type": "eq.parliamentary_constituency", "boundary_category": "eq.political"})
-            existing_governance = fetch_rest_rows(supabase_url, supabase_key, "governance", "id,name,short_name,slug,type,metadata,source_system,source_id")
+            existing_governance = fetch_rest_rows(supabase_url, supabase_key, "governance", "id,name,short_name,slug,type,parent_entity_id,metadata,source_system,source_id")
+            existing_positions = fetch_rest_rows(supabase_url, supabase_key, "position", "id,name,slug,governance_id,appointing_organization_id,geography_id,metadata")
+            existing_appointments = fetch_rest_rows(supabase_url, supabase_key, "position_appointment", "id,position_id,person_id,organization_id,term,status,started_at,ended_at,geography_id,official_phone,official_email,metadata")
         except Exception as exc:
-            print(f"ERROR reading existing people from Supabase: {exc}", file=sys.stderr)
+            print(
+                "ERROR reading Supabase prerequisites: verify the schema and apply "
+                "20261030183000_position_appointment_term.sql and "
+                "20261030190000_position_governance_id_and_scoped_slug.sql before running "
+                "the importer (including dry-run). Details: " + str(exc),
+                file=sys.stderr,
+            )
             return 1
     elif args.apply:
         print("ERROR: Supabase credentials are required to apply.", file=sys.stderr)
@@ -574,13 +835,16 @@ def main() -> int:
     updates: list[tuple[dict[str, Any], dict[str, Any]]] = []
     ambiguous: list[dict[str, Any]] = []
     matched_existing = 0
+    resolved_constituencies: dict[str, str] = {}
+    appointment_candidates: list[dict[str, Any]] = []
 
     for source_id, incoming in source_people.items():
+        source_record = source_record_by_id.get(source_id, {})
         source_meta = incoming.get("metadata") or {}
-        constituency_name = clean(source_meta.get("constituency"))
+        constituency_name = source_constituencies.get(source_id)
         geography_id, geography_ambiguous, geography_status = resolve_geography(constituency_name, existing_geographies)
         if geography_id:
-            source_meta["constituency_geography_id"] = geography_id
+            resolved_constituencies[source_id] = geography_id
             if geography_status == "former":
                 matched_former_constituencies.append({
                     "mpsno": source_id, "name": incoming["name"],
@@ -607,7 +871,8 @@ def main() -> int:
         elif party_name and not party_ambiguous:
             party_key = normalize_name(party_name)
             if party_key:
-                party_to_create.setdefault(party_key, {
+                party_key_for_create = f"source:{party_source_id}" if party_source_id else f"name:{party_key}"
+                party_to_create.setdefault(party_key_for_create, {
                     "name": party_name, "slug": slugify(party_name), "type": "political_party",
                     "short_name": clean(source_meta.get("party_short_name")),
                     "source_system": "digital_sansad" if party_source_id else None,
@@ -630,6 +895,30 @@ def main() -> int:
                 ambiguous.append({"mpsno": source_id, "name": incoming["name"], "matching_person_ids": [p.get("id") for p in name_matches]})
                 continue
 
+        source_terms = extract_lok_sabha_terms(source_record)
+        # A source row may list several terms, e.g. "7,10,11". Keep one person
+        # but plan one appointment per explicitly listed term.
+        terms_to_plan: list[str | None] = source_terms or [None]
+        for term in terms_to_plan:
+            is_current_term = term == CURRENT_LOK_SABHA_TERM and current_term_eligible.get(source_id, False)
+            appointment_fields = appointment_fields_from_source(
+                source_record, is_current_term, term_override=term
+            )
+            # A single row's generic dates may describe only its latest election;
+            # never copy them onto every historical term in a multi-term list.
+            if len(source_terms) > 1 and term != CURRENT_LOK_SABHA_TERM:
+                appointment_fields["started_at"] = None
+                appointment_fields["ended_at"] = None
+            appointment_candidates.append({
+                "mpsno": source_id, "name": incoming["name"],
+                "geography_id": resolved_constituencies.get(source_id),
+                "constituency": constituency_name, "person_id": existing.get("id") if existing else None,
+                "current_term_eligible": is_current_term,
+                "party_name": party_name,
+                "party_source_id": party_source_id,
+                "party_governance_id": party.get("id") if party else None,
+                **appointment_fields,
+            })
         if existing is None:
             inserts.append(incoming)
             continue
@@ -638,12 +927,82 @@ def main() -> int:
         if patch:
             updates.append((existing, patch))
 
+    parliament_rows, lok_sabha_orgs = find_lok_sabha_governance(existing_governance)
+    mp_positions = [p for p in existing_positions if normalize_name(str(p.get("name") or "")) == "member of parliament" and len(lok_sabha_orgs) == 1 and (p.get("governance_id") or p.get("appointing_organization_id")) == lok_sabha_orgs[0].get("id")]
+    position_ambiguous = len(parliament_rows) != 1 or len(lok_sabha_orgs) != 1 or len(mp_positions) > 1
+    mp_position = mp_positions[0] if len(mp_positions) == 1 else None
+    existing_appointment_by_key = {
+        (str(a.get("position_id")), str(a.get("person_id")), str(a.get("term") or "")): a
+        for a in existing_appointments
+    }
+    existing_appointment_keys = set(existing_appointment_by_key)
+    planned_appointments = []
+    planned_geography_updates: list[dict[str, Any]] = []
+    skipped_appointments = []
+    if position_ambiguous:
+        skipped_appointments.append({"reason": "Could not uniquely identify Parliament of India → Lok Sabha → Member of Parliament.", "parliament_matches": len(parliament_rows), "lok_sabha_organization_matches": len(lok_sabha_orgs), "member_of_parliament_position_matches": len(mp_positions)})
+    else:
+        for candidate in appointment_candidates:
+            term = candidate.get("term")
+            if not term:
+                skipped_appointments.append({"mpsno": candidate["mpsno"], "name": candidate["name"], "constituency": candidate.get("constituency"), "reason": "No valid Lok Sabha term could be parsed from the source; person remains eligible for import."})
+                continue
+            if candidate.get("constituency") and not candidate.get("geography_id"):
+                skipped_appointments.append({"mpsno": candidate["mpsno"], "name": candidate["name"], "constituency": candidate.get("constituency"), "reason": "Constituency unresolved or ambiguous; appointment planned without geography."})
+            if candidate.get("person_id") and mp_position:
+                appointment_key = (str(mp_position["id"]), str(candidate["person_id"]), str(term))
+                existing_appointment = existing_appointment_by_key.get(appointment_key)
+                if existing_appointment:
+                    # A future run should backfill geography after admins add/fix a
+                    # constituency or alias, but never overwrite a chosen geography.
+                    if candidate.get("geography_id") and not existing_appointment.get("geography_id"):
+                        planned_geography_updates.append({
+                            "id": existing_appointment.get("id"),
+                            "mpsno": candidate["mpsno"],
+                            "name": candidate["name"],
+                            "term": term,
+                            "geography_id": candidate["geography_id"],
+                        })
+                    continue
+            planned_appointments.append(candidate)
+
+    source_field_specs = {
+        "birth_date": (("birthdate", "birthDate", "dateOfBirth", "dob"), lambda person, row: bool(person.get("birth_date"))),
+        "date_of_death": (("dateOfDeath", "deathDate", "date_of_death"), lambda person, row: bool(person.get("date_of_death"))),
+        "education_qualifications": (("qualification", "educationalQualification", "highestQualification", "education", "educationDetails", "educationalBackground", "educationalHistory"), lambda person, row: bool((person.get("metadata") or {}).get("education"))),
+        "professions": (("profession", "occupation", "profession2", "otherProfession"), lambda person, row: bool((person.get("metadata") or {}).get("professions"))),
+        "photo_url": (("photoUrl", "photoURL", "imageUrl", "image_url", "photo", "image", "memberPhoto"), lambda person, row: bool(person.get("image_url"))),
+        "party_source_id": (("partyCode", "party_code", "partyId", "party_id"), lambda person, row: bool((person.get("metadata") or {}).get("party_source_id"))),
+        "lok_sabha_terms": (("noOfTerms", "no_of_terms", "termsServed", "loksabha", "term", "terms"), lambda person, row: bool(extract_lok_sabha_terms(row))),
+        "appointment_status": (("status", "memberStatus", "appointmentStatus"), lambda person, row: appointment_status_from_source(row, current_term_eligible.get(clean((person.get("metadata") or {}).get("mpsno")) or "", False)) != "unknown"),
+    }
+    field_validation = {}
+    for field_name, (source_keys, is_mapped) in source_field_specs.items():
+        source_present = 0
+        mapped = 0
+        for source_id, person in source_people.items():
+            row = source_record_by_id.get(source_id, {})
+            raw_value = first(row, *source_keys)
+            has_value = raw_value not in (None, "", [], {})
+            source_present += int(has_value)
+            mapped += int(has_value and is_mapped(person, row))
+        field_validation[field_name] = {
+            "source_present": source_present,
+            "mapped": mapped,
+            "missing_in_source": len(source_people) - source_present,
+            "present_but_unmapped": source_present - mapped,
+        }
+
+    source_photo_available = sum(1 for person in source_people.values() if person.get("image_url"))
+    planned_photo_uploads = sum(1 for person in inserts if person.get("image_url")) + sum(1 for _, patch in updates if patch.get("image_url"))
     report = {
         "source": SOURCE_URL,
         "api_url": API_URL,
         "fetched_source_rows": len(source_rows),
         "advertised_source_total": advertised_total,
         "unique_members_with_source_id": len(source_people),
+        "field_validation": field_validation,
+        "photo_import": {"source_photo_available": source_photo_available, "planned_uploads": planned_photo_uploads, "uploaded": 0, "failed": 0, "failures": [], "mode": "pending" if args.apply else "dry-run-not-uploaded"},
         "rows_without_name_or_stable_id": rejected_rows,
         "existing_people_scanned": len(existing_people),
         "matched_existing_people": matched_existing,
@@ -651,12 +1010,26 @@ def main() -> int:
         "planned_updates": len(updates),
         "ambiguous_name_matches_skipped": ambiguous,
         "unresolved_constituencies": unresolved_constituencies,
+        "members_without_constituency_count": sum(1 for source_id in source_people if not source_constituencies.get(source_id)),
         "ambiguous_constituencies": ambiguous_constituencies,
         "matched_former_constituencies": matched_former_constituencies,
         "matched_defunct_constituencies": matched_defunct_constituencies,
         "unresolved_parties": unresolved_parties,
         "ambiguous_parties": ambiguous_parties,
         "planned_party_entities": len(party_to_create),
+        "appointment_model": {"positions": [{"position": "Member of Parliament", "governance": "Lok Sabha"}, {"position": "Member", "governance": "political party membership fallback"}], "term_source": "each explicit source-provided Lok Sabha term parsed independently", "current_term_start_fallback": CURRENT_TERM_START},
+        "parliament_matches": len(parliament_rows),
+        "lok_sabha_organization_matches": len(lok_sabha_orgs),
+        "member_of_parliament_position_matches": len(mp_positions),
+        "planned_appointments": len(planned_appointments),
+        "planned_geography_updates": len(planned_geography_updates),
+        "geography_updates": planned_geography_updates,
+        "planned_historical_appointments": sum(1 for candidate in planned_appointments if candidate.get("term") != CURRENT_LOK_SABHA_TERM),
+        "planned_sitting_appointments": sum(1 for candidate in planned_appointments if candidate.get("current_term_eligible") and candidate.get("appointment_status") == "sitting"),
+        # Party listed on this directory row is not term-specific, so don't project it backwards.
+        "planned_party_appointments": sum(1 for candidate in appointment_candidates if candidate.get("current_term_eligible") and candidate.get("term") and candidate.get("party_name")),
+        "generic_member_fallbacks": sum(1 for candidate in appointment_candidates if candidate.get("current_term_eligible") and candidate.get("term") and candidate.get("party_name")),
+        "skipped_appointments": skipped_appointments,
         "mode": "apply" if args.apply else "dry-run",
         "sample_limit_records": args.limit_records,
         "selected_member_id": clean(args.member_id),
@@ -732,44 +1105,83 @@ def main() -> int:
         # Attach resolved party/geography IDs to incoming metadata, including IDs of parties created above.
         party_ids: dict[str, str] = {}
         for party_row in existing_governance:
-            if not party_row.get("id"):
+            if not party_row.get("id") or str(party_row.get("type") or "") != "political_party":
                 continue
+            if party_row.get("source_system") == "digital_sansad" and clean(party_row.get("source_id")):
+                party_ids[f"source:{clean(party_row.get('source_id'))}"] = str(party_row["id"])
             for party_label in (party_row.get("name"), party_row.get("short_name"), str(party_row.get("slug") or "").replace("-", " ")):
                 if clean(party_label):
-                    party_ids[normalize_name(str(party_label))] = str(party_row["id"])
+                    party_ids[f"name:{normalize_name(str(party_label))}"] = str(party_row["id"])
         for person in inserts:
             metadata = person.get("metadata") or {}
             party_name = clean(metadata.get("party_source_name")) or clean(metadata.get("party_short_name"))
             if party_name and not metadata.get("party_governance_id"):
-                metadata["party_governance_id"] = party_ids.get(normalize_name(party_name))
+                party_source_id = clean(metadata.get("party_source_id"))
+                metadata["party_governance_id"] = (
+                    party_ids.get(f"source:{party_source_id}") if party_source_id else None
+                ) or party_ids.get(f"name:{normalize_name(party_name)}")
             person["metadata"] = metadata
         for existing, patch in updates:
             metadata = patch.get("metadata")
             if isinstance(metadata, dict):
                 party_name = clean(metadata.get("party_source_name")) or clean(metadata.get("party_short_name"))
                 if party_name and not metadata.get("party_governance_id"):
-                    metadata["party_governance_id"] = party_ids.get(normalize_name(party_name))
+                    party_source_id = clean(metadata.get("party_source_id"))
+                    metadata["party_governance_id"] = (
+                        party_ids.get(f"source:{party_source_id}") if party_source_id else None
+                    ) or party_ids.get(f"name:{normalize_name(party_name)}")
 
-        # Copy photos into the existing public Storage bucket. Never replace a manually supplied photo.
+        # New people need a database UUID before a photo can be stored at person/<person_id>.<ext>.
+        # Keep source URLs in memory, but never persist a remote URL if copying to Storage fails.
+        pending_insert_photos: dict[str, str] = {}
         for person in inserts:
-            source_url = person.get("image_url")
+            source_url = person.pop("image_url", None)
             source_id = str((person.get("metadata") or {}).get("mpsno") or "")
             if source_url and source_id:
-                uploaded_url = upload_member_photo(supabase_url, supabase_key, source_url, source_id, person["name"])
-                if uploaded_url:
-                    person["image_url"] = uploaded_url
-                else:
-                    person.pop("image_url", None)
+                pending_insert_photos[source_id] = source_url
+
+        # Existing people already have a database UUID. Never replace a manually supplied photo.
         for existing, patch in updates:
             if patch.get("image_url"):
                 source_url = patch["image_url"]
                 source_id = str(((patch.get("metadata") or {}).get("mpsno")) or "")
-                if source_url and source_id:
-                    uploaded_url = upload_member_photo(supabase_url, supabase_key, source_url, source_id, existing.get("name") or "member")
+                person_id = str(existing.get("id") or "")
+                if source_url and source_id and person_id:
+                    uploaded_url = upload_member_photo(
+                        supabase_url, supabase_key, source_url, person_id, source_id,
+                        existing.get("name") or "member",
+                    )
                     if uploaded_url:
                         patch["image_url"] = uploaded_url
+                        report["photo_import"]["uploaded"] += 1
                     else:
                         patch.pop("image_url", None)
+                        report["photo_import"]["failed"] += 1
+
+        # Backfill only missing parliamentary geography after a future mapping fix.
+        # Existing non-null geography is deliberately never overwritten.
+        appointment_url = supabase_url.rstrip("/") + "/rest/v1/position_appointment"
+        for geography_update in planned_geography_updates:
+            if not geography_update.get("id") or not geography_update.get("geography_id"):
+                continue
+            try:
+                updated = supabase_request(
+                    "PATCH", appointment_url, supabase_key,
+                    params={"id": f"eq.{geography_update['id']}", "geography_id": "is.null"},
+                    json={"geography_id": geography_update["geography_id"]},
+                    headers={"Prefer": "return=representation"},
+                ).json()
+                if updated:
+                    report["results"].setdefault("geography_updates", 0)
+                    report["results"]["geography_updates"] += len(updated) if isinstance(updated, list) else 1
+            except Exception as exc:
+                report["results"]["errors"].append({
+                    "operation": "backfill_appointment_geography",
+                    "id": geography_update["id"],
+                    "mpsno": geography_update["mpsno"],
+                    "term": geography_update["term"],
+                    "error": str(exc),
+                })
 
         # Batch inserts, then update matches individually to avoid overwriting concurrent edits.
         for start in range(0, len(inserts), 100):
@@ -795,6 +1207,192 @@ def main() -> int:
                 except Exception as exc:
                     report["results"]["errors"].append({"operation": "update", "id": existing.get("id"), "error": str(exc)})
 
+        # Upload new-person photos only after inserts return successfully and UUIDs can be resolved.
+        if not report["results"]["errors"] and pending_insert_photos:
+            try:
+                refreshed_people_for_photos = fetch_existing_people(supabase_url, supabase_key)
+                people_by_source_id = {
+                    clean((person.get("metadata") or {}).get("mpsno")): person
+                    for person in refreshed_people_for_photos
+                    if isinstance(person.get("metadata"), dict)
+                    and person["metadata"].get("official_source") == "Digital Sansad"
+                    and clean(person["metadata"].get("mpsno"))
+                }
+                for source_id, source_url in pending_insert_photos.items():
+                    person = people_by_source_id.get(source_id)
+                    person_id = str(person.get("id") or "") if person else ""
+                    if not person_id:
+                        report["photo_import"]["failed"] += 1
+                        report["photo_import"]["failures"].append({"mpsno": source_id, "reason": "Inserted person UUID could not be resolved."})
+                        continue
+                    uploaded_url = upload_member_photo(
+                        supabase_url, supabase_key, source_url, person_id, source_id,
+                        person.get("name") or "member",
+                    )
+                    if not uploaded_url:
+                        report["photo_import"]["failed"] += 1
+                        report["photo_import"]["failures"].append({"mpsno": source_id, "reason": "Photo download or Storage upload failed."})
+                        continue
+                    try:
+                        supabase_request(
+                            "PATCH", rest_url, supabase_key,
+                            params={"id": f"eq.{person_id}"},
+                            json={"image_url": uploaded_url},
+                            headers={"Prefer": "return=minimal"},
+                        )
+                        report["photo_import"]["uploaded"] += 1
+                    except Exception as exc:
+                        report["photo_import"]["failed"] += 1
+                        report["photo_import"]["failures"].append({"mpsno": source_id, "reason": str(exc)})
+            except Exception as exc:
+                report["photo_import"]["failed"] += len(pending_insert_photos)
+                report["photo_import"]["failures"].append({"reason": f"Could not resolve inserted people for photo upload: {exc}"})
+
+
+        party_appointment_candidates = [
+            candidate for candidate in appointment_candidates
+            if candidate.get("current_term_eligible") and candidate.get("term") and candidate.get("party_name")
+        ]
+        if not report["results"]["errors"] and (planned_appointments or party_appointment_candidates):
+            try:
+                refreshed_people = fetch_existing_people(supabase_url, supabase_key)
+                source_to_person_id = {}
+                for person in refreshed_people:
+                    metadata = person.get("metadata") if isinstance(person.get("metadata"), dict) else {}
+                    if metadata.get("official_source") == "Digital Sansad" and clean(metadata.get("mpsno")):
+                        source_to_person_id[clean(metadata.get("mpsno"))] = person.get("id")
+                appointment_url = supabase_url.rstrip("/") + "/rest/v1/position_appointment"
+                if planned_appointments and not mp_position:
+                    created = supabase_request("POST", supabase_url.rstrip("/") + "/rest/v1/position", supabase_key,
+                        json={"name": "Member of Parliament", "slug": "member-of-parliament", "governance_id": lok_sabha_orgs[0]["id"], "metadata": {"official_source": "Digital Sansad", "position_scope": "Lok Sabha member"}},
+                        headers={"Prefer": "return=representation"})
+                    payload = created.json()
+                    mp_position = payload[0] if isinstance(payload, list) and payload else None
+                    if not mp_position or not mp_position.get("id"):
+                        found = fetch_rest_rows(supabase_url, supabase_key, "position", "id,name,slug,governance_id,appointing_organization_id,geography_id,metadata", {"slug": "eq.member-of-parliament"})
+                        found = [p for p in found if (p.get("governance_id") or p.get("appointing_organization_id")) == lok_sabha_orgs[0]["id"]]
+                        if len(found) != 1:
+                            raise RuntimeError("Could not safely resolve Member of Parliament position after creation.")
+                        mp_position = found[0]
+                for candidate in planned_appointments:
+                    person_id = candidate.get("person_id") or source_to_person_id.get(candidate["mpsno"])
+                    if not person_id:
+                        report["results"]["errors"].append({"operation": "resolve_appointment_person", "mpsno": candidate["mpsno"], "error": "Could not resolve person ID after import."})
+                        continue
+                    term = candidate["term"]
+                    key = (str(mp_position["id"]), str(person_id), str(term))
+                    if key in existing_appointment_keys:
+                        continue
+                    payload = {"position_id": mp_position["id"], "person_id": person_id, "organization_id": lok_sabha_orgs[0]["id"], "geography_id": candidate.get("geography_id"), "term": term, "status": clean(candidate.get("appointment_status")) or "unknown", "started_at": candidate.get("started_at"), "ended_at": candidate.get("ended_at"), "is_vacant": False, "is_primary": term == CURRENT_LOK_SABHA_TERM, "official_phone": clean(candidate.get("official_phone")), "official_email": clean(candidate.get("official_email")), "metadata": {"official_source": "Digital Sansad", "mpsno": candidate["mpsno"], "source_url": SOURCE_URL, "term_evidence": "Digital Sansad member-list row"}}
+                    try:
+                        supabase_request("POST", appointment_url, supabase_key, json=payload, headers={"Prefer": "return=minimal"})
+                        existing_appointment_keys.add(key)
+                        report["results"].setdefault("appointments_created", 0)
+                        report["results"]["appointments_created"] += 1
+                    except Exception as exc:
+                        report["results"]["errors"].append({"operation": "create_appointment", "mpsno": candidate["mpsno"], "name": candidate["name"], "error": str(exc)})
+
+                # Use a generic Member position for party affiliation when no specific office is known.
+                current_positions = fetch_rest_rows(
+                    supabase_url, supabase_key, "position",
+                    "id,name,slug,governance_id,appointing_organization_id,geography_id,metadata",
+                )
+                party_position_by_governance = {}
+                for candidate in party_appointment_candidates:
+                    party_name = clean(candidate.get("party_name"))
+                    party_id = (
+                        party_ids.get(f"source:{clean(candidate.get('party_source_id'))}")
+                        if clean(candidate.get("party_source_id")) else None
+                    ) or party_ids.get(f"name:{normalize_name(party_name or '')}")
+                    if not party_id:
+                        report["results"]["errors"].append({
+                            "operation": "resolve_party_appointment_governance",
+                            "mpsno": candidate["mpsno"], "party": party_name,
+                            "error": "Could not resolve a unique political-party governance ID.",
+                        })
+                        continue
+                    party_position = party_position_by_governance.get(party_id)
+                    if not party_position:
+                        matches = [
+                            position for position in current_positions
+                            if (position.get("governance_id") or position.get("appointing_organization_id")) == party_id
+                            and normalize_name(str(position.get("name") or "")) in {"member", "party member"}
+                        ]
+                        if len(matches) > 1:
+                            report["results"]["errors"].append({
+                                "operation": "resolve_party_member_position",
+                                "party": party_name,
+                                "error": "Multiple Party Member positions exist under this party.",
+                            })
+                            continue
+                        if matches:
+                            party_position = matches[0]
+                        else:
+                            created = supabase_request(
+                                "POST", supabase_url.rstrip("/") + "/rest/v1/position", supabase_key,
+                                json={
+                                    "name": "Member", "slug": "member",
+                                    "governance_id": party_id,
+                                    "metadata": {"official_source": "Digital Sansad", "position_scope": "political party membership"},
+                                },
+                                headers={"Prefer": "return=representation"},
+                            )
+                            payload = created.json()
+                            party_position = payload[0] if isinstance(payload, list) and payload else None
+                            if not party_position or not party_position.get("id"):
+                                found = fetch_rest_rows(
+                                    supabase_url, supabase_key, "position",
+                                    "id,name,slug,governance_id,appointing_organization_id,geography_id,metadata",
+                                    {"slug": "eq.member"},
+                                )
+                                found = [p for p in found if (p.get("governance_id") or p.get("appointing_organization_id")) == party_id]
+                                if len(found) != 1:
+                                    raise RuntimeError(f"Could not safely resolve Member position for {party_name}.")
+                                party_position = found[0]
+                            current_positions.append(party_position)
+                        party_position_by_governance[party_id] = party_position
+
+                    person_id = candidate.get("person_id") or source_to_person_id.get(candidate["mpsno"])
+                    if not person_id:
+                        report["results"]["errors"].append({
+                            "operation": "resolve_party_appointment_person",
+                            "mpsno": candidate["mpsno"],
+                            "error": "Could not resolve person ID after import.",
+                        })
+                        continue
+                    term = candidate["term"]
+                    key = (str(party_position["id"]), str(person_id), str(term))
+                    if key in existing_appointment_keys:
+                        continue
+                    payload = {
+                        "position_id": party_position["id"], "person_id": person_id,
+                        "organization_id": party_id, "term": term,
+                        "status": clean(candidate.get("appointment_status")) or "unknown",
+                        "started_at": candidate.get("started_at"), "ended_at": candidate.get("ended_at"),
+                        "geography_id": None, "is_vacant": False, "is_primary": False,
+                        "metadata": {
+                            "official_source": "Digital Sansad", "mpsno": candidate["mpsno"],
+                            "source_url": SOURCE_URL, "relationship": "party affiliation recorded alongside parliamentary term",
+                            "started_at_semantics": "source_date_or_term_start_fallback",
+                        },
+                    }
+                    try:
+                        supabase_request("POST", appointment_url, supabase_key, json=payload, headers={"Prefer": "return=minimal"})
+                        existing_appointment_keys.add(key)
+                        report["results"].setdefault("party_appointments_created", 0)
+                        report["results"]["party_appointments_created"] += 1
+                    except Exception as exc:
+                        report["results"]["errors"].append({
+                            "operation": "create_party_appointment", "mpsno": candidate["mpsno"],
+                            "name": candidate["name"], "party": party_name, "error": str(exc),
+                        })
+            except Exception as exc:
+                report["results"]["errors"].append({"operation": "prepare_appointments", "error": str(exc)})
+
+
+    if args.apply and report.get("photo_import", {}).get("mode") == "pending":
+        photo_report = report["photo_import"]
+        photo_report["mode"] = "applied-with-errors" if photo_report.get("failed") or report["results"]["errors"] else "applied"
 
     try:
         with open(args.report, "w", encoding="utf-8") as handle:

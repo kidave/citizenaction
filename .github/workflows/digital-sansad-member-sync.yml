@@ -1,6 +1,10 @@
 name: Digital Sansad member sync
 
 on:
+  pull_request:
+    paths:
+      - "scripts/digital_sansad/**"
+      - ".github/workflows/digital-sansad-member-sync.yml"
   schedule:
     # Weekly on Sunday at 07:00 UTC (12:30 IST).
     - cron: "0 7 * * 0"
@@ -38,7 +42,14 @@ jobs:
       - name: Install importer dependencies
         run: python -m pip install -r scripts/digital_sansad/requirements.txt
 
-      - name: Run importer
+      - name: Validate importer syntax
+        run: python -m py_compile scripts/digital_sansad/import_members.py scripts/digital_sansad/publish_report.py
+
+      - name: Run importer unit tests
+        run: python -m unittest scripts.digital_sansad.test_import_members -v
+
+      - name: Run importer (read-only dry-run on same-repository PRs)
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -48,11 +59,13 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.apply }}" == "true" ]]; then
             python scripts/digital_sansad/import_members.py --apply --report digital-sansad-import-report.json
           else
+            # Pull requests and scheduled runs are read-only previews unless an operator
+            # explicitly opts into apply on a manual workflow dispatch.
             python scripts/digital_sansad/import_members.py --report digital-sansad-import-report.json
           fi
 
       - name: Publish report to Supabase
-        if: success()
+        if: success() && github.event_name != 'pull_request'
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
