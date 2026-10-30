@@ -45,15 +45,23 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Scheduled runs and manual runs default to dry-run.
-          # Only an explicitly approved manual dispatch writes to Supabase.
           if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.apply }}" == "true" ]]; then
             python scripts/digital_sansad/import_members.py --apply --report digital-sansad-import-report.json
           else
             python scripts/digital_sansad/import_members.py --report digital-sansad-import-report.json
           fi
 
-      - name: Upload import report
+      - name: Publish report to Supabase
+        if: success()
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: python scripts/digital_sansad/publish_report.py digital-sansad-import-report.json
+
+      - name: Upload import report artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
