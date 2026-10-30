@@ -7,6 +7,9 @@ from scripts.digital_sansad.import_members import (
     appointment_fields_from_source,
     appointment_status_from_source,
     is_current_lok_sabha_term,
+    extract_lok_sabha_term,
+    appointment_dates_from_source,
+    normalize_education,
     resolve_geography,
     to_person,
 )
@@ -107,7 +110,24 @@ class DigitalSansadImporterTests(unittest.TestCase):
                 "LL.B.",
             ],
         })
-        self.assertEqual(person["education"], "B.A., Example University; LL.B.")
+        self.assertEqual(person["metadata"]["education"], [
+            {"qualification": "B.A.", "institution": "Example University"},
+            {"qualification": "LL.B."},
+        ])
+
+    def test_term_and_dates_are_extracted_without_inventing_historical_dates(self):
+        self.assertEqual(extract_lok_sabha_term({"lsExpr": "17th Lok Sabha"}), "17th Lok Sabha")
+        self.assertEqual(extract_lok_sabha_term({"lsExpr": "18th Lok Sabha"}), "18th Lok Sabha")
+        self.assertIsNone(extract_lok_sabha_term({"lsExpr": "17th and 18th Lok Sabha"}))
+        self.assertEqual(appointment_dates_from_source({"startDate": "04/06/2019", "endDate": "01/06/2024"}, "17th Lok Sabha"), ("2019-06-04", "2024-06-01"))
+        self.assertEqual(appointment_dates_from_source({}, "17th Lok Sabha"), (None, None))
+        self.assertEqual(appointment_dates_from_source({}, "18th Lok Sabha"), ("2024-06-24", None))
+
+    def test_education_is_structured_and_multiple_degrees_are_preserved(self):
+        self.assertEqual(normalize_education(["Bachelor of Arts", {"degree": "B.Com.", "institution": "Example College"}]), [
+            {"qualification": "Bachelor of Arts"},
+            {"qualification": "B.Com.", "institution": "Example College"},
+        ])
 
     def test_geography_resolution_requires_unique_match(self):
         rows = [{"id": "g1", "name": "Example", "slug": "example", "other_names": [], "status": "active"}]
