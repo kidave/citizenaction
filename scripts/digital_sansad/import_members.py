@@ -480,7 +480,10 @@ def extract_lok_sabha_term(record: dict[str, Any]) -> str | None:
 
 
 def is_current_lok_sabha_term(record: dict[str, Any]) -> bool:
-    """Classify current membership from term evidence, never from generic active status."""
+    """Classify current membership from term and source status, never generic active status alone."""
+    source_status = normalize_name(str(first(record, "status", "memberStatus", "appointmentStatus") or ""))
+    if source_status in {"former", "former member", "resigned", "ceased", "expired", "term completed", "retired"}:
+        return False
     return extract_lok_sabha_term(record) == CURRENT_LOK_SABHA_TERM
 
 

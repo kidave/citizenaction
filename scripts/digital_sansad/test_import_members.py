@@ -34,6 +34,7 @@ class DigitalSansadImporterTests(unittest.TestCase):
         self.assertEqual(appointment_status_from_source({}, False), "unknown")
         fields = appointment_fields_from_source(suspended, True)
         self.assertEqual(fields, {
+            "term": None, "started_at": None, "ended_at": None,
             "appointment_status": "suspended",
             "official_phone": "011-5555",
             "official_email": "office@example.in",
@@ -79,7 +80,7 @@ class DigitalSansadImporterTests(unittest.TestCase):
         self.assertEqual(person["email"], "member@example.in")
         self.assertEqual(person["phone"], "011-12345678")
         self.assertEqual(person["qualification"], "Graduate")
-        self.assertEqual(person["education"], "Bachelor of Arts")
+        self.assertEqual(person["metadata"]["education"], [{"qualification": "Bachelor of Arts"}])
         self.assertEqual(person["profession"], "Lawyer")
         self.assertEqual(person["birth_date"], "1970-01-01")
         self.assertNotIn("constituency", person["metadata"])
