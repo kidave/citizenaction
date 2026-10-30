@@ -8,6 +8,8 @@ from scripts.digital_sansad.import_members import (
     appointment_status_from_source,
     is_current_lok_sabha_term,
     extract_lok_sabha_term,
+    extract_lok_sabha_terms,
+    is_constituency_applicable,
     appointment_dates_from_source,
     normalize_education,
     resolve_geography,
@@ -115,6 +117,24 @@ class DigitalSansadImporterTests(unittest.TestCase):
             {"qualification": "B.A.", "institution": "Example University"},
             {"qualification": "LL.B."},
         ])
+
+    def test_comma_separated_lok_sabha_terms_create_individual_terms(self):
+        record = {"mpsno": "2813", "fullName": "Mrutyunjaya Nayak", "lsExpr": "7,10,11"}
+        self.assertEqual(extract_lok_sabha_terms(record), [
+            "7th Lok Sabha", "10th Lok Sabha", "11th Lok Sabha",
+        ])
+        self.assertIsNone(extract_lok_sabha_term(record))
+        self.assertEqual(extract_lok_sabha_terms({"lsExpr": "18th Lok Sabha"}), ["18th Lok Sabha"])
+        self.assertEqual(extract_lok_sabha_terms({"lsExpr": "17th and 18th Lok Sabha"}), [
+            "17th Lok Sabha", "18th Lok Sabha",
+        ])
+
+    def test_constituency_absence_is_not_a_failed_geography_match(self):
+        self.assertFalse(is_constituency_applicable({}, None))
+        self.assertFalse(is_constituency_applicable({"isNominated": True}, ""))
+        self.assertFalse(is_constituency_applicable({}, "Nominated"))
+        self.assertFalse(is_constituency_applicable({}, "N/A"))
+        self.assertTrue(is_constituency_applicable({}, "Phulbani"))
 
     def test_term_and_dates_are_extracted_without_inventing_historical_dates(self):
         self.assertEqual(extract_lok_sabha_term({"lsExpr": "17th Lok Sabha"}), "17th Lok Sabha")
