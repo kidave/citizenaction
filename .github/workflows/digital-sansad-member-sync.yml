@@ -45,6 +45,9 @@ jobs:
       - name: Validate importer syntax
         run: python -m py_compile scripts/digital_sansad/import_members.py scripts/digital_sansad/publish_report.py
 
+      - name: Run importer unit tests
+        run: python -m unittest scripts.digital_sansad.test_import_members -v
+
       - name: Run importer
         if: github.event_name != 'pull_request'
         env:
