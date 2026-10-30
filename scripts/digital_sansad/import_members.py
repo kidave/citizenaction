@@ -546,7 +546,8 @@ def main() -> int:
         # directory entry to the current Lok Sabha: require explicit current-term
         # evidence in the term field or a clearly current/sitting status.
         current_term_eligible[source_id] = bool(
-            re.search(r"\b18(?:th)?\b", ls_normalized)
+            ls_normalized in {"18", "18th", "18th lok sabha", "18 lok sabha"}
+            or "18th lok sabha" in ls_normalized
             or status in {"sitting", "current", "currently serving", "active"}
         )
         if source_id and constituency:
