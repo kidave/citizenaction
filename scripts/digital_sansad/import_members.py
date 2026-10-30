@@ -298,7 +298,6 @@ def fetch_existing_people(base_url: str, key: str) -> list[dict[str, Any]]:
         offset += len(batch)
     return people
 
-
 def slugify(value: str) -> str:
     value = normalize_name(value).replace(" ", "-")
     return re.sub(r"-+", "-", value).strip("-") or "unknown"
@@ -535,6 +534,7 @@ def main() -> int:
     unresolved_constituencies: list[dict[str, Any]] = []
     unresolved_parties: list[dict[str, Any]] = []
     ambiguous_constituencies: list[dict[str, Any]] = []
+    matched_former_constituencies: list[dict[str, Any]] = []
     matched_defunct_constituencies: list[dict[str, Any]] = []
     ambiguous_parties: list[dict[str, Any]] = []
     party_to_create: dict[str, dict[str, Any]] = {}
@@ -549,7 +549,12 @@ def main() -> int:
         geography_id, geography_ambiguous, geography_status = resolve_geography(constituency_name, existing_geographies)
         if geography_id:
             source_meta["constituency_geography_id"] = geography_id
-            if geography_status == "defunct":
+            if geography_status == "former":
+                matched_former_constituencies.append({
+                    "mpsno": source_id, "name": incoming["name"],
+                    "constituency": constituency_name, "geography_id": geography_id,
+                })
+            elif geography_status == "defunct":
                 matched_defunct_constituencies.append({
                     "mpsno": source_id, "name": incoming["name"],
                     "constituency": constituency_name, "geography_id": geography_id,
@@ -597,8 +602,7 @@ def main() -> int:
             inserts.append(incoming)
             continue
         matched_existing += 1
-        patch = merge_missing(existing, incoming)
-        # Store official identity on a unique exact-name match, while retaining other metadata.
+        patch = merge_missing(existing, incoming)        # Store official identity on a unique exact-name match, while retaining other metadata.
         if patch:
             updates.append((existing, patch))
 
@@ -616,6 +620,7 @@ def main() -> int:
         "ambiguous_name_matches_skipped": ambiguous,
         "unresolved_constituencies": unresolved_constituencies,
         "ambiguous_constituencies": ambiguous_constituencies,
+        "matched_former_constituencies": matched_former_constituencies,
         "matched_defunct_constituencies": matched_defunct_constituencies,
         "unresolved_parties": unresolved_parties,
         "ambiguous_parties": ambiguous_parties,
