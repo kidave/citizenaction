@@ -867,8 +867,13 @@ def main() -> int:
     mp_positions = [p for p in existing_positions if normalize_name(str(p.get("name") or "")) == "member of parliament" and len(lok_sabha_orgs) == 1 and (p.get("governance_id") or p.get("appointing_organization_id")) == lok_sabha_orgs[0].get("id")]
     position_ambiguous = len(parliament_rows) != 1 or len(lok_sabha_orgs) != 1 or len(mp_positions) > 1
     mp_position = mp_positions[0] if len(mp_positions) == 1 else None
-    existing_appointment_keys = {(str(a.get("position_id")), str(a.get("person_id")), str(a.get("term") or "")) for a in existing_appointments}
+    existing_appointment_by_key = {
+        (str(a.get("position_id")), str(a.get("person_id")), str(a.get("term") or "")): a
+        for a in existing_appointments
+    }
+    existing_appointment_keys = set(existing_appointment_by_key)
     planned_appointments = []
+    planned_geography_updates: list[dict[str, Any]] = []
     skipped_appointments = []
     if position_ambiguous:
         skipped_appointments.append({"reason": "Could not uniquely identify Parliament of India → Lok Sabha → Member of Parliament.", "parliament_matches": len(parliament_rows), "lok_sabha_organization_matches": len(lok_sabha_orgs), "member_of_parliament_position_matches": len(mp_positions)})
@@ -880,8 +885,21 @@ def main() -> int:
                 continue
             if candidate.get("constituency") and not candidate.get("geography_id"):
                 skipped_appointments.append({"mpsno": candidate["mpsno"], "name": candidate["name"], "constituency": candidate.get("constituency"), "reason": "Constituency unresolved or ambiguous; appointment planned without geography."})
-            if candidate.get("person_id") and mp_position and (str(mp_position["id"]), str(candidate["person_id"]), str(term)) in existing_appointment_keys:
-                continue
+            if candidate.get("person_id") and mp_position:
+                appointment_key = (str(mp_position["id"]), str(candidate["person_id"]), str(term))
+                existing_appointment = existing_appointment_by_key.get(appointment_key)
+                if existing_appointment:
+                    # A future run should backfill geography after admins add/fix a
+                    # constituency or alias, but never overwrite a chosen geography.
+                    if candidate.get("geography_id") and not existing_appointment.get("geography_id"):
+                        planned_geography_updates.append({
+                            "id": existing_appointment.get("id"),
+                            "mpsno": candidate["mpsno"],
+                            "name": candidate["name"],
+                            "term": term,
+                            "geography_id": candidate["geography_id"],
+                        })
+                    continue
             planned_appointments.append(candidate)
 
     report = {
@@ -909,6 +927,8 @@ def main() -> int:
         "lok_sabha_organization_matches": len(lok_sabha_orgs),
         "member_of_parliament_position_matches": len(mp_positions),
         "planned_appointments": len(planned_appointments),
+        "planned_geography_updates": len(planned_geography_updates),
+        "geography_updates": planned_geography_updates,
         "planned_historical_appointments": sum(1 for candidate in planned_appointments if candidate.get("term") != CURRENT_LOK_SABHA_TERM),
         "planned_sitting_appointments": sum(1 for candidate in planned_appointments if candidate.get("current_term_eligible") and candidate.get("appointment_status") == "sitting"),
         # Party listed on this directory row is not term-specific, so don't project it backwards.
@@ -1036,6 +1056,30 @@ def main() -> int:
                         patch["image_url"] = uploaded_url
                     else:
                         patch.pop("image_url", None)
+
+        # Backfill only missing parliamentary geography after a future mapping fix.
+        # Existing non-null geography is deliberately never overwritten.
+        appointment_url = supabase_url.rstrip("/") + "/rest/v1/position_appointment"
+        for geography_update in planned_geography_updates:
+            if not geography_update.get("id") or not geography_update.get("geography_id"):
+                continue
+            try:
+                supabase_request(
+                    "PATCH", appointment_url, supabase_key,
+                    params={"id": f"eq.{geography_update['id']}", "geography_id": "is.null"},
+                    json={"geography_id": geography_update["geography_id"]},
+                    headers={"Prefer": "return=minimal"},
+                )
+                report["results"].setdefault("geography_updates", 0)
+                report["results"]["geography_updates"] += 1
+            except Exception as exc:
+                report["results"]["errors"].append({
+                    "operation": "backfill_appointment_geography",
+                    "id": geography_update["id"],
+                    "mpsno": geography_update["mpsno"],
+                    "term": geography_update["term"],
+                    "error": str(exc),
+                })
 
         # Batch inserts, then update matches individually to avoid overwriting concurrent edits.
         for start in range(0, len(inserts), 100):
