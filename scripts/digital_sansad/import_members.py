@@ -428,6 +428,19 @@ def upload_member_photo(base_url: str, key: str, source_url: str, source_id: str
         return None
 
 
+def is_constituency_applicable(record: dict[str, Any], label: str | None) -> bool:
+    """Return false for genuinely absent/nominated-member constituency values."""
+    nominated = normalize_name(str(first(record, "isNominated", "is_nominated", "nominated") or ""))
+    if nominated in {"true", "yes", "1", "y"}:
+        return False
+    if not label:
+        return False
+    return normalize_name(label) not in {
+        "", "nominated", "nominated member", "not applicable", "not available",
+        "none", "nil", "na", "n a", "no constituency", "independent nominated", "dash",
+    }
+
+
 def resolve_geography(
     name: str | None,
     geographies: list[dict[str, Any]],
@@ -465,26 +478,32 @@ def resolve_geography(
     return str(geography["id"]), False, clean(geography.get("status")) or "active"
 
 
-def extract_lok_sabha_term(record: dict[str, Any]) -> str | None:
-    """Return a normalized term only when source data identifies one unambiguous Lok Sabha."""
+def extract_lok_sabha_terms(record: dict[str, Any]) -> list[str]:
+    """Parse every explicit Lok Sabha term in a source field such as '7,10,11'."""
     value = clean(first(record, "term", "lokSabhaTerm", "loksabhaTerm", "loksabha", "lsExpr", "ls_expr", "lokSabhaExperience"))
     if not value:
-        return None
+        return []
     matches = re.findall(r"\b(\d{1,2})(?:st|nd|rd|th)?\s*(?:lok\s*sabha)?\b", value, flags=re.IGNORECASE)
     numbers = list(dict.fromkeys(int(item) for item in matches if 1 <= int(item) <= 20))
-    if len(numbers) != 1:
-        return None
-    number = numbers[0]
-    suffix = "th" if 11 <= number % 100 <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(number % 10, "th")
-    return f"{number}{suffix} Lok Sabha"
+    terms = []
+    for number in numbers:
+        suffix = "th" if 11 <= number % 100 <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(number % 10, "th")
+        terms.append(f"{number}{suffix} Lok Sabha")
+    return terms
+
+
+def extract_lok_sabha_term(record: dict[str, Any]) -> str | None:
+    """Backward-compatible single-term helper; returns None when multiple terms are listed."""
+    terms = extract_lok_sabha_terms(record)
+    return terms[0] if len(terms) == 1 else None
 
 
 def is_current_lok_sabha_term(record: dict[str, Any]) -> bool:
-    """Classify current membership from term and source status, never generic active status alone."""
+    """Classify current membership from explicit 18th-term evidence and source status."""
     source_status = normalize_name(str(first(record, "status", "memberStatus", "appointmentStatus") or ""))
     if source_status in {"former", "former member", "resigned", "ceased", "expired", "term completed", "retired"}:
         return False
-    return extract_lok_sabha_term(record) == CURRENT_LOK_SABHA_TERM
+    return CURRENT_LOK_SABHA_TERM in extract_lok_sabha_terms(record)
 
 
 def appointment_dates_from_source(record: dict[str, Any], term: str | None) -> tuple[str | None, str | None]:
@@ -517,9 +536,13 @@ def appointment_status_from_source(record: dict[str, Any], current_term_eligible
     return raw_status or ("sitting" if current_term_eligible else "unknown")
 
 
-def appointment_fields_from_source(record: dict[str, Any], current_term_eligible: bool) -> dict[str, Any]:
-    """Extract term, dates, status, and official contacts from one source row."""
-    term = extract_lok_sabha_term(record)
+def appointment_fields_from_source(
+    record: dict[str, Any],
+    current_term_eligible: bool,
+    term_override: str | None = None,
+) -> dict[str, Any]:
+    """Extract appointment fields for one explicitly parsed term."""
+    term = term_override if term_override is not None else extract_lok_sabha_term(record)
     started_at, ended_at = appointment_dates_from_source(record, term)
     status = appointment_status_from_source(record, current_term_eligible)
     if ended_at and status == "sitting":
@@ -687,6 +710,8 @@ def main() -> int:
     for row in source_rows:
         source_id = source_identity(row)
         constituency = clean(first(row, "constituency", "constituencyName", "constName"))
+        if not is_constituency_applicable(row, constituency):
+            constituency = None
         # Generic statuses such as "active" are not enough to infer a current term.
         current_term_eligible[source_id] = is_current_lok_sabha_term(row)
         if source_id:
@@ -806,19 +831,30 @@ def main() -> int:
                 ambiguous.append({"mpsno": source_id, "name": incoming["name"], "matching_person_ids": [p.get("id") for p in name_matches]})
                 continue
 
-        appointment_fields = appointment_fields_from_source(
-            source_record, current_term_eligible.get(source_id, False)
-        )
-        appointment_candidates.append({
-            "mpsno": source_id, "name": incoming["name"],
-            "geography_id": resolved_constituencies.get(source_id),
-            "constituency": constituency_name, "person_id": existing.get("id") if existing else None,
-            "current_term_eligible": current_term_eligible.get(source_id, False),
-            "party_name": party_name,
-            "party_source_id": party_source_id,
-            "party_governance_id": party.get("id") if party else None,
-            **appointment_fields,
-        })
+        source_terms = extract_lok_sabha_terms(source_record)
+        # A source row may list several terms, e.g. "7,10,11". Keep one person
+        # but plan one appointment per explicitly listed term.
+        terms_to_plan: list[str | None] = source_terms or [None]
+        for term in terms_to_plan:
+            is_current_term = term == CURRENT_LOK_SABHA_TERM and current_term_eligible.get(source_id, False)
+            appointment_fields = appointment_fields_from_source(
+                source_record, is_current_term, term_override=term
+            )
+            # A single row's generic dates may describe only its latest election;
+            # never copy them onto every historical term in a multi-term list.
+            if len(source_terms) > 1 and term != CURRENT_LOK_SABHA_TERM:
+                appointment_fields["started_at"] = None
+                appointment_fields["ended_at"] = None
+            appointment_candidates.append({
+                "mpsno": source_id, "name": incoming["name"],
+                "geography_id": resolved_constituencies.get(source_id),
+                "constituency": constituency_name, "person_id": existing.get("id") if existing else None,
+                "current_term_eligible": is_current_term,
+                "party_name": party_name,
+                "party_source_id": party_source_id,
+                "party_governance_id": party.get("id") if party else None,
+                **appointment_fields,
+            })
         if existing is None:
             inserts.append(incoming)
             continue
@@ -861,6 +897,7 @@ def main() -> int:
         "planned_updates": len(updates),
         "ambiguous_name_matches_skipped": ambiguous,
         "unresolved_constituencies": unresolved_constituencies,
+        "members_without_constituency_count": sum(1 for source_id in source_people if not source_constituencies.get(source_id)),
         "ambiguous_constituencies": ambiguous_constituencies,
         "matched_former_constituencies": matched_former_constituencies,
         "matched_defunct_constituencies": matched_defunct_constituencies,
@@ -874,8 +911,9 @@ def main() -> int:
         "planned_appointments": len(planned_appointments),
         "planned_historical_appointments": sum(1 for candidate in planned_appointments if candidate.get("term") != CURRENT_LOK_SABHA_TERM),
         "planned_sitting_appointments": sum(1 for candidate in planned_appointments if candidate.get("current_term_eligible") and candidate.get("appointment_status") == "sitting"),
-        "planned_party_appointments": sum(1 for candidate in appointment_candidates if candidate.get("term") and candidate.get("party_name")),
-        "generic_member_fallbacks": sum(1 for candidate in appointment_candidates if candidate.get("term") and candidate.get("party_name")),
+        # Party listed on this directory row is not term-specific, so don't project it backwards.
+        "planned_party_appointments": sum(1 for candidate in appointment_candidates if candidate.get("current_term_eligible") and candidate.get("term") and candidate.get("party_name")),
+        "generic_member_fallbacks": sum(1 for candidate in appointment_candidates if candidate.get("current_term_eligible") and candidate.get("term") and candidate.get("party_name")),
         "skipped_appointments": skipped_appointments,
         "mode": "apply" if args.apply else "dry-run",
         "sample_limit_records": args.limit_records,
@@ -1026,7 +1064,7 @@ def main() -> int:
 
         party_appointment_candidates = [
             candidate for candidate in appointment_candidates
-            if candidate.get("term") and candidate.get("party_name")
+            if candidate.get("current_term_eligible") and candidate.get("term") and candidate.get("party_name")
         ]
         if not report["results"]["errors"] and (planned_appointments or party_appointment_candidates):
             try:
