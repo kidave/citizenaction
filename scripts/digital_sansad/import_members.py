@@ -535,9 +535,20 @@ def main() -> int:
         return 1
 
     source_constituencies: dict[str, str] = {}
+    current_term_eligible: dict[str, bool] = {}
     for row in source_rows:
         source_id = source_identity(row)
         constituency = clean(first(row, "constituency", "constituencyName", "constName"))
+        ls_expression = clean(first(row, "lsExpr", "ls_expr", "lokSabhaExperience")) or ""
+        status = normalize_name(clean(first(row, "status", "memberStatus")) or "")
+        ls_normalized = normalize_name(ls_expression)
+        # The public directory includes historical members. Never assign every
+        # directory entry to the current Lok Sabha: require explicit current-term
+        # evidence in the term field or a clearly current/sitting status.
+        current_term_eligible[source_id] = bool(
+            re.search(r"\b18(?:th)?\b", ls_normalized)
+            or status in {"sitting", "current", "currently serving", "active"}
+        )
         if source_id and constituency:
             source_constituencies[source_id] = constituency
 
@@ -647,6 +658,7 @@ def main() -> int:
             "mpsno": source_id, "name": incoming["name"],
             "geography_id": resolved_constituencies.get(source_id),
             "constituency": constituency_name, "person_id": existing.get("id") if existing else None,
+            "current_term_eligible": current_term_eligible.get(source_id, False),
         })
         if existing is None:
             inserts.append(incoming)
@@ -667,6 +679,9 @@ def main() -> int:
         skipped_appointments.append({"reason": "Could not uniquely identify the Lok Sabha legislature_house and Member of Parliament position.", "lok_sabha_organization_matches": len(lok_sabha_orgs), "member_of_parliament_position_matches": len(mp_positions)})
     else:
         for candidate in appointment_candidates:
+            if not candidate.get("current_term_eligible"):
+                skipped_appointments.append({"mpsno": candidate["mpsno"], "name": candidate["name"], "constituency": candidate.get("constituency"), "reason": "Source does not confirm current 18th Lok Sabha membership; no appointment created."})
+                continue
             if not candidate.get("geography_id"):
                 skipped_appointments.append({"mpsno": candidate["mpsno"], "name": candidate["name"], "constituency": candidate.get("constituency"), "reason": "Unresolved or ambiguous constituency; appointment skipped."})
                 continue
