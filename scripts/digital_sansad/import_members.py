@@ -1025,7 +1025,16 @@ def main() -> int:
         }
 
     source_photo_available = sum(1 for person in source_people.values() if person.get("image_url"))
-    planned_photo_uploads = sum(1 for person in inserts if person.get("image_url")) + sum(1 for _, patch in updates if patch.get("image_url"))
+    planned_photo_uploads = sum(
+        1 for source_id, source_record in source_record_by_id.items()
+        if (
+            (incoming_photo_person := to_person(source_record))
+            and should_upload_source_photo(
+                by_source_id.get(source_id),
+                incoming_photo_person.get("image_url"),
+            )
+        )
+    )
     report = {
         "source": SOURCE_URL,
         "api_url": API_URL,
@@ -1420,7 +1429,6 @@ def main() -> int:
                         report["photo_import"]["failed"] += 1
                         report["photo_import"]["failures"].append({"mpsno": source_id, "reason": "Person UUID could not be resolved for photo upload."})
                         continue
-                    current_image = clean(person.get("image_url"))
                     if not should_upload_source_photo(person, source_url):
                         report["photo_import"].setdefault("skipped_existing", 0)
                         report["photo_import"]["skipped_existing"] += 1
