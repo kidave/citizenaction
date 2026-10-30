@@ -37,7 +37,7 @@ HEADERS = {
 }
 # Keep this list intentionally limited to public biographical/professional fields.
 PERSONAL_FIELDS = {
-    "name", "image_url", "qualification", "education", "profession", "birth_date", "date_of_death",
+    "name", "image_url", "birth_date", "date_of_death",
     "phone", "email", "metadata"
 }
 
@@ -74,6 +74,25 @@ def clean_profile_text(value: Any) -> str | None:
                 parts.append(part)
         return ", ".join(parts) or None
     return clean(value)
+
+
+def normalize_professions(*values: Any) -> list[dict[str, str]]:
+    """Normalize one or more source professions into canonical metadata records."""
+    result: list[dict[str, str]] = []
+    for value in values:
+        items = value if isinstance(value, list) else [value]
+        for item in items:
+            if isinstance(item, dict):
+                title = clean(first(item, "title", "profession", "occupation", "name", "description"))
+            else:
+                title = clean(item)
+            if title:
+                for part in re.split(r"\s*[;|]\s*", title):
+                    normalized = part.strip()
+                    entry = {"title": normalized}
+                    if normalized and entry not in result:
+                        result.append(entry)
+    return result
 
 
 def normalize_education(value: Any) -> list[dict[str, Any]]:
@@ -306,7 +325,6 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
         "gender": ("gender",),
         "constituencyCategory": ("constituencyCategory", "constituency_category"),
         "state": ("state", "stateName"),
-        "profession2": ("profession2", "otherProfession"),
     }
     for target, keys in source_fields.items():
         value = clean(first(record, *keys))
@@ -318,19 +336,24 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
         person["image_url"] = image_url
     qualification = clean_profile_text(first(record, "qualification", "educationalQualification", "highestQualification"))
     education = normalize_education(first(record, "education", "educationDetails", "educationalBackground", "educationalHistory"))
-    profession = clean(first(record, "profession", "occupation"))
+    if qualification:
+        qualification_entry = {"qualification": qualification}
+        if qualification_entry not in education:
+            education.insert(0, qualification_entry)
+    professions = normalize_professions(
+        first(record, "profession", "occupation"),
+        first(record, "profession2", "otherProfession"),
+    )
     birth_date = parse_date(first(record, "birthdate", "birthDate", "dateOfBirth", "dob"))
     date_of_death = parse_date(first(record, "dateOfDeath", "deathDate", "date_of_death"))
     # Person-level contacts must not be inferred from official office contacts.
     phone = clean(first(record, "personalPhone", "phone", "mobile", "mobileNumber"))
     email = clean(first(record, "personalEmail", "email", "emailAddress"))
-    if qualification:
-        person["qualification"] = qualification
     if education:
         metadata["education"] = education
-        person["metadata"] = metadata
-    if profession:
-        person["profession"] = profession
+    if professions:
+        metadata["professions"] = professions
+    person["metadata"] = metadata
     if birth_date:
         person["birth_date"] = birth_date
     if date_of_death:
@@ -618,17 +641,40 @@ def resolve_party(
 def merge_missing(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
     """Only enrich blanks and merge the importer-owned metadata keys."""
     patch: dict[str, Any] = {}
-    for field in ("image_url", "qualification", "profession", "birth_date", "date_of_death", "phone", "email"):
+    for field in ("image_url", "birth_date", "date_of_death", "phone", "email"):
         if not existing.get(field) and incoming.get(field):
             patch[field] = incoming[field]
 
     old_metadata = existing.get("metadata") if isinstance(existing.get("metadata"), dict) else {}
     new_metadata = incoming.get("metadata") or {}
     merged = dict(old_metadata)
+
+    # Fold legacy scalar columns into metadata so metadata becomes canonical.
+    legacy_qualification = clean_profile_text(existing.get("qualification"))
+    legacy_education = normalize_education(existing.get("education"))
+    if legacy_qualification:
+        entry = {"qualification": legacy_qualification}
+        if entry not in legacy_education:
+            legacy_education.insert(0, entry)
+    current_education = normalize_education(merged.get("education"))
+    for entry in legacy_education:
+        if entry not in current_education:
+            current_education.append(entry)
+    if current_education:
+        merged["education"] = current_education
+
+    legacy_professions = normalize_professions(existing.get("profession"))
+    current_professions = normalize_professions(merged.get("professions"))
+    for entry in legacy_professions:
+        if entry not in current_professions:
+            current_professions.append(entry)
+    if current_professions:
+        merged["professions"] = current_professions
+
     # Preserve unrelated/user-created metadata. Update only fields this importer owns.
     for key, value in new_metadata.items():
         if key in {"official_source", "official_source_url", "mpsno", "noOfTerms",
-                   "party", "party_short_name", "party_source_name", "gender", "constituencyCategory", "state", "profession2", "party_governance_id", "party_source_id", "education"}:
+                   "party", "party_short_name", "party_source_name", "gender", "constituencyCategory", "state", "party_governance_id", "party_source_id", "education", "professions"}:
             if value is not None:
                 merged[key] = value
     if merged != old_metadata:
