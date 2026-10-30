@@ -430,6 +430,28 @@ def is_current_lok_sabha_term(record: dict[str, Any]) -> bool:
     )
 
 
+def appointment_status_from_source(record: dict[str, Any], current_term_eligible: bool) -> str:
+    """Normalize known statuses while preserving other source-provided statuses."""
+    raw_status = clean(first(record, "status", "memberStatus", "appointmentStatus"))
+    status_key = normalize_name(raw_status or "")
+    known_statuses = {
+        "active": "sitting",
+        "current": "sitting",
+        "currently serving": "sitting",
+        "sitting member": "sitting",
+        "member": "sitting",
+        "sitting": "sitting",
+        "suspended": "suspended",
+        "resigned": "resigned",
+        "former": "former",
+        "former member": "former",
+        "vacant": "vacant",
+    }
+    if status_key in known_statuses:
+        return known_statuses[status_key]
+    return raw_status or ("sitting" if current_term_eligible else "unknown")
+
+
 def find_lok_sabha_governance(
     governance: list[dict[str, Any]],
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -577,11 +599,16 @@ def main() -> int:
 
     source_constituencies: dict[str, str] = {}
     current_term_eligible: dict[str, bool] = {}
+    source_record_by_id: dict[str, dict[str, Any]] = {}
     for row in source_rows:
         source_id = source_identity(row)
         constituency = clean(first(row, "constituency", "constituencyName", "constName"))
         # Generic statuses such as "active" are not enough to infer a current term.
         current_term_eligible[source_id] = is_current_lok_sabha_term(row)
+        if source_id:
+            # Keep the record associated with the current source ID for appointment fields.
+            # The processing loop below must not accidentally reuse the previous loop's row.
+            source_record_by_id[source_id] = row
         if source_id and constituency:
             source_constituencies[source_id] = constituency
 
@@ -595,7 +622,7 @@ def main() -> int:
             existing_people = fetch_existing_people(supabase_url, supabase_key)
             existing_geographies = fetch_rest_rows(supabase_url, supabase_key, "geographies", "id,name,official_name,slug,other_names,status,geography_type,boundary_category", {"geography_type": "eq.parliamentary_constituency", "boundary_category": "eq.political"})
             existing_governance = fetch_rest_rows(supabase_url, supabase_key, "governance", "id,name,short_name,slug,type,parent_entity_id,metadata,source_system,source_id")
-            existing_positions = fetch_rest_rows(supabase_url, supabase_key, "position", "id,name,slug,appointing_organization_id,geography_id,metadata")
+            existing_positions = fetch_rest_rows(supabase_url, supabase_key, "position", "id,name,slug,governance_id,appointing_organization_id,geography_id,metadata")
             existing_appointments = fetch_rest_rows(supabase_url, supabase_key, "position_appointment", "id,position_id,person_id,term,status,started_at,ended_at,geography_id,official_phone,official_email,metadata")
         except Exception as exc:
             print(
@@ -638,6 +665,7 @@ def main() -> int:
     appointment_candidates: list[dict[str, Any]] = []
 
     for source_id, incoming in source_people.items():
+        source_record = source_record_by_id.get(source_id, {})
         source_meta = incoming.get("metadata") or {}
         constituency_name = source_constituencies.get(source_id)
         geography_id, geography_ambiguous, geography_status = resolve_geography(constituency_name, existing_geographies)
@@ -692,19 +720,17 @@ def main() -> int:
                 ambiguous.append({"mpsno": source_id, "name": incoming["name"], "matching_person_ids": [p.get("id") for p in name_matches]})
                 continue
 
-        raw_status = clean(first(row, "status", "memberStatus", "appointmentStatus"))
-        status_key = normalize_name(raw_status or "")
-        appointment_status = raw_status or "sitting"
-        if status_key in {"active", "current", "currently serving", "sitting member"}:
-            appointment_status = "sitting"
+        appointment_status = appointment_status_from_source(
+            source_record, current_term_eligible.get(source_id, False)
+        )
         appointment_candidates.append({
             "mpsno": source_id, "name": incoming["name"],
             "geography_id": resolved_constituencies.get(source_id),
             "constituency": constituency_name, "person_id": existing.get("id") if existing else None,
             "current_term_eligible": current_term_eligible.get(source_id, False),
             "appointment_status": appointment_status,
-            "official_phone": clean(first(row, "officialPhone", "officePhone", "phone", "telephone", "contactNumber")),
-            "official_email": clean(first(row, "officialEmail", "officeEmail", "email", "emailAddress")),
+            "official_phone": clean(first(source_record, "officialPhone", "officePhone", "phone", "telephone", "contactNumber")),
+            "official_email": clean(first(source_record, "officialEmail", "officeEmail", "email", "emailAddress")),
         })
         if existing is None:
             inserts.append(incoming)
@@ -715,7 +741,7 @@ def main() -> int:
             updates.append((existing, patch))
 
     parliament_rows, lok_sabha_orgs = find_lok_sabha_governance(existing_governance)
-    mp_positions = [p for p in existing_positions if normalize_name(str(p.get("name") or "")) == "member of parliament" and len(lok_sabha_orgs) == 1 and p.get("appointing_organization_id") == lok_sabha_orgs[0].get("id")]
+    mp_positions = [p for p in existing_positions if normalize_name(str(p.get("name") or "")) == "member of parliament" and len(lok_sabha_orgs) == 1 and (p.get("governance_id") or p.get("appointing_organization_id")) == lok_sabha_orgs[0].get("id")]
     position_ambiguous = len(parliament_rows) != 1 or len(lok_sabha_orgs) != 1 or len(mp_positions) > 1
     mp_position = mp_positions[0] if len(mp_positions) == 1 else None
     existing_appointment_keys = {(str(a.get("position_id")), str(a.get("person_id")), str(a.get("term") or "")) for a in existing_appointments}
@@ -909,13 +935,13 @@ def main() -> int:
                         source_to_person_id[clean(metadata.get("mpsno"))] = person.get("id")
                 if not mp_position:
                     created = supabase_request("POST", supabase_url.rstrip("/") + "/rest/v1/position", supabase_key,
-                        json={"name": "Member of Parliament", "slug": "member-of-parliament", "appointing_organization_id": lok_sabha_orgs[0]["id"], "metadata": {"official_source": "Digital Sansad", "position_scope": "Lok Sabha member"}},
+                        json={"name": "Member of Parliament", "slug": "member-of-parliament", "governance_id": lok_sabha_orgs[0]["id"], "metadata": {"official_source": "Digital Sansad", "position_scope": "Lok Sabha member"}},
                         headers={"Prefer": "return=representation"})
                     payload = created.json()
                     mp_position = payload[0] if isinstance(payload, list) and payload else None
                     if not mp_position or not mp_position.get("id"):
-                        found = fetch_rest_rows(supabase_url, supabase_key, "position", "id,name,slug,appointing_organization_id,geography_id,metadata", {"slug": "eq.member-of-parliament"})
-                        found = [p for p in found if p.get("appointing_organization_id") == lok_sabha_orgs[0]["id"]]
+                        found = fetch_rest_rows(supabase_url, supabase_key, "position", "id,name,slug,governance_id,appointing_organization_id,geography_id,metadata", {"slug": "eq.member-of-parliament"})
+                        found = [p for p in found if (p.get("governance_id") or p.get("appointing_organization_id")) == lok_sabha_orgs[0]["id"]]
                         if len(found) != 1:
                             raise RuntimeError("Could not safely resolve Member of Parliament position after creation.")
                         mp_position = found[0]
