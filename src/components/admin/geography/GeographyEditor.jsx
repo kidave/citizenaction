@@ -15,11 +15,11 @@ import { GEOGRAPHY_BOUNDARY_CATEGORIES, getGeographyTypeLabel } from "@/config/g
 const blank = { id: null, name: "", official_name: "", other_names: [], status: "active", boundary_category: "administrative", geography_type: "state", parent_id: "none", country_code: "IN", osm_type: "", osm_id: "", admin_level: "", source: "manual", source_url: "", metadata: "{}", geojson: "" };
 const normalizeGeographyLabel = (value) => String(value || "")
   .normalize("NFKD")
-  .replace(/[\\u0300-\\u036f]/g, "")
+  .replace(/[\u0300-\u036f]/g, "")
   .toLowerCase()
   .replace(/[^a-z0-9]+/g, " ")
   .trim()
-  .replace(/\\s+/g, " ");
+  .replace(/\s+/g, " ");
 
 const geographyLabels = (row) => [
   row.name,
