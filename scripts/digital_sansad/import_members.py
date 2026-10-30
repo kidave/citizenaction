@@ -540,19 +540,15 @@ def main() -> int:
         source_id = source_identity(row)
         constituency = clean(first(row, "constituency", "constituencyName", "constName"))
         ls_expression = clean(first(row, "lsExpr", "ls_expr", "lokSabhaExperience")) or ""
-        status = normalize_name(clean(first(row, "status", "memberStatus")) or "")
         ls_normalized = normalize_name(ls_expression)
-        # The public directory includes historical members. Never assign every
-        # directory entry to the current Lok Sabha: require explicit current-term
-        # evidence in the term field or a clearly current/sitting status.
+        # The public directory includes historical members. Do not infer current
+        # membership from a generic status such as "active": only an explicit
+        # 18th Lok Sabha term value qualifies for a current-term appointment.
         explicit_current_term = (
             ls_normalized in {"18", "18th", "18th lok sabha", "18 lok sabha"}
             or "18th lok sabha" in ls_normalized
         )
-        current_term_eligible[source_id] = (
-            status in {"sitting", "current", "currently serving", "active"}
-            or (not status and explicit_current_term)
-        )
+        current_term_eligible[source_id] = explicit_current_term
         if source_id and constituency:
             source_constituencies[source_id] = constituency
 
