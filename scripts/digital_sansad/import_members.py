@@ -545,10 +545,13 @@ def main() -> int:
         # The public directory includes historical members. Never assign every
         # directory entry to the current Lok Sabha: require explicit current-term
         # evidence in the term field or a clearly current/sitting status.
-        current_term_eligible[source_id] = bool(
+        explicit_current_term = (
             ls_normalized in {"18", "18th", "18th lok sabha", "18 lok sabha"}
             or "18th lok sabha" in ls_normalized
-            or status in {"sitting", "current", "currently serving", "active"}
+        )
+        current_term_eligible[source_id] = (
+            status in {"sitting", "current", "currently serving", "active"}
+            or (not status and explicit_current_term)
         )
         if source_id and constituency:
             source_constituencies[source_id] = constituency
