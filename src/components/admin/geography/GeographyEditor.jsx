@@ -76,15 +76,21 @@ export default function GeographyEditor({ open, onOpenChange, geography, onSaved
     }
 
     setSaving(true);
-    const { data: sameTypeGeographies, error: namesError } = await supabase
-      .from("geographies")
-      .select("id,name,official_name,slug,other_names,geography_type")
-      .eq("geography_type", form.geography_type);
-    if (namesError) {
-      setSaving(false);
-      return toast.error(`Unable to validate geography names: ${namesError.message}`);
+    const sameTypeGeographies = [];
+    for (let offset = 0; ; offset += 1000) {
+      const { data: batch, error: namesError } = await supabase
+        .from("geographies")
+        .select("id,name,official_name,slug,other_names,geography_type")
+        .eq("geography_type", form.geography_type)
+        .range(offset, offset + 999);
+      if (namesError) {
+        setSaving(false);
+        return toast.error(`Unable to validate geography names: ${namesError.message}`);
+      }
+      sameTypeGeographies.push(...(batch || []));
+      if (!batch || batch.length < 1000) break;
     }
-    const conflicts = (sameTypeGeographies || []).filter((row) => row.id !== form.id)
+    const conflicts = sameTypeGeographies.filter((row) => row.id !== form.id)
       .filter((row) => geographyLabels(row).some((label) => proposedLabels.includes(label)));
     if (conflicts.length) {
       setSaving(false);
