@@ -99,7 +99,7 @@ class DigitalSansadImporterTests(unittest.TestCase):
         person = to_person({
             "mpsno": 346,
             "fullName": "Multi Profile Example",
-            "qualification": ["Graduate", "Post Graduate"],
+            "qualification": [{"degree": "Graduate"}, {"degree": "Post Graduate"}],
             "education": [
                 {"degree": "B.A.", "institution": "Example University"},
                 {"degree": "LL.B."},
@@ -109,7 +109,8 @@ class DigitalSansadImporterTests(unittest.TestCase):
         })
         metadata = person["metadata"]
         self.assertEqual(metadata["education"], [
-            {"qualification": "Graduate; Post Graduate"},
+            {"qualification": "Graduate"},
+            {"qualification": "Post Graduate"},
             {"qualification": "B.A.", "institution": "Example University"},
             {"qualification": "LL.B."},
         ])
