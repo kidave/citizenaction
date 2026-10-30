@@ -71,10 +71,18 @@ export default function GeographyEditor({ open, onOpenChange, geography, onSaved
 
     const otherNames = [...new Set(String(Array.isArray(form.other_names) ? form.other_names.join(", ") : form.other_names || "")
       .split(",").map((value) => value.trim()).filter(Boolean))];
-    const proposedLabels = [form.name.trim(), form.official_name.trim(), ...otherNames]
-      .map(normalizeGeographyLabel).filter(Boolean);
+    const normalizedName = normalizeGeographyLabel(form.name);
+    const normalizedOfficialName = normalizeGeographyLabel(form.official_name);
+    const normalizedAliases = otherNames.map(normalizeGeographyLabel).filter(Boolean);
+    // The canonical name and official name may legitimately be identical.
+    // Aliases must still be unique and distinct from the canonical labels.
+    const proposedLabels = [
+      normalizedName,
+      ...(normalizedOfficialName && normalizedOfficialName !== normalizedName ? [normalizedOfficialName] : []),
+      ...normalizedAliases,
+    ].filter(Boolean);
     if (new Set(proposedLabels).size !== proposedLabels.length) {
-      return toast.error("The name, official name, and aliases must be unique within this geography.");
+      return toast.error("Other names must be unique and must not duplicate the name or official name.");
     }
 
     setSaving(true);
