@@ -334,12 +334,12 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
     person: dict[str, Any] = {"name": name, "slug": f"{slugify(name)}-{mpsno}", "metadata": metadata}
     if image_url and image_url.startswith(("https://", "http://")):
         person["image_url"] = image_url
-    qualification = clean_profile_text(first(record, "qualification", "educationalQualification", "highestQualification"))
+    qualification_value = first(record, "qualification", "educationalQualification", "highestQualification")
+    qualification_entries = normalize_education(qualification_value)
     education = normalize_education(first(record, "education", "educationDetails", "educationalBackground", "educationalHistory"))
-    if qualification:
-        qualification_entry = {"qualification": qualification}
-        if qualification_entry not in education:
-            education.insert(0, qualification_entry)
+    for entry in reversed(qualification_entries):
+        if entry not in education:
+            education.insert(0, entry)
     professions = normalize_professions(
         first(record, "profession", "occupation"),
         first(record, "profession2", "otherProfession"),
@@ -674,9 +674,21 @@ def merge_missing(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[st
     # Preserve unrelated/user-created metadata. Update only fields this importer owns.
     for key, value in new_metadata.items():
         if key in {"official_source", "official_source_url", "mpsno", "noOfTerms",
-                   "party", "party_short_name", "party_source_name", "gender", "constituencyCategory", "state", "party_governance_id", "party_source_id", "education", "professions"}:
+                   "party", "party_short_name", "party_source_name", "gender", "constituencyCategory", "state", "party_governance_id", "party_source_id"}:
             if value is not None:
                 merged[key] = value
+        elif key == "education" and value is not None:
+            combined = normalize_education(merged.get("education"))
+            for entry in normalize_education(value):
+                if entry not in combined:
+                    combined.append(entry)
+            merged[key] = combined
+        elif key == "professions" and value is not None:
+            combined = normalize_professions(merged.get("professions"))
+            for entry in normalize_professions(value):
+                if entry not in combined:
+                    combined.append(entry)
+            merged[key] = combined
     if merged != old_metadata:
         patch["metadata"] = merged
     return patch
