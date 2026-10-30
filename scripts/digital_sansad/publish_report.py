@@ -42,7 +42,7 @@ def main() -> int:
         "unresolved_unique_names": len(unresolved_names),
         "ambiguous_assignment_count": len(ambiguous),
         # Null is intentional: the current importer doesn't separately report former matches yet.
-        "matched_former_count": None,
+        "matched_former_count": len(report.get("matched_former_constituencies") or []),
         "matched_defunct_count": len(report.get("matched_defunct_constituencies") or []),
         "report": report,
         "workflow_run_url": os.getenv("GITHUB_SERVER_URL", "https://github.com")
