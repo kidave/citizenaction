@@ -423,7 +423,7 @@ def fetch_rest_rows(base_url: str, key: str, table: str, select: str, filters: d
     return rows
 
 
-def upload_member_photo(base_url: str, key: str, source_url: str, source_id: str, name: str) -> str | None:
+def upload_member_photo(base_url: str, key: str, source_url: str, person_id: str, source_id: str, name: str) -> str | None:
     """Copy official photo into the existing public governance bucket; return its public URL."""
     try:
         response = requests.get(source_url, headers=HEADERS, timeout=30)
@@ -434,7 +434,8 @@ def upload_member_photo(base_url: str, key: str, source_url: str, source_id: str
         if not extension or not response.content or len(response.content) > 5 * 1024 * 1024:
             print(f"WARNING: skipped unsupported/empty/oversized photo for {name} ({source_id}); content-type={content_type!r}")
             return None
-        path = f"person/{slugify(name)}-{source_id}/profile.{extension}"
+        # Match GovernancePersonSheet: bucket=governance, object=person/<database-person-uuid>.<ext>.
+        path = f"person/{person_id}.{extension}"
         object_url = base_url.rstrip("/") + "/storage/v1/object/governance/" + requests.utils.quote(path, safe="/")
         headers = {
             "apikey": key, "Authorization": f"Bearer {key}",
@@ -960,12 +961,43 @@ def main() -> int:
                     continue
             planned_appointments.append(candidate)
 
+    source_field_specs = {
+        "birth_date": (("birthdate", "birthDate", "dateOfBirth", "dob"), lambda person, row: bool(person.get("birth_date"))),
+        "date_of_death": (("dateOfDeath", "deathDate", "date_of_death"), lambda person, row: bool(person.get("date_of_death"))),
+        "education_qualifications": (("qualification", "educationalQualification", "highestQualification", "education", "educationDetails", "educationalBackground", "educationalHistory"), lambda person, row: bool((person.get("metadata") or {}).get("education"))),
+        "professions": (("profession", "occupation", "profession2", "otherProfession"), lambda person, row: bool((person.get("metadata") or {}).get("professions"))),
+        "photo_url": (("photoUrl", "photoURL", "imageUrl", "image_url", "photo", "image", "memberPhoto"), lambda person, row: bool(person.get("image_url"))),
+        "party_source_id": (("partyCode", "party_code", "partyId", "party_id"), lambda person, row: bool((person.get("metadata") or {}).get("party_source_id"))),
+        "lok_sabha_terms": (("noOfTerms", "no_of_terms", "termsServed", "loksabha", "term", "terms"), lambda person, row: bool(extract_lok_sabha_terms(row))),
+        "appointment_status": (("status", "memberStatus", "appointmentStatus"), lambda person, row: appointment_status_from_source(row, current_term_eligible.get(clean((person.get("metadata") or {}).get("mpsno")) or "", False)) != "unknown"),
+    }
+    field_validation = {}
+    for field_name, (source_keys, is_mapped) in source_field_specs.items():
+        source_present = 0
+        mapped = 0
+        for source_id, person in source_people.items():
+            row = source_record_by_id.get(source_id, {})
+            raw_value = first(row, *source_keys)
+            has_value = raw_value not in (None, "", [], {})
+            source_present += int(has_value)
+            mapped += int(has_value and is_mapped(person, row))
+        field_validation[field_name] = {
+            "source_present": source_present,
+            "mapped": mapped,
+            "missing_in_source": len(source_people) - source_present,
+            "present_but_unmapped": source_present - mapped,
+        }
+
+    source_photo_available = sum(1 for person in source_people.values() if person.get("image_url"))
+    planned_photo_uploads = sum(1 for person in inserts if person.get("image_url")) + sum(1 for _, patch in updates if patch.get("image_url"))
     report = {
         "source": SOURCE_URL,
         "api_url": API_URL,
         "fetched_source_rows": len(source_rows),
         "advertised_source_total": advertised_total,
         "unique_members_with_source_id": len(source_people),
+        "field_validation": field_validation,
+        "photo_import": {"source_photo_available": source_photo_available, "planned_uploads": planned_photo_uploads, "uploaded": 0, "failed": 0, "failures": [], "mode": "pending" if args.apply else "dry-run-not-uploaded"},
         "rows_without_name_or_stable_id": rejected_rows,
         "existing_people_scanned": len(existing_people),
         "matched_existing_people": matched_existing,
@@ -1094,26 +1126,32 @@ def main() -> int:
                         party_ids.get(f"source:{party_source_id}") if party_source_id else None
                     ) or party_ids.get(f"name:{normalize_name(party_name)}")
 
-        # Copy photos into the existing public Storage bucket. Never replace a manually supplied photo.
+        # New people need a database UUID before a photo can be stored at person/<person_id>.<ext>.
+        # Keep source URLs in memory, but never persist a remote URL if copying to Storage fails.
+        pending_insert_photos: dict[str, str] = {}
         for person in inserts:
-            source_url = person.get("image_url")
+            source_url = person.pop("image_url", None)
             source_id = str((person.get("metadata") or {}).get("mpsno") or "")
             if source_url and source_id:
-                uploaded_url = upload_member_photo(supabase_url, supabase_key, source_url, source_id, person["name"])
-                if uploaded_url:
-                    person["image_url"] = uploaded_url
-                else:
-                    person.pop("image_url", None)
+                pending_insert_photos[source_id] = source_url
+
+        # Existing people already have a database UUID. Never replace a manually supplied photo.
         for existing, patch in updates:
             if patch.get("image_url"):
                 source_url = patch["image_url"]
                 source_id = str(((patch.get("metadata") or {}).get("mpsno")) or "")
-                if source_url and source_id:
-                    uploaded_url = upload_member_photo(supabase_url, supabase_key, source_url, source_id, existing.get("name") or "member")
+                person_id = str(existing.get("id") or "")
+                if source_url and source_id and person_id:
+                    uploaded_url = upload_member_photo(
+                        supabase_url, supabase_key, source_url, person_id, source_id,
+                        existing.get("name") or "member",
+                    )
                     if uploaded_url:
                         patch["image_url"] = uploaded_url
+                        report["photo_import"]["uploaded"] += 1
                     else:
                         patch.pop("image_url", None)
+                        report["photo_import"]["failed"] += 1
 
         # Backfill only missing parliamentary geography after a future mapping fix.
         # Existing non-null geography is deliberately never overwritten.
@@ -1163,6 +1201,47 @@ def main() -> int:
                     report["results"]["updated"] += 1
                 except Exception as exc:
                     report["results"]["errors"].append({"operation": "update", "id": existing.get("id"), "error": str(exc)})
+
+        # Upload new-person photos only after inserts return successfully and UUIDs can be resolved.
+        if not report["results"]["errors"] and pending_insert_photos:
+            try:
+                refreshed_people_for_photos = fetch_existing_people(supabase_url, supabase_key)
+                people_by_source_id = {
+                    clean((person.get("metadata") or {}).get("mpsno")): person
+                    for person in refreshed_people_for_photos
+                    if isinstance(person.get("metadata"), dict)
+                    and person["metadata"].get("official_source") == "Digital Sansad"
+                    and clean(person["metadata"].get("mpsno"))
+                }
+                for source_id, source_url in pending_insert_photos.items():
+                    person = people_by_source_id.get(source_id)
+                    person_id = str(person.get("id") or "") if person else ""
+                    if not person_id:
+                        report["photo_import"]["failed"] += 1
+                        report["photo_import"]["failures"].append({"mpsno": source_id, "reason": "Inserted person UUID could not be resolved."})
+                        continue
+                    uploaded_url = upload_member_photo(
+                        supabase_url, supabase_key, source_url, person_id, source_id,
+                        person.get("name") or "member",
+                    )
+                    if not uploaded_url:
+                        report["photo_import"]["failed"] += 1
+                        report["photo_import"]["failures"].append({"mpsno": source_id, "reason": "Photo download or Storage upload failed."})
+                        continue
+                    try:
+                        supabase_request(
+                            "PATCH", rest_url, supabase_key,
+                            params={"id": f"eq.{person_id}"},
+                            json={"image_url": uploaded_url},
+                            headers={"Prefer": "return=minimal"},
+                        )
+                        report["photo_import"]["uploaded"] += 1
+                    except Exception as exc:
+                        report["photo_import"]["failed"] += 1
+                        report["photo_import"]["failures"].append({"mpsno": source_id, "reason": str(exc)})
+            except Exception as exc:
+                report["photo_import"]["failed"] += len(pending_insert_photos)
+                report["photo_import"]["failures"].append({"reason": f"Could not resolve inserted people for photo upload: {exc}"})
 
 
         party_appointment_candidates = [
