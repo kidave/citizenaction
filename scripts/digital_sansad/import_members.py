@@ -452,6 +452,15 @@ def appointment_status_from_source(record: dict[str, Any], current_term_eligible
     return raw_status or ("sitting" if current_term_eligible else "unknown")
 
 
+def appointment_fields_from_source(record: dict[str, Any], current_term_eligible: bool) -> dict[str, Any]:
+    """Extract appointment-only status and official contacts from one source row."""
+    return {
+        "appointment_status": appointment_status_from_source(record, current_term_eligible),
+        "official_phone": clean(first(record, "officialPhone", "officePhone", "phone", "telephone", "contactNumber")),
+        "official_email": clean(first(record, "officialEmail", "officeEmail", "email", "emailAddress")),
+    }
+
+
 def find_lok_sabha_governance(
     governance: list[dict[str, Any]],
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -627,8 +636,9 @@ def main() -> int:
         except Exception as exc:
             print(
                 "ERROR reading Supabase prerequisites: verify the schema and apply "
-                "20261030183000_position_appointment_term.sql before running the importer "
-                "(including dry-run). Details: " + str(exc),
+                "20261030183000_position_appointment_term.sql and "
+                "20261030190000_position_governance_id_and_scoped_slug.sql before running "
+                "the importer (including dry-run). Details: " + str(exc),
                 file=sys.stderr,
             )
             return 1
@@ -720,7 +730,7 @@ def main() -> int:
                 ambiguous.append({"mpsno": source_id, "name": incoming["name"], "matching_person_ids": [p.get("id") for p in name_matches]})
                 continue
 
-        appointment_status = appointment_status_from_source(
+        appointment_fields = appointment_fields_from_source(
             source_record, current_term_eligible.get(source_id, False)
         )
         appointment_candidates.append({
@@ -728,9 +738,7 @@ def main() -> int:
             "geography_id": resolved_constituencies.get(source_id),
             "constituency": constituency_name, "person_id": existing.get("id") if existing else None,
             "current_term_eligible": current_term_eligible.get(source_id, False),
-            "appointment_status": appointment_status,
-            "official_phone": clean(first(source_record, "officialPhone", "officePhone", "phone", "telephone", "contactNumber")),
-            "official_email": clean(first(source_record, "officialEmail", "officeEmail", "email", "emailAddress")),
+            **appointment_fields,
         })
         if existing is None:
             inserts.append(incoming)
