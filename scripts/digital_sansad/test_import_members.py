@@ -3,6 +3,7 @@ import unittest
 
 from scripts.digital_sansad.import_members import (
     find_lok_sabha_governance,
+    resolve_party,
     appointment_fields_from_source,
     appointment_status_from_source,
     is_current_lok_sabha_term,
@@ -82,6 +83,31 @@ class DigitalSansadImporterTests(unittest.TestCase):
         self.assertNotIn("lsExpr", person["metadata"])
         self.assertNotIn("status", person["metadata"])
         self.assertEqual(person["metadata"]["mpsno"], "344")
+
+    def test_party_resolution_prefers_stable_digital_sansad_source_identity(self):
+        parties = [
+            {"id": "party-1", "name": "Example Party", "short_name": "EP", "type": "political_party",
+             "source_system": "digital_sansad", "source_id": "101"},
+            {"id": "party-2", "name": "Example Party", "short_name": "EP", "type": "political_party",
+             "source_system": "digital_sansad", "source_id": "202"},
+        ]
+        party, ambiguous = resolve_party("Example Party", parties, "202")
+        self.assertEqual(party["id"], "party-2")
+        self.assertFalse(ambiguous)
+        party, ambiguous = resolve_party("Example Party", parties)
+        self.assertIsNone(party)
+        self.assertTrue(ambiguous)
+
+    def test_structured_education_values_are_flattened(self):
+        person = to_person({
+            "mpsno": 345,
+            "fullName": "Education Example",
+            "education": [
+                {"degree": "B.A.", "institution": "Example University"},
+                "LL.B.",
+            ],
+        })
+        self.assertEqual(person["education"], "B.A., Example University; LL.B.")
 
     def test_geography_resolution_requires_unique_match(self):
         rows = [{"id": "g1", "name": "Example", "slug": "example", "other_names": [], "status": "active"}]
