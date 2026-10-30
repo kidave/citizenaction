@@ -377,7 +377,13 @@ def resolve_geography(
             str(geography.get("slug") or "").replace("-", " "),
             *(geography.get("other_names") or []),
         ]
-        if any(clean(label) and normalize_name(str(label)) in keys for label in labels):
+        label_keys = set()
+        for label in labels:
+            if clean(label):
+                label_key = normalize_name(str(label))
+                label_keys.add(label_key)
+                label_keys.add(re.sub(r"\\band\\b", "", label_key).strip())
+        if label_keys & keys:
             matches.append(geography)
     # A canonical-name/alias collision is just as ambiguous as alias/alias collision.
     # Do not silently prefer the canonical label: require admins to fix the conflict.
