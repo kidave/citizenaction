@@ -423,6 +423,11 @@ def fetch_rest_rows(base_url: str, key: str, table: str, select: str, filters: d
     return rows
 
 
+def person_photo_storage_path(person_id: str, extension: str) -> str:
+    """Return the canonical object path used by governance person image uploads."""
+    return f"person/{person_id}.{extension}"
+
+
 def upload_member_photo(base_url: str, key: str, source_url: str, person_id: str, source_id: str, name: str) -> str | None:
     """Copy official photo into the existing public governance bucket; return its public URL."""
     try:
@@ -435,7 +440,7 @@ def upload_member_photo(base_url: str, key: str, source_url: str, person_id: str
             print(f"WARNING: skipped unsupported/empty/oversized photo for {name} ({source_id}); content-type={content_type!r}")
             return None
         # Match GovernancePersonSheet: bucket=governance, object=person/<database-person-uuid>.<ext>.
-        path = f"person/{person_id}.{extension}"
+        path = person_photo_storage_path(person_id, extension)
         object_url = base_url.rstrip("/") + "/storage/v1/object/governance/" + requests.utils.quote(path, safe="/")
         headers = {
             "apikey": key, "Authorization": f"Bearer {key}",
@@ -1384,6 +1389,10 @@ def main() -> int:
             except Exception as exc:
                 report["results"]["errors"].append({"operation": "prepare_appointments", "error": str(exc)})
 
+
+    if args.apply and report.get("photo_import", {}).get("mode") == "pending":
+        photo_report = report["photo_import"]
+        photo_report["mode"] = "applied-with-errors" if photo_report.get("failed") or report["results"]["errors"] else "applied"
 
     try:
         with open(args.report, "w", encoding="utf-8") as handle:
