@@ -19,11 +19,15 @@ from datetime import date, datetime
 from typing import Any
 
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 API_URL = "https://sansad.in/api_ls/member"
 SOURCE_URL = "https://sansad.in/ls/members"
 DEFAULT_PAGE_SIZE = 100
-PAGE_PAUSE_SECONDS = 0.15
+PAGE_PAUSE_SECONDS = 0.35
+SOURCE_RETRY_TOTAL = 5
+SOURCE_BACKOFF_FACTOR = 1.5
 HEADERS = {
     "Accept": "application/json, text/plain, */*",
     "Accept-Language": "en-IN,en;q=0.9",
@@ -124,6 +128,22 @@ def fetch_all_members(
     member_id: str | None = None,
 ) -> tuple[list[dict[str, Any]], int | None]:
     session = requests.Session()
+    # Digital Sansad occasionally stalls mid-pagination. Retry safe GET requests
+    # for transient network errors and throttling/server failures, with backoff.
+    retry = Retry(
+        total=SOURCE_RETRY_TOTAL,
+        connect=SOURCE_RETRY_TOTAL,
+        read=SOURCE_RETRY_TOTAL,
+        status=SOURCE_RETRY_TOTAL,
+        backoff_factor=SOURCE_BACKOFF_FACTOR,
+        status_forcelist=(429, 500, 502, 503, 504),
+        allowed_methods=frozenset({"GET"}),
+        respect_retry_after_header=True,
+        raise_on_status=False,
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
     session.headers.update(HEADERS)
     members: list[dict[str, Any]] = []
     total_elements: int | None = None
@@ -457,7 +477,8 @@ def main() -> int:
                         help="Process exactly one Digital Sansad mpsno (fetches the source listing, then selects that member). Cannot be combined with --limit-records.")
     parser.add_argument("--min-source-records", type=int, default=1000,
                         help="Fail closed if fewer source rows are returned (protects against partial/API errors).")
-    parser.add_argument("--timeout", type=int, default=30)
+    parser.add_argument("--timeout", type=int, default=60,
+                        help="Per-request timeout in seconds for the public source API (default: 60).")
     parser.add_argument("--report", default="digital-sansad-import-report.json")
     args = parser.parse_args()
 
