@@ -358,7 +358,12 @@ def resolve_geography(
     """Resolve a label only when all canonical/alias matches identify one geography."""
     if not name:
         return None, False, None
-    key = normalize_name(name)
+    keys = {normalize_name(name)}
+    for suffix in (" district", " distt", " dist", " zila"):
+        keys.update({key[:-len(suffix)].strip() for key in tuple(keys) if key.endswith(suffix)})
+    keys.update({key.replace(" and ", " & ") for key in tuple(keys)})
+    keys.update({key.replace(" & ", " and ") for key in tuple(keys)})
+    keys = {key for key in keys if key}
     matches = []
     for geography in geographies:
         labels = [
@@ -367,7 +372,7 @@ def resolve_geography(
             str(geography.get("slug") or "").replace("-", " "),
             *(geography.get("other_names") or []),
         ]
-        if any(clean(label) and normalize_name(str(label)) == key for label in labels):
+        if any(clean(label) and normalize_name(str(label)) in keys for label in labels):
             matches.append(geography)
     # A canonical-name/alias collision is just as ambiguous as alias/alias collision.
     # Do not silently prefer the canonical label: require admins to fix the conflict.

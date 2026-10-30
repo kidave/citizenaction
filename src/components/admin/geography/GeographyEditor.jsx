@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { supabase } from "@/lib/supabase/client";
 import { GEOGRAPHY_BOUNDARY_CATEGORIES, getGeographyTypeLabel } from "@/config/geography/boundaryCategories";
 
-const blank = { id: null, name: "", official_name: "", other_names: [], status: "active", boundary_category: "administrative", geography_type: "state", parent_id: "none", country_code: "IN", osm_type: "", osm_id: "", admin_level: "", source: "manual", source_url: "", metadata: "{}", geojson: "" };
+const blank = { id: null, name: "", official_name: "", other_names: [], status: "active", boundary_category: "administrative", geography_type: "state", parent_id: "none", country_code: "IN", source_type: "", source_id: "", osm_type: "", osm_id: "", admin_level: "", source: "manual", source_url: "", metadata: "{}", geojson: "" };
 const normalizeGeographyLabel = (value) => String(value || "")
   .normalize("NFKD")
   .replace(/[\u0300-\u036f]/g, "")
@@ -33,9 +34,10 @@ export default function GeographyEditor({ open, onOpenChange, geography, onSaved
   const [form, setForm] = useState(blank);
   const [parentPickerOpen, setParentPickerOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const { data: selectedParent } = useQuery({ queryKey: ["geography-parent-label", form.parent_id], enabled: open && form.parent_id !== "none", queryFn: async () => { const { data, error } = await supabase.from("geographies").select("id,name").eq("id", form.parent_id).maybeSingle(); if (error) throw error; return data; }, staleTime: 5 * 60 * 1000 });
 
   useEffect(() => {
-    setForm(geography ? { ...blank, ...geography, other_names: Array.isArray(geography.other_names) ? geography.other_names : [], status: geography.status || "active", boundary_category: geography.boundary_category || "administrative", parent_id: geography.parent_id || "none", osm_id: geography.osm_id ? String(geography.osm_id) : "", admin_level: geography.admin_level != null ? String(geography.admin_level) : "" } : blank);
+    setForm(geography ? { ...blank, ...geography, other_names: Array.isArray(geography.other_names) ? geography.other_names : [], status: geography.status || "active", boundary_category: geography.boundary_category || "administrative", parent_id: geography.parent_id || "none", source_id: geography.source_id ? String(geography.source_id) : "", osm_id: geography.osm_id ? String(geography.osm_id) : "", admin_level: geography.admin_level != null ? String(geography.admin_level) : "" } : blank);
   }, [geography, open]);
 
   const category = GEOGRAPHY_BOUNDARY_CATEGORIES.find((item) => item.value === form.boundary_category) || GEOGRAPHY_BOUNDARY_CATEGORIES[0];
@@ -105,8 +107,8 @@ export default function GeographyEditor({ open, onOpenChange, geography, onSaved
       p_geography_type: form.geography_type,
       p_country_code: form.country_code.trim() || "IN",
       p_parent_id: form.parent_id === "none" ? null : form.parent_id,
-      p_osm_type: form.osm_type.trim() || null,
-      p_osm_id: form.osm_id.trim() ? Number(form.osm_id) : null,
+      p_osm_type: form.source_type.trim() || null,
+      p_osm_id: form.source_id.trim() ? Number(form.source_id) : null,
       p_admin_level: form.admin_level.trim() ? Number(form.admin_level) : null,
       p_source: form.source.trim() || "manual",
       p_source_url: form.source_url.trim() || null,
@@ -141,14 +143,14 @@ export default function GeographyEditor({ open, onOpenChange, geography, onSaved
     </div>
     <div className="grid gap-4 sm:grid-cols-2">
       <label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Boundary type</span><Select value={form.geography_type} onValueChange={(v) => set("geography_type", v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{category.types.map((value) => <SelectItem key={value} value={value}>{getGeographyTypeLabel(value)}</SelectItem>)}</SelectContent></Select></label>
-      <div className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Parent geography</span><div className="flex gap-2"><Button type="button" variant="outline" className="min-w-0 flex-1 justify-start font-normal" onClick={() => setParentPickerOpen(true)}>{form.parent_id === "none" ? "No parent geography" : "Select parent geography"}</Button>{form.parent_id !== "none" && <Button type="button" variant="ghost" onClick={() => set("parent_id", "none")}>Clear</Button>}</div></div>
+      <div className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Parent geography</span><div className="flex gap-2"><Button type="button" variant="outline" className="min-w-0 flex-1 justify-start font-normal" onClick={() => setParentPickerOpen(true)}>{form.parent_id === "none" ? "No parent geography" : (selectedParent?.name || "Loading parent geography…")}</Button>{form.parent_id !== "none" && <Button type="button" variant="ghost" onClick={() => set("parent_id", "none")}>Clear</Button>}</div></div>
     </div>
     <div className="grid gap-4 sm:grid-cols-2"><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Official name</span><Input value={form.official_name} onChange={(e) => set("official_name", e.target.value)} /></label><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Country code</span><Input value={form.country_code} onChange={(e) => set("country_code", e.target.value)} /></label></div>
     <div className="grid gap-4 sm:grid-cols-2">
       <label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Other names</span><Input value={Array.isArray(form.other_names) ? form.other_names.join(", ") : String(form.other_names || "")} onChange={(e) => set("other_names", e.target.value)} placeholder="Comma-separated aliases, e.g. Belgaum" /><span className="text-xs text-muted-foreground">Names for the same geography only; do not enter successor constituency names.</span></label>
       <label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Status</span><Select value={form.status || "active"} onValueChange={(value) => set("status", value)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="active">Active</SelectItem><SelectItem value="former">Former</SelectItem><SelectItem value="defunct">Defunct</SelectItem></SelectContent></Select></label>
     </div>
-    <div className="grid gap-4 sm:grid-cols-3"><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">OSM type</span><Input value={form.osm_type} onChange={(e) => set("osm_type", e.target.value)} /></label><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">OSM ID</span><Input value={form.osm_id} onChange={(e) => set("osm_id", e.target.value)} /></label><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Admin level</span><Input value={form.admin_level} onChange={(e) => set("admin_level", e.target.value)} /></label></div>
+    <div className="grid gap-4 sm:grid-cols-3"><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Source type</span><Input value={form.source_type} onChange={(e) => set("source_type", e.target.value)} placeholder="e.g. relation, way" /></label><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Source ID</span><Input value={form.source_id} onChange={(e) => set("source_id", e.target.value)} /></label><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Admin level</span><Input value={form.admin_level} onChange={(e) => set("admin_level", e.target.value)} /></label></div>
     <div className="grid gap-4 sm:grid-cols-2"><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Source</span><Input value={form.source} onChange={(e) => set("source", e.target.value)} /></label><label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Source URL</span><Input value={form.source_url} onChange={(e) => set("source_url", e.target.value)} /></label></div>
     <div className="space-y-2"><div className="flex items-center justify-between gap-3"><div><p className="text-sm font-medium">Boundary geometry</p><p className="text-xs text-muted-foreground">Upload or paste GeoJSON for this reusable boundary.</p></div><label className="cursor-pointer"><input type="file" accept=".geojson,.json,application/geo+json,application/json" className="hidden" onChange={importGeoJson} /><span className="inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium hover:bg-muted"><Upload className="mr-2 h-4 w-4" />Import</span></label></div><Textarea value={form.geojson} onChange={(e) => set("geojson", e.target.value)} rows={9} className="font-mono text-xs" placeholder='{"type":"MultiPolygon","coordinates":[...]}' /></div>
     <label className="space-y-1.5"><span className="text-xs font-medium text-muted-foreground">Metadata JSON</span><Textarea value={form.metadata} onChange={(e) => set("metadata", e.target.value)} rows={4} className="font-mono text-xs" /></label>
