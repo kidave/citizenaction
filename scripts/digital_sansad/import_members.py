@@ -356,28 +356,22 @@ def resolve_geography(
     name: str | None,
     geographies: list[dict[str, Any]],
 ) -> tuple[str | None, bool, str | None]:
-    """Match canonical names first, then alternate names; never infer successors."""
+    """Resolve a label only when all canonical/alias matches identify one geography."""
     if not name:
         return None, False, None
     key = normalize_name(name)
-    canonical_matches = [
-        g for g in geographies
-        if key in {
-            normalize_name(str(g.get("name") or "")),
-            normalize_name(str(g.get("official_name") or "")),
-            normalize_name(str(g.get("slug") or "").replace("-", " ")),
-        }
-    ]
-    matches = canonical_matches
-    if not matches:
-        matches = [
-            g for g in geographies
-            if any(
-                key == normalize_name(str(alias))
-                for alias in (g.get("other_names") or [])
-                if clean(alias)
-            )
+    matches = []
+    for geography in geographies:
+        labels = [
+            geography.get("name"),
+            geography.get("official_name"),
+            str(geography.get("slug") or "").replace("-", " "),
+            *(geography.get("other_names") or []),
         ]
+        if any(clean(label) and normalize_name(str(label)) == key for label in labels):
+            matches.append(geography)
+    # A canonical-name/alias collision is just as ambiguous as alias/alias collision.
+    # Do not silently prefer the canonical label: require admins to fix the conflict.
     if len(matches) != 1:
         return None, len(matches) > 1, None
     geography = matches[0]

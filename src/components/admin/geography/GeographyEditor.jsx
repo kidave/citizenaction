@@ -13,6 +13,21 @@ import { supabase } from "@/lib/supabase/client";
 import { GEOGRAPHY_BOUNDARY_CATEGORIES, getGeographyTypeLabel } from "@/config/geography/boundaryCategories";
 
 const blank = { id: null, name: "", official_name: "", other_names: [], status: "active", boundary_category: "administrative", geography_type: "state", parent_id: "none", country_code: "IN", osm_type: "", osm_id: "", admin_level: "", source: "manual", source_url: "", metadata: "{}", geojson: "" };
+const normalizeGeographyLabel = (value) => String(value || "")
+  .normalize("NFKD")
+  .replace(/[\\u0300-\\u036f]/g, "")
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, " ")
+  .trim()
+  .replace(/\\s+/g, " ");
+
+const geographyLabels = (row) => [
+  row.name,
+  row.official_name,
+  String(row.slug || "").replace(/-/g, " "),
+  ...(Array.isArray(row.other_names) ? row.other_names : []),
+].map(normalizeGeographyLabel).filter(Boolean);
+
 
 export default function GeographyEditor({ open, onOpenChange, geography, onSaved }) {
   const [form, setForm] = useState(blank);
@@ -51,7 +66,31 @@ export default function GeographyEditor({ open, onOpenChange, geography, onSaved
     try { metadata = form.metadata.trim() ? JSON.parse(form.metadata) : {}; } catch { return toast.error("Metadata must be valid JSON"); }
     let geojson = null;
     if (form.geojson.trim()) { try { geojson = JSON.parse(form.geojson); } catch { return toast.error("Boundary must be valid GeoJSON"); } }
+
+    const otherNames = [...new Set(String(Array.isArray(form.other_names) ? form.other_names.join(", ") : form.other_names || "")
+      .split(",").map((value) => value.trim()).filter(Boolean))];
+    const proposedLabels = [form.name.trim(), form.official_name.trim(), ...otherNames]
+      .map(normalizeGeographyLabel).filter(Boolean);
+    if (new Set(proposedLabels).size !== proposedLabels.length) {
+      return toast.error("The name, official name, and aliases must be unique within this geography.");
+    }
+
     setSaving(true);
+    const { data: sameTypeGeographies, error: namesError } = await supabase
+      .from("geographies")
+      .select("id,name,official_name,slug,other_names,geography_type")
+      .eq("geography_type", form.geography_type);
+    if (namesError) {
+      setSaving(false);
+      return toast.error(`Unable to validate geography names: ${namesError.message}`);
+    }
+    const conflicts = (sameTypeGeographies || []).filter((row) => row.id !== form.id)
+      .filter((row) => geographyLabels(row).some((label) => proposedLabels.includes(label)));
+    if (conflicts.length) {
+      setSaving(false);
+      const labels = [...new Set(conflicts.map((row) => row.name))].join(", ");
+      return toast.error(`Name or alias conflicts with another ${form.geography_type.replace(/_/g, " ")}: ${labels}. Each name/alias must identify only one geography of this type.`);
+    }
     const { data, error } = await supabase.rpc("upsert_geography", {
       p_id: form.id || null,
       p_name: form.name.trim(),
@@ -76,8 +115,6 @@ export default function GeographyEditor({ open, onOpenChange, geography, onSaved
       setSaving(false);
       return toast.error("Geography was saved but its ID was not returned; verify the record before retrying.");
     }
-    const otherNames = [...new Set(String(Array.isArray(form.other_names) ? form.other_names.join(", ") : form.other_names || "")
-      .split(",").map((value) => value.trim()).filter(Boolean))];
     const { error: detailsError } = await supabase.from("geographies")
       .update({ other_names: otherNames, status: form.status || "active" })
       .eq("id", saved.id);
