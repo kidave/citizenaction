@@ -367,7 +367,7 @@ def resolve_geography(
     keys = {geography_key(name)}
     # Abbreviations are expanded to "district"; the word is never discarded.
     keys.update({
-        re.sub(r"\\b(?:distt|dist|zila)\\b", "district", key)
+        re.sub(r"\b(?:distt|dist|zila)\b", "district", key)
         for key in tuple(keys)
     })
     matches = []
