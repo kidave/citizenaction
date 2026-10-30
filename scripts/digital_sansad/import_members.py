@@ -37,7 +37,7 @@ HEADERS = {
 }
 # Keep this list intentionally limited to public biographical/professional fields.
 PERSONAL_FIELDS = {
-    "name", "image_url", "qualification", "profession", "birth_date", "date_of_death",
+    "name", "image_url", "qualification", "education", "profession", "birth_date", "date_of_death",
     "phone", "email", "metadata"
 }
 
@@ -272,7 +272,8 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
     person: dict[str, Any] = {"name": name, "slug": f"{slugify(name)}-{mpsno}", "metadata": metadata}
     if image_url and image_url.startswith(("https://", "http://")):
         person["image_url"] = image_url
-    qualification = clean(first(record, "qualification", "educationalQualification", "education"))
+    qualification = clean(first(record, "qualification", "educationalQualification", "highestQualification"))
+    education = clean(first(record, "education", "educationDetails", "educationalBackground", "educationalHistory"))
     profession = clean(first(record, "profession", "occupation"))
     birth_date = parse_date(first(record, "birthdate", "birthDate", "dateOfBirth", "dob"))
     date_of_death = parse_date(first(record, "dateOfDeath", "deathDate", "date_of_death"))
@@ -281,6 +282,8 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
     email = clean(first(record, "personalEmail", "email", "emailAddress"))
     if qualification:
         person["qualification"] = qualification
+    if education:
+        person["education"] = education
     if profession:
         person["profession"] = profession
     if birth_date:
@@ -315,7 +318,7 @@ def fetch_existing_people(base_url: str, key: str) -> list[dict[str, Any]]:
     while True:
         response = supabase_request(
             "GET", url, key,
-            params={"select": "id,name,metadata,image_url,qualification,profession,birth_date,date_of_death,phone,email", "limit": page_size, "offset": offset},
+            params={"select": "id,name,metadata,image_url,qualification,education,profession,birth_date,date_of_death,phone,email", "limit": page_size, "offset": offset},
             headers={"Range-Unit": "items", "Range": f"{offset}-{offset + page_size - 1}"},
         )
         batch = response.json()
@@ -472,7 +475,7 @@ def find_lok_sabha_governance(
     parliament = parliaments[0] if len(parliaments) == 1 else None
     houses = [
         row for row in governance
-        if row.get("type") == "legislative_house"
+        if row.get("type") == "legislature"
         and normalize_name(str(row.get("name") or "")) == "lok sabha"
         and parliament is not None
         and str(row.get("parent_entity_id") or "") == str(parliament.get("id") or "")
@@ -520,7 +523,7 @@ def resolve_party(
 def merge_missing(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
     """Only enrich blanks and merge the importer-owned metadata keys."""
     patch: dict[str, Any] = {}
-    for field in ("image_url", "qualification", "profession", "birth_date", "date_of_death", "phone", "email"):
+    for field in ("image_url", "qualification", "education", "profession", "birth_date", "date_of_death", "phone", "email"):
         if not existing.get(field) and incoming.get(field):
             patch[field] = incoming[field]
 
@@ -632,7 +635,7 @@ def main() -> int:
             existing_geographies = fetch_rest_rows(supabase_url, supabase_key, "geographies", "id,name,official_name,slug,other_names,status,geography_type,boundary_category", {"geography_type": "eq.parliamentary_constituency", "boundary_category": "eq.political"})
             existing_governance = fetch_rest_rows(supabase_url, supabase_key, "governance", "id,name,short_name,slug,type,parent_entity_id,metadata,source_system,source_id")
             existing_positions = fetch_rest_rows(supabase_url, supabase_key, "position", "id,name,slug,governance_id,appointing_organization_id,geography_id,metadata")
-            existing_appointments = fetch_rest_rows(supabase_url, supabase_key, "position_appointment", "id,position_id,person_id,term,status,started_at,ended_at,geography_id,official_phone,official_email,metadata")
+            existing_appointments = fetch_rest_rows(supabase_url, supabase_key, "position_appointment", "id,position_id,person_id,organization_id,term,status,started_at,ended_at,geography_id,official_phone,official_email,metadata")
         except Exception as exc:
             print(
                 "ERROR reading Supabase prerequisites: verify the schema and apply "
@@ -738,6 +741,8 @@ def main() -> int:
             "geography_id": resolved_constituencies.get(source_id),
             "constituency": constituency_name, "person_id": existing.get("id") if existing else None,
             "current_term_eligible": current_term_eligible.get(source_id, False),
+            "party_name": party_name,
+            "party_governance_id": party.get("id") if party else None,
             **appointment_fields,
         })
         if existing is None:
@@ -788,11 +793,12 @@ def main() -> int:
         "unresolved_parties": unresolved_parties,
         "ambiguous_parties": ambiguous_parties,
         "planned_party_entities": len(party_to_create),
-        "appointment_model": {"position": "Member of Parliament", "parent_organization": "Lok Sabha", "term": CURRENT_LOK_SABHA_TERM, "started_at": CURRENT_TERM_START},
+        "appointment_model": {"positions": [{"position": "Member of Parliament", "governance": "Lok Sabha"}, {"position": "Party Member", "governance": "political party"}], "term": CURRENT_LOK_SABHA_TERM, "term_start_proxy": CURRENT_TERM_START},
         "parliament_matches": len(parliament_rows),
         "lok_sabha_organization_matches": len(lok_sabha_orgs),
         "member_of_parliament_position_matches": len(mp_positions),
         "planned_appointments": len(planned_appointments),
+        "planned_party_appointments": sum(1 for candidate in appointment_candidates if candidate.get("current_term_eligible") and candidate.get("party_name")),
         "skipped_appointments": skipped_appointments,
         "mode": "apply" if args.apply else "dry-run",
         "sample_limit_records": args.limit_records,
