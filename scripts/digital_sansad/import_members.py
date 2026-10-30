@@ -278,8 +278,9 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
     profession = clean(first(record, "profession", "occupation"))
     birth_date = parse_date(first(record, "birthdate", "birthDate", "dateOfBirth", "dob"))
     date_of_death = parse_date(first(record, "dateOfDeath", "deathDate", "date_of_death"))
-    phone = clean(first(record, "officialPhone", "officePhone", "phone", "telephone", "contactNumber"))
-    email = clean(first(record, "officialEmail", "officeEmail", "email", "emailAddress"))
+    # Person-level contacts must not be inferred from official office contacts.
+    phone = clean(first(record, "personalPhone", "phone", "mobile", "mobileNumber"))
+    email = clean(first(record, "personalEmail", "email", "emailAddress"))
     if qualification:
         person["qualification"] = qualification
     if profession:
@@ -422,6 +423,9 @@ def is_current_lok_sabha_term(record: dict[str, Any]) -> bool:
     """Only accept explicit source evidence for the 18th Lok Sabha."""
     expression = clean(first(record, "lsExpr", "ls_expr", "lokSabhaExperience")) or ""
     normalized = normalize_name(expression)
+    source_status = normalize_name(str(first(record, "status", "memberStatus", "appointmentStatus") or ""))
+    if source_status in {"former", "former member", "resigned", "ceased", "expired", "term completed", "retired"}:
+        return False
     return (
         normalized in {"18", "18th", "18th lok sabha", "18 lok sabha"}
         or "18th lok sabha" in normalized
