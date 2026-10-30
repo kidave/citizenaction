@@ -672,7 +672,7 @@ def main() -> int:
         if patch:
             updates.append((existing, patch))
 
-    lok_sabha_orgs = [g for g in existing_governance if g.get("type") == "legislature_house" and normalize_name(str(g.get("name") or "")) == "lok sabha"]
+    lok_sabha_orgs = [g for g in existing_governance if g.get("type") == "legislative_house" and normalize_name(str(g.get("name") or "")) == "lok sabha"]
     mp_positions = [p for p in existing_positions if normalize_name(str(p.get("name") or "")) == "member of parliament" and len(lok_sabha_orgs) == 1 and p.get("appointing_organization_id") == lok_sabha_orgs[0].get("id")]
     position_ambiguous = len(lok_sabha_orgs) != 1 or len(mp_positions) > 1
     mp_position = mp_positions[0] if len(mp_positions) == 1 else None
