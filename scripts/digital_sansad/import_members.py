@@ -881,7 +881,7 @@ def main() -> int:
         for candidate in appointment_candidates:
             term = candidate.get("term")
             if not term:
-                skipped_appointments.append({"mpsno": candidate["mpsno"], "name": candidate["name"], "constituency": candidate.get("constituency"), "reason": "No single Lok Sabha term could be established; person remains eligible for import."})
+                skipped_appointments.append({"mpsno": candidate["mpsno"], "name": candidate["name"], "constituency": candidate.get("constituency"), "reason": "No valid Lok Sabha term could be parsed from the source; person remains eligible for import."})
                 continue
             if candidate.get("constituency") and not candidate.get("geography_id"):
                 skipped_appointments.append({"mpsno": candidate["mpsno"], "name": candidate["name"], "constituency": candidate.get("constituency"), "reason": "Constituency unresolved or ambiguous; appointment planned without geography."})
@@ -922,7 +922,7 @@ def main() -> int:
         "unresolved_parties": unresolved_parties,
         "ambiguous_parties": ambiguous_parties,
         "planned_party_entities": len(party_to_create),
-        "appointment_model": {"positions": [{"position": "Member of Parliament", "governance": "Lok Sabha"}, {"position": "Member", "governance": "political party membership fallback"}], "term_source": "source-provided where unambiguous", "current_term_start_fallback": CURRENT_TERM_START},
+        "appointment_model": {"positions": [{"position": "Member of Parliament", "governance": "Lok Sabha"}, {"position": "Member", "governance": "political party membership fallback"}], "term_source": "each explicit source-provided Lok Sabha term parsed independently", "current_term_start_fallback": CURRENT_TERM_START},
         "parliament_matches": len(parliament_rows),
         "lok_sabha_organization_matches": len(lok_sabha_orgs),
         "member_of_parliament_position_matches": len(mp_positions),
@@ -1064,14 +1064,15 @@ def main() -> int:
             if not geography_update.get("id") or not geography_update.get("geography_id"):
                 continue
             try:
-                supabase_request(
+                updated = supabase_request(
                     "PATCH", appointment_url, supabase_key,
                     params={"id": f"eq.{geography_update['id']}", "geography_id": "is.null"},
                     json={"geography_id": geography_update["geography_id"]},
-                    headers={"Prefer": "return=minimal"},
-                )
-                report["results"].setdefault("geography_updates", 0)
-                report["results"]["geography_updates"] += 1
+                    headers={"Prefer": "return=representation"},
+                ).json()
+                if updated:
+                    report["results"].setdefault("geography_updates", 0)
+                    report["results"]["geography_updates"] += len(updated) if isinstance(updated, list) else 1
             except Exception as exc:
                 report["results"]["errors"].append({
                     "operation": "backfill_appointment_geography",
