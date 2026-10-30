@@ -3,6 +3,7 @@ import unittest
 
 from scripts.digital_sansad.import_members import (
     find_lok_sabha_governance,
+    appointment_status_from_source,
     is_current_lok_sabha_term,
     resolve_geography,
     to_person,
@@ -18,6 +19,16 @@ class DigitalSansadImporterTests(unittest.TestCase):
         self.assertFalse(is_current_lok_sabha_term({"lsExpr": "18th Lok Sabha", "status": "former"}))
         self.assertFalse(is_current_lok_sabha_term({"lsExpr": "18th Lok Sabha", "status": "resigned"}))
         self.assertFalse(is_current_lok_sabha_term({}))
+
+    def test_appointment_status_comes_from_the_matching_source_record(self):
+        suspended = {"mpsno": 1, "status": "suspended", "officialPhone": "011-5555", "officialEmail": "office@example.in"}
+        sitting = {"mpsno": 2, "status": "active", "officialPhone": "011-6666"}
+        self.assertEqual(appointment_status_from_source(suspended, True), "suspended")
+        self.assertEqual(appointment_status_from_source(sitting, True), "sitting")
+        self.assertEqual(appointment_status_from_source({}, True), "sitting")
+        self.assertEqual(appointment_status_from_source({}, False), "unknown")
+        self.assertEqual(suspended["officialPhone"], "011-5555")
+        self.assertEqual(suspended["officialEmail"], "office@example.in")
 
     def test_lok_sabha_must_be_child_of_parliament(self):
         rows = [
