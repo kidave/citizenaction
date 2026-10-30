@@ -888,14 +888,20 @@ def main() -> int:
             metadata = person.get("metadata") or {}
             party_name = clean(metadata.get("party_source_name")) or clean(metadata.get("party_short_name"))
             if party_name and not metadata.get("party_governance_id"):
-                metadata["party_governance_id"] = party_ids.get(normalize_name(party_name))
+                party_source_id = clean(metadata.get("party_source_id"))
+                metadata["party_governance_id"] = (
+                    party_ids.get(f"source:{party_source_id}") if party_source_id else None
+                ) or party_ids.get(f"name:{normalize_name(party_name)}")
             person["metadata"] = metadata
         for existing, patch in updates:
             metadata = patch.get("metadata")
             if isinstance(metadata, dict):
                 party_name = clean(metadata.get("party_source_name")) or clean(metadata.get("party_short_name"))
                 if party_name and not metadata.get("party_governance_id"):
-                    metadata["party_governance_id"] = party_ids.get(normalize_name(party_name))
+                    party_source_id = clean(metadata.get("party_source_id"))
+                    metadata["party_governance_id"] = (
+                        party_ids.get(f"source:{party_source_id}") if party_source_id else None
+                    ) or party_ids.get(f"name:{normalize_name(party_name)}")
 
         # Copy photos into the existing public Storage bucket. Never replace a manually supplied photo.
         for person in inserts:
