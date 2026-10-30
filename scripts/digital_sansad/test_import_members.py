@@ -52,6 +52,8 @@ class DigitalSansadImporterTests(unittest.TestCase):
         self.assertEqual(person["email"], "member@example.in")
         self.assertEqual(person["phone"], "011-12345678")
         self.assertNotIn("constituency", person["metadata"])
+        self.assertNotIn("lsExpr", person["metadata"])
+        self.assertNotIn("status", person["metadata"])
         self.assertEqual(person["metadata"]["mpsno"], "344")
 
     def test_geography_resolution_requires_unique_match(self):
