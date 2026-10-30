@@ -710,7 +710,8 @@ def main() -> int:
         elif party_name and not party_ambiguous:
             party_key = normalize_name(party_name)
             if party_key:
-                party_to_create.setdefault(party_key, {
+                party_key_for_create = f"source:{party_source_id}" if party_source_id else f"name:{party_key}"
+                party_to_create.setdefault(party_key_for_create, {
                     "name": party_name, "slug": slugify(party_name), "type": "political_party",
                     "short_name": clean(source_meta.get("party_short_name")),
                     "source_system": "digital_sansad" if party_source_id else None,
@@ -742,6 +743,7 @@ def main() -> int:
             "constituency": constituency_name, "person_id": existing.get("id") if existing else None,
             "current_term_eligible": current_term_eligible.get(source_id, False),
             "party_name": party_name,
+            "party_source_id": party_source_id,
             "party_governance_id": party.get("id") if party else None,
             **appointment_fields,
         })
@@ -875,11 +877,13 @@ def main() -> int:
         # Attach resolved party/geography IDs to incoming metadata, including IDs of parties created above.
         party_ids: dict[str, str] = {}
         for party_row in existing_governance:
-            if not party_row.get("id"):
+            if not party_row.get("id") or str(party_row.get("type") or "") != "political_party":
                 continue
+            if party_row.get("source_system") == "digital_sansad" and clean(party_row.get("source_id")):
+                party_ids[f"source:{clean(party_row.get('source_id'))}"] = str(party_row["id"])
             for party_label in (party_row.get("name"), party_row.get("short_name"), str(party_row.get("slug") or "").replace("-", " ")):
                 if clean(party_label):
-                    party_ids[normalize_name(str(party_label))] = str(party_row["id"])
+                    party_ids[f"name:{normalize_name(str(party_label))}"] = str(party_row["id"])
         for person in inserts:
             metadata = person.get("metadata") or {}
             party_name = clean(metadata.get("party_source_name")) or clean(metadata.get("party_short_name"))
@@ -991,7 +995,10 @@ def main() -> int:
                 party_position_by_governance = {}
                 for candidate in party_appointment_candidates:
                     party_name = clean(candidate.get("party_name"))
-                    party_id = party_ids.get(normalize_name(party_name or ""))
+                    party_id = (
+                        party_ids.get(f"source:{clean(candidate.get('party_source_id'))}")
+                        if clean(candidate.get("party_source_id")) else None
+                    ) or party_ids.get(f"name:{normalize_name(party_name or '')}")
                     if not party_id:
                         report["results"]["errors"].append({
                             "operation": "resolve_party_appointment_governance",
