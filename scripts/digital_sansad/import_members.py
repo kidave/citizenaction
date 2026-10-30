@@ -362,13 +362,13 @@ def resolve_geography(
     # Treat common abbreviations as equivalent to the full word, but never
     # drop "district" entirely: it can distinguish a constituency name.
     keys.update({
-        re.sub(r"\\b(?:distt|dist|zila)\\b", "district", key)
+        re.sub(r"\b(?:distt|dist|zila)\b", "district", key)
         for key in tuple(keys)
     })
     keys.update({key.replace(" and ", " & ") for key in tuple(keys)})
     keys.update({key.replace(" & ", " and ") for key in tuple(keys)})
-    keys.update({re.sub(r"\\band\\b", "", key).strip() for key in tuple(keys)})
-    keys = {re.sub(r"\\s+", " ", key) for key in keys if key}
+    keys.update({re.sub(r"\band\b", "", key).strip() for key in tuple(keys)})
+    keys = {re.sub(r"\s+", " ", key) for key in keys if key}
     matches = []
     for geography in geographies:
         labels = [
@@ -382,7 +382,7 @@ def resolve_geography(
             if clean(label):
                 label_key = normalize_name(str(label))
                 label_keys.add(label_key)
-                label_keys.add(re.sub(r"\\s+", " ", re.sub(r"\\band\\b", "", label_key)).strip())
+                label_keys.add(re.sub(r"\s+", " ", re.sub(r"\band\b", "", label_key)).strip())
         if label_keys & keys:
             matches.append(geography)
     # A canonical-name/alias collision is just as ambiguous as alias/alias collision.
