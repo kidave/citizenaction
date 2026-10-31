@@ -178,6 +178,17 @@ class DigitalSansadImporterTests(unittest.TestCase):
         self.assertEqual(person["metadata"]["emails"], ["one@example.in", "two@example.in"])
         self.assertNotIn("gender", person["metadata"])
 
+    def test_merge_missing_migrates_legacy_mpsno_to_canonical_identity(self):
+        existing = {
+            "source_system": None, "source_id": None,
+            "metadata": {"official_source": "Digital Sansad", "mpsno": "5031"},
+        }
+        incoming = to_person({"mpsno": 5031, "fullName": "Example Member"})
+        patch = merge_missing(existing, incoming)
+        self.assertEqual(patch["source_system"], "sansad")
+        self.assertEqual(patch["source_id"], "5031")
+        self.assertNotIn("mpsno", patch["metadata"])
+
     def test_merge_missing_does_not_overwrite_curated_demographics(self):
         patch = merge_missing(
             {"gender": "female", "marital_status": "Single", "metadata": {"gender": "Female"}},
