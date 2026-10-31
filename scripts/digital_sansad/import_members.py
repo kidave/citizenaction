@@ -1389,19 +1389,18 @@ def main() -> int:
                         })
                         continue
                     term = candidate["term"]
-                    key = (str(party_position["id"]), str(person_id), str(term))
+                    # Party affiliation is a person-to-party relationship, not a parliamentary-term appointment.
+                    # Do not assign a term, service dates, or parliamentary status until party history is modeled.
+                    key = (str(party_position["id"]), str(person_id), "")
                     if key in existing_appointment_keys:
                         continue
                     payload = {
                         "position_id": party_position["id"], "person_id": person_id,
-                        "organization_id": party_id, "term": term,
-                        "status": clean(candidate.get("appointment_status")) or "unknown",
-                        "started_at": candidate.get("started_at"), "ended_at": candidate.get("ended_at"),
+                        "organization_id": party_id,
                         "geography_id": None,
                         "metadata": {
                             "official_source": "Digital Sansad", "mpsno": candidate["mpsno"],
-                            "source_url": SOURCE_URL, "relationship": "party affiliation recorded alongside parliamentary term",
-                            "started_at_semantics": "not_applicable_party_affiliation",
+                            "source_url": SOURCE_URL, "relationship": "party affiliation",
                         },
                     }
                     try:
