@@ -1307,7 +1307,11 @@ def main() -> int:
                     key = (str(mp_position["id"]), str(person_id), str(term))
                     if key in existing_appointment_keys:
                         continue
-                    payload = {"position_id": mp_position["id"], "person_id": person_id, "organization_id": lok_sabha_orgs[0]["id"], "geography_id": candidate.get("geography_id"), "term_id": term_rows_by_name.get((str(lok_sabha_orgs[0]["id"]), normalize_name(str(term))), {}).get("id"), "term": term, "status": clean(candidate.get("appointment_status")) or "unknown", "started_at": candidate.get("started_at"), "ended_at": candidate.get("ended_at"), "official_phone": clean(candidate.get("official_phone")), "official_email": clean(candidate.get("official_email")), "metadata": {"official_source": "Digital Sansad", "mpsno": candidate["mpsno"], "source_url": SOURCE_URL, "term_evidence": "Digital Sansad member-list row"}}
+                    term_id = term_rows_by_name.get((str(lok_sabha_orgs[0]["id"]), normalize_name(str(term))), {}).get("id")
+                    if not term_id:
+                        report["results"]["errors"].append({"operation": "resolve_term", "mpsno": candidate["mpsno"], "term": term, "error": "No governance_term row exists for this term under the Lok Sabha governance record; appointment was not written."})
+                        continue
+                    payload = {"position_id": mp_position["id"], "person_id": person_id, "organization_id": lok_sabha_orgs[0]["id"], "geography_id": candidate.get("geography_id"), "term_id": term_id, "term": term, "status": clean(candidate.get("appointment_status")) or "unknown", "started_at": candidate.get("started_at"), "ended_at": candidate.get("ended_at"), "official_phone": clean(candidate.get("official_phone")), "official_email": clean(candidate.get("official_email")), "metadata": {"official_source": "Digital Sansad", "mpsno": candidate["mpsno"], "source_url": SOURCE_URL, "term_evidence": "Digital Sansad member-list row"}}
                     try:
                         supabase_request("POST", appointment_url, supabase_key, json=payload, headers={"Prefer": "return=minimal"})
                         existing_appointment_keys.add(key)
