@@ -820,6 +820,9 @@ def merge_missing(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[st
         if not existing.get("gender") and not patch.get("gender"):
             patch["gender"] = legacy_gender
         merged.pop("gender", None)
+    # Remove the legacy duplicate once the canonical Sansad identity is present.
+    if clean(incoming.get("source_system") or existing.get("source_system")) == "sansad" and clean(incoming.get("source_id") or existing.get("source_id")):
+        merged.pop("mpsno", None)
     if merged != old_metadata:
         patch["metadata"] = merged
     return patch
@@ -1280,7 +1283,7 @@ def main() -> int:
         pending_photos: dict[str, str] = {}
         for existing, patch in updates:
             if patch.get("image_url"):
-                source_id = clean((patch.get("metadata") or {}).get("mpsno"))
+                source_id = clean(patch.get("source_id") or existing.get("source_id") or (patch.get("metadata") or {}).get("mpsno"))
                 source_url = patch.get("image_url")
                 if source_id and source_url:
                     pending_photos[source_id] = source_url
