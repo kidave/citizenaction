@@ -38,7 +38,7 @@ HEADERS = {
 # Keep this list intentionally limited to public biographical/professional fields.
 PERSONAL_FIELDS = {
     "name", "image_url", "birth_date", "date_of_death",
-    "phone", "email", "metadata"
+    "phone", "email", "gender", "marital_status", "metadata"
 }
 
 
@@ -59,6 +59,32 @@ def first(record: dict[str, Any], *keys: str) -> Any:
         if value not in (None, ""):
             return value
     return None
+
+
+def normalize_gender(value: Any) -> str | None:
+    """Normalize only supported gender values; unknown stays null."""
+    normalized = clean(value)
+    if not normalized:
+        return None
+    normalized = normalized.casefold()
+    return normalized if normalized in {"male", "female", "other"} else None
+
+
+def normalize_contact_values(*values: Any) -> list[str]:
+    """Collect distinct public contact values without losing multi-value fields."""
+    result: list[str] = []
+    for value in values:
+        items = value if isinstance(value, list) else [value]
+        for item in items:
+            if isinstance(item, dict):
+                item = first(item, "value", "email", "phone", "number", "address")
+            cleaned = clean(item)
+            if cleaned:
+                for part in re.split(r"[;,\n]+", cleaned):
+                    normalized = part.strip()
+                    if normalized and normalized not in result:
+                        result.append(normalized)
+    return result
 
 
 def clean_profile_text(value: Any) -> str | None:
@@ -322,7 +348,6 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
         "party": ("party", "partyName", "partyFname"),
         "party_short_name": ("partySname",),
         "party_source_id": ("partyCode", "party_code", "partyId", "party_id"),
-        "gender": ("gender",),
         "constituencyCategory": ("constituencyCategory", "constituency_category"),
         "state": ("state", "stateName"),
     }
@@ -331,7 +356,13 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
         if value is not None:
             metadata[target] = value
 
-    person: dict[str, Any] = {"name": name, "slug": f"{slugify(name)}-{mpsno}", "metadata": metadata}
+    person: dict[str, Any] = {"name": name, "slug": slugify(name), "metadata": metadata}
+    gender = normalize_gender(first(record, "gender", "sex"))
+    if gender:
+        person["gender"] = gender
+    marital_status = clean(first(record, "maritalStatus", "marital_status", "maritalStatusName", "marital"))
+    if marital_status:
+        person["marital_status"] = marital_status
     if image_url and image_url.startswith(("https://", "http://")):
         person["image_url"] = image_url
     qualification_value = first(record, "qualification", "educationalQualification", "highestQualification")
@@ -347,8 +378,15 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
     birth_date = parse_date(first(record, "birthdate", "birthDate", "dateOfBirth", "dob"))
     date_of_death = parse_date(first(record, "dateOfDeath", "deathDate", "date_of_death"))
     # Person-level contacts must not be inferred from official office contacts.
-    phone = clean(first(record, "personalPhone", "phone", "mobile", "mobileNumber"))
-    email = clean(first(record, "personalEmail", "email", "emailAddress"))
+    phones = normalize_contact_values(first(record, "personalPhone", "phone", "mobile", "mobileNumber", "phoneNumbers", "mobileNumbers"))
+    emails = normalize_contact_values(first(record, "personalEmail", "email", "emailAddress", "emailAddresses", "emails"))
+    # Scalar columns remain the primary contact for legacy UI; metadata preserves all values.
+    phone = phones[0] if phones else None
+    email = emails[0] if emails else None
+    if phones:
+        metadata["phones"] = phones
+    if emails:
+        metadata["emails"] = emails
     if education:
         metadata["education"] = education
     if professions:
@@ -409,17 +447,33 @@ def supabase_request(method: str, url: str, key: str, **kwargs: Any) -> requests
     return response
 
 
-def fetch_existing_people(base_url: str, key: str) -> list[dict[str, Any]]:
+def fetch_existing_people(base_url: str, key: str, allow_legacy_schema: bool = False) -> list[dict[str, Any]]:
     url = base_url.rstrip("/") + "/rest/v1/person"
     people: list[dict[str, Any]] = []
     offset = 0
     page_size = 1000
+    select_fields = "id,name,slug,metadata,image_url,qualification,education,profession,birth_date,date_of_death,phone,email,gender,marital_status"
     while True:
-        response = supabase_request(
-            "GET", url, key,
-            params={"select": "id,name,metadata,image_url,qualification,education,profession,birth_date,date_of_death,phone,email", "limit": page_size, "offset": offset},
-            headers={"Range-Unit": "items", "Range": f"{offset}-{offset + page_size - 1}"},
-        )
+        try:
+            response = supabase_request(
+                "GET", url, key,
+                params={"select": select_fields, "limit": page_size, "offset": offset},
+                headers={"Range-Unit": "items", "Range": f"{offset}-{offset + page_size - 1}"},
+            )
+        except RuntimeError as error:
+            message = str(error).lower()
+            missing_new_columns = ("gender" in message or "marital_status" in message) and (
+                "column" in message or "schema cache" in message or "does not exist" in message
+            )
+            if not allow_legacy_schema or offset != 0 or not missing_new_columns:
+                raise
+            print("WARNING: Supabase person schema lacks gender/marital_status; dry-run is using legacy columns.", file=sys.stderr)
+            select_fields = "id,name,slug,metadata,image_url,qualification,education,profession,birth_date,date_of_death,phone,email"
+            response = supabase_request(
+                "GET", url, key,
+                params={"select": select_fields, "limit": page_size, "offset": offset},
+                headers={"Range-Unit": "items", "Range": f"{offset}-{offset + page_size - 1}"},
+            )
         batch = response.json()
         if not isinstance(batch, list):
             raise RuntimeError("Supabase person query returned an unexpected response.")
@@ -432,6 +486,20 @@ def fetch_existing_people(base_url: str, key: str) -> list[dict[str, Any]]:
 def slugify(value: str) -> str:
     value = normalize_name(value).replace(" ", "-")
     return re.sub(r"-+", "-", value).strip("-") or "unknown"
+
+
+def unique_slug(base_slug: str, reserved_slugs: set[str]) -> str:
+    """Return a name-based slug, adding -2, -3, etc. only when needed."""
+    base = base_slug or "person"
+    if base not in reserved_slugs:
+        reserved_slugs.add(base)
+        return base
+    suffix = 2
+    while f"{base}-{suffix}" in reserved_slugs:
+        suffix += 1
+    result = f"{base}-{suffix}"
+    reserved_slugs.add(result)
+    return result
 
 
 def fetch_rest_rows(base_url: str, key: str, table: str, select: str, filters: dict[str, str] | None = None) -> list[dict[str, Any]]:
@@ -630,7 +698,7 @@ def find_lok_sabha_governance(
     parliament = parliaments[0] if len(parliaments) == 1 else None
     houses = [
         row for row in governance
-        if row.get("type") == "legislature"
+        if row.get("type") in {"legislature", "legislature_house"}
         and normalize_name(str(row.get("name") or "")) == "lok sabha"
         and parliament is not None
         and str(row.get("parent_entity_id") or "") == str(parliament.get("id") or "")
@@ -678,7 +746,7 @@ def resolve_party(
 def merge_missing(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
     """Only enrich blanks and merge the importer-owned metadata keys."""
     patch: dict[str, Any] = {}
-    for field in ("image_url", "birth_date", "date_of_death", "phone", "email"):
+    for field in ("image_url", "birth_date", "date_of_death", "phone", "email", "gender", "marital_status"):
         if not existing.get(field) and incoming.get(field):
             patch[field] = incoming[field]
 
@@ -711,9 +779,13 @@ def merge_missing(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[st
     # Preserve unrelated/user-created metadata. Update only fields this importer owns.
     for key, value in new_metadata.items():
         if key in {"official_source", "official_source_url", "mpsno", "noOfTerms",
-                   "party", "party_short_name", "party_source_name", "gender", "constituencyCategory", "state", "party_governance_id", "party_source_id"}:
+                   "party", "party_short_name", "party_source_name", "constituencyCategory", "state", "party_governance_id", "party_source_id"}:
             if value is not None:
                 merged[key] = value
+        elif key in {"phones", "emails"} and value is not None:
+            combined = normalize_contact_values(merged.get(key), value)
+            if combined:
+                merged[key] = combined
         elif key == "education" and value is not None:
             combined = normalize_education(merged.get("education"))
             for entry in normalize_education(value):
@@ -726,6 +798,12 @@ def merge_missing(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[st
                 if entry not in combined:
                     combined.append(entry)
             merged[key] = combined
+    # Convert recognized legacy gender metadata to the canonical column; never guess unsupported values.
+    legacy_gender = normalize_gender(merged.get("gender"))
+    if legacy_gender:
+        if not existing.get("gender") and not patch.get("gender"):
+            patch["gender"] = legacy_gender
+        merged.pop("gender", None)
     if merged != old_metadata:
         patch["metadata"] = merged
     return patch
@@ -821,13 +899,15 @@ def main() -> int:
     existing_governance: list[dict[str, Any]] = []
     existing_positions: list[dict[str, Any]] = []
     existing_appointments: list[dict[str, Any]] = []
+    existing_terms: list[dict[str, Any]] = []
     if supabase_url and supabase_key:
         try:
-            existing_people = fetch_existing_people(supabase_url, supabase_key)
+            existing_people = fetch_existing_people(supabase_url, supabase_key, allow_legacy_schema=not args.apply)
             existing_geographies = fetch_rest_rows(supabase_url, supabase_key, "geographies", "id,name,official_name,slug,other_names,status,geography_type,boundary_category", {"geography_type": "eq.parliamentary_constituency", "boundary_category": "eq.political"})
             existing_governance = fetch_rest_rows(supabase_url, supabase_key, "governance", "id,name,short_name,slug,type,parent_entity_id,metadata,source_system,source_id")
             existing_positions = fetch_rest_rows(supabase_url, supabase_key, "position", "id,name,slug,governance_id,appointing_organization_id,geography_id,metadata")
-            existing_appointments = fetch_rest_rows(supabase_url, supabase_key, "position_appointment", "id,position_id,person_id,organization_id,term,status,started_at,ended_at,geography_id,official_phone,official_email,metadata")
+            existing_appointments = fetch_rest_rows(supabase_url, supabase_key, "position_appointment", "id,position_id,person_id,organization_id,term,term_id,status,started_at,ended_at,geography_id,official_phone,official_email,metadata")
+            existing_terms = fetch_rest_rows(supabase_url, supabase_key, "governance_term", "id,governance_id,name,started_at,ended_at")
         except Exception as exc:
             print(
                 "ERROR reading Supabase prerequisites: verify the schema and apply "
@@ -855,6 +935,9 @@ def main() -> int:
             by_name[normalize_name(name)].append(existing)
 
     inserts: list[dict[str, Any]] = []
+    reserved_person_slugs = {
+        clean(person.get("slug")) for person in existing_people if clean(person.get("slug"))
+    }
     unresolved_constituencies: list[dict[str, Any]] = []
     unresolved_parties: list[dict[str, Any]] = []
     ambiguous_constituencies: list[dict[str, Any]] = []
@@ -951,6 +1034,7 @@ def main() -> int:
                 **appointment_fields,
             })
         if existing is None:
+            incoming["slug"] = unique_slug(slugify(incoming["name"]), reserved_person_slugs)
             inserts.append(incoming)
             continue
         matched_existing += 1
@@ -962,6 +1046,10 @@ def main() -> int:
     mp_positions = [p for p in existing_positions if normalize_name(str(p.get("name") or "")) == "member of parliament" and len(lok_sabha_orgs) == 1 and (p.get("governance_id") or p.get("appointing_organization_id")) == lok_sabha_orgs[0].get("id")]
     position_ambiguous = len(parliament_rows) != 1 or len(lok_sabha_orgs) != 1 or len(mp_positions) > 1
     mp_position = mp_positions[0] if len(mp_positions) == 1 else None
+    term_rows_by_name = {
+        (str(t.get("governance_id") or ""), normalize_name(str(t.get("name") or ""))): t
+        for t in existing_terms
+    }
     existing_appointment_by_key = {
         (str(a.get("position_id")), str(a.get("person_id")), str(a.get("term") or "")): a
         for a in existing_appointments
@@ -1057,7 +1145,7 @@ def main() -> int:
         "unresolved_parties": unresolved_parties,
         "ambiguous_parties": ambiguous_parties,
         "planned_party_entities": len(party_to_create),
-        "appointment_model": {"positions": [{"position": "Member of Parliament", "governance": "Lok Sabha"}, {"position": "Member", "governance": "political party membership fallback"}], "term_source": "each explicit source-provided Lok Sabha term parsed independently", "current_term_start_fallback": CURRENT_TERM_START},
+        "appointment_model": {"positions": [{"position": "Member of Parliament", "governance": "Lok Sabha"}], "term_source": "each explicit source-provided Lok Sabha term parsed independently; term_id is canonical", "status_semantics": {"sitting": "currently serving", "former": "historical service", "suspended": "service status explicitly reported as suspended", "unknown": "source does not establish current status"}},
         "parliament_matches": len(parliament_rows),
         "lok_sabha_organization_matches": len(lok_sabha_orgs),
         "member_of_parliament_position_matches": len(mp_positions),
@@ -1301,7 +1389,11 @@ def main() -> int:
                     key = (str(mp_position["id"]), str(person_id), str(term))
                     if key in existing_appointment_keys:
                         continue
-                    payload = {"position_id": mp_position["id"], "person_id": person_id, "organization_id": lok_sabha_orgs[0]["id"], "geography_id": candidate.get("geography_id"), "term": term, "status": clean(candidate.get("appointment_status")) or "unknown", "started_at": candidate.get("started_at"), "ended_at": candidate.get("ended_at"), "is_vacant": False, "is_primary": term == CURRENT_LOK_SABHA_TERM, "official_phone": clean(candidate.get("official_phone")), "official_email": clean(candidate.get("official_email")), "metadata": {"official_source": "Digital Sansad", "mpsno": candidate["mpsno"], "source_url": SOURCE_URL, "term_evidence": "Digital Sansad member-list row"}}
+                    term_id = term_rows_by_name.get((str(lok_sabha_orgs[0]["id"]), normalize_name(str(term))), {}).get("id")
+                    if not term_id:
+                        report["results"]["errors"].append({"operation": "resolve_term", "mpsno": candidate["mpsno"], "term": term, "error": "No governance_term row exists for this term under the Lok Sabha governance record; appointment was not written."})
+                        continue
+                    payload = {"position_id": mp_position["id"], "person_id": person_id, "organization_id": lok_sabha_orgs[0]["id"], "geography_id": candidate.get("geography_id"), "term_id": term_id, "term": term, "status": clean(candidate.get("appointment_status")) or "unknown", "started_at": candidate.get("started_at"), "ended_at": candidate.get("ended_at"), "official_phone": clean(candidate.get("official_phone")), "official_email": clean(candidate.get("official_email")), "metadata": {"official_source": "Digital Sansad", "mpsno": candidate["mpsno"], "source_url": SOURCE_URL, "term_evidence": "Digital Sansad member-list row"}}
                     try:
                         supabase_request("POST", appointment_url, supabase_key, json=payload, headers={"Prefer": "return=minimal"})
                         existing_appointment_keys.add(key)
@@ -1379,19 +1471,18 @@ def main() -> int:
                         })
                         continue
                     term = candidate["term"]
-                    key = (str(party_position["id"]), str(person_id), str(term))
+                    # Party affiliation is a person-to-party relationship, not a parliamentary-term appointment.
+                    # Do not assign a term, service dates, or parliamentary status until party history is modeled.
+                    key = (str(party_position["id"]), str(person_id), "")
                     if key in existing_appointment_keys:
                         continue
                     payload = {
                         "position_id": party_position["id"], "person_id": person_id,
-                        "organization_id": party_id, "term": term,
-                        "status": clean(candidate.get("appointment_status")) or "unknown",
-                        "started_at": candidate.get("started_at"), "ended_at": candidate.get("ended_at"),
-                        "geography_id": None, "is_vacant": False, "is_primary": False,
+                        "organization_id": party_id,
+                        "geography_id": None,
                         "metadata": {
                             "official_source": "Digital Sansad", "mpsno": candidate["mpsno"],
-                            "source_url": SOURCE_URL, "relationship": "party affiliation recorded alongside parliamentary term",
-                            "started_at_semantics": "source_date_or_term_start_fallback",
+                            "source_url": SOURCE_URL, "relationship": "party affiliation",
                         },
                     }
                     try:
