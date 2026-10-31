@@ -166,7 +166,7 @@ class DigitalSansadImporterTests(unittest.TestCase):
             "emailAddresses": ["one@example.in", "two@example.in"],
         })
         self.assertEqual(person["gender"], "female")
-        self.assertEqual(person["marital_status"], "Married")
+        self.assertEqual(person["marital_status"], "married")
         self.assertEqual(person["phone"], "111-222-3333")
         self.assertEqual(person["email"], "one@example.in")
         self.assertEqual(person["metadata"]["phones"], ["111-222-3333", "444-555-6666"])
