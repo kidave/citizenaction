@@ -569,8 +569,8 @@ def is_current_lok_sabha_term(record: dict[str, Any]) -> bool:
 def appointment_dates_from_source(record: dict[str, Any], term: str | None) -> tuple[str | None, str | None]:
     started_at = parse_date(first(record, "startedAt", "startDate", "termStartDate", "dateOfElection", "electionDate", "appointmentDate"))
     ended_at = parse_date(first(record, "endedAt", "endDate", "termEndDate", "dateOfLeaving", "cessationDate", "resignationDate"))
-    if not started_at and term == CURRENT_LOK_SABHA_TERM:
-        started_at = CURRENT_TERM_START
+    # Do not substitute the institutional term start for an individual's
+    # appointment date. The canonical governance_term row provides term dates.
     return started_at, ended_at
 
 
