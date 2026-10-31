@@ -820,7 +820,7 @@ def merge_missing(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[st
             patch["gender"] = legacy_gender
         merged.pop("gender", None)
     # Remove the legacy duplicate once the canonical Sansad identity is present.
-    if clean(incoming.get("source_system") or existing.get("source_system")) == "sansad" and clean(incoming.get("source_id") or existing.get("source_id")):
+    if clean(patch.get("source_system") or existing.get("source_system")) == "sansad" and clean(patch.get("source_id") or existing.get("source_id")):
         merged.pop("mpsno", None)
     if merged != old_metadata:
         patch["metadata"] = merged
