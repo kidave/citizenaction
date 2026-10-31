@@ -829,7 +829,7 @@ def main() -> int:
             existing_governance = fetch_rest_rows(supabase_url, supabase_key, "governance", "id,name,short_name,slug,type,parent_entity_id,metadata,source_system,source_id")
             existing_positions = fetch_rest_rows(supabase_url, supabase_key, "position", "id,name,slug,governance_id,appointing_organization_id,geography_id,metadata")
             existing_appointments = fetch_rest_rows(supabase_url, supabase_key, "position_appointment", "id,position_id,person_id,organization_id,term,term_id,status,started_at,ended_at,geography_id,official_phone,official_email,metadata")
-            existing_terms = fetch_rest_rows(supabase_url, supabase_key, "governance_term", "id,governance_id,name,start_date,end_date,status")
+            existing_terms = fetch_rest_rows(supabase_url, supabase_key, "governance_term", "id,governance_id,name,started_at,ended_at")
         except Exception as exc:
             print(
                 "ERROR reading Supabase prerequisites: verify the schema and apply "
