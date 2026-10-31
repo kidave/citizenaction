@@ -38,7 +38,7 @@ HEADERS = {
 # Keep this list intentionally limited to public biographical/professional fields.
 PERSONAL_FIELDS = {
     "name", "image_url", "birth_date", "date_of_death",
-    "phone", "email", "metadata"
+    "phone", "email", "gender", "marital_status", "metadata"
 }
 
 
