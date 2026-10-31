@@ -356,7 +356,7 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
         if value is not None:
             metadata[target] = value
 
-    person: dict[str, Any] = {"name": name, "slug": f"{slugify(name)}-{mpsno}", "metadata": metadata}
+    person: dict[str, Any] = {"name": name, "slug": slugify(name), "metadata": metadata}
     gender = normalize_gender(first(record, "gender", "sex"))
     if gender:
         person["gender"] = gender
@@ -452,7 +452,7 @@ def fetch_existing_people(base_url: str, key: str, allow_legacy_schema: bool = F
     people: list[dict[str, Any]] = []
     offset = 0
     page_size = 1000
-    select_fields = "id,name,metadata,image_url,qualification,education,profession,birth_date,date_of_death,phone,email,gender,marital_status"
+    select_fields = "id,name,slug,metadata,image_url,qualification,education,profession,birth_date,date_of_death,phone,email,gender,marital_status"
     while True:
         try:
             response = supabase_request(
@@ -468,7 +468,7 @@ def fetch_existing_people(base_url: str, key: str, allow_legacy_schema: bool = F
             if not allow_legacy_schema or offset != 0 or not missing_new_columns:
                 raise
             print("WARNING: Supabase person schema lacks gender/marital_status; dry-run is using legacy columns.", file=sys.stderr)
-            select_fields = "id,name,metadata,image_url,qualification,education,profession,birth_date,date_of_death,phone,email"
+            select_fields = "id,name,slug,metadata,image_url,qualification,education,profession,birth_date,date_of_death,phone,email"
             response = supabase_request(
                 "GET", url, key,
                 params={"select": select_fields, "limit": page_size, "offset": offset},
@@ -486,6 +486,20 @@ def fetch_existing_people(base_url: str, key: str, allow_legacy_schema: bool = F
 def slugify(value: str) -> str:
     value = normalize_name(value).replace(" ", "-")
     return re.sub(r"-+", "-", value).strip("-") or "unknown"
+
+
+def unique_slug(base_slug: str, reserved_slugs: set[str]) -> str:
+    """Return a name-based slug, adding -2, -3, etc. only when needed."""
+    base = base_slug or "person"
+    if base not in reserved_slugs:
+        reserved_slugs.add(base)
+        return base
+    suffix = 2
+    while f"{base}-{suffix}" in reserved_slugs:
+        suffix += 1
+    result = f"{base}-{suffix}"
+    reserved_slugs.add(result)
+    return result
 
 
 def fetch_rest_rows(base_url: str, key: str, table: str, select: str, filters: dict[str, str] | None = None) -> list[dict[str, Any]]:
@@ -921,6 +935,9 @@ def main() -> int:
             by_name[normalize_name(name)].append(existing)
 
     inserts: list[dict[str, Any]] = []
+    reserved_person_slugs = {
+        clean(person.get("slug")) for person in existing_people if clean(person.get("slug"))
+    }
     unresolved_constituencies: list[dict[str, Any]] = []
     unresolved_parties: list[dict[str, Any]] = []
     ambiguous_constituencies: list[dict[str, Any]] = []
@@ -1017,6 +1034,7 @@ def main() -> int:
                 **appointment_fields,
             })
         if existing is None:
+            incoming["slug"] = unique_slug(slugify(incoming["name"]), reserved_person_slugs)
             inserts.append(incoming)
             continue
         matched_existing += 1
