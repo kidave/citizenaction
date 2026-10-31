@@ -80,7 +80,7 @@ def normalize_contact_values(*values: Any) -> list[str]:
                 item = first(item, "value", "email", "phone", "number", "address")
             cleaned = clean(item)
             if cleaned:
-                for part in re.split(r"[;,\\n]+", cleaned):
+                for part in re.split(r"[;,\n]+", cleaned):
                     normalized = part.strip()
                     if normalized and normalized not in result:
                         result.append(normalized)
