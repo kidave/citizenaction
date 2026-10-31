@@ -630,7 +630,7 @@ def find_lok_sabha_governance(
     parliament = parliaments[0] if len(parliaments) == 1 else None
     houses = [
         row for row in governance
-        if row.get("type") == "legislature"
+        if row.get("type") in {"legislature", "legislature_house"}
         and normalize_name(str(row.get("name") or "")) == "lok sabha"
         and parliament is not None
         and str(row.get("parent_entity_id") or "") == str(parliament.get("id") or "")
@@ -829,7 +829,7 @@ def main() -> int:
             existing_governance = fetch_rest_rows(supabase_url, supabase_key, "governance", "id,name,short_name,slug,type,parent_entity_id,metadata,source_system,source_id")
             existing_positions = fetch_rest_rows(supabase_url, supabase_key, "position", "id,name,slug,governance_id,appointing_organization_id,geography_id,metadata")
             existing_appointments = fetch_rest_rows(supabase_url, supabase_key, "position_appointment", "id,position_id,person_id,organization_id,term,term_id,status,started_at,ended_at,geography_id,official_phone,official_email,metadata")
-            existing_terms = fetch_rest_rows(supabase_url, supabase_key, "governance_term", "id,governance_id,name,start_date,end_date,status", {"governance_id": "eq." + str(next((g.get("id") for g in existing_governance if normalize_name(str(g.get("name") or "")) == "lok sabha" and g.get("type") == "legislature"), ""))})
+            existing_terms = fetch_rest_rows(supabase_url, supabase_key, "governance_term", "id,governance_id,name,start_date,end_date,status")
         except Exception as exc:
             print(
                 "ERROR reading Supabase prerequisites: verify the schema and apply "
@@ -965,7 +965,7 @@ def main() -> int:
     position_ambiguous = len(parliament_rows) != 1 or len(lok_sabha_orgs) != 1 or len(mp_positions) > 1
     mp_position = mp_positions[0] if len(mp_positions) == 1 else None
     term_rows_by_name = {
-        normalize_name(str(t.get("name") or "")): t
+        (str(t.get("governance_id") or ""), normalize_name(str(t.get("name") or ""))): t
         for t in existing_terms
     }
     existing_appointment_by_key = {
@@ -1307,7 +1307,7 @@ def main() -> int:
                     key = (str(mp_position["id"]), str(person_id), str(term))
                     if key in existing_appointment_keys:
                         continue
-                    payload = {"position_id": mp_position["id"], "person_id": person_id, "organization_id": lok_sabha_orgs[0]["id"], "geography_id": candidate.get("geography_id"), "term": term, "status": clean(candidate.get("appointment_status")) or "unknown", "started_at": candidate.get("started_at"), "ended_at": candidate.get("ended_at"), "official_phone": clean(candidate.get("official_phone")), "official_email": clean(candidate.get("official_email")), "metadata": {"official_source": "Digital Sansad", "mpsno": candidate["mpsno"], "source_url": SOURCE_URL, "term_evidence": "Digital Sansad member-list row"}}
+                    payload = {"position_id": mp_position["id"], "person_id": person_id, "organization_id": lok_sabha_orgs[0]["id"], "geography_id": candidate.get("geography_id"), "term_id": term_rows_by_name.get((str(lok_sabha_orgs[0]["id"]), normalize_name(str(term))), {}).get("id"), "term": term, "status": clean(candidate.get("appointment_status")) or "unknown", "started_at": candidate.get("started_at"), "ended_at": candidate.get("ended_at"), "official_phone": clean(candidate.get("official_phone")), "official_email": clean(candidate.get("official_email")), "metadata": {"official_source": "Digital Sansad", "mpsno": candidate["mpsno"], "source_url": SOURCE_URL, "term_evidence": "Digital Sansad member-list row"}}
                     try:
                         supabase_request("POST", appointment_url, supabase_key, json=payload, headers={"Prefer": "return=minimal"})
                         existing_appointment_keys.add(key)
