@@ -1390,7 +1390,7 @@ def main() -> int:
                     if person.get("source_system") == "sansad" and clean(person.get("source_id")):
                         source_to_person_id[clean(person.get("source_id"))] = person.get("id")
                     elif metadata.get("official_source") == "Digital Sansad" and clean(metadata.get("mpsno")):
-                        source_to_person_id.setdefault(clean(metadata.get("mpsno")), person.get("id")
+                        source_to_person_id.setdefault(clean(metadata.get("mpsno")), person.get("id"))
                 appointment_url = supabase_url.rstrip("/") + "/rest/v1/position_appointment"
                 if planned_appointments and not mp_position:
                     created = supabase_request("POST", supabase_url.rstrip("/") + "/rest/v1/position", supabase_key,
