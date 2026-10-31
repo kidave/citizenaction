@@ -482,7 +482,7 @@ def fetch_existing_people(base_url: str, key: str, allow_legacy_schema: bool = F
             )
             if not allow_legacy_schema or offset != 0 or not missing_new_columns:
                 raise
-            print("WARNING: Supabase person schema lacks gender/marital_status; dry-run is using legacy columns.", file=sys.stderr)
+            print("WARNING: Supabase person schema lacks one or more new identity/demographic columns; dry-run is using legacy columns.", file=sys.stderr)
             select_fields = "id,name,slug,metadata,image_url,qualification,education,profession,birth_date,date_of_death,phone,email"
             response = supabase_request(
                 "GET", url, key,
@@ -1296,7 +1296,7 @@ def main() -> int:
         # Resolve existing records by source identity, including name-matched records
         # that will receive their Digital Sansad identity in this run.
         for existing, patch in updates:
-            source_id = clean((patch.get("metadata") or {}).get("mpsno"))
+            source_id = clean(patch.get("source_id") or existing.get("source_id") or (patch.get("metadata") or {}).get("mpsno"))
             if source_id and source_id not in by_source_id:
                 by_source_id[source_id] = existing
 
