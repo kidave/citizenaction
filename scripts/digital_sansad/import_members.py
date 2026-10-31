@@ -821,6 +821,7 @@ def main() -> int:
     existing_governance: list[dict[str, Any]] = []
     existing_positions: list[dict[str, Any]] = []
     existing_appointments: list[dict[str, Any]] = []
+    existing_terms: list[dict[str, Any]] = []
     if supabase_url and supabase_key:
         try:
             existing_people = fetch_existing_people(supabase_url, supabase_key)
@@ -828,6 +829,7 @@ def main() -> int:
             existing_governance = fetch_rest_rows(supabase_url, supabase_key, "governance", "id,name,short_name,slug,type,parent_entity_id,metadata,source_system,source_id")
             existing_positions = fetch_rest_rows(supabase_url, supabase_key, "position", "id,name,slug,governance_id,appointing_organization_id,geography_id,metadata")
             existing_appointments = fetch_rest_rows(supabase_url, supabase_key, "position_appointment", "id,position_id,person_id,organization_id,term,term_id,status,started_at,ended_at,geography_id,official_phone,official_email,metadata")
+            existing_terms = fetch_rest_rows(supabase_url, supabase_key, "governance_term", "id,governance_id,name,start_date,end_date,status", {"governance_id": "eq." + str(next((g.get("id") for g in existing_governance if normalize_name(str(g.get("name") or "")) == "lok sabha" and g.get("type") == "legislature"), ""))})
         except Exception as exc:
             print(
                 "ERROR reading Supabase prerequisites: verify the schema and apply "
@@ -962,6 +964,10 @@ def main() -> int:
     mp_positions = [p for p in existing_positions if normalize_name(str(p.get("name") or "")) == "member of parliament" and len(lok_sabha_orgs) == 1 and (p.get("governance_id") or p.get("appointing_organization_id")) == lok_sabha_orgs[0].get("id")]
     position_ambiguous = len(parliament_rows) != 1 or len(lok_sabha_orgs) != 1 or len(mp_positions) > 1
     mp_position = mp_positions[0] if len(mp_positions) == 1 else None
+    term_rows_by_name = {
+        normalize_name(str(t.get("name") or "")): t
+        for t in existing_terms
+    }
     existing_appointment_by_key = {
         (str(a.get("position_id")), str(a.get("person_id")), str(a.get("term") or "")): a
         for a in existing_appointments
@@ -1057,7 +1063,7 @@ def main() -> int:
         "unresolved_parties": unresolved_parties,
         "ambiguous_parties": ambiguous_parties,
         "planned_party_entities": len(party_to_create),
-        "appointment_model": {"positions": [{"position": "Member of Parliament", "governance": "Lok Sabha"}, {"position": "Member", "governance": "political party membership fallback"}], "term_source": "each explicit source-provided Lok Sabha term parsed independently", "current_term_start_fallback": CURRENT_TERM_START},
+        "appointment_model": {"positions": [{"position": "Member of Parliament", "governance": "Lok Sabha"}], "term_source": "each explicit source-provided Lok Sabha term parsed independently; term_id is canonical", "status_semantics": {"sitting": "currently serving", "former": "historical service", "suspended": "service status explicitly reported as suspended", "unknown": "source does not establish current status"}},
         "parliament_matches": len(parliament_rows),
         "lok_sabha_organization_matches": len(lok_sabha_orgs),
         "member_of_parliament_position_matches": len(mp_positions),
