@@ -827,7 +827,7 @@ def main() -> int:
             existing_geographies = fetch_rest_rows(supabase_url, supabase_key, "geographies", "id,name,official_name,slug,other_names,status,geography_type,boundary_category", {"geography_type": "eq.parliamentary_constituency", "boundary_category": "eq.political"})
             existing_governance = fetch_rest_rows(supabase_url, supabase_key, "governance", "id,name,short_name,slug,type,parent_entity_id,metadata,source_system,source_id")
             existing_positions = fetch_rest_rows(supabase_url, supabase_key, "position", "id,name,slug,governance_id,appointing_organization_id,geography_id,metadata")
-            existing_appointments = fetch_rest_rows(supabase_url, supabase_key, "position_appointment", "id,position_id,person_id,organization_id,term,status,started_at,ended_at,geography_id,official_phone,official_email,metadata")
+            existing_appointments = fetch_rest_rows(supabase_url, supabase_key, "position_appointment", "id,position_id,person_id,organization_id,term,term_id,status,started_at,ended_at,geography_id,official_phone,official_email,is_primary,metadata")
         except Exception as exc:
             print(
                 "ERROR reading Supabase prerequisites: verify the schema and apply "
@@ -1391,7 +1391,7 @@ def main() -> int:
                         "metadata": {
                             "official_source": "Digital Sansad", "mpsno": candidate["mpsno"],
                             "source_url": SOURCE_URL, "relationship": "party affiliation recorded alongside parliamentary term",
-                            "started_at_semantics": "source_date_or_term_start_fallback",
+                            "started_at_semantics": "not_applicable_party_affiliation",
                         },
                     }
                     try:
