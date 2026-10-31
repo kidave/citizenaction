@@ -17,6 +17,8 @@ from scripts.digital_sansad.import_members import (
     should_upload_source_photo,
     resolve_geography,
     to_person,
+    normalize_gender,
+    merge_missing,
 )
 
 
@@ -132,6 +134,45 @@ class DigitalSansadImporterTests(unittest.TestCase):
         self.assertNotIn("status", person["metadata"])
         self.assertEqual(person["metadata"]["mpsno"], "344")
 
+
+
+    def test_gender_is_normalized_to_supported_enum_values(self):
+        self.assertEqual(normalize_gender(" Male "), "male")
+        self.assertEqual(normalize_gender("FEMALE"), "female")
+        self.assertEqual(normalize_gender("Other"), "other")
+        self.assertIsNone(normalize_gender("transgender"))
+        self.assertIsNone(normalize_gender(None))
+
+    def test_person_maps_gender_marital_status_and_multiple_contacts(self):
+        person = to_person({
+            "mpsno": 9876, "fullName": "Contact Example", "gender": "Female",
+            "maritalStatus": "Married",
+            "phoneNumbers": ["111-222-3333", "444-555-6666"],
+            "emailAddresses": ["one@example.in", "two@example.in"],
+        })
+        self.assertEqual(person["gender"], "female")
+        self.assertEqual(person["marital_status"], "Married")
+        self.assertEqual(person["phone"], "111-222-3333")
+        self.assertEqual(person["email"], "one@example.in")
+        self.assertEqual(person["metadata"]["phones"], ["111-222-3333", "444-555-6666"])
+        self.assertEqual(person["metadata"]["emails"], ["one@example.in", "two@example.in"])
+        self.assertNotIn("gender", person["metadata"])
+
+    def test_merge_missing_does_not_overwrite_curated_demographics(self):
+        patch = merge_missing(
+            {"gender": "female", "marital_status": "Single", "metadata": {"gender": "Female"}},
+            {"gender": "male", "marital_status": "Married", "metadata": {"gender": "Male"}},
+        )
+        self.assertNotIn("gender", patch)
+        self.assertNotIn("marital_status", patch)
+        self.assertNotIn("gender", patch["metadata"])
+        patch = merge_missing(
+            {"gender": None, "marital_status": None, "metadata": {}},
+            {"gender": "female", "marital_status": "Married", "metadata": {"emails": ["a@example.in"]}},
+        )
+        self.assertEqual(patch["gender"], "female")
+        self.assertEqual(patch["marital_status"], "Married")
+        self.assertEqual(patch["metadata"]["emails"], ["a@example.in"])
 
     def test_multiple_qualifications_and_professions_are_canonical_metadata(self):
         person = to_person({
