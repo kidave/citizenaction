@@ -38,7 +38,7 @@ HEADERS = {
 # Keep this list intentionally limited to public biographical/professional fields.
 PERSONAL_FIELDS = {
     "name", "image_url", "birth_date", "date_of_death",
-    "phone", "email", "gender", "marital_status", "metadata"
+    "phone", "email", "gender", "marital_status", "metadata", "source_system", "source_id"
 }
 
 
@@ -356,7 +356,6 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
     metadata: dict[str, Any] = {
         "official_source": "Digital Sansad",
         "official_source_url": SOURCE_URL,
-        "mpsno": mpsno,
     }
     source_fields = {
         "noOfTerms": ("noOfTerms", "no_of_terms", "termsServed"),
@@ -372,7 +371,7 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
         if value is not None:
             metadata[target] = value
 
-    person: dict[str, Any] = {"name": name, "slug": slugify(name), "metadata": metadata}
+    person: dict[str, Any] = {"name": name, "slug": slugify(name), "source_system": "sansad", "source_id": mpsno, "metadata": metadata}
     gender = normalize_gender(first(record, "gender", "sex"))
     if gender:
         person["gender"] = gender
@@ -468,7 +467,7 @@ def fetch_existing_people(base_url: str, key: str, allow_legacy_schema: bool = F
     people: list[dict[str, Any]] = []
     offset = 0
     page_size = 1000
-    select_fields = "id,name,slug,metadata,image_url,qualification,education,profession,birth_date,date_of_death,phone,email,gender,marital_status"
+    select_fields = "id,name,slug,metadata,image_url,qualification,education,profession,birth_date,date_of_death,phone,email,gender,marital_status,source_system,source_id"
     while True:
         try:
             response = supabase_request(
@@ -484,7 +483,7 @@ def fetch_existing_people(base_url: str, key: str, allow_legacy_schema: bool = F
             if not allow_legacy_schema or offset != 0 or not missing_new_columns:
                 raise
             print("WARNING: Supabase person schema lacks gender/marital_status; dry-run is using legacy columns.", file=sys.stderr)
-            select_fields = "id,name,slug,metadata,image_url,qualification,education,profession,birth_date,date_of_death,phone,email"
+            select_fields = "id,name,slug,metadata,image_url,qualification,education,profession,birth_date,date_of_death,phone,email,source_system,source_id"
             response = supabase_request(
                 "GET", url, key,
                 params={"select": select_fields, "limit": page_size, "offset": offset},
@@ -762,7 +761,7 @@ def resolve_party(
 def merge_missing(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
     """Only enrich blanks and merge the importer-owned metadata keys."""
     patch: dict[str, Any] = {}
-    for field in ("image_url", "birth_date", "date_of_death", "phone", "email", "gender", "marital_status"):
+    for field in ("image_url", "birth_date", "date_of_death", "phone", "email", "gender", "marital_status", "source_system", "source_id"):
         if not existing.get(field) and incoming.get(field):
             patch[field] = incoming[field]
 
@@ -794,7 +793,7 @@ def merge_missing(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[st
 
     # Preserve unrelated/user-created metadata. Update only fields this importer owns.
     for key, value in new_metadata.items():
-        if key in {"official_source", "official_source_url", "mpsno", "noOfTerms",
+        if key in {"official_source", "official_source_url", "noOfTerms",
                    "party", "party_short_name", "party_source_name", "constituencyCategory", "state", "party_governance_id", "party_source_id"}:
             if value is not None:
                 merged[key] = value
@@ -886,7 +885,7 @@ def main() -> int:
         if not person:
             rejected_rows += 1
             continue
-        source_id = person["metadata"]["mpsno"]
+        source_id = person["source_id"]
         # Duplicate source IDs collapse to one person; prefer the record with more fields.
         current = source_people.get(source_id)
         if current is None or len(person) > len(current):
@@ -946,9 +945,13 @@ def main() -> int:
     by_name: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for existing in existing_people:
         metadata = existing.get("metadata") if isinstance(existing.get("metadata"), dict) else {}
-        source_id = clean(metadata.get("mpsno"))
-        if source_id and metadata.get("official_source") == "Digital Sansad":
+        source_id = clean(existing.get("source_id"))
+        if source_id and existing.get("source_system") == "sansad":
             by_source_id[source_id] = existing
+        elif metadata.get("official_source") == "Digital Sansad":
+            legacy_id = clean(metadata.get("mpsno"))
+            if legacy_id:
+                by_source_id.setdefault(legacy_id, existing)
         name = clean(existing.get("name"))
         if name:
             by_name[normalize_name(name)].append(existing)
@@ -1112,7 +1115,7 @@ def main() -> int:
         "photo_url": (("photoUrl", "photoURL", "imageUrl", "image_url", "photo", "image", "memberPhoto"), lambda person, row: bool(person.get("image_url"))),
         "party_source_id": (("partyCode", "party_code", "partyId", "party_id"), lambda person, row: bool((person.get("metadata") or {}).get("party_source_id"))),
         "lok_sabha_terms": (("noOfTerms", "no_of_terms", "termsServed", "loksabha", "term", "terms"), lambda person, row: bool(extract_lok_sabha_terms(row))),
-        "appointment_status": (("status", "memberStatus", "appointmentStatus"), lambda person, row: appointment_status_from_source(row, current_term_eligible.get(clean((person.get("metadata") or {}).get("mpsno")) or "", False)) != "unknown"),
+        "appointment_status": (("status", "memberStatus", "appointmentStatus"), lambda person, row: appointment_status_from_source(row, current_term_eligible.get(clean(person.get("source_id")) or "", False)) != "unknown"),
     }
     field_validation = {}
     for field_name, (source_keys, is_mapped) in source_field_specs.items():
@@ -1384,8 +1387,10 @@ def main() -> int:
                 source_to_person_id = {}
                 for person in refreshed_people:
                     metadata = person.get("metadata") if isinstance(person.get("metadata"), dict) else {}
-                    if metadata.get("official_source") == "Digital Sansad" and clean(metadata.get("mpsno")):
-                        source_to_person_id[clean(metadata.get("mpsno"))] = person.get("id")
+                    if person.get("source_system") == "sansad" and clean(person.get("source_id")):
+                        source_to_person_id[clean(person.get("source_id"))] = person.get("id")
+                    elif metadata.get("official_source") == "Digital Sansad" and clean(metadata.get("mpsno")):
+                        source_to_person_id.setdefault(clean(metadata.get("mpsno")), person.get("id")
                 appointment_url = supabase_url.rstrip("/") + "/rest/v1/position_appointment"
                 if planned_appointments and not mp_position:
                     created = supabase_request("POST", supabase_url.rstrip("/") + "/rest/v1/position", supabase_key,
@@ -1525,11 +1530,13 @@ def main() -> int:
             try:
                 refreshed_people_for_photos = fetch_existing_people(supabase_url, supabase_key)
                 people_by_source_id = {
-                    clean((person.get("metadata") or {}).get("mpsno")): person
+                    clean(person.get("source_id") or (person.get("metadata") or {}).get("mpsno")): person
                     for person in refreshed_people_for_photos
-                    if isinstance(person.get("metadata"), dict)
-                    and person["metadata"].get("official_source") == "Digital Sansad"
-                    and clean(person["metadata"].get("mpsno"))
+                    if (person.get("source_system") == "sansad" and clean(person.get("source_id"))) or (
+                        isinstance(person.get("metadata"), dict)
+                        and person["metadata"].get("official_source") == "Digital Sansad"
+                        and clean(person["metadata"].get("mpsno"))
+                    )
                 }
                 total_photos = len(pending_photos)
                 for photo_index, (source_id, source_url) in enumerate(pending_photos.items(), start=1):
