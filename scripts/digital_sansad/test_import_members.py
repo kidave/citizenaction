@@ -210,7 +210,8 @@ class DigitalSansadImporterTests(unittest.TestCase):
         self.assertIsNone(extract_lok_sabha_term({"lsExpr": "17th and 18th Lok Sabha"}))
         self.assertEqual(appointment_dates_from_source({"startDate": "04/06/2019", "endDate": "01/06/2024"}, "17th Lok Sabha"), ("2019-06-04", "2024-06-01"))
         self.assertEqual(appointment_dates_from_source({}, "17th Lok Sabha"), (None, None))
-        self.assertEqual(appointment_dates_from_source({}, "18th Lok Sabha"), ("2024-06-24", None))
+        # The institutional term start is not an individual's appointment date.
+        self.assertEqual(appointment_dates_from_source({}, "18th Lok Sabha"), (None, None))
 
     def test_education_is_structured_and_multiple_degrees_are_preserved(self):
         self.assertEqual(normalize_education(["Bachelor of Arts", {"degree": "B.Com.", "institution": "Example College"}]), [
