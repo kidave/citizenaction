@@ -61,6 +61,22 @@ def first(record: dict[str, Any], *keys: str) -> Any:
     return None
 
 
+def normalize_marital_status(value: Any) -> str | None:
+    """Map source wording to the existing person.marital_status enum."""
+    value = normalize_name(clean(value) or "")
+    aliases = {
+        "single": "single",
+        "unmarried": "single",
+        "never married": "single",
+        "married": "married",
+        "divorced": "divorced",
+        "widowed": "widowed",
+        "widow": "widowed",
+        "widower": "widowed",
+        "separated": "separated",
+    }
+    return aliases.get(value)
+
 def normalize_gender(value: Any) -> str | None:
     """Normalize only supported gender values; unknown stays null."""
     normalized = clean(value)
@@ -360,7 +376,7 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
     gender = normalize_gender(first(record, "gender", "sex"))
     if gender:
         person["gender"] = gender
-    marital_status = clean(first(record, "maritalStatus", "marital_status", "maritalStatusName", "marital"))
+    marital_status = normalize_marital_status(first(record, "maritalStatus", "marital_status", "maritalStatusName", "marital"))
     if marital_status:
         person["marital_status"] = marital_status
     if image_url and image_url.startswith(("https://", "http://")):
