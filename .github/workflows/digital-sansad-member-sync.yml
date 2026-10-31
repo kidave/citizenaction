@@ -11,10 +11,15 @@ on:
   workflow_dispatch:
     inputs:
       apply:
-        description: "Write safe additive/enrichment changes to Supabase (otherwise dry-run)"
+        description: "Apply a single-member live test (requires member_id; otherwise dry-run)"
         required: true
         default: false
         type: boolean
+      member_id:
+        description: "Digital Sansad MPS number for the single-member live test"
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: read
@@ -57,7 +62,12 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.apply }}" == "true" ]]; then
-            python scripts/digital_sansad/import_members.py --apply --report digital-sansad-import-report.json
+            MEMBER_ID="${{ inputs.member_id }}"
+            if [[ -z "$MEMBER_ID" ]]; then
+              echo "ERROR: member_id is required for a live test. No writes were performed."
+              exit 2
+            fi
+            python scripts/digital_sansad/import_members.py --apply --member-id "$MEMBER_ID" --report digital-sansad-import-report.json
           else
             # Pull requests and scheduled runs are read-only previews unless an operator
             # explicitly opts into apply on a manual workflow dispatch.

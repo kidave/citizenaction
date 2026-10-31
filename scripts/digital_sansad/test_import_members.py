@@ -18,6 +18,7 @@ from scripts.digital_sansad.import_members import (
     resolve_geography,
     to_person,
     normalize_gender,
+    normalize_marital_status,
     merge_missing,
     unique_slug,
 )
@@ -140,7 +141,9 @@ class DigitalSansadImporterTests(unittest.TestCase):
         self.assertNotIn("constituency", person["metadata"])
         self.assertNotIn("lsExpr", person["metadata"])
         self.assertNotIn("status", person["metadata"])
-        self.assertEqual(person["metadata"]["mpsno"], "344")
+        self.assertEqual(person["source_system"], "sansad")
+        self.assertEqual(person["source_id"], "344")
+        self.assertNotIn("mpsno", person["metadata"])
 
 
 
@@ -151,6 +154,12 @@ class DigitalSansadImporterTests(unittest.TestCase):
         self.assertIsNone(normalize_gender("transgender"))
         self.assertIsNone(normalize_gender(None))
 
+    def test_marital_status_maps_to_supported_database_enum_values(self):
+        self.assertEqual(normalize_marital_status('Married'), 'married')
+        self.assertEqual(normalize_marital_status('Unmarried'), 'single')
+        self.assertEqual(normalize_marital_status('Widow'), 'widowed')
+        self.assertIsNone(normalize_marital_status('Unknown status'))
+
     def test_person_maps_gender_marital_status_and_multiple_contacts(self):
         person = to_person({
             "mpsno": 9876, "fullName": "Contact Example", "gender": "Female",
@@ -158,13 +167,27 @@ class DigitalSansadImporterTests(unittest.TestCase):
             "phoneNumbers": ["111-222-3333", "444-555-6666"],
             "emailAddresses": ["one@example.in", "two@example.in"],
         })
+        self.assertEqual(person["source_system"], "sansad")
+        self.assertEqual(person["source_id"], "9876")
+        self.assertNotIn("mpsno", person["metadata"])
         self.assertEqual(person["gender"], "female")
-        self.assertEqual(person["marital_status"], "Married")
+        self.assertEqual(person["marital_status"], "married")
         self.assertEqual(person["phone"], "111-222-3333")
         self.assertEqual(person["email"], "one@example.in")
         self.assertEqual(person["metadata"]["phones"], ["111-222-3333", "444-555-6666"])
         self.assertEqual(person["metadata"]["emails"], ["one@example.in", "two@example.in"])
         self.assertNotIn("gender", person["metadata"])
+
+    def test_merge_missing_migrates_legacy_mpsno_to_canonical_identity(self):
+        existing = {
+            "source_system": None, "source_id": None,
+            "metadata": {"official_source": "Digital Sansad", "mpsno": "5031"},
+        }
+        incoming = to_person({"mpsno": 5031, "fullName": "Example Member"})
+        patch = merge_missing(existing, incoming)
+        self.assertEqual(patch["source_system"], "sansad")
+        self.assertEqual(patch["source_id"], "5031")
+        self.assertNotIn("mpsno", patch["metadata"])
 
     def test_merge_missing_does_not_overwrite_curated_demographics(self):
         patch = merge_missing(
