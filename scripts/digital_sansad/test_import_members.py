@@ -19,6 +19,7 @@ from scripts.digital_sansad.import_members import (
     to_person,
     normalize_gender,
     merge_missing,
+    unique_slug,
 )
 
 
@@ -106,6 +107,13 @@ class DigitalSansadImporterTests(unittest.TestCase):
 
     def test_person_photo_storage_path_uses_database_person_id(self):
         self.assertEqual(person_photo_storage_path("person-uuid-123", "jpg"), "person/person-uuid-123.jpg")
+
+    def test_person_slug_uses_name_and_incremental_suffix_only_for_collisions(self):
+        person = to_person({"mpsno": 1234, "fullName": "Asha Patel"})
+        self.assertEqual(person["slug"], "asha-patel")
+        reserved = {"asha-patel", "asha-patel-2"}
+        self.assertEqual(unique_slug("asha-patel", reserved), "asha-patel-3")
+        self.assertEqual(unique_slug("different-name", reserved), "different-name")
 
     def test_person_maps_public_contact_fields_without_constituency_metadata(self):
         person = to_person({
