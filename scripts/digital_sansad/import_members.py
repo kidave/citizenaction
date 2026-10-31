@@ -477,13 +477,13 @@ def fetch_existing_people(base_url: str, key: str, allow_legacy_schema: bool = F
             )
         except RuntimeError as error:
             message = str(error).lower()
-            missing_new_columns = ("gender" in message or "marital_status" in message) and (
+            missing_new_columns = any(column in message for column in ("gender", "marital_status", "source_system", "source_id")) and (
                 "column" in message or "schema cache" in message or "does not exist" in message
             )
             if not allow_legacy_schema or offset != 0 or not missing_new_columns:
                 raise
             print("WARNING: Supabase person schema lacks gender/marital_status; dry-run is using legacy columns.", file=sys.stderr)
-            select_fields = "id,name,slug,metadata,image_url,qualification,education,profession,birth_date,date_of_death,phone,email,source_system,source_id"
+            select_fields = "id,name,slug,metadata,image_url,qualification,education,profession,birth_date,date_of_death,phone,email"
             response = supabase_request(
                 "GET", url, key,
                 params={"select": select_fields, "limit": page_size, "offset": offset},
