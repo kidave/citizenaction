@@ -61,6 +61,32 @@ def first(record: dict[str, Any], *keys: str) -> Any:
     return None
 
 
+def normalize_gender(value: Any) -> str | None:
+    """Normalize only supported gender values; unknown stays null."""
+    normalized = clean(value)
+    if not normalized:
+        return None
+    normalized = normalized.casefold()
+    return normalized if normalized in {"male", "female", "other"} else None
+
+
+def normalize_contact_values(*values: Any) -> list[str]:
+    """Collect distinct public contact values without losing multi-value fields."""
+    result: list[str] = []
+    for value in values:
+        items = value if isinstance(value, list) else [value]
+        for item in items:
+            if isinstance(item, dict):
+                item = first(item, "value", "email", "phone", "number", "address")
+            cleaned = clean(item)
+            if cleaned:
+                for part in re.split(r"[;,\\n]+", cleaned):
+                    normalized = part.strip()
+                    if normalized and normalized not in result:
+                        result.append(normalized)
+    return result
+
+
 def clean_profile_text(value: Any) -> str | None:
     """Flatten a single public qualification statement without guessing."""
     if isinstance(value, list):
@@ -322,7 +348,6 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
         "party": ("party", "partyName", "partyFname"),
         "party_short_name": ("partySname",),
         "party_source_id": ("partyCode", "party_code", "partyId", "party_id"),
-        "gender": ("gender",),
         "constituencyCategory": ("constituencyCategory", "constituency_category"),
         "state": ("state", "stateName"),
     }
@@ -332,6 +357,12 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
             metadata[target] = value
 
     person: dict[str, Any] = {"name": name, "slug": f"{slugify(name)}-{mpsno}", "metadata": metadata}
+    gender = normalize_gender(first(record, "gender", "sex"))
+    if gender:
+        person["gender"] = gender
+    marital_status = clean(first(record, "maritalStatus", "marital_status", "maritalStatusName", "marital"))
+    if marital_status:
+        person["marital_status"] = marital_status
     if image_url and image_url.startswith(("https://", "http://")):
         person["image_url"] = image_url
     qualification_value = first(record, "qualification", "educationalQualification", "highestQualification")
@@ -347,8 +378,15 @@ def to_person(record: dict[str, Any]) -> dict[str, Any] | None:
     birth_date = parse_date(first(record, "birthdate", "birthDate", "dateOfBirth", "dob"))
     date_of_death = parse_date(first(record, "dateOfDeath", "deathDate", "date_of_death"))
     # Person-level contacts must not be inferred from official office contacts.
-    phone = clean(first(record, "personalPhone", "phone", "mobile", "mobileNumber"))
-    email = clean(first(record, "personalEmail", "email", "emailAddress"))
+    phones = normalize_contact_values(first(record, "personalPhone", "phone", "mobile", "mobileNumber", "phoneNumbers", "mobileNumbers"))
+    emails = normalize_contact_values(first(record, "personalEmail", "email", "emailAddress", "emailAddresses", "emails"))
+    # Scalar columns remain the primary contact for legacy UI; metadata preserves all values.
+    phone = phones[0] if phones else None
+    email = emails[0] if emails else None
+    if phones:
+        metadata["phones"] = phones
+    if emails:
+        metadata["emails"] = emails
     if education:
         metadata["education"] = education
     if professions:
@@ -409,17 +447,33 @@ def supabase_request(method: str, url: str, key: str, **kwargs: Any) -> requests
     return response
 
 
-def fetch_existing_people(base_url: str, key: str) -> list[dict[str, Any]]:
+def fetch_existing_people(base_url: str, key: str, allow_legacy_schema: bool = False) -> list[dict[str, Any]]:
     url = base_url.rstrip("/") + "/rest/v1/person"
     people: list[dict[str, Any]] = []
     offset = 0
     page_size = 1000
+    select_fields = "id,name,metadata,image_url,qualification,education,profession,birth_date,date_of_death,phone,email,gender,marital_status"
     while True:
-        response = supabase_request(
-            "GET", url, key,
-            params={"select": "id,name,metadata,image_url,qualification,education,profession,birth_date,date_of_death,phone,email", "limit": page_size, "offset": offset},
-            headers={"Range-Unit": "items", "Range": f"{offset}-{offset + page_size - 1}"},
-        )
+        try:
+            response = supabase_request(
+                "GET", url, key,
+                params={"select": select_fields, "limit": page_size, "offset": offset},
+                headers={"Range-Unit": "items", "Range": f"{offset}-{offset + page_size - 1}"},
+            )
+        except RuntimeError as error:
+            message = str(error).lower()
+            missing_new_columns = ("gender" in message or "marital_status" in message) and (
+                "column" in message or "schema cache" in message or "does not exist" in message
+            )
+            if not allow_legacy_schema or offset != 0 or not missing_new_columns:
+                raise
+            print("WARNING: Supabase person schema lacks gender/marital_status; dry-run is using legacy columns.", file=sys.stderr)
+            select_fields = "id,name,metadata,image_url,qualification,education,profession,birth_date,date_of_death,phone,email"
+            response = supabase_request(
+                "GET", url, key,
+                params={"select": select_fields, "limit": page_size, "offset": offset},
+                headers={"Range-Unit": "items", "Range": f"{offset}-{offset + page_size - 1}"},
+            )
         batch = response.json()
         if not isinstance(batch, list):
             raise RuntimeError("Supabase person query returned an unexpected response.")
@@ -678,7 +732,7 @@ def resolve_party(
 def merge_missing(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
     """Only enrich blanks and merge the importer-owned metadata keys."""
     patch: dict[str, Any] = {}
-    for field in ("image_url", "birth_date", "date_of_death", "phone", "email"):
+    for field in ("image_url", "birth_date", "date_of_death", "phone", "email", "gender", "marital_status"):
         if not existing.get(field) and incoming.get(field):
             patch[field] = incoming[field]
 
@@ -711,9 +765,13 @@ def merge_missing(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[st
     # Preserve unrelated/user-created metadata. Update only fields this importer owns.
     for key, value in new_metadata.items():
         if key in {"official_source", "official_source_url", "mpsno", "noOfTerms",
-                   "party", "party_short_name", "party_source_name", "gender", "constituencyCategory", "state", "party_governance_id", "party_source_id"}:
+                   "party", "party_short_name", "party_source_name", "constituencyCategory", "state", "party_governance_id", "party_source_id"}:
             if value is not None:
                 merged[key] = value
+        elif key in {"phones", "emails"} and value is not None:
+            combined = normalize_contact_values(merged.get(key), value)
+            if combined:
+                merged[key] = combined
         elif key == "education" and value is not None:
             combined = normalize_education(merged.get("education"))
             for entry in normalize_education(value):
@@ -726,6 +784,12 @@ def merge_missing(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[st
                 if entry not in combined:
                     combined.append(entry)
             merged[key] = combined
+    # Convert recognized legacy gender metadata to the canonical column; never guess unsupported values.
+    legacy_gender = normalize_gender(merged.get("gender"))
+    if legacy_gender:
+        if not existing.get("gender") and not patch.get("gender"):
+            patch["gender"] = legacy_gender
+        merged.pop("gender", None)
     if merged != old_metadata:
         patch["metadata"] = merged
     return patch
@@ -824,7 +888,7 @@ def main() -> int:
     existing_terms: list[dict[str, Any]] = []
     if supabase_url and supabase_key:
         try:
-            existing_people = fetch_existing_people(supabase_url, supabase_key)
+            existing_people = fetch_existing_people(supabase_url, supabase_key, allow_legacy_schema=not args.apply)
             existing_geographies = fetch_rest_rows(supabase_url, supabase_key, "geographies", "id,name,official_name,slug,other_names,status,geography_type,boundary_category", {"geography_type": "eq.parliamentary_constituency", "boundary_category": "eq.political"})
             existing_governance = fetch_rest_rows(supabase_url, supabase_key, "governance", "id,name,short_name,slug,type,parent_entity_id,metadata,source_system,source_id")
             existing_positions = fetch_rest_rows(supabase_url, supabase_key, "position", "id,name,slug,governance_id,appointing_organization_id,geography_id,metadata")
