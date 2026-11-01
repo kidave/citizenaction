@@ -621,6 +621,31 @@ def resolve_geography(
     return str(geography["id"]), False, clean(geography.get("status")) or "active"
 
 
+
+def resolve_historical_constituency(
+    name: str | None,
+    state_name: str | None,
+    historical_constituencies: list[dict[str, Any]],
+) -> tuple[str | None, bool]:
+    """Resolve only a unique historical name, using state context to disambiguate."""
+    if not name:
+        return None, False
+    name_key = normalize_name(name)
+    state_key = normalize_name(state_name or "")
+    matches = [
+        row for row in historical_constituencies
+        if normalize_name(str(row.get("name") or "")) == name_key
+    ]
+    if state_key:
+        matches = [
+            row for row in matches
+            if normalize_name(str(row.get("state_name") or "")) == state_key
+        ]
+    if len(matches) == 1:
+        return str(matches[0]["id"]), False
+    return None, len(matches) > 1
+
+
 def extract_lok_sabha_terms(record: dict[str, Any]) -> list[str]:
     """Parse every explicit Lok Sabha term in a source field such as '7,10,11'."""
     value = clean(first(record, "term", "lokSabhaTerm", "loksabhaTerm", "loksabha", "lsExpr", "ls_expr", "lokSabhaExperience"))
@@ -914,6 +939,8 @@ def main() -> int:
 
     existing_people: list[dict[str, Any]] = []
     existing_geographies: list[dict[str, Any]] = []
+    existing_historical_constituencies: list[dict[str, Any]] = []
+    existing_mappings: list[dict[str, Any]] = []
     existing_governance: list[dict[str, Any]] = []
     existing_positions: list[dict[str, Any]] = []
     existing_appointments: list[dict[str, Any]] = []
@@ -922,9 +949,11 @@ def main() -> int:
         try:
             existing_people = fetch_existing_people(supabase_url, supabase_key, allow_legacy_schema=not args.apply)
             existing_geographies = fetch_rest_rows(supabase_url, supabase_key, "geographies", "id,name,official_name,slug,other_names,status,geography_type,boundary_category", {"geography_type": "eq.parliamentary_constituency", "boundary_category": "eq.political"})
+            existing_historical_constituencies = fetch_rest_rows(supabase_url, supabase_key, "historical_political_parliamentary_constituency", "id,name,state_name")
+            existing_mappings = fetch_rest_rows(supabase_url, supabase_key, "sansad_constituency_mapping", "id,source_name,source_state,geography_id,resolution_type,review_status")
             existing_governance = fetch_rest_rows(supabase_url, supabase_key, "governance", "id,name,short_name,slug,type,parent_entity_id,metadata,source_system,source_id")
             existing_positions = fetch_rest_rows(supabase_url, supabase_key, "position", "id,name,slug,governance_id,appointing_organization_id,geography_id,metadata")
-            existing_appointments = fetch_rest_rows(supabase_url, supabase_key, "position_appointment", "id,position_id,person_id,organization_id,term,term_id,status,started_at,ended_at,geography_id,official_phone,official_email,metadata")
+            existing_appointments = fetch_rest_rows(supabase_url, supabase_key, "position_appointment", "id,position_id,person_id,organization_id,term,term_id,status,started_at,ended_at,geography_id,historical_constituency_id,official_phone,official_email,metadata")
             existing_terms = fetch_rest_rows(supabase_url, supabase_key, "governance_term", "id,governance_id,name,started_at,ended_at")
         except Exception as exc:
             print(
@@ -979,6 +1008,9 @@ def main() -> int:
         source_meta = incoming.get("metadata") or {}
         constituency_name = source_constituencies.get(source_id)
         geography_id, geography_ambiguous, geography_status = resolve_geography(constituency_name, existing_geographies)
+        historical_constituency_id, historical_ambiguous = resolve_historical_constituency(
+            constituency_name, clean(source_meta.get("state")), existing_historical_constituencies
+        )
         if geography_id:
             resolved_constituencies[source_id] = geography_id
             if geography_status == "former":
@@ -991,9 +1023,13 @@ def main() -> int:
                     "mpsno": source_id, "name": incoming["name"],
                     "constituency": constituency_name, "geography_id": geography_id,
                 })
+        elif historical_constituency_id:
+            # Historical constituency is a distinct relationship; no current
+            # geography is fabricated or substituted.
+            pass
         elif constituency_name:
             item = {"mpsno": source_id, "name": incoming["name"], "constituency": constituency_name}
-            (ambiguous_constituencies if geography_ambiguous else unresolved_constituencies).append(item)
+            (ambiguous_constituencies if geography_ambiguous or historical_ambiguous else unresolved_constituencies).append(item)
 
         party_name = clean(source_meta.get("party_source_name")) or clean(source_meta.get("party_short_name"))
         party_source_id = clean(source_meta.get("party_source_id"))
@@ -1048,6 +1084,7 @@ def main() -> int:
             appointment_candidates.append({
                 "mpsno": source_id, "name": incoming["name"],
                 "geography_id": resolved_constituencies.get(source_id),
+                "historical_constituency_id": historical_constituency_id,
                 "constituency": constituency_name, "person_id": existing.get("id") if existing else None,
                 "current_term_eligible": is_current_term,
                 "party_name": party_name,
@@ -1088,15 +1125,15 @@ def main() -> int:
             if not term:
                 skipped_appointments.append({"mpsno": candidate["mpsno"], "name": candidate["name"], "constituency": candidate.get("constituency"), "reason": "No valid Lok Sabha term could be parsed from the source; person remains eligible for import."})
                 continue
-            if candidate.get("constituency") and not candidate.get("geography_id"):
-                skipped_appointments.append({"mpsno": candidate["mpsno"], "name": candidate["name"], "constituency": candidate.get("constituency"), "reason": "Constituency unresolved or ambiguous; appointment planned without geography."})
+            if candidate.get("constituency") and not candidate.get("geography_id") and not candidate.get("historical_constituency_id"):
+                skipped_appointments.append({"mpsno": candidate["mpsno"], "name": candidate["name"], "constituency": candidate.get("constituency"), "reason": "Constituency unresolved or ambiguous; appointment planned without a constituency relationship."})
             if candidate.get("person_id") and mp_position:
                 appointment_key = (str(mp_position["id"]), str(candidate["person_id"]), str(term))
                 existing_appointment = existing_appointment_by_key.get(appointment_key)
                 if existing_appointment:
                     # A future run should backfill geography after admins add/fix a
                     # constituency or alias, but never overwrite a chosen geography.
-                    if candidate.get("geography_id") and not existing_appointment.get("geography_id"):
+                    if candidate.get("geography_id") and not existing_appointment.get("geography_id") and not existing_appointment.get("historical_constituency_id"):
                         planned_geography_updates.append({
                             "id": existing_appointment.get("id"),
                             "mpsno": candidate["mpsno"],
@@ -1162,6 +1199,7 @@ def main() -> int:
         "unresolved_constituencies": unresolved_constituencies,
         "members_without_constituency_count": sum(1 for source_id in source_people if not source_constituencies.get(source_id)),
         "ambiguous_constituencies": ambiguous_constituencies,
+        "matched_historical_constituencies": [c for c in appointment_candidates if c.get("historical_constituency_id")],
         "matched_former_constituencies": matched_former_constituencies,
         "matched_defunct_constituencies": matched_defunct_constituencies,
         "unresolved_parties": unresolved_parties,
@@ -1417,7 +1455,7 @@ def main() -> int:
                     if not term_id:
                         report["results"]["errors"].append({"operation": "resolve_term", "mpsno": candidate["mpsno"], "term": term, "error": "No governance_term row exists for this term under the Lok Sabha governance record; appointment was not written."})
                         continue
-                    payload = {"position_id": mp_position["id"], "person_id": person_id, "organization_id": lok_sabha_orgs[0]["id"], "geography_id": candidate.get("geography_id"), "term_id": term_id, "term": term, "status": clean(candidate.get("appointment_status")) or "unknown", "started_at": candidate.get("started_at"), "ended_at": candidate.get("ended_at"), "official_phone": clean(candidate.get("official_phone")), "official_email": clean(candidate.get("official_email")), "metadata": {"official_source": "Digital Sansad", "mpsno": candidate["mpsno"], "source_url": SOURCE_URL, "term_evidence": "Digital Sansad member-list row"}}
+                    payload = {"position_id": mp_position["id"], "person_id": person_id, "organization_id": lok_sabha_orgs[0]["id"], "geography_id": candidate.get("geography_id"), "historical_constituency_id": candidate.get("historical_constituency_id"), "term_id": term_id, "term": term, "status": clean(candidate.get("appointment_status")) or "unknown", "started_at": candidate.get("started_at"), "ended_at": candidate.get("ended_at"), "official_phone": clean(candidate.get("official_phone")), "official_email": clean(candidate.get("official_email")), "metadata": {"official_source": "Digital Sansad", "mpsno": candidate["mpsno"], "source_url": SOURCE_URL, "term_evidence": "Digital Sansad member-list row"}}
                     try:
                         supabase_request("POST", appointment_url, supabase_key, json=payload, headers={"Prefer": "return=minimal"})
                         existing_appointment_keys.add(key)
