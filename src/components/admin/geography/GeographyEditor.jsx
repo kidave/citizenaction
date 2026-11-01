@@ -131,12 +131,18 @@ export default function GeographyEditor({ open, onOpenChange, geography, onSaved
       setSaving(false);
       return toast.error("Geography was saved but its ID was not returned; verify the record before retrying.");
     }
-    const { error: detailsError } = await supabase.from("geographies")
-      .update({ other_names: otherNames, status: form.status || "active" })
-      .eq("id", saved.id);
+    const { data: details, error: detailsError } = await supabase.rpc("update_geography_aliases", {
+      p_id: saved.id,
+      p_other_names: otherNames,
+      p_status: form.status || "active",
+    });
     if (detailsError) {
       setSaving(false);
       return toast.error(`Geography boundary saved, but aliases/status could not be saved: ${detailsError.message}`);
+    }
+    if (!details?.id) {
+      setSaving(false);
+      return toast.error("Geography boundary saved, but aliases/status were not confirmed. Reopen the geography and verify before retrying.");
     }
     setSaving(false);
     toast.success(form.id ? "Geography updated" : "Geography created");
