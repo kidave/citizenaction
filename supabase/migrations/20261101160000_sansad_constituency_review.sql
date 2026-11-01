@@ -17,26 +17,6 @@ create table if not exists public.historical_political_parliamentary_constituenc
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-
-alter table public.position_appointment
-  add column if not exists historical_constituency_id uuid
-  references public.historical_political_parliamentary_constituency(id) on delete set null;
-create index if not exists position_appointment_historical_constituency_id_idx
-  on public.position_appointment(historical_constituency_id);
-do $
-begin
-  if not exists (
-    select 1 from pg_constraint
-    where conrelid='public.position_appointment'::regclass
-      and conname='position_appointment_one_constituency_reference_check'
-  ) then
-    alter table public.position_appointment
-      add constraint position_appointment_one_constituency_reference_check
-      check (geography_id is null or historical_constituency_id is null);
-  end if;
-end;
-$;
-
 alter table public.sansad_constituency_mapping enable row level security;
 alter table public.historical_political_parliamentary_constituency enable row level security;
 drop policy if exists sansad_constituency_mapping_admin_read on public.sansad_constituency_mapping;
