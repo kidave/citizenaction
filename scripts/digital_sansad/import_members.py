@@ -1048,6 +1048,8 @@ def main() -> int:
             appointment_candidates.append({
                 "mpsno": source_id, "name": incoming["name"],
                 "geography_id": resolved_constituencies.get(source_id),
+                # Historical geography is term-specific; don't assign a former seat to the current Lok Sabha.
+                "historical_constituency_id": resolved_historical_constituencies.get(source_id) if term != CURRENT_LOK_SABHA_TERM else None,
                 "constituency": constituency_name, "person_id": existing.get("id") if existing else None,
                 "current_term_eligible": is_current_term,
                 "party_name": party_name,
