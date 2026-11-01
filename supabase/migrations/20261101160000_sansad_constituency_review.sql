@@ -70,11 +70,7 @@ grant select on public.sansad_constituency_mapping to authenticated;
 alter table public.sansad_constituency_mapping enable row level security;
 alter table public.historical_political_parliamentary_constituency enable row level security;
 
-alter table public.position_appointment
-  add column if not exists historical_constituency_id uuid
-  references public.historical_political_parliamentary_constituency(id) on delete set null;
-create index if not exists position_appointment_historical_constituency_idx
-  on public.position_appointment (historical_constituency_id);
+
 drop policy if exists sansad_constituency_mapping_admin_read on public.sansad_constituency_mapping;
 create policy sansad_constituency_mapping_admin_read on public.sansad_constituency_mapping
 for select to authenticated using (exists (select 1 from public.profile p where p.user_id=(select auth.uid()) and p.role='admin'));
