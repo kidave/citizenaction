@@ -49,7 +49,7 @@ export default function ConstituencyMappingReview() {
   const set = (key,value)=>setForm(old=>({...old,[key]:value}));
   const openReview = row => {
     setEditing(row);
-    setForm({...blank,...row,geography_id:row.geography_id||"",valid_from:dateText(row.valid_from),valid_to:dateText(row.valid_to),successor_geography_ids:(row.successor_geography_ids||[]).join(", ")});
+    setForm({...blank,...row,source_name:row.source_name||"",source_state:row.source_state||"",canonical_name:row.canonical_name||"",resolution_type:row.resolution_type||"other_name",geography_id:row.geography_id||"",valid_from:dateText(row.valid_from),valid_to:dateText(row.valid_to),successor_geography_ids:(row.successor_geography_ids||[]).join(", "),source_reference:row.source_reference||"",state_context_needed:row.state_context_needed||"",notes:row.notes||"",dry_run_issue:row.dry_run_issue||"",timeline_match_type:row.timeline_match_type||"",timeline_source:row.timeline_source||"",timeline_coverage_note:row.timeline_coverage_note||""});
     setGeoSearch(row.canonical_name||"");
   };
   const save = async nextStatus => {
@@ -59,13 +59,13 @@ export default function ConstituencyMappingReview() {
     setSaving(true);
     try {
       const changes = {
-        source_name:form.source_name.trim(),source_state:form.source_state.trim()||null,canonical_name:form.canonical_name.trim()||null,
+        source_name:String(form.source_name||"").trim(),source_state:String(form.source_state||"").trim()||null,canonical_name:String(form.canonical_name||"").trim()||null,
         geography_id:form.resolution_type==="former"?null:(form.geography_id||null),resolution_type:form.resolution_type,
         valid_from:form.valid_from||null,valid_to:form.valid_to||null,
         successor_geography_ids:form.successor_geography_ids.split(",").map(v=>v.trim()).filter(Boolean),
-        review_status:nextStatus,source_reference:form.source_reference.trim()||null,state_context_needed:form.state_context_needed.trim()||null,
-        notes:form.notes.trim()||null,dry_run_issue:form.dry_run_issue.trim()||null,timeline_match_type:form.timeline_match_type||null,
-        timeline_source:form.timeline_source.trim()||null,timeline_coverage_note:form.timeline_coverage_note.trim()||null,
+        review_status:nextStatus,source_reference:String(form.source_reference||"").trim()||null,state_context_needed:String(form.state_context_needed||"").trim()||null,
+        notes:String(form.notes||"").trim()||null,dry_run_issue:String(form.dry_run_issue||"").trim()||null,timeline_match_type:form.timeline_match_type||null,
+        timeline_source:String(form.timeline_source||"").trim()||null,timeline_coverage_note:String(form.timeline_coverage_note||"").trim()||null,
       };
       const {data,error}=await supabase.rpc("review_sansad_constituency_mapping",{p_mapping_id:editing.id,p_changes:changes});
       if(error) throw error;
