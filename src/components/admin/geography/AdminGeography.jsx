@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import GeographyEditor from "@/components/admin/geography/GeographyEditor";
 import DigitalSansadDiagnostics from "@/components/admin/geography/DigitalSansadDiagnostics";
+import ConstituencyMappingReview from "@/components/admin/geography/ConstituencyMappingReview";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -98,6 +99,7 @@ export default function AdminGeography({ embedded = false }) {
         <div className="flex items-center gap-2 text-sm text-muted-foreground"><span>Rows per page</span><Select value={String(pageSize)} onValueChange={(value) => { setPageSize(Number(value)); setPage(0); }}><SelectTrigger className="h-8 w-[76px]"><SelectValue /></SelectTrigger><SelectContent>{[25, 50, 100].map((value) => <SelectItem key={value} value={String(value)}>{value}</SelectItem>)}</SelectContent></Select></div>
         <div className="flex items-center justify-between gap-3"><span className="text-sm text-muted-foreground">{totalCount === 0 ? "0 results" : `${page * pageSize + 1}–${Math.min((page + 1) * pageSize, totalCount)} of ${totalCount}`}</span><div className="flex gap-1"><Button variant="outline" size="sm" disabled={page === 0 || isLoading} onClick={() => setPage((value) => Math.max(0, value - 1))}><ChevronLeft className="mr-1 h-4 w-4" />Previous</Button><Button variant="outline" size="sm" disabled={page + 1 >= pageCount || isLoading} onClick={() => setPage((value) => Math.min(pageCount - 1, value + 1))}>Next<ChevronRight className="ml-1 h-4 w-4" /></Button></div></div>
       </div>
+      <ConstituencyMappingReview />
       <DigitalSansadDiagnostics />
     </main>
     <GeographyEditor open={editorOpen} onOpenChange={setEditorOpen} geography={editing} onSaved={() => { setEditing(null); setEditorOpen(false); queryClient.invalidateQueries({ queryKey: queryKeys.geography.all }); }} />
