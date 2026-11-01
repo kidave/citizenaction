@@ -55,7 +55,7 @@ export default function ConstituencyMappingReview() {
   const save = async nextStatus => {
     if(!editing) return;
     if(nextStatus==="approved"&&form.resolution_type==="other_name"&&!form.geography_id) return toast.error("Select the current constituency this other name refers to.");
-    if(nextStatus==="approved"&&["former","successor"].includes(form.resolution_type)&&!form.source_reference.trim()) return toast.error("Add a source reference before approving a historical constituency.");
+    if(nextStatus==="approved"&&["former","successor"].includes(form.resolution_type)&&!String(form.source_reference||"").trim()) return toast.error("Add a source reference before approving a historical constituency.");
     setSaving(true);
     try {
       const changes = {
