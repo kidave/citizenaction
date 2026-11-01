@@ -65,6 +65,8 @@ alter table public.position_appointment
   references public.historical_political_parliamentary_constituency(id) on delete set null;
 create index if not exists position_appointment_historical_constituency_idx
   on public.position_appointment (historical_constituency_id);
+grant select on public.sansad_constituency_mapping to authenticated;
+
 alter table public.sansad_constituency_mapping enable row level security;
 alter table public.historical_political_parliamentary_constituency enable row level security;
 
