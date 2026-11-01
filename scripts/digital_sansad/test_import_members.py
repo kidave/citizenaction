@@ -16,6 +16,7 @@ from scripts.digital_sansad.import_members import (
     group_rows_by_insert_shape,
     should_upload_source_photo,
     resolve_geography,
+    resolve_historical_constituency,
     to_person,
     normalize_gender,
     normalize_marital_status,
@@ -298,6 +299,15 @@ class DigitalSansadImporterTests(unittest.TestCase):
         geography_id, ambiguous, _ = resolve_geography("Example", rows)
         self.assertIsNone(geography_id)
         self.assertTrue(ambiguous)
+
+    def test_historical_constituency_resolution_requires_unique_name_or_state(self):
+        rows = [
+            {"id": "h1", "name": "Bombay North", "state_name": "Maharashtra"},
+            {"id": "h2", "name": "Bombay North", "state_name": "Gujarat"},
+        ]
+        self.assertEqual(resolve_historical_constituency("Bombay North", "Maharashtra", rows), ("h1", False))
+        self.assertEqual(resolve_historical_constituency("Bombay North", None, rows), (None, True))
+        self.assertEqual(resolve_historical_constituency("Unknown", None, rows), (None, False))
 
 
 if __name__ == "__main__":

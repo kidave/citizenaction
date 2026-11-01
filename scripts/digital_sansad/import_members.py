@@ -1088,8 +1088,8 @@ def main() -> int:
             if not term:
                 skipped_appointments.append({"mpsno": candidate["mpsno"], "name": candidate["name"], "constituency": candidate.get("constituency"), "reason": "No valid Lok Sabha term could be parsed from the source; person remains eligible for import."})
                 continue
-            if candidate.get("constituency") and not candidate.get("geography_id") and not candidate.get("historical_constituency_id"):
-                skipped_appointments.append({"mpsno": candidate["mpsno"], "name": candidate["name"], "constituency": candidate.get("constituency"), "reason": "Constituency unresolved or ambiguous; appointment planned without a constituency relationship."})
+            if candidate.get("constituency") and not candidate.get("geography_id"):
+                skipped_appointments.append({"mpsno": candidate["mpsno"], "name": candidate["name"], "constituency": candidate.get("constituency"), "reason": "Constituency unresolved or ambiguous; appointment planned without geography."})
             if candidate.get("person_id") and mp_position:
                 appointment_key = (str(mp_position["id"]), str(candidate["person_id"]), str(term))
                 existing_appointment = existing_appointment_by_key.get(appointment_key)
