@@ -1024,6 +1024,8 @@ def main() -> int:
                     "constituency": constituency_name, "geography_id": geography_id,
                 })
         elif historical_constituency_id:
+            # Historical constituency is a distinct relationship; no current
+            # geography is fabricated or substituted.
             pass
         elif constituency_name:
             item = {"mpsno": source_id, "name": incoming["name"], "constituency": constituency_name}
