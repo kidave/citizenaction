@@ -25,8 +25,14 @@ create index if not exists position_appointment_historical_constituency_id_idx
   on public.position_appointment(historical_constituency_id);
 do $
 begin
-  if not exists (select 1 from pg_constraint where conrelid='public.position_appointment'::regclass and conname='position_appointment_one_constituency_reference_check') then
-    alter table public.position_appointment add constraint position_appointment_one_constituency_reference_check check (geography_id is null or historical_constituency_id is null);
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid='public.position_appointment'::regclass
+      and conname='position_appointment_one_constituency_reference_check'
+  ) then
+    alter table public.position_appointment
+      add constraint position_appointment_one_constituency_reference_check
+      check (geography_id is null or historical_constituency_id is null);
   end if;
 end;
 $;
