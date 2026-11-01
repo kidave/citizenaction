@@ -53,7 +53,20 @@ begin
     if v_geo_id is null then raise exception 'Select a current geography before approving an alias.' using errcode='22023'; end if;
     select * into v_geo from public.geographies where id=v_geo_id and geography_type='parliamentary_constituency' and boundary_category='political' for update;
     if not found then raise exception 'Selected record is not a political parliamentary constituency.' using errcode='22023'; end if;
-    if lower(v_geo.name)=lower(v_source_name) then raise exception 'Source name is already the canonical name.' using errcode='22023'; end if;
+    if lower(v_geo.name)=lower(v_source_name) or lower(coalesce(v_geo.official_name,''))=lower(v_source_name) then
+      raise exception 'Source name is already a canonical geography label.' using errcode='22023';
+    end if;
+    if exists (
+      select 1 from public.geographies g
+      where g.id<>v_geo_id and g.geography_type='parliamentary_constituency' and g.boundary_category='political'
+        and (
+          lower(g.name)=lower(v_source_name)
+          or lower(coalesce(g.official_name,''))=lower(v_source_name)
+          or exists(select 1 from unnest(coalesce(g.other_names,'{}'::text[])) existing_alias where lower(existing_alias)=lower(v_source_name))
+        )
+    ) then
+      raise exception 'This source label already matches another parliamentary constituency. Resolve the conflict before approving it as an alias.' using errcode='23505';
+    end if;
     update public.geographies set other_names=case
       when exists(select 1 from unnest(coalesce(other_names,'{}'::text[])) alias where lower(alias)=lower(v_source_name))
       then coalesce(other_names,'{}'::text[])
