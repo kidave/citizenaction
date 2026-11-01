@@ -57,6 +57,14 @@ create table if not exists public.historical_political_parliamentary_constituenc
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Explicit history is separate from current geographies. Do not add former rows
+-- to public.geographies just to make an importer lookup succeed.
+alter table public.position_appointment
+  add column if not exists historical_constituency_id uuid
+  references public.historical_political_parliamentary_constituency(id) on delete set null;
+create index if not exists position_appointment_historical_constituency_idx
+  on public.position_appointment (historical_constituency_id);
 alter table public.sansad_constituency_mapping enable row level security;
 alter table public.historical_political_parliamentary_constituency enable row level security;
 
@@ -94,6 +102,29 @@ begin
   if v_source_name is null then raise exception 'Source constituency name is required.' using errcode='22023'; end if;
   select * into v_mapping from public.sansad_constituency_mapping where id=p_mapping_id for update;
   if not found then raise exception 'Constituency mapping not found.' using errcode='P0002'; end if;
+
+  -- Remove the mapping's former alias from its former geography before applying
+  -- the new approved alias. Do not remove it if another approved mapping still owns it.
+  if v_mapping.review_status='approved'
+     and v_mapping.resolution_type='other_name'
+     and (
+       v_status<>'approved'
+       or v_resolution<>'other_name'
+       or v_mapping.geography_id is distinct from v_geo_id
+       or lower(v_mapping.source_name)<>lower(v_source_name)
+     ) then
+    update public.geographies g
+    set other_names = array_remove(coalesce(g.other_names,'{}'::text[]), v_mapping.source_name)
+    where g.id=v_mapping.geography_id
+      and not exists (
+        select 1 from public.sansad_constituency_mapping other_mapping
+        where other_mapping.id<>v_mapping.id
+          and other_mapping.review_status='approved'
+          and other_mapping.resolution_type='other_name'
+          and other_mapping.geography_id=v_mapping.geography_id
+          and lower(other_mapping.source_name)=lower(v_mapping.source_name)
+      );
+  end if;
 
   if v_status='approved' and v_resolution='other_name' then
     if v_geo_id is null then raise exception 'Select a current geography before approving an alias.' using errcode='22023'; end if;
