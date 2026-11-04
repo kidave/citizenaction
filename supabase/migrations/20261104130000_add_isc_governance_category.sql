@@ -134,15 +134,11 @@ create index if not exists governance_isc_category_id_idx
 -- exceptions for records whose legacy type did not describe their institutional role.
 with isc_codes as (
   select
-    max(c.id) filter (where c.code = 'GOVERNMENT_ADMINISTRATION') as government_administration_id,
-    max(c.id) filter (where c.code = 'POLITICS') as politics_id,
-    max(c.id) filter (where c.code = 'JUDICIARY_COURTS') as judiciary_id,
-    max(c.id) filter (where c.code = 'LEGISLATURE') as legislature_id,
-    max(c.id) filter (where c.code = 'ORGANIZATION') as organization_id
-  from public.classification_code c
-  join public.classification_dimension d on d.id = c.dimension_id
-  join public.classification_system s on s.id = d.system_id
-  where s.code = 'ISC' and d.code = 'CATEGORY'
+    (select c.id from public.classification_code c join public.classification_dimension d on d.id = c.dimension_id join public.classification_system s on s.id = d.system_id where s.code = 'ISC' and d.code = 'CATEGORY' and c.code = 'GOVERNMENT_ADMINISTRATION') as government_administration_id,
+    (select c.id from public.classification_code c join public.classification_dimension d on d.id = c.dimension_id join public.classification_system s on s.id = d.system_id where s.code = 'ISC' and d.code = 'CATEGORY' and c.code = 'POLITICS') as politics_id,
+    (select c.id from public.classification_code c join public.classification_dimension d on d.id = c.dimension_id join public.classification_system s on s.id = d.system_id where s.code = 'ISC' and d.code = 'CATEGORY' and c.code = 'JUDICIARY_COURTS') as judiciary_id,
+    (select c.id from public.classification_code c join public.classification_dimension d on d.id = c.dimension_id join public.classification_system s on s.id = d.system_id where s.code = 'ISC' and d.code = 'CATEGORY' and c.code = 'LEGISLATURE') as legislature_id,
+    (select c.id from public.classification_code c join public.classification_dimension d on d.id = c.dimension_id join public.classification_system s on s.id = d.system_id where s.code = 'ISC' and d.code = 'CATEGORY' and c.code = 'ORGANIZATION') as organization_id
 )
 update public.governance g
 set isc_category_id = case
