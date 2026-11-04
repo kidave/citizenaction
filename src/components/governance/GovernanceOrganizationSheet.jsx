@@ -32,6 +32,8 @@ import {
   GOVERNANCE_STATUS_OPTIONS,
   GOVERNANCE_TYPES,
   formatGovernanceType,
+  getGovernanceDomainForType,
+  formatGovernanceDomain,
   governanceRequiresValidTo,
 } from "@/utils/governance";
 
@@ -43,6 +45,7 @@ function emptyForm(record) {
     description: record?.description || "",
     website: record?.website || "",
     type: record?.type || "organization",
+    domain: record?.domain || getGovernanceDomainForType(record?.type || "organization"),
     categoryId: record?.category_id || "",
     status: record?.status || "active",
     validFrom: record?.valid_from
@@ -103,7 +106,7 @@ export default function GovernanceOrganizationSheet({
       const { data, error } = await supabase
         .from("governance")
         .select(
-          "id,name,short_name,description,website,email,phone,address,type,category_id,status,valid_from,valid_to,image_url,metadata,geography_id",
+          "id,name,short_name,description,website,email,phone,address,type,domain,category_id,status,valid_from,valid_to,image_url,metadata,geography_id",
         )
         .eq("id", record.id)
         .single();
@@ -368,12 +371,19 @@ export default function GovernanceOrganizationSheet({
               </div>
               <div className="space-y-2">
                 <Label>Type</Label>
-                <Select value={form.type} onValueChange={(value) => setField("type", value)} disabled={busy}>
+                <Select value={form.type} onValueChange={(value) => setForm((current) => ({ ...current, type: value, domain: getGovernanceDomainForType(value) }))} disabled={busy}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {GOVERNANCE_TYPES.map((item) => <SelectItem key={item} value={item}>{formatGovernanceType(item)}</SelectItem>)}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Domain</Label>
+                <div className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm text-muted-foreground">
+                  {formatGovernanceDomain(form.domain)}
+                </div>
+                <p className="text-xs text-muted-foreground">Assigned automatically from the governance type.</p>
               </div>
               <div className="space-y-2">
                 <Label>Category</Label>
