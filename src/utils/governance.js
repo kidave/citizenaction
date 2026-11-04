@@ -16,7 +16,31 @@ export const GOVERNANCE_TYPES = [
   "court",
   "division",
   "zone",
+  "ward",
+  "station",
+  "legislature",
+  "legislative_house",
+  "political_party",
 ];
+
+export const GOVERNANCE_DOMAINS = [
+  "politics",
+  "government",
+  "judiciary",
+  "legislature",
+  "other",
+];
+
+export function getGovernanceDomainForType(type) {
+  if (type === "political_party") return "politics";
+  if (type === "legislature") return "legislature";
+  return "government";
+}
+
+export function formatGovernanceDomain(domain) {
+  if (!domain) return "Government";
+  return domain.replace(/_/g, " ").replace(/\\b\\w/g, (char) => char.toUpperCase());
+}
 
 export const GOVERNANCE_STATUS_OPTIONS = [
   ["active", "Active"],
