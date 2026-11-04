@@ -39,7 +39,7 @@ export function getGovernanceDomainForType(type) {
 
 export function formatGovernanceDomain(domain) {
   if (!domain) return "Government";
-  return domain.replace(/_/g, " ").replace(/\\b\\w/g, (char) => char.toUpperCase());
+  return domain.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 export const GOVERNANCE_STATUS_OPTIONS = [
