@@ -4,8 +4,8 @@ import { queryKeys } from "@/lib/queryKeys";
 
 const RPC_NAMES = {
   organization: {
-    create: "create_governance_entity",
-    update: "update_governance_entity",
+    create: "create_governance_entity_with_domain",
+    update: "update_governance_entity_with_domain",
     delete: "delete_governance_entity",
   },
   person: {
@@ -44,18 +44,4 @@ export function useGovernanceCrud() {
   const run = (entity, operation, params) =>
     mutation.mutateAsync({ entity, operation, params });
 
-  return {
-    createOrganization: (params) => run("organization", "create", params),
-    updateOrganization: (params) => run("organization", "update", params),
-    deleteOrganization: (id) =>
-      run("organization", "delete", { p_entity_id: id }),
-    createPerson: (params) => run("person", "create", params),
-    updatePerson: (params) => run("person", "update", params),
-    deletePerson: (id) => run("person", "delete", { p_person_id: id }),
-    createPosition: (params) => run("position", "create", params),
-    updatePosition: (params) => run("position", "update", params),
-    deletePosition: (id) =>
-      run("position", "delete", { p_position_id: id }),
-    isPending: mutation.isPending,
-  };
-}
+ ¶»§q«^
