@@ -84,7 +84,7 @@ export default function GovernanceDirectoryPage({ domain = null }) {
       <main className="min-w-0 flex-1 overflow-x-hidden px-4 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-6xl">
           <nav aria-label="Governance domains" className="mb-4 flex flex-wrap gap-2">
-            <Button asChild size="sm" variant={!domain ? "default" : "outline"}><Link href="/governance">Unassigned</Link></Button>
+            <Button asChild size="sm" variant={!domain ? "default" : "outline"}><Link href="/governance">Other</Link></Button>
             {GOVERNANCE_DOMAINS.map((item) => (
               <Button key={item.value} asChild size="sm" variant={domain === item.value ? "default" : "outline"}>
                 <Link href={`/${item.value}`}>{item.label}</Link>

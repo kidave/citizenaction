@@ -41,13 +41,14 @@ export const GOVERNANCE_ROOT_TYPES = ["all", ...GOVERNANCE_TYPES];
 
 export function getGovernanceHref(entity) {
   if (!entity) return null;
+  const domain = [entity.domain, entity.organization_domain, entity.parent_domain]
+    .find((value) => GOVERNANCE_DOMAIN_VALUES.includes(value)) || null;
+  const basePath = domain ? `/${domain}` : "/governance";
   if (entity.tab === "people" || entity.type === "person") {
-    return entity.slug ? `/governance/person/${entity.slug}` : null;
+    return entity.slug ? `${basePath}/person/${entity.slug}` : null;
   }
   if (entity.tab === "positions" || entity.type === "position") {
-    if (entity.parent_slug && entity.slug) {
-      return `/governance/${entity.parent_slug}/${entity.slug}`;
-    }
+    if (entity.parent_slug && entity.slug) return `${basePath}/${entity.parent_slug}/${entity.slug}`;
     return null;
   }
   if (entity.slug) {

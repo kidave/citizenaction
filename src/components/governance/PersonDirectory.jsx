@@ -12,6 +12,7 @@ import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 import LoadingState from "@/components/ui/loading-state";
 import EmptyState from "@/components/ui/empty-state";
 import ErrorState from "@/components/ui/error-state";
+import GovernanceDirectoryPagination from "@/components/governance/GovernanceDirectoryPagination";
 
 export default function PersonDirectory({
   geographyId = null,
@@ -30,6 +31,9 @@ export default function PersonDirectory({
   const search = externalSearch ?? internalSearch;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
+  const [page, setPage] = useState(1);
+  const pageSize = 24;
+  useEffect(() => setPage(1), [search, geographyId, organizationId, domain, currentOnly]);
   const queryClient = useQueryClient();
   const { deletePerson: removePerson } = useGovernanceCrud();
 
@@ -53,6 +57,8 @@ export default function PersonDirectory({
       ? person.current_organization_id === organizationId
       : Boolean(person.current_organization_id)),
   );
+  const pageCount = Math.max(1, Math.ceil(data.length / pageSize));
+  const visibleData = useMemo(() => data.slice((page - 1) * pageSize, page * pageSize), [data, page]);
   const selectedSet = useMemo(
     () => new Set(selectedIds.length ? selectedIds : selectedId ? [selectedId] : []),
     [selectedIds, selectedId],
@@ -117,7 +123,7 @@ export default function PersonDirectory({
       {query.error && <ErrorState title="Unable to load people" />}
       {!query.isLoading && !query.error && (data.length ? (
         <div className="grid grid-cols-2 overflow-hidden rounded-md border-x border-t sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 [&>*]:min-w-0 [&>*]:border-t [&>*]:border-r [&>*]:border-border sm:[&>*:nth-child(3n)]:border-r-0 lg:[&>*:nth-child(3n)]:border-r lg:[&>*:nth-child(4n)]:border-r-0 xl:[&>*:nth-child(4n)]:border-r xl:[&>*:nth-child(5n)]:border-r-0 2xl:[&>*:nth-child(5n)]:border-r 2xl:[&>*:nth-child(6n)]:border-r-0">
-          {data.map((entity) => (
+          {visibleData.map((entity) => (
             <GovernanceDirectoryCard
               key={entity.id}
               entity={entity}
@@ -133,6 +139,9 @@ export default function PersonDirectory({
       ) : (
         <EmptyState title="No people found" description="Try another search." />
       ))}
+      {data.length > 0 && (
+        <GovernanceDirectoryPagination page={page} pageCount={pageCount} total={data.length} pageSize={pageSize} onPageChange={setPage} />
+      )}
 
       {canManage && (
         <GovernancePersonSheet

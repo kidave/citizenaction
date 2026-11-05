@@ -12,6 +12,7 @@ import GovernanceOrganizationResourceDialogs from "@/components/governance/Gover
 import LoadingState from "@/components/ui/loading-state";
 import EmptyState from "@/components/ui/empty-state";
 import ErrorState from "@/components/ui/error-state";
+import GovernanceDirectoryPagination from "@/components/governance/GovernanceDirectoryPagination";
 import { useGovernanceCatalog } from "@/hooks/governance/useGovernanceCatalog";
 import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
@@ -73,6 +74,9 @@ export default function OrganizationDirectory({
 
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const pageSize = 24;
+  useEffect(() => setPage(1), [search, type, categoryId, geographyId, domain]);
 
   useEffect(() => {
     if (createRequest?.tab !== "organizations" || !createRequest.token) return;
@@ -88,6 +92,8 @@ export default function OrganizationDirectory({
         : [],
     [query.data, excluded, onlyWithoutParent],
   );
+  const pageCount = Math.max(1, Math.ceil(data.length / pageSize));
+  const visibleData = useMemo(() => data.slice((page - 1) * pageSize, page * pageSize), [data, page]);
   const selectedSet = useMemo(
     () =>
       new Set(
@@ -96,7 +102,7 @@ export default function OrganizationDirectory({
     [selectedIds, selectedId],
   );
 
-  const resourceIds = useMemo(() => data.map((item) => item.id), [data]);
+  const resourceIds = useMemo(() => visibleData.map((item) => item.id), [visibleData]);
   const resourceSummary = useQuery({
     queryKey: ["governance-directory-resources", resourceIds],
     enabled: canManage && resourceIds.length > 0,
@@ -132,12 +138,12 @@ export default function OrganizationDirectory({
 
   const dataWithResources = useMemo(
     () =>
-      data.map((entity) => ({
+      visibleData.map((entity) => ({
         ...entity,
         ...(resourceSummary.data?.[entity.id] || {}),
         ...(domain !== undefined ? { domain } : {}),
       })),
-    [data, resourceSummary.data, domain],
+    [visibleData, resourceSummary.data, domain],
   );
 
   const openView = async (entity) => {
@@ -266,6 +272,9 @@ export default function OrganizationDirectory({
         ) : (
           <EmptyState title="No organizations found" description="Try another search or filter." />
         ))}
+      {data.length > 0 && (
+        <GovernanceDirectoryPagination page={page} pageCount={pageCount} total={data.length} pageSize={pageSize} onPageChange={setPage} />
+      )}
 
       {canManage && resourceRecord && (
         <GovernanceOrganizationResourceDialogs

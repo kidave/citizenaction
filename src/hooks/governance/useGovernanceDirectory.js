@@ -35,13 +35,21 @@ export function useGovernanceDirectory({
         p_category_id: tab === "organizations" && effectiveCategoryId !== "all" ? effectiveCategoryId : null,
         p_geography_id: geographyId || null,
         p_organization_id: tab === "positions" || tab === "people" ? organizationId || null : null,
-        p_limit: 500,
+        p_limit: 50000,
       };
       const rpcName = domain === undefined ? "get_governance_directory" : "get_governance_directory_by_domain";
       if (domain !== undefined) params.p_domain = domain;
       const result = await supabase.rpc(rpcName, params);
       if (!result || result.error) throw result?.error || new Error("Unable to load governance directory");
-      return result.data || [];
+      const rows = result.data || [];
+      if (tab !== "people" && tab !== "positions") return rows;
+      const organizationIds = [...new Set(rows.map((row) => row.parent_id).filter(Boolean))];
+      if (!organizationIds.length) return rows;
+      const { data: organizations, error: organizationsError } = await supabase
+        .from("governance").select("id,domain").in("id", organizationIds);
+      if (organizationsError) throw organizationsError;
+      const domainsById = new Map((organizations || []).map((item) => [item.id, item.domain]));
+      return rows.map((row) => ({ ...row, domain: domainsById.get(row.parent_id) ?? null }));
     },
   });
 }

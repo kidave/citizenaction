@@ -16,10 +16,11 @@ describe("governance domain routes", () => {
   it("keeps unassigned organizations on the legacy governance route", () => {
     expect(getGovernanceHref({ slug: "public-works" })).toBe("/governance/public-works");
   });
-  it("keeps position routes compatible with the legacy governance path", () => {
+  it("routes people and positions through their organization domain", () => {
+    expect(getGovernanceHref({ type: "person", slug: "member-one", domain: "legislature" }))
+      .toBe("/legislature/person/member-one");
     expect(getGovernanceHref({
-      type: "position", slug: "commissioner", parent_slug: "municipal-corporation",
-      domain: "executive",
-    })).toBe("/governance/municipal-corporation/commissioner");
+      type: "position", slug: "commissioner", parent_slug: "municipal-corporation", domain: "executive",
+    })).toBe("/executive/municipal-corporation/commissioner");
   });
 });
