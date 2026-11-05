@@ -22,7 +22,7 @@ export default function GovernanceDomainSelect({
       <SelectTrigger><SelectValue placeholder="Select a domain" /></SelectTrigger>
       <SelectContent>
         {includeUnchanged && <SelectItem value={UNCHANGED_DOMAIN_VALUE}>Keep existing domain</SelectItem>}
-        <SelectItem value={UNASSIGNED_DOMAIN_VALUE}>Unassigned</SelectItem>
+        <SelectItem value={UNASSIGNED_DOMAIN_VALUE}>Other</SelectItem>
         {GOVERNANCE_DOMAINS.map((domain) => (
           <SelectItem key={domain.value} value={domain.value}>{domain.label}</SelectItem>
         ))}
