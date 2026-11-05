@@ -81,11 +81,11 @@ export default function GovernancePositionPage() {
   }, [router, positionQuery.data, organizationSlug, positionSlug, routeBase]);
 
   if (positionQuery.isLoading || timelineQuery.isLoading) {
-    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: `${routeBase}?tab=organizations` }, { label: "Loading..." }]} backHref=`${routeBase}?tab=organizations` /><main className="flex flex-1"><LoadingState className="w-full" label="Loading position" /></main></div>;
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: `${routeBase}?tab=organizations` }, { label: "Loading..." }]} backHref={`${routeBase}?tab=organizations`} /><main className="flex flex-1"><LoadingState className="w-full" label="Loading position" /></main></div>;
   }
 
   if (positionQuery.error || timelineQuery.error || !positionQuery.data) {
-    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: `${routeBase}?tab=organizations` }, { label: "Not found" }]} backHref=`${routeBase}?tab=organizations` /><main className="flex flex-1"><ErrorState className="w-full" title="Governance position not found" /></main></div>;
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: `${routeBase}?tab=organizations` }, { label: "Not found" }]} backHref={`${routeBase}?tab=organizations`} /><main className="flex flex-1"><ErrorState className="w-full" title="Governance position not found" /></main></div>;
   }
 
   const { organization, position, links } = positionQuery.data;
@@ -103,7 +103,7 @@ export default function GovernancePositionPage() {
     <div className="flex min-h-dvh w-full flex-col">
       <GovernancePageHeader
         items={[{ label: "Governance", href: `${routeBase}?tab=organizations` }, { label: organization.name, href: `${routeBase}/${organization.slug}` }, { label: position.name }]}
-        backHref=`${routeBase}?tab=organizations`
+        backHref={`${routeBase}?tab=organizations`}
         actions={
           canManage ? (
             <GovernanceActionDropdown

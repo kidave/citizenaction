@@ -121,11 +121,11 @@ export default function GovernancePersonPage() {
   }, [router, personSlug, query.data, personDomain]);
 
   if (query.isLoading) {
-    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: directoryHref }, { label: "Loading..." }]} backHref=directoryHref /><main className="flex flex-1"><LoadingState className="w-full" label="Loading person" /></main></div>;
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: directoryHref }, { label: "Loading..." }]} backHref={directoryHref} /><main className="flex flex-1"><LoadingState className="w-full" label="Loading person" /></main></div>;
   }
 
   if (query.error || !query.data) {
-    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: directoryHref }, { label: "Not found" }]} backHref=directoryHref /><main className="flex flex-1"><ErrorState className="w-full" title="Person not found" /></main></div>;
+    return <div className="flex min-h-dvh w-full flex-col"><GovernancePageHeader items={[{ label: "Governance", href: directoryHref }, { label: "Not found" }]} backHref={directoryHref} /><main className="flex flex-1"><ErrorState className="w-full" title="Person not found" /></main></div>;
   }
 
   const { person, career } = query.data;
@@ -140,7 +140,7 @@ export default function GovernancePersonPage() {
     <div className="flex min-h-dvh w-full flex-col">
       <GovernancePageHeader
         items={[{ label: "Governance", href: directoryHref }, { label: "People", href: directoryHref }, { label: person.name }]}
-        backHref=directoryHref
+        backHref={directoryHref}
         actions={
           canManage ? (
             <GovernanceActionDropdown

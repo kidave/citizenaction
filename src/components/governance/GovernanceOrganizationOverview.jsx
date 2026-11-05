@@ -284,6 +284,7 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
     return <ErrorState className="min-h-[50vh]" title="Unable to load organization structure" />;
   }
 
+  const domainBase = governance?.domain ? `/${governance.domain}` : "/governance";
   const organizationAppointments = appointments.filter((item) => item.organization_id === governance?.id);
   // Render one row per current appointment. A position may legitimately have
   // multiple simultaneous appointments, so never collapse them to the latest row.
@@ -475,8 +476,8 @@ export default function GovernanceOrganizationOverview({ governance, asOf, canEd
                   </TableHeader>
                   <TableBody>
                     {filteredPositions.map((item) => {
-                      const positionHref = item.position_slug && item.organization_slug ? `/governance/${item.organization_slug}/${item.position_slug}` : null;
-                      const personHref = item.person_slug ? `/governance/person/${item.person_slug}` : null;
+                      const positionHref = item.position_slug && item.organization_slug ? `${domainBase}/${item.organization_slug}/${item.position_slug}` : null;
+                      const personHref = item.person_slug ? `${domainBase}/person/${item.person_slug}` : null;
                       const vacant = item.is_vacant || !item.person_id;
                       return (
                         <TableRow key={item.appointment_id || item.position_id}>
