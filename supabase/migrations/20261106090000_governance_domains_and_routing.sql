@@ -177,6 +177,7 @@ declare
   v_parent uuid;
   v_domain text;
   v_apply_domain boolean;
+  v_result jsonb;
 begin
   if auth.uid() is null then raise exception 'Authentication required'; end if;
   if not exists(select 1 from public.profile where user_id=auth.uid() and role='admin') then
@@ -247,8 +248,8 @@ begin
   update public.governance_contribution set status=p_status,reviewed_by=auth.uid(),
     reviewed_at=now(),review_notes=p_review_notes,updated_at=now()
   where id=p_contribution_id
-  returning to_jsonb(governance_contribution.*) into c;
-  return to_jsonb(c);
+  returning to_jsonb(governance_contribution.*) into v_result;
+  return v_result;
 end;
 $function$;
 
