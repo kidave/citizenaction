@@ -1,30 +1,38 @@
-export const GOVERNANCE_TYPES = [
-  "government",
-  "ministry",
-  "department",
-  "authority",
-  "corporation",
-  "committee",
-  "organization",
-  "agency",
-  "board",
-  "commission",
-  "council",
-  "regulator",
-  "office",
-  "tribunal",
-  "court",
-  "division",
-  "zone",
-];
-
 export const GOVERNANCE_DOMAINS = [
   { value: "politics", label: "Politics", description: "Political parties and political organizations" },
   { value: "legislature", label: "Legislature", description: "Parliament and legislative bodies" },
   { value: "executive", label: "Executive", description: "Government and public administration" },
   { value: "judiciary", label: "Judiciary", description: "Courts and tribunals" },
 ];
+
+export const GOVERNANCE_TYPES_BY_DOMAIN = {
+  politics: ["political_party"],
+  legislature: ["parliament", "legislature", "legislative_house", "committee", "office"],
+  executive: [
+    "government", "ministry", "department", "council", "agency", "authority",
+    "board", "commission", "bureau", "regulator", "local_government",
+    "corporation", "enterprise", "committee", "organization", "office",
+    "division", "zone", "ward", "station",
+  ],
+  judiciary: ["court", "tribunal", "council", "commission", "office"],
+  other: ["organization"],
+};
+
 export const GOVERNANCE_DOMAIN_VALUES = GOVERNANCE_DOMAINS.map(({ value }) => value);
+export const GOVERNANCE_TYPES = [...new Set(Object.values(GOVERNANCE_TYPES_BY_DOMAIN).flat())];
+
+export function getGovernanceTypesForDomain(domain) {
+  return GOVERNANCE_TYPES_BY_DOMAIN[domain || "other"] || GOVERNANCE_TYPES_BY_DOMAIN.other;
+}
+
+export function getDefaultGovernanceType(domain) {
+  const types = getGovernanceTypesForDomain(domain);
+  return types.length === 1 ? types[0] : "";
+}
+
+export function isGovernanceTypeAllowed(domain, type) {
+  return getGovernanceTypesForDomain(domain).includes(type);
+}
 
 export const GOVERNANCE_STATUS_OPTIONS = [
   ["active", "Active"],
@@ -52,9 +60,9 @@ export function getGovernanceHref(entity) {
     return null;
   }
   if (entity.slug) {
-    const domain = entity.domain || null;
-    return GOVERNANCE_DOMAIN_VALUES.includes(domain)
-      ? `/${domain}/${entity.slug}`
+    const entityDomain = entity.domain || null;
+    return GOVERNANCE_DOMAIN_VALUES.includes(entityDomain)
+      ? `/${entityDomain}/${entity.slug}`
       : `/governance/${entity.slug}`;
   }
   return null;

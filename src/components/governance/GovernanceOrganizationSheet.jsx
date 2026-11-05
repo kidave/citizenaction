@@ -29,22 +29,26 @@ import { moveGovernanceFile } from "@/lib/supabase/storage";
 import { useImportGovernanceOrganizationImage } from "@/hooks/governance/useImportGovernanceOrganizationImage";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 import GovernanceDomainSelect from "@/components/governance/GovernanceDomainSelect";
+import GovernanceParentSelect from "@/components/governance/GovernanceParentSelect";
 import {
   GOVERNANCE_STATUS_OPTIONS,
-  GOVERNANCE_TYPES,
+  getDefaultGovernanceType,
+  getGovernanceTypesForDomain,
+  isGovernanceTypeAllowed,
   formatGovernanceType,
   governanceRequiresValidTo,
 } from "@/utils/governance";
 
 function emptyForm(record, defaultDomain = null) {
   const metadata = record?.metadata || {};
+  const domain = record?.domain ?? defaultDomain ?? null;
   return {
     name: record?.name || "",
     shortName: record?.short_name || "",
     description: record?.description || "",
     website: record?.website || "",
-    type: record?.type || "organization",
-    domain: record?.domain ?? defaultDomain ?? null,
+    type: record?.type || getDefaultGovernanceType(domain),
+    domain,
     categoryId: record?.category_id || "",
     status: record?.status || "active",
     validFrom: record?.valid_from
@@ -59,6 +63,7 @@ function emptyForm(record, defaultDomain = null) {
     lat: metadata.office_lat == null ? null : Number(metadata.office_lat),
     lng: metadata.office_lng == null ? null : Number(metadata.office_lng),
     geographyId: record?.geography_id || "",
+    parentEntityId: record?.parent_entity_id || "",
   };
 }
 
@@ -106,7 +111,7 @@ export default function GovernanceOrganizationSheet({
       const { data, error } = await supabase
         .from("governance")
         .select(
-          "id,name,short_name,description,website,email,phone,address,type,domain,category_id,status,valid_from,valid_to,image_url,metadata,geography_id",
+          "id,name,short_name,description,website,email,phone,address,type,domain,category_id,status,valid_from,valid_to,image_url,metadata,geography_id,parent_entity_id",
         )
         .eq("id", record.id)
         .single();
@@ -132,9 +137,23 @@ export default function GovernanceOrganizationSheet({
   const setField = (field, value) =>
     setForm((current) => ({ ...current, [field]: value }));
 
+  const changeDomain = (domain) => {
+    setForm((current) => ({
+      ...current,
+      domain,
+      type: getDefaultGovernanceType(domain),
+      parentEntityId: current.domain === domain ? current.parentEntityId : "",
+    }));
+  };
+
+  const availableTypes = getGovernanceTypesForDomain(form.domain);
+  const fixedType = availableTypes.length === 1;
+
   const save = async () => {
     if (!form.name.trim()) return toast.error("Organization name is required");
-    if (!form.type) return toast.error("Governance type is required");
+    if (!form.type || !isGovernanceTypeAllowed(form.domain, form.type)) {
+      return toast.error("Choose an organisation type permitted by the selected domain");
+    }
     if (!form.validFrom) return toast.error("Valid from is required");
     if (requiresValidTo && !form.validTo) {
       return toast.error(
@@ -159,6 +178,7 @@ export default function GovernanceOrganizationSheet({
         p_website: form.website.trim() || null,
         p_type: form.type,
         p_domain: form.domain,
+        p_parent_entity_id: form.parentEntityId || null,
         p_status: form.status,
         p_valid_from: `${form.validFrom}T00:00:00Z`,
         p_valid_to: form.validTo ? `${form.validTo}T23:59:59.999Z` : null,
@@ -304,6 +324,7 @@ export default function GovernanceOrganizationSheet({
                           p_website: form.website.trim() || null,
                           p_type: form.type,
                           p_domain: form.domain,
+                          p_parent_entity_id: form.parentEntityId || null,
                           p_status: form.status,
                           p_valid_from: `${form.validFrom}T00:00:00Z`,
                           p_valid_to: form.validTo
@@ -371,18 +392,38 @@ export default function GovernanceOrganizationSheet({
                   disabled={busy}
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Type</Label>
-                <Select value={form.type} onValueChange={(value) => setField("type", value)} disabled={busy}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {GOVERNANCE_TYPES.map((item) => <SelectItem key={item} value={item}>{formatGovernanceType(item)}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
+              {fixedType ? (
+                <div className="space-y-2">
+                  <Label>Type</Label>
+                  <div className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm text-muted-foreground">
+                    {formatGovernanceType(form.type)}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label>Type</Label>
+                  <Select value={form.type || undefined} onValueChange={(value) => setField("type", value)} disabled={busy}>
+                    <SelectTrigger><SelectValue placeholder="Select organisation type" /></SelectTrigger>
+                    <SelectContent>
+                      {availableTypes.map((item) => <SelectItem key={item} value={item}>{formatGovernanceType(item)}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label>Domain</Label>
-                <GovernanceDomainSelect value={form.domain} onValueChange={(value) => setField("domain", value)} disabled={busy} />
+                <GovernanceDomainSelect value={form.domain} onValueChange={changeDomain} disabled={busy} />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Parent organisation</Label>
+                <GovernanceParentSelect
+                  value={form.parentEntityId || null}
+                  domain={form.domain}
+                  excludeId={record?.id || null}
+                  onValueChange={(value) => setField("parentEntityId", value || "")}
+                  disabled={busy}
+                />
+                <p className="text-xs text-muted-foreground">Only organisations in the same domain can be selected as a parent.</p>
               </div>
               <div className="space-y-2">
                 <Label>Category</Label>
