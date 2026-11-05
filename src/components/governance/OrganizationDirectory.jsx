@@ -70,6 +70,8 @@ export default function OrganizationDirectory({
     categoryId,
     geographyId,
     domain,
+    page,
+    pageSize,
   });
 
 
@@ -86,14 +88,12 @@ export default function OrganizationDirectory({
 
   const excluded = useMemo(() => new Set(excludeIds), [excludeIds]);
   const data = useMemo(
-    () =>
-      Array.isArray(query.data)
-        ? query.data.filter((item) => !excluded.has(item.id) && (!onlyWithoutParent || !item.parent_id))
-        : [],
+    () => (Array.isArray(query.data?.rows) ? query.data.rows : [])
+      .filter((item) => !excluded.has(item.id) && (!onlyWithoutParent || !item.parent_id)),
     [query.data, excluded, onlyWithoutParent],
   );
-  const pageCount = Math.max(1, Math.ceil(data.length / pageSize));
-  const visibleData = useMemo(() => data.slice((page - 1) * pageSize, page * pageSize), [data, page]);
+  const totalCount = query.data?.totalCount ?? data.length;
+  const pageCount = Math.max(1, Math.ceil(totalCount / pageSize));
   const selectedSet = useMemo(
     () =>
       new Set(
@@ -102,7 +102,7 @@ export default function OrganizationDirectory({
     [selectedIds, selectedId],
   );
 
-  const resourceIds = useMemo(() => visibleData.map((item) => item.id), [visibleData]);
+  const resourceIds = useMemo(() => data.map((item) => item.id), [visibleData]);
   const resourceSummary = useQuery({
     queryKey: ["governance-directory-resources", resourceIds],
     enabled: canManage && resourceIds.length > 0,
@@ -138,12 +138,12 @@ export default function OrganizationDirectory({
 
   const dataWithResources = useMemo(
     () =>
-      visibleData.map((entity) => ({
+      data.map((entity) => ({
         ...entity,
         ...(resourceSummary.data?.[entity.id] || {}),
         ...(domain !== undefined ? { domain } : {}),
       })),
-    [visibleData, resourceSummary.data, domain],
+    [data, resourceSummary.data, domain],
   );
 
   const openView = async (entity) => {
@@ -273,7 +273,7 @@ export default function OrganizationDirectory({
           <EmptyState title="No organizations found" description="Try another search or filter." />
         ))}
       {data.length > 0 && (
-        <GovernanceDirectoryPagination page={page} pageCount={pageCount} total={data.length} pageSize={pageSize} onPageChange={setPage} />
+        <GovernanceDirectoryPagination page={page} pageCount={pageCount} total={totalCount} pageSize={pageSize} onPageChange={setPage} />
       )}
 
       {canManage && resourceRecord && (

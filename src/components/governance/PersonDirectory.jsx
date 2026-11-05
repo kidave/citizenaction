@@ -43,6 +43,9 @@ export default function PersonDirectory({
     geographyId,
     organizationId,
     domain,
+    page,
+    pageSize,
+    currentOnly,
   });
 
   useEffect(() => {
@@ -51,14 +54,9 @@ export default function PersonDirectory({
     setDialogOpen(true);
   }, [createRequest?.token, createRequest?.tab]);
 
-  const data = (Array.isArray(query.data) ? query.data : []).filter((person) =>
-    !currentOnly ||
-    (organizationId
-      ? person.current_organization_id === organizationId
-      : Boolean(person.current_organization_id)),
-  );
-  const pageCount = Math.max(1, Math.ceil(data.length / pageSize));
-  const visibleData = useMemo(() => data.slice((page - 1) * pageSize, page * pageSize), [data, page]);
+  const data = Array.isArray(query.data?.rows) ? query.data.rows : [];
+  const totalCount = query.data?.totalCount ?? data.length;
+  const pageCount = Math.max(1, Math.ceil(totalCount / pageSize));
   const selectedSet = useMemo(
     () => new Set(selectedIds.length ? selectedIds : selectedId ? [selectedId] : []),
     [selectedIds, selectedId],
@@ -123,7 +121,7 @@ export default function PersonDirectory({
       {query.error && <ErrorState title="Unable to load people" />}
       {!query.isLoading && !query.error && (data.length ? (
         <div className="grid grid-cols-2 overflow-hidden rounded-md border-x border-t sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 [&>*]:min-w-0 [&>*]:border-t [&>*]:border-r [&>*]:border-border sm:[&>*:nth-child(3n)]:border-r-0 lg:[&>*:nth-child(3n)]:border-r lg:[&>*:nth-child(4n)]:border-r-0 xl:[&>*:nth-child(4n)]:border-r xl:[&>*:nth-child(5n)]:border-r-0 2xl:[&>*:nth-child(5n)]:border-r 2xl:[&>*:nth-child(6n)]:border-r-0">
-          {visibleData.map((entity) => (
+          {data.map((entity) => (
             <GovernanceDirectoryCard
               key={entity.id}
               entity={entity}
@@ -140,7 +138,7 @@ export default function PersonDirectory({
         <EmptyState title="No people found" description="Try another search." />
       ))}
       {data.length > 0 && (
-        <GovernanceDirectoryPagination page={page} pageCount={pageCount} total={data.length} pageSize={pageSize} onPageChange={setPage} />
+        <GovernanceDirectoryPagination page={page} pageCount={pageCount} total={totalCount} pageSize={pageSize} onPageChange={setPage} />
       )}
 
       {canManage && (
