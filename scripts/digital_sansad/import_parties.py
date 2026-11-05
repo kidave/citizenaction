@@ -61,7 +61,7 @@ def fetch_parties(base_url: str, key: str) -> list[dict[str, Any]]:
         response = request(
             "GET", url, key,
             params={
-                "select": "id,name,short_name,slug,type,source_system,source_id,metadata",
+                "select": "id,name,short_name,slug,type,domain,source_system,source_id,metadata",
                 "type": "eq.political_party",
                 "limit": size,
                 "offset": offset,
@@ -115,6 +115,7 @@ def main() -> int:
                 "short_name": short_name,
                 "slug": slugify(name),
                 "type": "political_party",
+                "domain": "politics",
                 "metadata": {
                     "official_source": "Digital Sansad",
                     "official_source_url": "https://sansad.in/ls/members",
@@ -182,6 +183,8 @@ def main() -> int:
             patch: dict[str, Any] = {}
             if not current.get("source_system") and not current.get("source_id"):
                 patch.update({"source_system": SOURCE_SYSTEM, "source_id": source_id})
+            if current.get("domain") != "politics":
+                patch["domain"] = "politics"
             # Enrich only blank display fields and preserve unrelated/user metadata.
             for field in ("name", "short_name", "slug"):
                 if not current.get(field) and incoming.get(field):

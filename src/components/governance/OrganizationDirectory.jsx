@@ -21,6 +21,7 @@ import { getGovernanceRoute, GOVERNANCE_TYPES, formatGovernanceFilterType } from
 
 export default function OrganizationDirectory({
   geographyId = null,
+  domain = undefined,
   selectionMode = null,
   selectedIds = [],
   selectedId = null,
@@ -67,6 +68,7 @@ export default function OrganizationDirectory({
     type,
     categoryId,
     geographyId,
+    domain,
   });
 
 
@@ -133,8 +135,9 @@ export default function OrganizationDirectory({
       data.map((entity) => ({
         ...entity,
         ...(resourceSummary.data?.[entity.id] || {}),
+        ...(domain !== undefined ? { domain } : {}),
       })),
-    [data, resourceSummary.data],
+    [data, resourceSummary.data, domain],
   );
 
   const openView = async (entity) => {
@@ -344,6 +347,7 @@ export default function OrganizationDirectory({
           onOpenChange={setDialogOpen}
           categories={categories}
           record={editingRecord}
+          defaultDomain={domain ?? null}
           onSaved={refresh}
           onAddressAction={() => editingRecord && openResource(editingRecord, "address")}
           onGeographyAction={() => editingRecord && openResource(editingRecord, "geography")}

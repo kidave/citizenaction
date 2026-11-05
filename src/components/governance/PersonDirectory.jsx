@@ -15,6 +15,7 @@ import ErrorState from "@/components/ui/error-state";
 
 export default function PersonDirectory({
   geographyId = null,
+  domain = undefined,
   selectionMode = null,
   selectedIds = [],
   selectedId = null,
@@ -37,6 +38,7 @@ export default function PersonDirectory({
     search,
     geographyId,
     organizationId,
+    domain,
   });
 
   useEffect(() => {

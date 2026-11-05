@@ -64,6 +64,7 @@ export const queryKeys = {
       categoryId = "all",
       geographyId = null,
       organizationId = null,
+      domain = undefined,
     } = {}) => [
       "governance-directory",
       tab,
@@ -72,6 +73,7 @@ export const queryKeys = {
       categoryId,
       geographyId,
       organizationId,
+      domain,
     ],
     tree: ({ parentId = null, search = "", type = null } = {}) => [
       "governance-tree",

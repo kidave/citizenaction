@@ -28,6 +28,7 @@ import { supabase } from "@/lib/supabase/client";
 import { moveGovernanceFile } from "@/lib/supabase/storage";
 import { useImportGovernanceOrganizationImage } from "@/hooks/governance/useImportGovernanceOrganizationImage";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
+import GovernanceDomainSelect from "@/components/governance/GovernanceDomainSelect";
 import {
   GOVERNANCE_STATUS_OPTIONS,
   GOVERNANCE_TYPES,
@@ -35,7 +36,7 @@ import {
   governanceRequiresValidTo,
 } from "@/utils/governance";
 
-function emptyForm(record) {
+function emptyForm(record, defaultDomain = null) {
   const metadata = record?.metadata || {};
   return {
     name: record?.name || "",
@@ -43,6 +44,7 @@ function emptyForm(record) {
     description: record?.description || "",
     website: record?.website || "",
     type: record?.type || "organization",
+    domain: record?.domain ?? defaultDomain ?? null,
     categoryId: record?.category_id || "",
     status: record?.status || "active",
     validFrom: record?.valid_from
@@ -66,12 +68,13 @@ export default function GovernanceOrganizationSheet({
   onOpenChange,
   categories = [],
   record = null,
+  defaultDomain = null,
   onSaved,
   onAddressAction,
   onGeographyAction,
   onLinksAction,
 }) {
-  const [form, setForm] = useState(() => emptyForm(record));
+  const [form, setForm] = useState(() => emptyForm(record, defaultDomain));
   const [saving, setSaving] = useState(false);
   const [importingImage, setImportingImage] = useState(false);
   const [pendingFiles, setPendingFiles] = useState([]);
@@ -96,14 +99,14 @@ export default function GovernanceOrganizationSheet({
       setImportingImage(false);
 
       if (!record?.id) {
-        setForm(emptyForm(null));
+        setForm(emptyForm(null, defaultDomain));
         return;
       }
 
       const { data, error } = await supabase
         .from("governance")
         .select(
-          "id,name,short_name,description,website,email,phone,address,type,category_id,status,valid_from,valid_to,image_url,metadata,geography_id",
+          "id,name,short_name,description,website,email,phone,address,type,domain,category_id,status,valid_from,valid_to,image_url,metadata,geography_id",
         )
         .eq("id", record.id)
         .single();
@@ -112,11 +115,11 @@ export default function GovernanceOrganizationSheet({
 
       if (error) {
         toast.error(error.message || "Unable to load organization");
-        setForm(emptyForm(record));
+        setForm(emptyForm(record, defaultDomain));
         return;
       }
 
-      setForm(emptyForm(data));
+      setForm(emptyForm(data, defaultDomain));
     };
 
     load();
@@ -124,7 +127,7 @@ export default function GovernanceOrganizationSheet({
     return () => {
       cancelled = true;
     };
-  }, [open, record?.id]);
+  }, [open, record, defaultDomain]);
 
   const setField = (field, value) =>
     setForm((current) => ({ ...current, [field]: value }));
@@ -155,6 +158,7 @@ export default function GovernanceOrganizationSheet({
         p_description: form.description.trim() || null,
         p_website: form.website.trim() || null,
         p_type: form.type,
+        p_domain: form.domain,
         p_status: form.status,
         p_valid_from: `${form.validFrom}T00:00:00Z`,
         p_valid_to: form.validTo ? `${form.validTo}T23:59:59.999Z` : null,
@@ -299,6 +303,7 @@ export default function GovernanceOrganizationSheet({
                           p_description: form.description.trim() || null,
                           p_website: form.website.trim() || null,
                           p_type: form.type,
+                          p_domain: form.domain,
                           p_status: form.status,
                           p_valid_from: `${form.validFrom}T00:00:00Z`,
                           p_valid_to: form.validTo
@@ -374,6 +379,10 @@ export default function GovernanceOrganizationSheet({
                     {GOVERNANCE_TYPES.map((item) => <SelectItem key={item} value={item}>{formatGovernanceType(item)}</SelectItem>)}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Domain</Label>
+                <GovernanceDomainSelect value={form.domain} onValueChange={(value) => setField("domain", value)} disabled={busy} />
               </div>
               <div className="space-y-2">
                 <Label>Category</Label>

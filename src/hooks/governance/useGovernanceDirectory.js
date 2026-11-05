@@ -10,6 +10,7 @@ export function useGovernanceDirectory({
   categoryId = "all",
   geographyId = null,
   organizationId = null,
+  domain = undefined,
   enabled = true,
 } = {}) {
   const organizationType = type || entityType || "all";
@@ -23,10 +24,11 @@ export function useGovernanceDirectory({
       categoryId: effectiveCategoryId,
       geographyId,
       organizationId,
+      domain,
     }),
     enabled,
     queryFn: async () => {
-      const result = await supabase.rpc("get_governance_directory", {
+      const params = {
         p_search: search.trim() || null,
         p_tab: tab,
         p_type: tab === "organizations" && organizationType !== "all" ? organizationType : null,
@@ -34,7 +36,10 @@ export function useGovernanceDirectory({
         p_geography_id: geographyId || null,
         p_organization_id: tab === "positions" || tab === "people" ? organizationId || null : null,
         p_limit: 500,
-      });
+      };
+      const rpcName = domain === undefined ? "get_governance_directory" : "get_governance_directory_by_domain";
+      if (domain !== undefined) params.p_domain = domain;
+      const result = await supabase.rpc(rpcName, params);
       if (!result || result.error) throw result?.error || new Error("Unable to load governance directory");
       return result.data || [];
     },

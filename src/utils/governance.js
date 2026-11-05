@@ -18,6 +18,14 @@ export const GOVERNANCE_TYPES = [
   "zone",
 ];
 
+export const GOVERNANCE_DOMAINS = [
+  { value: "politics", label: "Politics", description: "Political parties and political organizations" },
+  { value: "legislature", label: "Legislature", description: "Parliament and legislative bodies" },
+  { value: "executive", label: "Executive", description: "Government and public administration" },
+  { value: "judiciary", label: "Judiciary", description: "Courts and tribunals" },
+];
+export const GOVERNANCE_DOMAIN_VALUES = GOVERNANCE_DOMAINS.map(({ value }) => value);
+
 export const GOVERNANCE_STATUS_OPTIONS = [
   ["active", "Active"],
   ["inactive", "Inactive"],
@@ -42,7 +50,12 @@ export function getGovernanceHref(entity) {
     }
     return null;
   }
-  if (entity.slug) return `/governance/${entity.slug}`;
+  if (entity.slug) {
+    const domain = entity.domain || null;
+    return GOVERNANCE_DOMAIN_VALUES.includes(domain)
+      ? `/${domain}/${entity.slug}`
+      : `/governance/${entity.slug}`;
+  }
   return null;
 }
 
@@ -50,13 +63,12 @@ export function getGovernanceRoute(entity, view = null) {
   const href = getGovernanceHref(entity);
   if (!href) return null;
 
-  const path = href
-    .replace(/^\/governance\//, "")
-    .split("/")
-    .filter(Boolean);
+  const segments = href.split("/").filter(Boolean);
+  const domain = GOVERNANCE_DOMAIN_VALUES.includes(segments[0]) ? segments[0] : null;
+  const path = segments.slice(1);
 
   return {
-    pathname: "/governance/[...path]",
+    pathname: domain ? `/${domain}/[...path]` : "/governance/[...path]",
     query: {
       path,
       ...(view === "tree" ? { view: "tree" } : {}),
