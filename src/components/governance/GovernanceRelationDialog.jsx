@@ -111,7 +111,7 @@ export default function GovernanceRelationDialog({
     setStatus("active");
     setValidTo("");
     setSelectedParent(null);
-  }, [open, isEdit, sourceEntity?.id, sourceEntity?.domain]);
+  }, [open, isEdit, mode, sourceEntity?.id, sourceEntity?.domain, allowedTypes]);
 
   const removeParent = async () => {
     if (!sourceEntity?.id || !currentParent) return;
