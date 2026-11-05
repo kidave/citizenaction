@@ -63,6 +63,9 @@ export default function OrganizationDirectory({
 
 
 
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const pageSize = 24;
   const query = useGovernanceDirectory({
     tab: "organizations",
     search,
@@ -70,14 +73,9 @@ export default function OrganizationDirectory({
     categoryId,
     geographyId,
     domain,
-    page,
-    pageSize,
+    page: domain !== undefined ? page : null,
+    pageSize: domain !== undefined ? pageSize : null,
   });
-
-
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [page, setPage] = useState(1);
-  const pageSize = 24;
   useEffect(() => setPage(1), [search, type, categoryId, geographyId, domain]);
 
   useEffect(() => {
@@ -87,13 +85,12 @@ export default function OrganizationDirectory({
   }, [createRequest?.token, createRequest?.tab]);
 
   const excluded = useMemo(() => new Set(excludeIds), [excludeIds]);
-  const data = useMemo(
-    () => (Array.isArray(query.data?.rows) ? query.data.rows : [])
-      .filter((item) => !excluded.has(item.id) && (!onlyWithoutParent || !item.parent_id)),
-    [query.data, excluded, onlyWithoutParent],
-  );
-  const totalCount = query.data?.totalCount ?? data.length;
+  const queryRows = Array.isArray(query.data?.rows) ? query.data.rows : Array.isArray(query.data) ? query.data : [];
+  const filteredRows = queryRows.filter((item) => !excluded.has(item.id) && (!onlyWithoutParent || !item.parent_id));
+  const totalCount = query.data?.totalCount ?? filteredRows.length;
+  const data = Array.isArray(query.data?.rows) ? filteredRows : filteredRows.slice((page - 1) * pageSize, page * pageSize);
   const pageCount = Math.max(1, Math.ceil(totalCount / pageSize));
+  useEffect(() => { if (page > pageCount) setPage(pageCount); }, [page, pageCount]);
   const selectedSet = useMemo(
     () =>
       new Set(
@@ -102,7 +99,7 @@ export default function OrganizationDirectory({
     [selectedIds, selectedId],
   );
 
-  const resourceIds = useMemo(() => data.map((item) => item.id), [visibleData]);
+  const resourceIds = useMemo(() => data.map((item) => item.id), [data]);
   const resourceSummary = useQuery({
     queryKey: ["governance-directory-resources", resourceIds],
     enabled: canManage && resourceIds.length > 0,

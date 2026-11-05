@@ -43,8 +43,8 @@ export default function PersonDirectory({
     geographyId,
     organizationId,
     domain,
-    page,
-    pageSize,
+    page: domain !== undefined ? page : null,
+    pageSize: domain !== undefined ? pageSize : null,
     currentOnly,
   });
 
@@ -54,9 +54,12 @@ export default function PersonDirectory({
     setDialogOpen(true);
   }, [createRequest?.token, createRequest?.tab]);
 
-  const data = Array.isArray(query.data?.rows) ? query.data.rows : [];
-  const totalCount = query.data?.totalCount ?? data.length;
+  const queryRows = Array.isArray(query.data?.rows) ? query.data.rows : Array.isArray(query.data) ? query.data : [];
+  const filteredRows = queryRows.filter((person) => !currentOnly || Boolean(person.parent_id));
+  const totalCount = query.data?.totalCount ?? filteredRows.length;
+  const data = Array.isArray(query.data?.rows) ? filteredRows : filteredRows.slice((page - 1) * pageSize, page * pageSize);
   const pageCount = Math.max(1, Math.ceil(totalCount / pageSize));
+  useEffect(() => { if (page > pageCount) setPage(pageCount); }, [page, pageCount]);
   const selectedSet = useMemo(
     () => new Set(selectedIds.length ? selectedIds : selectedId ? [selectedId] : []),
     [selectedIds, selectedId],
