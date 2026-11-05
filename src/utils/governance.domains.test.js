@@ -17,10 +17,17 @@ describe("governance domain routes", () => {
     expect(getGovernanceHref({ slug: "public-works" })).toBe("/governance/public-works");
   });
   it("routes people and positions through their organization domain", () => {
-    expect(getGovernanceHref({ type: "person", slug: "member-one", domain: "legislature" }))
-      .toBe("/legislature/person/member-one");
-    expect(getGovernanceHref({
-      type: "position", slug: "commissioner", parent_slug: "municipal-corporation", domain: "executive",
-    })).toBe("/executive/municipal-corporation/commissioner");
+    const person = { type: "person", slug: "member-one", domain: "legislature" };
+    const position = { type: "position", slug: "commissioner", parent_slug: "municipal-corporation", domain: "executive" };
+    expect(getGovernanceHref(person)).toBe("/legislature/person/member-one");
+    expect(getGovernanceRoute(person)).toEqual({
+      pathname: "/legislature/person/[personSlug]",
+      query: { personSlug: "member-one" },
+    });
+    expect(getGovernanceHref(position)).toBe("/executive/municipal-corporation/commissioner");
+    expect(getGovernanceRoute(position)).toEqual({
+      pathname: "/executive/[organizationSlug]/[positionSlug]",
+      query: { organizationSlug: "municipal-corporation", positionSlug: "commissioner" },
+    });
   });
 });

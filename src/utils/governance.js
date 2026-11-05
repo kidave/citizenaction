@@ -63,17 +63,24 @@ export function getGovernanceHref(entity) {
 export function getGovernanceRoute(entity, view = null) {
   const href = getGovernanceHref(entity);
   if (!href) return null;
+  const domain = [entity.domain, entity.organization_domain, entity.parent_domain]
+    .find((value) => GOVERNANCE_DOMAIN_VALUES.includes(value)) || null;
+  const basePath = domain ? `/${domain}` : "/governance";
 
-  const segments = href.split("/").filter(Boolean);
-  const domain = GOVERNANCE_DOMAIN_VALUES.includes(segments[0]) ? segments[0] : null;
-  const path = segments.slice(1);
+  if (entity.tab === "people" || entity.type === "person") {
+    return { pathname: `${basePath}/person/[personSlug]`, query: { personSlug: entity.slug } };
+  }
+  if (entity.tab === "positions" || entity.type === "position") {
+    return {
+      pathname: `${basePath}/[organizationSlug]/[positionSlug]`,
+      query: { organizationSlug: entity.parent_slug, positionSlug: entity.slug },
+    };
+  }
 
+  const path = [entity.slug];
   return {
     pathname: domain ? `/${domain}/[...path]` : "/governance/[...path]",
-    query: {
-      path,
-      ...(view === "tree" ? { view: "tree" } : {}),
-    },
+    query: { path, ...(view === "tree" ? { view: "tree" } : {}) },
   };
 }
 
