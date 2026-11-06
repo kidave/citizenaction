@@ -21,7 +21,8 @@ import {
 import ImageUpload from "@/components/ui/ImageUpload";
 import OrganizationDirectory from "@/components/governance/OrganizationDirectory";
 import {
-  GOVERNANCE_TYPES,
+  getDefaultGovernanceType,
+  getGovernanceTypesForDomain,
   GOVERNANCE_STATUS_OPTIONS,
   formatGovernanceType,
   getGovernanceLabel,
@@ -70,6 +71,7 @@ export default function GovernanceRelationDialog({
   const [existingIds, setExistingIds] = useState([]);
   const [name, setName] = useState("");
   const [type, setType] = useState("organization");
+  const allowedTypes = getGovernanceTypesForDomain(sourceEntity?.domain);
   const [categoryId, setCategoryId] = useState("");
   const [imageUrl, setImageUrl] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -101,7 +103,7 @@ export default function GovernanceRelationDialog({
     setExistingId("");
     setExistingIds([]);
     setName("");
-    setType("organization");
+    setType(getDefaultGovernanceType(sourceEntity?.domain) || allowedTypes[0] || "organization");
     setCategoryId("");
     setImageUrl(null);
     setSaving(false);
@@ -109,7 +111,7 @@ export default function GovernanceRelationDialog({
     setStatus("active");
     setValidTo("");
     setSelectedParent(null);
-  }, [open, isEdit]);
+  }, [open, isEdit, mode, sourceEntity?.id, sourceEntity?.domain, allowedTypes]);
 
   const removeParent = async () => {
     if (!sourceEntity?.id || !currentParent) return;
@@ -224,9 +226,12 @@ export default function GovernanceRelationDialog({
         if (validTo && validTo < validFrom)
           return toast.error("Valid to cannot be earlier than valid from");
 
-        const created = await supabase.rpc("create_governance_entity", {
+        if (!allowedTypes.includes(type)) return toast.error("Choose an organisation type permitted by the parent domain");
+        const created = await supabase.rpc("create_governance_organization", {
           p_name: name.trim(),
           p_type: type,
+          p_domain: sourceEntity?.domain ?? null,
+          p_parent_entity_id: null,
           p_short_name: null,
           p_status: status,
           p_valid_from: `${validFrom}T00:00:00Z`,
@@ -302,6 +307,7 @@ export default function GovernanceRelationDialog({
                         )}
                       </div>
                       <OrganizationDirectory
+                        domain={sourceEntity?.domain}
                         selectionMode="radio"
                         selectedId={existingId || null}
                         onSelect={(item) => {
@@ -391,6 +397,7 @@ export default function GovernanceRelationDialog({
                     : "Select one or more organizations that currently have no parent."}
                 </p>
                 <OrganizationDirectory
+                  domain={sourceEntity?.domain}
                   selectionMode={selectionMode}
                   selectedIds={
                     selectionMode === "checkbox"

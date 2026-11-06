@@ -4,8 +4,8 @@ import { queryKeys } from "@/lib/queryKeys";
 
 const DOMAIN_RPC_NAMES = {
   organization: {
-    create: "create_governance_entity_with_domain",
-    update: "update_governance_entity_with_domain",
+    create: "create_governance_organization",
+    update: "update_governance_organization",
   },
 };
 
