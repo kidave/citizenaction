@@ -214,17 +214,7 @@ export default function GovernancePositionSheet({
               />
             </div>
 
-<div className="flex items-center gap-3 rounded-lg border bg-muted/20 p-3">
-              <Avatar className="h-10 w-10 rounded-lg">
-                <AvatarImage src={organization?.image_url || undefined} alt="" />
-                <AvatarFallback className="rounded-lg">{getGovernanceInitials(organization?.name || "Organization")}</AvatarFallback>
-              </Avatar>
-              <div className="min-w-0">
-                <div className="text-xs text-muted-foreground">Organization</div>
-                <div className="truncate text-sm font-medium">{organization?.name || "Organization context required"}</div>
-                <div className="text-xs text-muted-foreground">This position belongs to this organization.</div>
-              </div>
-            </div>
+
 
             <div className="space-y-2">
               <Label>Reports to</Label>
