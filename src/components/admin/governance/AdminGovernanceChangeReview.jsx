@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Check, ExternalLink, X } from "lucide-react";
 
@@ -11,6 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import GovernanceDomainSelect from "@/components/governance/GovernanceDomainSelect";
+import { UNCHANGED_DOMAIN_VALUE } from "@/components/governance/GovernanceDomainSelect";
 
 export default function AdminGovernanceChangeReview({ id }) {
   const { user, loading: authLoading } = useAuth();
@@ -18,9 +21,18 @@ export default function AdminGovernanceChangeReview({ id }) {
   const { data: contributions = [], isLoading } = useGovernanceContributions(null, !!user?.id && !!adminState?.is_admin);
   const { reviewContribution, isReviewing } = useReviewGovernanceContribution();
   const [notes, setNotes] = useState("");
+  const [reviewDomain, setReviewDomain] = useState(UNCHANGED_DOMAIN_VALUE);
 
   const change = useMemo(() => contributions.find((item) => String(item.id) === String(id)), [contributions, id]);
   const changeTitle = change?.proposed_changes?.name || change?.summary || "Change";
+
+  useEffect(() => {
+    if (!change) return;
+    const proposed = change.proposed_changes || {};
+    setReviewDomain(Object.prototype.hasOwnProperty.call(proposed, "domain")
+      ? (proposed.domain || "__unassigned__")
+      : UNCHANGED_DOMAIN_VALUE);
+  }, [change]);
   const breadcrumbItems = [
     { label: "Governance", href: "/admin/governance" },
     { label: changeTitle },
@@ -61,7 +73,13 @@ export default function AdminGovernanceChangeReview({ id }) {
   }
 
   async function review(status) {
-    await reviewContribution({ contributionId: change.id, status, reviewNotes: notes.trim() || null });
+    await reviewContribution({
+      contributionId: change.id,
+      status,
+      reviewNotes: notes.trim() || null,
+      domain: reviewDomain === "__unassigned__" ? null : reviewDomain,
+      setDomain: reviewDomain !== UNCHANGED_DOMAIN_VALUE,
+    });
   }
 
   return (
@@ -126,6 +144,15 @@ export default function AdminGovernanceChangeReview({ id }) {
                 <Separator />
                 <section className="space-y-3">
                   <h2 className="font-medium">Review decision</h2>
+                  <div className="space-y-2">
+                    <Label>Approved organization domain</Label>
+                    <GovernanceDomainSelect
+                      value={reviewDomain}
+                      onValueChange={setReviewDomain}
+                      includeUnchanged
+                    />
+                    <p className="text-xs text-muted-foreground">Domain is independent of governance type. Select a domain explicitly or keep the existing assignment.</p>
+                  </div>
                   <Textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Optional review note..." rows={5} />
                   <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                     <Button variant="outline" disabled={isReviewing} onClick={() => review("rejected")}><X className="mr-2 h-4 w-4" />Reject</Button>

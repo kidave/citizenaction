@@ -18,6 +18,14 @@ export const GOVERNANCE_TYPES = [
   "zone",
 ];
 
+export const GOVERNANCE_DOMAINS = [
+  { value: "politics", label: "Politics", description: "Political parties and political organizations" },
+  { value: "legislature", label: "Legislature", description: "Parliament and legislative bodies" },
+  { value: "executive", label: "Executive", description: "Government and public administration" },
+  { value: "judiciary", label: "Judiciary", description: "Courts and tribunals" },
+];
+export const GOVERNANCE_DOMAIN_VALUES = GOVERNANCE_DOMAINS.map(({ value }) => value);
+
 export const GOVERNANCE_STATUS_OPTIONS = [
   ["active", "Active"],
   ["inactive", "Inactive"],
@@ -33,34 +41,46 @@ export const GOVERNANCE_ROOT_TYPES = ["all", ...GOVERNANCE_TYPES];
 
 export function getGovernanceHref(entity) {
   if (!entity) return null;
+  const domain = [entity.domain, entity.organization_domain, entity.parent_domain]
+    .find((value) => GOVERNANCE_DOMAIN_VALUES.includes(value)) || null;
+  const basePath = domain ? `/${domain}` : "/governance";
   if (entity.tab === "people" || entity.type === "person") {
-    return entity.slug ? `/governance/person/${entity.slug}` : null;
+    return entity.slug ? `${basePath}/person/${entity.slug}` : null;
   }
   if (entity.tab === "positions" || entity.type === "position") {
-    if (entity.parent_slug && entity.slug) {
-      return `/governance/${entity.parent_slug}/${entity.slug}`;
-    }
+    if (entity.parent_slug && entity.slug) return `${basePath}/${entity.parent_slug}/${entity.slug}`;
     return null;
   }
-  if (entity.slug) return `/governance/${entity.slug}`;
+  if (entity.slug) {
+    const domain = entity.domain || null;
+    return GOVERNANCE_DOMAIN_VALUES.includes(domain)
+      ? `/${domain}/${entity.slug}`
+      : `/governance/${entity.slug}`;
+  }
   return null;
 }
 
 export function getGovernanceRoute(entity, view = null) {
   const href = getGovernanceHref(entity);
   if (!href) return null;
+  const domain = [entity.domain, entity.organization_domain, entity.parent_domain]
+    .find((value) => GOVERNANCE_DOMAIN_VALUES.includes(value)) || null;
+  const basePath = domain ? `/${domain}` : "/governance";
 
-  const path = href
-    .replace(/^\/governance\//, "")
-    .split("/")
-    .filter(Boolean);
+  if (entity.tab === "people" || entity.type === "person") {
+    return { pathname: `${basePath}/person/[personSlug]`, query: { personSlug: entity.slug } };
+  }
+  if (entity.tab === "positions" || entity.type === "position") {
+    return {
+      pathname: `${basePath}/[organizationSlug]/[positionSlug]`,
+      query: { organizationSlug: entity.parent_slug, positionSlug: entity.slug },
+    };
+  }
 
+  const path = [entity.slug];
   return {
-    pathname: "/governance/[...path]",
-    query: {
-      path,
-      ...(view === "tree" ? { view: "tree" } : {}),
-    },
+    pathname: domain ? `/${domain}/[...path]` : "/governance/[...path]",
+    query: { path, ...(view === "tree" ? { view: "tree" } : {}) },
   };
 }
 

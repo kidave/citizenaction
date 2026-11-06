@@ -13,6 +13,7 @@ import { formatGovernanceDate, getGovernanceInitials } from "@/utils/governance"
 
 export default function GovernancePositionTimeline({ position, organization, timeline = [], canManage = false, onEdit, onDeleted }) {
   const organizationLabel = organization?.name || "";
+  const domainBase = organization?.domain ? `/${organization.domain}` : "/governance";
   const boundary = position?.geographies;
   const links = position?.links || [];
   const today = new Date().toISOString().slice(0, 10);
@@ -57,7 +58,7 @@ export default function GovernancePositionTimeline({ position, organization, tim
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Link href={organization?.slug ? `/governance/${organization.slug}` : "/governance"} aria-label={organizationLabel || "Organization"} className="shrink-0 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <Link href={organization?.slug ? `${domainBase}/${organization.slug}` : domainBase} aria-label={organizationLabel || "Organization"} className="shrink-0 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring">
                   <Avatar className="h-10 w-10 rounded-lg">
                     <AvatarImage src={organization?.image_url || undefined} alt={organizationLabel} />
                     <AvatarFallback className="rounded-lg text-xs">{getGovernanceInitials(organizationLabel)}</AvatarFallback>
@@ -114,7 +115,7 @@ export default function GovernancePositionTimeline({ position, organization, tim
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Link href={`/governance/person/${item.person_slug}`} aria-label={personName} className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                          <Link href={`${domainBase}/person/${item.person_slug}`} aria-label={personName} className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
                             <Avatar className="h-8 w-8 rounded-full sm:h-9 sm:w-9">
                               <AvatarImage src={item.person_image_url || undefined} alt={personName} />
                               <AvatarFallback>{getGovernanceInitials(personName)}</AvatarFallback>

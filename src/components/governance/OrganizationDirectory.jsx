@@ -12,6 +12,7 @@ import GovernanceOrganizationResourceDialogs from "@/components/governance/Gover
 import LoadingState from "@/components/ui/loading-state";
 import EmptyState from "@/components/ui/empty-state";
 import ErrorState from "@/components/ui/error-state";
+import GovernanceDirectoryPagination from "@/components/governance/GovernanceDirectoryPagination";
 import { useGovernanceCatalog } from "@/hooks/governance/useGovernanceCatalog";
 import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
@@ -21,6 +22,7 @@ import { getGovernanceRoute, GOVERNANCE_TYPES, formatGovernanceFilterType } from
 
 export default function OrganizationDirectory({
   geographyId = null,
+  domain = undefined,
   selectionMode = null,
   selectedIds = [],
   selectedId = null,
@@ -61,16 +63,20 @@ export default function OrganizationDirectory({
 
 
 
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const pageSize = 24;
   const query = useGovernanceDirectory({
     tab: "organizations",
     search,
     type,
     categoryId,
     geographyId,
+    domain,
+    page: domain !== undefined ? page : null,
+    pageSize: domain !== undefined ? pageSize : null,
   });
-
-
-  const [dialogOpen, setDialogOpen] = useState(false);
+  useEffect(() => setPage(1), [search, type, categoryId, geographyId, domain]);
 
   useEffect(() => {
     if (createRequest?.tab !== "organizations" || !createRequest.token) return;
@@ -79,13 +85,12 @@ export default function OrganizationDirectory({
   }, [createRequest?.token, createRequest?.tab]);
 
   const excluded = useMemo(() => new Set(excludeIds), [excludeIds]);
-  const data = useMemo(
-    () =>
-      Array.isArray(query.data)
-        ? query.data.filter((item) => !excluded.has(item.id) && (!onlyWithoutParent || !item.parent_id))
-        : [],
-    [query.data, excluded, onlyWithoutParent],
-  );
+  const queryRows = Array.isArray(query.data?.rows) ? query.data.rows : Array.isArray(query.data) ? query.data : [];
+  const filteredRows = queryRows.filter((item) => !excluded.has(item.id) && (!onlyWithoutParent || !item.parent_id));
+  const totalCount = query.data?.totalCount ?? filteredRows.length;
+  const data = Array.isArray(query.data?.rows) ? filteredRows : filteredRows.slice((page - 1) * pageSize, page * pageSize);
+  const pageCount = Math.max(1, Math.ceil(totalCount / pageSize));
+  useEffect(() => { if (page > pageCount) setPage(pageCount); }, [page, pageCount]);
   const selectedSet = useMemo(
     () =>
       new Set(
@@ -133,8 +138,9 @@ export default function OrganizationDirectory({
       data.map((entity) => ({
         ...entity,
         ...(resourceSummary.data?.[entity.id] || {}),
+        ...(domain !== undefined ? { domain } : {}),
       })),
-    [data, resourceSummary.data],
+    [data, resourceSummary.data, domain],
   );
 
   const openView = async (entity) => {
@@ -263,6 +269,9 @@ export default function OrganizationDirectory({
         ) : (
           <EmptyState title="No organizations found" description="Try another search or filter." />
         ))}
+      {data.length > 0 && (
+        <GovernanceDirectoryPagination page={page} pageCount={pageCount} total={totalCount} pageSize={pageSize} onPageChange={setPage} />
+      )}
 
       {canManage && resourceRecord && (
         <GovernanceOrganizationResourceDialogs
@@ -344,6 +353,7 @@ export default function OrganizationDirectory({
           onOpenChange={setDialogOpen}
           categories={categories}
           record={editingRecord}
+          defaultDomain={domain ?? null}
           onSaved={refresh}
           onAddressAction={() => editingRecord && openResource(editingRecord, "address")}
           onGeographyAction={() => editingRecord && openResource(editingRecord, "geography")}

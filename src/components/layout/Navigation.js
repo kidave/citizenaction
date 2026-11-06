@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Search,
   CirclePlus,
@@ -11,6 +11,9 @@ import {
   MapPinned,
   ChevronRight,
   Landmark,
+  Vote,
+  Scale,
+  Building2,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { LoginModal } from "@/components/auth/LoginModal";
@@ -32,6 +35,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSpaces } from "@/hooks/space/useSpaces";
 import { useMyProfile } from "@/hooks/user/useMyProfile";
+import { GOVERNANCE_DOMAINS } from "@/utils/governance";
 
 export function Navigation({ onCreatePost }) {
   const router = useRouter();
@@ -43,6 +47,13 @@ export function Navigation({ onCreatePost }) {
   const { user } = useAuth();
   const { data: profile } = useMyProfile();
   const [showLogin, setShowLogin] = useState(false);
+  const isGovernanceRoute = router.pathname.startsWith("/governance")
+    || GOVERNANCE_DOMAINS.some(({ value }) => router.pathname.startsWith(`/${value}`));
+  const [governanceOpen, setGovernanceOpen] = useState(isGovernanceRoute);
+
+  useEffect(() => {
+    if (isGovernanceRoute) setGovernanceOpen(true);
+  }, [isGovernanceRoute]);
 
   const isAdmin = profile?.role === "admin";
 
@@ -112,10 +123,36 @@ export function Navigation({ onCreatePost }) {
         </Collapsible>
 
         <SidebarMenuItem>
-          <SidebarMenuButton onClick={() => router.push("/governance")}>
-            <Landmark />
-            <span>Governance</span>
-          </SidebarMenuButton>
+          <Collapsible open={governanceOpen} onOpenChange={setGovernanceOpen} className="group/collapsible group-data-[collapsible=icon]:hidden">
+            <CollapsibleTrigger asChild>
+              <SidebarMenuButton tooltip="Governance">
+                <Landmark />
+                <span>Governance</span>
+                <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
+              </SidebarMenuButton>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <SidebarMenuSub>
+                <SidebarMenuSubItem><SidebarMenuSubButton isActive={router.pathname.startsWith("/governance")} onClick={() => router.push("/governance")}><span>Unassigned</span></SidebarMenuSubButton></SidebarMenuSubItem>
+                {GOVERNANCE_DOMAINS.map((domain) => {
+                  const DomainIcon = {
+                    politics: Vote,
+                    legislature: Landmark,
+                    executive: Building2,
+                    judiciary: Scale,
+                  }[domain.value];
+                  return (
+                    <SidebarMenuSubItem key={domain.value}>
+                      <SidebarMenuSubButton isActive={router.pathname.startsWith(`/${domain.value}`)} onClick={() => router.push(`/${domain.value}`)}>
+                        <DomainIcon className="h-4 w-4" />
+                        <span>{domain.label}</span>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  );
+                })}
+              </SidebarMenuSub>
+            </CollapsibleContent>
+          </Collapsible>
         </SidebarMenuItem>
 
         <SidebarMenuItem>

@@ -12,9 +12,11 @@ import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
 import LoadingState from "@/components/ui/loading-state";
 import EmptyState from "@/components/ui/empty-state";
 import ErrorState from "@/components/ui/error-state";
+import GovernanceDirectoryPagination from "@/components/governance/GovernanceDirectoryPagination";
 
 export default function PersonDirectory({
   geographyId = null,
+  domain = undefined,
   selectionMode = null,
   selectedIds = [],
   selectedId = null,
@@ -29,6 +31,9 @@ export default function PersonDirectory({
   const search = externalSearch ?? internalSearch;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
+  const [page, setPage] = useState(1);
+  const pageSize = 24;
+  useEffect(() => setPage(1), [search, geographyId, organizationId, domain, currentOnly]);
   const queryClient = useQueryClient();
   const { deletePerson: removePerson } = useGovernanceCrud();
 
@@ -37,6 +42,10 @@ export default function PersonDirectory({
     search,
     geographyId,
     organizationId,
+    domain,
+    page: domain !== undefined ? page : null,
+    pageSize: domain !== undefined ? pageSize : null,
+    currentOnly,
   });
 
   useEffect(() => {
@@ -45,12 +54,12 @@ export default function PersonDirectory({
     setDialogOpen(true);
   }, [createRequest?.token, createRequest?.tab]);
 
-  const data = (Array.isArray(query.data) ? query.data : []).filter((person) =>
-    !currentOnly ||
-    (organizationId
-      ? person.current_organization_id === organizationId
-      : Boolean(person.current_organization_id)),
-  );
+  const queryRows = Array.isArray(query.data?.rows) ? query.data.rows : Array.isArray(query.data) ? query.data : [];
+  const filteredRows = queryRows.filter((person) => !currentOnly || Boolean(person.parent_id));
+  const totalCount = query.data?.totalCount ?? filteredRows.length;
+  const data = Array.isArray(query.data?.rows) ? filteredRows : filteredRows.slice((page - 1) * pageSize, page * pageSize);
+  const pageCount = Math.max(1, Math.ceil(totalCount / pageSize));
+  useEffect(() => { if (page > pageCount) setPage(pageCount); }, [page, pageCount]);
   const selectedSet = useMemo(
     () => new Set(selectedIds.length ? selectedIds : selectedId ? [selectedId] : []),
     [selectedIds, selectedId],
@@ -131,6 +140,9 @@ export default function PersonDirectory({
       ) : (
         <EmptyState title="No people found" description="Try another search." />
       ))}
+      {data.length > 0 && (
+        <GovernanceDirectoryPagination page={page} pageCount={pageCount} total={totalCount} pageSize={pageSize} onPageChange={setPage} />
+      )}
 
       {canManage && (
         <GovernancePersonSheet

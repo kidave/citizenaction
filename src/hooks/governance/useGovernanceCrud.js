@@ -2,6 +2,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 import { queryKeys } from "@/lib/queryKeys";
 
+const DOMAIN_RPC_NAMES = {
+  organization: {
+    create: "create_governance_entity_with_domain",
+    update: "update_governance_entity_with_domain",
+  },
+};
+
 const RPC_NAMES = {
   organization: {
     create: "create_governance_entity",
@@ -25,7 +32,9 @@ export function useGovernanceCrud() {
 
   const mutation = useMutation({
     mutationFn: async ({ entity, operation, params }) => {
-      const rpc = RPC_NAMES[entity]?.[operation];
+      const hasExplicitDomain = Object.prototype.hasOwnProperty.call(params || {}, "p_domain");
+      const rpc = (hasExplicitDomain ? DOMAIN_RPC_NAMES[entity]?.[operation] : null)
+        || RPC_NAMES[entity]?.[operation];
       if (!rpc) throw new Error(`Unsupported governance mutation: ${entity}/${operation}`);
 
       const { data, error } = await supabase.rpc(rpc, params);
