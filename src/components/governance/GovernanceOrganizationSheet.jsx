@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { isValidGovernanceImageUrl, GOVERNANCE_IMAGE_URL_HELPER_TEXT } from "@/utils/governanceImageUrl";
 
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Sheet,
   SheetContent,
@@ -267,9 +268,16 @@ export default function GovernanceOrganizationSheet({
               : "Add an organisation outside the four governance domains.";
             return (
               <div className="flex min-w-0 items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                  <DomainIcon className="h-5 w-5" />
-                </div>
+                {isEditing ? (
+                  <Avatar className="h-10 w-10 shrink-0 rounded-lg border">
+                    <AvatarImage src={form.imageUrl || undefined} alt="" />
+                    <AvatarFallback className="rounded-lg text-xs">{(form.name || "Organisation").trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                    <DomainIcon className="h-5 w-5" />
+                  </div>
+                )}
                 <div className="min-w-0 space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <SheetTitle>{isEditing ? "Edit organisation" : "Add organisation"}</SheetTitle>
