@@ -41,7 +41,7 @@ import {
 
 function emptyForm(record, defaultDomain = null) {
   const metadata = record?.metadata || {};
-  const domain = defaultDomain ?? record?.domain ?? null;
+  const domain = defaultDomain ?? null;
   return {
     name: record?.name || "",
     shortName: record?.short_name || "",
@@ -63,6 +63,7 @@ function emptyForm(record, defaultDomain = null) {
     lat: metadata.office_lat == null ? null : Number(metadata.office_lat),
     lng: metadata.office_lng == null ? null : Number(metadata.office_lng),
     geographyId: record?.geography_id || "",
+    parentEntityId: record?.parent_entity_id || "",
   };
 }
 
@@ -168,7 +169,7 @@ export default function GovernanceOrganizationSheet({
         p_website: form.website.trim() || null,
         p_type: form.type,
         p_domain: defaultDomain ?? form.domain,
-        p_parent_entity_id: isEditing ? record?.parent_entity_id || null : null,
+        p_parent_entity_id: isEditing ? form.parentEntityId || null : null,
         p_status: form.status,
         p_valid_from: `${form.validFrom}T00:00:00Z`,
         p_valid_to: form.validTo ? `${form.validTo}T23:59:59.999Z` : null,
