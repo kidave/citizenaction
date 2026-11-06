@@ -26,7 +26,6 @@ export default function GovernanceOrganizationDialog({ open, onOpenChange, gover
   const [startedAt, setStartedAt] = useState("");
   const [endedAt, setEndedAt] = useState("");
   const [isVacant, setIsVacant] = useState(false);
-  const [isPrimary, setIsPrimary] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -59,7 +58,6 @@ export default function GovernanceOrganizationDialog({ open, onOpenChange, gover
     setStartedAt(dateInputValue(record?.started_at) || new Date().toISOString().slice(0, 10));
     setEndedAt(dateInputValue(record?.ended_at));
     setIsVacant(!!record?.is_vacant);
-    setIsPrimary(!!record?.is_primary);
   }, [open, record, positions, people]);
 
   const positionOptions = useMemo(() => [
@@ -116,7 +114,6 @@ export default function GovernanceOrganizationDialog({ open, onOpenChange, gover
         p_started_at: `${startedAt}T00:00:00Z`,
         p_ended_at: endedAt ? `${endedAt}T23:59:59.999Z` : null,
         p_is_vacant: isVacant,
-        p_is_primary: isPrimary,
         p_reports_to_id: reportsToId === NONE ? null : reportsToId,
         p_notes: null,
       });
@@ -174,7 +171,6 @@ export default function GovernanceOrganizationDialog({ open, onOpenChange, gover
         <Field label="Reports to"><SearchableSelect value={reportsToId} onValueChange={setReportsToId} options={reportsToOptions} placeholder="No reporting position" searchPlaceholder="Search reporting positions..." emptyText="No reporting positions found." disabled={saving} /></Field>
 
         <div className="flex items-center justify-between rounded-lg border p-3"><div><div className="text-sm font-medium">Vacant position</div><div className="text-xs text-muted-foreground">No person is assigned to this appointment.</div></div><Checkbox checked={isVacant} disabled={saving} onCheckedChange={(checked) => { setIsVacant(!!checked); if (checked) { setPersonId(""); setPersonName(""); } }} /></div>
-        <div className="flex items-center justify-between rounded-lg border p-3"><div><div className="text-sm font-medium">Primary appointment</div><div className="text-xs text-muted-foreground">Use this when the person has multiple appointments.</div></div><Checkbox checked={isPrimary} disabled={saving} onCheckedChange={(checked) => setIsPrimary(!!checked)} /></div>
       </div>
       <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={saving}>Cancel</Button><Button type="button" onClick={save} disabled={saving}>{saving ? "Saving..." : "Save"}</Button></DialogFooter>
     </DialogContent>

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
-import { BriefcaseBusiness, UserRound } from "lucide-react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+
 import { toast } from "sonner";
+import GovernanceContextSheetHeader from "@/components/governance/GovernanceContextSheetHeader";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -16,9 +17,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import SearchableSelect from "@/components/ui/SearchableSelect";
-import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/lib/supabase/client";
-import { getGovernanceInitials } from "@/utils/governance";
+import { getGovernanceInitials, getGovernanceRoute } from "@/utils/governance";
 
 function today() {
   return new Date().toISOString().slice(0, 10);
@@ -41,13 +41,14 @@ export default function GovernanceAppointmentDialog({
   const [organizations, setOrganizations] = useState([]);
   const [positions, setPositions] = useState([]);
   const [people, setPeople] = useState([]);
+  const [peopleSearchLoading, setPeopleSearchLoading] = useState(false);
+  const peopleSearchRequest = useRef(0);
   const [selectedPositionId, setSelectedPositionId] = useState(
     positionId || "",
   );
   const [selectedPersonId, setSelectedPersonId] = useState(personId || "");
   const [startedAt, setStartedAt] = useState(today());
   const [endedAt, setEndedAt] = useState("");
-  const [isPrimary, setIsPrimary] = useState(true);
   const [officialPhone, setOfficialPhone] = useState("");
   const [officialEmail, setOfficialEmail] = useState("");
   const [saving, setSaving] = useState(false);
@@ -65,7 +66,6 @@ export default function GovernanceAppointmentDialog({
       record?.started_at ? String(record.started_at).slice(0, 10) : today(),
     );
     setEndedAt(record?.ended_at ? String(record.ended_at).slice(0, 10) : "");
-    setIsPrimary(record?.is_primary ?? true);
     setOfficialPhone(record?.official_phone || record?.metadata?.official_phone || "");
     setOfficialEmail(record?.official_email || record?.metadata?.official_email || "");
 
@@ -74,7 +74,7 @@ export default function GovernanceAppointmentDialog({
         await Promise.all([
           supabase
             .from("governance")
-            .select("id,name,short_name,slug,type,status,image_url")
+            .select("id,name,short_name,slug,type,status,image_url,domain")
             .neq("status", "deleted")
             .order("name")
             .limit(500),
@@ -87,8 +87,13 @@ export default function GovernanceAppointmentDialog({
             .from("person")
             .select("id,name,slug,image_url,profile_user_id")
             .order("name")
-            .limit(1000),
+            .limit(20),
         ]);
+
+      const selectedPersonLookupId = record?.person_id || personId;
+      const selectedPersonResult = selectedPersonLookupId
+        ? await supabase.from("person").select("id,name,slug,image_url,profile_user_id").eq("id", selectedPersonLookupId).maybeSingle()
+        : { data: null, error: null };
 
       const appointmentId = record?.appointment_id || record?.id;
       const contactResult = appointmentId
@@ -109,10 +114,11 @@ export default function GovernanceAppointmentDialog({
       if (positionResult.error)
         return toast.error(positionResult.error.message);
       if (peopleResult.error) return toast.error(peopleResult.error.message);
+      if (selectedPersonResult.error) return toast.error(selectedPersonResult.error.message);
 
       setOrganizations(organizationResult.data || []);
       setPositions(positionResult.data || []);
-      setPeople(peopleResult.data || []);
+      setPeople([...(selectedPersonResult.data ? [selectedPersonResult.data] : []), ...(peopleResult.data || []).filter((item) => item.id !== selectedPersonResult.data?.id)]);
     };
 
     load();
@@ -121,18 +127,26 @@ export default function GovernanceAppointmentDialog({
     };
   }, [open, organizationId, positionId, personId, record?.id]);
 
-  useEffect(() => {
-    if (!open || record || !positionId) return;
-    let cancelled = false;
-    const choosePrimaryDefault = async () => {
-      const { data, error } = await supabase.from("position_appointment").select("id").eq("position_id", positionId).eq("is_primary", true).is("ended_at", null).limit(1);
-      if (cancelled) return;
-      if (error) { toast.error(error.message); return; }
-      setIsPrimary(!(data || []).length);
-    };
-    choosePrimaryDefault();
-    return () => { cancelled = true; };
-  }, [open, positionId, record]);
+  const searchPeople = useCallback(async (searchTerm = "") => {
+    const requestId = ++peopleSearchRequest.current;
+    setPeopleSearchLoading(true);
+    try {
+      let query = supabase.from("person").select("id,name,slug,image_url,profile_user_id").order("name").limit(20);
+      if (searchTerm) query = query.ilike("name", "%" + searchTerm + "%");
+      const { data, error } = await query;
+      if (error) throw error;
+      if (requestId !== peopleSearchRequest.current) return;
+      setPeople((current) => {
+        const selected = current.find((item) => item.id === selectedPersonId);
+        return [...(selected ? [selected] : []), ...(data || []).filter((item) => item.id !== selected?.id)];
+      });
+    } catch (error) {
+      if (requestId === peopleSearchRequest.current) toast.error(error?.message || "Unable to search people");
+    } finally {
+      if (requestId === peopleSearchRequest.current) setPeopleSearchLoading(false);
+    }
+  }, [selectedPersonId]);
+
   const positionOptions = useMemo(
     () => positions.map((item) => {
       const organization = organizations.find((org) => org.id === item.appointing_organization_id);
@@ -169,56 +183,51 @@ export default function GovernanceAppointmentDialog({
       : null;
   const selectedPerson = people.find((item) => item.id === selectedPersonId);
 
-  const save = async () => {
-    const finalOrganizationId = positionMode
-      ? organizationId
-      : selectedPosition?.appointing_organization_id;
-    const finalPositionId = positionMode
-      ? positionId || selectedPositionId
-      : selectedPositionId;
+  const isEditing = Boolean(record?.appointment_id || record?.id);
 
-    if (!finalOrganizationId) return toast.error("Organization is required");
-    if (!finalPositionId) return toast.error("Position is required");
-    if (personMode && !personId) return toast.error("Person is required");
-    if (positionMode && !selectedPersonId)
-      return toast.error("Choose a person");
+  const save = async () => {
     if (!startedAt) return toast.error("Start date is required");
     if (endedAt && endedAt < startedAt)
       return toast.error("End date cannot be earlier than start date");
 
     try {
       setSaving(true);
+      if (isEditing) {
+        const appointmentId = record?.appointment_id || record?.id;
+        const { error } = await supabase.rpc("update_position_appointment_dates", {
+          p_appointment_id: appointmentId,
+          p_started_at: `${startedAt}T00:00:00Z`,
+          p_ended_at: endedAt ? `${endedAt}T23:59:59.999Z` : null,
+        });
+        if (error) throw error;
+        toast.success("Appointment dates updated");
+        await onSaved?.({ ...record, started_at: startedAt, ended_at: endedAt || null });
+        onOpenChange?.(false);
+        return;
+      }
 
-      const finalPersonId = personMode ? personId : selectedPersonId;
+      const finalOrganizationId = positionMode ? organizationId : selectedPosition?.appointing_organization_id;
+      const finalPositionId = positionMode ? positionId || selectedPositionId : selectedPositionId;
+      if (!finalOrganizationId) return toast.error("Organization is required");
+      if (!finalPositionId) return toast.error("Position is required");
+      if (personMode && !personId) return toast.error("Person is required");
+      if (positionMode && !selectedPersonId) return toast.error("Choose a person");
+
       const result = await supabase.rpc("upsert_organization", {
-          p_id: record?.appointment_id || record?.id || null,
-          p_governance_id: finalOrganizationId,
+        p_id: null,
+        p_governance_id: finalOrganizationId,
         p_person_name: selectedPerson?.name || "",
-        p_person_governance_id: finalPersonId,
+        p_person_governance_id: personMode ? personId : selectedPersonId,
         p_position_name: selectedPosition?.name || "Position",
         p_position_governance_id: finalPositionId,
         p_started_at: `${startedAt}T00:00:00Z`,
         p_ended_at: endedAt ? `${endedAt}T23:59:59.999Z` : null,
         p_is_vacant: false,
-        p_is_primary: isPrimary,
         p_reports_to_id: null,
         p_notes: null,
       });
-
       if (result.error) throw result.error;
-      const savedAppointmentId = result.data?.id || result.data?.appointment_id || record?.appointment_id || record?.id;
-      if (savedAppointmentId) {
-        const { error: contactError } = await supabase
-          .from("position_appointment")
-          .update({
-            official_phone: officialPhone.trim() || null,
-            official_email: officialEmail.trim() || null,
-          })
-          .eq("id", savedAppointmentId);
-        if (contactError) throw contactError;
-      }
-
-      toast.success(positionMode ? (isEditing ? "Appointment updated" : "Person added to position") : "Experience added");
+      toast.success(positionMode ? "Person added to position" : "Experience added");
       await onSaved?.(result.data);
       onOpenChange?.(false);
     } catch (error) {
@@ -228,7 +237,6 @@ export default function GovernanceAppointmentDialog({
     }
   };
 
-  const isEditing = Boolean(record?.appointment_id || record?.id);
   const title = isEditing
     ? "Edit appointment"
     : positionMode
@@ -241,15 +249,38 @@ export default function GovernanceAppointmentDialog({
         side="right"
         className="flex w-full max-w-none flex-col gap-0 overflow-x-hidden p-0 sm:max-w-xl"
       >
-        <SheetHeader className="border-b px-5 py-4 sm:px-6">
-          <SheetTitle className="flex items-center gap-2">
-            {positionMode ? (
-              <UserRound className="h-4 w-4" />
-            ) : (
-              <BriefcaseBusiness className="h-4 w-4" />
-            )}
-            {title}
-          </SheetTitle>
+        <SheetHeader className="border-b px-5 py-3 sm:px-6">
+          {isEditing ? (
+            <div className="flex min-w-0 items-center gap-3 pr-8 text-left">
+              <Avatar className="h-10 w-10 shrink-0 rounded-full border">
+                <AvatarImage src={record?.person_avatar_url || undefined} alt="" />
+                <AvatarFallback className="text-xs">{getGovernanceInitials(record?.person_name || "Person")}</AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <SheetTitle className="truncate text-base sm:text-lg">Edit appointment</SheetTitle>
+                <div className="truncate text-sm text-muted-foreground">{record?.person_name || "Person"} · {record?.position_name || selectedPosition?.name || "Position"}</div>
+                <div className="truncate text-xs text-muted-foreground">{record?.organization_name || selectedOrganization?.name || "Organisation"}</div>
+              </div>
+              <Avatar className="h-10 w-10 shrink-0 rounded-lg border">
+                <AvatarImage src={selectedOrganization?.image_url || undefined} alt="" />
+                <AvatarFallback className="rounded-lg text-xs">{getGovernanceInitials(selectedOrganization?.name || record?.organization_name || "Organisation")}</AvatarFallback>
+              </Avatar>
+            </div>
+          ) : selectedPosition && selectedOrganization ? (
+            <GovernanceContextSheetHeader
+              title={positionMode ? "Appoint" : "Add experience:"}
+              contextTitle={selectedPosition.name}
+              contextHref={getGovernanceRoute({
+                type: "position",
+                slug: selectedPosition.slug,
+                parent_slug: selectedOrganization.slug,
+                domain: selectedOrganization.domain,
+              })}
+              organization={selectedOrganization}
+            />
+          ) : (
+            <GovernanceContextSheetHeader title={title} organization={selectedOrganization} />
+          )}
         </SheetHeader>
 
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 py-5 sm:px-6">
@@ -261,30 +292,14 @@ export default function GovernanceAppointmentDialog({
             </div>
           ) : (
             <div className="space-y-4 py-2">
-              {positionMode ? (
-                <div className="flex items-center gap-3 rounded-lg border bg-muted/30 p-3">
-                  <Avatar className="h-10 w-10 rounded-lg">
-                    <AvatarImage src={selectedOrganization?.image_url || undefined} alt="" />
-                    <AvatarFallback className="rounded-lg">
-                      {getGovernanceInitials(selectedOrganization?.name || "Organization")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0">
-                    <div className="text-xs text-muted-foreground">Position</div>
-                    <div className="truncate text-sm font-medium">{selectedPosition?.name || "Position"}</div>
-                    <div className="truncate text-xs text-muted-foreground">{selectedOrganization?.name || "Organization"}</div>
-                  </div>
-                </div>
-              ) : (
+              {!isEditing && !positionMode && (
                 <div className="rounded-lg border bg-muted/30 p-3">
                   <div className="text-xs text-muted-foreground">Person</div>
-                  <div className="mt-1 text-sm font-medium">
-                    {selectedPerson?.name || "Person"}
-                  </div>
+                  <div className="mt-1 text-sm font-medium">{selectedPerson?.name || "Person"}</div>
                 </div>
               )}
 
-              {positionMode && !positionId && (
+              {!isEditing && positionMode && !positionId && (
                 <div className="space-y-2">
                   <Label>Position</Label>
                   <SearchableSelect
@@ -298,7 +313,7 @@ export default function GovernanceAppointmentDialog({
                   />
                 </div>
               )}
-              {personMode && (
+              {!isEditing && personMode && (
                 <div className="space-y-2">
                   <Label>Position</Label>
                   <SearchableSelect
@@ -324,7 +339,7 @@ export default function GovernanceAppointmentDialog({
                   />
                 </div>
               )}
-              {positionMode && (
+              {!isEditing && positionMode && (
                 <div className="space-y-2">
                   <Label>Person</Label>
                   <SearchableSelect
@@ -335,6 +350,8 @@ export default function GovernanceAppointmentDialog({
                     searchPlaceholder="Search people..."
                     emptyText="No people found."
                     disabled={saving || loading}
+                    onSearch={searchPeople}
+                    searchLoading={peopleSearchLoading}
                     renderOption={(option) => (
                       <div className="flex min-w-0 items-center gap-2">
                         <Avatar className="h-7 w-7 shrink-0 rounded-md"><AvatarImage src={option.imageUrl || undefined} alt="" /><AvatarFallback className="rounded-md text-[9px]">{getGovernanceInitials(option.label)}</AvatarFallback></Avatar>
@@ -351,20 +368,9 @@ export default function GovernanceAppointmentDialog({
                 </div>
               )}
 
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className={isEditing ? "grid gap-3" : "grid gap-3 sm:grid-cols-2"}>
                 <div className="space-y-2">
-                  <Label>Official phone (optional)</Label>
-                  <Input value={officialPhone} onChange={(event) => setOfficialPhone(event.target.value)} placeholder="Appointment contact phone" disabled={saving} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Official email (optional)</Label>
-                  <Input type="email" value={officialEmail} onChange={(event) => setOfficialEmail(event.target.value)} placeholder="Appointment contact email" disabled={saving} />
-                </div>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Start date</Label>
+                  <Label>{isEditing ? "Joining date" : "Start date"}</Label>
                   <Input
                     type="date"
                     value={startedAt}
@@ -382,19 +388,6 @@ export default function GovernanceAppointmentDialog({
                   />
                   <p className="text-xs text-muted-foreground">Leave blank while the appointment is ongoing. Enter an end date explicitly when it ends; today is not assumed.</p>
                 </div>
-              </div>
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <div>
-                  <div className="text-sm font-medium">Primary appointment</div>
-                  <div className="text-xs text-muted-foreground">
-                    Use this for the person’s current or principal appointment.
-                  </div>
-                </div>
-                <Checkbox
-                  checked={isPrimary}
-                  disabled={saving}
-                  onCheckedChange={(checked) => setIsPrimary(!!checked)}
-                />
               </div>
             </div>
           )}

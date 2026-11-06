@@ -4,16 +4,17 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import {
   Search,
-  CirclePlus,
   Orbit,
   Sparkles,
   Info,
   MapPinned,
   ChevronRight,
-  Landmark,
+  Network,
   Vote,
+  Landmark,
   Scale,
   Building2,
+  Users,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { LoginModal } from "@/components/auth/LoginModal";
@@ -39,15 +40,12 @@ import { GOVERNANCE_DOMAINS } from "@/utils/governance";
 
 export function Navigation({ onCreatePost }) {
   const router = useRouter();
-
-  const { data: spaces = [], isLoading } = useSpaces({
-    enabled: true,
-  });
-
+  const { data: spaces = [], isLoading } = useSpaces({ enabled: true });
   const { user } = useAuth();
   const { data: profile } = useMyProfile();
   const [showLogin, setShowLogin] = useState(false);
   const isGovernanceRoute = router.pathname.startsWith("/governance")
+    || router.pathname.startsWith("/person")
     || GOVERNANCE_DOMAINS.some(({ value }) => router.pathname.startsWith(`/${value}`));
   const [governanceOpen, setGovernanceOpen] = useState(isGovernanceRoute);
 
@@ -60,32 +58,20 @@ export function Navigation({ onCreatePost }) {
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Explore</SidebarGroupLabel>
-
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton
-            tooltip="Search"
-            onClick={() => router.push("/search")}
-          >
+          <SidebarMenuButton tooltip="Search" onClick={() => router.push("/search")}>
             <Search />
             <span>Search</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
-
         <SidebarMenuItem>
-          <SidebarMenuButton
-            tooltip="Register Your Space"
-            onClick={() => router.push("/apply/space")}
-          >
+          <SidebarMenuButton tooltip="Register Your Space" onClick={() => router.push("/apply/space")}>
             <Sparkles />
             <span>Register Space</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
-
-        <Collapsible
-          defaultOpen
-          className="group/collapsible group-data-[collapsible=icon]:hidden"
-        >
+        <Collapsible defaultOpen className="group/collapsible group-data-[collapsible=icon]:hidden">
           <SidebarMenuItem>
             <CollapsibleTrigger asChild>
               <SidebarMenuButton>
@@ -94,25 +80,12 @@ export function Navigation({ onCreatePost }) {
                 <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
               </SidebarMenuButton>
             </CollapsibleTrigger>
-
             <CollapsibleContent>
               <SidebarMenuSub>
-                {isLoading && (
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton
-                      disabled
-                      className="flex items-center gap-2"
-                    >
-                      <Skeleton className="h-4 w-24" />
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                )}
-
+                {isLoading && <SidebarMenuSubItem><SidebarMenuSubButton disabled className="flex items-center gap-2"><Skeleton className="h-4 w-24" /></SidebarMenuSubButton></SidebarMenuSubItem>}
                 {spaces?.map((space) => (
                   <SidebarMenuSubItem key={space.id}>
-                    <SidebarMenuSubButton
-                      onClick={() => router.push(`/space/${space.slug}`)}
-                    >
+                    <SidebarMenuSubButton onClick={() => router.push(`/space/${space.slug}`)}>
                       <span>{space.name}</span>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
@@ -121,19 +94,22 @@ export function Navigation({ onCreatePost }) {
             </CollapsibleContent>
           </SidebarMenuItem>
         </Collapsible>
-
         <SidebarMenuItem>
           <Collapsible open={governanceOpen} onOpenChange={setGovernanceOpen} className="group/collapsible group-data-[collapsible=icon]:hidden">
             <CollapsibleTrigger asChild>
               <SidebarMenuButton tooltip="Governance">
-                <Landmark />
+                <Network />
                 <span>Governance</span>
                 <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
               </SidebarMenuButton>
             </CollapsibleTrigger>
             <CollapsibleContent>
               <SidebarMenuSub>
-                <SidebarMenuSubItem><SidebarMenuSubButton isActive={router.pathname.startsWith("/governance")} onClick={() => router.push("/governance")}><span>Unassigned</span></SidebarMenuSubButton></SidebarMenuSubItem>
+                <SidebarMenuSubItem>
+                  <SidebarMenuSubButton isActive={router.pathname.startsWith("/governance")} onClick={() => router.push("/governance")}>
+                    <span>Other</span>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
                 {GOVERNANCE_DOMAINS.map((domain) => {
                   const DomainIcon = {
                     politics: Vote,
@@ -150,34 +126,31 @@ export function Navigation({ onCreatePost }) {
                     </SidebarMenuSubItem>
                   );
                 })}
+                <SidebarMenuSubItem>
+                  <SidebarMenuSubButton isActive={router.pathname === "/person" || router.pathname.startsWith("/person/")} onClick={() => router.push("/person")}>
+                    <Users className="h-4 w-4" />
+                    <span>People</span>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
               </SidebarMenuSub>
             </CollapsibleContent>
           </Collapsible>
         </SidebarMenuItem>
-
         <SidebarMenuItem>
-          <SidebarMenuButton
-            tooltip="Land-Based Classification Standards"
-            onClick={() => router.push("/standards/lbcs")}
-          >
+          <SidebarMenuButton tooltip="Land-Based Classification Standards" onClick={() => router.push("/standards/lbcs")}>
             <MapPinned />
             <span>Land-Based Classification Standards</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
-
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton
-            tooltip="About"
-            onClick={() => router.push("/about")}
-          >
+          <SidebarMenuButton tooltip="About" onClick={() => router.push("/about")}>
             <Info />
             <span>About Us</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
-
       <LoginModal open={showLogin} onOpenChange={setShowLogin} />
     </SidebarGroup>
   );

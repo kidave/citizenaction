@@ -19,13 +19,13 @@ export default function GovernancePositionTimeline({ position, organization, tim
   const today = new Date().toISOString().slice(0, 10);
   const currentAppointment = [...timeline]
     .filter((item) => {
-      const starts = !item.started_at || String(item.started_at).slice(0, 10) <= today;
+      const starts = Boolean(item.started_at) && String(item.started_at).slice(0, 10) <= today;
       const hasNotEnded = !item.ended_at || String(item.ended_at).slice(0, 10) >= today;
       return starts && hasNotEnded;
     })
     .sort((a, b) =>
-      Number(Boolean(b.is_primary)) - Number(Boolean(a.is_primary)) ||
-      String(b.started_at || "").localeCompare(String(a.started_at || ""))
+      String(b.started_at || "").localeCompare(String(a.started_at || "")) ||
+      String(b.appointment_id || "").localeCompare(String(a.appointment_id || ""))
     )[0] || null;
 
   const asCoordinate = (min, max, ...values) => {

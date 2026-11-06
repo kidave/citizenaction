@@ -102,11 +102,13 @@ export default function GovernancePersonPage() {
         });
       const today = new Date().toISOString().slice(0, 10);
       const preferred = [...enrichedCareer].sort((a, b) => {
-        const aCurrent = !a.ended_at || String(a.ended_at).slice(0, 10) >= today;
-        const bCurrent = !b.ended_at || String(b.ended_at).slice(0, 10) >= today;
+        const aCurrent = (Boolean(a.started_at) && String(a.started_at).slice(0, 10) <= today)
+          && (!a.ended_at || String(a.ended_at).slice(0, 10) >= today);
+        const bCurrent = (Boolean(b.started_at) && String(b.started_at).slice(0, 10) <= today)
+          && (!b.ended_at || String(b.ended_at).slice(0, 10) >= today);
         return Number(bCurrent) - Number(aCurrent)
-          || Number(Boolean(b.is_primary)) - Number(Boolean(a.is_primary))
-          || String(b.started_at || "").localeCompare(String(a.started_at || ""));
+          || String(b.started_at || "").localeCompare(String(a.started_at || ""))
+          || String(b.appointment_id || "").localeCompare(String(a.appointment_id || ""));
       })[0];
       return { person, career: enrichedCareer, domain: preferred?.organization_domain || preferred?.position_organization_domain || null };
     },
@@ -252,7 +254,7 @@ export default function GovernancePersonPage() {
                         appointmentId={item.appointment_id}
                         personName={person.name}
                         positionName={item.position_name}
-                        onEdit={() => { setAppointmentRecord(item); setAppointmentOpen(true); }}
+                        onEdit={() => { setAppointmentRecord({ ...item, person_name: person.name, person_avatar_url: person.image_url }); setAppointmentOpen(true); }}
                         onDeleted={refresh}
                       />
                     )}

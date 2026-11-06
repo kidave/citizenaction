@@ -372,6 +372,7 @@ export default function GovernanceRecordPage({ expectedDomain = null } = {}) {
           if (!value) setOrganizationSheetEntity(null);
         }}
         record={organizationSheetEntity}
+        defaultDomain={governance?.domain ?? expectedDomain}
         categories={categories}
         onSaved={handleChanged}
       />
