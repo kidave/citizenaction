@@ -276,7 +276,7 @@ export default function GovernanceOrganizationSheet({
                     <Badge variant="secondary" className="font-normal">{domainLabel}</Badge>
                   </div>
                   <p className="text-sm font-normal text-muted-foreground">
-                    {isEditing ? "Update this organisation details." : description}
+                    {isEditing ? "Update this organisation’s details." : description}
                   </p>
                 </div>
               </div>
