@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { BriefcaseBusiness, UserRound } from "lucide-react";
+
 import { toast } from "sonner";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/lib/supabase/client";
-import { getGovernanceInitials } from "@/utils/governance";
+import { getGovernanceInitials, getGovernanceRoute } from "@/utils/governance";
 
 function today() {
   return new Date().toISOString().slice(0, 10);
@@ -76,7 +76,7 @@ export default function GovernanceAppointmentDialog({
         await Promise.all([
           supabase
             .from("governance")
-            .select("id,name,short_name,slug,type,status,image_url")
+            .select("id,name,short_name,slug,type,status,image_url,domain")
             .neq("status", "deleted")
             .order("name")
             .limit(500),
@@ -269,15 +269,22 @@ export default function GovernanceAppointmentDialog({
         side="right"
         className="flex w-full max-w-none flex-col gap-0 overflow-x-hidden p-0 sm:max-w-xl"
       >
-        <SheetHeader className="border-b px-5 py-4 sm:px-6">
-          <SheetTitle className="flex items-center gap-2">
-            {positionMode ? (
-              <UserRound className="h-4 w-4" />
-            ) : (
-              <BriefcaseBusiness className="h-4 w-4" />
-            )}
-            {title}
-          </SheetTitle>
+        <SheetHeader className="border-b px-5 py-3 sm:px-6">
+          {selectedPosition && selectedOrganization ? (
+            <GovernanceContextSheetHeader
+              title={isEditing ? "Edit appointment:" : positionMode ? "Appoint" : "Add experience:"}
+              contextTitle={selectedPosition.name}
+              contextHref={getGovernanceRoute({
+                type: "position",
+                slug: selectedPosition.slug,
+                parent_slug: selectedOrganization.slug,
+                domain: selectedOrganization.domain,
+              })}
+              organization={selectedOrganization}
+            />
+          ) : (
+            <GovernanceContextSheetHeader title={title} organization={selectedOrganization} />
+          )}
         </SheetHeader>
 
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 py-5 sm:px-6">
@@ -289,26 +296,10 @@ export default function GovernanceAppointmentDialog({
             </div>
           ) : (
             <div className="space-y-4 py-2">
-              {positionMode ? (
-                <div className="flex items-center gap-3 rounded-lg border bg-muted/30 p-3">
-                  <Avatar className="h-10 w-10 rounded-lg">
-                    <AvatarImage src={selectedOrganization?.image_url || undefined} alt="" />
-                    <AvatarFallback className="rounded-lg">
-                      {getGovernanceInitials(selectedOrganization?.name || "Organization")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0">
-                    <div className="text-xs text-muted-foreground">Position</div>
-                    <div className="truncate text-sm font-medium">{selectedPosition?.name || "Position"}</div>
-                    <div className="truncate text-xs text-muted-foreground">{selectedOrganization?.name || "Organization"}</div>
-                  </div>
-                </div>
-              ) : (
+              {!positionMode && (
                 <div className="rounded-lg border bg-muted/30 p-3">
                   <div className="text-xs text-muted-foreground">Person</div>
-                  <div className="mt-1 text-sm font-medium">
-                    {selectedPerson?.name || "Person"}
-                  </div>
+                  <div className="mt-1 text-sm font-medium">{selectedPerson?.name || "Person"}</div>
                 </div>
               )}
 

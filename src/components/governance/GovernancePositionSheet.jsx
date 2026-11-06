@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BriefcaseBusiness } from "lucide-react";
+import GovernanceContextSheetHeader from "@/components/governance/GovernanceContextSheetHeader";
 import { toast } from "sonner";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
@@ -13,7 +12,6 @@ import { Textarea } from "@/components/ui/textarea";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import { supabase } from "@/lib/supabase/client";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
-import { getGovernanceInitials } from "@/utils/governance";
 
 function emptyForm() {
   return {
@@ -83,7 +81,7 @@ export default function GovernancePositionSheet({
       const [organizationResult, positionsResult] = await Promise.all([
         supabase
           .from("governance")
-          .select("id,name,short_name,slug,type,status,image_url")
+          .select("id,name,short_name,slug,type,status,image_url,domain")
           .eq("id", organizationId)
           .maybeSingle(),
         supabase
@@ -190,11 +188,8 @@ export default function GovernancePositionSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="flex w-full max-w-none flex-col gap-0 overflow-x-hidden p-0 sm:max-w-xl">
-        <SheetHeader className="border-b px-5 py-4 sm:px-6">
-          <SheetTitle className="flex items-center gap-2">
-            <BriefcaseBusiness className="h-4 w-4" />
-            {isEditing ? "Edit position" : "Add position"}
-          </SheetTitle>
+        <SheetHeader className="border-b px-5 py-3 sm:px-6">
+          <GovernanceContextSheetHeader title={isEditing ? "Edit position" : "Add position"} organization={organization} />
         </SheetHeader>
 
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 py-5 sm:px-6">
