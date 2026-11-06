@@ -47,28 +47,21 @@ export default function GovernanceContextSheetHeader({
 
       <div className="min-w-0 flex-1">
         <SheetTitle
-          className="min-w-0 truncate text-left text-base sm:text-lg"
+          className="flex min-w-0 items-center gap-1 text-left text-base sm:text-lg"
           title={contextTitle ? title + " " + contextTitle : title}
         >
-          {title}
-          {contextTitle && (
-            <>
-              {" "}
-              {contextHref ? (
-                <Link
-                  href={contextHref}
-                  title={contextTitle}
-                  className="inline-block max-w-full truncate align-bottom underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  {contextTitle}
-                </Link>
-              ) : (
-                <span className="inline-block max-w-full truncate align-bottom" title={contextTitle}>
-                  {contextTitle}
-                </span>
-              )}
-            </>
-          )}
+          <span className="shrink-0">{title}</span>
+          {contextTitle && (contextHref ? (
+            <Link
+              href={contextHref}
+              title={contextTitle}
+              className="min-w-0 truncate underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {contextTitle}
+            </Link>
+          ) : (
+            <span className="min-w-0 truncate" title={contextTitle}>{contextTitle}</span>
+          ))}
         </SheetTitle>
         {contextTitle && (
           <div className="truncate text-xs font-normal text-muted-foreground" title={organizationName}>
