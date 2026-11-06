@@ -24,8 +24,8 @@ export default function GovernancePositionTimeline({ position, organization, tim
       return starts && hasNotEnded;
     })
     .sort((a, b) =>
-      Number(Boolean(b.is_primary)) - Number(Boolean(a.is_primary)) ||
-      String(b.started_at || "").localeCompare(String(a.started_at || ""))
+      String(b.started_at || "").localeCompare(String(a.started_at || "")) ||
+      String(b.appointment_id || "").localeCompare(String(a.appointment_id || ""))
     )[0] || null;
 
   const asCoordinate = (min, max, ...values) => {

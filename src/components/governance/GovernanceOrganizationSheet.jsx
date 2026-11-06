@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
-import { Building2, Link2, Loader2 } from "lucide-react";
+import { Building2, Landmark, Link2, Loader2, Scale, Vote } from "lucide-react";
 import { toast } from "sonner";
 import { isValidGovernanceImageUrl, GOVERNANCE_IMAGE_URL_HELPER_TEXT } from "@/utils/governanceImageUrl";
 
@@ -17,6 +17,7 @@ import ImageUpload from "@/components/ui/ImageUpload";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -28,8 +29,6 @@ import { supabase } from "@/lib/supabase/client";
 import { moveGovernanceFile } from "@/lib/supabase/storage";
 import { useImportGovernanceOrganizationImage } from "@/hooks/governance/useImportGovernanceOrganizationImage";
 import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
-import GovernanceDomainSelect from "@/components/governance/GovernanceDomainSelect";
-import GovernanceParentSelect from "@/components/governance/GovernanceParentSelect";
 import {
   GOVERNANCE_STATUS_OPTIONS,
   getDefaultGovernanceType,
@@ -37,11 +36,12 @@ import {
   isGovernanceTypeAllowed,
   formatGovernanceType,
   governanceRequiresValidTo,
+  GOVERNANCE_DOMAINS,
 } from "@/utils/governance";
 
 function emptyForm(record, defaultDomain = null) {
   const metadata = record?.metadata || {};
-  const domain = record?.domain ?? defaultDomain ?? null;
+  const domain = defaultDomain ?? record?.domain ?? null;
   return {
     name: record?.name || "",
     shortName: record?.short_name || "",
@@ -63,7 +63,6 @@ function emptyForm(record, defaultDomain = null) {
     lat: metadata.office_lat == null ? null : Number(metadata.office_lat),
     lng: metadata.office_lng == null ? null : Number(metadata.office_lng),
     geographyId: record?.geography_id || "",
-    parentEntityId: record?.parent_entity_id || "",
   };
 }
 
@@ -137,15 +136,6 @@ export default function GovernanceOrganizationSheet({
   const setField = (field, value) =>
     setForm((current) => ({ ...current, [field]: value }));
 
-  const changeDomain = (domain) => {
-    setForm((current) => ({
-      ...current,
-      domain,
-      type: getDefaultGovernanceType(domain),
-      parentEntityId: current.domain === domain ? current.parentEntityId : "",
-    }));
-  };
-
   const availableTypes = getGovernanceTypesForDomain(form.domain);
   const fixedType = availableTypes.length === 1;
 
@@ -177,8 +167,8 @@ export default function GovernanceOrganizationSheet({
         p_description: form.description.trim() || null,
         p_website: form.website.trim() || null,
         p_type: form.type,
-        p_domain: form.domain,
-        p_parent_entity_id: form.parentEntityId || null,
+        p_domain: defaultDomain ?? form.domain,
+        p_parent_entity_id: isEditing ? record?.parent_entity_id || null : null,
         p_status: form.status,
         p_valid_from: `${form.validFrom}T00:00:00Z`,
         p_valid_to: form.validTo ? `${form.validTo}T23:59:59.999Z` : null,
@@ -266,11 +256,31 @@ export default function GovernanceOrganizationSheet({
         side="right"
         className="flex w-full max-w-full flex-col gap-0 overflow-x-hidden p-0 sm:max-w-xl"
       >
-        <SheetHeader className="border-b px-5 py-4 sm:px-6">
-          <SheetTitle className="flex items-center gap-2">
-            <Building2 className="h-4 w-4" />
-            {isEditing ? "Edit organization" : "Add organization"}
-          </SheetTitle>
+        <SheetHeader className="border-b px-5 py-4 text-left sm:px-6">
+          {(() => {
+            const domainConfig = GOVERNANCE_DOMAINS.find((item) => item.value === (defaultDomain ?? form.domain));
+            const DomainIcon = { politics: Vote, legislature: Landmark, executive: Building2, judiciary: Scale }[defaultDomain ?? form.domain] || Building2;
+            const domainLabel = domainConfig?.label || "Other";
+            const description = domainConfig
+              ? "Add an organisation responsible for " + domainConfig.description.toLowerCase() + "."
+              : "Add an organisation outside the four governance domains.";
+            return (
+              <div className="flex min-w-0 items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  <DomainIcon className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <SheetTitle>{isEditing ? "Edit organisation" : "Add organisation"}</SheetTitle>
+                    <Badge variant="secondary" className="font-normal">{domainLabel}</Badge>
+                  </div>
+                  <p className="text-sm font-normal text-muted-foreground">
+                    {isEditing ? "Update this organisation details." : description}
+                  </p>
+                </div>
+              </div>
+            );
+          })()}
         </SheetHeader>
 
         <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-5 py-5 sm:px-6">
@@ -323,8 +333,8 @@ export default function GovernanceOrganizationSheet({
                           p_description: form.description.trim() || null,
                           p_website: form.website.trim() || null,
                           p_type: form.type,
-                          p_domain: form.domain,
-                          p_parent_entity_id: form.parentEntityId || null,
+                          p_domain: defaultDomain ?? form.domain,
+                          p_parent_entity_id: isEditing ? record?.parent_entity_id || null : null,
                           p_status: form.status,
                           p_valid_from: `${form.validFrom}T00:00:00Z`,
                           p_valid_to: form.validTo
@@ -410,21 +420,7 @@ export default function GovernanceOrganizationSheet({
                   </Select>
                 </div>
               )}
-              <div className="space-y-2">
-                <Label>Domain</Label>
-                <GovernanceDomainSelect value={form.domain} onValueChange={changeDomain} disabled={busy} />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label>Parent organisation</Label>
-                <GovernanceParentSelect
-                  value={form.parentEntityId || null}
-                  domain={form.domain}
-                  excludeId={record?.id || null}
-                  onValueChange={(value) => setField("parentEntityId", value || "")}
-                  disabled={busy}
-                />
-                <p className="text-xs text-muted-foreground">Only organisations in the same domain can be selected as a parent.</p>
-              </div>
+
               <div className="space-y-2">
                 <Label>Category</Label>
                 <Select value={form.categoryId || "none"} onValueChange={(value) => setField("categoryId", value === "none" ? "" : value)} disabled={busy}>

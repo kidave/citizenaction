@@ -8,7 +8,6 @@ import { Building2, CalendarDays, ChevronDown, ChevronRight, ExternalLink, Netwo
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 import LoadingState from "@/components/ui/loading-state";
 import ErrorState from "@/components/ui/error-state";
 import EmptyState from "@/components/ui/empty-state";
@@ -104,7 +103,7 @@ function ReportingNode({ node, childrenByParent, depth = 0 }) {
 
   return (
     <div className="relative">
-      <Card className={cn(node.is_primary && "border-primary/40")}>
+      <Card>
         <CardContent className="p-3 sm:p-4">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10 shrink-0 rounded-lg">

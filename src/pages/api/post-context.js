@@ -34,8 +34,8 @@ export default async function handler(req, res) {
       .eq("person_id", person.id)
       .lte("started_at", startAt)
       .or("ended_at.is.null,ended_at.gte." + startAt)
-      .order("is_primary", { ascending: false })
       .order("started_at", { ascending: false })
+      .order("id", { ascending: false })
       .limit(1);
     const appointment = appointments?.[0] || null;
     peopleContext.push({

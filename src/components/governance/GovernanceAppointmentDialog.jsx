@@ -16,7 +16,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import SearchableSelect from "@/components/ui/SearchableSelect";
-import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/lib/supabase/client";
 import { getGovernanceInitials, getGovernanceRoute } from "@/utils/governance";
 
@@ -49,7 +48,6 @@ export default function GovernanceAppointmentDialog({
   const [selectedPersonId, setSelectedPersonId] = useState(personId || "");
   const [startedAt, setStartedAt] = useState(today());
   const [endedAt, setEndedAt] = useState("");
-  const [isPrimary, setIsPrimary] = useState(true);
   const [officialPhone, setOfficialPhone] = useState("");
   const [officialEmail, setOfficialEmail] = useState("");
   const [saving, setSaving] = useState(false);
@@ -67,7 +65,6 @@ export default function GovernanceAppointmentDialog({
       record?.started_at ? String(record.started_at).slice(0, 10) : today(),
     );
     setEndedAt(record?.ended_at ? String(record.ended_at).slice(0, 10) : "");
-    setIsPrimary(record?.is_primary ?? true);
     setOfficialPhone(record?.official_phone || record?.metadata?.official_phone || "");
     setOfficialEmail(record?.official_email || record?.metadata?.official_email || "");
 
@@ -129,18 +126,6 @@ export default function GovernanceAppointmentDialog({
     };
   }, [open, organizationId, positionId, personId, record?.id]);
 
-  useEffect(() => {
-    if (!open || record || !positionId) return;
-    let cancelled = false;
-    const choosePrimaryDefault = async () => {
-      const { data, error } = await supabase.from("position_appointment").select("id").eq("position_id", positionId).eq("is_primary", true).is("ended_at", null).limit(1);
-      if (cancelled) return;
-      if (error) { toast.error(error.message); return; }
-      setIsPrimary(!(data || []).length);
-    };
-    choosePrimaryDefault();
-    return () => { cancelled = true; };
-  }, [open, positionId, record]);
   const searchPeople = useCallback(async (searchTerm = "") => {
     const requestId = ++peopleSearchRequest.current;
     setPeopleSearchLoading(true);
@@ -228,7 +213,6 @@ export default function GovernanceAppointmentDialog({
         p_started_at: `${startedAt}T00:00:00Z`,
         p_ended_at: endedAt ? `${endedAt}T23:59:59.999Z` : null,
         p_is_vacant: false,
-        p_is_primary: isPrimary,
         p_reports_to_id: null,
         p_notes: null,
       });
@@ -403,19 +387,6 @@ export default function GovernanceAppointmentDialog({
                   />
                   <p className="text-xs text-muted-foreground">Leave blank while the appointment is ongoing. Enter an end date explicitly when it ends; today is not assumed.</p>
                 </div>
-              </div>
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <div>
-                  <div className="text-sm font-medium">Primary appointment</div>
-                  <div className="text-xs text-muted-foreground">
-                    Use this for the person’s current or principal appointment.
-                  </div>
-                </div>
-                <Checkbox
-                  checked={isPrimary}
-                  disabled={saving}
-                  onCheckedChange={(checked) => setIsPrimary(!!checked)}
-                />
               </div>
             </div>
           )}
