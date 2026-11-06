@@ -254,7 +254,7 @@ export default function GovernancePersonPage() {
                         appointmentId={item.appointment_id}
                         personName={person.name}
                         positionName={item.position_name}
-                        onEdit={() => { setAppointmentRecord({ ...item, person_name: person.name, person_avatar_url: person.image_url }); setAppointmentOpen(true); }}
+                        onEdit={() => { setAppointmentRecord(item); setAppointmentOpen(true); }}
                         onDeleted={refresh}
                       />
                     )}

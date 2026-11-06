@@ -194,13 +194,11 @@ export default function GovernanceAppointmentDialog({
       setSaving(true);
       if (isEditing) {
         const appointmentId = record?.appointment_id || record?.id;
-        const { error } = await supabase
-          .from("position_appointment")
-          .update({
-            started_at: `${startedAt}T00:00:00Z`,
-            ended_at: endedAt ? `${endedAt}T23:59:59.999Z` : null,
-          })
-          .eq("id", appointmentId);
+        const { error } = await supabase.rpc("update_position_appointment_dates", {
+          p_appointment_id: appointmentId,
+          p_started_at: `${startedAt}T00:00:00Z`,
+          p_ended_at: endedAt ? `${endedAt}T23:59:59.999Z` : null,
+        });
         if (error) throw error;
         toast.success("Appointment dates updated");
         await onSaved?.({ ...record, started_at: startedAt, ended_at: endedAt || null });
