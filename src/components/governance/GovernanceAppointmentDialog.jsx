@@ -12,6 +12,7 @@ import {
   SheetContent,
   SheetFooter,
   SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -182,32 +183,43 @@ export default function GovernanceAppointmentDialog({
       : null;
   const selectedPerson = people.find((item) => item.id === selectedPersonId);
 
-  const save = async () => {
-    const finalOrganizationId = positionMode
-      ? organizationId
-      : selectedPosition?.appointing_organization_id;
-    const finalPositionId = positionMode
-      ? positionId || selectedPositionId
-      : selectedPositionId;
+  const isEditing = Boolean(record?.appointment_id || record?.id);
 
-    if (!finalOrganizationId) return toast.error("Organization is required");
-    if (!finalPositionId) return toast.error("Position is required");
-    if (personMode && !personId) return toast.error("Person is required");
-    if (positionMode && !selectedPersonId)
-      return toast.error("Choose a person");
+  const save = async () => {
     if (!startedAt) return toast.error("Start date is required");
     if (endedAt && endedAt < startedAt)
       return toast.error("End date cannot be earlier than start date");
 
     try {
       setSaving(true);
+      if (isEditing) {
+        const appointmentId = record?.appointment_id || record?.id;
+        const { error } = await supabase
+          .from("position_appointment")
+          .update({
+            started_at: `${startedAt}T00:00:00Z`,
+            ended_at: endedAt ? `${endedAt}T23:59:59.999Z` : null,
+          })
+          .eq("id", appointmentId);
+        if (error) throw error;
+        toast.success("Appointment dates updated");
+        await onSaved?.({ ...record, started_at: startedAt, ended_at: endedAt || null });
+        onOpenChange?.(false);
+        return;
+      }
 
-      const finalPersonId = personMode ? personId : selectedPersonId;
+      const finalOrganizationId = positionMode ? organizationId : selectedPosition?.appointing_organization_id;
+      const finalPositionId = positionMode ? positionId || selectedPositionId : selectedPositionId;
+      if (!finalOrganizationId) return toast.error("Organization is required");
+      if (!finalPositionId) return toast.error("Position is required");
+      if (personMode && !personId) return toast.error("Person is required");
+      if (positionMode && !selectedPersonId) return toast.error("Choose a person");
+
       const result = await supabase.rpc("upsert_organization", {
-          p_id: record?.appointment_id || record?.id || null,
-          p_governance_id: finalOrganizationId,
+        p_id: null,
+        p_governance_id: finalOrganizationId,
         p_person_name: selectedPerson?.name || "",
-        p_person_governance_id: finalPersonId,
+        p_person_governance_id: personMode ? personId : selectedPersonId,
         p_position_name: selectedPosition?.name || "Position",
         p_position_governance_id: finalPositionId,
         p_started_at: `${startedAt}T00:00:00Z`,
@@ -216,21 +228,8 @@ export default function GovernanceAppointmentDialog({
         p_reports_to_id: null,
         p_notes: null,
       });
-
       if (result.error) throw result.error;
-      const savedAppointmentId = result.data?.id || result.data?.appointment_id || record?.appointment_id || record?.id;
-      if (savedAppointmentId) {
-        const { error: contactError } = await supabase
-          .from("position_appointment")
-          .update({
-            official_phone: officialPhone.trim() || null,
-            official_email: officialEmail.trim() || null,
-          })
-          .eq("id", savedAppointmentId);
-        if (contactError) throw contactError;
-      }
-
-      toast.success(positionMode ? (isEditing ? "Appointment updated" : "Person added to position") : "Experience added");
+      toast.success(positionMode ? "Person added to position" : "Experience added");
       await onSaved?.(result.data);
       onOpenChange?.(false);
     } catch (error) {
@@ -240,7 +239,6 @@ export default function GovernanceAppointmentDialog({
     }
   };
 
-  const isEditing = Boolean(record?.appointment_id || record?.id);
   const title = isEditing
     ? "Edit appointment"
     : positionMode
@@ -254,9 +252,25 @@ export default function GovernanceAppointmentDialog({
         className="flex w-full max-w-none flex-col gap-0 overflow-x-hidden p-0 sm:max-w-xl"
       >
         <SheetHeader className="border-b px-5 py-3 sm:px-6">
-          {selectedPosition && selectedOrganization ? (
+          {isEditing ? (
+            <div className="flex min-w-0 items-center gap-3 pr-8 text-left">
+              <Avatar className="h-10 w-10 shrink-0 rounded-full border">
+                <AvatarImage src={record?.person_avatar_url || undefined} alt="" />
+                <AvatarFallback className="text-xs">{getGovernanceInitials(record?.person_name || "Person")}</AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <SheetTitle className="truncate text-base sm:text-lg">Edit appointment</SheetTitle>
+                <div className="truncate text-sm text-muted-foreground">{record?.person_name || "Person"} · {record?.position_name || selectedPosition?.name || "Position"}</div>
+                <div className="truncate text-xs text-muted-foreground">{record?.organization_name || selectedOrganization?.name || "Organisation"}</div>
+              </div>
+              <Avatar className="h-10 w-10 shrink-0 rounded-lg border">
+                <AvatarImage src={selectedOrganization?.image_url || undefined} alt="" />
+                <AvatarFallback className="rounded-lg text-xs">{getGovernanceInitials(selectedOrganization?.name || record?.organization_name || "Organisation")}</AvatarFallback>
+              </Avatar>
+            </div>
+          ) : selectedPosition && selectedOrganization ? (
             <GovernanceContextSheetHeader
-              title={isEditing ? "Edit appointment:" : positionMode ? "Appoint" : "Add experience:"}
+              title={positionMode ? "Appoint" : "Add experience:"}
               contextTitle={selectedPosition.name}
               contextHref={getGovernanceRoute({
                 type: "position",
@@ -280,14 +294,14 @@ export default function GovernanceAppointmentDialog({
             </div>
           ) : (
             <div className="space-y-4 py-2">
-              {!positionMode && (
+              {!isEditing && !positionMode && (
                 <div className="rounded-lg border bg-muted/30 p-3">
                   <div className="text-xs text-muted-foreground">Person</div>
                   <div className="mt-1 text-sm font-medium">{selectedPerson?.name || "Person"}</div>
                 </div>
               )}
 
-              {positionMode && !positionId && (
+              {!isEditing && positionMode && !positionId && (
                 <div className="space-y-2">
                   <Label>Position</Label>
                   <SearchableSelect
@@ -301,7 +315,7 @@ export default function GovernanceAppointmentDialog({
                   />
                 </div>
               )}
-              {personMode && (
+              {!isEditing && personMode && (
                 <div className="space-y-2">
                   <Label>Position</Label>
                   <SearchableSelect
@@ -327,7 +341,7 @@ export default function GovernanceAppointmentDialog({
                   />
                 </div>
               )}
-              {positionMode && (
+              {!isEditing && positionMode && (
                 <div className="space-y-2">
                   <Label>Person</Label>
                   <SearchableSelect
@@ -356,20 +370,9 @@ export default function GovernanceAppointmentDialog({
                 </div>
               )}
 
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className={isEditing ? "grid gap-3" : "grid gap-3 sm:grid-cols-2"}>
                 <div className="space-y-2">
-                  <Label>Official phone (optional)</Label>
-                  <Input value={officialPhone} onChange={(event) => setOfficialPhone(event.target.value)} placeholder="Appointment contact phone" disabled={saving} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Official email (optional)</Label>
-                  <Input type="email" value={officialEmail} onChange={(event) => setOfficialEmail(event.target.value)} placeholder="Appointment contact email" disabled={saving} />
-                </div>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Start date</Label>
+                  <Label>{isEditing ? "Joining date" : "Start date"}</Label>
                   <Input
                     type="date"
                     value={startedAt}
