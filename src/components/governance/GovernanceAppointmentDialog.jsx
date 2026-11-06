@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { BriefcaseBusiness, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
@@ -41,6 +41,8 @@ export default function GovernanceAppointmentDialog({
   const [organizations, setOrganizations] = useState([]);
   const [positions, setPositions] = useState([]);
   const [people, setPeople] = useState([]);
+  const [peopleSearchLoading, setPeopleSearchLoading] = useState(false);
+  const peopleSearchRequest = useRef(0);
   const [selectedPositionId, setSelectedPositionId] = useState(
     positionId || "",
   );
@@ -87,8 +89,13 @@ export default function GovernanceAppointmentDialog({
             .from("person")
             .select("id,name,slug,image_url,profile_user_id")
             .order("name")
-            .limit(1000),
+            .limit(20),
         ]);
+
+      const selectedPersonLookupId = record?.person_id || personId;
+      const selectedPersonResult = selectedPersonLookupId
+        ? await supabase.from("person").select("id,name,slug,image_url,profile_user_id").eq("id", selectedPersonLookupId).maybeSingle()
+        : { data: null, error: null };
 
       const appointmentId = record?.appointment_id || record?.id;
       const contactResult = appointmentId
@@ -109,10 +116,11 @@ export default function GovernanceAppointmentDialog({
       if (positionResult.error)
         return toast.error(positionResult.error.message);
       if (peopleResult.error) return toast.error(peopleResult.error.message);
+      if (selectedPersonResult.error) return toast.error(selectedPersonResult.error.message);
 
       setOrganizations(organizationResult.data || []);
       setPositions(positionResult.data || []);
-      setPeople(peopleResult.data || []);
+      setPeople([...(selectedPersonResult.data ? [selectedPersonResult.data] : []), ...(peopleResult.data || []).filter((item) => item.id !== selectedPersonResult.data?.id)]);
     };
 
     load();
@@ -133,6 +141,26 @@ export default function GovernanceAppointmentDialog({
     choosePrimaryDefault();
     return () => { cancelled = true; };
   }, [open, positionId, record]);
+  const searchPeople = useCallback(async (searchTerm = "") => {
+    const requestId = ++peopleSearchRequest.current;
+    setPeopleSearchLoading(true);
+    try {
+      let query = supabase.from("person").select("id,name,slug,image_url,profile_user_id").order("name").limit(20);
+      if (searchTerm) query = query.ilike("name", "%" + searchTerm + "%");
+      const { data, error } = await query;
+      if (error) throw error;
+      if (requestId !== peopleSearchRequest.current) return;
+      setPeople((current) => {
+        const selected = current.find((item) => item.id === selectedPersonId);
+        return [...(selected ? [selected] : []), ...(data || []).filter((item) => item.id !== selected?.id)];
+      });
+    } catch (error) {
+      if (requestId === peopleSearchRequest.current) toast.error(error?.message || "Unable to search people");
+    } finally {
+      if (requestId === peopleSearchRequest.current) setPeopleSearchLoading(false);
+    }
+  }, [selectedPersonId]);
+
   const positionOptions = useMemo(
     () => positions.map((item) => {
       const organization = organizations.find((org) => org.id === item.appointing_organization_id);
@@ -335,6 +363,8 @@ export default function GovernanceAppointmentDialog({
                     searchPlaceholder="Search people..."
                     emptyText="No people found."
                     disabled={saving || loading}
+                    onSearch={searchPeople}
+                    searchLoading={peopleSearchLoading}
                     renderOption={(option) => (
                       <div className="flex min-w-0 items-center gap-2">
                         <Avatar className="h-7 w-7 shrink-0 rounded-md"><AvatarImage src={option.imageUrl || undefined} alt="" /><AvatarFallback className="rounded-md text-[9px]">{getGovernanceInitials(option.label)}</AvatarFallback></Avatar>
