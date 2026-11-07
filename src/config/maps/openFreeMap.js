@@ -1,13 +1,13 @@
 export const OPENFREEMAP_STYLES = {
   positron: {
     id: "positron",
-    label: "Positron",
+    label: "Light",
     url: "https://tiles.openfreemap.org/styles/positron",
   },
-  fiord: {
-    id: "fiord",
-    label: "Fiord",
-    url: "https://tiles.openfreemap.org/styles/fiord",
+  dark: {
+    id: "dark",
+    label: "Dark",
+    url: "https://tiles.openfreemap.org/styles/dark",
   },
   bright: {
     id: "bright",
@@ -15,19 +15,3 @@ export const OPENFREEMAP_STYLES = {
     url: "https://tiles.openfreemap.org/styles/bright",
   },
 };
-
-/**
- * Resolve the basemap from the active CitizenAction appearance theme.
- * System appearance follows next-themes' resolvedTheme value.
- */
-export function resolveOpenFreeMapStyle(theme, resolvedTheme) {
-  if (theme === "space" || theme === "vintage") {
-    return OPENFREEMAP_STYLES.bright;
-  }
-
-  if (theme === "dark" || (theme === "system" && resolvedTheme === "dark")) {
-    return OPENFREEMAP_STYLES.fiord;
-  }
-
-  return OPENFREEMAP_STYLES.positron;
-}
