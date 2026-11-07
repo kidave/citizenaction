@@ -81,11 +81,11 @@ function imageIcon(url, size = 32) {
 
 function MapBasemapSelector({ value, onChange }) {
   return (
-    <div className="absolute left-3 top-3 z-[1000] w-36">
+    <div className="absolute left-3 top-[108px] z-[1000] w-[120px]">
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger
           aria-label="Map basemap"
-          className="h-9 border-border/80 bg-background/95 shadow-md backdrop-blur"
+          className="h-8 border-border/80 bg-background/95 px-2 text-xs shadow-md backdrop-blur"
         >
           <SelectValue placeholder="Basemap" />
         </SelectTrigger>
