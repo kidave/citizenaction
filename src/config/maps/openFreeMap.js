@@ -1,17 +1,22 @@
 export const OPENFREEMAP_STYLES = {
-  positron: {
+  light: {
     id: "positron",
     label: "Light",
     url: "https://tiles.openfreemap.org/styles/positron",
   },
-  dark: {
+  night: {
     id: "fiord",
-    label: "Dark",
+    label: "Night",
     url: "https://tiles.openfreemap.org/styles/fiord",
   },
-  bright: {
+  space: {
     id: "bright",
-    label: "Bright",
+    label: "Space",
     url: "https://tiles.openfreemap.org/styles/bright",
+  },
+  vintage: {
+    id: "dark",
+    label: "Dark",
+    url: "https://tiles.openfreemap.org/styles/dark",
   },
 };
