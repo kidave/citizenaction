@@ -190,8 +190,14 @@ export default function LeafletMap({
     <div className="relative z-0 isolate h-full w-full overflow-hidden">
       <MapContainer center={[safeLat, safeLng]} zoom={zoom} className="relative z-0 h-full w-full">
         <LayersControl position="topleft">
-          <LayersControl.BaseLayer checked name="OpenFreeMap">
-            <OpenFreeMapLayer />
+          <LayersControl.BaseLayer checked name="Light">
+            <OpenFreeMapLayer styleId="positron" />
+          </LayersControl.BaseLayer>
+          <LayersControl.BaseLayer name="Dark">
+            <OpenFreeMapLayer styleId="dark" />
+          </LayersControl.BaseLayer>
+          <LayersControl.BaseLayer name="Bright">
+            <OpenFreeMapLayer styleId="bright" />
           </LayersControl.BaseLayer>
           <LayersControl.BaseLayer name="Satellite">
             <TileLayer attribution="Satellite imagery" url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" />
