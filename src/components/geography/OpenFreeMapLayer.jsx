@@ -3,8 +3,13 @@
 import { useTheme } from "next-themes";
 import { createElementObject, createLayerComponent } from "@react-leaflet/core";
 import { maplibreGL } from "@maplibre/maplibre-gl-leaflet";
+import { setWorkerUrl } from "maplibre-gl";
 
 import { resolveOpenFreeMapStyle } from "@/config/maps/openFreeMap";
+
+if (typeof window !== "undefined") {
+  setWorkerUrl("/maplibre-gl-worker.mjs");
+}
 
 function createOpenFreeMapLayer(props, context) {
   const instance = maplibreGL({
