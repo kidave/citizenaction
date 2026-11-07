@@ -394,3 +394,11 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+
+/* Map navigation: touch devices use pinch gestures instead of Leaflet buttons. */
+@media (max-width: 639px) {
+  .leaflet-control-zoom {
+    display: none !important;
+  }
+}
