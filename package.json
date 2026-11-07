@@ -87,7 +87,7 @@
     "yet-another-react-lightbox": "^3.32.2",
     "zod": "^3.25.76",
     "@maplibre/maplibre-gl-leaflet": "^0.1.4",
-    "maplibre-gl": "^6.3.0"
+    "maplibre-gl": "^6.16.0"
   },
   "scripts": {
     "dev": "next dev",
