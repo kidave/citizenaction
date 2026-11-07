@@ -11,18 +11,25 @@ import {
 } from "react-leaflet";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTheme } from "next-themes";
+import { Layers } from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import OpenFreeMapLayer from "@/components/geography/OpenFreeMapLayer";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import { format } from "date-fns";
 
@@ -80,23 +87,39 @@ function imageIcon(url, size = 32) {
 }
 
 function MapBasemapSelector({ value, onChange }) {
+  const activeOption = BASEMAP_OPTIONS.find((option) => option.value === value);
+
   return (
-    <div className="absolute left-3 top-[108px] z-[1000] w-[120px]">
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger
-          aria-label="Map basemap"
-          className="h-8 border-border/80 bg-background/95 px-2 text-xs shadow-md backdrop-blur"
-        >
-          <SelectValue placeholder="Basemap" />
-        </SelectTrigger>
-        <SelectContent align="start">
-          {BASEMAP_OPTIONS.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className="absolute left-3 top-[108px] z-[1000]">
+      <TooltipProvider delayDuration={350}>
+        <Tooltip>
+          <DropdownMenu>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label={`Basemap: ${activeOption?.label || "System"}`}
+                  className="flex h-9 w-9 items-center justify-center rounded-md border border-border/80 bg-background/95 text-foreground shadow-md backdrop-blur transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <Layers className="h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={8}>
+              Basemap: {activeOption?.label || "System"}
+            </TooltipContent>
+            <DropdownMenuContent align="start" side="right" sideOffset={8}>
+              <DropdownMenuRadioGroup value={value} onValueChange={onChange}>
+                {BASEMAP_OPTIONS.map((option) => (
+                  <DropdownMenuRadioItem key={option.value} value={option.value}>
+                    {option.label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 }
