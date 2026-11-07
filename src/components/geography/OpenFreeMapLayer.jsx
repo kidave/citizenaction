@@ -1,20 +1,22 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { createElementObject, createLayerComponent } from "@react-leaflet/core";
 import { maplibreGL } from "@maplibre/maplibre-gl-leaflet";
 import { setWorkerUrl } from "maplibre-gl";
 
-import { resolveOpenFreeMapStyle } from "@/config/maps/openFreeMap";
+import { OPENFREEMAP_STYLES } from "@/config/maps/openFreeMap";
 
+// The worker is copied from MapLibre's ESM distribution into /public at install
+// time so it can be loaded as a same-origin module worker by Next.js.
 if (typeof window !== "undefined") {
-  setWorkerUrl("/maplibre-gl-worker.mjs");
+  setWorkerUrl(new URL("/maplibre-gl-worker.mjs", window.location.origin).toString());
 }
 
 function createOpenFreeMapLayer(props, context) {
   const instance = maplibreGL({
     style: props.styleUrl,
     interactive: false,
+    pane: "tilePane",
   });
 
   return createElementObject(instance, context);
@@ -31,9 +33,8 @@ const MapLibreLayer = createLayerComponent(
   updateOpenFreeMapLayer,
 );
 
-export default function OpenFreeMapLayer() {
-  const { theme, resolvedTheme } = useTheme();
-  const style = resolveOpenFreeMapStyle(theme, resolvedTheme);
+export default function OpenFreeMapLayer({ styleId = "positron" }) {
+  const style = OPENFREEMAP_STYLES[styleId] || OPENFREEMAP_STYLES.positron;
 
   return <MapLibreLayer styleUrl={style.url} />;
 }
