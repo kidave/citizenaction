@@ -13,6 +13,9 @@ import {
 import { useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "maplibre-gl/dist/maplibre-gl.css";
+
+import OpenFreeMapLayer from "@/components/geography/OpenFreeMapLayer";
 
 import { format } from "date-fns";
 
@@ -187,8 +190,8 @@ export default function LeafletMap({
     <div className="relative z-0 isolate h-full w-full overflow-hidden">
       <MapContainer center={[safeLat, safeLng]} zoom={zoom} className="relative z-0 h-full w-full">
         <LayersControl position="topleft">
-          <LayersControl.BaseLayer checked name="Map">
-            <TileLayer attribution="&copy; OpenStreetMap contributors" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <LayersControl.BaseLayer checked name="OpenFreeMap">
+            <OpenFreeMapLayer />
           </LayersControl.BaseLayer>
           <LayersControl.BaseLayer name="Satellite">
             <TileLayer attribution="Satellite imagery" url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" />
