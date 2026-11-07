@@ -2,14 +2,17 @@
 
 import { createElementObject, createLayerComponent } from "@react-leaflet/core";
 import { maplibreGL } from "@maplibre/maplibre-gl-leaflet";
-import { setWorkerUrl } from "maplibre-gl";
+import { getVersion, setWorkerUrl } from "maplibre-gl";
 
 import { OPENFREEMAP_STYLES } from "@/config/maps/openFreeMap";
 
-// The worker is copied from MapLibre's ESM distribution into /public at install
-// time so it can be loaded as a same-origin module worker by Next.js.
+// MapLibre GL JS v6 uses a module worker that imports a sibling shared chunk.
+// Both files are copied into /public during install so the worker can load from
+// the same origin in Next.js production deployments.
 if (typeof window !== "undefined") {
-  setWorkerUrl(new URL("/maplibre-gl-worker.mjs", window.location.origin).toString());
+  const workerUrl = new URL("/maplibre-gl-worker.mjs", window.location.origin);
+  workerUrl.searchParams.set("v", getVersion());
+  setWorkerUrl(workerUrl.toString());
 }
 
 function createOpenFreeMapLayer(props, context) {
