@@ -5,19 +5,69 @@ import {
   TileLayer,
   Marker,
   GeoJSON,
-  LayersControl,
   Popup,
   useMapEvents,
   useMap,
 } from "react-leaflet";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useTheme } from "next-themes";
+import { Layers } from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "maplibre-gl/dist/maplibre-gl.css";
+
+import OpenFreeMapLayer from "@/components/geography/OpenFreeMapLayer";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import { format } from "date-fns";
 
 import { getActivityDate } from "@/utils/activity";
 import { getGovernanceLabel } from "@/utils/governance";
+
+const BASEMAP_STORAGE_KEY = "citizen-action:map-basemap";
+
+const BASEMAP_OPTIONS = [
+  { value: "system", label: "System" },
+  { value: "light", label: "Light" },
+  { value: "night", label: "Night" },
+  { value: "space", label: "Space" },
+  { value: "vintage", label: "Dark" },
+  { value: "satellite", label: "Satellite" },
+];
+
+function getSavedBasemap() {
+  if (typeof window === "undefined") return "system";
+
+  try {
+    const saved = window.localStorage.getItem(BASEMAP_STORAGE_KEY);
+    return BASEMAP_OPTIONS.some((option) => option.value === saved)
+      ? saved
+      : "system";
+  } catch {
+    return "system";
+  }
+}
+
+function getThemeBasemap(theme, resolvedTheme) {
+  if (theme === "space") return "space";
+  if (theme === "vintage") return "vintage";
+  if (theme === "dark") return "night";
+  if (theme === "light") return "light";
+
+  return resolvedTheme === "dark" ? "night" : "light";
+}
 
 const citizenIcon = L.divIcon({
   className: "",
@@ -34,6 +84,44 @@ function imageIcon(url, size = 32) {
     iconSize: [size, size],
     iconAnchor: [size / 2, size],
   });
+}
+
+function MapBasemapSelector({ value, onChange }) {
+  const activeOption = BASEMAP_OPTIONS.find((option) => option.value === value);
+
+  return (
+    <div className="absolute left-3 top-[108px] z-[1000]">
+      <TooltipProvider delayDuration={350}>
+        <Tooltip>
+          <DropdownMenu>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label={`Basemap: ${activeOption?.label || "System"}`}
+                  className="flex h-9 w-9 items-center justify-center rounded-md border border-border/80 bg-background/95 text-foreground shadow-md backdrop-blur transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <Layers className="h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={8}>
+              Basemap: {activeOption?.label || "System"}
+            </TooltipContent>
+            <DropdownMenuContent align="start" side="right" sideOffset={8}>
+              <DropdownMenuRadioGroup value={value} onValueChange={onChange}>
+                {BASEMAP_OPTIONS.map((option) => (
+                  <DropdownMenuRadioItem key={option.value} value={option.value}>
+                    {option.label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
 }
 
 function MapPostPopup({ post }) {
@@ -177,23 +265,38 @@ export default function LeafletMap({
   zoom = 15,
   fitMarkers = null,
 }) {
+  const { theme, resolvedTheme } = useTheme();
+  const [basemapPreference, setBasemapPreference] = useState(getSavedBasemap);
   const safeLat = Number.isFinite(lat) ? lat : 19.076;
   const safeLng = Number.isFinite(lng) ? lng : 72.8777;
   const allMarkers = showMarker
     ? [{ id: "post-location", kind: "citizen", lat: safeLat, lng: safeLng, image_url: citizenMarker?.image_url || null, label: citizenMarker?.label || "Post location" }, ...markers]
     : markers;
 
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(BASEMAP_STORAGE_KEY, basemapPreference);
+    } catch {
+      // The map remains usable when browser storage is unavailable.
+    }
+  }, [basemapPreference]);
+
+  const basemapId = basemapPreference === "system"
+    ? getThemeBasemap(theme, resolvedTheme)
+    : basemapPreference;
+
   return (
     <div className="relative z-0 isolate h-full w-full overflow-hidden">
+      <MapBasemapSelector value={basemapPreference} onChange={setBasemapPreference} />
       <MapContainer center={[safeLat, safeLng]} zoom={zoom} className="relative z-0 h-full w-full">
-        <LayersControl position="topleft">
-          <LayersControl.BaseLayer checked name="Map">
-            <TileLayer attribution="&copy; OpenStreetMap contributors" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          </LayersControl.BaseLayer>
-          <LayersControl.BaseLayer name="Satellite">
-            <TileLayer attribution="Satellite imagery" url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" />
-          </LayersControl.BaseLayer>
-        </LayersControl>
+        {basemapId === "satellite" ? (
+          <TileLayer
+            attribution="Satellite imagery"
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          />
+        ) : (
+          <OpenFreeMapLayer styleId={basemapId} />
+        )}
 
         <MapController onChange={onChange} boundary={boundary} boundaries={boundaries} fitMarkers={fitMarkers} />
         {boundary && <GeoJSON data={boundary} style={{ color: "#2563eb", weight: 2.5, opacity: 0.9, fillColor: "#3b82f6", fillOpacity: 0.1 }} />}

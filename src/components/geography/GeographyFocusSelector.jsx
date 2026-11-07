@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import AddGeographyDialog from "@/components/geography/AddGeographyDialog";
 import { MapPinned, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { getGeographyCategoryLabel } from "@/config/geography/boundaryCategories";
 
 import {
@@ -82,7 +83,7 @@ export default function GeographyFocusSelector({ value, onValueChange, className
       <div className="relative w-[min(16rem,calc(100vw-6rem))] min-w-0 sm:min-w-[12rem]">
         <ComboboxTrigger
           onDoubleClick={() => setMapOpen(true)}
-          className="inline-flex h-10 w-full min-w-0 items-center gap-1.5 rounded-md border border-input bg-background px-2 shadow-xs hover:bg-accent hover:text-accent-foreground sm:gap-2 sm:px-2.5"
+          className="hidden h-10 w-full min-w-0 items-center gap-1.5 rounded-md border border-input bg-background px-2 shadow-xs hover:bg-accent hover:text-accent-foreground sm:inline-flex sm:gap-2 sm:px-2.5"
           aria-label="Select geography"
         >
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground">
@@ -104,7 +105,7 @@ export default function GeographyFocusSelector({ value, onValueChange, className
             aria-label="Clear geography boundary"
             title="Clear boundary"
             onClick={clearBoundary}
-            className="absolute left-2 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md bg-background text-muted-foreground ring-1 ring-border hover:bg-accent hover:text-foreground"
+            className="absolute left-2 top-1/2 z-10 hidden h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md bg-background text-muted-foreground ring-1 ring-border hover:bg-accent hover:text-foreground sm:flex"
           >
             <X className="h-3.5 w-3.5" />
           </button>

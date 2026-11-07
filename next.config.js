@@ -72,6 +72,7 @@ const nextConfig = {
         https://vercel.live
         https://cdn.jsdelivr.net
         https://unpkg.com
+        https://tiles.openfreemap.org
         wss://ws-us3.pusher.com;
 
       frame-src 'self'

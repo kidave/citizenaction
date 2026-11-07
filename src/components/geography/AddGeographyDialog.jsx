@@ -323,9 +323,9 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="grid h-[100dvh] w-screen max-w-none grid-cols-1 grid-rows-[minmax(0,1fr)_auto_minmax(8rem,0.55fr)_auto] gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:w-[96vw] sm:max-w-[1400px] sm:rounded-lg sm:grid-rows-[auto_minmax(0,1fr)_auto] md:grid-cols-[400px_minmax(0,1fr)]">
-        <aside className="row-span-1 flex min-h-0 flex-col border-b md:row-span-3 md:border-b-0 md:border-r">
-          <div className="space-y-3 border-b p-4">
+      <DialogContent className="flex h-[100dvh] w-screen max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:w-[96vw] sm:rounded-lg md:grid md:grid-cols-[360px_minmax(0,1fr)] md:grid-rows-[auto_minmax(0,1fr)_auto]">
+        <aside className="order-1 flex max-h-[43dvh] min-h-0 shrink-0 flex-col border-b md:order-none md:row-span-3 md:max-h-none md:border-b-0 md:border-r">
+          <div className="space-y-2 border-b p-3 sm:space-y-3 sm:p-4">
             <div className="grid grid-cols-3 rounded-md border bg-muted/30 p-0.5">
               {GEOGRAPHY_BOUNDARY_CATEGORIES.map((item) => (
                 <button
@@ -356,7 +356,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
               </div>
 
               <Select value={type} onValueChange={handleTypeChange}>
-                <SelectTrigger className="h-9 w-[150px] shrink-0">
+                <SelectTrigger className="h-9 w-[116px] shrink-0 text-xs sm:w-[150px] sm:text-sm">
                   <SelectValue placeholder="All types" />
                 </SelectTrigger>
                 <SelectContent>
@@ -399,7 +399,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
           </div>
 
           <ScrollArea className="min-h-0 flex-1">
-            <div className="p-2">
+            <div className="p-1.5 sm:p-2">
               {isLoading ? (
                 <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -426,7 +426,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
                         <button
                           type="button"
                           onClick={() => selectGeography(item)}
-                          className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                          className="flex min-w-0 flex-1 items-center gap-2 text-left sm:gap-3"
                         >
                           <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
                           <span className="min-w-0 flex-1">
@@ -477,7 +477,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
           </ScrollArea>
         </aside>
 
-        <DialogHeader className="min-w-0 border-b px-5 py-4 pr-14 text-left">
+        <DialogHeader className="order-0 min-w-0 shrink-0 border-b px-4 py-3 pr-14 text-left sm:px-5 sm:py-4 md:order-none">
           <DialogTitle className="text-lg">
             {titleOverride || (selectionOnly ? "Choose geographic focus" : currentGeographyId ? "Change geography" : "Add geography")}
           </DialogTitle>
@@ -486,7 +486,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
           </DialogDescription>
         </DialogHeader>
 
-        <main className="relative min-h-0 overflow-hidden bg-muted/20">
+        <main className="relative order-2 min-h-[180px] min-w-0 flex-1 overflow-hidden bg-muted/20 md:order-none md:flex-none">
           <LeafletMap
             key={selected?.id || "empty-boundary-map"}
             lat={Number(center?.lat) || 20.5937}
@@ -515,11 +515,11 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
           )}
         </main>
 
-        <div className="flex min-w-0 flex-col border-t bg-background px-5 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="order-3 flex min-w-0 shrink-0 flex-col gap-2 border-t bg-background px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5 sm:py-3 md:order-none">
           <div className="min-w-0">
             {selected ? (
               <>
-                <p className="truncate text-sm font-semibold">{label}</p>
+                <p className="truncate text-xs font-semibold sm:text-sm">{label}</p>
                 <p className="truncate text-xs text-muted-foreground">
                   {getGeographyCategoryLabel(getGeographyBoundaryCategory(selected))}
                   {" · "}
