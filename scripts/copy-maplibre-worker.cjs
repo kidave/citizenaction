@@ -1,21 +1,31 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-// MapLibre GL JS v6 is ESM-only and does not expose package.json through
-// package exports, so resolve its worker from the installed package path.
-const source = path.join(
+const packageDist = path.join(
   process.cwd(),
   "node_modules",
   "maplibre-gl",
   "dist",
-  "maplibre-gl-worker.mjs",
 );
-const destination = path.join(process.cwd(), "public", "maplibre-gl-worker.mjs");
+const publicDir = path.join(process.cwd(), "public");
 
-if (!fs.existsSync(source)) {
-  throw new Error(`MapLibre worker not found at ${source}`);
+// MapLibre GL JS v6's module worker imports maplibre-gl-shared.mjs at runtime.
+// Both files must be served from the same directory in production.
+const assets = [
+  "maplibre-gl-worker.mjs",
+  "maplibre-gl-shared.mjs",
+];
+
+fs.mkdirSync(publicDir, { recursive: true });
+
+for (const asset of assets) {
+  const source = path.join(packageDist, asset);
+  const destination = path.join(publicDir, asset);
+
+  if (!fs.existsSync(source)) {
+    throw new Error(`MapLibre asset not found at ${source}`);
+  }
+
+  fs.copyFileSync(source, destination);
+  console.log(`Copied ${asset} to public/`);
 }
-
-fs.mkdirSync(path.dirname(destination), { recursive: true });
-fs.copyFileSync(source, destination);
-console.log("Copied MapLibre GL worker to public/maplibre-gl-worker.mjs");
