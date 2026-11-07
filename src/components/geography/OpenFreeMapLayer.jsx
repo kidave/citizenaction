@@ -36,8 +36,8 @@ const MapLibreLayer = createLayerComponent(
   updateOpenFreeMapLayer,
 );
 
-export default function OpenFreeMapLayer({ styleId = "positron" }) {
-  const style = OPENFREEMAP_STYLES[styleId] || OPENFREEMAP_STYLES.positron;
+export default function OpenFreeMapLayer({ styleId = "light" }) {
+  const style = OPENFREEMAP_STYLES[styleId] || OPENFREEMAP_STYLES.light;
 
   return <MapLibreLayer styleUrl={style.url} />;
 }
