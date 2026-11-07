@@ -5,9 +5,9 @@ export const OPENFREEMAP_STYLES = {
     url: "https://tiles.openfreemap.org/styles/positron",
   },
   dark: {
-    id: "dark",
+    id: "fiord",
     label: "Dark",
-    url: "https://tiles.openfreemap.org/styles/dark",
+    url: "https://tiles.openfreemap.org/styles/fiord",
   },
   bright: {
     id: "bright",
