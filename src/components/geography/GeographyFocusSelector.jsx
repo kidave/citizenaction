@@ -29,15 +29,6 @@ export default function GeographyFocusSelector({ value, onValueChange, className
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [mapOpen, setMapOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const media = window.matchMedia("(max-width: 639px)");
-    const update = () => setIsMobile(media.matches);
-    update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
-  }, []);
 
   const {
     effectiveValue,
