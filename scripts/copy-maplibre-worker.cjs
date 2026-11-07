@@ -1,8 +1,15 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-const mapLibreEntry = require.resolve("maplibre-gl");
-const source = path.join(path.dirname(mapLibreEntry), "maplibre-gl-worker.mjs");
+// MapLibre GL JS v6 is ESM-only and does not expose package.json through
+// package exports, so resolve its worker from the installed package path.
+const source = path.join(
+  process.cwd(),
+  "node_modules",
+  "maplibre-gl",
+  "dist",
+  "maplibre-gl-worker.mjs",
+);
 const destination = path.join(process.cwd(), "public", "maplibre-gl-worker.mjs");
 
 if (!fs.existsSync(source)) {
