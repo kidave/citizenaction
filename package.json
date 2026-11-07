@@ -96,7 +96,8 @@
     "start": "next start",
     "lint": "next lint",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "postinstall": "node scripts/copy-maplibre-worker.cjs"
   },
   "eslintConfig": {
     "extends": [
