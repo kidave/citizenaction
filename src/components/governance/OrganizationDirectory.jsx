@@ -90,7 +90,11 @@ export default function OrganizationDirectory({
   const totalCount = query.data?.totalCount ?? filteredRows.length;
   const data = Array.isArray(query.data?.rows) ? filteredRows : filteredRows.slice((page - 1) * pageSize, page * pageSize);
   const pageCount = Math.max(1, Math.ceil(totalCount / pageSize));
-  useEffect(() => { if (page > pageCount) setPage(pageCount); }, [page, pageCount]);
+  useEffect(() => {
+    // Do not clamp while a new page query is loading: its temporary empty
+    // state reports pageCount=1 and would incorrectly reset page 2+ to page 1.
+    if (!query.isLoading && query.data && page > pageCount) setPage(pageCount);
+  }, [page, pageCount, query.data, query.isLoading]);
   const selectedSet = useMemo(
     () =>
       new Set(
