@@ -23,12 +23,13 @@ function getVectorTileTemplate(apiKey) {
 function buildFeatureFilter({ parentId, selectedId, category }) {
   const isCountryRoot = parentId === DEFAULT_GEOGRAPHY_FOCUS_ID;
   const childCategory = isCountryRoot ? "administrative" : category;
+  // Keep the map filter aligned with the stable hierarchy/category fields.
+  // The tileset contains historical and current records, and its status/type
+  // values are not a reliable visibility gate for the public directory.
   const children = [
     "all",
     ["==", ["get", "parent_id"], parentId],
     ["==", ["get", "boundary_category"], childCategory],
-    ["==", ["get", "status"], "active"],
-    ...(isCountryRoot ? [["==", ["get", "geography_type"], "state"]] : []),
   ];
 
   if (!selectedId) return children;
@@ -133,21 +134,40 @@ export default function GeographyTilesMap({
     };
 
     map.on("error", (event) => {
+      const error = event?.error;
       const sourceId = event?.sourceId || event?.source?.id || "";
-      const requestUrl = event?.error?.url || event?.source?.url || "";
-      const message = event?.error?.message || "Unknown MapLibre rendering error";
-
-      if (
+      const requestUrl =
+        error?.url ||
+        event?.tile?.tileID?.canonical?.url ||
+        event?.source?.url ||
+        "";
+      const message = error?.message || event?.message || "Unknown MapLibre rendering error";
+      const status = error?.status ? ` (HTTP ${error.status})` : "";
+      const isMapTilerError =
         sourceId === SOURCE_ID ||
-        requestUrl.includes("api.maptiler.com/tiles/")
-      ) {
-        setMapError(`MapTiler vector tile error: ${message}`);
+        requestUrl.includes("api.maptiler.com/tiles/") ||
+        event?.source?.id === SOURCE_ID;
+
+      if (isMapTilerError) {
+        console.error("[Geography map] MapTiler tile/source error", {
+          message,
+          status: error?.status || null,
+          url: requestUrl ? requestUrl.replace(/([?&]key=)[^&]+/, "$1[redacted]") : null,
+          sourceId,
+          tile: event?.tile?.tileID || null,
+        });
+        setMapError(`MapTiler vector tile error${status}: ${message}`);
       } else if (
         requestUrl.includes("openfreemap.org") ||
         requestUrl.includes("openmaptiles.org") ||
         !sourceId
       ) {
-        setMapError(`OpenFreeMap basemap error: ${message}`);
+        console.error("[Geography map] Basemap/rendering error", {
+          message,
+          status: error?.status || null,
+          url: requestUrl,
+        });
+        setMapError(`OpenFreeMap basemap error${status}: ${message}`);
       }
     });
 
@@ -199,7 +219,13 @@ export default function GeographyTilesMap({
         });
 
         map.on("sourcedata", (event) => {
-          if (event.sourceId === SOURCE_ID) updateVisibleFeatureStatus();
+          if (event.sourceId !== SOURCE_ID) return;
+          if (event.isSourceLoaded) {
+            setTileStatus("MapTiler source loaded · checking visible geography boundaries…");
+          } else if (event.sourceDataType === "content") {
+            setTileStatus("MapTiler tile content received · rendering boundaries…");
+          }
+          updateVisibleFeatureStatus();
         });
         map.on("idle", updateVisibleFeatureStatus);
 
