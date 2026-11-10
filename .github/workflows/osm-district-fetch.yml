@@ -1,0 +1,62 @@
+name: Fetch OSM Districts
+
+on:
+  workflow_dispatch:
+    inputs:
+      state:
+        description: "State/UT name, or all"
+        required: false
+        default: "all"
+        type: string
+      attempts:
+        description: "Maximum endpoint-rotation attempts (1-4)"
+        required: false
+        default: "2"
+        type: string
+      delay_seconds:
+        description: "Delay between state requests and retry rounds"
+        required: false
+        default: "4"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: osm-district-fetch-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  fetch-districts:
+    name: Fetch administrative district relations
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Check out selected branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch state-wise OSM district relations
+        env:
+          STATE: ${{ inputs.state || 'all' }}
+          ATTEMPTS: ${{ inputs.attempts || '2' }}
+          DELAY_SECONDS: ${{ inputs.delay_seconds || '4' }}
+        run: |
+          python scripts/fetch-osm-districts.py \
+            --state "$STATE" \
+            --attempts "$ATTEMPTS" \
+            --delay-seconds "$DELAY_SECONDS" \
+            --output-dir artifacts/osm-districts
+
+      - name: Upload raw responses and review datasets
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: osm-district-fetch-${{ github.run_number }}
+          path: artifacts/osm-districts/
+          if-no-files-found: error
+          retention-days: 30
