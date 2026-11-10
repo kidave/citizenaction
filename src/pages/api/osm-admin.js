@@ -1,11 +1,14 @@
 export const config = { maxDuration: 60 };
 
 // Prefer the endpoint commonly used by Overpass Turbo; retain a public fallback.
+// The main FOSSGIS instance is currently returning fast HTTP 502 capacity errors.
+ // Give the larger Private.coffee instance most of the function budget, then
+ // retain VK Maps as a final global-data fallback.
 const OVERPASS_ENDPOINTS = [
-  { name: "overpass-api.de", url: "https://overpass-api.de/api/interpreter" },
-  { name: "overpass.private.coffee", url: "https://overpass.private.coffee/api/interpreter" },
+  { name: "overpass.private.coffee", url: "https://overpass.private.coffee/api/interpreter", timeoutMs: 40000 },
+  { name: "maps.mail.ru", url: "https://maps.mail.ru/osm/tools/overpass/api/interpreter", timeoutMs: 12000 },
+  { name: "overpass-api.de", url: "https://overpass-api.de/api/interpreter", timeoutMs: 4000 },
 ];
-const OVERPASS_ENDPOINT_TIMEOUT_MS = 22000;
 
 function quoteOverpass(value) {
   // JSON string escaping is compatible with Overpass QL quoted string values.
@@ -71,7 +74,7 @@ async function runOverpass(query) {
     const controller = new AbortController();
     const timeout = setTimeout(
       () => controller.abort(),
-      OVERPASS_ENDPOINT_TIMEOUT_MS,
+      endpoint.timeoutMs,
     );
 
     try {
@@ -119,7 +122,8 @@ async function runOverpass(query) {
         outcome: timedOut ? "timeout" : "error",
         elapsed_ms: Date.now() - startedAt,
         http_status: error.status || null,
-        message: timedOut ? `Timed out after ${OVERPASS_ENDPOINT_TIMEOUT_MS / 1000} seconds` : error.message,
+        message: timedOut ? `Timed out after ${endpoint.timeoutMs / 1000} seconds` : error.message,
+        response_body: error.body || null,
       });
     } finally {
       clearTimeout(timeout);
