@@ -502,7 +502,28 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     const loadCurrentGeometry = async () => {
       try {
         const nextGeometry = await fetchGeographyGeometry(currentGeography);
-        if (!cancelled) setGeometry(nextGeometry);
+        if (!cancelled) {
+          setGeometry(nextGeometry);
+          const coordinates = nextGeometry?.type === "Feature" ? nextGeometry.geometry?.coordinates : nextGeometry?.coordinates;
+          const points = [];
+          const visit = (value) => {
+            if (!Array.isArray(value)) return;
+            if (typeof value[0] === "number" && typeof value[1] === "number") { points.push(value); return; }
+            value.forEach(visit);
+          };
+          visit(coordinates);
+          if (points.length) {
+            const bounds = points.reduce((result, point) => ({
+              minLng: Math.min(result.minLng, point[0]), maxLng: Math.max(result.maxLng, point[0]),
+              minLat: Math.min(result.minLat, point[1]), maxLat: Math.max(result.maxLat, point[1]),
+            }), { minLng: Infinity, maxLng: -Infinity, minLat: Infinity, maxLat: -Infinity });
+            setSelected((current) => current?.id === currentGeography.id ? {
+              ...current,
+              center: current.center || { lat: (bounds.minLat + bounds.maxLat) / 2, lng: (bounds.minLng + bounds.maxLng) / 2 },
+              bounds: [[bounds.minLng, bounds.minLat], [bounds.maxLng, bounds.maxLat]],
+            } : current);
+          }
+        }
       } catch {
         if (!cancelled) setGeometry(null);
       }
