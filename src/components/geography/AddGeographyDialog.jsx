@@ -179,9 +179,11 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
         }
         if (browseMode === "metropolitan" || browseMode === "local-bodies") {
           const kind = browseMode === "metropolitan" ? "metropolitan_area" : "local_government";
-          const { data, error } = await supabase.from("geographies").select(FIELDS)
-            .eq("parent_id", parent?.id).eq("boundary_category", "local_government")
+          let localQuery = supabase.from("geographies").select(FIELDS)
+            .eq("boundary_category", "local_government")
             .eq("geography_type", kind).order("name", { ascending: true }).range(from, to);
+          if (parent?.id) localQuery = localQuery.eq("parent_id", parent.id);
+          const { data, error } = await localQuery;
           if (error) throw error;
           return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
         }
