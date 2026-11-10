@@ -395,7 +395,11 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
   const goBack = () => {
     setBrowsePath((path) => path.slice(0, -1));
-    setBrowseMode("root");
+    if (category === "local_government" && (browseMode === "zones" || browseMode === "wards")) {
+      setBrowseMode("local-bodies");
+    } else {
+      setBrowseMode("root");
+    }
   };
 
   const backToStates = () => {
@@ -427,8 +431,10 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
 
   const exploreAll = (mode) => {
-    if (mode === "state-districts" && selected?.geography_type === "state") {
+    if (mode === "state-districts" || mode === "metropolitan" || mode === "local-bodies" || mode === "assembly-state") {
       setBrowsePath([selected]);
+    } else if (mode === "zones" || mode === "wards" || mode === "assembly-constituencies") {
+      setBrowsePath((path) => [...path, selected]);
     } else {
       setBrowsePath([]);
       setSelected(null);
@@ -714,6 +720,24 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
                   Explore all districts of India
                 </Button>
               )
+            )}
+            {category === "local_government" && selected?.geography_type === "state" && browseMode === "root" && (
+              <>
+                <Button type="button" size="sm" variant="outline" className="shrink-0" onClick={() => exploreAll("metropolitan")}>Explore metropolitan areas</Button>
+                <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("local-bodies")}>Explore local bodies</Button>
+              </>
+            )}
+            {category === "local_government" && selected?.geography_type === "local_government" && browseMode === "local-bodies" && (
+              <>
+                <Button type="button" size="sm" variant="outline" className="shrink-0" onClick={() => exploreAll("zones")}>Explore zones</Button>
+                <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("wards")}>Explore wards</Button>
+              </>
+            )}
+            {category === "political" && politicalLevel === "assembly" && selected?.geography_type === "state" && (
+              <Button type="button" size="sm" variant="outline" className="shrink-0" onClick={() => exploreAll("assembly-state")}>Explore parliamentary constituencies in {selected.name}</Button>
+            )}
+            {category === "political" && politicalLevel === "assembly" && selected?.geography_type === "parliamentary_constituency" && (
+              <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("assembly-constituencies")}>Explore assembly constituencies in {selected.name}</Button>
             )}
             {category === "political" && politicalLevel === "parliamentary" && (
               <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("all-parliamentary")}>
