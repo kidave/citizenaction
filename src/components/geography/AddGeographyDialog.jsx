@@ -401,17 +401,27 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
   const goBack = () => {
     setBrowsePath((path) => path.slice(0, -1));
+    setBrowseMode("root");
   };
 
   const handleCategoryChange = (value) => {
     setCategory(value);
     setType("all");
     setSearch("");
-    const canBeCrossCategoryParent =
-      selected?.geography_type === "state" ||
-      selected?.geography_type === "district" ||
-      selected?.geography_type === "parliamentary_constituency";
+    setBrowseMode("root");
+    setPoliticalLevel("state");
+    setPoliticalStateFilter("all");
     setBrowsePath([]);
+    setSelected(null);
+    setGeometry(null);
+  };
+
+  const exploreMode = (mode) => {
+    if (!selected) return;
+    setBrowsePath([selected]);
+    setBrowseMode(mode);
+    setSearch("");
+    setType("all");
   };
 
   const handleTypeChange = (value) => {
@@ -421,6 +431,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
   const handlePoliticalLevelChange = (value) => {
     setPoliticalLevel(value);
+    setBrowseMode("root");
     setPoliticalStateFilter("all");
     setBrowsePath([]);
     setSearch("");
@@ -437,6 +448,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
   const handleSearchChange = (value) => {
     setSearch(value);
     setBrowsePath([]);
+    setBrowseMode("root");
   };
 
   const handleSave = async () => {
