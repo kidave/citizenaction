@@ -368,7 +368,6 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
   const handleCategoryChange = (value) => {
     setCategory(value);
-    setType("all");
     setSearch("");
     setBrowseMode("root");
     setPoliticalLevel("state");
