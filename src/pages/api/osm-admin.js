@@ -114,7 +114,7 @@ function buildQuery({ level, parentRelationId, stateName, city, query, limit }) 
     return `[out:json][timeout:90];
 area(id:${areaId})->.parentArea;
 rel${boundaryFilter}${levelFilter}${nameFilter}(area.parentArea);
-out tags center ${limit};`;
+out tags center;`;
   }
 
   if (level === 5 && stateName) {
@@ -125,7 +125,7 @@ out tags center ${limit};`;
   area["boundary"="administrative"]["admin_level"="4"]["name:en"=${state}];
 )->.stateArea;
 rel${boundaryFilter}${levelFilter}${nameFilter}(area.stateArea);
-out tags center ${limit};`;
+out tags center;`;
   }
 
   if (stateName && level === 8) {
@@ -136,7 +136,7 @@ area["boundary"="administrative"]["admin_level"="4"]["name:en"=${state}]->.state
   rel["type"="boundary"]["admin_level"="8"]["is_in:state"=${state}]${nameFilter};
   rel["type"="boundary"]["boundary"="local_authority"]["admin_level"="8"]["local_authority:IN"~"municipal_corporation|municipality|nagar_panchayat"](area.stateArea)${nameFilter};
 );
-out tags center ${limit};`;
+out tags center;`;
   }
 
   if (parentRelationId) {
@@ -144,13 +144,13 @@ out tags center ${limit};`;
     return `[out:json][timeout:60];
 area(id:${areaId})->.parentArea;
 rel["type"="boundary"]${boundaryFilter}${levelFilter}${nameFilter}(area.parentArea);
-out tags center ${limit};`;
+out tags center;`;
   }
 
   if (level === 2) {
     return `[out:json][timeout:60];
 rel["type"="boundary"]${boundaryFilter}${levelFilter}${nameFilter};
-out tags center ${limit};`;
+out tags center;`;
   }
 
   if (city) {
@@ -158,13 +158,13 @@ out tags center ${limit};`;
     return `[out:json][timeout:60];
 area["name"=${cityValue}]["boundary"="administrative"]->.cityArea;
 rel["type"="boundary"]${boundaryFilter}${levelFilter}${nameFilter}(area.cityArea);
-out tags center ${limit};`;
+out tags center;`;
   }
 
   return `[out:json][timeout:90];
 area["ISO3166-1"="IN"]["boundary"="administrative"]->.india;
 rel["type"="boundary"]${boundaryFilter}${levelFilter}${nameFilter}(area.india);
-out tags center ${limit};`;
+out tags center;`;
 }
 
 export default async function handler(req, res) {
