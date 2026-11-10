@@ -31,7 +31,7 @@ async function fetchStateDistricts(state) {
       const params = new URLSearchParams({
         admin_level: "5",
         list: "1",
-        parent_osm_id: String(state.osm_id),
+        state_name: state.name,
         limit: "500",
       });
       const response = await fetch("/api/osm-admin?" + params.toString(), {
