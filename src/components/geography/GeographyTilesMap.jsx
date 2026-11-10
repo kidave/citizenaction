@@ -52,6 +52,7 @@ export default function GeographyTilesMap({
   const configRef = useRef({ parentId, selectedId, category });
   const lastFocusRef = useRef(null);
   const [mapError, setMapError] = useState(null);
+  const [tileStatus, setTileStatus] = useState("Loading MapTiler vector tiles…");
 
   useEffect(() => {
     onFeatureClickRef.current = onFeatureClick;
@@ -60,8 +61,14 @@ export default function GeographyTilesMap({
   const apiKey = process.env.NEXT_PUBLIC_MAPTILER_API_KEY;
 
   useEffect(() => {
-    if (!apiKey || !containerRef.current) return undefined;
+    if (!apiKey) {
+      setMapError("MapTiler key is missing from this preview build. Redeploy after setting NEXT_PUBLIC_MAPTILER_API_KEY.");
+      return undefined;
+    }
+    if (!containerRef.current) return undefined;
 
+    setMapError(null);
+    setTileStatus("Loading MapTiler vector tiles…");
     let cancelled = false;
     let map;
 
@@ -92,6 +99,12 @@ export default function GeographyTilesMap({
         });
         mapRef.current = map;
         map.addControl(new maplibregl.NavigationControl({ showCompass: true }), "top-right");
+        map.on("error", (event) => {
+          const message = event?.error?.message || "Map rendering error";
+          const sourceId = event?.sourceId || "";
+          const sourceUrl = event?.source?.url || "";
+          if (sourceId === "citizenaction-geographies" || sourceUrl.includes("api.maptiler.com")) setMapError(message);
+        });
 
         map.once("load", () => {
           if (cancelled) return;
@@ -175,6 +188,13 @@ export default function GeographyTilesMap({
           map.on("mouseleave", "citizenaction-geography-fill", () => {
             map.getCanvas().style.cursor = "";
           });
+          map.once("idle", () => {
+            if (cancelled) return;
+            const visible = map.queryRenderedFeatures({ layers: ["citizenaction-geography-fill"] });
+            setTileStatus(visible.length
+              ? `MapTiler loaded · ${visible.length} visible boundaries`
+              : "MapTiler connected, but no boundaries match this hierarchy filter. Check tileset properties and upload version.");
+          });
         });
       } catch (error) {
         if (!cancelled) setMapError(error?.message || "Unable to load geography tiles.");
@@ -225,24 +245,18 @@ export default function GeographyTilesMap({
     ]);
   }, [parentId, selectedId, category, lat, lng, zoom]);
 
-  if (!apiKey || mapError) {
-    return (
-      <div className="relative h-full w-full">
-        <LeafletMap
-          lat={lat}
-          lng={lng}
-          boundary={fallbackBoundary}
-          showMarker={false}
-          zoom={zoom}
-        />
-        {mapError ? (
-          <div className="absolute bottom-3 left-3 rounded-md border bg-background/95 px-3 py-2 text-xs text-muted-foreground shadow">
-            Vector tiles unavailable: {mapError}
-          </div>
-        ) : null}
-      </div>
-    );
-  }
-
-  return <div ref={containerRef} className="h-full min-h-[180px] w-full" />;
+  return (
+    <div className="relative h-full min-h-[180px] w-full">
+      <div ref={containerRef} className="h-full min-h-[180px] w-full" />
+      {mapError ? (
+        <div className="absolute bottom-3 left-3 right-3 rounded-md border border-destructive/30 bg-background/95 px-3 py-2 text-xs text-destructive shadow">
+          MapTiler unavailable: {mapError}
+        </div>
+      ) : (
+        <div className="absolute bottom-3 left-3 rounded-md border bg-background/95 px-3 py-2 text-xs text-muted-foreground shadow">
+          {tileStatus}
+        </div>
+      )}
+    </div>
+  );
 }
