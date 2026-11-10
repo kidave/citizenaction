@@ -398,6 +398,14 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     setBrowseMode("root");
   };
 
+  const backToStates = () => {
+    setBrowsePath([]);
+    setBrowseMode("root");
+    setSelected(null);
+    setGeometry(null);
+    setSearch("");
+  };
+
   const handleCategoryChange = (value) => {
     setCategory(value);
     setSearch("");
@@ -689,13 +697,18 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
                   <ChevronLeft className="mr-1 h-4 w-4" /> Back to states
                 </Button>
               ) : browseMode === "all-districts" ? (
-                <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={() => exploreAll("root")}>
+                <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={backToStates}>
                   <ChevronLeft className="mr-1 h-4 w-4" /> Back to states
                 </Button>
               ) : selected?.geography_type === "state" ? (
-                <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("state-districts")}>
-                  Explore districts in {selected.name}
-                </Button>
+                <>
+                  <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={backToStates}>
+                    <ChevronLeft className="mr-1 h-4 w-4" /> Back to states
+                  </Button>
+                  <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("state-districts")}>
+                    Explore districts in {selected.name}
+                  </Button>
+                </>
               ) : (
                 <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("all-districts")}>
                   Explore all districts of India
