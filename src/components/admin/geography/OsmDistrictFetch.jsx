@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Download, Loader2, RefreshCw, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase/client";
@@ -99,7 +99,7 @@ export default function OsmDistrictFetch() {
   const successfulStates = report?.states?.filter((state) => state.complete).length || 0;
   const selectedState = states.find((state) => state.id === selectedStateId);
 
-  const loadStates = async () => {
+  const loadStates = useCallback(async () => {
     if (states.length) return states;
     const { data, error } = await supabase
       .from("geographies")
@@ -117,13 +117,13 @@ export default function OsmDistrictFetch() {
       toast.warning("Found " + data.length + " states/UTs; expected 36. Review the state list.");
     }
     return data;
-  };
+  }, [states.length]);
 
   useEffect(() => {
     loadStates().catch((error) => {
       toast.error(error.message || "Unable to load Indian states.");
     });
-  }, []);
+  }, [loadStates]);
 
   const saveResult = (result, stateCount) => {
     setReport((previous) => {
