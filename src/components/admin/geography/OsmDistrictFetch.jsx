@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Download, Loader2, RefreshCw, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase/client";
@@ -118,6 +118,12 @@ export default function OsmDistrictFetch() {
     }
     return data;
   };
+
+  useEffect(() => {
+    loadStates().catch((error) => {
+      toast.error(error.message || "Unable to load Indian states.");
+    });
+  }, []);
 
   const saveResult = (result, stateCount) => {
     setReport((previous) => {
