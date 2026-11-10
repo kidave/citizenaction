@@ -181,7 +181,7 @@ export default function GeographyTilesMap({
           }
         });
 
-        map.once("load", () => {
+        map.once("style.load", () => {
           if (cancelled) return;
 
           try {
