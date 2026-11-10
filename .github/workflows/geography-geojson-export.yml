@@ -1,6 +1,11 @@
 name: Geography GeoJSON export
 
 on:
+  pull_request:
+    paths:
+      - "scripts/geography/**"
+      - "supabase/migrations/20261110110000_add_geography_geojson_export_rpc.sql"
+      - ".github/workflows/geography-geojson-export.yml"
   workflow_dispatch:
   schedule:
     # Weekly export, Monday 06:00 UTC (11:30 IST).
@@ -36,6 +41,7 @@ jobs:
         run: python -m py_compile scripts/geography/export_geojson.py
 
       - name: Export GeoJSON from Supabase
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -44,6 +50,7 @@ jobs:
         run: python scripts/geography/export_geojson.py
 
       - name: Upload GeoJSON artifact
+        if: success() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         uses: actions/upload-artifact@v4
         with:
           name: citizenaction-geographies-${{ github.run_number }}
