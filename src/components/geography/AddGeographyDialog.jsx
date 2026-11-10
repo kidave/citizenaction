@@ -716,18 +716,18 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
               )}
               {category === "political" && (
                 <>
-                  <Button type="button" size="sm" variant={browseMode === "root" || browseMode === "all-parliamentary" || browseMode === "assembly-state" ? "secondary" : "outline"} onClick={() => exploreAll(selected?.geography_type === "state" ? "assembly-state" : "all-parliamentary")}>
+                  <Button type="button" size="sm" variant={browseMode === "all-parliamentary" || browseMode === "assembly-state" ? "secondary" : "outline"} onClick={() => exploreAll(selected?.geography_type === "state" ? "assembly-state" : "all-parliamentary")}>
                     Parliament
                   </Button>
-                  <Button type="button" size="sm" variant={browseMode === "all-assembly" || browseMode === "assembly-constituencies" ? "secondary" : "outline"} onClick={() => exploreAll("all-assembly")}>
+                  <Button type="button" size="sm" variant={browseMode === "all-assembly" || browseMode === "assembly-constituencies" ? "secondary" : "outline"} onClick={() => exploreAll(selected?.geography_type === "parliamentary_constituency" && browseMode === "assembly-state" ? "assembly-constituencies" : "all-assembly")}>
                     Assembly
                   </Button>
                 </>
               )}
               {category === "local_government" && (
                 <>
-                  <Button type="button" size="sm" variant={browseMode === "root" || browseMode === "metropolitan" ? "secondary" : "outline"} onClick={() => exploreAll("metropolitan")}>Metropolitan Area</Button>
-                  <Button type="button" size="sm" variant={browseMode === "local-bodies" || browseMode === "zones" || browseMode === "wards" ? "secondary" : "outline"} onClick={() => exploreAll(selected?.geography_type === "local_government" ? "local-bodies" : "local-bodies")}>Local Body</Button>
+                  <Button type="button" size="sm" variant={browseMode === "metropolitan" ? "secondary" : "outline"} onClick={() => exploreAll("metropolitan")}>Metropolitan Area</Button>
+                  <Button type="button" size="sm" variant={browseMode === "local-bodies" || browseMode === "zones" || browseMode === "wards" ? "secondary" : "outline"} onClick={() => exploreAll("local-bodies")}>Local Body</Button>
                 </>
               )}
             </div>
