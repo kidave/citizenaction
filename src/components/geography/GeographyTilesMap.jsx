@@ -73,6 +73,7 @@ export default function GeographyTilesMap({
   lat = 20.5937,
   lng = 78.9629,
   zoom = 4,
+  focusEnabled = true,
   fallbackBoundary = null,
 }) {
   const containerRef = useRef(null);
@@ -276,6 +277,8 @@ export default function GeographyTilesMap({
     const map = mapRef.current;
     if (!map) return;
 
+    if (!focusEnabled) return;
+
     const focusKey = [selectedId || parentId || "india", lat, lng, zoom].join(":");
     if (lastFocusRef.current !== focusKey) {
       map.flyTo({
@@ -307,7 +310,7 @@ export default function GeographyTilesMap({
     );
     map.setPaintProperty(LINE_LAYER_ID, "line-color", paint.line["line-color"]);
     map.setPaintProperty(LINE_LAYER_ID, "line-width", paint.line["line-width"]);
-  }, [parentId, selectedId, category, geographyType, lat, lng, zoom]);
+  }, [parentId, selectedId, category, geographyType, lat, lng, zoom, focusEnabled]);
 
   return (
     <div className="relative h-full min-h-[180px] w-full">
