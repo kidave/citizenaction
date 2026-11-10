@@ -15,11 +15,9 @@ const DEFAULT_GEOGRAPHY_FOCUS_ID = "6f3dda25-6cf4-43f2-a5b7-1c8aa9d2113f";
 const TILESET_BOUNDS = [68.095, 6.7563, 97.4115, 37.077];
 
 function getVectorTileTemplate(apiKey) {
-  const url = new URL(
-    `https://api.maptiler.com/tiles/${TILESET_ID}/{z}/{x}/{y}.pbf`
-  );
-  url.searchParams.set("key", apiKey);
-  return url.toString();
+  // MapLibre substitutes these literal placeholders when requesting each tile.
+  // URL() encodes the braces (%7Bz%7D), which prevents tile-coordinate expansion.
+  return `https://api.maptiler.com/tiles/${TILESET_ID}/{z}/{x}/{y}.pbf?key=${encodeURIComponent(apiKey)}`;
 }
 
 function buildFeatureFilter({ parentId, selectedId, category }) {
