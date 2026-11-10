@@ -39,7 +39,7 @@ const nextConfig = {
         https://apis.google.com
         https://vercel.live;
 
-      style-src 'self' 'unsafe-inline' https://vercel.live;
+      style-src 'self' 'unsafe-inline' https://vercel.live https://accounts.google.com;
 
       img-src 'self'
         data:
@@ -73,6 +73,8 @@ const nextConfig = {
         https://cdn.jsdelivr.net
         https://unpkg.com
         https://tiles.openfreemap.org
+        https://api.maptiler.com
+        https://*.maptiler.com
         wss://ws-us3.pusher.com;
 
       frame-src 'self'
