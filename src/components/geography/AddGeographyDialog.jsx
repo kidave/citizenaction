@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   ChevronLeft,
-  ChevronRight,
   Loader2,
   Search,
 } from "lucide-react";
@@ -22,7 +21,6 @@ import { useGovernanceGeography, useGovernanceGeographyMutation } from "@/hooks/
 import {
   GEOGRAPHY_BOUNDARY_CATEGORIES,
   getGeographyBoundaryCategory,
-  getGeographyCategoryLabel,
   getGeographyTypeLabel,
 } from "@/config/geography/boundaryCategories";
 
@@ -579,10 +577,6 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
           },
         ]
       : [];
-
-  const selectionPath = browsePath.length
-    ? browsePath.map((item) => item.name).join(" / ")
-    : "";
 
 
 
