@@ -11,8 +11,8 @@ on:
       - ".github/workflows/geography-geojson-export.yml"
   workflow_dispatch:
   schedule:
-    # Weekly export, Monday 06:00 UTC (11:30 IST).
-    - cron: "0 6 * * 1"
+    # Half-yearly export: January 1 and July 1 at 06:00 UTC (11:30 IST).
+    - cron: "0 6 1 1,7 *"
 
 permissions:
   contents: read
