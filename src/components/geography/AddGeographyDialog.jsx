@@ -175,9 +175,8 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
         }
 
         if (needle) {
-          const pattern = `%${needle.replace(/["\\]/g, "\\          query = query.or(
-            "name.ilike.%" + needle + "%,official_name.ilike.%" + needle + "%",
-          );")}%`;
+          const safeNeedle = needle.replace(/["\\]/g, "\\$&");
+          const pattern = `%${safeNeedle}%`;
           query = query.or(
             `name.ilike."${pattern}",official_name.ilike."${pattern}"`,
           );
