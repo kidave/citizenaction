@@ -16,18 +16,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const REQUEST_TIMEOUT_MS = 70000;
-const RETRY_DELAY_MS = 2000;
+const REQUEST_TIMEOUT_MS = 55000;
 
-const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+function describeEndpointDiagnostics(diagnostics = []) {
+  return diagnostics.map((item) => {
+    const duration = (item.elapsed_ms / 1000).toFixed(1);
+    return item.endpoint + ": " + item.outcome + " (" + duration + "s)" +
+      (item.http_status ? ", HTTP " + item.http_status : "") +
+      (item.message ? " — " + item.message : "");
+  }).join("; ");
+}
 
 async function fetchStateDistricts(state) {
-  let lastError;
-
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-    try {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
       const params = new URLSearchParams({
         admin_level: "5",
         list: "1",
@@ -42,7 +45,11 @@ async function fetchStateDistricts(state) {
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || payload.complete !== true) {
-        throw new Error(payload.details || payload.error || ("Request failed (" + response.status + ")"));
+        const endpointDetails = describeEndpointDiagnostics(payload.endpoint_diagnostics);
+        throw new Error(
+          (payload.details || payload.error || ("Request failed (" + response.status + ")")) +
+          (endpointDetails ? " [" + endpointDetails + "]" : "")
+        );
       }
       return {
         state_id: state.id,
@@ -50,34 +57,31 @@ async function fetchStateDistricts(state) {
         state_osm_id: state.osm_id,
         count: payload.count || 0,
         osm_timestamp: payload.osm_timestamp || null,
+        endpoint_diagnostics: payload.endpoint_diagnostics || [],
         results: (payload.results || []).map((item) => ({
           ...item,
           parent_id: state.id,
           parent_name: state.name,
         })),
         complete: true,
-        attempts: attempt + 1,
+        attempts: 1,
       };
-    } catch (error) {
-      lastError = error.name === "AbortError"
-        ? new Error("Request exceeded 70 seconds")
-        : error;
-      if (attempt === 0) await wait(RETRY_DELAY_MS);
-    } finally {
-      clearTimeout(timeout);
-    }
+  } catch (error) {
+    return {
+      state_id: state.id,
+      state_name: state.name,
+      state_osm_id: state.osm_id,
+      count: 0,
+      results: [],
+      complete: false,
+      error: error.name === "AbortError"
+        ? "Request exceeded 55 seconds; the server may have timed out."
+        : error.message || "Request failed",
+      attempts: 1,
+    };
+  } finally {
+    clearTimeout(timeout);
   }
-
-  return {
-    state_id: state.id,
-    state_name: state.name,
-    state_osm_id: state.osm_id,
-    count: 0,
-    results: [],
-    complete: false,
-    error: lastError?.message || "Request failed",
-    attempts: 2,
-  };
 }
 
 export default function OsmDistrictFetch() {

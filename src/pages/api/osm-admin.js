@@ -1,9 +1,11 @@
 export const config = { maxDuration: 60 };
 
+// Prefer the endpoint commonly used by Overpass Turbo; retain a public fallback.
 const OVERPASS_ENDPOINTS = [
-  "https://overpass.private.coffee/api/interpreter",
-  "https://overpass-api.de/api/interpreter",
+  { name: "overpass-api.de", url: "https://overpass-api.de/api/interpreter" },
+  { name: "overpass.private.coffee", url: "https://overpass.private.coffee/api/interpreter" },
 ];
+const OVERPASS_ENDPOINT_TIMEOUT_MS = 22000;
 
 function quoteOverpass(value) {
   // JSON string escaping is compatible with Overpass QL quoted string values.
@@ -62,13 +64,18 @@ function parseResults(data, expectedLevel = null) {
 }
 
 async function runOverpass(query) {
-  let lastError = null;
+  const attempts = [];
 
   for (const endpoint of OVERPASS_ENDPOINTS) {
+    const startedAt = Date.now();
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 25000);
+    const timeout = setTimeout(
+      () => controller.abort(),
+      OVERPASS_ENDPOINT_TIMEOUT_MS,
+    );
+
     try {
-      const response = await fetch(endpoint, {
+      const response = await fetch(endpoint.url, {
         signal: controller.signal,
         method: "POST",
         headers: {
@@ -82,7 +89,7 @@ async function runOverpass(query) {
         const body = await response.text();
         const error = new Error(`Overpass returned HTTP ${response.status}`);
         error.status = response.status;
-        error.body = body.slice(0, 500);
+        error.body = body.slice(0, 300);
         throw error;
       }
 
@@ -97,19 +104,32 @@ async function runOverpass(query) {
         error.status = 502;
         throw error;
       }
-      return data;
+
+      attempts.push({
+        endpoint: endpoint.name,
+        outcome: "success",
+        elapsed_ms: Date.now() - startedAt,
+        http_status: response.status,
+      });
+      return { data, diagnostics: attempts };
     } catch (error) {
-      lastError = error.name === "AbortError"
-        ? new Error("Overpass endpoint timed out after 25 seconds")
-        : error;
+      const timedOut = error.name === "AbortError";
+      attempts.push({
+        endpoint: endpoint.name,
+        outcome: timedOut ? "timeout" : "error",
+        elapsed_ms: Date.now() - startedAt,
+        http_status: error.status || null,
+        message: timedOut ? `Timed out after ${OVERPASS_ENDPOINT_TIMEOUT_MS / 1000} seconds` : error.message,
+      });
     } finally {
       clearTimeout(timeout);
     }
   }
 
-  throw lastError || new Error("All Overpass endpoints failed");
+  const error = new Error("All configured Overpass endpoints failed.");
+  error.diagnostics = attempts;
+  throw error;
 }
-
 function buildQuery({ level, parentRelationId, stateName, city, query, limit }) {
   const nameFilter = query ? `["name"~${quoteOverpass(query)}i]` : "";
   const boundaryFilter = '["boundary"="administrative"]';
@@ -214,7 +234,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const data = await runOverpass(buildQuery({
+    const { data, diagnostics } = await runOverpass(buildQuery({
       level,
       parentRelationId,
       stateName,
@@ -233,6 +253,7 @@ export default async function handler(req, res) {
         parent_osm_id: parentRelationId,
         state_name: stateName || null,
         osm_timestamp: data?.osm3s?.timestamp_osm_base || null,
+        endpoint_diagnostics: diagnostics,
       });
     }
 
@@ -259,6 +280,7 @@ export default async function handler(req, res) {
       parent_osm_id: parentRelationId,
       state_name: stateName || null,
       osm_timestamp: data?.osm3s?.timestamp_osm_base || null,
+      endpoint_diagnostics: diagnostics,
       cached: false,
     });
   } catch (error) {
@@ -266,6 +288,7 @@ export default async function handler(req, res) {
     return res.status(502).json({
       error: "Unable to fetch a complete administrative list from OpenStreetMap.",
       details: error.message,
+      endpoint_diagnostics: error.diagnostics || [],
       results: [],
       complete: false,
       parent_osm_id: parentRelationId,
