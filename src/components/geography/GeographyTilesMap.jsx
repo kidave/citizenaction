@@ -12,9 +12,12 @@ const FILL_LAYER_ID = "citizenaction-geography-fill";
 const LINE_LAYER_ID = "citizenaction-geography-outline";
 const SOURCE_LAYER_ID = "geographies";
 const DEFAULT_GEOGRAPHY_FOCUS_ID = "6f3dda25-6cf4-43f2-a5b7-1c8aa9d2113f";
+const TILESET_BOUNDS = [68.095, 6.7563, 97.4115, 37.077];
 
-function getTileJsonUrl(apiKey) {
-  const url = new URL(`https://api.maptiler.com/tiles/${TILESET_ID}/tiles.json`);
+function getVectorTileTemplate(apiKey) {
+  const url = new URL(
+    `https://api.maptiler.com/tiles/${TILESET_ID}/{z}/{x}/{y}.pbf`
+  );
   url.searchParams.set("key", apiKey);
   return url.toString();
 }
@@ -32,11 +35,7 @@ function buildFeatureFilter({ parentId, selectedId, category }) {
 
   if (!selectedId) return children;
 
-  return [
-    "any",
-    ["==", ["get", "id"], selectedId],
-    children,
-  ];
+  return ["any", ["==", ["get", "id"], selectedId], children];
 }
 
 function getFeaturePaint(category, selectedId) {
@@ -63,12 +62,7 @@ function getFeaturePaint(category, selectedId) {
         "#d97706",
         category === "political" ? "#7c3aed" : "#1d4ed8",
       ],
-      "line-width": [
-        "case",
-        ["==", ["get", "id"], selectedId || ""],
-        3,
-        1.5,
-      ],
+      "line-width": ["case", ["==", ["get", "id"], selectedId || ""], 3, 1.5],
       "line-opacity": 0.95,
     },
   };
@@ -90,7 +84,7 @@ export default function GeographyTilesMap({
   const configRef = useRef({ parentId, selectedId, category });
   const lastFocusRef = useRef(null);
   const [mapError, setMapError] = useState(null);
-  const [tileStatus, setTileStatus] = useState("Connecting to MapTiler…");
+  const [tileStatus, setTileStatus] = useState("Connecting to map providers…");
 
   useEffect(() => {
     onFeatureClickRef.current = onFeatureClick;
@@ -107,166 +101,144 @@ export default function GeographyTilesMap({
     if (!containerRef.current) return undefined;
 
     setMapError(null);
-    setTileStatus("Fetching MapTiler tile metadata…");
+    setTileStatus("Loading OpenFreeMap basemap…");
+
     let cancelled = false;
-    let map;
+    const map = new MapLibreMap({
+      container: containerRef.current,
+      // OpenFreeMap remains the basemap. MapTiler is used only for the
+      // geography vector overlay registered below.
+      style: OPENFREEMAP_STYLES.light.url,
+      center: [Number(lng) || 78.9629, Number(lat) || 20.5937],
+      zoom,
+      attributionControl: true,
+    });
 
-    const initialize = async () => {
-      try {
-        const tileJsonUrl = getTileJsonUrl(apiKey);
-        const response = await fetch(tileJsonUrl);
-        if (!response.ok) {
-          throw new Error(`MapTiler TileJSON request failed (HTTP ${response.status}).`);
-        }
+    mapRef.current = map;
+    map.addControl(new NavigationControl({ showCompass: true }), "top-right");
 
-        const tileJson = await response.json();
-        const vectorLayer = (tileJson.vector_layers || []).find(
-          (layer) => layer.id === SOURCE_LAYER_ID
-        ) || (tileJson.vector_layers || []).find(
-          (layer) => layer.fields?.parent_id && layer.fields?.boundary_category
-        ) || tileJson.vector_layers?.[0];
+    const updateVisibleFeatureStatus = () => {
+      if (cancelled || !map.getLayer(FILL_LAYER_ID)) return;
 
-        if (!vectorLayer?.id) {
-          throw new Error("TileJSON contains no vector source-layer.");
-        }
-        if (!Array.isArray(tileJson.tiles) || tileJson.tiles.length === 0) {
-          throw new Error("TileJSON does not contain vector tile URLs.");
-        }
-        if (cancelled || !containerRef.current) return;
-
-        setTileStatus(`TileJSON loaded · ${vectorLayer.id} · loading OpenFreeMap basemap…`);
-
-        map = new MapLibreMap({
-          container: containerRef.current,
-          style: OPENFREEMAP_STYLES.light.url,
-          center: [Number(lng) || 78.9629, Number(lat) || 20.5937],
-          zoom,
-          attributionControl: true,
-        });
-        mapRef.current = map;
-        map.addControl(new NavigationControl({ showCompass: true }), "top-right");
-
-        map.once("style.load", () => {
-          if (!cancelled) setTileStatus(`Basemap loaded · registering ${vectorLayer.id} vector source…`);
-        });
-
-        const updateVisibleFeatureStatus = () => {
-          if (cancelled || !map?.getLayer(FILL_LAYER_ID)) return;
-          const visible = map.queryRenderedFeatures({ layers: [FILL_LAYER_ID] });
-          const source = map.getSource(SOURCE_ID);
-          if (visible.length) {
-            setTileStatus(`MapTiler loaded · ${visible.length} visible boundaries · ${vectorLayer.id}`);
-          } else if (source?.loaded?.()) {
-            setTileStatus("Vector tiles loaded, but no boundaries match this view. Check the selected geography and filter.");
-          } else {
-            setTileStatus("Map ready · waiting for MapTiler vector tiles…");
-          }
-        };
-
-        map.on("error", (event) => {
-          const sourceId = event?.sourceId || event?.source?.id || "";
-          const sourceUrl = event?.source?.url || event?.error?.url || "";
-          const message = event?.error?.message || "Unknown MapLibre rendering error";
-          const isGeographyRequest =
-            sourceId === SOURCE_ID || sourceUrl.includes("api.maptiler.com");
-          const isBasemapRequest =
-            sourceUrl.includes("openfreemap.org") ||
-            sourceUrl.includes("openmaptiles.org") ||
-            sourceUrl.includes("maplibre");
-
-          if (isGeographyRequest) {
-            setMapError(`MapTiler vector tile error: ${message}`);
-          } else if (isBasemapRequest || !sourceId) {
-            setMapError(`Basemap/map initialization error: ${message}`);
-          }
-        });
-
-        map.once("style.load", () => {
-          if (cancelled) return;
-
-          try {
-            setTileStatus("Basemap loaded · adding MapTiler vector source…");
-
-            // Let MapLibre resolve the TileJSON document itself. This keeps
-            // tile URL expansion, format handling and metadata interpretation
-            // inside its native vector-source implementation.
-            map.addSource(SOURCE_ID, {
-              type: "vector",
-              url: tileJsonUrl,
-              promoteId: { [vectorLayer.id]: "id" },
-            });
-            setTileStatus("MapTiler TileJSON attached · adding boundary layers…");
-
-            const currentConfig = configRef.current;
-          const filter = buildFeatureFilter({
-            parentId: currentConfig.parentId || DEFAULT_GEOGRAPHY_FOCUS_ID,
-            selectedId: currentConfig.selectedId,
-            category: currentConfig.category,
-          });
-          const paint = getFeaturePaint(currentConfig.category, currentConfig.selectedId);
-
-          map.addLayer({
-            id: FILL_LAYER_ID,
-            type: "fill",
-            source: SOURCE_ID,
-            "source-layer": vectorLayer.id,
-            filter,
-            paint: paint.fill,
-          });
-
-          map.addLayer({
-            id: LINE_LAYER_ID,
-            type: "line",
-            source: SOURCE_ID,
-            "source-layer": vectorLayer.id,
-            filter,
-            paint: paint.line,
-          });
-
-          map.on("sourcedata", (event) => {
-            if (event.sourceId === SOURCE_ID && event.isSourceLoaded) {
-              updateVisibleFeatureStatus();
-            }
-          });
-          map.on("idle", updateVisibleFeatureStatus);
-
-          map.on("click", FILL_LAYER_ID, (event) => {
-            const feature = event.features?.[0];
-            const properties = feature?.properties;
-            if (!properties?.id) return;
-            onFeatureClickRef.current?.({
-              id: properties.id,
-              name: properties.name || properties.official_name || "Unnamed boundary",
-              official_name: properties.official_name || null,
-              parent_id: properties.parent_id || null,
-              geography_type: properties.geography_type || "other",
-              boundary_category: properties.boundary_category || "administrative",
-              status: properties.status || "active",
-              center: null,
-            });
-          });
-          map.on("mouseenter", FILL_LAYER_ID, () => {
-            map.getCanvas().style.cursor = "pointer";
-          });
-          map.on("mouseleave", FILL_LAYER_ID, () => {
-            map.getCanvas().style.cursor = "";
-          });
-
-            setTileStatus(`Vector source registered · ${vectorLayer.id} · requesting PBF tiles…`);
-          } catch (error) {
-            setMapError(`Vector source/layer registration failed: ${error?.message || "Unknown error"}`);
-          }
-        });
-      } catch (error) {
-        if (!cancelled) setMapError(error?.message || "Unable to initialize geography tiles.");
+      const visible = map.queryRenderedFeatures({ layers: [FILL_LAYER_ID] });
+      if (visible.length) {
+        setTileStatus(
+          `MapTiler overlay loaded · ${visible.length} visible boundaries · ${SOURCE_LAYER_ID}`
+        );
+      } else if (map.isSourceLoaded(SOURCE_ID)) {
+        setTileStatus(
+          "MapTiler tiles loaded · no boundaries match the current view or filter."
+        );
+      } else {
+        setTileStatus("Basemap ready · waiting for MapTiler vector tiles…");
       }
     };
 
-    initialize();
+    map.on("error", (event) => {
+      const sourceId = event?.sourceId || event?.source?.id || "";
+      const requestUrl = event?.error?.url || event?.source?.url || "";
+      const message = event?.error?.message || "Unknown MapLibre rendering error";
+
+      if (
+        sourceId === SOURCE_ID ||
+        requestUrl.includes("api.maptiler.com/tiles/")
+      ) {
+        setMapError(`MapTiler vector tile error: ${message}`);
+      } else if (
+        requestUrl.includes("openfreemap.org") ||
+        requestUrl.includes("openmaptiles.org") ||
+        !sourceId
+      ) {
+        setMapError(`OpenFreeMap basemap error: ${message}`);
+      }
+    });
+
+    // Register the overlay only after the OpenFreeMap style is ready.
+    // A direct PBF template avoids the redundant TileJSON fetch/lookup.
+    map.once("style.load", () => {
+      if (cancelled) return;
+
+      try {
+        setTileStatus("OpenFreeMap loaded · registering MapTiler geography tiles…");
+
+        map.addSource(SOURCE_ID, {
+          type: "vector",
+          tiles: [getVectorTileTemplate(apiKey)],
+          minzoom: 0,
+          maxzoom: 9,
+          bounds: TILESET_BOUNDS,
+          promoteId: { [SOURCE_LAYER_ID]: "id" },
+          attribution: "Geography boundaries © CitizenAction",
+        });
+
+        const currentConfig = configRef.current;
+        const filter = buildFeatureFilter({
+          parentId: currentConfig.parentId || DEFAULT_GEOGRAPHY_FOCUS_ID,
+          selectedId: currentConfig.selectedId,
+          category: currentConfig.category,
+        });
+        const paint = getFeaturePaint(
+          currentConfig.category,
+          currentConfig.selectedId
+        );
+
+        map.addLayer({
+          id: FILL_LAYER_ID,
+          type: "fill",
+          source: SOURCE_ID,
+          "source-layer": SOURCE_LAYER_ID,
+          filter,
+          paint: paint.fill,
+        });
+
+        map.addLayer({
+          id: LINE_LAYER_ID,
+          type: "line",
+          source: SOURCE_ID,
+          "source-layer": SOURCE_LAYER_ID,
+          filter,
+          paint: paint.line,
+        });
+
+        map.on("sourcedata", (event) => {
+          if (event.sourceId === SOURCE_ID) updateVisibleFeatureStatus();
+        });
+        map.on("idle", updateVisibleFeatureStatus);
+
+        map.on("click", FILL_LAYER_ID, (event) => {
+          const properties = event.features?.[0]?.properties;
+          if (!properties?.id) return;
+
+          onFeatureClickRef.current?.({
+            id: properties.id,
+            name: properties.name || properties.official_name || "Unnamed boundary",
+            official_name: properties.official_name || null,
+            parent_id: properties.parent_id || null,
+            geography_type: properties.geography_type || "other",
+            boundary_category: properties.boundary_category || "administrative",
+            status: properties.status || "active",
+            center: null,
+          });
+        });
+
+        map.on("mouseenter", FILL_LAYER_ID, () => {
+          map.getCanvas().style.cursor = "pointer";
+        });
+        map.on("mouseleave", FILL_LAYER_ID, () => {
+          map.getCanvas().style.cursor = "";
+        });
+
+        setTileStatus("MapTiler vector source registered · requesting PBF tiles…");
+      } catch (error) {
+        setMapError(
+          `MapTiler source/layer registration failed: ${error?.message || "Unknown error"}`
+        );
+      }
+    });
 
     return () => {
       cancelled = true;
-      map?.remove();
+      map.remove();
       mapRef.current = null;
     };
   }, [apiKey]);
@@ -293,11 +265,16 @@ export default function GeographyTilesMap({
       category,
     });
     const paint = getFeaturePaint(category, selectedId);
+
     map.setFilter(FILL_LAYER_ID, filter);
     map.setFilter(LINE_LAYER_ID, filter);
     map.setPaintProperty(FILL_LAYER_ID, "fill-color", paint.fill["fill-color"]);
     map.setPaintProperty(FILL_LAYER_ID, "fill-opacity", paint.fill["fill-opacity"]);
-    map.setPaintProperty(FILL_LAYER_ID, "fill-outline-color", paint.fill["fill-outline-color"]);
+    map.setPaintProperty(
+      FILL_LAYER_ID,
+      "fill-outline-color",
+      paint.fill["fill-outline-color"]
+    );
     map.setPaintProperty(LINE_LAYER_ID, "line-color", paint.line["line-color"]);
     map.setPaintProperty(LINE_LAYER_ID, "line-width", paint.line["line-width"]);
   }, [parentId, selectedId, category, lat, lng, zoom]);
@@ -307,7 +284,7 @@ export default function GeographyTilesMap({
       <div ref={containerRef} className="h-full min-h-[180px] w-full" />
       {mapError ? (
         <div className="absolute bottom-3 left-3 right-3 rounded-md border border-destructive/30 bg-background/95 px-3 py-2 text-xs text-destructive shadow">
-          MapTiler unavailable: {mapError}
+          Map unavailable: {mapError}
         </div>
       ) : (
         <div className="absolute bottom-3 left-3 max-w-[min(90%,520px)] rounded-md border bg-background/95 px-3 py-2 text-xs text-muted-foreground shadow">
