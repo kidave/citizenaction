@@ -801,10 +801,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
               <>
                 <p className="truncate text-xs font-semibold sm:text-sm">{label}</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {getGeographyCategoryLabel(getGeographyBoundaryCategory(selected))}
-                  {" · "}
                   {getGeographyTypeLabel(selected.geography_type)}
-                  {selectionPath ? " · " + selectionPath : ""}
                 </p>
               </>
             ) : (
