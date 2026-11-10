@@ -252,7 +252,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
     if (selectionOnly) {
       onSelectBoundary?.(selected);
-      onOpenChange?.(false);
+      if (!embedded) onOpenChange?.(false);
       return;
     }
 
@@ -484,7 +484,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
             {titleOverride || (selectionOnly ? "Choose geographic focus" : currentGeographyId ? "Change geography" : "Add geography")}
           </DialogTitle>
           <DialogDescription className="truncate">
-            {selectionOnly ? "Search or browse a boundary, preview it on the map, then apply it to the governance directory." : "Choose the boundary associated with " + (entityName || "this entity") + "."}
+            {embedded ? "Browse administrative, local government and political boundaries." : selectionOnly ? "Search or browse a boundary, preview it on the map, then apply it to the governance directory." : "Choose the boundary associated with " + (entityName || "this entity") + "."}
           </DialogDescription>
         </DialogHeader>
 
@@ -539,7 +539,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
             )}
           </div>
 
-          <div className="flex shrink-0 gap-2">
+          {!embedded && <div className="flex shrink-0 gap-2">
             <Button
               type="button"
               variant="outline"
@@ -555,7 +555,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
             >
               {selectionOnly ? "Apply focus" : isSetting ? "Saving..." : currentGeographyId ? "Change geography" : "Add geography"}
             </Button>
-          </div>
+          </div>}
         </div>
       </div>
     );
