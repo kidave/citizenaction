@@ -184,19 +184,27 @@ export default function GeographyTilesMap({
         map.once("load", () => {
           if (cancelled) return;
 
-          // Use the tile URLs returned by TileJSON directly. This avoids a second
-          // TileJSON resolution inside MapLibre and keeps the API key on each tile URL.
-          map.addSource(SOURCE_ID, {
-            type: "vector",
-            tiles: tileJson.tiles,
-            minzoom: Number.isFinite(tileJson.minzoom) ? tileJson.minzoom : 0,
-            maxzoom: Number.isFinite(tileJson.maxzoom) ? tileJson.maxzoom : 14,
-            bounds: tileJson.bounds,
-            attribution: tileJson.attribution,
-            promoteId: { [vectorLayer.id]: "id" },
-          });
+          try {
+            setTileStatus("Basemap loaded · adding MapTiler vector source…");
 
-          const currentConfig = configRef.current;
+            // Use the exact tile templates returned by TileJSON. Omit optional
+            // metadata when absent; MapLibre validates source options strictly.
+            const vectorSource = {
+              type: "vector",
+              tiles: tileJson.tiles,
+              minzoom: Number.isFinite(tileJson.minzoom) ? tileJson.minzoom : 0,
+              maxzoom: Number.isFinite(tileJson.maxzoom) ? tileJson.maxzoom : 14,
+              promoteId: { [vectorLayer.id]: "id" },
+            };
+            if (Array.isArray(tileJson.bounds) && tileJson.bounds.length === 4) {
+              vectorSource.bounds = tileJson.bounds;
+            }
+            if (tileJson.attribution) vectorSource.attribution = tileJson.attribution;
+
+            map.addSource(SOURCE_ID, vectorSource);
+            setTileStatus("MapTiler vector source added · adding boundary layers…");
+
+            const currentConfig = configRef.current;
           const filter = buildFeatureFilter({
             parentId: currentConfig.parentId || DEFAULT_GEOGRAPHY_FOCUS_ID,
             selectedId: currentConfig.selectedId,
@@ -251,7 +259,10 @@ export default function GeographyTilesMap({
             map.getCanvas().style.cursor = "";
           });
 
-          setTileStatus(`Vector source registered · ${vectorLayer.id} · loading visible tiles…`);
+            setTileStatus(`Vector source registered · ${vectorLayer.id} · requesting PBF tiles…`);
+          } catch (error) {
+            setMapError(`Vector source/layer registration failed: ${error?.message || "Unknown error"}`);
+          }
         });
       } catch (error) {
         if (!cancelled) setMapError(error?.message || "Unable to initialize geography tiles.");
