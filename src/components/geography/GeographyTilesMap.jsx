@@ -45,7 +45,13 @@ export default function GeographyTilesMap({
 }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
+  const onFeatureClickRef = useRef(onFeatureClick);
+  const lastFocusRef = useRef(null);
   const [mapError, setMapError] = useState(null);
+
+  useEffect(() => {
+    onFeatureClickRef.current = onFeatureClick;
+  }, [onFeatureClick]);
   const apiKey = process.env.NEXT_PUBLIC_MAPTILER_API_KEY;
 
   useEffect(() => {
@@ -146,7 +152,7 @@ export default function GeographyTilesMap({
             const feature = event.features?.[0];
             const properties = feature?.properties;
             if (!properties?.id) return;
-            onFeatureClick?.({
+            onFeatureClickRef.current?.({
               id: properties.id,
               name: properties.name || properties.official_name || "Unnamed boundary",
               official_name: properties.official_name || null,
@@ -176,11 +182,21 @@ export default function GeographyTilesMap({
       map?.remove();
       mapRef.current = null;
     };
-  }, [apiKey, lat, lng, zoom, onFeatureClick]);
+  }, [apiKey]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map?.getLayer("citizenaction-geography-fill")) return;
+    if (!map) return;
+    const focusKey = [selectedId || parentId || "india", lat, lng, zoom].join(":");
+    if (lastFocusRef.current !== focusKey) {
+      map.flyTo({
+        center: [Number(lng) || 78.9629, Number(lat) || 20.5937],
+        zoom,
+        duration: 450,
+      });
+      lastFocusRef.current = focusKey;
+    }
+    if (!map.getLayer("citizenaction-geography-fill")) return;
 
     const filter = buildFeatureFilter({
       parentId: parentId || DEFAULT_GEOGRAPHY_FOCUS_ID,
@@ -201,7 +217,7 @@ export default function GeographyTilesMap({
       "#d97706",
       category === "political" ? "#7c3aed" : "#1d4ed8",
     ]);
-  }, [parentId, selectedId, category]);
+  }, [parentId, selectedId, category, lat, lng, zoom]);
 
   if (!apiKey || mapError) {
     return (
