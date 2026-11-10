@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import maplibregl from "maplibre-gl";
+import { Map as MapLibreMap, NavigationControl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { OPENFREEMAP_STYLES } from "@/config/maps/openFreeMap";
-import LeafletMap from "@/components/geography/LeafletMap";
 
 const TILESET_ID = "01a1c410-4845-77a6-bb9d-68585341ace3";
 const DEFAULT_GEOGRAPHY_FOCUS_ID = "6f3dda25-6cf4-43f2-a5b7-1c8aa9d2113f";
@@ -90,7 +89,7 @@ export default function GeographyTilesMap({
         }
         if (cancelled || !containerRef.current) return;
 
-        map = new maplibregl.Map({
+        map = new MapLibreMap({
           container: containerRef.current,
           style: OPENFREEMAP_STYLES.light.url,
           center: [Number(lng) || 78.9629, Number(lat) || 20.5937],
@@ -98,7 +97,7 @@ export default function GeographyTilesMap({
           attributionControl: true,
         });
         mapRef.current = map;
-        map.addControl(new maplibregl.NavigationControl({ showCompass: true }), "top-right");
+        map.addControl(new NavigationControl({ showCompass: true }), "top-right");
         map.on("error", (event) => {
           const message = event?.error?.message || "Map rendering error";
           const sourceId = event?.sourceId || "";
