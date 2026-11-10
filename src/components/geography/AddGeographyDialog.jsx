@@ -324,6 +324,21 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     setBrowsePath([]);
   };
 
+  const handlePoliticalLevelChange = (value) => {
+    setPoliticalLevel(value);
+    setPoliticalStateFilter("all");
+    setBrowsePath([]);
+    setSearch("");
+    setType("all");
+    setSelected(null);
+  };
+
+  const handlePoliticalStateChange = (value) => {
+    setPoliticalStateFilter(value);
+    setSelected(null);
+    setSearch("");
+  };
+
   const handleSearchChange = (value) => {
     setSearch(value);
     setBrowsePath([]);
@@ -427,6 +442,24 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
                 </button>
               ))}
             </div>
+
+            {category === "political" && (
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 rounded-md border bg-muted/30 p-0.5">
+                  <button type="button" onClick={() => handlePoliticalLevelChange("parliamentary")} className={"rounded px-2 py-2 text-sm font-medium " + (politicalLevel === "parliamentary" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground")}>Parliamentary</button>
+                  <button type="button" onClick={() => handlePoliticalLevelChange("assembly")} className={"rounded px-2 py-2 text-sm font-medium " + (politicalLevel === "assembly" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground")}>Assembly</button>
+                </div>
+                {politicalLevel === "parliamentary" && (
+                  <Select value={politicalStateFilter} onValueChange={handlePoliticalStateChange}>
+                    <SelectTrigger className="h-9 w-full"><SelectValue placeholder="All states" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All states · India</SelectItem>
+                      {politicalStates.map((state) => <SelectItem key={state.id} value={state.id}>{state.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            )}
 
             <div className="flex min-w-0 gap-2">
               <div className="relative min-w-0 flex-1">
