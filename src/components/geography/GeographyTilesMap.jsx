@@ -5,6 +5,7 @@ import { Map as MapLibreMap, NavigationControl, Popup, getVersion, setWorkerUrl 
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { OPENFREEMAP_STYLES } from "@/config/maps/openFreeMap";
+import { supabase } from "@/lib/supabase/client";
 
 const TILESET_ID = "01a1c410-4845-77a6-bb9d-68585341ace3";
 const SOURCE_ID = "citizenaction-geographies";
@@ -268,24 +269,35 @@ export default function GeographyTilesMap({
         });
 
         const geographyPopup = new Popup({ closeButton: false, closeOnClick: false, offset: 10 });
+        const parentNameCache = new Map();
+        let activeHoverId = null;
         map.on("mousemove", FILL_LAYER_ID, (event) => {
           map.getCanvas().style.cursor = "pointer";
           const properties = map.queryRenderedFeatures(event.point, { layers: [FILL_LAYER_ID] })[0]?.properties;
           if (!properties) return;
+          activeHoverId = properties.id;
           const content = document.createElement("div");
           const name = document.createElement("div");
           name.className = "font-medium";
           name.textContent = properties.name || properties.official_name || "Unnamed boundary";
           const parent = document.createElement("div");
           parent.className = "text-xs";
-          parent.textContent = "Parent: " + (properties.parent_name || properties.parent_label || properties.parent || "Not available");
+          parent.textContent = "Parent: " + (properties.parent_name || properties.parent_label || parentNameCache.get(properties.parent_id) || "Loading…");
           const type = document.createElement("div");
           type.className = "text-xs";
           type.textContent = "Type: " + (properties.geography_type || "other").replace(/_/g, " ");
           content.append(name, parent, type);
           geographyPopup.setLngLat(event.lngLat).setDOMContent(content).addTo(map);
+          if (properties.parent_id && !parentNameCache.has(properties.parent_id)) {
+            supabase.from("geographies").select("name").eq("id", properties.parent_id).maybeSingle().then(({ data }) => {
+              if (!data?.name) return;
+              parentNameCache.set(properties.parent_id, data.name);
+              if (activeHoverId === properties.id) parent.textContent = "Parent: " + data.name;
+            }).catch(() => {});
+          }
         });
         map.on("mouseleave", FILL_LAYER_ID, () => {
+          activeHoverId = null;
           map.getCanvas().style.cursor = "";
           geographyPopup.remove();
         });
