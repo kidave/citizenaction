@@ -155,6 +155,57 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
       const needle = search.trim().replace(/[%_]/g, "").slice(0, 80);
       const parent = browsePath[browsePath.length - 1] || null;
 
+      if (category === "political" && !needle && politicalLevel === "parliamentary") {
+        let politicalQuery = supabase
+          .from("geographies")
+          .select(FIELDS)
+          .eq("boundary_category", "political")
+          .eq("geography_type", "parliamentary_constituency")
+          .order("name", { ascending: true })
+          .range(from, to);
+        if (politicalStateFilter !== "all") {
+          politicalQuery = politicalQuery.eq("parent_id", politicalStateFilter);
+        }
+        const { data, error } = await politicalQuery;
+        if (error) throw error;
+        return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
+      }
+
+      if (category === "political" && !needle && politicalLevel === "assembly") {
+        if (!parent) {
+          const { data, error } = await supabase
+            .from("geographies")
+            .select(FIELDS)
+            .eq("parent_id", DEFAULT_GEOGRAPHY_FOCUS_ID)
+            .eq("geography_type", "state")
+            .order("name", { ascending: true })
+            .range(from, to);
+          if (error) throw error;
+          return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
+        }
+
+        if (parent.geography_type === "state") {
+          const { data, error } = await supabase
+            .from("geographies")
+            .select(FIELDS)
+            .eq("parent_id", parent.id)
+            .eq("boundary_category", "political")
+            .eq("geography_type", "parliamentary_constituency")
+            .order("name", { ascending: true })
+            .range(from, to);
+          if (error) throw error;
+          return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
+        }
+
+        if (parent.geography_type === "parliamentary_constituency") {
+          const { data, error } = await supabase.rpc("get_political_geography_children", {
+            p_parent_id: parent.id,
+          });
+          if (error) throw error;
+          return { rows: data || [], hasMore: false };
+        }
+      }
+
       if (
         !isFlatMode &&
         category === "political" &&
