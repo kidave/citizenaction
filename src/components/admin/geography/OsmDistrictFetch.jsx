@@ -137,12 +137,11 @@ export default function OsmDistrictFetch() {
     });
   };
 
-  const runStates = async (targets) => {
+  const runStates = async (targets, allStates) => {
     if (running || !targets.length) return;
     setRunning(true);
     setProgress(0);
     try {
-      const allStates = await loadStates();
       let completed = 0;
       for (const state of targets) {
         setActiveStateName(state.name);
@@ -151,10 +150,6 @@ export default function OsmDistrictFetch() {
         completed += 1;
         setProgress(Math.round((completed / targets.length) * 100));
       }
-      const failures = targets.filter((state) => {
-        const current = report?.states?.find((item) => item.state_id === state.id);
-        return current && !current.complete;
-      });
       toast.success("Finished " + targets.length + " state request(s). Successful results are retained; failed states can be retried.");
     } catch (error) {
       toast.error(error.message || "Unable to fetch OSM districts.");
@@ -168,7 +163,7 @@ export default function OsmDistrictFetch() {
     try {
       const allStates = await loadStates();
       const state = allStates.find((item) => item.id === selectedStateId) || allStates[0];
-      if (state) await runStates([state]);
+      if (state) await runStates([state], allStates);
     } catch (error) {
       toast.error(error.message || "Unable to load states.");
     }
@@ -177,7 +172,7 @@ export default function OsmDistrictFetch() {
   const runAll = async () => {
     try {
       const allStates = await loadStates();
-      await runStates(allStates);
+      await runStates(allStates, allStates);
     } catch (error) {
       toast.error(error.message || "Unable to load states.");
     }
@@ -188,7 +183,7 @@ export default function OsmDistrictFetch() {
       const allStates = await loadStates();
       const failedIds = new Set(failedStates.map((item) => item.state_id));
       const targets = allStates.filter((state) => failedIds.has(state.id));
-      await runStates(targets);
+      await runStates(targets, allStates);
     } catch (error) {
       toast.error(error.message || "Unable to retry failed states.");
     }
