@@ -20,6 +20,18 @@ function getVectorTileTemplate(apiKey) {
   return `https://api.maptiler.com/tiles/${TILESET_ID}/{z}/{x}/{y}.pbf?key=${encodeURIComponent(apiKey)}`;
 }
 
+function getGeometryBounds(geometry) {
+  const points = [];
+  const visit = (value) => {
+    if (!Array.isArray(value)) return;
+    if (typeof value[0] === "number" && typeof value[1] === "number") { points.push(value); return; }
+    value.forEach(visit);
+  };
+  visit(geometry?.coordinates);
+  if (!points.length) return null;
+  return points.reduce((bounds, point) => [[Math.min(bounds[0][0], point[0]), Math.min(bounds[0][1], point[1])], [Math.max(bounds[1][0], point[0]), Math.max(bounds[1][1], point[1])]], [[Infinity, Infinity], [-Infinity, -Infinity]]);
+}
+
 function buildFeatureFilter({ parentId, selectedId, category, geographyType }) {
   const isCountryRoot = parentId === DEFAULT_GEOGRAPHY_FOCUS_ID;
   const showAll = parentId === "__all__";
@@ -74,7 +86,7 @@ export default function GeographyTilesMap({
   lng = 78.9629,
   zoom = 4,
   focusEnabled = true,
-  fallbackBoundary = null,
+  selectedBounds = null,
 }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
@@ -239,6 +251,9 @@ export default function GeographyTilesMap({
           const properties = event.features?.[0]?.properties;
           if (!properties?.id) return;
 
+          const bounds = getGeometryBounds(event.features?.[0]?.geometry);
+          if (bounds) map.fitBounds(bounds, { padding: 48, maxZoom: 17, duration: 450 });
+          const center = bounds ? { lat: (bounds[0][1] + bounds[1][1]) / 2, lng: (bounds[0][0] + bounds[1][0]) / 2 } : event?.lngLat ? { lat: event.lngLat.lat, lng: event.lngLat.lng } : null;
           onFeatureClickRef.current?.({
             id: properties.id,
             name: properties.name || properties.official_name || "Unnamed boundary",
@@ -247,7 +262,8 @@ export default function GeographyTilesMap({
             geography_type: properties.geography_type || "other",
             boundary_category: properties.boundary_category || "administrative",
             status: properties.status || "active",
-            center: event?.lngLat ? { lat: event.lngLat.lat, lng: event.lngLat.lng } : null,
+            center,
+            bounds,
           });
         });
 
@@ -281,11 +297,11 @@ export default function GeographyTilesMap({
 
     const focusKey = [selectedId || parentId || "india", lat, lng, zoom].join(":");
     if (lastFocusRef.current !== focusKey) {
-      map.flyTo({
-        center: [Number(lng) || 78.9629, Number(lat) || 20.5937],
-        zoom,
-        duration: 450,
-      });
+      if (selectedBounds?.length === 2) {
+        map.fitBounds(selectedBounds, { padding: 48, maxZoom: 17, duration: 450 });
+      } else {
+        map.flyTo({ center: [Number(lng) || 78.9629, Number(lat) || 20.5937], zoom, duration: 450 });
+      }
       lastFocusRef.current = focusKey;
     }
 
@@ -310,7 +326,7 @@ export default function GeographyTilesMap({
     );
     map.setPaintProperty(LINE_LAYER_ID, "line-color", paint.line["line-color"]);
     map.setPaintProperty(LINE_LAYER_ID, "line-width", paint.line["line-width"]);
-  }, [parentId, selectedId, category, geographyType, lat, lng, zoom, focusEnabled]);
+  }, [parentId, selectedId, category, geographyType, lat, lng, zoom, focusEnabled, selectedBounds]);
 
   return (
     <div className="relative h-full min-h-[180px] w-full">
