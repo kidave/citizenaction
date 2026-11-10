@@ -709,33 +709,36 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
               {category === "administrative" && (
                 <>
                   <Button type="button" size="sm" variant={browseMode === "root" ? "secondary" : "outline"} onClick={backToStates}>States of India</Button>
-                  <Button type="button" size="sm" variant={browseMode === "all-districts" || browseMode === "state-districts" ? "secondary" : "outline"} onClick={() => exploreAll(selected?.geography_type === "state" ? "state-districts" : "all-districts")}>
-                    {selected?.geography_type === "state" ? "Districts in " + selected.name : "Districts of India"}
+                  <Button type="button" size="sm" variant={browseMode === "all-districts" || browseMode === "state-districts" ? "secondary" : "outline"} onClick={() => exploreAll(browsePath[0]?.geography_type === "state" ? "state-districts" : selected?.geography_type === "state" ? "state-districts" : "all-districts")}>
+                    {browseMode === "state-districts" ? "Districts in " + (browsePath[0]?.name || "State") : selected?.geography_type === "state" ? "Districts in " + selected.name : "Districts of India"}
                   </Button>
                 </>
               )}
               {category === "political" && (
                 <>
                   <Button type="button" size="sm" variant={browseMode === "all-parliamentary" || browseMode === "assembly-state" ? "secondary" : "outline"} onClick={() => exploreAll(selected?.geography_type === "state" ? "assembly-state" : "all-parliamentary")}>
-                    Parliament
+                    {browseMode === "assembly-state" ? "Parliament in " + (browsePath[0]?.name || "State") : selected?.geography_type === "state" ? "Parliament in " + selected.name : "Parliament"}
                   </Button>
                   <Button type="button" size="sm" variant={browseMode === "all-assembly" || browseMode === "assembly-constituencies" ? "secondary" : "outline"} onClick={() => exploreAll(selected?.geography_type === "parliamentary_constituency" && browseMode === "assembly-state" ? "assembly-constituencies" : "all-assembly")}>
-                    Assembly
+                    {browseMode === "assembly-constituencies" ? "Assembly in " + (browsePath[browsePath.length - 1]?.name || "Parliament") : "Assembly"}
                   </Button>
                 </>
               )}
               {category === "local_government" && (
-                <>
-                  <Button type="button" size="sm" variant={browseMode === "metropolitan" ? "secondary" : "outline"} onClick={() => exploreAll("metropolitan")}>Metropolitan Area</Button>
-                  <Button type="button" size="sm" variant={browseMode === "local-bodies" || browseMode === "zones" || browseMode === "wards" ? "secondary" : "outline"} onClick={() => exploreAll("local-bodies")}>Local Body</Button>
-                </>
+                selected?.geography_type === "local_government" && browseMode === "local-bodies" ? (
+                  <>
+                    <Button type="button" size="sm" variant={browseMode === "zones" ? "secondary" : "outline"} onClick={() => exploreAll("zones")}>Zones in {selected.name}</Button>
+                    <Button type="button" size="sm" variant={browseMode === "wards" ? "secondary" : "outline"} onClick={() => exploreAll("wards")}>Wards in {selected.name}</Button>
+                  </>
+                ) : (
+                  <>
+                    <Button type="button" size="sm" variant={browseMode === "metropolitan" ? "secondary" : "outline"} onClick={() => exploreAll("metropolitan")}>Metropolitan Area{selected?.geography_type === "state" ? " in " + selected.name : ""}</Button>
+                    <Button type="button" size="sm" variant={["local-bodies", "zones", "wards"].includes(browseMode) ? "secondary" : "outline"} onClick={() => exploreAll("local-bodies")}>Local Body{selected?.geography_type === "state" ? " in " + selected.name : ""}</Button>
+                  </>
+                )
               )}
             </div>
-            <span className="min-w-0 truncate text-sm text-muted-foreground">
-              {category === "administrative" && (browseMode === "state-districts" ? "Districts in " + (browsePath[0]?.name || "State") : browseMode === "all-districts" ? "Districts of India" : "States of India")}
-              {category === "political" && (browseMode === "assembly-constituencies" ? "Assembly in " + (browsePath[browsePath.length - 1]?.name || "Parliament") : browseMode === "assembly-state" ? "Parliament in " + (browsePath[0]?.name || "State") : browseMode === "all-assembly" ? "Assembly" : browseMode === "all-parliamentary" ? "Parliament" : "States of India")}
-              {category === "local_government" && (browseMode === "zones" ? "Zones in " + (browsePath[browsePath.length - 1]?.name || "Local Body") : browseMode === "wards" ? "Wards in " + (browsePath[browsePath.length - 1]?.name || "Local Body") : browseMode === "metropolitan" ? "Metropolitan Areas" : browseMode === "local-bodies" ? "Local Bodies" : "States of India")}
-            </span>
+
           </div>
 
           <DialogHeader className="order-0 min-w-0 shrink-0 border-b px-4 py-3 pr-14 text-left sm:px-5 sm:py-4 md:order-none">
