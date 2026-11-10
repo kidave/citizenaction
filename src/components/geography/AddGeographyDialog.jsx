@@ -567,23 +567,15 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
       }>
         <aside className="order-1 flex max-h-[43dvh] min-h-0 shrink-0 flex-col border-b md:order-none md:row-span-3 md:max-h-none md:border-b-0 md:border-r">
           <div className="space-y-2 border-b p-3 sm:space-y-3 sm:p-4">
-            <div className="grid grid-cols-3 rounded-md border bg-muted/30 p-0.5">
-              {GEOGRAPHY_BOUNDARY_CATEGORIES.map((item) => (
-                <button
-                  key={item.value}
-                  type="button"
-                  onClick={() => handleCategoryChange(item.value)}
-                  className={
-                    "rounded px-2 py-2 text-sm font-medium transition-colors " +
-                    (category === item.value
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground")
-                  }
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
+            <Tabs value={category} onValueChange={handleCategoryChange} className="w-full">
+              <TabsList className="grid h-10 w-full grid-cols-3">
+                {GEOGRAPHY_BOUNDARY_CATEGORIES.map((item) => (
+                  <TabsTrigger key={item.value} value={item.value} className="px-2 text-xs sm:text-sm">
+                    {item.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
 
             {category === "political" && (
               <div className="grid grid-cols-3 rounded-md border bg-muted/30 p-0.5">
