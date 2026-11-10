@@ -437,6 +437,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
       setGeometry(null);
     }
     setBrowseMode(mode);
+    if (mode === "assembly-state" || mode === "assembly-constituencies") setPoliticalLevel("assembly");
     setSearch("");
   };
 
@@ -546,7 +547,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     ? "administrative"
     : category;
   const mapGeographyType = category === "political"
-    ? browseMode === "all-assembly" ? "assembly_constituency" : politicalLevel === "state" || (politicalLevel === "assembly" && !politicalParent)
+    ? browseMode === "all-assembly" || browseMode === "assembly-constituencies" ? "assembly_constituency" : browseMode === "all-parliamentary" || browseMode === "assembly-state" ? "parliamentary_constituency" : politicalLevel === "state" || (politicalLevel === "assembly" && !politicalParent)
       ? "state"
       : politicalLevel === "parliamentary" || politicalParent?.geography_type === "state"
         ? "parliamentary_constituency"
@@ -701,7 +702,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
                 <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("all-districts")}>Explore All Districts of India</Button>
               )
             )}
-            {category === "political" && browseMode === "root" && (
+            {category === "political" && browseMode === "root" && selected?.geography_type !== "state" && (
               <>
                 <Button type="button" size="sm" variant="outline" className="shrink-0" onClick={() => exploreAll("all-parliamentary")}>Explore Parliamentary Constituencies</Button>
                 <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("all-assembly")}>Explore Assembly Constituencies</Button>
