@@ -20,20 +20,17 @@ function getVectorTileTemplate(apiKey) {
   return `https://api.maptiler.com/tiles/${TILESET_ID}/{z}/{x}/{y}.pbf?key=${encodeURIComponent(apiKey)}`;
 }
 
-function buildFeatureFilter({ parentId, selectedId, category }) {
+function buildFeatureFilter({ parentId, selectedId, category, geographyType }) {
   const isCountryRoot = parentId === DEFAULT_GEOGRAPHY_FOCUS_ID;
+  const showAll = parentId === "__all__";
   const childCategory = isCountryRoot ? "administrative" : category;
-  // Keep the map filter aligned with the stable hierarchy/category fields.
-  // The tileset contains historical and current records, and its status/type
-  // values are not a reliable visibility gate for the public directory.
   const children = [
     "all",
-    ["==", ["get", "parent_id"], parentId],
+    ...(showAll ? [] : [["==", ["get", "parent_id"], parentId]]),
     ["==", ["get", "boundary_category"], childCategory],
+    ...(geographyType ? [["==", ["get", "geography_type"], geographyType]] : []),
   ];
-
   if (!selectedId) return children;
-
   return ["any", ["==", ["get", "id"], selectedId], children];
 }
 
@@ -71,6 +68,7 @@ export default function GeographyTilesMap({
   parentId = null,
   selectedId = null,
   category = "administrative",
+  geographyType = null,
   onFeatureClick,
   lat = 20.5937,
   lng = 78.9629,
@@ -80,15 +78,15 @@ export default function GeographyTilesMap({
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const onFeatureClickRef = useRef(onFeatureClick);
-  const configRef = useRef({ parentId, selectedId, category });
+  const configRef = useRef({ parentId, selectedId, category, geographyType });
   const lastFocusRef = useRef(null);
   const [mapError, setMapError] = useState(null);
   const [tileStatus, setTileStatus] = useState("Connecting to map providers…");
 
   useEffect(() => {
     onFeatureClickRef.current = onFeatureClick;
-    configRef.current = { parentId, selectedId, category };
-  }, [onFeatureClick, parentId, selectedId, category]);
+    configRef.current = { parentId, selectedId, category, geographyType };
+  }, [onFeatureClick, parentId, selectedId, category, geographyType]);
 
   const apiKey = process.env.NEXT_PUBLIC_MAPTILER_API_KEY;
 
@@ -197,9 +195,10 @@ export default function GeographyTilesMap({
 
         const currentConfig = configRef.current;
         const filter = buildFeatureFilter({
-          parentId: currentConfig.parentId || DEFAULT_GEOGRAPHY_FOCUS_ID,
+          parentId: currentConfig.parentId ?? DEFAULT_GEOGRAPHY_FOCUS_ID,
           selectedId: currentConfig.selectedId,
           category: currentConfig.category,
+          geographyType: currentConfig.geographyType,
         });
         const paint = getFeaturePaint(
           currentConfig.category,
@@ -247,7 +246,7 @@ export default function GeographyTilesMap({
             geography_type: properties.geography_type || "other",
             boundary_category: properties.boundary_category || "administrative",
             status: properties.status || "active",
-            center: null,
+            center: event?.lngLat ? { lat: event.lngLat.lat, lng: event.lngLat.lng } : null,
           });
         });
 
@@ -290,9 +289,10 @@ export default function GeographyTilesMap({
     if (!map.getLayer(FILL_LAYER_ID) || !map.getLayer(LINE_LAYER_ID)) return;
 
     const filter = buildFeatureFilter({
-      parentId: parentId || DEFAULT_GEOGRAPHY_FOCUS_ID,
+      parentId: parentId ?? DEFAULT_GEOGRAPHY_FOCUS_ID,
       selectedId,
       category,
+      geographyType,
     });
     const paint = getFeaturePaint(category, selectedId);
 
@@ -307,7 +307,7 @@ export default function GeographyTilesMap({
     );
     map.setPaintProperty(LINE_LAYER_ID, "line-color", paint.line["line-color"]);
     map.setPaintProperty(LINE_LAYER_ID, "line-width", paint.line["line-width"]);
-  }, [parentId, selectedId, category, lat, lng, zoom]);
+  }, [parentId, selectedId, category, geographyType, lat, lng, zoom]);
 
   return (
     <div className="relative h-full min-h-[180px] w-full">
