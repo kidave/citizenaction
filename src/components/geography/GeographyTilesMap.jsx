@@ -187,22 +187,15 @@ export default function GeographyTilesMap({
           try {
             setTileStatus("Basemap loaded · adding MapTiler vector source…");
 
-            // Use the exact tile templates returned by TileJSON. Omit optional
-            // metadata when absent; MapLibre validates source options strictly.
-            const vectorSource = {
+            // Let MapLibre resolve the TileJSON document itself. This keeps
+            // tile URL expansion, format handling and metadata interpretation
+            // inside its native vector-source implementation.
+            map.addSource(SOURCE_ID, {
               type: "vector",
-              tiles: tileJson.tiles,
-              minzoom: Number.isFinite(tileJson.minzoom) ? tileJson.minzoom : 0,
-              maxzoom: Number.isFinite(tileJson.maxzoom) ? tileJson.maxzoom : 14,
+              url: tileJsonUrl,
               promoteId: { [vectorLayer.id]: "id" },
-            };
-            if (Array.isArray(tileJson.bounds) && tileJson.bounds.length === 4) {
-              vectorSource.bounds = tileJson.bounds;
-            }
-            if (tileJson.attribution) vectorSource.attribution = tileJson.attribution;
-
-            map.addSource(SOURCE_ID, vectorSource);
-            setTileStatus("MapTiler vector source added · adding boundary layers…");
+            });
+            setTileStatus("MapTiler TileJSON attached · adding boundary layers…");
 
             const currentConfig = configRef.current;
           const filter = buildFeatureFilter({
