@@ -399,6 +399,8 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     setBrowsePath((path) => path.slice(0, -1));
     if (category === "local_government" && (browseMode === "zones" || browseMode === "wards")) {
       setBrowseMode("local-bodies");
+    } else if (category === "political" && browseMode === "assembly-constituencies") {
+      setBrowseMode("assembly-state");
     } else {
       setBrowseMode("root");
     }
@@ -422,14 +424,6 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     setSelected(null);
     setGeometry(null);
   };
-
-  const exploreMode = (mode) => {
-    if (!selected) return;
-    setBrowsePath([selected]);
-    setBrowseMode(mode);
-    setSearch("");
-  };
-
 
 
   const exploreAll = (mode) => {
