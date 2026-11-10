@@ -578,22 +578,13 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
             </Tabs>
 
             {category === "political" && (
-              <div className="grid grid-cols-3 rounded-md border bg-muted/30 p-0.5">
-                {[
-                  ["state", "States"],
-                  ["parliamentary", "Parliamentary"],
-                  ["assembly", "Assembly"],
-                ].map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => handlePoliticalLevelChange(value)}
-                    className={"rounded px-2 py-2 text-sm font-medium transition-colors " + (politicalLevel === value ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
+              <Tabs value={politicalLevel} onValueChange={handlePoliticalLevelChange} className="w-full">
+                <TabsList className="grid h-10 w-full grid-cols-3">
+                  <TabsTrigger value="state" className="px-2 text-xs sm:text-sm">States</TabsTrigger>
+                  <TabsTrigger value="parliamentary" className="px-2 text-xs sm:text-sm">Parliamentary</TabsTrigger>
+                  <TabsTrigger value="assembly" className="px-2 text-xs sm:text-sm">Assembly</TabsTrigger>
+                </TabsList>
+              </Tabs>>
             )}
 
             <div className="flex min-w-0 gap-2">
