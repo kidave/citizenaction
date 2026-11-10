@@ -34,18 +34,6 @@ const PAGE_SIZE = 80;
 const FIELDS =
   "id,name,official_name,geography_type,boundary_category,parent_id,country_code,osm_type,osm_id,center,metadata";
 
-function canDrillDown(item) {
-  if (!item) return false;
-
-  return (
-    item.geography_type === "state" ||
-    item.geography_type === "district" ||
-    item.geography_type === "local_government" ||
-    item.geography_type === "zone" ||
-    item.geography_type === "parliamentary_constituency"
-  );
-}
-
 function getBrowseLabel(category, path) {
   if (!path.length) {
     if (category === "administrative") return "States and Union Territories";
@@ -73,7 +61,6 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
   const [politicalLevel, setPoliticalLevel] = useState("state");
   const [browseMode, setBrowseMode] = useState("root");
   const [politicalStateFilter, setPoliticalStateFilter] = useState("all");
-  const [type, setType] = useState("all");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
   const [browsePath, setBrowsePath] = useState([]);
@@ -108,7 +95,6 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     setPoliticalLevel("state");
     setBrowseMode("root");
     setPoliticalStateFilter("all");
-    setType("all");
     setSearch("");
     setBrowsePath([]);
     setSelected(currentGeography || null);
@@ -133,7 +119,6 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
       politicalLevel,
       politicalStateFilter,
       browseMode,
-      type,
       search.trim(),
       browsePath.map((item) => item.id).join("/"),
     ],
@@ -287,10 +272,6 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
       }
 
       if (isFlatMode) {
-        if (type !== "all") {
-          query = query.eq("geography_type", type);
-        }
-
         if (needle) {
           const safeNeedle = needle.replace(/["\\]/g, "\\$&");
           const pattern = `%${safeNeedle}%`;
@@ -415,12 +396,6 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     setSearch("");
     setType("all");
     setSelected(null);
-  };
-
-  const handlePoliticalStateChange = (value) => {
-    setPoliticalStateFilter(value);
-    setSelected(null);
-    setSearch("");
   };
 
   const handleSearchChange = (value) => {
