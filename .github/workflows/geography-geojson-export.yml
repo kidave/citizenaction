@@ -1,0 +1,65 @@
+name: Geography GeoJSON export
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Weekly export, Monday 06:00 UTC (11:30 IST).
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: geography-geojson-export
+  cancel-in-progress: false
+
+jobs:
+  export:
+    name: Export geography boundaries
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: scripts/geography/requirements.txt
+
+      - name: Install exporter dependencies
+        run: python -m pip install -r scripts/geography/requirements.txt
+
+      - name: Validate exporter syntax
+        run: python -m py_compile scripts/geography/export_geojson.py
+
+      - name: Export GeoJSON from Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          OUTPUT_PATH: citizenaction-geographies.geojson
+          BATCH_SIZE: "250"
+        run: python scripts/geography/export_geojson.py
+
+      - name: Upload GeoJSON artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: citizenaction-geographies-${{ github.run_number }}
+          path: citizenaction-geographies.geojson
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish export summary
+        if: always()
+        run: |
+          {
+            echo "## Geography GeoJSON export"
+            echo ""
+            echo "- Source: `public.geographies`"
+            echo "- Format: GeoJSON FeatureCollection"
+            echo "- Geometry: EPSG:4326"
+            echo "- Batch size: 250"
+            echo "- Artifact: `citizenaction-geographies-${GITHUB_RUN_NUMBER}`"
+          } >> "$GITHUB_STEP_SUMMARY"
