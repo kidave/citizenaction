@@ -7,7 +7,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
-  MapPin,
   Search,
 } from "lucide-react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
@@ -15,6 +14,7 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase/client";
 import { fetchGeographyGeometry } from "@/hooks/geography/useGeographyBrowser";
@@ -764,7 +764,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
             />
           ) : (
             <LeafletMap
-              key="geography-postgis-map"
+              key={selected?.id || "empty-boundary-map"}
               lat={Number(center?.lat) || 20.5937}
               lng={Number(center?.lng) || 78.9629}
               boundaries={mapBoundary}
