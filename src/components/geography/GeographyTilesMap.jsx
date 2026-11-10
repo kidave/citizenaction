@@ -295,7 +295,7 @@ export default function GeographyTilesMap({
 
     if (!focusEnabled) return;
 
-    const focusKey = [selectedId || parentId || "india", lat, lng, zoom].join(":");
+    const focusKey = [selectedId || parentId || "india", lat, lng, zoom, JSON.stringify(selectedBounds || null)].join(":");
     if (lastFocusRef.current !== focusKey) {
       if (selectedBounds?.length === 2) {
         map.fitBounds(selectedBounds, { padding: 48, maxZoom: 17, duration: 450 });
