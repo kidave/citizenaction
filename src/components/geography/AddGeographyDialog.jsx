@@ -66,6 +66,8 @@ function getBrowseLabel(category, path) {
 export default function AddGeographyDialog({ open, onOpenChange, governanceId = null, entityId = null, entityType = "governance", entityName, onSaved, selectionOnly = false, value = null, onSelectBoundary, title: titleOverride, embedded = false }) {
   const targetId = entityId || governanceId;
   const [category, setCategory] = useState("administrative");
+  const [politicalLevel, setPoliticalLevel] = useState("parliamentary");
+  const [politicalStateFilter, setPoliticalStateFilter] = useState("all");
   const [type, setType] = useState("all");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
@@ -112,6 +114,22 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
   const isFlatMode = Boolean(search.trim()) || type !== "all";
 
+  const { data: politicalStates = [] } = useQuery({
+    queryKey: ["geography-political-state-options"],
+    enabled: open && category === "political",
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("geographies")
+        .select(FIELDS)
+        .eq("parent_id", DEFAULT_GEOGRAPHY_FOCUS_ID)
+        .eq("geography_type", "state")
+        .order("name", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   const {
     data: geographyPages,
     isLoading,
@@ -122,6 +140,8 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     queryKey: [
       "geography-picker",
       category,
+      politicalLevel,
+      politicalStateFilter,
       type,
       search.trim(),
       browsePath.map((item) => item.id).join("/"),
