@@ -1,6 +1,9 @@
 name: Geography GeoJSON export
 
 on:
+  push:
+    branches:
+      - feature/geography-geojson-export
   pull_request:
     paths:
       - "scripts/geography/**"
