@@ -397,6 +397,9 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
   const goBack = () => {
     setBrowsePath((path) => path.slice(0, -1));
+    setSelected(null);
+    setGeometry(null);
+    geometryRequestRef.current += 1;
     if (category === "local_government" && (browseMode === "zones" || browseMode === "wards")) {
       setBrowseMode("local-bodies");
     } else if (category === "political" && browseMode === "assembly-constituencies") {
@@ -427,15 +430,18 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
 
   const exploreAll = (mode) => {
-    if (mode === "state-districts" || mode === "metropolitan" || mode === "local-bodies" || mode === "assembly-state") {
-      setBrowsePath([selected]);
-    } else if (mode === "zones" || mode === "wards" || mode === "assembly-constituencies") {
-      setBrowsePath((path) => [...path, selected]);
+    const hasSelectedParent = Boolean(selected?.id);
+    if (["state-districts", "metropolitan", "local-bodies", "assembly-state"].includes(mode)) {
+      setBrowsePath(hasSelectedParent ? [selected] : []);
+    } else if (["zones", "wards", "assembly-constituencies"].includes(mode)) {
+      setBrowsePath((path) => [...path, ...(hasSelectedParent ? [selected] : [])]);
     } else {
       setBrowsePath([]);
-      setSelected(null);
-      setGeometry(null);
     }
+    setSelected(null);
+    setGeometry(null);
+    setLoadingGeometry(false);
+    geometryRequestRef.current += 1;
     setBrowseMode(mode);
     if (mode === "assembly-state" || mode === "assembly-constituencies") setPoliticalLevel("assembly");
     setSearch("");
@@ -542,7 +548,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
         : politicalParent?.id || DEFAULT_GEOGRAPHY_FOCUS_ID
     : category === "administrative"
       ? browseMode === "state-districts" ? politicalParent?.id : browseMode === "all-districts" ? "__all__" : DEFAULT_GEOGRAPHY_FOCUS_ID
-      : browseMode === "root" ? DEFAULT_GEOGRAPHY_FOCUS_ID : politicalParent?.id || DEFAULT_GEOGRAPHY_FOCUS_ID;
+      : browseMode === "root" ? DEFAULT_GEOGRAPHY_FOCUS_ID : ["metropolitan", "local-bodies"].includes(browseMode) && !politicalParent ? "__all__" : politicalParent?.id || DEFAULT_GEOGRAPHY_FOCUS_ID;
   const mapCategory = category === "local_government" && browseMode === "root" || category === "political" && !["all-parliamentary", "all-assembly"].includes(browseMode) && (politicalLevel === "state" || (politicalLevel === "assembly" && !politicalParent && browseMode !== "all-assembly"))
     ? "administrative"
     : category;
