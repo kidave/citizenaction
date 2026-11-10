@@ -776,6 +776,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
               selectedId={selected?.id || null}
               category={mapCategory}
               geographyType={mapGeographyType}
+              selectedBounds={selected?.bounds || null}
               onFeatureClick={selectGeography}
             />
           ) : (
