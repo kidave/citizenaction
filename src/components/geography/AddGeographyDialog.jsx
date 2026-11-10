@@ -173,18 +173,13 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
         }
       }
 
-      if (!needle && category === "political" && browseMode === "all-parliamentary") {
-        const { data, error } = await supabase.from("geographies").select(FIELDS)
-          .eq("boundary_category", "political").eq("geography_type", "parliamentary_constituency")
+      if (!needle && category === "political" && ["all-parliamentary", "all-assembly"].includes(browseMode)) {
+        const type = browseMode === "all-parliamentary" ? "parliamentary_constituency" : "assembly_constituency";
+        let politicalQuery = supabase.from("geographies").select(FIELDS)
+          .eq("boundary_category", "political").eq("geography_type", type)
           .order("name", { ascending: true }).range(from, to);
-        if (error) throw error;
-        return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
-      }
-
-      if (!needle && category === "political" && browseMode === "all-assembly") {
-        const { data, error } = await supabase.from("geographies").select(FIELDS)
-          .eq("boundary_category", "political").eq("geography_type", "assembly_constituency")
-          .order("name", { ascending: true }).range(from, to);
+        if (politicalStateFilter !== "all") politicalQuery = politicalQuery.eq("parent_id", politicalStateFilter);
+        const { data, error } = await politicalQuery;
         if (error) throw error;
         return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
       }
