@@ -55,6 +55,8 @@ function getBrowseLabel(category, path) {
   }
 
   const current = path[path.length - 1];
+  if (category === "political" && current.geography_type === "state") return "Parliamentary constituencies";
+  if (category === "political" && current.geography_type === "parliamentary_constituency") return "Assembly constituencies";
   if (current.geography_type === "state") return "Districts";
   if (current.geography_type === "district") return "Sub-districts";
   if (current.geography_type === "local_government") return "Zones";
@@ -662,6 +664,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
             lat={Number(center?.lat) || 20.5937}
             lng={Number(center?.lng) || 78.9629}
             zoom={selected ? 6 : 4}
+            focusEnabled={!selected || Boolean(selected.center)}
             parentId={mapParentId}
             selectedId={selected?.id || null}
             category={mapCategory}
