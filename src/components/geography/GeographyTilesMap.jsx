@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Map as MapLibreMap, NavigationControl, getVersion, setWorkerUrl } from "maplibre-gl";
+import { Map as MapLibreMap, NavigationControl, Popup, getVersion, setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { OPENFREEMAP_STYLES } from "@/config/maps/openFreeMap";
@@ -267,11 +267,27 @@ export default function GeographyTilesMap({
           });
         });
 
-        map.on("mouseenter", FILL_LAYER_ID, () => {
+        const geographyPopup = new Popup({ closeButton: false, closeOnClick: false, offset: 10 });
+        map.on("mousemove", FILL_LAYER_ID, (event) => {
           map.getCanvas().style.cursor = "pointer";
+          const properties = map.queryRenderedFeatures(event.point, { layers: [FILL_LAYER_ID] })[0]?.properties;
+          if (!properties) return;
+          const content = document.createElement("div");
+          const name = document.createElement("div");
+          name.className = "font-medium";
+          name.textContent = properties.name || properties.official_name || "Unnamed boundary";
+          const parent = document.createElement("div");
+          parent.className = "text-xs";
+          parent.textContent = "Parent: " + (properties.parent_name || properties.parent_label || properties.parent || "Not available");
+          const type = document.createElement("div");
+          type.className = "text-xs";
+          type.textContent = "Type: " + (properties.geography_type || "other").replace(/_/g, " ");
+          content.append(name, parent, type);
+          geographyPopup.setLngLat(event.lngLat).setDOMContent(content).addTo(map);
         });
         map.on("mouseleave", FILL_LAYER_ID, () => {
           map.getCanvas().style.cursor = "";
+          geographyPopup.remove();
         });
 
         setTileStatus("MapTiler vector source registered · requesting PBF tiles…");
