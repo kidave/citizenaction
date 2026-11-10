@@ -378,6 +378,8 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     setBrowsePath((path) => path.slice(0, -1));
     if (category === "local_government" && (browseMode === "zones" || browseMode === "wards")) {
       setBrowseMode("local-bodies");
+    } else if (category === "local_government" && browseMode === "metro-local-bodies") {
+      setBrowseMode("metropolitan");
     } else {
       setBrowseMode("root");
     }
@@ -397,7 +399,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
   const exploreMode = (mode) => {
     if (!selected) return;
-    setBrowsePath((path) => category === "political" || (category === "local_government" && (mode === "zones" || mode === "wards")) ? [...path, selected] : [selected]);
+    setBrowsePath((path) => category === "political" || (category === "local_government" && (mode === "zones" || mode === "wards" || mode === "metro-local-bodies")) ? [...path, selected] : [selected]);
     setBrowseMode(mode);
     setSearch("");
     setType("all");
