@@ -17,11 +17,14 @@ function getTileJsonUrl(apiKey) {
 }
 
 function buildFeatureFilter({ parentId, selectedId, category }) {
+  const isCountryRoot = parentId === DEFAULT_GEOGRAPHY_FOCUS_ID;
+  const childCategory = isCountryRoot ? "administrative" : category;
   const children = [
     "all",
     ["==", ["get", "parent_id"], parentId],
-    ["==", ["get", "boundary_category"], category],
+    ["==", ["get", "boundary_category"], childCategory],
     ["==", ["get", "status"], "active"],
+    ...(isCountryRoot ? [["==", ["get", "geography_type"], "state"]] : []),
   ];
 
   if (!selectedId) return children;
