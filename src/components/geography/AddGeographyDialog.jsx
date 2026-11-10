@@ -382,7 +382,6 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     setBrowsePath((path) => category === "political" || (category === "local_government" && (mode === "zones" || mode === "wards" || mode === "metro-local-bodies")) ? [...path, selected] : [selected]);
     setBrowseMode(mode);
     setSearch("");
-    setType("all");
   };
 
 
