@@ -13,7 +13,6 @@ import {
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -24,7 +23,6 @@ import {
   GEOGRAPHY_BOUNDARY_CATEGORIES,
   getGeographyBoundaryCategory,
   getGeographyCategoryLabel,
-  getGeographyTypeLabel,
 } from "@/config/geography/boundaryCategories";
 
 const GeographyTilesMap = dynamic(() => import("@/components/geography/GeographyTilesMap"), { ssr: false });
@@ -112,27 +110,9 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     geometryRequestRef.current += 1;
   }, [open, currentGeography, mapRenderer]);
 
-  const activeCategory =
-    GEOGRAPHY_BOUNDARY_CATEGORIES.find((item) => item.value === category) ||
-    GEOGRAPHY_BOUNDARY_CATEGORIES[0];
-
   const isFlatMode = Boolean(search.trim());
 
-  const { data: politicalStates = [] } = useQuery({
-    queryKey: ["geography-political-state-options"],
-    enabled: open && category === "political",
-    staleTime: 10 * 60 * 1000,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("geographies")
-        .select(FIELDS)
-        .eq("parent_id", DEFAULT_GEOGRAPHY_FOCUS_ID)
-        .eq("geography_type", "state")
-        .order("name", { ascending: true });
-      if (error) throw error;
-      return data || [];
-    },
-  });
+
 
   const {
     data: geographyPages,
@@ -338,10 +318,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     [geographyPages],
   );
 
-  const typeOptions = useMemo(
-    () => activeCategory.types.filter((item) => item !== "country"),
-    [activeCategory],
-  );
+
 
   const selectGeography = async (item) => {
     const requestId = ++geometryRequestRef.current;
@@ -424,10 +401,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     setType("all");
   };
 
-  const handleTypeChange = (value) => {
-    setType(value);
-    setBrowsePath([]);
-  };
+
 
   const handlePoliticalLevelChange = (value) => {
     setPoliticalLevel(value);
@@ -550,6 +524,35 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     ? browsePath.map((item) => item.name).join(" / ")
     : "";
 
+  const contextualActions = (() => {
+    if (!selected || browseMode !== "root" && category !== "political") return [];
+    if (category === "administrative" && selected.geography_type === "state") {
+      return [
+        { label: "Explore districts in " + selected.name, description: "Show districts belonging to this state", mode: "state-districts" },
+        { label: "View all districts in India", description: "Show district boundaries nationwide", mode: "all-districts" },
+      ];
+    }
+    if (category === "local_government" && selected.geography_type === "state") {
+      return [
+        { label: "Metropolitan areas", description: "Explore metropolitan regions in this state", mode: "metropolitan" },
+        { label: "Local bodies", description: "Explore municipal corporations, municipalities and panchayats", mode: "local-bodies" },
+      ];
+    }
+    if (category === "local_government" && selected.geography_type === "local_government") {
+      return [
+        { label: "Zones", description: "Explore zones within this local body", mode: "zones" },
+        { label: "Wards", description: "Explore all wards belonging to this local body", mode: "wards" },
+      ];
+    }
+    if (category === "political" && politicalLevel === "assembly" && selected.geography_type === "state") {
+      return [{ label: "Explore parliamentary constituencies", description: "Choose a parliamentary constituency in " + selected.name, mode: "assembly-state" }];
+    }
+    if (category === "political" && politicalLevel === "assembly" && selected.geography_type === "parliamentary_constituency") {
+      return [{ label: "Explore assembly constituencies", description: "Show assembly constituencies within " + selected.name, mode: "assembly-constituencies" }];
+    }
+    return [];
+  })();
+
   const browserContent = (
       <div className={embedded
         ? "grid h-full min-h-0 w-full grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden md:grid-cols-[360px_minmax(0,1fr)] md:grid-rows-[auto_minmax(0,1fr)_auto]"
@@ -605,19 +608,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
                 />
               </div>
 
-              <Select value={type} onValueChange={handleTypeChange}>
-                <SelectTrigger className="h-9 w-[116px] shrink-0 text-xs sm:w-[150px] sm:text-sm">
-                  <SelectValue placeholder="All types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All types</SelectItem>
-                  {typeOptions.map((item) => (
-                    <SelectItem key={item} value={item}>
-                      {getGeographyTypeLabel(item)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
             </div>
 
             {!isFlatMode && (
