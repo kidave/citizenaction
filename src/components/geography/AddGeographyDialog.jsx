@@ -36,8 +36,8 @@ const FIELDS =
 
 const HIERARCHY_ROOT_TYPES = {
   administrative: ["state"],
-  local_government: ["metropolitan_area", "local_government"],
-  political: ["parliamentary_constituency"],
+  local_government: ["state"],
+  political: ["state"],
 };
 
 function canDrillDown(item) {
@@ -55,8 +55,9 @@ function canDrillDown(item) {
 function getBrowseLabel(category, path) {
   if (!path.length) {
     if (category === "administrative") return "States";
-    if (category === "local_government") return "Metropolitan areas and municipal bodies";
-    return "Parliamentary constituencies";
+    if (category === "local_government") return "Select a state";
+    if (category === "political") return "Select a state";
+    return "States";
   }
 
   const current = path[path.length - 1];
@@ -182,7 +183,10 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
           );
         }
       } else if (!parent) {
-        query = query.in("geography_type", HIERARCHY_ROOT_TYPES[category] || []);
+        query = query
+          .eq("parent_id", DEFAULT_GEOGRAPHY_FOCUS_ID)
+          .eq("geography_type", "state")
+          .or("boundary_category.eq.administrative,boundary_category.is.null");
       } else {
         query = query.eq("parent_id", parent.id);
       }
@@ -514,7 +518,13 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
             lat={Number(center?.lat) || 20.5937}
             lng={Number(center?.lng) || 78.9629}
             zoom={selected ? 6 : 4}
-            parentId={browsePath[browsePath.length - 1]?.id || selected?.parent_id || DEFAULT_GEOGRAPHY_FOCUS_ID}
+            parentId={
+              browsePath[browsePath.length - 1]?.id ||
+              (selected?.geography_type === "state" && category !== getGeographyBoundaryCategory(selected)
+                ? selected.id
+                : selected?.parent_id) ||
+              DEFAULT_GEOGRAPHY_FOCUS_ID
+            }
             selectedId={selected?.id || null}
             category={category}
             onFeatureClick={selectGeography}
