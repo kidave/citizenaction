@@ -67,7 +67,7 @@ function getBrowseLabel(category, path) {
   return "Boundaries";
 }
 
-export default function AddGeographyDialog({ open, onOpenChange, governanceId = null, entityId = null, entityType = "governance", entityName, onSaved, selectionOnly = false, value = null, onSelectBoundary, title: titleOverride }) {
+export default function AddGeographyDialog({ open, onOpenChange, governanceId = null, entityId = null, entityType = "governance", entityName, onSaved, selectionOnly = false, value = null, onSelectBoundary, title: titleOverride, embedded = false }) {
   const targetId = entityId || governanceId;
   const [category, setCategory] = useState("administrative");
   const [type, setType] = useState("all");
@@ -321,9 +321,11 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     ? browsePath.map((item) => item.name).join(" / ")
     : "";
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[100dvh] w-screen max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:w-[96vw] sm:rounded-lg md:grid md:grid-cols-[360px_minmax(0,1fr)] md:grid-rows-[auto_minmax(0,1fr)_auto]">
+  const browserContent = (
+      <div className={embedded
+        ? "grid h-full min-h-0 w-full grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden md:grid-cols-[360px_minmax(0,1fr)] md:grid-rows-[auto_minmax(0,1fr)_auto]"
+        : "grid h-full min-h-0 w-full grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden md:grid-cols-[360px_minmax(0,1fr)] md:grid-rows-[auto_minmax(0,1fr)_auto]"
+      }>
         <aside className="order-1 flex max-h-[43dvh] min-h-0 shrink-0 flex-col border-b md:order-none md:row-span-3 md:max-h-none md:border-b-0 md:border-r">
           <div className="space-y-2 border-b p-3 sm:space-y-3 sm:p-4">
             <div className="grid grid-cols-3 rounded-md border bg-muted/30 p-0.5">
@@ -555,6 +557,15 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
             </Button>
           </div>
         </div>
+      </div>
+    );
+
+  if (embedded) return browserContent;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex h-[100dvh] w-screen max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:w-[96vw] sm:rounded-lg">
+        {browserContent}
       </DialogContent>
     </Dialog>
   );
