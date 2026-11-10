@@ -41,6 +41,8 @@ function getBrowseLabel(category, path, browseMode, politicalLevel) {
     }
     if (category === "local_government") return "States and Union Territories";
     if (category === "political") {
+      if (browseMode === "all-parliamentary") return "Parliamentary constituencies across India";
+      if (browseMode === "all-assembly") return "Assembly constituencies across India";
       if (politicalLevel === "parliamentary") return "Parliamentary constituencies across India";
       if (politicalLevel === "assembly") return "Select a state";
       return "States and Union Territories";
@@ -542,31 +544,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     ? browsePath.map((item) => item.name).join(" / ")
     : "";
 
-  const contextualActions = (() => {
-    if (!selected || browsePath.some((item) => item.id === selected.id)) return [];
-    if (category === "administrative" && selected.geography_type === "state") {
-      return [
-        { label: "Explore districts in " + selected.name, description: "Show districts belonging to this state", mode: "state-districts" },
-        { label: "View all districts in India", description: "Show district boundaries nationwide", mode: "all-districts" },
-      ];
-    }
-    if (category === "local_government" && selected.geography_type === "state") {
-      return [
-        { label: "Metropolitan areas", description: "Explore metropolitan regions in this state", mode: "metropolitan" },
-        { label: "Local bodies", description: "Explore municipal corporations, municipalities and panchayats", mode: "local-bodies" },
-      ];
-    }
-    if (category === "local_government" && selected.geography_type === "local_government") {
-      return [
-        { label: "Zones", description: "Explore zones within this local body", mode: "zones" },
-        { label: "Wards", description: "Explore all wards belonging to this local body", mode: "wards" },
-      ];
-    }
-    if (category === "political" && politicalLevel === "assembly" && selected.geography_type === "parliamentary_constituency") {
-      return [{ label: "Explore assembly constituencies", description: "Show assembly constituencies within " + selected.name, mode: "assembly-constituencies" }];
-    }
-    return [];
-  })();
+
 
   const browserContent = (
       <div className={embedded
@@ -609,25 +587,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
             </div>
 
-            {contextualActions.length > 0 && (
-              <div className="space-y-1 border-t pt-2">
-                <p className="px-1 text-xs font-medium text-muted-foreground">Explore this selection</p>
-                {contextualActions.map((action) => (
-                  <button
-                    key={action.mode}
-                    type="button"
-                    onClick={() => exploreMode(action.mode)}
-                    className="flex w-full items-center justify-between gap-3 rounded-md px-2.5 py-2 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <span className="min-w-0">
-                      <span className="block text-sm font-medium">{action.label}</span>
-                      <span className="block text-xs text-muted-foreground">{action.description}</span>
-                    </span>
-                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  </button>
-                ))}
-              </div>
-            )}
+
 
             {!isFlatMode && (
               <div className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
