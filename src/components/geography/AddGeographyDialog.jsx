@@ -508,21 +508,30 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
   const label = selected?.official_name || selected?.name || "Geography";
   const center = selected?.center || { lat: 20.5937, lng: 78.9629 };
   const politicalParent = browsePath[browsePath.length - 1] || null;
-  const mapParentId = category !== "political"
-    ? politicalParent?.id || selected?.parent_id || DEFAULT_GEOGRAPHY_FOCUS_ID
-    : politicalLevel === "parliamentary"
-      ? politicalStateFilter === "all" ? "__all__" : politicalStateFilter
-      : politicalParent?.id || DEFAULT_GEOGRAPHY_FOCUS_ID;
-  const mapCategory = category === "political" && politicalLevel === "assembly" && !politicalParent
+  const mapParentId = category === "political"
+    ? politicalLevel === "state" || (politicalLevel === "assembly" && !politicalParent)
+      ? DEFAULT_GEOGRAPHY_FOCUS_ID
+      : politicalLevel === "parliamentary"
+        ? politicalStateFilter === "all" ? "__all__" : politicalStateFilter
+        : politicalParent?.id || DEFAULT_GEOGRAPHY_FOCUS_ID
+    : category === "administrative"
+      ? browseMode === "state-districts" ? politicalParent?.id : browseMode === "all-districts" ? "__all__" : DEFAULT_GEOGRAPHY_FOCUS_ID
+      : browseMode === "root" ? DEFAULT_GEOGRAPHY_FOCUS_ID : politicalParent?.id || DEFAULT_GEOGRAPHY_FOCUS_ID;
+  const mapCategory = category === "political" && (politicalLevel === "state" || (politicalLevel === "assembly" && !politicalParent))
     ? "administrative"
     : category;
-  const mapGeographyType = category !== "political"
-    ? null
-    : politicalLevel === "parliamentary" || politicalParent?.geography_type === "state"
-      ? "parliamentary_constituency"
-      : politicalParent?.geography_type === "parliamentary_constituency"
-        ? "assembly_constituency"
-        : null;
+  const mapGeographyType = category === "political"
+    ? politicalLevel === "state" || (politicalLevel === "assembly" && !politicalParent)
+      ? "state"
+      : politicalLevel === "parliamentary" || politicalParent?.geography_type === "state"
+        ? "parliamentary_constituency"
+        : "assembly_constituency"
+    : category === "administrative"
+      ? browseMode === "all-districts" || browseMode === "state-districts" ? "district" : "state"
+      : browseMode === "metropolitan" ? "metropolitan_area"
+        : browseMode === "local-bodies" ? "local_government"
+          : browseMode === "zones" ? "zone"
+            : browseMode === "wards" ? "ward" : "state";
   const mapBoundary =
     selected && geometry
       ? [
@@ -567,20 +576,21 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
             </div>
 
             {category === "political" && (
-              <div className="space-y-2">
-                <div className="grid grid-cols-2 rounded-md border bg-muted/30 p-0.5">
-                  <button type="button" onClick={() => handlePoliticalLevelChange("parliamentary")} className={"rounded px-2 py-2 text-sm font-medium " + (politicalLevel === "parliamentary" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground")}>Parliamentary</button>
-                  <button type="button" onClick={() => handlePoliticalLevelChange("assembly")} className={"rounded px-2 py-2 text-sm font-medium " + (politicalLevel === "assembly" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground")}>Assembly</button>
-                </div>
-                {politicalLevel === "parliamentary" && (
-                  <Select value={politicalStateFilter} onValueChange={handlePoliticalStateChange}>
-                    <SelectTrigger className="h-9 w-full"><SelectValue placeholder="All states" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All states · India</SelectItem>
-                      {politicalStates.map((state) => <SelectItem key={state.id} value={state.id}>{state.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                )}
+              <div className="grid grid-cols-3 rounded-md border bg-muted/30 p-0.5">
+                {[
+                  ["state", "States"],
+                  ["parliamentary", "Parliamentary"],
+                  ["assembly", "Assembly"],
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => handlePoliticalLevelChange(value)}
+                    className={"rounded px-2 py-2 text-sm font-medium transition-colors " + (politicalLevel === value ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
             )}
 
