@@ -34,12 +34,6 @@ const PAGE_SIZE = 80;
 const FIELDS =
   "id,name,official_name,geography_type,boundary_category,parent_id,country_code,osm_type,osm_id,center,metadata";
 
-const HIERARCHY_ROOT_TYPES = {
-  administrative: ["state"],
-  local_government: ["state"],
-  political: ["state"],
-};
-
 function canDrillDown(item) {
   if (!item) return false;
 
