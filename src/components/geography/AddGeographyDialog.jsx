@@ -64,6 +64,17 @@ function getBrowseLabel(category, path, browseMode, politicalLevel) {
   return "Boundaries";
 }
 
+function getGeographyZoom(geographyType) {
+  if (geographyType === "state") return 6;
+  if (geographyType === "district") return 8;
+  if (geographyType === "parliamentary_constituency") return 8;
+  if (geographyType === "assembly_constituency") return 10;
+  if (geographyType === "metropolitan_area" || geographyType === "local_government") return 11;
+  if (geographyType === "zone") return 13;
+  if (geographyType === "ward") return 14;
+  return 10;
+}
+
 export default function AddGeographyDialog({ open, onOpenChange, governanceId = null, entityId = null, entityType = "governance", entityName, onSaved, selectionOnly = false, value = null, onSelectBoundary, title: titleOverride, embedded = false, mapRenderer = "leaflet" }) {
   const targetId = entityId || governanceId;
   const [category, setCategory] = useState("administrative");
@@ -406,10 +417,14 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
 
   const exploreAll = (mode) => {
+    if (mode === "state-districts" && selected?.geography_type === "state") {
+      setBrowsePath([selected]);
+    } else {
+      setBrowsePath([]);
+      setSelected(null);
+      setGeometry(null);
+    }
     setBrowseMode(mode);
-    setBrowsePath([]);
-    setSelected(null);
-    setGeometry(null);
     setSearch("");
   };
 
@@ -486,7 +501,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
   const center = selected?.center || { lat: 20.5937, lng: 78.9629 };
   const politicalParent = browsePath[browsePath.length - 1] || null;
   const mapParentId = category === "political"
-    ? politicalLevel === "state" || (politicalLevel === "assembly" && !politicalParent)
+    ? browseMode === "all-assembly" ? "__all__" : politicalLevel === "state" || (politicalLevel === "assembly" && !politicalParent)
       ? DEFAULT_GEOGRAPHY_FOCUS_ID
       : politicalLevel === "parliamentary"
         ? politicalStateFilter === "all" ? "__all__" : politicalStateFilter
@@ -494,11 +509,11 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     : category === "administrative"
       ? browseMode === "state-districts" ? politicalParent?.id : browseMode === "all-districts" ? "__all__" : DEFAULT_GEOGRAPHY_FOCUS_ID
       : browseMode === "root" ? DEFAULT_GEOGRAPHY_FOCUS_ID : politicalParent?.id || DEFAULT_GEOGRAPHY_FOCUS_ID;
-  const mapCategory = category === "local_government" && browseMode === "root" || category === "political" && (politicalLevel === "state" || (politicalLevel === "assembly" && !politicalParent))
+  const mapCategory = category === "local_government" && browseMode === "root" || category === "political" && (politicalLevel === "state" || (politicalLevel === "assembly" && !politicalParent && browseMode !== "all-assembly"))
     ? "administrative"
     : category;
   const mapGeographyType = category === "political"
-    ? politicalLevel === "state" || (politicalLevel === "assembly" && !politicalParent)
+    ? browseMode === "all-assembly" ? "assembly_constituency" : politicalLevel === "state" || (politicalLevel === "assembly" && !politicalParent)
       ? "state"
       : politicalLevel === "parliamentary" || politicalParent?.geography_type === "state"
         ? "parliamentary_constituency"
@@ -710,17 +725,16 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
           <div className="order-0 flex min-h-14 min-w-0 shrink-0 items-center gap-2 overflow-x-auto border-b px-4 py-2.5 sm:px-5 md:order-none">
             {category === "administrative" && (
               browseMode === "state-districts" ? (
-                <>
-                  <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={goBack}>
-                    <ChevronLeft className="mr-1 h-4 w-4" /> Back to states
-                  </Button>
-                  <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("state-districts")}>
-                    Explore districts in {browsePath[browsePath.length - 1]?.name || "state"}
-                  </Button>
-                </>
+                <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={goBack}>
+                  <ChevronLeft className="mr-1 h-4 w-4" /> Back to states
+                </Button>
               ) : browseMode === "all-districts" ? (
                 <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={() => exploreAll("root")}>
                   <ChevronLeft className="mr-1 h-4 w-4" /> Back to states
+                </Button>
+              ) : selected?.geography_type === "state" ? (
+                <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("state-districts")}>
+                  Explore districts in {selected.name}
                 </Button>
               ) : (
                 <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("all-districts")}>
