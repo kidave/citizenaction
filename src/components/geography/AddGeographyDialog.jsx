@@ -725,10 +725,10 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
                 </>
               )}
               {category === "local_government" && (
-                selected?.geography_type === "local_government" && browseMode === "local-bodies" ? (
+                ((selected?.geography_type === "local_government" && browseMode === "local-bodies") || ["zones", "wards"].includes(browseMode)) ? (
                   <>
-                    <Button type="button" size="sm" variant={browseMode === "zones" ? "secondary" : "outline"} onClick={() => exploreAll("zones")}>Zones in {selected.name}</Button>
-                    <Button type="button" size="sm" variant={browseMode === "wards" ? "secondary" : "outline"} onClick={() => exploreAll("wards")}>Wards in {selected.name}</Button>
+                    <Button type="button" size="sm" variant={browseMode === "zones" ? "secondary" : "outline"} onClick={() => exploreAll("zones")}>Zones in {selected?.geography_type === "local_government" ? selected.name : browsePath[browsePath.length - 1]?.name || "Local Body"}</Button>
+                    <Button type="button" size="sm" variant={browseMode === "wards" ? "secondary" : "outline"} onClick={() => exploreAll("wards")}>Wards in {selected?.geography_type === "local_government" ? selected.name : browsePath[browsePath.length - 1]?.name || "Local Body"}</Button>
                   </>
                 ) : (
                   <>
