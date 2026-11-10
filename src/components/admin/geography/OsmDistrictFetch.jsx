@@ -152,7 +152,7 @@ export default function OsmDistrictFetch() {
         <div>
           <CardTitle className="text-base">OpenStreetMap district fetch</CardTitle>
           <CardDescription className="mt-1">
-            Fetch admin_level=5 relations separately inside each state's OSM boundary. This is a read-only collection step; it does not write to geographies.
+            Fetch admin_level=5 relations separately inside each state&apos;s OSM boundary. This is a read-only collection step; it does not write to geographies.
           </CardDescription>
         </div>
         <Button type="button" onClick={runFetch} disabled={running} className="shrink-0">
