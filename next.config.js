@@ -90,6 +90,7 @@ const nextConfig = {
       form-action 'self';
       font-src 'self' https://fonts.gstatic.com https://vercel.live https://assets.vercel.com;
       object-src 'none';
+      worker-src 'self' blob:;
       upgrade-insecure-requests;
     `;
 
