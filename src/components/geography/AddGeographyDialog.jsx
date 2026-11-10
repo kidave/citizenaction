@@ -392,7 +392,6 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     setPoliticalStateFilter("all");
     setBrowsePath([]);
     setSearch("");
-    setType("all");
     setSelected(null);
   };
 
