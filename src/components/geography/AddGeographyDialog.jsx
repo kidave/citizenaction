@@ -594,16 +594,6 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
               </TabsList>
             </Tabs>
 
-            {category === "political" && (
-              <Tabs value={politicalLevel} onValueChange={handlePoliticalLevelChange} className="w-full">
-                <TabsList className="grid h-10 w-full grid-cols-3">
-                  <TabsTrigger value="state" className="px-2 text-xs sm:text-sm">States</TabsTrigger>
-                  <TabsTrigger value="parliamentary" className="px-2 text-xs sm:text-sm">Parliamentary</TabsTrigger>
-                  <TabsTrigger value="assembly" className="px-2 text-xs sm:text-sm">Assembly</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            )}
-
             <div className="flex min-w-0 gap-2">
               <div className="relative min-w-0 flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -620,32 +610,6 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
 
 
-            {!isFlatMode && (
-              <div className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
-                {browsePath.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={goBack}
-                    className="inline-flex items-center gap-1 rounded px-1.5 py-1 font-medium text-foreground hover:bg-muted"
-                  >
-                    <ChevronLeft className="h-3.5 w-3.5" />
-                    Back
-                  </button>
-                )}
-                <span className="truncate">{getBrowseLabel(category, browsePath, browseMode, politicalLevel)}</span>
-                {browsePath.length > 0 && (
-                  <span className="truncate text-muted-foreground/70">
-                    · {browsePath.map((item) => item.name).join(" / ")}
-                  </span>
-                )}
-              </div>
-            )}
-
-            {isFlatMode && (
-              <div className="text-xs text-muted-foreground">
-                Search results match any boundary in this category.
-              </div>
-            )}
           </div>
 
           <ScrollArea className="min-h-0 flex-1">
