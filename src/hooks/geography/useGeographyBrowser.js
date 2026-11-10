@@ -55,8 +55,9 @@ export async function fetchGeographyGeometry(geography) {
   const { data, error } = await supabase.rpc("get_geography_geometry", { p_geography_id: geographyId });
   if (error) throw error;
   if (data) {
-    geographyGeometryCache.set(geographyId, data);
-    return data;
+    const geometry = data?.type === "Feature" ? data.geometry : data?.geometry || data;
+    geographyGeometryCache.set(geographyId, geometry);
+    return geometry;
   }
 
   if (!geography?.osm_type || !geography?.osm_id) return null;
