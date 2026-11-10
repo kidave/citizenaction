@@ -128,12 +128,16 @@ out tags center;`;
 
   if (level === 5 && stateName) {
     const state = quoteOverpass(stateName);
-    return `[out:json][timeout:90];
-(
-  area["boundary"="administrative"]["admin_level"="4"]["name"=${state}];
-  area["boundary"="administrative"]["admin_level"="4"]["name:en"=${state}];
-)->.stateArea;
-rel${boundaryFilter}${levelFilter}${nameFilter}(area.stateArea);
+    return `[out:json][timeout:45];
+area["name"=${state}]
+    ["boundary"="administrative"]
+    ["admin_level"="4"]->.state;
+
+rel
+    ["boundary"="administrative"]
+    ["admin_level"="5"]
+    (area.state);
+
 out tags center;`;
   }
 
