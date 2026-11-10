@@ -371,17 +371,13 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     }
   };
 
-  const drillInto = (item) => {
-    if (!canDrillDown(item)) return;
-    setSearch("");
-    setType("all");
-    selectGeography(item);
-    setBrowsePath((path) => [...path, item]);
-  };
-
   const goBack = () => {
     setBrowsePath((path) => path.slice(0, -1));
-    setBrowseMode("root");
+    if (category === "local_government" && (browseMode === "zones" || browseMode === "wards")) {
+      setBrowseMode("local-bodies");
+    } else {
+      setBrowseMode("root");
+    }
   };
 
   const handleCategoryChange = (value) => {
@@ -398,7 +394,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
   const exploreMode = (mode) => {
     if (!selected) return;
-    setBrowsePath((path) => category === "political" ? [...path, selected] : [selected]);
+    setBrowsePath((path) => category === "political" || (category === "local_government" && (mode === "zones" || mode === "wards")) ? [...path, selected] : [selected]);
     setBrowseMode(mode);
     setSearch("");
     setType("all");
@@ -697,24 +693,11 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
                             <span className="block truncate text-sm font-medium">
                               {item.official_name || item.name}
                             </span>
-                            <span className="block truncate text-xs text-muted-foreground">
-                              {getGeographyTypeLabel(item.geography_type)}
-                            </span>
+
                           </span>
                         </button>
 
-                        {drillable && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 shrink-0"
-                            onClick={() => drillInto(item)}
-                            aria-label={"Browse " + item.name}
-                          >
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
-                        )}
+
                       </div>
                     );
                   })}
