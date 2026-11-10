@@ -677,58 +677,57 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
         </aside>
 
         {embedded ? (
-          <div className="order-0 flex min-h-14 min-w-0 shrink-0 items-center gap-2 overflow-x-auto border-b px-4 py-2.5 sm:px-5 md:order-none">
+          <div className="order-0 flex min-h-14 min-w-0 shrink-0 flex-wrap items-center gap-2 border-b px-4 py-2.5 sm:px-5 md:order-none">
+            {browsePath.length > 0 && (
+              <div className="mr-auto flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
+                <button type="button" onClick={goBack} className="inline-flex shrink-0 items-center gap-1 rounded px-1.5 py-1 font-medium text-foreground hover:bg-muted">
+                  <ChevronLeft className="h-3.5 w-3.5" /> Back
+                </button>
+                <span className="truncate">{browsePath.map((item) => item.name).join(" / ")}</span>
+                <span className="shrink-0">/ {getBrowseLabel(category, browsePath, browseMode, politicalLevel)}</span>
+              </div>
+            )}
             {category === "administrative" && (
               browseMode === "state-districts" ? (
-                <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={goBack}>
-                  <ChevronLeft className="mr-1 h-4 w-4" /> Back to states
-                </Button>
+                <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={goBack}><ChevronLeft className="mr-1 h-4 w-4" /> Back to states</Button>
               ) : browseMode === "all-districts" ? (
-                <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={backToStates}>
-                  <ChevronLeft className="mr-1 h-4 w-4" /> Back to states
-                </Button>
+                <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={backToStates}><ChevronLeft className="mr-1 h-4 w-4" /> Back to states</Button>
               ) : selected?.geography_type === "state" ? (
                 <>
-                  <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={backToStates}>
-                    <ChevronLeft className="mr-1 h-4 w-4" /> Back to states
-                  </Button>
-                  <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("state-districts")}>
-                    Explore districts in {selected.name}
-                  </Button>
+                  <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={backToStates}><ChevronLeft className="mr-1 h-4 w-4" /> Back to states</Button>
+                  <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("state-districts")}>Explore districts in {selected.name}</Button>
                 </>
               ) : (
-                <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("all-districts")}>
-                  Explore all districts of India
-                </Button>
+                <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("all-districts")}>Explore All Districts of India</Button>
               )
             )}
-            {category === "local_government" && selected?.geography_type === "state" && browseMode === "root" && (
+            {category === "political" && browseMode === "root" && (
               <>
-                <Button type="button" size="sm" variant="outline" className="shrink-0" onClick={() => exploreAll("metropolitan")}>Explore metropolitan areas</Button>
-                <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("local-bodies")}>Explore local bodies</Button>
+                <Button type="button" size="sm" variant="outline" className="shrink-0" onClick={() => exploreAll("all-parliamentary")}>Explore Parliamentary Constituencies</Button>
+                <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("all-assembly")}>Explore Assembly Constituencies</Button>
+              </>
+            )}
+            {category === "political" && selected?.geography_type === "state" && browseMode === "root" && (
+              <>
+                <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={backToStates}><ChevronLeft className="mr-1 h-4 w-4" /> Back to states</Button>
+                <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("assembly-state")}>Explore Parliamentary Constituencies in {selected.name}</Button>
+              </>
+            )}
+            {category === "political" && selected?.geography_type === "parliamentary_constituency" && browseMode === "assembly-state" && (
+              <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("assembly-constituencies")}>Explore Assembly Constituencies in {selected.name}</Button>
+            )}
+            {category === "local_government" && browseMode === "root" && selected?.geography_type === "state" && (
+              <>
+                <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={backToStates}><ChevronLeft className="mr-1 h-4 w-4" /> Back to states</Button>
+                <Button type="button" size="sm" variant="outline" className="shrink-0" onClick={() => exploreAll("metropolitan")}>Explore Metropolitan Areas</Button>
+                <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("local-bodies")}>Explore Local Bodies</Button>
               </>
             )}
             {category === "local_government" && selected?.geography_type === "local_government" && browseMode === "local-bodies" && (
               <>
-                <Button type="button" size="sm" variant="outline" className="shrink-0" onClick={() => exploreAll("zones")}>Explore zones</Button>
-                <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("wards")}>Explore wards</Button>
+                <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={() => exploreAll("zones")}>Explore Zones</Button>
+                <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("wards")}>Explore Wards</Button>
               </>
-            )}
-            {category === "political" && politicalLevel === "assembly" && selected?.geography_type === "state" && (
-              <Button type="button" size="sm" variant="outline" className="shrink-0" onClick={() => exploreAll("assembly-state")}>Explore parliamentary constituencies in {selected.name}</Button>
-            )}
-            {category === "political" && politicalLevel === "assembly" && selected?.geography_type === "parliamentary_constituency" && (
-              <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("assembly-constituencies")}>Explore assembly constituencies in {selected.name}</Button>
-            )}
-            {category === "political" && politicalLevel === "parliamentary" && (
-              <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("all-parliamentary")}>
-                Explore all parliamentary constituencies
-              </Button>
-            )}
-            {category === "political" && politicalLevel === "assembly" && (
-              <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("all-assembly")}>
-                Explore all assembly constituencies
-              </Button>
             )}
           </div>
         ) : (
