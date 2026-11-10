@@ -395,7 +395,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
   const exploreMode = (mode) => {
     if (!selected) return;
-    setBrowsePath([selected]);
+    setBrowsePath((path) => category === "political" ? [...path, selected] : [selected]);
     setBrowseMode(mode);
     setSearch("");
     setType("all");
@@ -491,7 +491,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     : category === "administrative"
       ? browseMode === "state-districts" ? politicalParent?.id : browseMode === "all-districts" ? "__all__" : DEFAULT_GEOGRAPHY_FOCUS_ID
       : browseMode === "root" ? DEFAULT_GEOGRAPHY_FOCUS_ID : politicalParent?.id || DEFAULT_GEOGRAPHY_FOCUS_ID;
-  const mapCategory = category === "political" && (politicalLevel === "state" || (politicalLevel === "assembly" && !politicalParent))
+  const mapCategory = category === "local_government" && browseMode === "root" || category === "political" && (politicalLevel === "state" || (politicalLevel === "assembly" && !politicalParent))
     ? "administrative"
     : category;
   const mapGeographyType = category === "political"
@@ -610,6 +610,26 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
 
             </div>
+
+            {contextualActions.length > 0 && (
+              <div className="space-y-1 border-t pt-2">
+                <p className="px-1 text-xs font-medium text-muted-foreground">Explore this selection</p>
+                {contextualActions.map((action) => (
+                  <button
+                    key={action.mode}
+                    type="button"
+                    onClick={() => exploreMode(action.mode)}
+                    className="flex w-full items-center justify-between gap-3 rounded-md px-2.5 py-2 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <span className="min-w-0">
+                      <span className="block text-sm font-medium">{action.label}</span>
+                      <span className="block text-xs text-muted-foreground">{action.description}</span>
+                    </span>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  </button>
+                ))}
+              </div>
+            )}
 
             {!isFlatMode && (
               <div className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
