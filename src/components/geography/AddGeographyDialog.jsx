@@ -535,7 +535,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
   const center = selected?.center || { lat: 20.5937, lng: 78.9629 };
   const politicalParent = browsePath[browsePath.length - 1] || null;
   const mapParentId = category === "political"
-    ? browseMode === "all-assembly" ? "__all__" : politicalLevel === "state" || (politicalLevel === "assembly" && !politicalParent)
+    ? browseMode === "all-assembly" || browseMode === "all-parliamentary" ? "__all__" : politicalLevel === "state" || (politicalLevel === "assembly" && !politicalParent)
       ? DEFAULT_GEOGRAPHY_FOCUS_ID
       : politicalLevel === "parliamentary"
         ? politicalStateFilter === "all" ? "__all__" : politicalStateFilter
@@ -543,7 +543,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     : category === "administrative"
       ? browseMode === "state-districts" ? politicalParent?.id : browseMode === "all-districts" ? "__all__" : DEFAULT_GEOGRAPHY_FOCUS_ID
       : browseMode === "root" ? DEFAULT_GEOGRAPHY_FOCUS_ID : politicalParent?.id || DEFAULT_GEOGRAPHY_FOCUS_ID;
-  const mapCategory = category === "local_government" && browseMode === "root" || category === "political" && (politicalLevel === "state" || (politicalLevel === "assembly" && !politicalParent && browseMode !== "all-assembly"))
+  const mapCategory = category === "local_government" && browseMode === "root" || category === "political" && !["all-parliamentary", "all-assembly"].includes(browseMode) && (politicalLevel === "state" || (politicalLevel === "assembly" && !politicalParent && browseMode !== "all-assembly"))
     ? "administrative"
     : category;
   const mapGeographyType = category === "political"
