@@ -50,7 +50,7 @@ function getBrowseLabel(category, path) {
   if (!path.length) {
     if (category === "administrative") return "States";
     if (category === "local_government") return "Select a state";
-    if (category === "political") return "Select a state";
+    if (category === "political") return "Parliamentary constituencies across India";
     return "States";
   }
 
@@ -400,6 +400,22 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
   const label = selected?.official_name || selected?.name || "Geography";
   const center = selected?.center || { lat: 20.5937, lng: 78.9629 };
+  const politicalParent = browsePath[browsePath.length - 1] || null;
+  const mapParentId = category !== "political"
+    ? politicalParent?.id || selected?.parent_id || DEFAULT_GEOGRAPHY_FOCUS_ID
+    : politicalLevel === "parliamentary"
+      ? politicalStateFilter === "all" ? "__all__" : politicalStateFilter
+      : politicalParent?.id || DEFAULT_GEOGRAPHY_FOCUS_ID;
+  const mapCategory = category === "political" && politicalLevel === "assembly" && !politicalParent
+    ? "administrative"
+    : category;
+  const mapGeographyType = category !== "political"
+    ? null
+    : politicalLevel === "parliamentary" || politicalParent?.geography_type === "state"
+      ? "parliamentary_constituency"
+      : politicalParent?.geography_type === "parliamentary_constituency"
+        ? "assembly_constituency"
+        : null;
   const mapBoundary =
     selected && geometry
       ? [
@@ -616,15 +632,10 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
             lat={Number(center?.lat) || 20.5937}
             lng={Number(center?.lng) || 78.9629}
             zoom={selected ? 6 : 4}
-            parentId={
-              browsePath[browsePath.length - 1]?.id ||
-              (selected?.geography_type === "state" && category !== getGeographyBoundaryCategory(selected)
-                ? selected.id
-                : selected?.parent_id) ||
-              DEFAULT_GEOGRAPHY_FOCUS_ID
-            }
+            parentId={mapParentId}
             selectedId={selected?.id || null}
-            category={category}
+            category={mapCategory}
+            geographyType={mapGeographyType}
             onFeatureClick={selectGeography}
             fallbackBoundary={geometry}
           />
