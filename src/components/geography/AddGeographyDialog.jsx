@@ -479,14 +479,21 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
           </ScrollArea>
         </aside>
 
-        <DialogHeader className="order-0 min-w-0 shrink-0 border-b px-4 py-3 pr-14 text-left sm:px-5 sm:py-4 md:order-none">
-          <DialogTitle className="text-lg">
-            {titleOverride || (selectionOnly ? "Choose geographic focus" : currentGeographyId ? "Change geography" : "Add geography")}
-          </DialogTitle>
-          <DialogDescription className="truncate">
-            {embedded ? "Browse administrative, local government and political boundaries." : selectionOnly ? "Search or browse a boundary, preview it on the map, then apply it to the governance directory." : "Choose the boundary associated with " + (entityName || "this entity") + "."}
-          </DialogDescription>
-        </DialogHeader>
+        {embedded ? (
+          <div className="order-0 min-w-0 shrink-0 border-b px-4 py-3 text-left sm:px-5 md:order-none">
+            <p className="text-sm font-medium">Browse boundaries</p>
+            <p className="text-xs text-muted-foreground">Choose a boundary to preview its mapped extent and explore its hierarchy.</p>
+          </div>
+        ) : (
+          <DialogHeader className="order-0 min-w-0 shrink-0 border-b px-4 py-3 pr-14 text-left sm:px-5 sm:py-4 md:order-none">
+            <DialogTitle className="text-lg">
+              {titleOverride || (selectionOnly ? "Choose geographic focus" : currentGeographyId ? "Change geography" : "Add geography")}
+            </DialogTitle>
+            <DialogDescription className="truncate">
+              {selectionOnly ? "Search or browse a boundary, preview it on the map, then apply it to the governance directory." : "Choose the boundary associated with " + (entityName || "this entity") + "."}
+            </DialogDescription>
+          </DialogHeader>
+        )}
 
         <main className="relative order-2 min-h-[180px] min-w-0 flex-1 overflow-hidden bg-muted/20 md:order-none md:flex-none">
           <LeafletMap
