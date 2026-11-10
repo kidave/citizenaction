@@ -352,13 +352,14 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     setLoadingGeometry(true);
 
     try {
-      const nextGeometry = mapRenderer === "tiles" ? null : await fetchGeographyGeometry(item);
+      const nextGeometry = await fetchGeographyGeometry(item);
       if (requestId !== geometryRequestRef.current) return;
       setGeometry(nextGeometry);
 
       // If the row has no stored center (common for imported political
       // boundaries), derive a safe camera target from its geometry bounds.
-      if (!item.center && nextGeometry?.coordinates) {
+      const geometryCoordinates = nextGeometry?.type === "Feature" ? nextGeometry.geometry?.coordinates : nextGeometry?.coordinates;
+      if (geometryCoordinates) {
         const points = [];
         const visitCoordinates = (value) => {
           if (!Array.isArray(value)) return;
@@ -368,7 +369,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
           }
           value.forEach(visitCoordinates);
         };
-        visitCoordinates(nextGeometry.coordinates);
+        visitCoordinates(geometryCoordinates);
         if (points.length) {
           const bounds = points.reduce((result, point) => ({
             minLng: Math.min(result.minLng, point[0]),
@@ -378,10 +379,11 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
           }), { minLng: Infinity, maxLng: -Infinity, minLat: Infinity, maxLat: -Infinity });
           setSelected((current) => current?.id === item.id ? {
             ...current,
-            center: {
+            center: current.center || {
               lat: (bounds.minLat + bounds.maxLat) / 2,
               lng: (bounds.minLng + bounds.maxLng) / 2,
             },
+            bounds: [[bounds.minLng, bounds.minLat], [bounds.maxLng, bounds.maxLat]],
           } : current);
         }
       }
@@ -493,7 +495,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   useEffect(() => {
-    if (!open || !currentGeography || mapRenderer === "tiles") return;
+    if (!open || !currentGeography) return;
 
     let cancelled = false;
 
