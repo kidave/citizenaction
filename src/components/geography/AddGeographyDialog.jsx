@@ -584,7 +584,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
                   <TabsTrigger value="parliamentary" className="px-2 text-xs sm:text-sm">Parliamentary</TabsTrigger>
                   <TabsTrigger value="assembly" className="px-2 text-xs sm:text-sm">Assembly</TabsTrigger>
                 </TabsList>
-              </Tabs>>
+              </Tabs>
             )}
 
             <div className="flex min-w-0 gap-2">
@@ -664,7 +664,6 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
                 <>
                   {items.map((item) => {
                     const isSelected = selected?.id === item.id;
-                    const drillable = !isFlatMode && canDrillDown(item);
 
                     return (
                       <div
@@ -679,7 +678,6 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
                           onClick={() => selectGeography(item)}
                           className="flex min-w-0 flex-1 items-center gap-2 text-left sm:gap-3"
                         >
-                          <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
                           <span className="min-w-0 flex-1">
                             <span className="block truncate text-sm font-medium">
                               {item.official_name || item.name}
