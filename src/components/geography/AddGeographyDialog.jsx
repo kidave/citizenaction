@@ -32,38 +32,6 @@ const PAGE_SIZE = 80;
 const FIELDS =
   "id,name,official_name,geography_type,boundary_category,parent_id,country_code,osm_type,osm_id,center,metadata";
 
-function getBrowseLabel(category, path, browseMode, politicalLevel) {
-  if (!path.length) {
-    if (category === "administrative") {
-      return browseMode === "all-districts" ? "Districts across India" : "States and Union Territories";
-    }
-    if (category === "local_government") return "States and Union Territories";
-    if (category === "political") {
-      if (browseMode === "all-parliamentary") return "Parliamentary constituencies across India";
-      if (browseMode === "all-assembly") return "Assembly constituencies across India";
-      if (politicalLevel === "parliamentary") return "Parliamentary constituencies across India";
-      if (politicalLevel === "assembly") return "Select a state";
-      return "States and Union Territories";
-    }
-    return "States and Union Territories";
-  }
-
-  const current = path[path.length - 1];
-  if (category === "political" && current.geography_type === "state") return "Parliamentary constituencies in " + current.name;
-  if (category === "political" && current.geography_type === "parliamentary_constituency") return "Assembly constituencies in " + current.name;
-  if (category === "local_government" && current.geography_type === "state") {
-    return browseMode === "metropolitan" ? "Metropolitan areas in " + current.name : "Local bodies in " + current.name;
-  }
-  if (category === "local_government" && current.geography_type === "metropolitan_area") return "Local bodies in " + current.name;
-  if (category === "local_government" && current.geography_type === "local_government") {
-    return browseMode === "zones" ? "Zones in " + current.name : "Wards in " + current.name;
-  }
-  if (current.geography_type === "state") return "Districts in " + current.name;
-  if (current.geography_type === "district") return "Sub-districts in " + current.name;
-  if (current.geography_type === "zone") return "Wards in " + current.name;
-  return "Boundaries";
-}
-
 function getGeographyZoom(geographyType) {
   if (geographyType === "state") return 6;
   if (geographyType === "district") return 8;
@@ -455,15 +423,6 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     setBrowseMode(mode);
     if (mode === "assembly-state" || mode === "assembly-constituencies") setPoliticalLevel("assembly");
     setSearch("");
-  };
-
-  const handlePoliticalLevelChange = (value) => {
-    setPoliticalLevel(value);
-    setBrowseMode("root");
-    setPoliticalStateFilter("all");
-    setBrowsePath([]);
-    setSearch("");
-    setSelected(null);
   };
 
   const handleSearchChange = (value) => {
