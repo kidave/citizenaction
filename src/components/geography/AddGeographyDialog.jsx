@@ -47,15 +47,17 @@ function canDrillDown(item) {
 
 function getBrowseLabel(category, path) {
   if (!path.length) {
-    if (category === "administrative") return "States";
-    if (category === "local_government") return "Select a state";
-    if (category === "political") return "Parliamentary constituencies across India";
-    return "States";
+    if (category === "administrative") return "States and Union Territories";
+    if (category === "local_government") return "States and Union Territories";
+    if (category === "political") return "Choose a political boundary level";
+    return "States and Union Territories";
   }
 
   const current = path[path.length - 1];
   if (category === "political" && current.geography_type === "state") return "Parliamentary constituencies";
   if (category === "political" && current.geography_type === "parliamentary_constituency") return "Assembly constituencies";
+  if (category === "local_government" && current.geography_type === "state") return "Choose metropolitan areas or local bodies";
+  if (category === "local_government" && current.geography_type === "local_government") return "Explore zones or wards";
   if (current.geography_type === "state") return "Districts";
   if (current.geography_type === "district") return "Sub-districts";
   if (current.geography_type === "local_government") return "Zones";
@@ -525,7 +527,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     : "";
 
   const contextualActions = (() => {
-    if (!selected || browseMode !== "root" && category !== "political") return [];
+    if (!selected || browsePath.some((item) => item.id === selected.id)) return [];
     if (category === "administrative" && selected.geography_type === "state") {
       return [
         { label: "Explore districts in " + selected.name, description: "Show districts belonging to this state", mode: "state-districts" },
