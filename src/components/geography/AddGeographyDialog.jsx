@@ -23,6 +23,7 @@ import {
   GEOGRAPHY_BOUNDARY_CATEGORIES,
   getGeographyBoundaryCategory,
   getGeographyCategoryLabel,
+  getGeographyTypeLabel,
 } from "@/config/geography/boundaryCategories";
 
 const GeographyTilesMap = dynamic(() => import("@/components/geography/GeographyTilesMap"), { ssr: false });
