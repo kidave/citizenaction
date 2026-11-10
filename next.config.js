@@ -49,6 +49,7 @@ const nextConfig = {
         https://static.toiimg.com
         https://i.ytimg.com
         https://a.tile.openstreetmap.org
+        https://tiles.openfreemap.org
         https://b.tile.openstreetmap.org
         https://c.tile.openstreetmap.org
         https://tiles.stadiamaps.com
@@ -88,7 +89,7 @@ const nextConfig = {
 
       base-uri 'self';
       form-action 'self';
-      font-src 'self' https://fonts.gstatic.com https://vercel.live https://assets.vercel.com;
+      font-src 'self' https://tiles.openfreemap.org https://fonts.gstatic.com https://vercel.live https://assets.vercel.com;
       object-src 'none';
       worker-src 'self' blob:;
       upgrade-insecure-requests;
