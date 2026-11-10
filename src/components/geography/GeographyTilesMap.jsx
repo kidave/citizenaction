@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Map as MapLibreMap, NavigationControl } from "maplibre-gl";
+import { Map as MapLibreMap, NavigationControl, getVersion, setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { OPENFREEMAP_STYLES } from "@/config/maps/openFreeMap";
@@ -101,6 +101,12 @@ export default function GeographyTilesMap({
 
     setMapError(null);
     setTileStatus("Loading OpenFreeMap basemap…");
+
+    // MapLibre GL JS v6 is ESM-only. Webpack cannot reliably infer the
+    // worker URL from import.meta.url, so point it at the two worker assets
+    // copied into /public by scripts/copy-maplibre-worker.cjs.
+    // The version query prevents a cached worker from a previous build.
+    setWorkerUrl(`/maplibre-gl-worker.mjs?v=${getVersion()}`);
 
     let cancelled = false;
     const map = new MapLibreMap({
