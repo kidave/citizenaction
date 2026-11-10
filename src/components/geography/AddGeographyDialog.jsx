@@ -110,7 +110,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     setSelected(currentGeography || null);
     setGeometry(null);
     geometryRequestRef.current += 1;
-  }, [open, currentGeography]);
+  }, [open, currentGeography, mapRenderer]);
 
   const activeCategory =
     GEOGRAPHY_BOUNDARY_CATEGORIES.find((item) => item.value === category) ||
@@ -350,7 +350,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     setLoadingGeometry(true);
 
     try {
-      const nextGeometry = await fetchGeographyGeometry(item);
+      const nextGeometry = mapRenderer === "tiles" ? null : await fetchGeographyGeometry(item);
       if (requestId !== geometryRequestRef.current) return;
       setGeometry(nextGeometry);
 
@@ -485,7 +485,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   useEffect(() => {
-    if (!open || !currentGeography) return;
+    if (!open || !currentGeography || mapRenderer === "tiles") return;
 
     let cancelled = false;
 
@@ -734,19 +734,32 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
         )}
 
         <main className="relative order-2 min-h-[180px] min-w-0 flex-1 overflow-hidden bg-muted/20 md:order-none md:flex-none">
-          <GeographyTilesMap
-            key="geography-hierarchy-map"
-            lat={Number(center?.lat) || 20.5937}
-            lng={Number(center?.lng) || 78.9629}
-            zoom={selected ? 6 : 4}
-            focusEnabled={!selected || Boolean(selected.center)}
-            parentId={mapParentId}
-            selectedId={selected?.id || null}
-            category={mapCategory}
-            geographyType={mapGeographyType}
-            onFeatureClick={selectGeography}
-            fallbackBoundary={geometry}
-          />
+          {mapRenderer === "tiles" ? (
+            <GeographyTilesMap
+              key="geography-hierarchy-map"
+              lat={Number(center?.lat) || 20.5937}
+              lng={Number(center?.lng) || 78.9629}
+              zoom={selected ? 6 : 4}
+              focusEnabled={!selected || Boolean(selected.center)}
+              parentId={mapParentId}
+              selectedId={selected?.id || null}
+              category={mapCategory}
+              geographyType={mapGeographyType}
+              onFeatureClick={selectGeography}
+            />
+          ) : (
+            <LeafletMap
+              key="geography-postgis-map"
+              lat={Number(center?.lat) || 20.5937}
+              lng={Number(center?.lng) || 78.9629}
+              boundaries={mapBoundary}
+              selectedBoundaryId={selected?.id || null}
+              showMarker={false}
+              zoom={8}
+              onChange={() => {}}
+              onBoundaryClick={() => {}}
+            />
+          )}
 
           {loadingGeometry && (
             <div className="absolute right-3 top-3 flex items-center gap-2 rounded-md border bg-background/90 px-3 py-2 text-xs text-muted-foreground shadow-sm">
