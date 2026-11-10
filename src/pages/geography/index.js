@@ -17,6 +17,7 @@ export default function GeographyPage() {
       <main className="min-h-0 flex-1 overflow-hidden">
         <AddGeographyDialog
           embedded
+          mapRenderer="tiles"
           open
           onOpenChange={() => {}}
           selectionOnly
