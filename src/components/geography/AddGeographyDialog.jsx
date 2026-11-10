@@ -28,6 +28,7 @@ import {
 } from "@/config/geography/boundaryCategories";
 
 const GeographyTilesMap = dynamic(() => import("@/components/geography/GeographyTilesMap"), { ssr: false });
+const LeafletMap = dynamic(() => import("@/components/geography/LeafletMap"), { ssr: false });
 const DEFAULT_GEOGRAPHY_FOCUS_ID = "6f3dda25-6cf4-43f2-a5b7-1c8aa9d2113f";
 const PAGE_SIZE = 80;
 
@@ -65,10 +66,11 @@ function getBrowseLabel(category, path) {
   return "Boundaries";
 }
 
-export default function AddGeographyDialog({ open, onOpenChange, governanceId = null, entityId = null, entityType = "governance", entityName, onSaved, selectionOnly = false, value = null, onSelectBoundary, title: titleOverride, embedded = false }) {
+export default function AddGeographyDialog({ open, onOpenChange, governanceId = null, entityId = null, entityType = "governance", entityName, onSaved, selectionOnly = false, value = null, onSelectBoundary, title: titleOverride, embedded = false, mapRenderer = "leaflet" }) {
   const targetId = entityId || governanceId;
   const [category, setCategory] = useState("administrative");
-  const [politicalLevel, setPoliticalLevel] = useState("parliamentary");
+  const [politicalLevel, setPoliticalLevel] = useState("state");
+  const [browseMode, setBrowseMode] = useState("root");
   const [politicalStateFilter, setPoliticalStateFilter] = useState("all");
   const [type, setType] = useState("all");
   const [search, setSearch] = useState("");
@@ -114,7 +116,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     GEOGRAPHY_BOUNDARY_CATEGORIES.find((item) => item.value === category) ||
     GEOGRAPHY_BOUNDARY_CATEGORIES[0];
 
-  const isFlatMode = Boolean(search.trim()) || type !== "all";
+  const isFlatMode = Boolean(search.trim());
 
   const { data: politicalStates = [] } = useQuery({
     queryKey: ["geography-political-state-options"],
@@ -144,6 +146,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
       category,
       politicalLevel,
       politicalStateFilter,
+      browseMode,
       type,
       search.trim(),
       browsePath.map((item) => item.id).join("/"),
