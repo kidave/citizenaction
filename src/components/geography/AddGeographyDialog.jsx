@@ -231,6 +231,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     if (!canDrillDown(item)) return;
     setSearch("");
     setType("all");
+    selectGeography(item);
     setBrowsePath((path) => [...path, item]);
   };
 
@@ -242,7 +243,11 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     setCategory(value);
     setType("all");
     setSearch("");
-    setBrowsePath([]);
+    const canBeCrossCategoryParent =
+      selected?.geography_type === "state" ||
+      selected?.geography_type === "district" ||
+      selected?.geography_type === "parliamentary_constituency";
+    setBrowsePath(canBeCrossCategoryParent ? [selected] : []);
   };
 
   const handleTypeChange = (value) => {
