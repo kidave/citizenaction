@@ -740,7 +740,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
             </div>
 
           </div>
-
+        ) : (
           <DialogHeader className="order-0 min-w-0 shrink-0 border-b px-4 py-3 pr-14 text-left sm:px-5 sm:py-4 md:order-none">
             <DialogTitle className="text-lg">
               {titleOverride || (selectionOnly ? "Choose geographic focus" : currentGeographyId ? "Change geography" : "Add geography")}
