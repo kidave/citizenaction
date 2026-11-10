@@ -492,24 +492,24 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
   const label = selected?.official_name || selected?.name || "Geography";
   const center = selected?.center || { lat: 20.5937, lng: 78.9629 };
   const politicalParent = browsePath[browsePath.length - 1] || null;
+  const politicalState = selected?.geography_type === "state"
+    ? selected
+    : browsePath.find((item) => item.geography_type === "state") || null;
+  const localBodyContext = browsePath.find((item) => item.geography_type === "local_government") || null;
   const mapParentId = category === "political"
-    ? browseMode === "all-assembly" || browseMode === "all-parliamentary" ? "__all__" : politicalLevel === "state" || (politicalLevel === "assembly" && !politicalParent)
-      ? DEFAULT_GEOGRAPHY_FOCUS_ID
-      : politicalLevel === "parliamentary"
-        ? politicalStateFilter === "all" ? "__all__" : politicalStateFilter
-        : politicalParent?.id || DEFAULT_GEOGRAPHY_FOCUS_ID
+    ? ["all-parliamentary", "all-assembly"].includes(browseMode) && politicalStateFilter === "all"
+      ? "__all__"
+      : politicalStateFilter !== "all" ? politicalStateFilter : DEFAULT_GEOGRAPHY_FOCUS_ID
     : category === "administrative"
       ? browseMode === "state-districts" ? politicalParent?.id : browseMode === "all-districts" ? "__all__" : DEFAULT_GEOGRAPHY_FOCUS_ID
-      : browseMode === "root" ? DEFAULT_GEOGRAPHY_FOCUS_ID : ["metropolitan", "local-bodies"].includes(browseMode) && !politicalParent ? "__all__" : politicalParent?.id || DEFAULT_GEOGRAPHY_FOCUS_ID;
-  const mapCategory = category === "local_government" && browseMode === "root" || category === "political" && !["all-parliamentary", "all-assembly"].includes(browseMode) && (politicalLevel === "state" || (politicalLevel === "assembly" && !politicalParent && browseMode !== "all-assembly"))
+      : browseMode === "root" ? DEFAULT_GEOGRAPHY_FOCUS_ID
+        : ["metropolitan", "local-bodies"].includes(browseMode) && !politicalParent ? "__all__"
+          : politicalParent?.id || DEFAULT_GEOGRAPHY_FOCUS_ID;
+  const mapCategory = category === "local_government" && browseMode === "root" || category === "political" && politicalLevel === "state"
     ? "administrative"
     : category;
   const mapGeographyType = category === "political"
-    ? browseMode === "all-assembly" || browseMode === "assembly-constituencies" ? "assembly_constituency" : browseMode === "all-parliamentary" || browseMode === "assembly-state" ? "parliamentary_constituency" : politicalLevel === "state" || (politicalLevel === "assembly" && !politicalParent)
-      ? "state"
-      : politicalLevel === "parliamentary" || politicalParent?.geography_type === "state"
-        ? "parliamentary_constituency"
-        : "assembly_constituency"
+    ? politicalLevel === "state" ? "state" : politicalLevel === "parliamentary" ? "parliamentary_constituency" : "assembly_constituency"
     : category === "administrative"
       ? browseMode === "all-districts" || browseMode === "state-districts" ? "district" : "state"
       : browseMode === "metropolitan" ? "metropolitan_area"
@@ -658,24 +658,24 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
               )}
               {category === "political" && (
                 <>
-                  <Button type="button" size="sm" variant={browseMode === "all-parliamentary" || browseMode === "assembly-state" ? "secondary" : "outline"} onClick={() => exploreAll(selected?.geography_type === "state" ? "assembly-state" : "all-parliamentary")}>
-                    {browseMode === "assembly-state" ? "Parliament in " + (browsePath[0]?.name || "State") : selected?.geography_type === "state" ? "Parliament in " + selected.name : "Parliament"}
+                  <Button type="button" size="sm" variant={politicalLevel === "parliamentary" ? "secondary" : "outline"} onClick={() => explorePoliticalLevel("parliamentary")}>
+                    Parliament{politicalState?.name ? " in " + politicalState.name : ""}
                   </Button>
-                  <Button type="button" size="sm" variant={browseMode === "all-assembly" || browseMode === "assembly-constituencies" ? "secondary" : "outline"} onClick={() => exploreAll(selected?.geography_type === "parliamentary_constituency" && browseMode === "assembly-state" ? "assembly-constituencies" : "all-assembly")}>
-                    {browseMode === "assembly-constituencies" ? "Assembly in " + (browsePath[browsePath.length - 1]?.name || "Parliament") : "Assembly"}
+                  <Button type="button" size="sm" variant={politicalLevel === "assembly" ? "secondary" : "outline"} onClick={() => explorePoliticalLevel("assembly")}>
+                    Assembly{politicalState?.name ? " in " + politicalState.name : ""}
                   </Button>
                 </>
               )}
               {category === "local_government" && (
-                ((selected?.geography_type === "local_government" && browseMode === "local-bodies") || ["zones", "wards"].includes(browseMode)) ? (
+                (localBodyContext || selected?.geography_type === "local_government") && ["local-bodies", "zones", "wards"].includes(browseMode) ? (
                   <>
-                    <Button type="button" size="sm" variant={browseMode === "zones" ? "secondary" : "outline"} onClick={() => exploreAll("zones")}>Zones in {selected?.geography_type === "local_government" ? selected.name : browsePath[browsePath.length - 1]?.name || "Local Body"}</Button>
-                    <Button type="button" size="sm" variant={browseMode === "wards" ? "secondary" : "outline"} onClick={() => exploreAll("wards")}>Wards in {selected?.geography_type === "local_government" ? selected.name : browsePath[browsePath.length - 1]?.name || "Local Body"}</Button>
+                    <Button type="button" size="sm" variant={browseMode === "zones" ? "secondary" : "outline"} onClick={() => exploreAll("zones")}>Zones in {localBodyContext?.name || selected?.name || "Local Body"}</Button>
+                    <Button type="button" size="sm" variant={browseMode === "wards" ? "secondary" : "outline"} onClick={() => exploreAll("wards")}>Wards in {localBodyContext?.name || selected?.name || "Local Body"}</Button>
                   </>
                 ) : (
                   <>
-                    <Button type="button" size="sm" variant={browseMode === "metropolitan" ? "secondary" : "outline"} onClick={() => exploreAll("metropolitan")}>Metropolitan Area{selected?.geography_type === "state" ? " in " + selected.name : ""}</Button>
-                    <Button type="button" size="sm" variant={["local-bodies", "zones", "wards"].includes(browseMode) ? "secondary" : "outline"} onClick={() => exploreAll("local-bodies")}>Local Body{selected?.geography_type === "state" ? " in " + selected.name : ""}</Button>
+                    <Button type="button" size="sm" variant={browseMode === "metropolitan" ? "secondary" : "outline"} onClick={() => exploreAll("metropolitan")}>Metropolitan Area{politicalState?.name ? " in " + politicalState.name : ""}</Button>
+                    <Button type="button" size="sm" variant={browseMode === "local-bodies" ? "secondary" : "outline"} onClick={() => exploreAll("local-bodies")}>Local Body{politicalState?.name ? " in " + politicalState.name : ""}</Button>
                   </>
                 )
               )}
