@@ -164,7 +164,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
           if (error) throw error;
           return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
         }
-        if (browseMode === "metropolitan" || browseMode === "local-bodies" || browseMode === "metro-local-bodies") {
+        if (browseMode === "metropolitan" || browseMode === "local-bodies") {
           const kind = browseMode === "metropolitan" ? "metropolitan_area" : "local_government";
           const { data, error } = await supabase.from("geographies").select(FIELDS)
             .eq("parent_id", parent?.id).eq("boundary_category", "local_government")
@@ -190,6 +190,22 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
           if (error) throw error;
           return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
         }
+      }
+
+      if (!needle && category === "political" && browseMode === "all-parliamentary") {
+        const { data, error } = await supabase.from("geographies").select(FIELDS)
+          .eq("boundary_category", "political").eq("geography_type", "parliamentary_constituency")
+          .order("name", { ascending: true }).range(from, to);
+        if (error) throw error;
+        return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
+      }
+
+      if (!needle && category === "political" && browseMode === "all-assembly") {
+        const { data, error } = await supabase.from("geographies").select(FIELDS)
+          .eq("boundary_category", "political").eq("geography_type", "assembly_constituency")
+          .order("name", { ascending: true }).range(from, to);
+        if (error) throw error;
+        return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
       }
 
       if (!needle && category === "political" && politicalLevel === "state") {
@@ -366,13 +382,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
   const goBack = () => {
     setBrowsePath((path) => path.slice(0, -1));
-    if (category === "local_government" && (browseMode === "zones" || browseMode === "wards")) {
-      setBrowseMode("local-bodies");
-    } else if (category === "local_government" && browseMode === "metro-local-bodies") {
-      setBrowseMode("metropolitan");
-    } else {
-      setBrowseMode("root");
-    }
+    setBrowseMode("root");
   };
 
   const handleCategoryChange = (value) => {
@@ -388,12 +398,20 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
   const exploreMode = (mode) => {
     if (!selected) return;
-    setBrowsePath((path) => category === "political" || (category === "local_government" && (mode === "zones" || mode === "wards" || mode === "metro-local-bodies")) ? [...path, selected] : [selected]);
+    setBrowsePath([selected]);
     setBrowseMode(mode);
     setSearch("");
   };
 
 
+
+  const exploreAll = (mode) => {
+    setBrowseMode(mode);
+    setBrowsePath([]);
+    setSelected(null);
+    setGeometry(null);
+    setSearch("");
+  };
 
   const handlePoliticalLevelChange = (value) => {
     setPoliticalLevel(value);
@@ -523,17 +541,11 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
         { label: "Local bodies", description: "Explore municipal corporations, municipalities and panchayats", mode: "local-bodies" },
       ];
     }
-    if (category === "local_government" && selected.geography_type === "metropolitan_area") {
-      return [{ label: "Local bodies", description: "Explore municipal bodies within this metropolitan area", mode: "metro-local-bodies" }];
-    }
     if (category === "local_government" && selected.geography_type === "local_government") {
       return [
         { label: "Zones", description: "Explore zones within this local body", mode: "zones" },
         { label: "Wards", description: "Explore all wards belonging to this local body", mode: "wards" },
       ];
-    }
-    if (category === "political" && politicalLevel === "assembly" && selected.geography_type === "state") {
-      return [{ label: "Explore parliamentary constituencies", description: "Choose a parliamentary constituency in " + selected.name, mode: "assembly-state" }];
     }
     if (category === "political" && politicalLevel === "assembly" && selected.geography_type === "parliamentary_constituency") {
       return [{ label: "Explore assembly constituencies", description: "Show assembly constituencies within " + selected.name, mode: "assembly-constituencies" }];
@@ -695,9 +707,37 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
         </aside>
 
         {embedded ? (
-          <div className="order-0 min-w-0 shrink-0 border-b px-4 py-3 text-left sm:px-5 md:order-none">
-            <p className="text-sm font-medium">Browse boundaries</p>
-            <p className="text-xs text-muted-foreground">Choose a boundary to preview its mapped extent and explore its hierarchy.</p>
+          <div className="order-0 flex min-h-14 min-w-0 shrink-0 items-center gap-2 overflow-x-auto border-b px-4 py-2.5 sm:px-5 md:order-none">
+            {category === "administrative" && (
+              browseMode === "state-districts" ? (
+                <>
+                  <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={goBack}>
+                    <ChevronLeft className="mr-1 h-4 w-4" /> Back to states
+                  </Button>
+                  <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("state-districts")}>
+                    Explore districts in {browsePath[browsePath.length - 1]?.name || "state"}
+                  </Button>
+                </>
+              ) : browseMode === "all-districts" ? (
+                <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={() => exploreAll("root")}>
+                  <ChevronLeft className="mr-1 h-4 w-4" /> Back to states
+                </Button>
+              ) : (
+                <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("all-districts")}>
+                  Explore all districts of India
+                </Button>
+              )
+            )}
+            {category === "political" && politicalLevel === "parliamentary" && (
+              <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("all-parliamentary")}>
+                Explore all parliamentary constituencies
+              </Button>
+            )}
+            {category === "political" && politicalLevel === "assembly" && (
+              <Button type="button" size="sm" className="shrink-0" onClick={() => exploreAll("all-assembly")}>
+                Explore all assembly constituencies
+              </Button>
+            )}
           </div>
         ) : (
           <DialogHeader className="order-0 min-w-0 shrink-0 border-b px-4 py-3 pr-14 text-left sm:px-5 sm:py-4 md:order-none">
@@ -716,8 +756,8 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
               key="geography-hierarchy-map"
               lat={Number(center?.lat) || 20.5937}
               lng={Number(center?.lng) || 78.9629}
-              zoom={selected ? 6 : 4}
-              focusEnabled={!selected || Boolean(selected.center)}
+              zoom={selected ? getGeographyZoom(selected.geography_type) : 4}
+              focusEnabled
               parentId={mapParentId}
               selectedId={selected?.id || null}
               category={mapCategory}
@@ -732,7 +772,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
               boundaries={mapBoundary}
               selectedBoundaryId={selected?.id || null}
               showMarker={false}
-              zoom={8}
+              zoom={12}
               onChange={() => {}}
               onBoundaryClick={() => {}}
             />
