@@ -134,7 +134,7 @@ export default function GeographyTilesMap({
         }
         if (cancelled || !containerRef.current) return;
 
-        setTileStatus(`TileJSON loaded · source layer: ${vectorLayer.id} · waiting for map…`);
+        setTileStatus(`TileJSON loaded · ${vectorLayer.id} · loading OpenFreeMap basemap…`);
 
         map = new MapLibreMap({
           container: containerRef.current,
@@ -145,6 +145,10 @@ export default function GeographyTilesMap({
         });
         mapRef.current = map;
         map.addControl(new NavigationControl({ showCompass: true }), "top-right");
+
+        map.once("style.load", () => {
+          if (!cancelled) setTileStatus(`Basemap loaded · registering ${vectorLayer.id} vector source…`);
+        });
 
         const updateVisibleFeatureStatus = () => {
           if (cancelled || !map?.getLayer(FILL_LAYER_ID)) return;
@@ -161,10 +165,19 @@ export default function GeographyTilesMap({
 
         map.on("error", (event) => {
           const sourceId = event?.sourceId || event?.source?.id || "";
-          const sourceUrl = event?.source?.url || "";
-          const message = event?.error?.message || "Unknown map rendering error";
-          if (sourceId === SOURCE_ID || sourceUrl.includes("api.maptiler.com")) {
-            setMapError(`Vector tile error: ${message}`);
+          const sourceUrl = event?.source?.url || event?.error?.url || "";
+          const message = event?.error?.message || "Unknown MapLibre rendering error";
+          const isGeographyRequest =
+            sourceId === SOURCE_ID || sourceUrl.includes("api.maptiler.com");
+          const isBasemapRequest =
+            sourceUrl.includes("openfreemap.org") ||
+            sourceUrl.includes("openmaptiles.org") ||
+            sourceUrl.includes("maplibre");
+
+          if (isGeographyRequest) {
+            setMapError(`MapTiler vector tile error: ${message}`);
+          } else if (isBasemapRequest || !sourceId) {
+            setMapError(`Basemap/map initialization error: ${message}`);
           }
         });
 
