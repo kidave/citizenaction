@@ -27,7 +27,8 @@ import {
   getGeographyTypeLabel,
 } from "@/config/geography/boundaryCategories";
 
-const LeafletMap = dynamic(() => import("@/components/geography/LeafletMap"), { ssr: false });
+const GeographyTilesMap = dynamic(() => import("@/components/geography/GeographyTilesMap"), { ssr: false });
+const DEFAULT_GEOGRAPHY_FOCUS_ID = "6f3dda25-6cf4-43f2-a5b7-1c8aa9d2113f";
 const PAGE_SIZE = 80;
 
 const FIELDS =
@@ -159,9 +160,14 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
       let query = supabase
         .from("geographies")
         .select(FIELDS)
-        .eq("boundary_category", category)
         .order("name", { ascending: true })
         .range(from, to);
+
+      if (category === "administrative") {
+        query = query.or("boundary_category.eq.administrative,boundary_category.is.null");
+      } else {
+        query = query.eq("boundary_category", category);
+      }
 
       if (isFlatMode) {
         if (type !== "all") {
@@ -169,8 +175,11 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
         }
 
         if (needle) {
-          query = query.or(
+          const pattern = `%${needle.replace(/["\\]/g, "\\          query = query.or(
             "name.ilike.%" + needle + "%,official_name.ilike.%" + needle + "%",
+          );")}%`;
+          query = query.or(
+            `name.ilike."${pattern}",official_name.ilike."${pattern}"`,
           );
         }
       } else if (!parent) {
@@ -496,16 +505,16 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
         )}
 
         <main className="relative order-2 min-h-[180px] min-w-0 flex-1 overflow-hidden bg-muted/20 md:order-none md:flex-none">
-          <LeafletMap
-            key={selected?.id || "empty-boundary-map"}
+          <GeographyTilesMap
+            key="geography-hierarchy-map"
             lat={Number(center?.lat) || 20.5937}
             lng={Number(center?.lng) || 78.9629}
-            boundaries={mapBoundary}
-            selectedBoundaryId={selected?.id || null}
-            showMarker={false}
-            zoom={8}
-            onChange={() => {}}
-            onBoundaryClick={() => {}}
+            zoom={selected ? 6 : 4}
+            parentId={browsePath[browsePath.length - 1]?.id || selected?.parent_id || DEFAULT_GEOGRAPHY_FOCUS_ID}
+            selectedId={selected?.id || null}
+            category={category}
+            onFeatureClick={selectGeography}
+            fallbackBoundary={geometry}
           />
 
           {loadingGeometry && (
