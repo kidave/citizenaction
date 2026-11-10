@@ -213,56 +213,15 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
         return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
       }
 
-      if (category === "political" && !needle && politicalLevel === "assembly") {
-        if (!parent) {
-          const { data, error } = await supabase
-            .from("geographies")
-            .select(FIELDS)
-            .eq("parent_id", DEFAULT_GEOGRAPHY_FOCUS_ID)
-            .eq("geography_type", "state")
-            .order("name", { ascending: true })
-            .range(from, to);
-          if (error) throw error;
-          return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
-        }
-
-        if (parent.geography_type === "state") {
-          const { data, error } = await supabase
-            .from("geographies")
-            .select(FIELDS)
-            .eq("parent_id", parent.id)
-            .eq("boundary_category", "political")
-            .eq("geography_type", "parliamentary_constituency")
-            .order("name", { ascending: true })
-            .range(from, to);
-          if (error) throw error;
-          return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
-        }
-
-        if (parent.geography_type === "parliamentary_constituency") {
-          const { data, error } = await supabase.rpc("get_political_geography_children", {
-            p_parent_id: parent.id,
-          });
-          if (error) throw error;
-          return { rows: data || [], hasMore: false };
-        }
-      }
-
-      if (
-        !isFlatMode &&
-        category === "political" &&
-        parent?.geography_type === "parliamentary_constituency"
-      ) {
-        const { data, error } = await supabase.rpc("get_political_geography_children", {
-          p_parent_id: parent.id,
-        });
-
+      if (category === "political" && !needle && ["parliamentary", "assembly"].includes(politicalLevel)) {
+        let politicalQuery = supabase.from("geographies").select(FIELDS)
+          .eq("boundary_category", "political")
+          .eq("geography_type", politicalLevel === "parliamentary" ? "parliamentary_constituency" : "assembly_constituency")
+          .order("name", { ascending: true }).range(from, to);
+        if (politicalStateFilter !== "all") politicalQuery = politicalQuery.eq("parent_id", politicalStateFilter);
+        const { data, error } = await politicalQuery;
         if (error) throw error;
-
-        return {
-          rows: data || [],
-          hasMore: false,
-        };
+        return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
       }
 
       let query = supabase
@@ -377,13 +336,14 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     setGeometry(null);
     setLoadingGeometry(false);
     geometryRequestRef.current += 1;
-    if (category === "local_government" && (browseMode === "zones" || browseMode === "wards")) {
+    if (category === "local_government" && ["zones", "wards"].includes(browseMode)) {
       setBrowseMode("local-bodies");
-    } else if (category === "political" && browseMode === "assembly-constituencies") {
-      setBrowseMode("assembly-state");
     } else {
       setBrowseMode("root");
-      if (category === "political") setPoliticalLevel("state");
+      if (category === "political") {
+        setPoliticalLevel("state");
+        setPoliticalStateFilter("all");
+      }
     }
   };
 
@@ -407,21 +367,44 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
   };
 
 
-  const exploreAll = (mode) => {
-    const hasSelectedParent = Boolean(selected?.id);
-    if (["state-districts", "metropolitan", "local-bodies", "assembly-state"].includes(mode)) {
-      setBrowsePath(hasSelectedParent ? [selected] : []);
-    } else if (["zones", "wards", "assembly-constituencies"].includes(mode)) {
-      setBrowsePath((path) => [...path, ...(hasSelectedParent ? [selected] : [])]);
-    } else {
-      setBrowsePath([]);
-    }
+  const resetActiveSelection = () => {
     setSelected(null);
     setGeometry(null);
     setLoadingGeometry(false);
     geometryRequestRef.current += 1;
+  };
+
+  const exploreAll = (mode) => {
+    const currentPath = browsePath;
+    const selectedState = selected?.geography_type === "state" ? selected : currentPath.find((item) => item.geography_type === "state");
+    const selectedLocalBody = selected?.geography_type === "local_government"
+      ? selected
+      : currentPath.find((item) => item.geography_type === "local_government");
+
+    if (["state-districts", "metropolitan", "local-bodies", "assembly-state"].includes(mode)) {
+      const context = mode === "metropolitan" || mode === "local-bodies"
+        ? selectedState
+        : selected;
+      setBrowsePath(context ? [context] : []);
+    } else if (["zones", "wards"].includes(mode)) {
+      setBrowsePath(selectedLocalBody ? [selectedLocalBody] : currentPath.filter((item) => item.geography_type === "local_government"));
+    } else if (["all-parliamentary", "all-assembly", "all-districts"].includes(mode)) {
+      setBrowsePath([]);
+    }
+    resetActiveSelection();
     setBrowseMode(mode);
-    if (mode === "assembly-state" || mode === "assembly-constituencies") setPoliticalLevel("assembly");
+    setSearch("");
+  };
+
+  const explorePoliticalLevel = (level) => {
+    const state = selected?.geography_type === "state"
+      ? selected
+      : browsePath.find((item) => item.geography_type === "state");
+    setPoliticalLevel(level);
+    setPoliticalStateFilter(state?.id || "all");
+    setBrowsePath(state ? [state] : []);
+    resetActiveSelection();
+    setBrowseMode(level === "parliamentary" ? "all-parliamentary" : "all-assembly");
     setSearch("");
   };
 
