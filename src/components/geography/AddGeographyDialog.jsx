@@ -160,6 +160,66 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
       const needle = search.trim().replace(/[%_]/g, "").slice(0, 80);
       const parent = browsePath[browsePath.length - 1] || null;
 
+      if (!needle && category === "administrative") {
+        let query = supabase.from("geographies").select(FIELDS)
+          .order("name", { ascending: true }).range(from, to);
+        if (browseMode === "state-districts" && parent) {
+          query = query.eq("parent_id", parent.id).eq("geography_type", "district");
+        } else if (browseMode === "all-districts") {
+          query = query.eq("geography_type", "district");
+        } else {
+          query = query.eq("parent_id", DEFAULT_GEOGRAPHY_FOCUS_ID).eq("geography_type", "state");
+        }
+        query = query.or("boundary_category.eq.administrative,boundary_category.is.null");
+        const { data, error } = await query;
+        if (error) throw error;
+        return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
+      }
+
+      if (!needle && category === "local_government") {
+        if (browseMode === "root") {
+          const { data, error } = await supabase.from("geographies").select(FIELDS)
+            .eq("parent_id", DEFAULT_GEOGRAPHY_FOCUS_ID).eq("geography_type", "state")
+            .order("name", { ascending: true }).range(from, to);
+          if (error) throw error;
+          return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
+        }
+        if (browseMode === "metropolitan" || browseMode === "local-bodies") {
+          const kind = browseMode === "metropolitan" ? "metropolitan_area" : "local_government";
+          const { data, error } = await supabase.from("geographies").select(FIELDS)
+            .eq("parent_id", parent?.id).eq("boundary_category", "local_government")
+            .eq("geography_type", kind).order("name", { ascending: true }).range(from, to);
+          if (error) throw error;
+          return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
+        }
+        if (browseMode === "zones" || browseMode === "wards") {
+          if (browseMode === "zones") {
+            const { data, error } = await supabase.from("geographies").select(FIELDS)
+              .eq("parent_id", parent?.id).eq("geography_type", "zone")
+              .order("name", { ascending: true }).range(from, to);
+            if (error) throw error;
+            return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
+          }
+          const { data: zones, error: zonesError } = await supabase.from("geographies")
+            .select("id").eq("parent_id", parent?.id).eq("geography_type", "zone");
+          if (zonesError) throw zonesError;
+          const parentIds = [parent?.id, ...(zones || []).map((zone) => zone.id)].filter(Boolean);
+          const { data, error } = await supabase.from("geographies").select(FIELDS)
+            .in("parent_id", parentIds).eq("geography_type", "ward")
+            .order("name", { ascending: true }).range(from, to);
+          if (error) throw error;
+          return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
+        }
+      }
+
+      if (!needle && category === "political" && politicalLevel === "state") {
+        const { data, error } = await supabase.from("geographies").select(FIELDS)
+          .eq("parent_id", DEFAULT_GEOGRAPHY_FOCUS_ID).eq("geography_type", "state")
+          .order("name", { ascending: true }).range(from, to);
+        if (error) throw error;
+        return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
+      }
+
       if (category === "political" && !needle && politicalLevel === "parliamentary") {
         let politicalQuery = supabase
           .from("geographies")
