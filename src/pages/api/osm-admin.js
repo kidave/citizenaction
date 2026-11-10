@@ -1,3 +1,5 @@
+export const config = { maxDuration: 60 };
+
 const OVERPASS_ENDPOINTS = [
   "https://overpass.private.coffee/api/interpreter",
   "https://overpass-api.de/api/interpreter",
@@ -63,8 +65,11 @@ async function runOverpass(query) {
   let lastError = null;
 
   for (const endpoint of OVERPASS_ENDPOINTS) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 25000);
     try {
       const response = await fetch(endpoint, {
+        signal: controller.signal,
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -94,7 +99,11 @@ async function runOverpass(query) {
       }
       return data;
     } catch (error) {
-      lastError = error;
+      lastError = error.name === "AbortError"
+        ? new Error("Overpass endpoint timed out after 25 seconds")
+        : error;
+    } finally {
+      clearTimeout(timeout);
     }
   }
 
@@ -111,7 +120,7 @@ function buildQuery({ level, parentRelationId, stateName, city, query, limit }) 
   // the state relationship explicit for the reconciliation step.
   if (level === 5 && parentRelationId) {
     const areaId = 3600000000 + parentRelationId;
-    return `[out:json][timeout:90];
+    return `[out:json][timeout:45];
 area(id:${areaId})->.parentArea;
 rel${boundaryFilter}${levelFilter}${nameFilter}(area.parentArea);
 out tags center;`;
