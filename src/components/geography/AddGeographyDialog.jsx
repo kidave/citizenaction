@@ -105,6 +105,9 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
       : "administrative";
 
     setCategory(nextCategory);
+    setPoliticalLevel("state");
+    setBrowseMode("root");
+    setPoliticalStateFilter("all");
     setType("all");
     setSearch("");
     setBrowsePath([]);
@@ -167,7 +170,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
           if (error) throw error;
           return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
         }
-        if (browseMode === "metropolitan" || browseMode === "local-bodies") {
+        if (browseMode === "metropolitan" || browseMode === "local-bodies" || browseMode === "metro-local-bodies") {
           const kind = browseMode === "metropolitan" ? "metropolitan_area" : "local_government";
           const { data, error } = await supabase.from("geographies").select(FIELDS)
             .eq("parent_id", parent?.id).eq("boundary_category", "local_government")
@@ -476,7 +479,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     return () => {
       cancelled = true;
     };
-  }, [open, currentGeography]);
+  }, [open, currentGeography, mapRenderer]);
 
   const label = selected?.official_name || selected?.name || "Geography";
   const center = selected?.center || { lat: 20.5937, lng: 78.9629 };
@@ -536,6 +539,9 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
         { label: "Metropolitan areas", description: "Explore metropolitan regions in this state", mode: "metropolitan" },
         { label: "Local bodies", description: "Explore municipal corporations, municipalities and panchayats", mode: "local-bodies" },
       ];
+    }
+    if (category === "local_government" && selected.geography_type === "metropolitan_area") {
+      return [{ label: "Local bodies", description: "Explore municipal bodies within this metropolitan area", mode: "metro-local-bodies" }];
     }
     if (category === "local_government" && selected.geography_type === "local_government") {
       return [
