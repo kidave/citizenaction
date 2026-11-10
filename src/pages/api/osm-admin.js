@@ -223,11 +223,26 @@ export default async function handler(req, res) {
       });
     }
 
+    const maxResultsReached = results.length >= limit;
+    if (level === 5 && maxResultsReached) {
+      return res.status(502).json({
+        error: "OSM district response reached the requested result limit; completeness cannot be confirmed.",
+        results,
+        complete: false,
+        count: results.length,
+        max_results_reached: true,
+        parent_osm_id: parentRelationId,
+        state_name: stateName || null,
+        osm_timestamp: data?.osm3s?.timestamp_osm_base || null,
+      });
+    }
+
     res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
     return res.status(200).json({
       results,
       count: results.length,
-      complete: !data?.remark,
+      complete: !data?.remark && !maxResultsReached,
+      max_results_reached: maxResultsReached,
       parent_osm_id: parentRelationId,
       state_name: stateName || null,
       osm_timestamp: data?.osm3s?.timestamp_osm_base || null,
