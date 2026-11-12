@@ -1,0 +1,161 @@
+import { useEffect, useMemo, useState } from "react";
+import { Plus, Search } from "lucide-react";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import GovernanceDirectoryCard from "@/components/governance/GovernanceDirectoryCard";
+import GovernancePersonSheet from "@/components/governance/GovernancePersonSheet";
+import { useGovernanceDirectory } from "@/hooks/governance/useGovernanceDirectory";
+import { useGovernanceCrud } from "@/hooks/governance/useGovernanceCrud";
+import LoadingState from "@/components/ui/loading-state";
+import EmptyState from "@/components/ui/empty-state";
+import ErrorState from "@/components/ui/error-state";
+import GovernanceDirectoryPagination from "@/components/governance/GovernanceDirectoryPagination";
+
+export default function PersonDirectory({
+  geographyId = null,
+  domain = undefined,
+  selectionMode = null,
+  selectedIds = [],
+  selectedId = null,
+  onSelect,
+  canManage = false,
+  search: externalSearch,
+  organizationId = null,
+  currentOnly = false,
+  createRequest = null,
+}) {
+  const [internalSearch, setInternalSearch] = useState("");
+  const search = externalSearch ?? internalSearch;
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [page, setPage] = useState(1);
+  const pageSize = 24;
+  useEffect(() => setPage(1), [search, geographyId, organizationId, domain, currentOnly]);
+  const queryClient = useQueryClient();
+  const { deletePerson: removePerson } = useGovernanceCrud();
+
+  const query = useGovernanceDirectory({
+    tab: "people",
+    search,
+    geographyId,
+    organizationId,
+    domain,
+    page: domain !== undefined ? page : null,
+    pageSize: domain !== undefined ? pageSize : null,
+    currentOnly,
+  });
+
+  useEffect(() => {
+    if (createRequest?.tab !== "people" || !createRequest.token) return;
+    setEditingRecord(null);
+    setDialogOpen(true);
+  }, [createRequest?.token, createRequest?.tab]);
+
+  const queryRows = Array.isArray(query.data?.rows) ? query.data.rows : Array.isArray(query.data) ? query.data : [];
+  const filteredRows = queryRows.filter((person) => !currentOnly || Boolean(person.parent_id));
+  const totalCount = query.data?.totalCount ?? filteredRows.length;
+  const data = Array.isArray(query.data?.rows) ? filteredRows : filteredRows.slice((page - 1) * pageSize, page * pageSize);
+  const pageCount = Math.max(1, Math.ceil(totalCount / pageSize));
+  useEffect(() => {
+    // Do not clamp while a new page query is loading: its temporary empty
+    // state reports pageCount=1 and would incorrectly reset page 2+ to page 1.
+    if (!query.isLoading && query.data && page > pageCount) setPage(pageCount);
+  }, [page, pageCount, query.data, query.isLoading]);
+  const selectedSet = useMemo(
+    () => new Set(selectedIds.length ? selectedIds : selectedId ? [selectedId] : []),
+    [selectedIds, selectedId],
+  );
+
+  const openCreate = () => {
+    setEditingRecord(null);
+    setDialogOpen(true);
+  };
+  const openEdit = (entity) => {
+    setEditingRecord(entity);
+    setDialogOpen(true);
+  };
+
+  const deletePerson = async (entity) => {
+    if (!entity?.id) {
+      toast.error("Unable to delete person: missing person ID.");
+      return;
+    }
+
+    try {
+      // The CRUD hook accepts the UUID, not the directory record object.
+      await removePerson(entity.id);
+      toast.success("Person deleted");
+      await queryClient.invalidateQueries({ queryKey: ["governance-directory"] });
+      await queryClient.invalidateQueries({ queryKey: ["governance"] });
+    } catch (error) {
+      const message = error?.message || "Unable to delete person.";
+      toast.error(
+        message.toLowerCase().includes("appointment")
+          ? "This person has appointment history. Remove the listed appointments first, then delete the person."
+          : message,
+      );
+      throw error;
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {externalSearch === undefined && <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="relative min-w-0">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="h-9 pl-9"
+            placeholder="Search people..."
+            value={search}
+            onChange={(event) => setInternalSearch(event.target.value)}
+            disabled={externalSearch !== undefined}
+          />
+        </div>
+        {canManage && (
+          <Button type="button" className="h-9 shrink-0" onClick={openCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add person
+          </Button>
+        )}
+      </div>}
+
+      {query.isLoading && (
+        <div className="flex min-h-[30vh] items-center justify-center"><LoadingState /></div>
+      )}
+      {query.error && <ErrorState title="Unable to load people" />}
+      {!query.isLoading && !query.error && (data.length ? (
+        <div className="grid grid-cols-2 overflow-hidden rounded-md border-x border-t sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 [&>*]:min-w-0 [&>*]:border-t [&>*]:border-r [&>*]:border-border sm:[&>*:nth-child(3n)]:border-r-0 lg:[&>*:nth-child(3n)]:border-r lg:[&>*:nth-child(4n)]:border-r-0 xl:[&>*:nth-child(4n)]:border-r xl:[&>*:nth-child(5n)]:border-r-0 2xl:[&>*:nth-child(5n)]:border-r 2xl:[&>*:nth-child(6n)]:border-r-0">
+          {data.map((entity) => (
+            <GovernanceDirectoryCard
+              key={entity.id}
+              entity={entity}
+              tab="people"
+              selectionMode={selectionMode}
+              selected={selectedSet.has(entity.id)}
+              onSelect={onSelect}
+              onEdit={canManage ? () => openEdit(entity) : undefined}
+              onDelete={canManage ? () => deletePerson(entity) : undefined}
+            />
+          ))}
+        </div>
+      ) : (
+        <EmptyState title="No people found" description="Try another search." />
+      ))}
+      {data.length > 0 && (
+        <GovernanceDirectoryPagination page={page} pageCount={pageCount} total={totalCount} pageSize={pageSize} onPageChange={setPage} />
+      )}
+
+      {canManage && (
+        <GovernancePersonSheet
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          record={editingRecord}
+          onSaved={() => queryClient.invalidateQueries({ queryKey: ["governance-directory"] })}
+        />
+      )}
+    </div>
+  );
+}

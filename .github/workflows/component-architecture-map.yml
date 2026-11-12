@@ -1,0 +1,69 @@
+name: Component Architecture Map
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "scripts/component-map/**"
+      - ".github/workflows/component-architecture-map.yml"
+      - "package.json"
+      - "package-lock.json"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "scripts/component-map/**"
+      - ".github/workflows/component-architecture-map.yml"
+      - "package.json"
+      - "package-lock.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: component-map-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze component and backend references
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Graphviz
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes graphviz
+      - name: Generate dependency-cruiser module graph
+        run: |
+          mkdir -p artifacts/component-map
+          npx --yes dependency-cruiser@18.7.0 --output-type json --output-to artifacts/component-map/dependency-graph.json src
+      - name: Generate high-level visual architecture graph
+        run: |
+          npx --yes dependency-cruiser@18.7.0 --output-type ddot --output-to artifacts/component-map/module-architecture.dot src
+          dot -Tsvg artifacts/component-map/module-architecture.dot -o artifacts/component-map/module-architecture.svg
+      - name: Scan Supabase and API references
+        run: node scripts/component-map/scan-supabase-usage.mjs
+      - name: Validate generated outputs
+        run: |
+          test -s artifacts/component-map/dependency-graph.json
+          test -s artifacts/component-map/module-architecture.svg
+          test -s artifacts/component-map/supabase-usage.json
+          test -s artifacts/component-map/supabase-usage.csv
+      - name: Upload architecture map
+        uses: actions/upload-artifact@v4
+        with:
+          name: component-architecture-map-${{ github.sha }}
+          path: artifacts/component-map/
+          if-no-files-found: error
+          retention-days: 30

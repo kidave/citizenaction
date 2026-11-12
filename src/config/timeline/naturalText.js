@@ -1,0 +1,58 @@
+export const TIMELINE_NATURAL_TEXT = {
+  space_created: [
+    "This is where the story began",
+    "This is where the work started",
+    "The first page of the story",
+    "The beginning of something local",
+    "This is where it all came together",
+  ],
+  member_joined: [
+    "Someone new joined the team",
+    "Another person came on board",
+    "The team grew a little stronger",
+    "A new contributor joined in",
+    "Another pair of hands joined the effort",
+  ],
+  report: [
+    "A piece of work took shape",
+    "The team moved an idea forward",
+    "Something useful came together",
+    "The team put its findings on record",
+    "The work turned into something concrete",
+  ],
+  meeting: [
+    "The team sat down to work through it",
+    "People came together to figure it out",
+    "A conversation moved the work forward",
+    "The right people got around the table",
+    "The team made time to work through the details",
+  ],
+  event: [
+    "The team showed up",
+    "The team stepped into the wider conversation",
+    "The work met the real world",
+    "The team took part in the moment",
+    "The team was there for it",
+  ],
+  action: [
+    "Something was done",
+    "The team moved from words to action",
+    "A small step became a real action",
+    "The team followed through",
+    "The work moved into the real world",
+  ],
+  announcement: [
+    "Something important was shared",
+    "The team had an update to share",
+    "A new chapter was announced",
+    "The team shared where things stood",
+    "A useful update made its way out",
+  ],
+  post: [
+    "A moment worth keeping",
+    "Something the team wanted on record",
+    "Another piece of the story",
+    "A moment from along the way",
+    "One more chapter in the journey",
+  ],
+};

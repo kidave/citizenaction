@@ -1,0 +1,77 @@
+"use client";
+
+import dynamic from "next/dynamic";
+import DocumentEditorLayout from "./DocumentEditorLayout";
+import EditorHeader from "./EditorHeader";
+import EditorFooter from "./EditorFooter";
+import EditorContextSuggestions from "./EditorContextSuggestions";
+import { useResolvedPostContext } from "@/hooks/editor/useResolvedPostContext";
+import DocumentPreview from "./DocumentPreview";
+import { usePostEditor } from "@/hooks/editor/usePostEditor";
+
+const RichTextEditor = dynamic(() => import("./content/RichTextEditor"), { ssr: false });
+
+export default function DocumentEditor({ profile, spaces = [], post = null, previewOpen, onPreviewOpenChange, onClose, onCreated }) {
+  const editor = usePostEditor(post, null, { draftScope: "document" });
+  const resolvedContext = useResolvedPostContext(editor);
+  const footerDistrict = resolvedContext?.district?.name || null;
+
+  return (
+    <DocumentEditorLayout
+      header={
+        <>
+          <EditorHeader
+            profile={profile}
+            editor={editor}
+            spaces={spaces}
+            showTitle
+            titlePlaceholder="Document title..."
+            titleAriaLabel="Document title"
+            documentStyle
+          />
+          <EditorContextSuggestions
+            editor={editor}
+            resolvedContext={{ ...resolvedContext, district: null }}
+          />
+        </>
+      }
+      content={
+        <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col">
+          <RichTextEditor
+            content={editor.content}
+            setContent={editor.setContent}
+            contentJson={editor.contentJson}
+            setContentJson={editor.setContentJson}
+            setContentFormat={editor.setContentFormat}
+            addAttachments={editor.addAttachments}
+          />
+        </div>
+      }
+      footer={
+        <>
+          <DocumentPreview
+            open={previewOpen}
+            onOpenChange={onPreviewOpenChange}
+            title={editor.title}
+            contentJson={editor.contentJson}
+            profile={profile}
+            spaces={editor.spaces}
+            governance={editor.governance}
+          />
+          <EditorFooter
+            editor={editor}
+            districtName={footerDistrict}
+            item={post}
+            onClose={onClose}
+            onCreated={onCreated}
+            showAttachments={false}
+            showLinks={false}
+            showDateTime
+            showAddress
+            maxWidthClass="max-w-4xl"
+          />
+        </>
+      }
+    />
+  );
+}
