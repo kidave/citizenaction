@@ -485,7 +485,15 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
   }, [open, currentGeography, mapRenderer]);
 
   const label = selected?.official_name || selected?.name || "Geography";
-  const center = selected?.center || { lat: 20.5937, lng: 78.9629 };
+  // Keep the chosen state as the map focus after switching to its
+  // parliamentary/assembly constituencies (the active selection is cleared).
+  const mapFocus = selected || (
+    category === "political" &&
+    ["all-parliamentary", "all-assembly"].includes(browseMode)
+      ? politicalState
+      : null
+  );
+  const center = mapFocus?.center || { lat: 20.5937, lng: 78.9629 };
   const politicalParent = browsePath[browsePath.length - 1] || null;
   const politicalState = selected?.geography_type === "state"
     ? selected
@@ -683,13 +691,13 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
               key="geography-hierarchy-map"
               lat={Number(center?.lat) || 20.5937}
               lng={Number(center?.lng) || 78.9629}
-              zoom={selected ? getGeographyZoom(selected.geography_type) : 4}
+              zoom={mapFocus ? getGeographyZoom(mapFocus.geography_type) : 4}
               focusEnabled
               parentId={mapParentId}
               selectedId={selected?.id || null}
               category={mapCategory}
               geographyType={mapGeographyType}
-              selectedBounds={selected?.bounds || null}
+              selectedBounds={mapFocus?.bounds || null}
               onFeatureClick={selectGeography}
             />
           ) : (
