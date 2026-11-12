@@ -528,7 +528,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
 
   const browserContent = (
-      <div className="grid h-full min-h-0 w-full grid-rows-[minmax(0,1fr)_auto] overflow-hidden md:grid-cols-[360px_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)_auto]">
+      <div className="grid h-full min-h-0 w-full grid-rows-[auto_minmax(180px,1fr)_auto] overflow-hidden md:grid-cols-[360px_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)_auto]">
         <aside className="order-1 flex max-h-[43dvh] min-h-0 shrink-0 flex-col border-b md:order-none md:row-span-2 md:max-h-none md:border-b-0 md:border-r">
           <div className="space-y-2 border-b p-3 sm:space-y-3 sm:p-4">
             <Tabs value={category} onValueChange={handleCategoryChange} className="w-full">
