@@ -39,7 +39,7 @@ const nextConfig = {
         https://apis.google.com
         https://vercel.live;
 
-      style-src 'self' 'unsafe-inline' https://vercel.live;
+      style-src 'self' 'unsafe-inline' https://vercel.live https://accounts.google.com;
 
       img-src 'self'
         data:
@@ -49,6 +49,7 @@ const nextConfig = {
         https://static.toiimg.com
         https://i.ytimg.com
         https://a.tile.openstreetmap.org
+        https://tiles.openfreemap.org
         https://b.tile.openstreetmap.org
         https://c.tile.openstreetmap.org
         https://tiles.stadiamaps.com
@@ -73,6 +74,8 @@ const nextConfig = {
         https://cdn.jsdelivr.net
         https://unpkg.com
         https://tiles.openfreemap.org
+        https://api.maptiler.com
+        https://*.maptiler.com
         wss://ws-us3.pusher.com;
 
       frame-src 'self'
@@ -86,8 +89,9 @@ const nextConfig = {
 
       base-uri 'self';
       form-action 'self';
-      font-src 'self' https://fonts.gstatic.com https://vercel.live https://assets.vercel.com;
+      font-src 'self' https://tiles.openfreemap.org https://fonts.gstatic.com https://vercel.live https://assets.vercel.com;
       object-src 'none';
+      worker-src 'self' blob:;
       upgrade-insecure-requests;
     `;
 

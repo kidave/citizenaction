@@ -185,7 +185,7 @@ function MapController({ onChange, boundary, boundaries, fitMarkers }) {
 
     if (primaryBoundary?.geojson && boundaryKey !== previousBoundaryKeyRef.current) {
       const bounds = L.geoJSON(primaryBoundary.geojson).getBounds();
-      if (bounds.isValid()) map.fitBounds(bounds, { padding: [28, 28], maxZoom: 13, animate: false });
+      if (bounds.isValid()) map.fitBounds(bounds, { padding: [28, 28], maxZoom: 18, animate: false });
       previousBoundaryKeyRef.current = boundaryKey;
     } else if (!primaryBoundary?.geojson) {
       previousBoundaryKeyRef.current = null;

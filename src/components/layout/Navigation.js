@@ -15,6 +15,8 @@ import {
   Scale,
   Building2,
   Users,
+  Map,
+  Building,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { LoginModal } from "@/components/auth/LoginModal";
@@ -48,10 +50,16 @@ export function Navigation({ onCreatePost }) {
     || router.pathname.startsWith("/person")
     || GOVERNANCE_DOMAINS.some(({ value }) => router.pathname.startsWith(`/${value}`));
   const [governanceOpen, setGovernanceOpen] = useState(isGovernanceRoute);
+  const isGeographyRoute = router.pathname.startsWith("/geography");
+  const [geographyOpen, setGeographyOpen] = useState(isGeographyRoute);
 
   useEffect(() => {
     if (isGovernanceRoute) setGovernanceOpen(true);
   }, [isGovernanceRoute]);
+
+  useEffect(() => {
+    if (isGeographyRoute) setGeographyOpen(true);
+  }, [isGeographyRoute]);
 
   const isAdmin = profile?.role === "admin";
 
@@ -130,6 +138,44 @@ export function Navigation({ onCreatePost }) {
                   <SidebarMenuSubButton isActive={router.pathname === "/person" || router.pathname.startsWith("/person/")} onClick={() => router.push("/person")}>
                     <Users className="h-4 w-4" />
                     <span>People</span>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
+              </SidebarMenuSub>
+            </CollapsibleContent>
+          </Collapsible>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <Collapsible open={geographyOpen} onOpenChange={setGeographyOpen} className="group/collapsible group-data-[collapsible=icon]:hidden">
+            <CollapsibleTrigger asChild>
+              <SidebarMenuButton tooltip="Geography">
+                <Map />
+                <span>Geography</span>
+                <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
+              </SidebarMenuButton>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <SidebarMenuSub>
+                <SidebarMenuSubItem>
+                  <SidebarMenuSubButton isActive={router.pathname === "/geography" && !router.query.category} onClick={() => router.push("/geography")}>
+                    <span>All boundaries</span>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
+                <SidebarMenuSubItem>
+                  <SidebarMenuSubButton isActive={router.pathname === "/geography" && router.query.category === "administrative"} onClick={() => router.push("/geography?category=administrative")}>
+                    <Landmark className="h-4 w-4" />
+                    <span>Administrative</span>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
+                <SidebarMenuSubItem>
+                  <SidebarMenuSubButton isActive={router.pathname === "/geography" && router.query.category === "local_government"} onClick={() => router.push("/geography?category=local_government")}>
+                    <Building className="h-4 w-4" />
+                    <span>Local government</span>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
+                <SidebarMenuSubItem>
+                  <SidebarMenuSubButton isActive={router.pathname === "/geography" && router.query.category === "political"} onClick={() => router.push("/geography?category=political")}>
+                    <Vote className="h-4 w-4" />
+                    <span>Political</span>
                   </SidebarMenuSubButton>
                 </SidebarMenuSubItem>
               </SidebarMenuSub>
