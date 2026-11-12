@@ -206,6 +206,15 @@ export default function GovernanceResourceDialogs({
 
   if (!entity) return null;
 
+  const geographyTitle = entityType === "appointment"
+    ? "position appointment"
+    : entityType === "position"
+      ? "position"
+      : "governance";
+  const geographyDescription = entityType === "appointment"
+    ? `Choose the boundary associated with ${entity.name || "this appointment"}'s appointment.`
+    : `Choose the boundary associated with ${entity.name || `this ${geographyTitle}`}.`;
+
   return (
     <>
       <EditorAddress
@@ -221,6 +230,8 @@ export default function GovernanceResourceDialogs({
         entityId={entity.id}
         entityType={entityType}
         entityName={entity.name}
+        title={geographyOpen ? "Add/Change geography" : undefined}
+        description={geographyDescription}
         onSaved={onSaved}
       />
 

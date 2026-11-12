@@ -174,7 +174,8 @@ export default function GeographyFocusSelector({ value, onValueChange, className
         onOpenChange={setMapOpen}
         selectionOnly
         value={effectiveValue}
-        title="Choose geographic focus"
+        title="Add/Change geography"
+        description="Choose the boundary associated with this geographic focus."
         onSelectBoundary={(boundary) => {
           const nextId = boundary?.id || null;
           onValueChange?.(nextId === DEFAULT_GEOGRAPHY_FOCUS_ID ? null : nextId);

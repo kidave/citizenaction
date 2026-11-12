@@ -43,7 +43,7 @@ function getGeographyZoom(geographyType) {
   return 10;
 }
 
-export default function AddGeographyDialog({ open, onOpenChange, governanceId = null, entityId = null, entityType = "governance", entityName, onSaved, selectionOnly = false, value = null, onSelectBoundary, title: titleOverride, embedded = false, mapRenderer = "tiles" }) {
+export default function AddGeographyDialog({ open, onOpenChange, governanceId = null, entityId = null, entityType = "governance", entityName, onSaved, selectionOnly = false, value = null, onSelectBoundary, title: titleOverride, description: descriptionOverride, embedded = false, mapRenderer = "tiles" }) {
   const targetId = entityId || governanceId;
   const [category, setCategory] = useState("administrative");
   const [politicalLevel, setPoliticalLevel] = useState("state");
@@ -119,21 +119,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
       const needle = search.trim().replace(/[%_]/g, "").slice(0, 80);
       const parent = browsePath[browsePath.length - 1] || null;
 
-      if (!needle && browseMode === "children" && parent) {
-        let childQuery = supabase.from("geographies").select(FIELDS)
-          .eq("parent_id", parent.id)
-          .order("name", { ascending: true }).range(from, to);
-        if (category === "administrative") {
-          childQuery = childQuery.or("boundary_category.eq.administrative,boundary_category.is.null");
-        } else {
-          childQuery = childQuery.eq("boundary_category", category);
-        }
-        const { data, error } = await childQuery;
-        if (error) throw error;
-        return { rows: data || [], hasMore: data?.length === PAGE_SIZE };
-      }
-
-      if (!needle && category === "administrative") {
+remove generic hierarchy query      if (!needle && category === "administrative") {
         let query = supabase.from("geographies").select(FIELDS)
           .order("name", { ascending: true }).range(from, to);
         if (browseMode === "state-districts" && parent) {
@@ -340,35 +326,23 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
       setSearch("");
       return;
     }
-    const nextPath = browsePath.slice(0, -1);
-    setBrowsePath(nextPath);
+    setBrowsePath((path) => path.slice(0, -1));
     setSelected(null);
     setGeometry(null);
     setLoadingGeometry(false);
     geometryRequestRef.current += 1;
-    setBrowseMode(nextPath.length ? "children" : "root");
-    if (category === "political" && !nextPath.length) {
-      setPoliticalLevel("state");
-      setPoliticalStateFilter("all");
+    if (category === "local_government" && ["zones", "wards"].includes(browseMode)) {
+      setBrowseMode("local-bodies");
+    } else {
+      setBrowseMode("root");
+      if (category === "political") {
+        setPoliticalLevel("state");
+        setPoliticalStateFilter("all");
+      }
     }
   };
 
-  const exploreSelectedChildren = () => {
-    if (!selected) return;
-    setBrowsePath((path) => [...path, selected]);
-    setBrowseMode("children");
-    setSearch("");
-    setSelected(null);
-    setGeometry(null);
-    setLoadingGeometry(false);
-    geometryRequestRef.current += 1;
-  };
-
-  const canExploreSelected = Boolean(selected && (
-    ["state", "district", "sub_district", "parliamentary_constituency", "assembly_constituency", "local_government", "metropolitan_area", "zone"].includes(selected.geography_type)
-  ));
-
-  const backToStates = () => {
+remove added state handlers  const backToStates = () => {
     setBrowsePath([]);
     setBrowseMode("root");
     setSelected(null);
@@ -517,21 +491,19 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
     ? selected
     : browsePath.find((item) => item.geography_type === "state") || null;
   const localBodyContext = browsePath.find((item) => item.geography_type === "local_government") || null;
-  const mapParentId = browseMode === "children" && politicalParent
-    ? politicalParent.id
-    : category === "political"
-      ? ["all-parliamentary", "all-assembly"].includes(browseMode) && politicalStateFilter === "all"
-        ? "__all__"
-        : politicalStateFilter !== "all" ? politicalStateFilter : DEFAULT_GEOGRAPHY_FOCUS_ID
-      : category === "administrative"
-        ? browseMode === "state-districts" ? politicalParent?.id : browseMode === "all-districts" ? "__all__" : DEFAULT_GEOGRAPHY_FOCUS_ID
-        : browseMode === "root" ? DEFAULT_GEOGRAPHY_FOCUS_ID
-          : ["metropolitan", "local-bodies"].includes(browseMode) && !politicalParent ? "__all__"
-            : politicalParent?.id || DEFAULT_GEOGRAPHY_FOCUS_ID;
+  const mapParentId = category === "political"
+    ? ["all-parliamentary", "all-assembly"].includes(browseMode) && politicalStateFilter === "all"
+      ? "__all__"
+      : politicalStateFilter !== "all" ? politicalStateFilter : DEFAULT_GEOGRAPHY_FOCUS_ID
+    : category === "administrative"
+      ? browseMode === "state-districts" ? politicalParent?.id : browseMode === "all-districts" ? "__all__" : DEFAULT_GEOGRAPHY_FOCUS_ID
+      : browseMode === "root" ? DEFAULT_GEOGRAPHY_FOCUS_ID
+        : ["metropolitan", "local-bodies"].includes(browseMode) && !politicalParent ? "__all__"
+          : politicalParent?.id || DEFAULT_GEOGRAPHY_FOCUS_ID;
   const mapCategory = category === "local_government" && browseMode === "root" || category === "political" && politicalLevel === "state"
     ? "administrative"
     : category;
-  const mapGeographyType = browseMode === "children" ? null : category === "political"
+  const mapGeographyType = category === "political"
     ? politicalLevel === "state" ? "state" : politicalLevel === "parliamentary" ? "parliamentary_constituency" : "assembly_constituency"
     : category === "administrative"
       ? browseMode === "all-districts" || browseMode === "state-districts" ? "district" : "state"
@@ -671,12 +643,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
               {category === "political" ? "Explore Constituency" : "Explore"}
             </span>
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-              {canExploreSelected && (
-                <Button type="button" size="sm" variant="secondary" onClick={exploreSelectedChildren}>
-                  Explore children of {selected.name}
-                </Button>
-              )}
-              {category === "administrative" && (
+remove embedded explore button              {category === "administrative" && (
                 <>
                   <Button type="button" size="sm" variant={browseMode === "root" ? "secondary" : "outline"} onClick={backToStates}>States of India</Button>
                   <Button type="button" size="sm" variant={browseMode === "all-districts" || browseMode === "state-districts" ? "secondary" : "outline"} onClick={() => exploreAll(browsePath[0]?.geography_type === "state" ? "state-districts" : selected?.geography_type === "state" ? "state-districts" : "all-districts")}>
@@ -716,22 +683,11 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
               {titleOverride || (selectionOnly ? "Choose geographic focus" : currentGeographyId ? "Change geography" : "Add geography")}
             </DialogTitle>
             <DialogDescription className="truncate">
-              {selectionOnly ? "Search or browse a boundary, preview it on the map, then apply it to the governance directory." : "Choose the boundary associated with " + (entityName || "this entity") + "."}
+              {descriptionOverride || (selectionOnly
+                ? "Search or browse a boundary, preview it on the map, then apply it to the governance directory."
+                : "Choose the boundary associated with " + (entityName || "this entity") + ".")}
             </DialogDescription>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <Button type="button" size="sm" variant="outline" onClick={goBack} disabled={browseMode === "root" && browsePath.length === 0}>
-                <ChevronLeft className="mr-1 h-4 w-4" /> Back
-              </Button>
-              <span className="min-w-0 truncate text-xs text-muted-foreground">
-                {["India", ...browsePath.map((item) => item.name)].join(" / ")}
-              </span>
-              {canExploreSelected && (
-                <Button type="button" size="sm" variant="secondary" onClick={exploreSelectedChildren}>
-                  Explore {selected.geography_type === "state" ? "districts / constituencies" : selected.geography_type === "district" ? "sub-districts" : selected.geography_type === "parliamentary_constituency" ? "assembly constituencies" : "children"}
-                </Button>
-              )}
-            </div>
-          </DialogHeader>
+remove dialog hierarchy controls          </DialogHeader>
         )}
 
         <main className="relative order-2 min-h-[180px] min-w-0 flex-1 overflow-hidden bg-muted/20 md:order-none md:flex-none">
