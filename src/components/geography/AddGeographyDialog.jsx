@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase/client";
 import { fetchGeographyGeometry } from "@/hooks/geography/useGeographyBrowser";
 import { useGovernanceGeography, useGovernanceGeographyMutation } from "@/hooks/geography/useGovernanceGeography";
@@ -769,6 +769,12 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-[100dvh] w-screen max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[90vh] sm:w-[96vw] sm:rounded-lg">
+        <DialogTitle className="sr-only">
+          {selectionOnly ? "Choose geographic focus" : currentGeographyId ? "Change boundary" : "Add geography"}
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          {descriptionOverride || (entityName ? `Boundary for ${entityName}` : "Select a geographic boundary.")}
+        </DialogDescription>
         {browserContent}
       </DialogContent>
     </Dialog>

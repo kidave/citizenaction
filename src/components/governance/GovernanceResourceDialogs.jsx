@@ -212,8 +212,8 @@ export default function GovernanceResourceDialogs({
       ? "position"
       : "governance";
   const geographyDescription = entityType === "appointment"
-    ? `For ${entity.name || "this person's"} appointment`
-    : `For ${entity.name || geographyTitle}`;
+    ? `Choose the boundary associated with ${entity.name || "this appointment"}'s appointment.`
+    : `Choose the boundary associated with ${entity.name || `this ${geographyTitle}`}.`;
 
   return (
     <>
@@ -230,6 +230,7 @@ export default function GovernanceResourceDialogs({
         entityId={entity.id}
         entityType={entityType}
         entityName={entity.name}
+        title={geographyOpen ? "Add/Change geography" : undefined}
         description={geographyDescription}
         onSaved={onSaved}
       />
