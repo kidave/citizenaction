@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "next-themes";
+import { Layers } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Map as MapLibreMap, NavigationControl, getVersion, setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
@@ -13,6 +17,36 @@ const LINE_LAYER_ID = "citizenaction-geography-outline";
 const SOURCE_LAYER_ID = "geographies";
 const DEFAULT_GEOGRAPHY_FOCUS_ID = "6f3dda25-6cf4-43f2-a5b7-1c8aa9d2113f";
 const TILESET_BOUNDS = [68.095, 6.7563, 97.4115, 37.077];
+const BASEMAP_STORAGE_KEY = "citizen-action:map-basemap";
+const BASEMAP_OPTIONS = [
+  { value: "system", label: "System" },
+  { value: "light", label: "Light" },
+  { value: "night", label: "Night" },
+  { value: "space", label: "Space" },
+  { value: "vintage", label: "Dark" },
+  { value: "satellite", label: "Satellite" },
+];
+function getSavedBasemap() {
+  if (typeof window === "undefined") return "system";
+  try {
+    const saved = window.localStorage.getItem(BASEMAP_STORAGE_KEY);
+    return BASEMAP_OPTIONS.some((option) => option.value === saved) ? saved : "system";
+  } catch { return "system"; }
+}
+function getThemeBasemap(theme, resolvedTheme) {
+  if (theme === "space" || theme === "vintage") return theme;
+  if (theme === "dark") return "night";
+  if (theme === "light") return "light";
+  return resolvedTheme === "dark" ? "night" : "light";
+}
+function getBasemapStyle(id) {
+  if (id === "satellite") return {
+    version: 8,
+    sources: { satellite: { type: "raster", tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"], tileSize: 256, attribution: "Satellite imagery © Esri" } },
+    layers: [{ id: "satellite-raster", type: "raster", source: "satellite" }],
+  };
+  return OPENFREEMAP_STYLES[id]?.url || OPENFREEMAP_STYLES.light.url;
+}
 
 function getVectorTileTemplate(apiKey) {
   // MapLibre substitutes these literal placeholders when requesting each tile.
@@ -93,6 +127,9 @@ export default function GeographyTilesMap({
   const onFeatureClickRef = useRef(onFeatureClick);
   const configRef = useRef({ parentId, selectedId, category, geographyType });
   const lastFocusRef = useRef(null);
+  const { theme, resolvedTheme } = useTheme();
+  const [basemapPreference, setBasemapPreference] = useState(getSavedBasemap);
+  const basemapId = basemapPreference === "system" ? getThemeBasemap(theme, resolvedTheme) : basemapPreference;
   const [mapError, setMapError] = useState(null);
   const [tileStatus, setTileStatus] = useState("Connecting to map providers…");
 
@@ -102,6 +139,9 @@ export default function GeographyTilesMap({
   }, [onFeatureClick, parentId, selectedId, category, geographyType]);
 
   const apiKey = process.env.NEXT_PUBLIC_MAPTILER_API_KEY;
+  useEffect(() => {
+    try { window.localStorage.setItem(BASEMAP_STORAGE_KEY, basemapPreference); } catch { /* storage is optional */ }
+  }, [basemapPreference]);
 
   useEffect(() => {
     if (!apiKey) {
@@ -122,9 +162,8 @@ export default function GeographyTilesMap({
     let cancelled = false;
     const map = new MapLibreMap({
       container: containerRef.current,
-      // OpenFreeMap remains the basemap. MapTiler is used only for the
-      // geography vector overlay registered below.
-      style: OPENFREEMAP_STYLES.light.url,
+      // Keep the shared basemap preference; MapTiler is the boundary overlay only.
+      style: getBasemapStyle(basemapId),
       center: [Number(lng) || 78.9629, Number(lat) || 20.5937],
       zoom,
       attributionControl: true,
@@ -287,7 +326,7 @@ export default function GeographyTilesMap({
       map.remove();
       mapRef.current = null;
     };
-  }, [apiKey]);
+  }, [apiKey, basemapId]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -330,6 +369,23 @@ export default function GeographyTilesMap({
 
   return (
     <div className="relative h-full min-h-[180px] w-full">
+      <div className="absolute left-3 top-3 z-10">
+        <TooltipProvider delayDuration={350}>
+          <Tooltip>
+            <DropdownMenu>
+              <TooltipTrigger asChild><DropdownMenuTrigger asChild>
+                <button type="button" aria-label="Change basemap" className="flex h-9 w-9 items-center justify-center rounded-md border border-border/80 bg-background/95 text-foreground shadow-md backdrop-blur hover:bg-accent"><Layers className="h-4 w-4" /></button>
+              </DropdownMenuTrigger></TooltipTrigger>
+              <TooltipContent side="right" sideOffset={8}>Basemap</TooltipContent>
+              <DropdownMenuContent align="start" side="right" sideOffset={8}>
+                <DropdownMenuRadioGroup value={basemapPreference} onValueChange={setBasemapPreference}>
+                  {BASEMAP_OPTIONS.map((option) => <DropdownMenuRadioItem key={option.value} value={option.value}>{option.label}</DropdownMenuRadioItem>)}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
       <div ref={containerRef} className="h-full min-h-[180px] w-full" />
       {mapError ? (
         <div className="absolute bottom-3 left-3 right-3 rounded-md border border-destructive/30 bg-background/95 px-3 py-2 text-xs text-destructive shadow">

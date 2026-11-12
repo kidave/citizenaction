@@ -43,7 +43,7 @@ function getGeographyZoom(geographyType) {
   return 10;
 }
 
-export default function AddGeographyDialog({ open, onOpenChange, governanceId = null, entityId = null, entityType = "governance", entityName, onSaved, selectionOnly = false, value = null, onSelectBoundary, title: titleOverride, embedded = false, mapRenderer = "leaflet" }) {
+export default function AddGeographyDialog({ open, onOpenChange, governanceId = null, entityId = null, entityType = "governance", entityName, onSaved, selectionOnly = false, value = null, onSelectBoundary, title: titleOverride, embedded = false, mapRenderer = "tiles" }) {
   const targetId = entityId || governanceId;
   const [category, setCategory] = useState("administrative");
   const [politicalLevel, setPoliticalLevel] = useState("state");

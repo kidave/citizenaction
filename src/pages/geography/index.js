@@ -9,7 +9,7 @@ export default function GeographyPage() {
           { label: "Home", href: "/" },
           { label: "Geography", href: "/geography" },
         ]}
-        title="Geography · Map tile test"
+        title="Geography"
         backHref="/"
         containerClassName="max-w-none"
       />
