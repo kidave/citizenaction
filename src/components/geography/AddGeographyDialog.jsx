@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase/client";
 import { fetchGeographyGeometry } from "@/hooks/geography/useGeographyBrowser";
 import { useGovernanceGeography, useGovernanceGeographyMutation } from "@/hooks/geography/useGovernanceGeography";
@@ -43,7 +43,7 @@ function getGeographyZoom(geographyType) {
   return 10;
 }
 
-export default function AddGeographyDialog({ open, onOpenChange, governanceId = null, entityId = null, entityType = "governance", entityName, onSaved, selectionOnly = false, value = null, onSelectBoundary, title: titleOverride, description: descriptionOverride, embedded = false, mapRenderer = "tiles" }) {
+export default function AddGeographyDialog({ open, onOpenChange, governanceId = null, entityId = null, entityType = "governance", entityName, onSaved, selectionOnly = false, value = null, onSelectBoundary, description: descriptionOverride, embedded = false, mapRenderer = "tiles" }) {
   const targetId = entityId || governanceId;
   const [category, setCategory] = useState("administrative");
   const [politicalLevel, setPoliticalLevel] = useState("state");
@@ -119,7 +119,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
       const needle = search.trim().replace(/[%_]/g, "").slice(0, 80);
       const parent = browsePath[browsePath.length - 1] || null;
 
-remove generic hierarchy query      if (!needle && category === "administrative") {
+      if (!needle && category === "administrative") {
         let query = supabase.from("geographies").select(FIELDS)
           .order("name", { ascending: true }).range(from, to);
         if (browseMode === "state-districts" && parent) {
@@ -342,7 +342,7 @@ remove generic hierarchy query      if (!needle && category === "administrative"
     }
   };
 
-remove added state handlers  const backToStates = () => {
+  const backToStates = () => {
     setBrowsePath([]);
     setBrowseMode("root");
     setSelected(null);
@@ -643,7 +643,7 @@ remove added state handlers  const backToStates = () => {
               {category === "political" ? "Explore Constituency" : "Explore"}
             </span>
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-remove embedded explore button              {category === "administrative" && (
+              {category === "administrative" && (
                 <>
                   <Button type="button" size="sm" variant={browseMode === "root" ? "secondary" : "outline"} onClick={backToStates}>States of India</Button>
                   <Button type="button" size="sm" variant={browseMode === "all-districts" || browseMode === "state-districts" ? "secondary" : "outline"} onClick={() => exploreAll(browsePath[0]?.geography_type === "state" ? "state-districts" : selected?.geography_type === "state" ? "state-districts" : "all-districts")}>
@@ -677,18 +677,7 @@ remove embedded explore button              {category === "administrative" && (
             </div>
 
           </div>
-        ) : (
-          <DialogHeader className="order-0 min-w-0 shrink-0 border-b px-4 py-3 pr-14 text-left sm:px-5 sm:py-4 md:order-none">
-            <DialogTitle className="text-lg">
-              {titleOverride || (selectionOnly ? "Choose geographic focus" : currentGeographyId ? "Change geography" : "Add geography")}
-            </DialogTitle>
-            <DialogDescription className="truncate">
-              {descriptionOverride || (selectionOnly
-                ? "Search or browse a boundary, preview it on the map, then apply it to the governance directory."
-                : "Choose the boundary associated with " + (entityName || "this entity") + ".")}
-            </DialogDescription>
-remove dialog hierarchy controls          </DialogHeader>
-        )}
+        ) : null}
 
         <main className="relative order-2 min-h-[180px] min-w-0 flex-1 overflow-hidden bg-muted/20 md:order-none md:flex-none">
           {mapRenderer === "tiles" ? (
@@ -739,16 +728,16 @@ remove dialog hierarchy controls          </DialogHeader>
           <div className="min-w-0">
             {selected ? (
               <>
-                <p className="truncate text-xs font-semibold sm:text-sm">{label}</p>
+                <p className="truncate text-sm font-semibold">{label}</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {getGeographyTypeLabel(selected.geography_type)}
+                  {descriptionOverride || (entityName ? `For ${entityName}` : getGeographyTypeLabel(selected.geography_type))}
                 </p>
               </>
             ) : (
               <>
                 <p className="text-sm font-medium">No boundary selected</p>
-                <p className="text-xs text-muted-foreground">
-                  Select a boundary from the list to preview it on the map.
+                <p className="truncate text-xs text-muted-foreground">
+                  {descriptionOverride || (entityName ? `Add geography for ${entityName}` : "Select a boundary to preview it on the map.")}
                 </p>
               </>
             )}
@@ -768,7 +757,7 @@ remove dialog hierarchy controls          </DialogHeader>
               onClick={handleSave}
               disabled={(!selectionOnly && isSetting) || !selected || selected.id === currentGeographyId || loadingGeometry}
             >
-              {selectionOnly ? "Apply focus" : isSetting ? "Saving..." : currentGeographyId ? "Change geography" : "Add geography"}
+              {selectionOnly ? "Apply focus" : isSetting ? "Saving..." : currentGeographyId ? "Change boundary" : "Add geography"}
             </Button>
           </div>}
         </div>
