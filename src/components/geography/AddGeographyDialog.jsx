@@ -727,19 +727,14 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
         <div className="order-3 flex min-w-0 shrink-0 flex-col gap-2 border-t bg-background px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5 sm:py-3 md:order-none">
           <div className="min-w-0">
             {selected ? (
-              <>
+              <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
                 <p className="truncate text-sm font-semibold">{label}</p>
-                <p className="truncate text-xs text-muted-foreground">
+                <p className="min-w-0 text-xs text-muted-foreground">
                   {descriptionOverride || (entityName ? `For ${entityName}` : getGeographyTypeLabel(selected.geography_type))}
                 </p>
-              </>
+              </div>
             ) : (
-              <>
-                <p className="text-sm font-medium">No boundary selected</p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {descriptionOverride || (entityName ? `Add geography for ${entityName}` : "Select a boundary to preview it on the map.")}
-                </p>
-              </>
+              <p className="text-sm font-medium">No boundary selected</p>
             )}
           </div>
 
