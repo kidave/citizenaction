@@ -212,8 +212,8 @@ export default function GovernanceResourceDialogs({
       ? "position"
       : "governance";
   const geographyDescription = entityType === "appointment"
-    ? `Appointment · ${entity.name || "Selected person"}`
-    : `${geographyTitle[0].toUpperCase() + geographyTitle.slice(1)} · ${entity.name || "Selected entity"}`;
+    ? `Choose the boundary associated with ${entity.name || "this person's"} appointment.`
+    : `Choose the boundary associated with ${entity.name || `this ${geographyTitle}`}.`;
 
   return (
     <>
