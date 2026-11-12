@@ -528,10 +528,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
 
 
   const browserContent = (
-      <div className={embedded
-        ? "grid h-full min-h-0 w-full grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden md:grid-cols-[360px_minmax(0,1fr)] md:grid-rows-[auto_minmax(0,1fr)_auto]"
-        : "grid h-full min-h-0 w-full grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden md:grid-cols-[360px_minmax(0,1fr)] md:grid-rows-[auto_minmax(0,1fr)_auto]"
-      }>
+      <div className="grid h-full min-h-0 w-full grid-rows-[auto_auto_minmax(180px,1fr)_auto] overflow-hidden md:grid-cols-[360px_minmax(0,1fr)] md:grid-rows-[auto_minmax(0,1fr)_auto]">
         <aside className="order-1 flex max-h-[43dvh] min-h-0 shrink-0 flex-col border-b md:order-none md:row-span-3 md:max-h-none md:border-b-0 md:border-r">
           <div className="space-y-2 border-b p-3 sm:space-y-3 sm:p-4">
             <Tabs value={category} onValueChange={handleCategoryChange} className="w-full">
@@ -626,8 +623,7 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
           </ScrollArea>
         </aside>
 
-        {embedded ? (
-          <div className="order-0 flex min-h-14 min-w-0 shrink-0 flex-wrap items-center gap-3 border-b px-4 py-2.5 sm:px-5 md:order-none">
+        <div className="order-0 flex min-h-14 min-w-0 shrink-0 flex-wrap items-center gap-3 border-b px-4 py-2.5 sm:px-5 md:order-none">
             <Button
               type="button"
               variant="ghost"
@@ -676,10 +672,9 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
               )}
             </div>
 
-          </div>
-        ) : null}
+        </div>
 
-        <main className="relative order-2 min-h-[180px] min-w-0 flex-1 overflow-hidden bg-muted/20 md:order-none md:flex-none">
+        <main className="relative order-2 h-full min-h-0 min-w-0 overflow-hidden bg-muted/20 md:order-none">
           {mapRenderer === "tiles" ? (
             <GeographyTilesMap
               key="geography-hierarchy-map"
