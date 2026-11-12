@@ -170,6 +170,8 @@ export default function GeographyTilesMap({
     });
 
     mapRef.current = map;
+    const resizeObserver = new ResizeObserver(() => map.resize());
+    resizeObserver.observe(containerRef.current);
     map.addControl(new NavigationControl({ showCompass: true }), "top-right");
 
     const updateVisibleFeatureStatus = () => {
@@ -323,6 +325,7 @@ export default function GeographyTilesMap({
 
     return () => {
       cancelled = true;
+      resizeObserver.disconnect();
       map.remove();
       mapRef.current = null;
     };
