@@ -212,8 +212,8 @@ export default function GovernanceResourceDialogs({
       ? "position"
       : "governance";
   const geographyDescription = entityType === "appointment"
-    ? `For ${entity.name || "this appointment"}'s appointment`
-    : `For ${entity.name || geographyTitle}`;
+    ? `Appointment · ${entity.name || "Selected person"}`
+    : `${geographyTitle[0].toUpperCase() + geographyTitle.slice(1)} · ${entity.name || "Selected entity"}`;
 
   return (
     <>
