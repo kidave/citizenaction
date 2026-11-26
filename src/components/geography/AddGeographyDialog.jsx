@@ -530,9 +530,9 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
         : browseMode === "local-bodies" ? "local_government"
           : browseMode === "zones" ? "zone"
             : browseMode === "wards" ? "ward" : "state";
-  // Assembly boundaries are omitted/generalized at the state overview zoom in the
-  // MapTiler vector tiles. Browse them at z8 around the selected state's center;
-  // do not fit the entire state bounds, which would force the camera back to z5–6.
+  // State bounds would fit the entire state and override the camera zoom. For
+  // state-scoped assembly browsing, use a closer camera zoom so the boundaries
+  // can be inspected at the same scale as parliamentary constituencies.
   const isBrowsingAssemblyInState =
     category === "political" &&
     browseMode === "all-assembly" &&
