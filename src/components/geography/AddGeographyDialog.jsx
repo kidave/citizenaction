@@ -499,10 +499,21 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
   );
   const center = mapFocus?.center || { lat: 20.5937, lng: 78.9629 };
   const localBodyContext = browsePath.find((item) => item.geography_type === "local_government") || null;
+  // When an individual political constituency is selected, scope the
+  // overlay to that feature rather than continuing to render every sibling
+  // constituency belonging to its parent state. While browsing a state's
+  // constituencies (no individual selection), keep the state as the parent.
+  const selectedPoliticalBoundaryId =
+    category === "political" &&
+    ["parliamentary_constituency", "assembly_constituency"].includes(selected?.geography_type)
+      ? selected.id
+      : null;
   const mapParentId = category === "political"
-    ? ["all-parliamentary", "all-assembly"].includes(browseMode) && politicalStateFilter === "all"
-      ? "__all__"
-      : politicalStateFilter !== "all" ? politicalStateFilter : DEFAULT_GEOGRAPHY_FOCUS_ID
+    ? selectedPoliticalBoundaryId || (
+      ["all-parliamentary", "all-assembly"].includes(browseMode) && politicalStateFilter === "all"
+        ? "__all__"
+        : politicalStateFilter !== "all" ? politicalStateFilter : DEFAULT_GEOGRAPHY_FOCUS_ID
+    )
     : category === "administrative"
       ? browseMode === "state-districts" ? politicalParent?.id : browseMode === "all-districts" ? "__all__" : DEFAULT_GEOGRAPHY_FOCUS_ID
       : browseMode === "root" ? DEFAULT_GEOGRAPHY_FOCUS_ID
