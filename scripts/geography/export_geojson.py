@@ -131,15 +131,19 @@ def export() -> None:
 
             output.write("]}")
 
-        # Parse the completed file before publishing it as the final artifact.
+        # Validate the complete file and reject empty exports before publishing it.
         with temporary_path.open("r", encoding="utf-8") as exported_file:
             collection = json.load(exported_file)
 
         if collection.get("type") != "FeatureCollection":
             raise RuntimeError("Final output is not a GeoJSON FeatureCollection.")
-        if len(collection.get("features", [])) != exported:
+        features = collection.get("features")
+        if not isinstance(features, list) or len(features) != exported:
             raise RuntimeError("Final GeoJSON feature count does not match the export count.")
+        if exported == 0:
+            raise RuntimeError("No geography features were exported.")
 
+        # Keep any previous valid output intact unless the new export is complete.
         temporary_path.replace(OUTPUT_PATH)
 
     except Exception:
@@ -154,9 +158,6 @@ def export() -> None:
     print(f"Unique IDs: {len(seen_ids):,}")
     print(f"File size: {size_mb:.2f} MB")
     print(f"Output: {OUTPUT_PATH.resolve()}")
-
-    if exported == 0:
-        raise RuntimeError("No geography features were exported.")
 
 
 if __name__ == "__main__":
