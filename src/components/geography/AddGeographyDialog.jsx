@@ -530,6 +530,18 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
         : browseMode === "local-bodies" ? "local_government"
           : browseMode === "zones" ? "zone"
             : browseMode === "wards" ? "ward" : "state";
+  // Assembly boundaries are omitted/generalized at the state overview zoom in the
+  // MapTiler vector tiles. Browse them at z8 around the selected state's center;
+  // do not fit the entire state bounds, which would force the camera back to z5–6.
+  const isBrowsingAssemblyInState =
+    category === "political" &&
+    browseMode === "all-assembly" &&
+    Boolean(politicalState);
+  const mapZoom = isBrowsingAssemblyInState
+    ? 8
+    : mapFocus ? getGeographyZoom(mapFocus.geography_type) : 4;
+  const mapSelectedBounds = isBrowsingAssemblyInState ? null : mapFocus?.bounds || null;
+
   const mapBoundary =
     selected && geometry
       ? [
@@ -702,13 +714,13 @@ export default function AddGeographyDialog({ open, onOpenChange, governanceId = 
               key="geography-hierarchy-map"
               lat={Number(center?.lat) || 20.5937}
               lng={Number(center?.lng) || 78.9629}
-              zoom={mapFocus ? getGeographyZoom(mapFocus.geography_type) : 4}
+              zoom={mapZoom}
               focusEnabled
               parentId={mapParentId}
               selectedId={selected?.id || null}
               category={mapCategory}
               geographyType={mapGeographyType}
-              selectedBounds={mapFocus?.bounds || null}
+              selectedBounds={mapSelectedBounds}
               onFeatureClick={selectGeography}
             />
           ) : (
