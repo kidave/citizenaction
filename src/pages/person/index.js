@@ -4,6 +4,7 @@ import GovernancePageHeader from "@/components/governance/GovernancePageHeader";
 import PersonDirectory from "@/components/governance/PersonDirectory";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GOVERNANCE_DOMAINS, GOVERNANCE_DOMAIN_VALUES } from "@/utils/governance";
+import { useMyProfile } from "@/hooks/user/useMyProfile";
 
 const VALID_DOMAINS = new Set(GOVERNANCE_DOMAIN_VALUES);
 
@@ -15,6 +16,8 @@ function getDomain(value) {
 export default function PeopleDirectoryPage() {
   const router = useRouter();
   const [domain, setDomain] = useState("all");
+  const { data: profile } = useMyProfile();
+  const canManage = profile?.role === "admin";
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -51,7 +54,7 @@ export default function PeopleDirectoryPage() {
               ))}
             </TabsList>
           </Tabs>
-          <PersonDirectory domain={domain === "all" ? undefined : domain} />
+          <PersonDirectory domain={domain === "all" ? undefined : domain} canManage={canManage} />
         </div>
       </main>
     </div>
