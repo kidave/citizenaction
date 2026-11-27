@@ -16,7 +16,6 @@ import {
   Building2,
   Users,
   Map,
-  Building,
   CircleHelp,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
