@@ -78,6 +78,21 @@ Governance is the canonical model for public authorities/entities. The normalize
 
 The recent governance migrations intentionally consolidated older overlapping models. New code should use the canonical model rather than recreating legacy scope/authority structures.
 
+### Person education, profession, and service
+
+The normalized background model uses three shared catalogues:
+
+- `education` — AISHE education institutions only, with `source='aishe'`, `source_id` holding the AISHE institution code, and `geography_id` referencing the canonical `geographies.id` (normally the institution's district).
+- `profession` — occupation catalogue sourced from ESCO; store the ESCO occupation URI in `source_id` and preserve the ESCO hierarchy with `parent_id`.
+- `service` — formal services such as IAS, IPS, IFS, IRS, and IRMS, with service type, parent service, recruitment authority, and recruitment examination.
+
+Many-to-many relationships are represented by:
+
+- `person_education`, `person_profession`, and `person_service_affiliation` for public directory people. Service affiliations include start/end dates, specialisation, and notes. Profession links reference an ESCO occupation only.
+- `profile_education` and `profile_profession` for registered user profiles. Profile profession links reference an ESCO occupation only.
+
+There is intentionally no `profile_service` or profile service-affiliation table: service affiliations are recorded against public directory people only. There is no qualification/degree catalogue in this model; education records refer to AISHE institutions. Relationship records are public by default, carry an independent verification status, and support private visibility for profile links. Catalogue tables are publicly readable and admin-maintained. Person relationship writes follow the existing admin-managed person directory model; profile relationship writes are owner/admin controlled.
+
 ### Geography
 
 `geographies` is the canonical application geography model. OSM-derived identifiers and geometry are stored with geography records where required. Mapping/import/cache tables should remain implementation-specific and should not become competing application geography sources of truth.
