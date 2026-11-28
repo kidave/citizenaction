@@ -36,7 +36,7 @@ def save_json(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
-def overpass(query, attempts, delay):
+def overpass(query, attempts, delay, require_nonempty=False):
     diagnostics = []
     for attempt in range(1, attempts + 1):
         rotated = ENDPOINTS[attempt - 1:] + ENDPOINTS[:attempt - 1]
@@ -56,6 +56,8 @@ def overpass(query, attempts, delay):
                         raise ValueError("Response does not contain an elements array")
                     if payload.get("remark"):
                         raise ValueError("Incomplete Overpass response: " + str(payload["remark"]))
+                    if require_nonempty and not payload["elements"]:
+                        raise ValueError("Overpass returned a valid but empty elements array")
                     diagnostics.append({"endpoint": name, "attempt": attempt, "outcome": "success",
                                         "http_status": response.status,
                                         "elapsed_seconds": round(time.monotonic() - started, 2)})
@@ -76,12 +78,24 @@ def overpass(query, attempts, delay):
     raise RuntimeError(json.dumps({"message": "All Overpass endpoints failed", "diagnostics": diagnostics}))
 
 
-def districts_query(state_relation_id):
-    area_id = 3_600_000_000 + state_relation_id
-    return f"""[out:json][timeout:90];
+def districts_queries(state):
+    """Return independent primary and fallback queries for one state.
+
+    Some Overpass instances do not have the derived area indexed even when the
+    state relation exists. Try the relation-derived area first, then explicitly
+    convert the state relation to an area on the same endpoint rotation.
+    """
+    area_id = 3_600_000_000 + state["osm_id"]
+    primary = f"""[out:json][timeout:90];
 area(id:{area_id})->.stateArea;
-rel["boundary"="administrative"]["admin_level"="5"](area.stateArea);
+rel["type"="boundary"]["boundary"="administrative"]["admin_level"="5"](area.stateArea);
 out tags center;"""
+    fallback = f"""[out:json][timeout:90];
+rel({state["osm_id"]})->.stateRelation;
+.stateRelation map_to_area -> .stateArea;
+rel["type"="boundary"]["boundary"="administrative"]["admin_level"="5"](area.stateArea);
+out tags center;"""
+    return [("relation_area", primary), ("map_to_area", fallback)]
 
 
 def normalize(element, state):
@@ -125,7 +139,9 @@ def main():
 
     print("Fetching India state/UT relation index...", flush=True)
     try:
-        state_data, state_request = overpass(STATE_QUERY, args.attempts, args.delay_seconds)
+        state_data, state_request = overpass(
+            STATE_QUERY, args.attempts, args.delay_seconds, require_nonempty=True
+        )
     except Exception as error:
         report["failed_states"] = 1
         report["states_index_error"] = str(error)
@@ -159,18 +175,35 @@ def main():
     all_districts = []
     for index, state in enumerate(states, 1):
         name = state["name"]
-        query = districts_query(state["osm_id"])
+        queries = districts_queries(state)
         print(f"[{index}/{len(states)}] {name}: fetching admin_level=5 relations", flush=True)
         result = {"state_name": name, "state_osm_id": str(state["osm_id"]),
                   "fetched_at": now(), "complete": False, "count": 0, "results": []}
         raw_response = None
+        request_meta = []
+        selected_query = None
+        query_errors = []
         try:
-            raw_response, request_meta = overpass(query, args.attempts, args.delay_seconds)
-            records = [record for item in raw_response["elements"]
-                       if (record := normalize(item, state)) is not None]
+            records = []
+            for query_name, query in queries:
+                try:
+                    raw_response, request = overpass(
+                        query, args.attempts, args.delay_seconds, require_nonempty=True
+                    )
+                    records = [record for item in raw_response["elements"]
+                               if (record := normalize(item, state)) is not None]
+                    if not records:
+                        raise RuntimeError("Response contained no valid admin_level=5 district relations")
+                    selected_query = query_name
+                    request_meta.append({"query": query_name, **request})
+                    break
+                except Exception as query_error:
+                    query_errors.append({"query": query_name, "error": str(query_error)})
             if not records:
-                raise RuntimeError("No valid admin_level=5 district relations in response")
+                raise RuntimeError(json.dumps({"message": "All state district query strategies failed",
+                                                "attempts": query_errors}))
             result.update({"complete": True, "count": len(records),
+                           "query_strategy": selected_query,
                            "osm_timestamp": (raw_response.get("osm3s") or {}).get("timestamp_osm_base"),
                            "request": request_meta, "results": records})
             all_districts.extend(records)
@@ -178,11 +211,13 @@ def main():
             print(f"  {len(records)} district relations", flush=True)
         except Exception as error:
             result["error"] = str(error)
+            result["query_attempts"] = query_errors
             report["failed_states"] += 1
             print(f"  FAILED: {error}", file=sys.stderr, flush=True)
 
         save_json(raw_dir / (slug(name) + ".json"),
-                  {"fetched_at": result["fetched_at"], "state": state, "query": query,
+                  {"fetched_at": result["fetched_at"], "state": state,
+                   "queries": [{"strategy": key, "query": value} for key, value in queries],
                    "result": result, "overpass_response": raw_response})
         report["states"].append({"state_name": name, "state_osm_id": str(state["osm_id"]),
                                  "complete": result["complete"], "count": result["count"],
@@ -190,8 +225,14 @@ def main():
         if index < len(states):
             time.sleep(args.delay_seconds)
 
-    ids = [record["osm_id"] for record in all_districts]
-    report["duplicate_osm_ids"] = sorted({osm_id for osm_id in ids if ids.count(osm_id) > 1})
+    seen_ids = set()
+    duplicate_ids = set()
+    for record in all_districts:
+        osm_id = record["osm_id"]
+        if osm_id in seen_ids:
+            duplicate_ids.add(osm_id)
+        seen_ids.add(osm_id)
+    report["duplicate_osm_ids"] = sorted(duplicate_ids)
     report["district_count"] = len(all_districts)
     report["states"].sort(key=lambda item: item["state_name"].casefold())
     save_json(out / "fetch-report.json", report)
