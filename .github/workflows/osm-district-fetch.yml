@@ -1,4 +1,4 @@
-name: Fetch OSM Districts
+name: Fetch OSM Districts and Boundaries
 
 on:
   workflow_dispatch:
@@ -14,9 +14,14 @@ on:
         default: "2"
         type: string
       delay_seconds:
-        description: "Delay between state requests and retry rounds"
+        description: "Delay between Overpass requests and retry rounds"
         required: false
-        default: "4"
+        default: "3"
+        type: string
+      geometry_batch_size:
+        description: "Relations per geometry request (1-25)"
+        required: false
+        default: "10"
         type: string
 
 permissions:
@@ -28,7 +33,7 @@ concurrency:
 
 jobs:
   fetch-districts:
-    name: Fetch administrative district relations
+    name: Discover districts and export OSM boundaries
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
@@ -40,23 +45,28 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Fetch state-wise OSM district relations
+      - name: Validate fetcher syntax
+        run: python -m py_compile scripts/fetch-osm-districts.py
+
+      - name: Fetch district relations and boundary geometry
         env:
           STATE: ${{ inputs.state || 'all' }}
           ATTEMPTS: ${{ inputs.attempts || '2' }}
-          DELAY_SECONDS: ${{ inputs.delay_seconds || '4' }}
+          DELAY_SECONDS: ${{ inputs.delay_seconds || '3' }}
+          GEOMETRY_BATCH_SIZE: ${{ inputs.geometry_batch_size || '10' }}
         run: |
           python scripts/fetch-osm-districts.py \
             --state "$STATE" \
             --attempts "$ATTEMPTS" \
             --delay-seconds "$DELAY_SECONDS" \
+            --geometry-batch-size "$GEOMETRY_BATCH_SIZE" \
             --output-dir artifacts/osm-districts
 
       - name: Upload raw responses and review datasets
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: osm-district-fetch-${{ github.run_number }}
+          name: osm-district-boundaries-${{ github.run_number }}
           path: artifacts/osm-districts/
           if-no-files-found: error
           retention-days: 30
