@@ -74,7 +74,7 @@ jobs:
             --attempts "$ATTEMPTS" \
             --delay-seconds "$DELAY_SECONDS" \
             --geometry-batch-size "$GEOMETRY_BATCH_SIZE" \
-            --baseline-dir artifacts/osm-districts-baseline \\\n            --output-dir artifacts/osm-districts
+            --baseline-dir artifacts/osm-districts-baseline \
 
       - name: Upload raw responses and review datasets
         if: always()
