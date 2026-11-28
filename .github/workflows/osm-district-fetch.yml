@@ -25,6 +25,7 @@ on:
         type: string
 
 permissions:
+  actions: read
   contents: read
 
 concurrency:
@@ -68,7 +69,7 @@ jobs:
           DELAY_SECONDS: ${{ inputs.delay_seconds || '3' }}
           GEOMETRY_BATCH_SIZE: ${{ inputs.geometry_batch_size || '10' }}
         run: |
-          python scripts/fetch-osm-districts.py \
+          python scripts/sync-osm-districts.py \
             --state "$STATE" \
             --attempts "$ATTEMPTS" \
             --delay-seconds "$DELAY_SECONDS" \
