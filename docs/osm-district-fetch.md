@@ -12,9 +12,13 @@ public Overpass instances.
 4. Download the generated workflow artifact after the run.
 
 The workflow runs sequentially to avoid unnecessary load on public Overpass
-instances. It rotates through endpoints, retries with backoff, preserves each
-state's raw response, and continues after individual state failures so
-successful results are not lost.
+instances. It rotates through endpoints, retries with backoff, and treats an
+empty or incomplete response as a failed attempt rather than a successful
+fetch. For each state it first queries the relation-derived area ID, then
+retries with an explicit relation-to-area conversion if the first strategy
+does not return districts. It preserves each state's raw response and query
+diagnostics, and continues after individual state failures so successful
+results are not lost.
 
 ## Artifact contents
 
