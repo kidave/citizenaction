@@ -88,8 +88,8 @@ The normalized background model uses three shared catalogues:
 
 Many-to-many relationships are represented by:
 
-- `person_education`, `person_profession`, and `person_service_affiliation` for public directory people. Service affiliations include start/end dates, specialisation, and notes. Profession links can point to an ESCO occupation or preserve a user-entered custom title when no suitable ESCO match exists.
-- `profile_education` and `profile_profession` for registered user profiles. Profile profession links support the same ESCO-or-custom-title choice.
+- `person_education`, `person_profession`, and `person_service_affiliation` for public directory people. Service affiliations include start/end dates, specialisation, and notes. Profession links reference an ESCO occupation only.
+- `profile_education` and `profile_profession` for registered user profiles. Profile profession links reference an ESCO occupation only.
 
 There is intentionally no `profile_service` or profile service-affiliation table: service affiliations are recorded against public directory people only. There is no qualification/degree catalogue in this model; education records refer to AISHE institutions. Relationship records are public by default, carry an independent verification status, and support private visibility for profile links. Catalogue tables are publicly readable and admin-maintained. Person relationship writes follow the existing admin-managed person directory model; profile relationship writes are owner/admin controlled.
 
