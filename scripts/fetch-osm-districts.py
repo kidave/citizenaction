@@ -171,7 +171,9 @@ def fetch_boundaries(records, out, attempts, delay, batch_size, checkpoint=None)
         # Persist after each batch so the caller can publish a resumable checkpoint.
         if checkpoint:
             checkpoint(features, report)
-        save_json(out / "india-osm-district-boundaries.geojson",
+        if offset + batch_size < len(ids):
+            time.sleep(delay)
+    save_json(out / "india-osm-district-boundaries.geojson",
               {"type": "FeatureCollection", "name": "India OSM district boundaries",
                "features": features})
     return report
