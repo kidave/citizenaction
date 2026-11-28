@@ -48,10 +48,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install isolated analysis tools
+        run: |
+          mkdir -p "$RUNNER_TEMP/code-health-tools"
+          npm install --prefix "$RUNNER_TEMP/code-health-tools" --no-save --no-package-lock knip@5 jscpd@4.0.5
 
       - name: Prepare report directory
         run: mkdir -p artifacts/engineering
@@ -60,9 +61,11 @@ jobs:
         id: knip
         continue-on-error: true
         shell: bash
+        env:
+          TOOL_BIN: ${{ runner.temp }}/code-health-tools/node_modules/.bin
         run: |
           set +e
-          npx --yes knip@5 --reporter json > artifacts/engineering/knip.json 2> artifacts/engineering/knip-stderr.log
+          "$TOOL_BIN/knip" --reporter json > artifacts/engineering/knip.json 2> artifacts/engineering/knip-stderr.log
           code=$?
           echo "$code" > artifacts/engineering/knip-exit-code.txt
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
@@ -75,9 +78,11 @@ jobs:
         id: jscpd
         continue-on-error: true
         shell: bash
+        env:
+          TOOL_BIN: ${{ runner.temp }}/code-health-tools/node_modules/.bin
         run: |
           set +e
-          npx --yes jscpd@4.0.5 src --reporters json --output artifacts/engineering/jscpd --ignore "**/*.stories.*,**/*.test.*,**/*.spec.*"
+          "$TOOL_BIN/jscpd" src --reporters json --output artifacts/engineering/jscpd --ignore "**/*.stories.*,**/*.test.*,**/*.spec.*"
           code=$?
           echo "$code" > artifacts/engineering/jscpd-exit-code.txt
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"

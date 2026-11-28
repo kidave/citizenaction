@@ -1,0 +1,72 @@
+name: Fetch OSM Districts and Boundaries
+
+on:
+  workflow_dispatch:
+    inputs:
+      state:
+        description: "State/UT name, or all"
+        required: false
+        default: "all"
+        type: string
+      attempts:
+        description: "Maximum endpoint-rotation attempts (1-4)"
+        required: false
+        default: "2"
+        type: string
+      delay_seconds:
+        description: "Delay between Overpass requests and retry rounds"
+        required: false
+        default: "3"
+        type: string
+      geometry_batch_size:
+        description: "Relations per geometry request (1-25)"
+        required: false
+        default: "10"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: osm-district-fetch-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  fetch-districts:
+    name: Discover districts and export OSM boundaries
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Check out selected branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate fetcher syntax
+        run: python -m py_compile scripts/fetch-osm-districts.py
+
+      - name: Fetch district relations and boundary geometry
+        env:
+          STATE: ${{ inputs.state || 'all' }}
+          ATTEMPTS: ${{ inputs.attempts || '2' }}
+          DELAY_SECONDS: ${{ inputs.delay_seconds || '3' }}
+          GEOMETRY_BATCH_SIZE: ${{ inputs.geometry_batch_size || '10' }}
+        run: |
+          python scripts/fetch-osm-districts.py \
+            --state "$STATE" \
+            --attempts "$ATTEMPTS" \
+            --delay-seconds "$DELAY_SECONDS" \
+            --geometry-batch-size "$GEOMETRY_BATCH_SIZE" \
+            --output-dir artifacts/osm-districts
+
+      - name: Upload raw responses and review datasets
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: osm-district-boundaries-${{ github.run_number }}
+          path: artifacts/osm-districts/
+          if-no-files-found: error
+          retention-days: 30
