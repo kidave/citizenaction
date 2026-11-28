@@ -42,7 +42,8 @@ def versioned_record(record, raw_elements):
 
 def discover_state(state, attempts, delay, raw_dir):
     results, errors = {}, []
-    for strategy, query in osm.district_queries(state):
+    for strategy, original_query in osm.district_queries(state):
+        query = original_query.replace("out tags center;", "out meta center;")
         try:
             payload, request = osm.overpass(query, attempts, delay)
             raw_by_id = {str(e.get("id")): e for e in payload["elements"]
@@ -130,7 +131,11 @@ def main():
         report["unchanged_relations"].extend(unchanged_ids)
         report["removed_candidates"].extend(sorted(previous_ids - set(found), key=int))
 
-        needs_geometry = [current[key] for key in new_ids + changed_ids]
+        needs_geometry = [
+            row for key, row in found.items()
+            if (key not in boundary_by_id or
+                boundary_by_id[key].get("properties", {}).get("osm_version") != row.get("osm_version"))
+        ]
         if needs_geometry:
             temp = out / "_geometry"
             geom_report = osm.fetch_boundaries(needs_geometry, temp, args.attempts,
