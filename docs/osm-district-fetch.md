@@ -42,7 +42,11 @@ compares each relation's OSM `version` and `timestamp` with the baseline:
   report the failure for review.
 
 The initial run has no baseline and fetches geometry for all discovered
-relations. Subsequent runs fetch geometry only for additions and updates.
+relations. Because the existing full-export artifact does not include OSM
+version metadata on its features, the first incremental run against that legacy
+artifact will also refresh those boundaries once to establish versioned
+geometry. Subsequent runs fetch geometry only for additions, updates, or any
+relation whose geometry version is missing or stale.
 When the user selects one state, other states in the baseline are retained in
 the consolidated export.
 
