@@ -82,16 +82,16 @@ The recent governance migrations intentionally consolidated older overlapping mo
 
 The normalized background model uses three shared catalogues:
 
-- `education` — education institutions, with `geography_id` referencing the canonical `geographies.id` (normally the institution's district).
-- `profession` — occupation catalogue, with `source` / `source_id` for identifiers such as NCO 2015 and `parent_id` for catalogue hierarchy.
-- `service` — formal services such as IAS, IPS, IFS, IRS, and IRMS.
+- `education` — AISHE education institutions only, with `source='aishe'`, `source_id` holding the AISHE institution code, and `geography_id` referencing the canonical `geographies.id` (normally the institution's district).
+- `profession` — occupation catalogue sourced from ESCO; store the ESCO occupation URI in `source_id` and preserve the ESCO hierarchy with `parent_id`.
+- `service` — formal services such as IAS, IPS, IFS, IRS, and IRMS, with service type, parent service, recruitment authority, and recruitment examination.
 
 Many-to-many relationships are represented by:
 
-- `person_education`, `person_profession`, and `person_service` for public directory people.
+- `person_education`, `person_profession`, and `person_service_affiliation` for public directory people. Service affiliations include start/end dates, specialisation, and notes.
 - `profile_education` and `profile_profession` for registered user profiles.
 
-There is intentionally no `profile_service`: service affiliations are recorded against public directory people only. Relationship records are public by default, carry an independent verification status, and support private visibility for profile links. Catalogue tables are publicly readable and admin-maintained. Person relationship writes follow the existing admin-managed person directory model; profile relationship writes are owner/admin controlled.
+There is intentionally no `profile_service` or profile service-affiliation table: service affiliations are recorded against public directory people only. There is no qualification/degree catalogue in this model; education records refer to AISHE institutions. Relationship records are public by default, carry an independent verification status, and support private visibility for profile links. Catalogue tables are publicly readable and admin-maintained. Person relationship writes follow the existing admin-managed person directory model; profile relationship writes are owner/admin controlled.
 
 ### Geography
 
