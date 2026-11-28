@@ -48,6 +48,19 @@ jobs:
       - name: Validate fetcher syntax
         run: python -m py_compile scripts/fetch-osm-districts.py
 
+      - name: Restore latest completed OSM dataset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p artifacts/osm-districts-baseline
+          BASELINE_RUN_ID="$(gh run list --workflow osm-district-fetch.yml --status completed --limit 20 --json databaseId --jq '.[0].databaseId // empty')"
+          if [ -n "$BASELINE_RUN_ID" ]; then
+            echo "Restoring OSM baseline from workflow run $BASELINE_RUN_ID"
+            gh run download "$BASELINE_RUN_ID" --dir artifacts/osm-districts-baseline || true
+          else
+            echo "No completed OSM dataset found; this run will establish the initial baseline."
+          fi
+
       - name: Fetch district relations and boundary geometry
         env:
           STATE: ${{ inputs.state || 'all' }}
@@ -60,13 +73,13 @@ jobs:
             --attempts "$ATTEMPTS" \
             --delay-seconds "$DELAY_SECONDS" \
             --geometry-batch-size "$GEOMETRY_BATCH_SIZE" \
-            --output-dir artifacts/osm-districts
+            --baseline-dir artifacts/osm-districts-baseline \\\n            --output-dir artifacts/osm-districts
 
       - name: Upload raw responses and review datasets
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: osm-district-boundaries-${{ github.run_number }}
+          name: osm-district-sync-${{ github.run_number }}
           path: artifacts/osm-districts/
           if-no-files-found: error
           retention-days: 30
