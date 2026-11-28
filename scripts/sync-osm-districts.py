@@ -24,9 +24,20 @@ def write_json(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def find_dataset_root(path):
+    """Accept either a dataset directory or gh run download's artifact subdirectory."""
+    candidates = [path] + [p for p in path.rglob("*") if p.is_dir()]
+    for candidate in candidates:
+        if (candidate / "india-osm-districts.json").is_file() and (candidate / "india-osm-district-boundaries.geojson").is_file():
+            return candidate
+    raise RuntimeError(f"No complete OSM baseline dataset found under {path}")
+
 def load_baseline(path):
-    records = read_json(path / "india-osm-districts.json", {}).get("results", [])
-    boundaries = read_json(path / "india-osm-district-boundaries.geojson", {}).get("features", [])
+    root = find_dataset_root(path)
+    records = read_json(root / "india-osm-districts.json", {}).get("results", [])
+    boundaries = read_json(root / "india-osm-district-boundaries.geojson", {}).get("features", [])
+    if not records or not boundaries:
+        raise RuntimeError(f"Baseline at {root} is empty or incomplete; refusing to start a full refetch")
     return ({str(row["osm_id"]): row for row in records if row.get("osm_id")},
             {str(feature.get("properties", {}).get("osm_id")): feature
              for feature in boundaries if feature.get("properties", {}).get("osm_id")})
@@ -129,7 +140,11 @@ def main():
         report["new_relations"].extend(new_ids)
         report["updated_relations"].extend(changed_ids)
         report["unchanged_relations"].extend(unchanged_ids)
-        report["removed_candidates"].extend(sorted(previous_ids - set(found), key=int))
+        # A removal candidate is meaningful only when both strategies succeeded and agree.
+        # Partial discovery must never turn valid existing records into apparent removals.
+        discovery_verified = len(strategies) == 2 and not errors and not discrepancy
+        if discovery_verified:
+            report["removed_candidates"].extend(sorted(previous_ids - set(found), key=int))
 
         needs_geometry = [
             row for key, row in found.items()
@@ -137,13 +152,19 @@ def main():
                 boundary_by_id[key].get("properties", {}).get("osm_version") != row.get("osm_version"))
         ]
         if needs_geometry:
-            temp = out / "_geometry"
+            temp = out / "_geometry" / osm.slug(state["name"])
+            temp.mkdir(parents=True, exist_ok=True)
             geom_report = osm.fetch_boundaries(needs_geometry, temp, args.attempts,
                                                args.delay_seconds, args.geometry_batch_size)
             new_features = read_json(temp / "india-osm-district-boundaries.geojson", {}).get("features", [])
+            versions = {str(row["osm_id"]): row for row in needs_geometry}
             for feature in new_features:
                 key = str(feature.get("properties", {}).get("osm_id"))
-                boundary_by_id[key] = feature
+                if key in versions:
+                    feature.setdefault("properties", {})["osm_version"] = versions[key].get("osm_version")
+                    feature["properties"]["osm_timestamp"] = versions[key].get("osm_timestamp")
+                    feature["properties"]["osm_changeset"] = versions[key].get("osm_changeset")
+                    boundary_by_id[key] = feature
             report["geometry"]["fetched"] += geom_report["fetched_relations"]
             report["geometry"]["failed"].extend(geom_report["failed_batches"])
             report["geometry"]["missing"].extend(geom_report["missing_geometry"])
