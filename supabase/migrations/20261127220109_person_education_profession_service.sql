@@ -48,21 +48,19 @@ create table public.service (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   abbreviation text,
+  service_type text,
+  parent_service_id uuid references public.service(id) on delete set null,
+  recruitment_authority text,
+  recruitment_examination text,
   description text,
-  category text,
-  source text not null default 'citizenaction',
-  source_id text,
-  metadata jsonb not null default '{}'::jsonb,
-  is_active boolean not null default true,
+  status text not null default 'active',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint service_name_chk check (length(btrim(name)) > 0),
-  constraint service_source_chk check (length(btrim(source)) > 0)
+  constraint service_status_chk check (status in ('active', 'inactive', 'discontinued'))
 );
 
-create unique index service_source_identity_uidx
-  on public.service (source, source_id)
-  where source_id is not null;
+create index service_parent_service_id_idx on public.service(parent_service_id);
 create index service_name_search_idx on public.service using gin (to_tsvector('simple', name));
 
 -- Public directory person relationships.
@@ -100,22 +98,25 @@ create table public.person_profession (
 create unique index person_profession_one_primary_uidx on public.person_profession(person_id) where is_primary;
 create index person_profession_profession_id_idx on public.person_profession(profession_id);
 
-create table public.person_service (
+create table public.person_service_affiliation (
   id uuid primary key default gen_random_uuid(),
   person_id uuid not null references public.person(id) on delete cascade,
   service_id uuid not null references public.service(id) on delete restrict,
-  is_primary boolean not null default false,
-  visibility text not null default 'public',
-  verification_status text not null default 'unverified',
-  metadata jsonb not null default '{}'::jsonb,
+  started_at date,
+  ended_at date,
+  specialisation text,
+  notes text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint person_service_visibility_chk check (visibility in ('public', 'private')),
-  constraint person_service_verification_chk check (verification_status in ('unverified', 'self_declared', 'source_matched', 'document_verified', 'officially_verified')),
-  constraint person_service_unique unique (person_id, service_id)
+  constraint person_service_affiliation_dates_chk
+    check (ended_at is null or started_at is null or ended_at >= started_at),
+  constraint person_service_affiliation_unique
+    unique (person_id, service_id, started_at)
 );
-create unique index person_service_one_primary_uidx on public.person_service(person_id) where is_primary;
-create index person_service_service_id_idx on public.person_service(service_id);
+create index person_service_affiliation_service_id_idx
+  on public.person_service_affiliation(service_id);
+create index person_service_affiliation_person_dates_idx
+  on public.person_service_affiliation(person_id, started_at, ended_at);
 
 -- Registered profile relationships. No profile_service table by design.
 create table public.profile_education (
@@ -158,15 +159,15 @@ alter table public.profession enable row level security;
 alter table public.service enable row level security;
 alter table public.person_education enable row level security;
 alter table public.person_profession enable row level security;
-alter table public.person_service enable row level security;
+alter table public.person_service_affiliation enable row level security;
 alter table public.profile_education enable row level security;
 alter table public.profile_profession enable row level security;
 
 grant select on public.education, public.profession, public.service to anon, authenticated;
 grant insert, update, delete on public.education, public.profession, public.service to authenticated;
-grant select on public.person_education, public.person_profession, public.person_service,
+grant select on public.person_education, public.person_profession, public.person_service_affiliation,
   public.profile_education, public.profile_profession to anon, authenticated;
-grant insert, update, delete on public.person_education, public.person_profession, public.person_service,
+grant insert, update, delete on public.person_education, public.person_profession, public.person_service_affiliation,
   public.profile_education, public.profile_profession to authenticated;
 
 -- Catalogues are publicly readable; only platform admins can maintain them.
@@ -198,9 +199,8 @@ create policy person_profession_admin_write on public.person_profession for all 
   using (exists (select 1 from public.profile p where p.user_id = (select auth.uid()) and p.role = 'admin'))
   with check (exists (select 1 from public.profile p where p.user_id = (select auth.uid()) and p.role = 'admin'));
 
-create policy person_service_public_read on public.person_service for select to anon, authenticated
-  using (visibility = 'public' or exists (select 1 from public.profile p where p.user_id = (select auth.uid()) and p.role = 'admin'));
-create policy person_service_admin_write on public.person_service for all to authenticated
+create policy person_service_affiliation_public_read on public.person_service_affiliation for select to anon, authenticated using (true);
+create policy person_service_affiliation_admin_write on public.person_service_affiliation for all to authenticated
   using (exists (select 1 from public.profile p where p.user_id = (select auth.uid()) and p.role = 'admin'))
   with check (exists (select 1 from public.profile p where p.user_id = (select auth.uid()) and p.role = 'admin'));
 
@@ -223,11 +223,11 @@ create policy profile_profession_owner_write on public.profile_profession for al
   with check (profile_user_id = (select auth.uid())
     or exists (select 1 from public.profile p where p.user_id = (select auth.uid()) and p.role = 'admin'));
 
-comment on table public.education is 'Education institutions catalogue. geography_id links the institution to its canonical Citizen Action geography, normally its district.';
-comment on table public.profession is 'Profession and occupation catalogue. NCO identifiers are stored as source=nco and source_id=<NCO code>. parent_id preserves catalogue hierarchy.';
-comment on table public.service is 'Government and other formal service catalogue. Service affiliations are recorded for public directory people only.';
+comment on table public.education is 'AISHE education institution catalogue. source_id stores the AISHE institution code; geography_id links the institution to its canonical Citizen Action geography, normally its district.';
+comment on table public.profession is 'Occupation catalogue sourced from ESCO. Store the ESCO occupation URI in source_id and the source version in metadata; parent_id preserves occupation hierarchy.';
+comment on table public.service is 'Formal service catalogue with service type, parent service, recruitment authority, and recruitment examination.';
 comment on table public.person_education is 'Many-to-many links between public directory people and education institutions.';
 comment on table public.person_profession is 'Many-to-many links between public directory people and professions.';
-comment on table public.person_service is 'Many-to-many links between public directory people and services.';
+comment on table public.person_service_affiliation is 'A public directory person''s service affiliation and service history.';
 comment on table public.profile_education is 'Many-to-many links between registered profiles and education institutions; public by default.';
 comment on table public.profile_profession is 'Many-to-many links between registered profiles and professions; public by default.';
