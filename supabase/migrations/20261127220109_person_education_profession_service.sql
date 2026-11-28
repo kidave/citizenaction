@@ -84,8 +84,7 @@ create index person_education_education_id_idx on public.person_education(educat
 create table public.person_profession (
   id uuid primary key default gen_random_uuid(),
   person_id uuid not null references public.person(id) on delete cascade,
-  profession_id uuid references public.profession(id) on delete restrict,
-  custom_title text,
+  profession_id uuid not null references public.profession(id) on delete restrict,
   is_primary boolean not null default false,
   visibility text not null default 'public',
   verification_status text not null default 'unverified',
@@ -94,10 +93,8 @@ create table public.person_profession (
   updated_at timestamptz not null default now(),
   constraint person_profession_visibility_chk check (visibility in ('public', 'private')),
   constraint person_profession_verification_chk check (verification_status in ('unverified', 'self_declared', 'source_matched', 'document_verified', 'officially_verified')),
-  constraint person_profession_choice_chk check ((profession_id is not null and custom_title is null) or (profession_id is null and length(btrim(custom_title)) > 0)),
   constraint person_profession_unique unique (person_id, profession_id)
 );
-create unique index person_profession_custom_title_uidx on public.person_profession(person_id, lower(btrim(custom_title))) where custom_title is not null;
 create unique index person_profession_one_primary_uidx on public.person_profession(person_id) where is_primary;
 create index person_profession_profession_id_idx on public.person_profession(profession_id);
 
@@ -151,10 +148,8 @@ create table public.profile_profession (
   updated_at timestamptz not null default now(),
   constraint profile_profession_visibility_chk check (visibility in ('public', 'private')),
   constraint profile_profession_verification_chk check (verification_status in ('unverified', 'self_declared', 'source_matched', 'document_verified', 'officially_verified')),
-  constraint profile_profession_choice_chk check ((profession_id is not null and custom_title is null) or (profession_id is null and length(btrim(custom_title)) > 0)),
   constraint profile_profession_unique unique (profile_user_id, profession_id)
 );
-create unique index profile_profession_custom_title_uidx on public.profile_profession(profile_user_id, lower(btrim(custom_title))) where custom_title is not null;
 create unique index profile_profession_one_primary_uidx on public.profile_profession(profile_user_id) where is_primary;
 create index profile_profession_profession_id_idx on public.profile_profession(profession_id);
 
