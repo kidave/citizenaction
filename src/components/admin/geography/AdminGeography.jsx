@@ -6,6 +6,7 @@ import GeographyEditor from "@/components/admin/geography/GeographyEditor";
 import DigitalSansadDiagnostics from "@/components/admin/geography/DigitalSansadDiagnostics";
 import ConstituencyMappingReview from "@/components/admin/geography/ConstituencyMappingReview";
 import OsmDistrictFetch from "@/components/admin/geography/OsmDistrictFetch";
+import OsmLgdDistrictReview from "@/components/admin/geography/OsmLgdDistrictReview";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,7 @@ export default function AdminGeography({ embedded = false }) {
         <Button onClick={() => { setEditing(null); setEditorOpen(true); }}><Plus className="mr-2 h-4 w-4" />Add geography</Button>
       </div>
       <OsmDistrictFetch />
+      <OsmLgdDistrictReview />
       <div className="grid gap-3 sm:grid-cols-[180px_180px_1fr]">
         <Select value={category} onValueChange={(v) => { setCategory(v); setType("all"); }}>
           <SelectTrigger><SelectValue placeholder="Boundary category" /></SelectTrigger>
