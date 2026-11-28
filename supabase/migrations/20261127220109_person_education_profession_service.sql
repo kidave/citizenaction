@@ -7,14 +7,14 @@ create table public.education (
   institution_type text,
   geography_id uuid references public.geographies(id) on delete set null,
   website text,
-  source text not null default 'citizenaction',
+  source text not null default 'aishe',
   source_id text,
   metadata jsonb not null default '{}'::jsonb,
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint education_name_chk check (length(btrim(name)) > 0),
-  constraint education_source_chk check (length(btrim(source)) > 0)
+  constraint education_source_chk check (source = 'aishe')
 );
 
 create unique index education_source_identity_uidx
@@ -28,14 +28,14 @@ create table public.profession (
   name text not null,
   description text,
   parent_id uuid references public.profession(id) on delete set null,
-  source text not null default 'citizenaction',
+  source text not null default 'esco',
   source_id text,
   metadata jsonb not null default '{}'::jsonb,
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint profession_name_chk check (length(btrim(name)) > 0),
-  constraint profession_source_chk check (length(btrim(source)) > 0)
+  constraint profession_source_chk check (source = 'esco')
 );
 
 create unique index profession_source_identity_uidx
@@ -153,7 +153,7 @@ create table public.profile_profession (
 create unique index profile_profession_one_primary_uidx on public.profile_profession(profile_user_id) where is_primary;
 create index profile_profession_profession_id_idx on public.profile_profession(profession_id);
 
--- All six relationship tables and the three catalogues are exposed with RLS.
+-- All five relationship tables and the three catalogues are exposed with RLS.
 alter table public.education enable row level security;
 alter table public.profession enable row level security;
 alter table public.service enable row level security;
