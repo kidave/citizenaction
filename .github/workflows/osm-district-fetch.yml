@@ -47,7 +47,7 @@ jobs:
           python-version: "3.12"
 
       - name: Validate fetcher syntax
-        run: python -m py_compile scripts/fetch-osm-districts.py scripts/sync-osm-districts.py
+        run: python -m py_compile scripts/fetch-osm-districts.py scripts/sync-osm-districts.py scripts/reconcile-osm-districts.py
 
       - name: Restore latest completed OSM dataset
         env:
