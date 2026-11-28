@@ -28,7 +28,9 @@ def main():
     parser.add_argument("--output", default="artifacts/osm-reconciliation")
     args = parser.parse_args()
 
-    db_rows = load_json(args.supabase_export)
+    db_payload = load_json(args.supabase_export)
+    # Supabase SQL Editor returns a named column object; also accept a bare JSON array.
+    db_rows = db_payload.get("districts", []) if isinstance(db_payload, dict) else db_payload
     osm_payload = load_json(args.osm_districts)
     osm_rows = osm_payload.get("results", [])
     if not isinstance(db_rows, list) or not isinstance(osm_rows, list):
