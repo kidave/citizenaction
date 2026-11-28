@@ -154,17 +154,20 @@ def main():
         if needs_geometry:
             temp = out / "_geometry" / osm.slug(state["name"])
             temp.mkdir(parents=True, exist_ok=True)
-            geom_report = osm.fetch_boundaries(needs_geometry, temp, args.attempts,
-                                               args.delay_seconds, args.geometry_batch_size)
-            new_features = read_json(temp / "india-osm-district-boundaries.geojson", {}).get("features", [])
             versions = {str(row["osm_id"]): row for row in needs_geometry}
-            for feature in new_features:
-                key = str(feature.get("properties", {}).get("osm_id"))
-                if key in versions:
-                    feature.setdefault("properties", {})["osm_version"] = versions[key].get("osm_version")
-                    feature["properties"]["osm_timestamp"] = versions[key].get("osm_timestamp")
-                    feature["properties"]["osm_changeset"] = versions[key].get("osm_changeset")
-                    boundary_by_id[key] = feature
+            def persist_geometry_batch(features, batch_report):
+                for feature in features:
+                    key = str(feature.get("properties", {}).get("osm_id"))
+                    if key in versions:
+                        feature.setdefault("properties", {})["osm_version"] = versions[key].get("osm_version")
+                        feature["properties"]["osm_timestamp"] = versions[key].get("osm_timestamp")
+                        feature["properties"]["osm_changeset"] = versions[key].get("osm_changeset")
+                        boundary_by_id[key] = feature
+                write_outputs(out, current, boundary_by_id, report)
+            geom_report = osm.fetch_boundaries(
+                needs_geometry, temp, args.attempts, args.delay_seconds,
+                args.geometry_batch_size, checkpoint=persist_geometry_batch
+            )
             report["geometry"]["fetched"] += geom_report["fetched_relations"]
             report["geometry"]["failed"].extend(geom_report["failed_batches"])
             report["geometry"]["missing"].extend(geom_report["missing_geometry"])
