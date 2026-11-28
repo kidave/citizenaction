@@ -15,8 +15,9 @@ It does not write to Supabase or modify `public.geographies`.
 4. Keep the default geometry batch size unless Overpass is timing out.
 5. Download the `osm-district-sync-*` artifact for review.
 
-The workflow restores the latest completed **main-branch** run's artifact as its
-baseline (including the original full-fetch artifact). It validates that the
+The workflow restores the latest completed run on the selected branch as its
+baseline, falling back to the latest completed **main-branch** run (including
+the original full-fetch artifact) when the selected branch has no prior run. It validates that the
 dataset files exist and fails closed rather than silently treating a malformed
 baseline as empty. A subsequent run reuses the restored dataset. Geometry is
 checkpointed into the consolidated output after every batch, so a failed run's
@@ -59,8 +60,8 @@ non-zero when these issues are present, but preserves the exported data and
 the last known geometry for review.
 
 The workflow artifact is the cross-run resume mechanism; the runner's local
-filesystem is not treated as persistent storage. The latest completed
-main-branch workflow artifact is used as the next baseline. Artifacts are
+filesystem is not treated as persistent storage. The latest completed workflow artifact on the selected branch (or main as the
+initial fallback) is used as the next baseline. Artifacts are
 retained for 30 days. A state with failed discovery or strategy disagreement
 does not generate removal candidates.
 
