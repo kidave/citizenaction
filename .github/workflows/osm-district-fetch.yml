@@ -54,12 +54,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p artifacts/osm-districts-baseline
-          BASELINE_RUN_ID="$(gh run list --workflow osm-district-fetch.yml --status completed --limit 20 --json databaseId --jq '.[0].databaseId // empty')"
+          BASELINE_RUN_ID="$(gh run list --workflow osm-district-fetch.yml --branch main --status completed --limit 20 --json databaseId --jq '.[0].databaseId // empty')"
           if [ -n "$BASELINE_RUN_ID" ]; then
-            echo "Restoring OSM baseline from workflow run $BASELINE_RUN_ID"
-            gh run download "$BASELINE_RUN_ID" --dir artifacts/osm-districts-baseline || true
+            echo "Restoring OSM baseline from latest completed main-branch run $BASELINE_RUN_ID"
+            gh run download "$BASELINE_RUN_ID" --dir artifacts/osm-districts-baseline
+            if ! find artifacts/osm-districts-baseline -type f -name india-osm-districts.json -print -quit | grep -q .; then
+              echo "::error::The restored artifact does not contain the OSM district dataset."
+              exit 1
+            fi
           else
-            echo "No completed OSM dataset found; this run will establish the initial baseline."
+            echo "No completed main-branch OSM dataset found; establishing the initial baseline."
           fi
 
       - name: Fetch district relations and boundary geometry
@@ -69,12 +73,16 @@ jobs:
           DELAY_SECONDS: ${{ inputs.delay_seconds || '3' }}
           GEOMETRY_BATCH_SIZE: ${{ inputs.geometry_batch_size || '10' }}
         run: |
+          BASELINE_ARGS=()
+          if find artifacts/osm-districts-baseline -type f -name india-osm-districts.json -print -quit | grep -q .; then
+            BASELINE_ARGS+=(--baseline-dir artifacts/osm-districts-baseline)
+          fi
           python scripts/sync-osm-districts.py \
             --state "$STATE" \
             --attempts "$ATTEMPTS" \
             --delay-seconds "$DELAY_SECONDS" \
             --geometry-batch-size "$GEOMETRY_BATCH_SIZE" \
-            --baseline-dir artifacts/osm-districts-baseline \
+            "${BASELINE_ARGS[@]}" \
             --output-dir artifacts/osm-districts
 
       - name: Upload raw responses and review datasets
