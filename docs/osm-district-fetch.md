@@ -15,12 +15,12 @@ It does not write to Supabase or modify `public.geographies`.
 4. Keep the default geometry batch size unless Overpass is timing out.
 5. Download the `osm-district-sync-*` artifact for review.
 
-The workflow restores the latest completed run's artifact as its baseline. The
-current run writes a complete dataset checkpoint after each state and uploads
-its output even when the fetch step fails. A subsequent run can therefore reuse
-the last uploaded checkpoint instead of starting the geometry export from
-zero. GitHub Actions cancellation and hard runner termination can still prevent
-the final artifact-upload step; completed runs are the durable baseline.
+The workflow restores the latest completed **main-branch** run's artifact as its
+baseline (including the original full-fetch artifact). It validates that the
+dataset files exist and fails closed rather than silently treating a malformed
+baseline as empty. A subsequent run reuses the restored dataset. Geometry is
+checkpointed into the consolidated output after every batch, so a failed run's
+uploaded artifact can resume from already completed geometry.
 
 ## Incremental comparison
 
@@ -58,10 +58,11 @@ and failed batches are recorded in `fetch-report.json`. The workflow exits
 non-zero when these issues are present, but preserves the exported data and
 the last known geometry for review.
 
-A checkpoint is written after each state. The workflow artifact is the
-cross-run resume mechanism; the runner's local filesystem is not treated as
-persistent storage. The latest completed workflow artifact is used as the next
-baseline. Artifacts are retained for 30 days.
+The workflow artifact is the cross-run resume mechanism; the runner's local
+filesystem is not treated as persistent storage. The latest completed
+main-branch workflow artifact is used as the next baseline. Artifacts are
+retained for 30 days. A state with failed discovery or strategy disagreement
+does not generate removal candidates.
 
 ## Artifact contents
 
@@ -83,3 +84,31 @@ is polygon topology.
 This workflow is strictly read-only. It has no Supabase credentials and does
 not call database RPCs or write to `public.geographies`. Review OSM relation
 coverage and reconcile LGD codes separately before any import.
+
+## Supabase reconciliation and historical districts
+
+The OSM workflow itself remains read-only and does not need Supabase credentials.
+To compare the OSM export with existing geography records:
+
+1. Run `scripts/export-district-snapshot.sql` in the Supabase SQL editor.
+2. Save the returned JSON array as `supabase-districts.json`.
+3. Run:
+
+```bash
+python scripts/reconcile-osm-districts.py \
+  --supabase-export supabase-districts.json \
+  --osm-districts artifacts/osm-districts/india-osm-districts.json \
+  --output artifacts/osm-reconciliation
+```
+
+The report matches exact `osm_id` first, then OSM relation `source_id`.
+Same-state normalized district names are only candidate evidence; they are
+never sufficient to merge or deactivate records. The report identifies new
+OSM insert candidates, possible historical/replaced records, and ambiguous
+matches. LGD references from OSM are included for manual cross-checking.
+
+**Inactivation policy:** preserve old geography UUIDs, geometries and references.
+Only mark an older district `inactive` after a replacement is verified using
+OSM identity plus LGD and/or boundary evidence. Never deactivate records merely
+because they are absent from an incomplete discovery result. No automatic
+Supabase updates are performed by these scripts.
