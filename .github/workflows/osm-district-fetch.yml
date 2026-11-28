@@ -25,6 +25,7 @@ on:
         type: string
 
 permissions:
+  actions: read
   contents: read
 
 concurrency:
@@ -46,7 +47,29 @@ jobs:
           python-version: "3.12"
 
       - name: Validate fetcher syntax
-        run: python -m py_compile scripts/fetch-osm-districts.py
+        run: python -m py_compile scripts/fetch-osm-districts.py scripts/sync-osm-districts.py scripts/reconcile-osm-districts.py
+
+      - name: Restore latest completed OSM dataset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p artifacts/osm-districts-baseline
+          BASELINE_RUN_ID="$(gh run list --workflow osm-district-fetch.yml --branch "$GITHUB_REF_NAME" --status completed --limit 20 --json databaseId --jq '.[0].databaseId // empty')"
+          BASELINE_BRANCH="$GITHUB_REF_NAME"
+          if [ -z "$BASELINE_RUN_ID" ] && [ "$GITHUB_REF_NAME" != "main" ]; then
+            BASELINE_RUN_ID="$(gh run list --workflow osm-district-fetch.yml --branch main --status completed --limit 20 --json databaseId --jq '.[0].databaseId // empty')"
+            BASELINE_BRANCH="main"
+          fi
+          if [ -n "$BASELINE_RUN_ID" ]; then
+            echo "Restoring OSM baseline from latest completed $BASELINE_BRANCH run $BASELINE_RUN_ID"
+            gh run download "$BASELINE_RUN_ID" --dir artifacts/osm-districts-baseline
+            if ! find artifacts/osm-districts-baseline -type f -name india-osm-districts.json -print -quit | grep -q .; then
+              echo "::error::The restored artifact does not contain the OSM district dataset."
+              exit 1
+            fi
+          else
+            echo "No completed main-branch OSM dataset found; establishing the initial baseline."
+          fi
 
       - name: Fetch district relations and boundary geometry
         env:
@@ -55,18 +78,23 @@ jobs:
           DELAY_SECONDS: ${{ inputs.delay_seconds || '3' }}
           GEOMETRY_BATCH_SIZE: ${{ inputs.geometry_batch_size || '10' }}
         run: |
-          python scripts/fetch-osm-districts.py \
+          BASELINE_ARGS=()
+          if find artifacts/osm-districts-baseline -type f -name india-osm-districts.json -print -quit | grep -q .; then
+            BASELINE_ARGS+=(--baseline-dir artifacts/osm-districts-baseline)
+          fi
+          python scripts/sync-osm-districts.py \
             --state "$STATE" \
             --attempts "$ATTEMPTS" \
             --delay-seconds "$DELAY_SECONDS" \
             --geometry-batch-size "$GEOMETRY_BATCH_SIZE" \
+            "${BASELINE_ARGS[@]}" \
             --output-dir artifacts/osm-districts
 
       - name: Upload raw responses and review datasets
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: osm-district-boundaries-${{ github.run_number }}
+          name: osm-district-sync-${{ github.run_number }}
           path: artifacts/osm-districts/
           if-no-files-found: error
           retention-days: 30

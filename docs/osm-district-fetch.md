@@ -1,73 +1,115 @@
-# OSM district and boundary fetch
+# OSM district incremental sync
 
-This read-only workflow discovers India's OSM state/UT relations (admin_level=4),
-then discovers district relations (admin_level=5) within each state using public
-Overpass API instances. It exports relation-member boundary linework for review.
+This read-only workflow discovers India's OSM state/UT relations (admin_level=4)
+and district relations (admin_level=5) through the existing public Overpass
+endpoints. It compares relation metadata with the latest completed workflow
+artifact and downloads geometry only for new or changed relations.
+
 It does not write to Supabase or modify `public.geographies`.
 
 ## Run
 
 1. Open **Actions → Fetch OSM Districts and Boundaries → Run workflow**.
-2. Select this feature branch.
-3. Set `state` to `all` or an exact OSM state/UT name, such as `Maharashtra`.
-4. Keep the default geometry batch size (10) unless an Overpass instance is
-   returning timeouts; smaller batches reduce per-request load.
-5. Download the workflow artifact after completion, including when a run fails.
+2. Select the branch containing this workflow.
+3. Set `state` to `all` or an exact OSM state/UT name.
+4. Keep the default geometry batch size unless Overpass is timing out.
+5. Download the `osm-district-sync-*` artifact for review.
 
-The workflow must first exist on the repository's default branch to appear in
-GitHub Actions as a manually dispatchable workflow. Until then, run it from this
-branch using the workflow page/branch selector if GitHub exposes it, or merge
-only after review.
+The workflow restores the latest completed run on the selected branch as its
+baseline, falling back to the latest completed **main-branch** run (including
+the original full-fetch artifact) when the selected branch has no prior run. It validates that the
+dataset files exist and fails closed rather than silently treating a malformed
+baseline as empty. A subsequent run reuses the restored dataset. Geometry is
+checkpointed into the consolidated output after every batch, so a failed run's
+uploaded artifact can resume from already completed geometry.
 
-## District discovery and completeness
+## Incremental comparison
 
-For every state relation, the fetcher runs both independent Overpass area
-resolution strategies:
+For each selected state, the fetcher runs both Overpass area-resolution
+strategies:
 
 - Derived area ID: `3600000000 + state relation ID`.
 - Explicit conversion: fetch the state relation and use `map_to_area`.
 
-The results are unioned and deduplicated by OSM relation ID. The fetcher does
-not stop after the first non-empty response. It records each strategy's count,
-relation IDs, raw response, endpoint diagnostics, and any discrepancy between
-the two sets. Empty responses are not silently interpreted as a complete
-state result. Relations without a usable name are retained in the raw/normalized
-dataset and listed separately for review.
+The results are unioned and deduplicated by OSM relation ID. The fetcher
+compares each relation's OSM `version` and `timestamp` with the baseline:
 
-A state is marked complete only when both query strategies completed without
-request errors. A discrepancy between the strategies makes the workflow exit
-non-zero even though the union is preserved for inspection. This deliberately
-prevents a partial but valid Overpass response from being treated as verified
-coverage.
+- New relation: fetch and add its geometry.
+- Changed relation: refresh its geometry and metadata.
+- Unchanged relation: retain its existing geometry without another geometry request.
+- Missing from the latest discovery: flag as a removal candidate; retain it
+  until reviewed rather than deleting it automatically.
+- Failed or missing geometry: preserve an existing boundary when available and
+  report the failure for review.
 
-## Boundary geometry
+The initial run has no baseline and fetches geometry for all discovered
+relations. Because the existing full-export artifact does not include OSM
+version metadata on its features, the first incremental run against that legacy
+artifact will also refresh those boundaries once to establish versioned
+geometry. Subsequent runs fetch geometry only for additions, updates, or any
+relation whose geometry version is missing or stale.
+When the user selects one state, other states in the baseline are retained in
+the consolidated export.
 
-After district discovery, unique relation IDs are fetched in bounded batches
-using Overpass relation geometry output (`rel(id); out body geom;`). The
-exporter preserves the member-way coordinates as GeoJSON `MultiLineString`,
-matching the existing app fallback's line-based boundary representation. It
-does not attempt to invent polygon rings or claim that the output is Polygon
-geometry.
+## Completeness and review
 
-Missing relation geometry and failed batches are reported. A workflow is not
-green if a state is incomplete, the two discovery strategies disagree, or
-boundary geometry is missing/failed. Re-run the affected state or inspect the
-raw responses before considering the dataset ready for import.
+The two discovery strategies are both required for a state to be considered
+complete. Their relation-ID discrepancies, request errors, missing geometry,
+and failed batches are recorded in `fetch-report.json`. The workflow exits
+non-zero when these issues are present, but preserves the exported data and
+the last known geometry for review.
+
+The workflow artifact is the cross-run resume mechanism; the runner's local
+filesystem is not treated as persistent storage. The latest completed workflow artifact on the selected branch (or main as the
+initial fallback) is used as the next baseline. Artifacts are
+retained for 30 days. A state with failed discovery or strategy disagreement
+does not generate removal candidates.
 
 ## Artifact contents
 
-- `fetch-report.json`: state coverage, query discrepancies, unnamed relations,
-  geometry success/failure counts, and failed batches.
-- `india-osm-districts.json`: deduplicated district relation metadata.
-- `india-osm-district-centres.geojson`: district centre points for GIS review.
-- `india-osm-district-boundaries.geojson`: OSM relation member ways as
-  `MultiLineString` features.
-- `raw/india-states-index.json`: raw India state/UT relation index.
-- `raw/<state>-<strategy>.json`: raw per-state Overpass responses for both
-  district discovery strategies.
+- `fetch-report.json`: baseline size, per-state new/updated/unchanged counts,
+  removed candidates, query discrepancies, and geometry failures.
+- `india-osm-districts.json`: consolidated relation metadata including OSM
+  version, timestamp, and changeset.
+- `india-osm-district-centres.geojson`: district centre points.
+- `india-osm-district-boundaries.geojson`: relation member ways as GeoJSON
+  `MultiLineString` features, matching the existing app fallback.
+- `raw/india-states-index.json` and `raw/<state>-<strategy>.json`: raw
+  Overpass responses for auditing.
+
+The exporter deliberately does not invent polygon rings or claim the linework
+is polygon topology.
 
 ## Import policy
 
 This workflow is strictly read-only. It has no Supabase credentials and does
-not call database RPCs or write to `public.geographies`. Review the relation
-IDs and boundary output first; reconcile LGD codes as a separate later step.
+not call database RPCs or write to `public.geographies`. Review OSM relation
+coverage and reconcile LGD codes separately before any import.
+
+## Supabase reconciliation and historical districts
+
+The OSM workflow itself remains read-only and does not need Supabase credentials.
+To compare the OSM export with existing geography records:
+
+1. Run `scripts/export-district-snapshot.sql` in the Supabase SQL editor.
+2. Save the returned JSON array as `supabase-districts.json`.
+3. Run:
+
+```bash
+python scripts/reconcile-osm-districts.py \
+  --supabase-export supabase-districts.json \
+  --osm-districts artifacts/osm-districts/india-osm-districts.json \
+  --output artifacts/osm-reconciliation
+```
+
+The report matches exact `osm_id` first, then OSM relation `source_id`.
+Same-state normalized district names are only candidate evidence; they are
+never sufficient to merge or deactivate records. The report identifies new
+OSM insert candidates, possible historical/replaced records, and ambiguous
+matches. LGD references from OSM are included for manual cross-checking.
+
+**Inactivation policy:** preserve old geography UUIDs, geometries and references.
+Only mark an older district `inactive` after a replacement is verified using
+OSM identity plus LGD and/or boundary evidence. Never deactivate records merely
+because they are absent from an incomplete discovery result. No automatic
+Supabase updates are performed by these scripts.
