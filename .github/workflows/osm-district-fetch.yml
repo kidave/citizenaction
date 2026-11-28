@@ -54,9 +54,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p artifacts/osm-districts-baseline
-          BASELINE_RUN_ID="$(gh run list --workflow osm-district-fetch.yml --branch main --status completed --limit 20 --json databaseId --jq '.[0].databaseId // empty')"
+          BASELINE_RUN_ID="$(gh run list --workflow osm-district-fetch.yml --branch "$GITHUB_REF_NAME" --status completed --limit 20 --json databaseId --jq '.[0].databaseId // empty')"
+          BASELINE_BRANCH="$GITHUB_REF_NAME"
+          if [ -z "$BASELINE_RUN_ID" ] && [ "$GITHUB_REF_NAME" != "main" ]; then
+            BASELINE_RUN_ID="$(gh run list --workflow osm-district-fetch.yml --branch main --status completed --limit 20 --json databaseId --jq '.[0].databaseId // empty')"
+            BASELINE_BRANCH="main"
+          fi
           if [ -n "$BASELINE_RUN_ID" ]; then
-            echo "Restoring OSM baseline from latest completed main-branch run $BASELINE_RUN_ID"
+            echo "Restoring OSM baseline from latest completed $BASELINE_BRANCH run $BASELINE_RUN_ID"
             gh run download "$BASELINE_RUN_ID" --dir artifacts/osm-districts-baseline
             if ! find artifacts/osm-districts-baseline -type f -name india-osm-districts.json -print -quit | grep -q .; then
               echo "::error::The restored artifact does not contain the OSM district dataset."
